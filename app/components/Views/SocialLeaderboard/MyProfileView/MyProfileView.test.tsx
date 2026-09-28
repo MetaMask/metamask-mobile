@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking, Share } from 'react-native';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { TraderProfileResponse } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
@@ -470,6 +470,50 @@ describe('MyProfileView', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MANAGE_PROFILE);
+  });
+
+  it('still refreshes posts when live profile refresh rejects', async () => {
+    jest.useFakeTimers();
+    const refreshLiveProfile = jest
+      .fn()
+      .mockRejectedValue(new Error('offline'));
+    const refreshPosts = jest.fn().mockResolvedValue(undefined);
+    mockUseTraderProfile.mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: refreshLiveProfile,
+    });
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: refreshPosts,
+    });
+
+    try {
+      renderWithProvider(<MyProfileView />);
+      const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
+
+      await act(async () => {
+        const refreshPromise = scroll.props.refreshControl.props.onRefresh();
+        jest.advanceTimersByTime(1000);
+        await refreshPromise;
+      });
+
+      expect(refreshLiveProfile).toHaveBeenCalledTimes(1);
+      expect(refreshPosts).toHaveBeenCalledTimes(1);
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
   });
 
   it('retries after profile loading fails', () => {

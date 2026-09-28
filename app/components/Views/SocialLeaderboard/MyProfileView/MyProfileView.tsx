@@ -138,14 +138,14 @@ const MyProfileView: React.FC = () => {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
       );
-      await Promise.all([
+      // refreshLiveProfile rethrows after logging; allSettled keeps one
+      // failure from aborting the others and from becoming unhandled.
+      await Promise.allSettled([
         refresh(),
         refreshLiveProfile(),
         refreshPosts(),
         minDuration,
       ]);
-    } catch {
-      // Errors stay on the respective query surfaces.
     } finally {
       setRefreshing(false);
     }
