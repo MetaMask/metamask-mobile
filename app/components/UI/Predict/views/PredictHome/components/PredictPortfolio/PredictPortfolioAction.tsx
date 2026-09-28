@@ -5,9 +5,17 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
+  ButtonAnimated,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName,
-  MainActionButton,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 export interface PredictPortfolioActionProps {
@@ -29,6 +37,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   onPress,
   testID,
 }) => {
+  const tw = useTailwind();
   const showBadge = badgeCount > 0;
 
   return (
@@ -50,15 +59,36 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         style: { flex: 1 },
       }}
     >
-      <MainActionButton
+      <ButtonAnimated
         accessibilityLabel={accessibilityLabel ?? label}
-        isDisabled={disabled}
-        iconName={iconName}
-        label={label}
-        onPress={onPress}
+        accessible
+        disabled={disabled}
+        onPress={disabled ? undefined : onPress}
         testID={testID}
-        twClassName="w-full"
-      />
+        style={({ pressed }) =>
+          tw.style(
+            'w-full items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]',
+            pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted',
+            disabled ? 'opacity-50' : 'opacity-100',
+          )
+        }
+      >
+        <Icon
+          name={iconName}
+          size={IconSize.Lg}
+          color={IconColor.IconAlternative}
+        />
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          twClassName="mt-0.5 w-full text-center shrink"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {label}
+        </Text>
+      </ButtonAnimated>
     </BadgeWrapper>
   );
 };
