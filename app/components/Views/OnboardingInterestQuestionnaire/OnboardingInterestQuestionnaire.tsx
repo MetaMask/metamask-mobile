@@ -11,6 +11,7 @@ import {
   ButtonsAlignment,
   ButtonVariant,
   HeaderStandard,
+  TitleStandard,
   ListItemMultiSelect,
   ListItemVariant,
   Text,
@@ -18,7 +19,6 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';

@@ -67,11 +67,21 @@ const OtherBottomSheetContent = ({
     [clearFocusTimeout],
   );
 
+  const handleSheetClose = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (hasPendingAction) {
+        return;
+      }
+      onClose();
+    },
+    [onClose],
+  );
+
   const handleClose = useCallback(() => {
     clearFocusTimeout();
     Keyboard.dismiss();
-    bottomSheetRef.current?.onCloseBottomSheet(onClose);
-  }, [clearFocusTimeout, onClose]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, [clearFocusTimeout]);
 
   const trimmedDraftValue = draftValue.trim();
 
@@ -86,7 +96,7 @@ const OtherBottomSheetContent = ({
   const bottomSheet = (
     <BottomSheet
       ref={bottomSheetRef}
-      onClose={onClose}
+      onClose={handleSheetClose}
       onOpen={focusInputAfterSheetOpens}
       keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
       testID={OtherBottomSheetTestIds.BOTTOM_SHEET}
