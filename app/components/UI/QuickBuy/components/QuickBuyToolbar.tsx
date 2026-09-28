@@ -18,6 +18,7 @@ import { formatCurrency } from '../../Bridge/utils/currencyUtils';
 import { TouchableOpacity } from 'react-native';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+import { strings } from '../../../../../locales/i18n';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyToolbar: React.FC = () => {
@@ -61,32 +62,42 @@ const QuickBuyToolbar: React.FC = () => {
           <Box twClassName="h-10 w-10" />
         )}
         <Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
+          <TouchableOpacity
+            disabled={!showFullToggle}
+            accessibilityRole={showFullToggle ? 'button' : undefined}
+            accessibilityLabel={
+              showFullToggle
+                ? strings('social_leaderboard.quick_buy.change_trade_mode')
+                : undefined
+            }
+            onPress={() => setTradeMode(tradeMode === 'buy' ? 'sell' : 'buy')}
+            testID={showFullToggle ? 'quick-buy-trade-mode-toggle' : undefined}
           >
-            <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
-              {tradeMode === 'sell' ? 'Sell' : 'Buy'}{' '}
-              {headerToken?.symbol ?? target?.tokenSymbol ?? ''}
-            </Text>
-            {showFullToggle ? (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel="Change trade mode"
-                onPress={() =>
-                  setTradeMode(tradeMode === 'buy' ? 'sell' : 'buy')
-                }
-                testID="quick-buy-trade-mode-toggle"
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.HeadingSm}
+                color={TextColor.TextDefault}
               >
+                {strings(
+                  tradeMode === 'sell'
+                    ? 'social_leaderboard.quick_buy.sell_title'
+                    : 'social_leaderboard.quick_buy.title',
+                  { symbol: headerToken?.symbol ?? target?.tokenSymbol ?? '' },
+                )}
+              </Text>
+              {showFullToggle ? (
                 <Icon
                   name={DsIconName.SwapHorizontal}
                   size={IconSize.Sm}
                   color={IconColor.PrimaryDefault}
                 />
-              </TouchableOpacity>
-            ) : null}
-          </Box>
+              ) : null}
+            </Box>
+          </TouchableOpacity>
           {tokenPriceLabel ? (
             <Text
               variant={TextVariant.BodySm}

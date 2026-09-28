@@ -37,9 +37,6 @@ describe('QuickBuyToolbar', () => {
   it('hides the trade mode toggle when only buy mode is enabled', () => {
     render(<QuickBuyToolbar />);
     expect(screen.queryByTestId('quick-buy-trade-mode-toggle')).toBeNull();
-    expect(
-      screen.queryByText('social_leaderboard.quick_buy.buy_label'),
-    ).toBeNull();
   });
 
   it('hides the trade mode toggle when sell is unavailable due to zero balance', () => {

@@ -135,9 +135,12 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
   }
   if (sourceBalanceDisplay) {
-    secondaryLabel = `${sourceBalanceDisplay} Available`;
+    secondaryLabel = strings('social_leaderboard.quick_buy.available_balance', {
+      amount: sourceBalanceDisplay,
+    });
   }
-  if (hasInsufficientBalance) {
+  // Sell passes its balance line and keeps it when over balance; only Buy can add funds.
+  if (hasInsufficientBalance && !sourceBalanceDisplay) {
     secondaryLabel = strings('social_leaderboard.quick_buy.add_funds');
   }
   const amountColor = hasInsufficientBalance
