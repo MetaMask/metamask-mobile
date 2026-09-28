@@ -25,11 +25,18 @@ export const EmailOtpStubSelectorsIDs = {
 interface EmailOtpStubProps {
   onBack: () => void;
   onSuccess: (email: string) => void | Promise<void>;
+  initialEmail?: string;
 }
 
-const EmailOtpStub = ({ onBack, onSuccess }: EmailOtpStubProps) => {
+const EmailOtpStub = ({
+  onBack,
+  onSuccess,
+  initialEmail,
+}: EmailOtpStubProps) => {
   const tw = useTailwind();
-  const [email, setEmail] = useState('');
+  const boundEmail = initialEmail?.trim() ?? '';
+  const isBound = Boolean(boundEmail);
+  const [email, setEmail] = useState(boundEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const trimmedEmail = email.trim();
 
@@ -83,7 +90,8 @@ const EmailOtpStub = ({ onBack, onSuccess }: EmailOtpStubProps) => {
               placeholder={strings(
                 'virtual_bank_account.kyc_email.input_placeholder',
               )}
-              autoFocus
+              autoFocus={!isBound}
+              isReadOnly={isBound}
               inputProps={{
                 testID: EmailOtpStubSelectorsIDs.EMAIL_INPUT,
                 autoCapitalize: 'none',

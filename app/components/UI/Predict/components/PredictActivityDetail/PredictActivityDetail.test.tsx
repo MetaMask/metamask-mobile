@@ -249,6 +249,18 @@ describe('PredictActivityDetails', () => {
     expect(getByText('Yes')).toBeOnTheScreen();
   });
 
+  it('omits the net P&L divider when buy activity has no net P&L row', () => {
+    // Arrange & Act
+    const { queryByTestId } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    expect(
+      queryByTestId(PredictActivityDetailsSelectorsIDs.NET_PNL_DIVIDER),
+    ).toBeNull();
+  });
+
   it('renders predicted amount for buy activity', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(<PredictActivityDetails />, {
@@ -622,6 +634,28 @@ describe('PredictActivityDetails - Sell Activity', () => {
 
     // Assert
     expect(getByText('Net P&L')).toBeOnTheScreen();
+  });
+
+  it('spaces the net P&L divider evenly between price per share and net P&L', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    // Rows on both sides share the same vertical padding, so matching the
+    // divider's top margin to the section's bottom margin centres the rule.
+    const transactionSection = StyleSheet.flatten(
+      getByTestId(PredictActivityDetailsSelectorsIDs.TRANSACTION_SECTION).props
+        .style,
+    );
+    const divider = StyleSheet.flatten(
+      getByTestId(PredictActivityDetailsSelectorsIDs.NET_PNL_DIVIDER).props
+        .style,
+    );
+
+    expect(divider.marginTop).toBe(12);
+    expect(transactionSection.marginBottom).toBe(divider.marginTop);
   });
 });
 

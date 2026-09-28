@@ -9,7 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
-  LimitOrderStatus,
+  LimitOrderState,
   type LimitOrder,
 } from '../../api/limitOrders/getLimitOrders/types';
 import OpenOrderRow from '../OpenOrderRow';
@@ -36,19 +36,18 @@ function getLimitOrderRowSlots(
     symbol: destSymbol,
   });
 
-  switch (order.status) {
-    case LimitOrderStatus.Filled: {
-      const receivedAmount = order.dest.amount
-        ? formatLimitOrderAmount(order.dest.amount, order.dest.asset.decimals)
-        : undefined;
-
+  switch (order.state) {
+    case LimitOrderState.Filled:
       return {
         subtitle: strings('bridge.limit.filled_at', {
-          date: formatLimitOrderDate(order.filledAt),
+          date: formatLimitOrderDate(order.timingData.closedAt),
         }),
-        primaryValue: receivedAmount
-          ? `+${receivedAmount} ${destSymbol}`
-          : '--',
+        // The orders list only carries the guaranteed minimum, not the amount
+        // the fill actually delivered.
+        primaryValue: `+${formatLimitOrderAmount(
+          order.dest.amount,
+          order.dest.asset.decimals,
+        )} ${destSymbol}`,
         secondaryValue: `-${formatLimitOrderAmount(
           order.src.amount,
           order.src.asset.decimals,
@@ -60,13 +59,12 @@ function getLimitOrderRowSlots(
           </Tag>
         ),
       };
-    }
-    case LimitOrderStatus.Expired:
+    case LimitOrderState.Expired:
       return {
         subtitle: strings('bridge.limit.expired_after', {
           duration: formatLimitOrderExpiredDuration(
-            order.createdAt,
-            order.expiresAt,
+            order.timingData.createdAt,
+            order.timingData.expiresAt,
           ),
         }),
         primaryValue: stakedAmount,
@@ -77,10 +75,10 @@ function getLimitOrderRowSlots(
           </Tag>
         ),
       };
-    case LimitOrderStatus.Cancelled:
+    case LimitOrderState.Cancelled:
       return {
         subtitle: strings('bridge.limit.canceled_at', {
-          date: formatLimitOrderDate(order.cancelledAt),
+          date: formatLimitOrderDate(order.timingData.closedAt),
         }),
         primaryValue: stakedAmount,
         secondaryValue: limitPriceLabel,
@@ -90,10 +88,10 @@ function getLimitOrderRowSlots(
           </Tag>
         ),
       };
-    case LimitOrderStatus.Failed:
+    case LimitOrderState.Failed:
       return {
         subtitle: strings('bridge.limit.failed_at', {
-          date: formatLimitOrderDate(order.failedAt),
+          date: formatLimitOrderDate(order.timingData.closedAt),
         }),
         primaryValue: stakedAmount,
         secondaryValue: limitPriceLabel,
@@ -103,11 +101,11 @@ function getLimitOrderRowSlots(
           </Tag>
         ),
       };
-    case LimitOrderStatus.Open:
+    case LimitOrderState.Open:
     default:
       return {
         subtitle: strings('bridge.limit.expiry', {
-          timeLeft: formatLimitOrderTimeLeft(order.expiresAt),
+          timeLeft: formatLimitOrderTimeLeft(order.timingData.expiresAt),
         }),
         primaryValue: stakedAmount,
         secondaryValue: limitPriceLabel,
@@ -144,7 +142,7 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
       })}
       // Only an order that is still open can be cancelled, which is all the
       // details sheet offers today.
-      onPress={order.status === LimitOrderStatus.Open ? handlePress : undefined}
+      onPress={order.state === LimitOrderState.Open ? handlePress : undefined}
       {...slots}
     />
   );

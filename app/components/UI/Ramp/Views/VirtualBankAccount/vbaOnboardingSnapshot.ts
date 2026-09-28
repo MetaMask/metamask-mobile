@@ -12,6 +12,7 @@ export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
   sessionExists: false,
   vendorDisclaimersComplete: false,
   sessionDisclaimersComplete: false,
+  providerFlowStatus: 'not_started',
   kycStatus: 'none',
   autorampStatus: 'not_ready',
 };
