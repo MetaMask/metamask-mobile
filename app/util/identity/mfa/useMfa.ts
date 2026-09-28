@@ -1,0 +1,46 @@
+import { useSelector } from 'react-redux';
+import { selectEnrolledCredentials } from '../../../selectors/identity';
+import { mobileMfaControllerAdapter } from './bindings';
+import { startMfaFlow } from './engine/activeFlow';
+import type {
+  EnrollOptions,
+  MfaFlowResult,
+  VerifyOrEnrollOptions,
+} from './engine/types';
+
+const verifyOrEnroll = ({
+  reason,
+  ...request
+}: VerifyOrEnrollOptions): Promise<MfaFlowResult> =>
+  startMfaFlow({
+    request: { kind: 'verifyOrEnroll', ...request },
+    reason,
+    platform: 'mobile',
+    controller: mobileMfaControllerAdapter,
+  });
+
+const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
+  startMfaFlow({
+    request: { kind: 'enroll', method },
+    reason,
+    platform: 'mobile',
+    controller: mobileMfaControllerAdapter,
+  });
+
+/**
+ * The MFA kit for features and settings.
+ *
+ * - `verifyOrEnroll`: makes sure `methods` are set up, then, when
+ * `verifyWith` is set, resolves with a verification token proven with one of
+ * them. Rejects with `flow_cancelled` when the user backs out, or with the
+ * code of an error the kit has already shown.
+ * - `enroll`: sets up one method, for example from settings. No intro, no
+ * verification after.
+ * - `credentials`: the profile's methods, as last fetched from the server.
+ *
+ * @returns The kit's entry points and the credential list.
+ */
+export const useMfa = () => {
+  const credentials = useSelector(selectEnrolledCredentials);
+  return { credentials, verifyOrEnroll, enroll };
+};
