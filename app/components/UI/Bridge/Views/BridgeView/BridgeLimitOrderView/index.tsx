@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  RefreshControl,
   ScrollView,
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -39,7 +40,7 @@ import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOpt
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
-import { LimitOrderStatus } from '../../../api/limitOrders/getLimitOrders/types';
+import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
 import LimitOrderDetails from '../../../components/LimitOrderDetails';
@@ -49,8 +50,11 @@ import type {
   InputSectionRef,
 } from '../../../components/LimitOrderPriceAdjustCard/types';
 import {
+  HISTORY_LIMIT_ORDER_STATES,
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD,
+  OPEN_LIMIT_ORDER_STATES,
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
   getSwapsLimitOrderExpirationLabel,
   type SwapsLimitOrderExpirationMinutes,
@@ -78,15 +82,6 @@ const formatTokenAmountValue = (
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-const OPEN_ORDER_STATUSES = [LimitOrderStatus.Open];
-const HISTORY_ORDER_STATUSES = [
-  LimitOrderStatus.Filled,
-  LimitOrderStatus.Expired,
-  LimitOrderStatus.Cancelled,
-  LimitOrderStatus.Failed,
-];
-const LOAD_MORE_SCROLL_THRESHOLD = 200;
-
 const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
@@ -100,6 +95,7 @@ const BridgeLimitOrderViewContent = () => {
   const [activeOrdersTab, setActiveOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
   );
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -120,13 +116,13 @@ const BridgeLimitOrderViewContent = () => {
   } = useLimitOrderSwapInputs();
   const openOrdersQuery = useLimitOrders({
     walletAddress,
-    status: OPEN_ORDER_STATUSES,
+    states: OPEN_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
   });
   const historyQuery = useLimitOrders({
     walletAddress,
-    status: HISTORY_ORDER_STATUSES,
+    states: HISTORY_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: activeOrdersTab === OrdersTabKey.History,
   });
@@ -263,7 +259,7 @@ const BridgeLimitOrderViewContent = () => {
         nativeEvent.layoutMeasurement.height -
         nativeEvent.contentOffset.y;
 
-      if (distanceFromBottom > LOAD_MORE_SCROLL_THRESHOLD) {
+      if (distanceFromBottom > LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD) {
         return;
       }
 
@@ -276,6 +272,20 @@ const BridgeLimitOrderViewContent = () => {
     },
     [activeOrdersTab, historyQuery, openOrdersQuery],
   );
+
+  const handleOrdersRefresh = useCallback(async () => {
+    const activeOrdersQuery =
+      activeOrdersTab === OrdersTabKey.OpenOrders
+        ? openOrdersQuery
+        : historyQuery;
+
+    setIsRefreshingOrders(true);
+    try {
+      await activeOrdersQuery.refresh();
+    } finally {
+      setIsRefreshingOrders(false);
+    }
+  }, [activeOrdersTab, historyQuery, openOrdersQuery]);
 
   const onSourceInputPress = useCallback(() => {
     commitCustomPercentIfFocused();
@@ -440,6 +450,12 @@ const BridgeLimitOrderViewContent = () => {
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleOrdersScroll}
           scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshingOrders}
+              onRefresh={handleOrdersRefresh}
+            />
+          }
         >
           <Box
             twClassName="flex-1"
