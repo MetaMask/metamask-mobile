@@ -61,6 +61,9 @@ export interface ExploreSearchInteractedProperties {
   position?: number;
   /** Total number of results visible to the user at the time of the interaction. */
   result_count?: number;
+  /** Only set on result_clicked for tokens and stocks. */
+  token_name?: string;
+  token_symbol?: string;
 }
 
 export type ExploreTabName =

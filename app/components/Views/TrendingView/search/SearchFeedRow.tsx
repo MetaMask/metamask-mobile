@@ -12,7 +12,11 @@ import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
-import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import {
+  trackExploreSearchEvent,
+  type ExploreSearchInteractedProperties,
+  type SearchFeedPill,
+} from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import EarnSearchRow from './EarnSearchRow';
@@ -46,6 +50,20 @@ export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   }
 };
 
+export const getTokenIdentityProperties = (
+  feedId: SearchFeedId,
+  item: unknown,
+): Pick<ExploreSearchInteractedProperties, 'token_name' | 'token_symbol'> => {
+  if (feedId !== 'tokens' && feedId !== 'stocks') {
+    return {};
+  }
+  const { name, symbol } = item as TrendingAsset;
+  return {
+    ...(name ? { token_name: name } : {}),
+    ...(symbol ? { token_symbol: symbol } : {}),
+  };
+};
+
 /** Renders a search-result row for any feed and tracks taps with analytics. */
 const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   feedId,
@@ -70,6 +88,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       item_clicked: getItemId(feedId, item),
       position: index,
       result_count: resultCountRef.current,
+      ...getTokenIdentityProperties(feedId, item),
     });
   }, [feedId, tabName, item, index]);
 

@@ -10,6 +10,7 @@ import SearchFeedRow, {
   SearchFeedSkeleton,
   PERPS_ROW_WRAPPER_TEST_ID,
   getItemId,
+  getTokenIdentityProperties,
 } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
@@ -477,6 +478,108 @@ describe('onQuickTrade prop', () => {
     fireEvent.press(getByTestId('stub-token-row'));
     expect(mockOnQuickTrade).not.toHaveBeenCalled();
   });
+});
+
+describe('token identity analytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each(['tokens', 'stocks'] as const)(
+    'returns token_name and token_symbol for %s',
+    (feedId) => {
+      const token = {
+        assetId: 'asset-1',
+        name: 'Ether',
+        symbol: 'ETH',
+      } as TrendingAsset;
+
+      expect(getTokenIdentityProperties(feedId, token)).toStrictEqual({
+        token_name: 'Ether',
+        token_symbol: 'ETH',
+      });
+    },
+  );
+
+  it('omits token_name and token_symbol when the asset values are missing', () => {
+    const token = { assetId: 'asset-1', name: '' } as TrendingAsset;
+
+    expect(getTokenIdentityProperties('tokens', token)).toStrictEqual({});
+  });
+
+  it.each([
+    ['perps', { symbol: 'ETH', name: 'Ethereum' }],
+    ['predictions', { id: 'pred-9' }],
+    ['sites', { url: 'https://example.com', name: 'Example' }],
+    ['earn', { kind: 'money-account', id: 'money-account' }],
+  ] as const)('returns an empty object for %s', (feedId, item) => {
+    expect(getTokenIdentityProperties(feedId, item)).toStrictEqual({});
+  });
+
+  it.each([
+    ['tokens', 'eip155:1/slip44:60', 'Ether', 'ETH'],
+    ['stocks', 'eip155:1/erc20:0xaapl', 'Apple', 'AAPL'],
+  ] as const)(
+    'tracks token_name and token_symbol when a %s row is tapped',
+    (feedId, assetId, name, symbol) => {
+      const token = { assetId, name, symbol } as TrendingAsset;
+
+      const { getByTestId } = render(
+        <SearchFeedRow
+          feedId={feedId}
+          item={token}
+          index={3}
+          searchQuery="q"
+          tabName="all"
+          resultCount={10}
+        />,
+      );
+
+      fireEvent.press(getByTestId('search-feed-tap'));
+
+      expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith({
+        interaction_type: 'result_clicked',
+        search_query: 'q',
+        section_name: feedId,
+        tab_name: 'all',
+        item_clicked: assetId,
+        position: 3,
+        result_count: 10,
+        token_name: name,
+        token_symbol: symbol,
+      });
+    },
+  );
+
+  it.each([
+    ['perps', { symbol: 'ETH', name: 'Ethereum' } as PerpsMarketData, 'ETH'],
+    ['predictions', { id: 'pred-9' } as PredictMarketType, 'pred-9'],
+    [
+      'sites',
+      { url: 'https://example.com', name: 'Example' } as SiteData,
+      'https://example.com',
+    ],
+  ] as const)(
+    'does not track token identity when a %s row is tapped',
+    (feedId, item, itemClicked) => {
+      const { getByTestId } = render(
+        <SearchFeedRow
+          feedId={feedId}
+          item={item}
+          index={0}
+          searchQuery="q"
+          tabName="all"
+        />,
+      );
+
+      fireEvent.press(getByTestId('search-feed-tap'));
+
+      const payload = mockTrackExploreSearchEvent.mock.calls[0][0];
+      expect(payload.item_clicked).toBe(itemClicked);
+      expect(payload).not.toHaveProperty('token_name');
+      expect(payload).not.toHaveProperty('token_symbol');
+    },
+  );
 });
 
 describe('SearchFeedSkeleton', () => {
