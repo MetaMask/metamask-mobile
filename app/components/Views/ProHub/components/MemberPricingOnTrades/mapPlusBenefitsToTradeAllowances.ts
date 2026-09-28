@@ -122,30 +122,3 @@ export const mapPlusBenefitsToTradeAllowances = (
     mapPredict(benefits.predict),
   ].filter((item): item is TradeAllowanceItem => item !== undefined);
 };
-
-/**
- * Formats a subscription period-end ISO timestamp for the shared reset line.
- *
- * @param currentPeriodEnd - ISO 8601 timestamp from the Plus subscription.
- * @returns A month-day-year string (e.g. `Jul 20, 2027`), or undefined when
- * the timestamp is missing or unparseable.
- */
-export const formatPlusPeriodEnd = (
-  currentPeriodEnd: string | undefined,
-): string | undefined => {
-  if (!currentPeriodEnd) {
-    return undefined;
-  }
-
-  const date = new Date(currentPeriodEnd);
-  if (Number.isNaN(date.getTime())) {
-    return undefined;
-  }
-
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-};

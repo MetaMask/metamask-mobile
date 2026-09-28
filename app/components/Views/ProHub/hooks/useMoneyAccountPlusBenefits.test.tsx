@@ -96,8 +96,8 @@ const createPlusSubscription = (
 ): Subscription =>
   ({
     id: 'sub-plus',
-    currentPeriodStart: '2026-08-15T00:00:00.000Z',
-    currentPeriodEnd: '2026-09-15T00:00:00.000Z',
+    currentPeriodStart: '2026-08-15T12:00:00.000Z',
+    currentPeriodEnd: '2026-09-15T12:00:00.000Z',
     status,
     products: [
       {

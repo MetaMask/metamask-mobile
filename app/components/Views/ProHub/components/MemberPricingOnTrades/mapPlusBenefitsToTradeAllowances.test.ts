@@ -1,8 +1,5 @@
 import type { SubscriptionBenefitsState } from '@metamask/subscription-controller';
-import {
-  formatPlusPeriodEnd,
-  mapPlusBenefitsToTradeAllowances,
-} from './mapPlusBenefitsToTradeAllowances';
+import { mapPlusBenefitsToTradeAllowances } from './mapPlusBenefitsToTradeAllowances';
 
 const createBenefits = (
   overrides: Partial<SubscriptionBenefitsState> = {},
@@ -119,23 +116,5 @@ describe('mapPlusBenefitsToTradeAllowances', () => {
 
   it('returns an empty list when benefits are missing', () => {
     expect(mapPlusBenefitsToTradeAllowances(undefined)).toEqual([]);
-  });
-});
-
-describe('formatPlusPeriodEnd', () => {
-  it.each([
-    ['2027-07-20T00:00:00.000Z', 'Jul 20, 2027'],
-    ['2026-09-15T00:00:00.000Z', 'Sep 15, 2026'],
-    ['2026-10-04T00:00:00.000Z', 'Oct 4, 2026'],
-  ])('formats %s as %s', (timestamp, expected) => {
-    expect(formatPlusPeriodEnd(timestamp)).toBe(expected);
-  });
-
-  it('returns undefined for a missing timestamp', () => {
-    expect(formatPlusPeriodEnd(undefined)).toBeUndefined();
-  });
-
-  it('returns undefined for an unparseable timestamp', () => {
-    expect(formatPlusPeriodEnd('not-a-date')).toBeUndefined();
   });
 });

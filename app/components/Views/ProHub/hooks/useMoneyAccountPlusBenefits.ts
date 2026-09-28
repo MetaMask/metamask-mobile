@@ -3,10 +3,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
   PLUS_BENEFIT_PRODUCT_COUNT,
-  formatPlusPeriodEnd,
   mapPlusBenefitsToTradeAllowances,
 } from '../components/MemberPricingOnTrades/mapPlusBenefitsToTradeAllowances';
 import type { TradeAllowanceItem } from '../ProHub.constants';
+import { formatSubscriptionPeriodEnd } from '../ProHub.utils';
 import Engine from '../../../../core/Engine';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
@@ -92,7 +92,9 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     () => mapPlusBenefitsToTradeAllowances(benefits),
     [benefits],
   );
-  const resetsOn = formatPlusPeriodEnd(plusSubscription?.currentPeriodEnd);
+  const resetsOn = formatSubscriptionPeriodEnd(
+    plusSubscription?.currentPeriodEnd,
+  );
 
   if (!isHubSubscriber) {
     return {
