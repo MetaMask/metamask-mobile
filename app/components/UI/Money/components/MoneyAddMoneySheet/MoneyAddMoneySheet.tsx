@@ -37,8 +37,13 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  isBrazilNeobankGeoBypassEnabled,
+  selectMoneyMovementBrazilNeobankEnabled,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { getBankAccountEntryVisibility } from '../../utils/getBankAccountEntryVisibility';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -75,9 +80,15 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
-  const isVirtualBankAccountEnabled = useSelector(
+  const isBrazilNeobankFlagEnabled = useSelector(
     selectMoneyMovementBrazilNeobankEnabled,
   );
+  const geolocationLocation = useSelector(selectGeolocationLocation);
+  const bankAccountVisibility = getBankAccountEntryVisibility({
+    flagEnabled: isBrazilNeobankFlagEnabled,
+    location: geolocationLocation,
+    geoBypassEnabled: isBrazilNeobankGeoBypassEnabled(),
+  });
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -238,27 +249,32 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
-  const bankAccountOption: MoneySheetOption = isVirtualBankAccountEnabled
-    ? {
-        label: strings('money.add_money_sheet.bank_account'),
-        icon: IconName.Bank,
-        onPress: handleBankAccount,
-        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-        newBadge: true,
-      }
-    : {
-        label: strings('money.add_money_sheet.bank_account'),
-        icon: IconName.Bank,
-        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-        disabled: true,
-        comingSoon: true,
-      };
+  const bankAccountOption: MoneySheetOption | null =
+    bankAccountVisibility === 'hidden'
+      ? null
+      : bankAccountVisibility === 'enabled'
+        ? {
+            label: strings('money.add_money_sheet.bank_account'),
+            icon: IconName.Bank,
+            onPress: handleBankAccount,
+            testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+            newBadge: true,
+          }
+        : {
+            label: strings('money.add_money_sheet.bank_account'),
+            icon: IconName.Bank,
+            testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+            disabled: true,
+            comingSoon: true,
+          };
 
   const baseOptions: MoneySheetOption[] = [
-    // Flag on: the enabled Bank account row is promoted to the top of the
-    // sheet. Flag off: the coming-soon row keeps its pre-flag position
-    // further down so ordering is unchanged for existing users.
-    ...(isVirtualBankAccountEnabled ? [bankAccountOption] : []),
+    // Live row (flag on and Brazil, or the dev geo bypass): promoted to the
+    // top. Coming-soon row (flag off): keeps its pre-flag position further
+    // down. Hidden (flag on, geo failed or not Brazil): omitted.
+    ...(bankAccountOption && bankAccountVisibility === 'enabled'
+      ? [bankAccountOption]
+      : []),
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -293,7 +309,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
     },
-    ...(isVirtualBankAccountEnabled ? [] : [bankAccountOption]),
+    ...(bankAccountOption && bankAccountVisibility === 'coming-soon'
+      ? [bankAccountOption]
+      : []),
     {
       label: strings('money.add_money_sheet.receive_external'),
       icon: IconName.QrCode,

@@ -37,6 +37,17 @@ export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
   },
 );
 
+/**
+ * Local escape hatch so engineers can open the live Bank account row without a
+ * Brazil IP. The `moneyMovementBrazilNeobank` flag must still be on.
+ * Set `MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS=true` in `.js.env` and restart Metro.
+ *
+ * @returns Whether the Brazil geolocation requirement is bypassed.
+ */
+export function isBrazilNeobankGeoBypassEnabled(): boolean {
+  return process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS === 'true';
+}
+
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
 

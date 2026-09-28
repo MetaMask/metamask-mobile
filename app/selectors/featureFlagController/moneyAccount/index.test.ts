@@ -4,6 +4,7 @@ import {
   selectMoneyAccountVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
   selectMoneyMovementBrazilNeobankEnabled,
+  isBrazilNeobankGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
@@ -160,6 +161,32 @@ describe('Money Account feature flag selectors', () => {
           [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('isBrazilNeobankGeoBypassEnabled', () => {
+    const originalBypass = process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS;
+
+    afterEach(() => {
+      if (originalBypass === undefined) {
+        delete process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS;
+      } else {
+        process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS = originalBypass;
+      }
+    });
+
+    it('returns true only when the bypass env var is "true"', () => {
+      process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS = 'true';
+
+      expect(isBrazilNeobankGeoBypassEnabled()).toBe(true);
+    });
+
+    it('returns false when the bypass env var is unset or not "true"', () => {
+      delete process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS;
+      expect(isBrazilNeobankGeoBypassEnabled()).toBe(false);
+
+      process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS = 'false';
+      expect(isBrazilNeobankGeoBypassEnabled()).toBe(false);
     });
   });
 
