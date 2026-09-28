@@ -139,7 +139,7 @@ describe('TraderStatsSheet', () => {
       <TraderStatsSheet
         profile={profile}
         profileHandle="mint-cat"
-        hideHoldTime
+        includeHoldTime={false}
         openPositionsCount={3}
         onClose={jest.fn()}
       />,

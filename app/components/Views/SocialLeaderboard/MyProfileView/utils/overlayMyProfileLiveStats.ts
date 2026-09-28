@@ -8,7 +8,6 @@ import {
 import type { TraderProfileWithSheetStats } from '../../TraderProfileView/types/traderProfileStatsSheet';
 import {
   FAKE_STATS_PREFIX,
-  formatSheetHoldFromMinutes,
   prefixFakeStat,
   type StatsSheetFallbackFields,
 } from '../../TraderProfileView/components/statsSheetFormatters';
@@ -26,7 +25,6 @@ export interface OverlayedMyProfileStats {
   pnlLabel: string;
   hasPnl: boolean;
   isPnlPositive: boolean;
-  holdTimeLabel: string;
   timesCopiedLabel: string;
   profileAgeLabel: string;
   copySuccessRateLabel: string;
@@ -63,7 +61,7 @@ export const overlayMyProfileLiveStats = (
   const fallbackFields: Required<StatsSheetFallbackFields> = {
     winRate: !isPresentNumber(liveWinRate),
     pnl: !isPresentNumber(livePnl),
-    holdTime: !isPresentNumber(liveHold),
+    holdTime: false,
     timesCopied: !isPresentNumber(liveCopied),
     volume: !isPresentNumber(liveVolume),
     tradeCount: !isPresentNumber(liveTradeCount),
@@ -79,9 +77,6 @@ export const overlayMyProfileLiveStats = (
     : formatLocalWinRate(localWithMocks.winRatePercent);
   const pnlValue = fallbackFields.pnl ? localWithMocks.pnlUsd : livePnl;
   const pnlRaw = formatSignedFullUsdNoDecimals(pnlValue);
-  const holdRaw = fallbackFields.holdTime
-    ? (localWithMocks.holdTimeLabel ?? EM_DASH)
-    : formatSheetHoldFromMinutes(liveHold) || EM_DASH;
   const copiedRaw = fallbackFields.timesCopied
     ? formatCount(localWithMocks.timesCopied)
     : formatCount(liveCopied);
@@ -108,9 +103,7 @@ export const overlayMyProfileLiveStats = (
           winRate30d: fallbackFields.winRate
             ? localSheet.stats.winRate30d
             : liveWinRate,
-          medianHoldMinutes: fallbackFields.holdTime
-            ? localSheet.stats.medianHoldMinutes
-            : liveHold,
+          medianHoldMinutes: isPresentNumber(liveHold) ? liveHold : null,
           volumeUsd30d: fallbackFields.volume
             ? localSheet.stats.volumeUsd30d
             : liveVolume,
@@ -143,7 +136,6 @@ export const overlayMyProfileLiveStats = (
     pnlLabel: fallbackFields.pnl ? markFakeStat(pnlRaw) : pnlRaw,
     hasPnl: pnlValue != null,
     isPnlPositive: pnlValue != null && pnlValue >= 0,
-    holdTimeLabel: fallbackFields.holdTime ? markFakeStat(holdRaw) : holdRaw,
     timesCopiedLabel: fallbackFields.timesCopied
       ? markFakeStat(copiedRaw)
       : copiedRaw,

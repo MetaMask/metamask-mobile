@@ -9,7 +9,6 @@ describe('myProfileToSheetProfile', () => {
     shareUrl: 'https://metamask.io/social/giga-whale',
     winRatePercent: 60,
     pnlUsd: 7100,
-    holdTimeLabel: '4d',
     timesCopied: 981,
     volumeUsd30d: 386_260,
     tradeCount30d: 39,
@@ -21,7 +20,7 @@ describe('myProfileToSheetProfile', () => {
 
     expect(sheetProfile.stats.pnl30d).toBe(7100);
     expect(sheetProfile.stats.winRate30d).toBe(0.6);
-    expect(sheetProfile.stats.medianHoldMinutes).toBe(5760);
+    expect(sheetProfile.stats.medianHoldMinutes).toBeNull();
     expect(sheetProfile.stats.volumeUsd30d).toBe(386_260);
     expect(sheetProfile.stats.tradeCount30d).toBe(39);
     expect(sheetProfile.copytradedAllTime.count).toBe(981);

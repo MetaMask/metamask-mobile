@@ -385,7 +385,7 @@ const MyProfileView: React.FC = () => {
           profile={overlayedStats.sheetProfile}
           profileHandle={profile.handle}
           fallbackFields={overlayedStats.fallbackFields}
-          hideHoldTime
+          includeHoldTime={false}
           openPositionsCount={openPositionsCount}
           profileAgeLabel={overlayedStats.profileAgeLabel}
           copySuccessRateLabel={overlayedStats.copySuccessRateLabel}

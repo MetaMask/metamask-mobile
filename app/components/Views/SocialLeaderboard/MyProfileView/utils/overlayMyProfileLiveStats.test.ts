@@ -12,7 +12,6 @@ const localProfile: MySocialProfile = {
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  holdTimeLabel: '4d',
   timesCopied: 981,
   volumeUsd30d: 386_260,
   tradeCount30d: 39,
@@ -62,9 +61,10 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.holdTimeLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.fallbackFields.winRate).toBe(true);
+    expect(result.fallbackFields.holdTime).toBe(false);
+    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
     expect(result.sheetProfile.profile.name).toBe('Giga Whale');
@@ -85,6 +85,7 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.followerCount).toBe(88);
     expect(result.sheetProfile.profile.name).toBe('Giga Whale');
     expect(result.sheetProfile.stats.pnl30d).toBe(1200);
+    expect(result.sheetProfile.stats.medianHoldMinutes).toBe(180);
     expect(result.sheetProfile.copytradedAllTime?.count).toBe(44);
   });
 
@@ -110,6 +111,8 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.fallbackFields.winRate).toBe(true);
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.fallbackFields.pnl).toBe(false);
+    expect(result.fallbackFields.holdTime).toBe(false);
+    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
     expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
     expect(result.fallbackFields.volume).toBe(true);
     expect(result.fallbackFields.tradeCount).toBe(true);

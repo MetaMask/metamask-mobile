@@ -45,8 +45,8 @@ export interface TraderStatsSheetProps {
   headerAvatar?: React.ReactNode;
   /** Prefix `*` on values that still come from local mock data. */
   fallbackFields?: StatsSheetFallbackFields;
-  /** Hide median hold time (My Profile). Other traders still show it. */
-  hideHoldTime?: boolean;
+  /** Owner sheet does not include median hold time. Default true for other traders. */
+  includeHoldTime?: boolean;
   /** Open position count from the owner's wallet perps cache. */
   openPositionsCount?: number;
   /** Preformatted profile age (My Profile mock). */
@@ -119,7 +119,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
   profileHandle,
   headerAvatar,
   fallbackFields,
-  hideHoldTime = false,
+  includeHoldTime = true,
   openPositionsCount,
   profileAgeLabel,
   copySuccessRateLabel,
@@ -248,7 +248,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Row} gap={6} twClassName="px-4 pb-6">
-        {hideHoldTime ? null : (
+        {includeHoldTime ? (
           <GridMetric
             label={strings(
               'social_leaderboard.trader_profile.stats_sheet_hold_time',
@@ -256,7 +256,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
             value={holdTime}
             testID={TraderStatsSheetSelectorsIDs.ROW_HOLD_TIME}
           />
-        )}
+        ) : null}
         <GridMetric
           label={strings('social_leaderboard.trader_profile.number_of_trades')}
           value={tradeCount}

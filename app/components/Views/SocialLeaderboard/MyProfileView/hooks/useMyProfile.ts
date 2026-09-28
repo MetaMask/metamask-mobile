@@ -23,8 +23,6 @@ export interface MySocialProfile {
   winRatePercent?: number | null;
   /** Realized P&L in USD. */
   pnlUsd?: number | null;
-  /** Preformatted hold-time label until median minutes land on the API. */
-  holdTimeLabel?: string | null;
   timesCopied?: number | null;
   /** 30d trading volume in USD until the profile endpoint is authoritative. */
   volumeUsd30d?: number | null;
