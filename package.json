@@ -249,7 +249,7 @@
     "@metamask/multichain-account-service": "^13.0.0",
     "@metamask/permission-controller": "^13.1.1",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
-    "@metamask/transaction-controller": "70.1.0",
+    "@metamask/transaction-controller": "72.0.0",
     "@metamask/keyring-controller": "^27.1.1",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@ledgerhq/context-module/ethers": "^6.16.0",
