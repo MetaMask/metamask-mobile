@@ -758,9 +758,7 @@ export type RootStackParamList = {
         onCancel?: () => void;
       }
     | undefined;
-  NotificationsSettings:
-    | { isFullScreenModal?: boolean; section?: string }
-    | undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: SDKSessionsManagerParams | undefined;

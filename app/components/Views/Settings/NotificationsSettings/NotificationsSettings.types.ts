@@ -15,7 +15,6 @@ export interface Props {
   route: RouteProp<
     {
       params: {
-        isFullScreenModal?: boolean;
         /**
          * Deeplink `section` query value. When set to a known slug (e.g.
          * `wallet-activity`, `price-alerts`), the screen opens that preference

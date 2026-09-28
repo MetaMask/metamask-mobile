@@ -74,7 +74,7 @@ function renderSettings(
     NotificationsSettings as unknown as React.ComponentType,
     { name: 'NotificationsSettings' },
     { state: buildNotificationsState(stateOverrides) },
-    { isFullScreenModal: false },
+    {},
   );
 }
 
@@ -87,7 +87,7 @@ function renderSettingsWithSectionRoute(
     { name: 'NotificationsSettings' },
     [{ name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION }],
     { state: buildNotificationsState(stateOverrides) },
-    { isFullScreenModal: false, ...initialParams },
+    initialParams,
   );
 }
 
