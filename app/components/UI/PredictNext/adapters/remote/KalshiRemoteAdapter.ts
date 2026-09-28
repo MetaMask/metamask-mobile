@@ -33,8 +33,10 @@ const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
   preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
   balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
-  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
   insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
+  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
+  insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
+  position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
 };
 
 const isAbortError = (error: unknown): error is Error =>
@@ -104,12 +106,29 @@ export class KalshiRemoteAdapter {
             options,
           );
           const result = parsePredictOrderPreview(value);
-          if (
-            result.venueId !== this.venueId ||
-            result.marketId !== params.marketId ||
-            result.side !== params.side ||
-            !isSameAmount(result.requestedAmount, params.amount)
-          ) {
+          const isQuotedForIntent = (() => {
+            if (
+              result.venueId !== this.venueId ||
+              result.marketId !== params.marketId ||
+              result.side !== params.side ||
+              result.action !== params.action
+            ) {
+              return false;
+            }
+            if (params.action === 'buy') {
+              // The backend echoes the requested amount normalized to two
+              // decimals, so '20' and '20.00' are the same amount.
+              return (
+                result.action === 'buy' &&
+                isSameAmount(result.requestedAmount, params.amount)
+              );
+            }
+            return (
+              result.action === 'sell' &&
+              result.requestedContracts === Number(params.contracts)
+            );
+          })();
+          if (!isQuotedForIntent) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

@@ -14,6 +14,7 @@ import {
 } from './PredictOrderService';
 import {
   KALSHI_VENUE_ID,
+  type PredictBuyOrderReceipt,
   type PredictDecimal,
   type PredictEntityId,
   type PredictOrderPreview,
@@ -29,6 +30,7 @@ const preview: PredictOrderPreview = {
   venueId: KALSHI_VENUE_ID,
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes',
+  action: 'buy',
   requestedAmount: '4.00' as PredictAmount,
   orderAmount: '4.00' as PredictAmount,
   estimatedContracts: 10,
@@ -44,12 +46,33 @@ const preview: PredictOrderPreview = {
   expiresAt: '2026-03-01T12:00:30.000Z' as PredictTimestamp,
 };
 
+const sellPreview: PredictOrderPreview = {
+  previewId: 'preview-sell-1',
+  venueId: KALSHI_VENUE_ID,
+  marketId: 'KXTEST-26-A' as PredictEntityId,
+  side: 'yes',
+  action: 'sell',
+  requestedContracts: 70,
+  estimatedContracts: 65,
+  averagePrice: '0.4800' as PredictDecimal,
+  limitPrice: '0.4000' as PredictDecimal,
+  fee: '0.31' as PredictAmount,
+  feeBreakdown: [
+    { source: 'venue', amount: '0.16' as PredictAmount },
+    { source: 'metamask', amount: '0.15' as PredictAmount },
+  ],
+  estimatedProceeds: '31.20' as PredictAmount,
+  estimatedNetProceeds: '30.89' as PredictAmount,
+  expiresAt: '2026-03-01T12:00:30.000Z' as PredictTimestamp,
+};
+
 const receipt: PredictOrderReceipt = {
   operationId: 'operation-1',
   previewId: 'preview-1',
   venueId: KALSHI_VENUE_ID,
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes',
+  action: 'buy',
   status: 'filled',
   requestedMaxSpend: '4.00' as PredictAmount,
   quotedContracts: 10,
@@ -61,9 +84,26 @@ const receipt: PredictOrderReceipt = {
   payoutExposure: '10.00' as PredictAmount,
 };
 
+const sellReceipt: PredictOrderReceipt = {
+  operationId: 'operation-sell-1',
+  previewId: 'preview-sell-1',
+  venueId: KALSHI_VENUE_ID,
+  marketId: 'KXTEST-26-A' as PredictEntityId,
+  side: 'yes',
+  action: 'sell',
+  status: 'filled',
+  quotedContracts: 70,
+  venueOrderId: 'venue-order-1',
+  filledContracts: 70,
+  averageFillPrice: '0.4800' as PredictDecimal,
+  fee: '0.31' as PredictAmount,
+  actualProceeds: '31.20' as PredictAmount,
+  netProceeds: '30.89' as PredictAmount,
+};
+
 const receiptWith = (
-  overrides: Partial<PredictOrderReceipt>,
-): PredictOrderReceipt => ({ ...receipt, ...overrides });
+  overrides: Partial<PredictBuyOrderReceipt>,
+): PredictOrderReceipt => ({ ...receipt, ...overrides }) as PredictOrderReceipt;
 
 const previewOrder = jest.fn<Promise<PredictOrderPreview>, []>();
 const commitOrder = jest.fn<Promise<PredictOrderReceipt>, []>();
@@ -109,6 +149,19 @@ beforeEach(() => {
 
 const service = () => serviceWith(0);
 
+const buyQuoteParams = {
+  marketId: 'KXTEST-26-A' as PredictEntityId,
+  side: 'yes' as const,
+  action: 'buy' as const,
+  amount: '4.00' as PredictAmount,
+};
+const sellQuoteParams = {
+  marketId: 'KXTEST-26-A' as PredictEntityId,
+  side: 'yes' as const,
+  action: 'sell' as const,
+  contracts: '70' as PredictAmount,
+};
+
 const balanceFilter = {
   queryKey: ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID],
 };
@@ -121,15 +174,29 @@ const activityFilter = {
 
 describe('PredictOrderService', () => {
   it('requests a quote through the trading capability', async () => {
-    const result = await service().requestQuote(KALSHI_VENUE_ID, {
-      marketId: 'KXTEST-26-A' as PredictEntityId,
-      side: 'yes',
-      amount: '4.00' as PredictAmount,
-    });
+    const result = await service().requestQuote(
+      KALSHI_VENUE_ID,
+      buyQuoteParams,
+    );
 
     expect(result).toBe(preview);
     expect(trading.previewOrder).toHaveBeenCalledWith(
-      { marketId: 'KXTEST-26-A', side: 'yes', amount: '4.00' },
+      { marketId: 'KXTEST-26-A', side: 'yes', action: 'buy', amount: '4.00' },
+      { signal: undefined },
+    );
+  });
+
+  it('passes a sell quote through the shared workflow unchanged', async () => {
+    trading.previewOrder.mockResolvedValue(sellPreview);
+
+    const result = await service().requestQuote(
+      KALSHI_VENUE_ID,
+      sellQuoteParams,
+    );
+
+    expect(result).toBe(sellPreview);
+    expect(trading.previewOrder).toHaveBeenCalledWith(
+      { marketId: 'KXTEST-26-A', side: 'yes', action: 'sell', contracts: '70' },
       { signal: undefined },
     );
   });
@@ -150,11 +217,7 @@ describe('PredictOrderService', () => {
 
   it('rejects quotes for another venue', async () => {
     await expect(
-      service().requestQuote('polymarket' as PredictVenueId, {
-        marketId: 'KXTEST-26-A' as PredictEntityId,
-        side: 'yes',
-        amount: '4.00' as PredictAmount,
-      }),
+      service().requestQuote('polymarket' as PredictVenueId, buyQuoteParams),
     ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
   });
 
@@ -164,17 +227,13 @@ describe('PredictOrderService', () => {
     );
 
     await expect(
-      service().requestQuote(KALSHI_VENUE_ID, {
-        marketId: 'KXTEST-26-A' as PredictEntityId,
-        side: 'yes',
-        amount: '4.00' as PredictAmount,
-      }),
+      service().requestQuote(KALSHI_VENUE_ID, buyQuoteParams),
     ).rejects.toMatchObject({ code: PredictErrorCode.INSUFFICIENT_BALANCE });
   });
 
   describe('commitPreview', () => {
     it.each(['filled', 'partially_filled', 'not_filled', 'rejected'] as const)(
-      'resolves with a %s receipt and invalidates the portfolio reads',
+      'resolves with a %s buy receipt and invalidates the portfolio reads',
       async (status) => {
         trading.commitOrder.mockResolvedValue(receiptWith({ status }));
 
@@ -189,6 +248,31 @@ describe('PredictOrderService', () => {
         expect(invalidateQueries).toHaveBeenNthCalledWith(1, balanceFilter);
         expect(invalidateQueries).toHaveBeenNthCalledWith(2, positionsFilter);
         expect(invalidateQueries).toHaveBeenNthCalledWith(3, activityFilter);
+      },
+    );
+
+    it.each(['filled', 'partially_filled', 'not_filled', 'rejected'] as const)(
+      'resolves with a %s sell receipt and invalidates the portfolio reads',
+      async (status) => {
+        trading.commitOrder.mockResolvedValue({
+          ...sellReceipt,
+          status,
+          venueOrderId: null,
+          filledContracts: null,
+          averageFillPrice: null,
+          fee: null,
+          actualProceeds: null,
+          netProceeds: null,
+        });
+
+        const result = await service().commitPreview(
+          KALSHI_VENUE_ID,
+          'preview-sell-1',
+        );
+
+        expect(result.status).toBe(status);
+        expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+        expect(invalidateQueries).toHaveBeenCalledTimes(3);
       },
     );
 
