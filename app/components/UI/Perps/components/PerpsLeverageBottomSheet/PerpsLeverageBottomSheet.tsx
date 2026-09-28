@@ -647,10 +647,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <>
             {/* SectionDivider defaults to 20px vertical margin; drop the bottom
                 one so the explainer sits 16px below the rule. */}
-            <SectionDivider
-              twClassName="mb-0"
-              testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION_DIVIDER}
-            />
+            <SectionDivider twClassName="mb-0" />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
