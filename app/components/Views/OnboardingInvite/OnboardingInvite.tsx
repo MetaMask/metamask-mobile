@@ -14,9 +14,7 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
-  Text,
-  TextColor,
-  TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -90,26 +88,16 @@ const OnboardingInvite = () => {
       />
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 flex-col gap-y-6')}
+        contentContainerStyle={tw.style('px-4 flex-col gap-y-4')}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Box twClassName="flex flex-col gap-y-1">
-          <Text
-            variant={TextVariant.DisplayMd}
-            color={TextColor.TextDefault}
-            testID={OnboardingInviteTestIds.TITLE}
-          >
-            {strings('onboarding_invite.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={OnboardingInviteTestIds.DESCRIPTION}
-          >
-            {strings('onboarding_invite.description')}
-          </Text>
-        </Box>
+        <TitleStandard
+          title={strings('onboarding_invite.title')}
+          titleProps={{ testID: OnboardingInviteTestIds.TITLE }}
+          bottomLabel={strings('onboarding_invite.description')}
+          bottomLabelProps={{ testID: OnboardingInviteTestIds.DESCRIPTION }}
+        />
 
         <ReferralInviteCodeField
           referralCode={referralCode}

@@ -1,25 +1,10 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { type TextInput } from 'react-native';
-import {
-  CodeField,
-  Cursor,
-  useBlurOnFulfill,
-  useClearByFocusCell,
-} from 'react-native-confirmation-code-field';
-import {
-  Box,
-  FontWeight,
-  Label,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useCallback } from 'react';
+import { Box, Label, TextField } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { hasTestOverrides } from '../../../../../util/test/utils';
 import { KOL_INVITE_FIXTURE } from './rewardsUiFixtures';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 
-const CELL_COUNT = KOL_INVITE_FIXTURE.codeLength;
+const CODE_LENGTH = KOL_INVITE_FIXTURE.codeLength;
 
 export interface ReferralInviteCodeFieldTestIds {
   field: string;
@@ -38,81 +23,49 @@ export interface ReferralInviteCodeFieldProps {
   twClassName?: string;
 }
 
+/** Referral codes are alphanumeric, upper-case and fixed length. */
+export const normalizeReferralCode = (value: string) =>
+  value
+    .replace(/[^a-zA-Z0-9]/gu, '')
+    .toUpperCase()
+    .slice(0, CODE_LENGTH);
+
 /**
- * Six-cell referral code entry. Invites arrive with the code already filled
- * in; tapping a cell clears the code from that cell onwards so the user can
- * retype it, and an empty field advances cell by cell as they type.
+ * Labelled referral code entry using the design-system `TextField`, matching
+ * the inputs on the other onboarding screens. Invites arrive with the code
+ * already filled in; an empty field focuses itself so the user can type one.
  */
 const ReferralInviteCodeField: React.FC<ReferralInviteCodeFieldProps> = ({
   referralCode,
   onChangeReferralCode,
   testIds = DEFAULT_TEST_IDS,
-  twClassName,
+  twClassName = '',
 }) => {
-  const tw = useTailwind();
-  const inputRef = useBlurOnFulfill({
-    value: referralCode,
-    cellCount: CELL_COUNT,
-  });
-  const shouldAutoFocusRef = useRef(referralCode.length === 0);
-
-  useEffect(() => {
-    if (shouldAutoFocusRef.current) {
-      inputRef.current?.focus();
-    }
-  }, [inputRef]);
-
   const handleChangeCode = useCallback(
     (value: string) => {
-      onChangeReferralCode(
-        value
-          .replace(/[^a-zA-Z0-9]/gu, '')
-          .toUpperCase()
-          .slice(0, CELL_COUNT),
-      );
+      onChangeReferralCode(normalizeReferralCode(value));
     },
     [onChangeReferralCode],
   );
 
-  const [codeFieldProps, getCellOnLayoutHandler] = useClearByFocusCell({
-    value: referralCode,
-    setValue: handleChangeCode,
-  });
-
   return (
-    <Box twClassName={twClassName} testID={testIds.field}>
-      <Label fontWeight={FontWeight.Medium}>
-        {strings('rewards.kol.invite_referral_code')}
-      </Label>
-      <CodeField
-        {...codeFieldProps}
-        ref={inputRef as React.RefObject<TextInput>}
+    <Box
+      twClassName={`flex flex-col gap-y-2 ${twClassName}`}
+      testID={testIds.field}
+    >
+      <Label>{strings('rewards.kol.invite_referral_code')}</Label>
+      <TextField
         value={referralCode}
         onChangeText={handleChangeCode}
-        cellCount={CELL_COUNT}
-        rootStyle={tw.style('mt-2 w-full flex-row gap-2')}
-        autoComplete="off"
-        accessibilityLabel={strings('rewards.kol.invite_referral_code')}
-        testID={testIds.input}
-        renderCell={({ index, symbol, isFocused }) => (
-          <Box
-            key={index}
-            onLayout={getCellOnLayoutHandler(index)}
-            twClassName="h-14 flex-1 items-center justify-center rounded-xl border bg-muted"
-            style={tw.style(
-              isFocused ? 'border-primary-default' : 'border-muted',
-            )}
-          >
-            <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Medium}
-            >
-              {/* Cursor uses setInterval which keeps the JS thread non-idle,
-                  stalling E2E synchronization. Omit it in E2E builds. */}
-              {symbol || (isFocused && !hasTestOverrides ? <Cursor /> : null)}
-            </Text>
-          </Box>
-        )}
+        autoFocus={referralCode.length === 0}
+        inputProps={{
+          autoCapitalize: 'characters',
+          autoCorrect: false,
+          autoComplete: 'off',
+          maxLength: CODE_LENGTH,
+          accessibilityLabel: strings('rewards.kol.invite_referral_code'),
+          testID: testIds.input,
+        }}
       />
     </Box>
   );
