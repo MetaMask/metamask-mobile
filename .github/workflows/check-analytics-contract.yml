@@ -1,0 +1,143 @@
+name: Check deployed analytics contract
+
+# periodically/manual -> download newest deployed analytics contract -> verify it ->
+# generate pilot -> type-check -> notify success/failure -> change nothing.
+#
+# more details in /docs/readme/typed-analytics-contracts.md
+
+on:
+  schedule:
+    # Hourly from 06:00 through 22:00 UTC on weekdays.
+    - cron: '0 6-22 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: Optional exact analytics contract release tag
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: check-deployed-analytics-contract
+  cancel-in-progress: true
+
+jobs:
+  verify-mobile-contract:
+    name: Verify latest deployed Mobile contract
+    environment: default-branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      release-tag: ${{ steps.check.outputs.release-tag }}
+      release-url: ${{ steps.check.outputs.release-url }}
+    steps:
+      - name: Checkout Mobile
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Download contract with shared action
+        id: shared-contract
+        uses: MetaMask/github-tools/.github/actions/download-analytics-contract@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: Consensys/segment-schema
+          asset-name: metamask-mobile.json
+          release-tag: ${{ inputs.release-tag }}
+          output-directory: ${{ runner.temp }}/analytics-contract
+
+      - name: Check downloaded analytics contract
+        id: check
+        env:
+          SHARED_RELEASE_TAG: ${{ steps.shared-contract.outputs.release-tag }}
+          SHARED_RELEASE_URL: ${{ steps.shared-contract.outputs.release-url }}
+          SHARED_MANIFEST_PATH: ${{ steps.shared-contract.outputs.manifest-path }}
+          SHARED_ASSET_PATH: ${{ steps.shared-contract.outputs.asset-path }}
+          SHARED_ASSET_DIGEST: ${{ steps.shared-contract.outputs.asset-digest }}
+          JSON_OUTPUT: ${{ runner.temp }}/analytics-contract-check.json
+          GENERATED_OUTPUT_DIRECTORY: ${{ runner.temp }}/analytics-contract-check
+        shell: bash
+        run: |
+          set -euo pipefail
+          yarn analytics:contract:check \
+            --manifest "${SHARED_MANIFEST_PATH}" \
+            --contract "${SHARED_ASSET_PATH}" \
+            --asset-sha256 "${SHARED_ASSET_DIGEST}" \
+            --release-tag "${SHARED_RELEASE_TAG}" \
+            --release-url "${SHARED_RELEASE_URL}" \
+            --output-directory "${GENERATED_OUTPUT_DIRECTORY}" \
+            --json-output "${JSON_OUTPUT}"
+          diff -u \
+            app/util/analytics/generated/QuickBuyAmountSelected.ts \
+            "${GENERATED_OUTPUT_DIRECTORY}/generated/QuickBuyAmountSelected.ts"
+          diff -u \
+            app/util/analytics/generated/QuickBuyAmountSelected.test-d.ts \
+            "${GENERATED_OUTPUT_DIRECTORY}/generated/QuickBuyAmountSelected.test-d.ts"
+          echo "release-tag=$(jq -r '.release.tag' "${JSON_OUTPUT}")" >> "${GITHUB_OUTPUT}"
+          echo "release-url=$(jq -r '.release.url' "${JSON_OUTPUT}")" >> "${GITHUB_OUTPUT}"
+
+      - name: Summarize verification
+        if: always()
+        env:
+          RELEASE_TAG: ${{ steps.shared-contract.outputs.release-tag }}
+          RELEASE_URL: ${{ steps.shared-contract.outputs.release-url }}
+          CHECK_RESULT: ${{ steps.check.outcome }}
+          CHECK_FILE: ${{ runner.temp }}/analytics-contract-check.json
+        shell: bash
+        run: |
+          {
+            echo "### Deployed Mobile analytics contract"
+            echo
+            if [ -n "${RELEASE_TAG}" ]; then
+              echo "- Release: [\`${RELEASE_TAG}\`](${RELEASE_URL})"
+            else
+              echo "- Release: unresolved"
+            fi
+            echo "- Contract, generation, and type-check result: \`${CHECK_RESULT}\`"
+
+            if [ -f "${CHECK_FILE}" ]; then
+              echo "- Source SHA: \`$(jq -r '.verification.sourceSha' "${CHECK_FILE}")\`"
+              echo "- Rule count: \`$(jq -r '.verification.ruleCount' "${CHECK_FILE}")\`"
+              echo "- Contract hash: \`$(jq -r '.verification.contractHash' "${CHECK_FILE}")\`"
+              echo "- Checked event versions: \`$(jq -r '.generated.versions | join(", ")' "${CHECK_FILE}")\`"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  notify-slack:
+    name: Notify Slack
+    needs: verify-mobile-contract
+    if: >-
+      ${{
+        always() &&
+        !cancelled()
+      }}
+    environment: default-branch
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PLAYWRIGHT_HEALTH_REPORT }}
+    steps:
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK != ''
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Mobile deployed analytics contract check: ${{ needs.verify-mobile-contract.result }}\nRelease: ${{ needs.verify-mobile-contract.outputs.release-tag || 'unresolved' }}\nRun: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
