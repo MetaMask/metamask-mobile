@@ -31,6 +31,7 @@ export interface AnimatedNumericTextProps {
   twClassName?: string;
   style?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  textTestID?: string;
   testID?: string;
   animated?: boolean;
 }
@@ -76,6 +77,7 @@ const AnimatedNumericText = ({
   twClassName,
   style,
   containerStyle,
+  textTestID,
   testID,
   animated = true,
 }: AnimatedNumericTextProps) => {
@@ -105,8 +107,10 @@ const AnimatedNumericText = ({
     [value],
   );
 
-  const renderStaticText = (content: string) => (
-    <Text style={textStyle}>{content}</Text>
+  const renderStaticText = (content: string, contentTestID?: string) => (
+    <Text style={[textStyle]} testID={contentTestID}>
+      {content}
+    </Text>
   );
 
   return (
@@ -118,7 +122,7 @@ const AnimatedNumericText = ({
       style={rowStyle}
     >
       {!motionEnabled || !numeric ? (
-        renderStaticText(value)
+        renderStaticText(value, textTestID)
       ) : (
         <>
           {prefix ? renderStaticText(prefix) : null}
@@ -127,9 +131,10 @@ const AnimatedNumericText = ({
             animationDuration={270}
             animationPreset="snappy"
             text={numeric}
-            variant="text"
+            testID={textTestID}
+            variant="number"
             align="left"
-            style={textStyle}
+            style={[textStyle]}
           />
           {suffix ? renderStaticText(suffix) : null}
         </>

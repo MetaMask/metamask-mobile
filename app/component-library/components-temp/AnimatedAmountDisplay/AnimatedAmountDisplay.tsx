@@ -145,7 +145,7 @@ const AnimatedAmountDisplay = ({
       fontWeight={fontWeight}
       rollDigits={rollDigits}
       style={style}
-      testID={amountTestID}
+      textTestID={amountTestID}
       value={value}
       variant={variant}
     />
