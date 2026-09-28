@@ -94,6 +94,22 @@ describe('parsePredictOrderPreview', () => {
     ).toThrow();
   });
 
+  it('parses the deployed PRED-1194 buy shape: absent action with limitPrice', () => {
+    // The deployed backend has included limitPrice on buy Previews since
+    // PRED-1194 (worst ask); the pre-branch parser masked it as unknown.
+    // It is a shared field, so its presence must not reject a buy.
+    const { action: _action, ...withoutAction } = validPreview;
+
+    const preview = parsePredictOrderPreview({
+      ...withoutAction,
+      limitPrice: '0.4000',
+    });
+
+    expect(preview).toMatchObject({ action: 'buy', ...withoutAction });
+    // The shared field is masked, not carried, on the parsed buy variant.
+    expect(Object.hasOwn(preview, 'limitPrice')).toBe(false);
+  });
+
   it('rejects an unknown action', () => {
     expect(() =>
       parsePredictOrderPreview({ ...validPreview, action: 'swap' }),

@@ -134,7 +134,10 @@ const sellReceiptSchema = object({
 
 /** Action-specific fields of the other action. Absent-not-null (ADR-0001):
  * a variant carrying the other action's fields fails validation instead of
- * being masked away. */
+ * being masked away. `limitPrice` is deliberately absent from both lists:
+ * it is a shared Preview field — the worst ask on a buy, the worst bid on a
+ * sell — and the deployed backend has reported it on buy Previews since
+ * PRED-1194, so the buy schema masks it rather than rejecting it. */
 const BUY_ONLY_PREVIEW_FIELDS = [
   'requestedAmount',
   'orderAmount',
@@ -144,7 +147,6 @@ const BUY_ONLY_PREVIEW_FIELDS = [
 ] as const;
 const SELL_ONLY_PREVIEW_FIELDS = [
   'requestedContracts',
-  'limitPrice',
   'estimatedProceeds',
   'estimatedNetProceeds',
 ] as const;

@@ -289,7 +289,9 @@ export interface PredictSellOrderPreview extends PredictOrderPreviewBase {
   action: 'sell';
   /** The requested whole-contract count. */
   requestedContracts: number;
-  /** The worst Bid the sale would consume: the Immediate Order price floor. */
+  /** The worst Bid the sale would consume: the Immediate Order price floor.
+   * Shared wire field — buy Previews report the worst ask, which the mobile
+   * buy schema masks rather than rejects. */
   limitPrice: PredictDecimal;
   /** Gross Proceeds the quoted contracts sell for, before fees. */
   estimatedProceeds: PredictAmount;
