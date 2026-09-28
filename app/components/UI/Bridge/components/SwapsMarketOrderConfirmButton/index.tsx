@@ -21,7 +21,6 @@ import {
 import type { RootState } from '../../../../../reducers';
 import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
@@ -47,9 +46,9 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
 import { useStockMarketHours } from '../../hooks/useStockMarketHours';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 
 interface Props {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
   location: MetaMetricsSwapsEventSource;
@@ -57,7 +56,6 @@ interface Props {
 }
 
 export const SwapsMarketOrderConfirmButton = ({
-  latestSourceBalance,
   testID,
   location,
   transactionActiveAbTests,
@@ -67,7 +65,6 @@ export const SwapsMarketOrderConfirmButton = ({
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
-  const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const slippage = useSelector(selectSlippage);
@@ -85,6 +82,11 @@ export const SwapsMarketOrderConfirmButton = ({
   // settle the store stops updating, and a memoized button would keep the
   // last "Market is closed" label until the user changes tokens.
   const { isStockMarketClosed } = useStockMarketHours();
+
+  const { latestSourceBalance } = useBridgeSession();
+  const updateQuoteParams = useBridgeQuoteRequest({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
@@ -257,7 +259,6 @@ export const SwapsMarketOrderConfirmButton = ({
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: sourceToken,
           location,
         },
       });

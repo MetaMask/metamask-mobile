@@ -12,9 +12,11 @@ on:
       - stable
   merge_group:
   schedule:
-    # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
-    # This helps to identy the flaky and failed tests on main branch
-    - cron: '0 2-6 * * *'
+    # Scheduled workflows run from the default main branch. Run iOS E2E every
+    # two hours from 06:00 through 22:00 UTC on weekdays.
+    - cron: '0 6-22/2 * * 1-5'
+    # Run iOS E2E twice per day on Saturday and Sunday.
+    - cron: '0 12,20 * * 0,6'
   workflow_call:
     inputs:
       runner_provider:
@@ -54,7 +56,7 @@ on:
 
 concurrency:
   # Scheduled runs must not share the main-branch SHA group. A schedule that
-  # takes longer than the hourly cadence would otherwise replace the previous
+  # takes longer than the two-hour cadence would otherwise replace the previous
   # pending run when the next schedule is created.
   group: >-
     ${{ github.workflow }}-${{
@@ -107,7 +109,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -123,14 +125,14 @@ jobs:
 
       - name: Install Foundry if cache missed
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.restore-metamask.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -183,7 +185,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -238,7 +240,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -247,7 +249,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Deduplicate dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -297,7 +299,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -306,7 +308,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Run @lavamoat/git-safe-dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -376,7 +378,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -394,6 +396,46 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  smart-e2e-contract-tests:
+    name: Smart E2E contract tests
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    if: >-
+      ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
+    needs:
+      - get_requirements
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Read AI Analyzer ref
+        id: analyzer-ref
+        shell: bash
+        run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+      - name: Checkout AI Analyzer
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: ${{ steps.analyzer-ref.outputs.ref }}
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+      - name: Install AI Analyzer dependencies
+        working-directory: .ai-analyzer-action
+        run: npm ci
+      - run: yarn test:smart-e2e
 
   # Advisory only: never fails, never gates merges. Surfaces findings via a
   # workflow warning and step summary instead. Exposes `has-advisories` as a
@@ -437,7 +479,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -542,7 +584,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -555,7 +597,7 @@ jobs:
       # Retry: the process sits near the 16 GB ceiling; a later attempt often fits.
       # Do not raise NODE_OPTIONS.
       - name: Generate iOS bundle
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         env:
           # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
           # into gen-bundle:ios, an inline value silently shadows it.
@@ -1263,7 +1305,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        shard: [1, 2, 3]
+        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
+        # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
+        shard: [1, 2, 3, 4]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1289,7 +1333,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/3 \
+            --shard=${{ matrix.shard }}/4 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1442,18 +1486,25 @@ jobs:
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
+      - name: Read AI Analyzer ref
+        id: analyzer-ref
+        shell: bash
+        run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+
       - name: Run Smart E2E Selection
         id: e2e-selection
         uses: ./.github/actions/smart-e2e-selection
         with:
-          claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
-          openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
-          google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
+          analyzer-ref: ${{ steps.analyzer-ref.outputs.ref }}
+          analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
+          langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
@@ -1689,8 +1740,8 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on Android only, so on PRs into main it runs only when Android was requested via
-  # run-appium-android-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # Runs on Android only, so on PRs into main it runs when path filters select
+  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
   # release/* that build Android.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'

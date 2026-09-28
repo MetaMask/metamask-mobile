@@ -220,6 +220,7 @@ enum EVENT_NAME {
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
   ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  MANAGE_ACCOUNTS_VIEWED = 'Manage Accounts Viewed',
   SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
@@ -395,6 +396,8 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_URL_CHANGED = 'Ramps Checkout URL Changed',
   RAMPS_CHECKOUT_LOAD_COMPLETED = 'Ramps Checkout Load Completed',
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout HTTP Error Received',
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED = 'Ramps Checkout Provider Event Received',
+  RAMPS_CHECKOUT_FALLBACK_OPENED = 'Ramps Checkout Fallback Opened',
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
@@ -588,7 +591,7 @@ enum EVENT_NAME {
   NOTIFICATIONS_MENU_OPENED = 'InApp Notifications Menu Opened',
   NOTIFICATION_CLICKED = 'InApp Notification Clicked',
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'InApp Notifications Marked All as Read',
-  NOTIFICATION_DETAIL_CLICKED = 'InApp Notification Detail Clicked',
+  NOTIFICATION_DETAIL_ITEM_CLICKED = 'InApp Notification Detail Item Clicked',
 
   // Push Notifications
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
@@ -644,6 +647,7 @@ enum EVENT_NAME {
   PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
   PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
   PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
+  PERPS_MARGIN_ADJUSTMENT_TRANSACTION = 'Perp Margin Adjustment Transaction',
   PERPS_ORDER_CANCEL_TRANSACTION = 'Perp Order Cancel Transaction',
   PERPS_SCREEN_VIEWED = 'Perp Screen Viewed',
   PERPS_UI_INTERACTION = 'Perp UI Interaction',
@@ -675,6 +679,7 @@ enum EVENT_NAME {
   CARD_SIWE_AUTH_STARTED = 'Card SIWE Auth Started',
   CARD_SIWE_AUTH_COMPLETED = 'Card SIWE Auth Completed',
   CARD_SIWE_AUTH_FAILED = 'Card SIWE Auth Failed',
+  CARD_SIGN_IN_RESOLVED = 'Card Sign In Resolved',
   CARD_FUNDING_PROCESS_STARTED = 'Card Funding Process Started',
   CARD_FUNDING_PROCESS_COMPLETED = 'Card Funding Process Completed',
   CARD_FUNDING_PROCESS_FAILED = 'Card Funding Process Failed',
@@ -1146,6 +1151,7 @@ const events = {
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
   ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  MANAGE_ACCOUNTS_VIEWED: generateOpt(EVENT_NAME.MANAGE_ACCOUNTS_VIEWED),
   SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
   // Bare form, for callers that supply `action` and `name` themselves; the
   // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
@@ -1432,6 +1438,12 @@ const events = {
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
   ),
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED,
+  ),
+  RAMPS_CHECKOUT_FALLBACK_OPENED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_FALLBACK_OPENED,
+  ),
   RAMPS_CHECKOUT_CALLBACK_DETECTED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_CALLBACK_DETECTED,
   ),
@@ -1594,8 +1606,8 @@ const events = {
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
     EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
   ),
-  NOTIFICATION_DETAIL_CLICKED: generateOpt(
-    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
+  NOTIFICATION_DETAIL_ITEM_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_ITEM_CLICKED,
   ),
 
   // Push Notifications Flow
@@ -1861,6 +1873,9 @@ const events = {
   PERPS_POSITION_CLOSE_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
   ),
+  PERPS_MARGIN_ADJUSTMENT_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
+  ),
   PERPS_ORDER_CANCEL_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_ORDER_CANCEL_TRANSACTION,
   ),
@@ -1944,6 +1959,7 @@ const events = {
   CARD_SIWE_AUTH_STARTED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_STARTED),
   CARD_SIWE_AUTH_COMPLETED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_COMPLETED),
   CARD_SIWE_AUTH_FAILED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_FAILED),
+  CARD_SIGN_IN_RESOLVED: generateOpt(EVENT_NAME.CARD_SIGN_IN_RESOLVED),
   CARD_FUNDING_PROCESS_STARTED: generateOpt(
     EVENT_NAME.CARD_FUNDING_PROCESS_STARTED,
   ),

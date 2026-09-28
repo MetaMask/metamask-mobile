@@ -9,7 +9,18 @@ import Engine from '../../../../../core/Engine';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+  },
+  TransactionEnvelopeType: {
+    feeMarket: '0x2',
+  },
+  TransactionStatus: {
+    confirmed: 'confirmed',
+    dropped: 'dropped',
+    failed: 'failed',
+  },
+  TransactionType: {},
   mergeGasFeeEstimates: jest.fn(),
 }));
 

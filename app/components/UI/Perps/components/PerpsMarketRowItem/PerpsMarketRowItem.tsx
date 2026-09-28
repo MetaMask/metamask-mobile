@@ -5,7 +5,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   ButtonIcon,
   ButtonIconSize,
-  ButtonIconVariant,
   IconName,
   ListItem,
   TextColor,
@@ -211,10 +210,12 @@ const PerpsMarketRowItem = ({
       endAccessory={
         onAddPress ? (
           <ButtonIcon
-            iconName={IconName.Add}
+            iconName={IconName.Star}
             size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
             onPress={() => onAddPress(displayMarket)}
+            accessibilityLabel={strings(
+              'perps.market_details.add_to_watchlist',
+            )}
             testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
             )}

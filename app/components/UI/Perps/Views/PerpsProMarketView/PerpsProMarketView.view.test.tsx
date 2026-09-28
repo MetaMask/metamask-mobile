@@ -48,6 +48,7 @@ import {
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
+  getPerpsProActivityViewSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
   getPerpsProTwapFillValueSelector,
@@ -124,6 +125,7 @@ const triggeredOrderTypeIDs = [
 
 let connectionReadySpy: jest.SpyInstance;
 let connectionSubscriptionSpy: jest.SpyInstance;
+let dateNowSpy: jest.SpyInstance | undefined;
 const issuedTwapReadPromises = new Set<Promise<TwapOrder[]>>();
 const activeTwapSubscriptions = new Set<symbol>();
 const settledChaseReadPromises = new Set<Promise<ChaseOrder[]>>();
@@ -140,12 +142,6 @@ const mockTwapOrders = (orders: TwapOrder[]) => {
   jest
     .mocked(Engine.context.PerpsController.getTwapOrders)
     .mockImplementation(() => trackTwapRead(Promise.resolve(orders)));
-};
-
-const mockTwapOrdersFailure = (error: Error) => {
-  jest
-    .mocked(Engine.context.PerpsController.getTwapOrders)
-    .mockImplementation(() => trackTwapRead(Promise.reject(error)));
 };
 
 const mockNextTwapOrdersFailure = (error: Error) => {
@@ -211,7 +207,9 @@ const openChaseManagementTab = async () => {
       PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
     ),
   );
-  await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER);
+  await screen.findByTestId(
+    PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
+  );
   await settleIssuedChaseReads();
 };
 
@@ -219,15 +217,14 @@ const openTwapManagementTab = async () => {
   await screen.findByTestId(
     PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
   );
-  // Rollout-off discovery inserts the tab asynchronously. Drain that read and
-  // reacquire the current tab node so the press cannot target the instance
-  // replaced by the discovery render.
+  // Drain the issued read and reacquire the current tab node so the press
+  // cannot target an instance replaced by a re-render.
   await settleIssuedTwapReads();
   fireEvent.press(
     screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP),
   );
   await screen.findByTestId(
-    PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_ACTIVE,
+    PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
   );
   await settleIssuedTwapReads();
 };
@@ -328,6 +325,10 @@ afterEach(async () => {
     connectionSubscriptionSpy.mockRestore();
     resetPerpsChaseOrdersStoreForTests();
     resetChaseOrderVisibilityForTests();
+    // The TWAP elapsed journey pins Date.now; restore it here so a failed
+    // assertion cannot leak a frozen clock into the next test.
+    dateNowSpy?.mockRestore();
+    dateNowSpy = undefined;
   }
 });
 
@@ -686,28 +687,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'discovers an active TWAP termination surface on cold-start rollback',
-    async () => {
-      mockTwapOrders([activeTwap]);
-      renderProMarketWithTwapFlag(false);
-
-      await openTwapManagementTab();
-
-      expect(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            getTwapOrderProviderId(activeTwap),
-            activeTwap.orderId,
-          ),
-        ),
-      ).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
     'renders complete TWAP data and switches a same-symbol provider row',
     async () => {
-      // Arrange
+      // Arrange: the elapsed row derives from the wall clock, so pin it to the
+      // one minute past `startedAt` this fixture's elapsedTimeMilliseconds
+      // describes. Without this the schedule reads as decades old and clamps
+      // to its full duration. A Date.now spy keeps timers real, which the
+      // async findBy* assertions below depend on.
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(completeTwap.startedAt + 60_000);
       mockTwapOrders([completeTwap]);
       renderProMarketWithTwapFlag(true);
 
@@ -775,7 +764,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED),
         ),
-      ).toHaveTextContent('1 minute / 30 minutes');
+      ).toHaveTextContent('00:01:00 / 00:30:00');
       expect(
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_RANDOMIZE),
@@ -826,10 +815,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(getPerpsProTwapSideFilterOptionSelector('all')),
       );
 
-      // Act
+      // Act: the activity filter reaches Fill history in one step.
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
       fireEvent.press(
         screen.getByTestId(
-          PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_FILL_HISTORY,
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('fill_history')}`,
         ),
       );
       const fillValueTestID = (baseTestID: string) =>
@@ -872,7 +864,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'retains an active TWAP termination surface when rollout turns off',
+    'withdraws the TWAP tab when rollout turns off mid-session',
     async () => {
       mockTwapOrders([activeTwap]);
       const { store } = renderProMarketWithTwapFlag(true);
@@ -901,43 +893,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
 
       expect(
-        screen.getByTestId(
+        screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
         ),
-      ).toBeOnTheScreen();
-      expect(screen.getByTestId(terminateTestID)).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
-    'keeps discovery retry available after rollback and recovers an active TWAP',
-    async () => {
-      const getTwapOrders = jest.mocked(
-        Engine.context.PerpsController.getTwapOrders,
-      );
-      mockTwapOrdersFailure(new Error('venue down'));
-      renderProMarketWithTwapFlag(false);
-
-      await openTwapManagementTab();
-      expect(
-        await screen.findByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
-      ).toBeOnTheScreen();
-      const retryButton = screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.TWAP_RETRY,
-      );
-      await waitFor(() => expect(retryButton).toBeEnabled());
-
-      mockTwapOrders([activeTwap]);
-      fireEvent.press(retryButton);
-
-      expect(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            getTwapOrderProviderId(activeTwap),
-            activeTwap.orderId,
-          ),
-        ),
-      ).toBeOnTheScreen();
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(terminateTestID)).not.toBeOnTheScreen();
     },
   );
 
@@ -960,7 +920,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
       cancelOrder.mockClear();
       cancelOrder.mockResolvedValueOnce({ success: true });
-      renderProMarketWithTwapFlag(false);
+      renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateTestID = getPerpsProTwapTerminateSelector(
         getTwapOrderProviderId(activeTwap),
@@ -1013,7 +973,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         Engine.context.PerpsController.getTwapOrders,
       );
       mockTwapOrders([activeTwap]);
-      renderProMarketWithTwapFlag(false);
+      renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateButton = await screen.findByTestId(
         getPerpsProTwapTerminateSelector(
@@ -1061,7 +1021,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       `closes TWAP termination when the ${identityChange} identity changes`,
       async () => {
         mockTwapOrders([activeTwap]);
-        const { store } = renderProMarketWithTwapFlag(false);
+        const { store } = renderProMarketWithTwapFlag(true);
         await openTwapManagementTab();
         fireEvent.press(
           await screen.findByTestId(
@@ -1209,7 +1169,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.queryByTestId(rowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const canceledStatusSelector = getPerpsProChaseStatusSelector(
         'canceled',
@@ -1281,7 +1246,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
       await waitFor(() => expect(cancelOrder).toHaveBeenCalledTimes(1));
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1481,7 +1451,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(isChaseOrderHandleVisible('other-chase')).toBe(false);
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       await waitFor(() =>
         expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false),
@@ -1734,7 +1709,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await openChaseManagementTab();
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1778,7 +1758,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE),
       ).toHaveTextContent(strings('perps.order.chase.empty'));
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1832,7 +1817,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         await openChaseManagementTab();
         fireEvent.press(
           screen.getByTestId(
-            PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER,
+            PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
+          ),
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
           ),
         );
 
@@ -1881,17 +1871,19 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await openChaseManagementTab();
       expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(getPerpsProActivityViewSelector('active')),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE),
       ).toHaveTextContent(strings('perps.order.chase.empty'));
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       expect(
         await screen.findByText(strings('perps.order.chase.status.canceled')),
@@ -2004,7 +1996,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await waitFor(() => expect(getChaseOrders).toHaveBeenCalledTimes(3));
       await openChaseManagementTab();
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const rowSelector = getPerpsProChaseRowSelector(
         'ETH',
@@ -2079,7 +2076,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.queryByTestId(activeRowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const filledStatusSelector = getPerpsProChaseStatusSelector(
         'filled',
@@ -2708,7 +2710,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'forces USD sizing when Scale ladder prices differ from the market',
+    'keeps asset sizing available when Scale ladder prices differ from the market',
     async () => {
       renderProMarketWithScaleFlag(true);
       const sizeInput = await findSizeInput();
@@ -2729,11 +2731,20 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
       await waitFor(() => {
+        expect(sizeInput).toHaveProp('value', '0.04');
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (ETH)',
+        );
+        expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeEnabled();
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+      await waitFor(() => {
         expect(sizeInput).toHaveProp('value', '100');
         expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
           'Size (USD)',
         );
-        expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
       });
     },
   );
@@ -2950,7 +2961,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'silently blocks an invalid stop-market price until blur shows guidance',
+    'warns about an invalid stop-market price on blur without blocking it',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
@@ -2963,27 +2974,28 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       fireEvent.changeText(triggerInput, '1000');
 
+      // Mid-typing, the form stays quiet rather than judging a half-entered price.
       await waitFor(
         () => {
           expect(
             screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
           ).not.toBeOnTheScreen();
-          expect(placeOrderButton).toBeDisabled();
         },
         { timeout: TIMEOUT_MS },
       );
 
       fireEvent(triggerInput, 'blur');
 
+      // A stop on the wrong side of mid is advice, not a blocker: the user is
+      // told about it and can still place the order.
       await waitFor(
         () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
             strings('perps.order.validation.trigger_must_be_above_mid'),
           );
-          expect(placeOrderButton).toBeDisabled();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
         },
         { timeout: TIMEOUT_MS },
       );
@@ -2991,7 +3003,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'blocks a long take-market trigger above mid after blur',
+    'warns about a long take-market trigger above mid without blocking it',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
@@ -3010,7 +3022,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
             strings('perps.order.validation.trigger_must_be_below_mid'),
           );
-          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
         },
         { timeout: TIMEOUT_MS },
       );
@@ -3018,7 +3030,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'blocks a short stop-limit trigger above mid before showing blur guidance',
+    'warns about a short stop-limit trigger above mid without blocking it',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
@@ -3030,13 +3042,14 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
 
       const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
-      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(triggerInput, '3000');
+      fireEvent.changeText(limitInput, '2950');
+      fireEvent(limitInput, 'blur');
 
       expect(
         screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
       ).not.toBeOnTheScreen();
-      expect(placeOrderButton).toBeDisabled();
 
       fireEvent(triggerInput, 'blur');
 
@@ -3045,7 +3058,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
             strings('perps.order.validation.trigger_must_be_below_mid'),
           );
-          expect(placeOrderButton).toBeDisabled();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
         },
         { timeout: TIMEOUT_MS },
       );
@@ -3053,7 +3066,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'blocks a short take-limit trigger below mid before showing blur guidance',
+    'warns about a short take-limit trigger below mid without blocking it',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
@@ -3065,13 +3078,14 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
 
       const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
-      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(triggerInput, '1000');
+      fireEvent.changeText(limitInput, '950');
+      fireEvent(limitInput, 'blur');
 
       expect(
         screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
       ).not.toBeOnTheScreen();
-      expect(placeOrderButton).toBeDisabled();
 
       fireEvent(triggerInput, 'blur');
 
@@ -3080,7 +3094,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
             strings('perps.order.validation.trigger_must_be_above_mid'),
           );
-          expect(placeOrderButton).toBeDisabled();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
         },
         { timeout: TIMEOUT_MS },
       );
@@ -3330,6 +3344,380 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           ).toHaveTextContent('Final validation failed');
           expect(placeOrder).not.toHaveBeenCalled();
           expect(placeOrderButton).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms('submits a stop-market order with triggerPrice', async () => {
+    const validateOrder = jest.mocked(
+      Engine.context.PerpsController.validateOrder,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    validateOrder.mockClear();
+    placeOrder.mockClear();
+    renderProMarketWithTriggeredOrdersFlag(true);
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
+
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+    );
+
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    fireEvent.changeText(triggerInput, '2600');
+    fireEvent(triggerInput, 'blur');
+
+    const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    let finalValidation: Promise<unknown> | undefined;
+    await waitFor(
+      () => {
+        const idx = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'stop_market' &&
+            params.triggerPrice === '2600',
+        );
+        expect(idx).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[idx]
+          ?.value as Promise<unknown>;
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    await act(async () => {
+      await finalValidation;
+    });
+    await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+      timeout: TIMEOUT_MS,
+    });
+    fireEvent.press(placeOrderButton);
+
+    await waitFor(
+      () => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'stop_market',
+            triggerPrice: '2600',
+          }),
+        );
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
+  });
+
+  itForPlatforms(
+    'submits a take-profit-limit order with triggerPrice and limit price',
+    async () => {
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      validateOrder.mockClear();
+      placeOrder.mockClear();
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+      );
+
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2600');
+      fireEvent(triggerInput, 'blur');
+      fireEvent.changeText(limitInput, '2650');
+      fireEvent(limitInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      let finalValidation: Promise<unknown> | undefined;
+      await waitFor(
+        () => {
+          const idx = validateOrder.mock.calls.findIndex(
+            ([params]) =>
+              params.orderType === 'take_profit_limit' &&
+              params.triggerPrice === '2600' &&
+              params.price === '2650',
+          );
+          expect(idx).toBeGreaterThanOrEqual(0);
+          finalValidation = validateOrder.mock.results[idx]
+            ?.value as Promise<unknown>;
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      await act(async () => {
+        await finalValidation;
+      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'take_profit_limit',
+              triggerPrice: '2600',
+              price: '2650',
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'submits a take-profit-market order with triggerPrice',
+    async () => {
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      validateOrder.mockClear();
+      placeOrder.mockClear();
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+      );
+
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2000');
+      fireEvent(triggerInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      let finalValidation: Promise<unknown> | undefined;
+      await waitFor(
+        () => {
+          const idx = validateOrder.mock.calls.findIndex(
+            ([params]) =>
+              params.orderType === 'take_profit_market' &&
+              params.triggerPrice === '2000',
+          );
+          expect(idx).toBeGreaterThanOrEqual(0);
+          finalValidation = validateOrder.mock.results[idx]
+            ?.value as Promise<unknown>;
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      await act(async () => {
+        await finalValidation;
+      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'take_profit_market',
+              triggerPrice: '2000',
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
+    },
+  );
+
+  itForPlatforms(
+    'submits a TWAP order with default 30-minute duration',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockClear();
+      renderProMarketWithTwapFlag(true);
+      const { sizeInput } = await openTwapOrderForm();
+
+      fireEvent.changeText(sizeInput, '100');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'twap',
+              twapDuration: 30,
+              twapRandomize: false,
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'shows an invalid-range notice when Scale start price exceeds end price',
+    async () => {
+      renderProMarketWithScaleFlag(true);
+      await findSizeInput();
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+
+      await openScaleOrderForm();
+
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2600');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(`${ids.NOTICE}-scale`)).toHaveTextContent(
+            strings('perps.pro_order_form.scale.validation.invalid_range'),
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'submits a Scale order with a valid price ladder',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockClear();
+      renderProMarketWithScaleFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+
+      await openScaleOrderForm();
+
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2600');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'scale',
+              scaleMinPrice: '2200',
+              scaleMaxPrice: '2600',
+              scaleNumOrders: 3,
+              scaleSkew: 1,
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'shows a max-distance error when Chase max distance is zero',
+    async () => {
+      jest
+        .mocked(Engine.context.PerpsController.getOrderCapabilities)
+        .mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['chase'],
+        });
+      renderPerpsProMarketView({
+        streamOverrides: { account: createFundedAccountForViews('1000') },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsMobileChase: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const sizeInput = await findSizeInput();
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+      fireEvent.changeText(sizeInput, '30');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(await screen.findByTestId(ids.CHASE_FORM)).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      );
+      fireEvent.changeText(
+        screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),
+        '0',
+      );
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByTestId(`${ids.NOTICE}-chase-max-distance`),
+          ).toBeOnTheScreen();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         },
         { timeout: TIMEOUT_MS },
       );

@@ -6,6 +6,7 @@ import { View, Text } from 'react-native';
 import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import {
+  DarkTheme,
   DefaultTheme,
   NavigationContainerRef,
   NavigationState,
@@ -14,6 +15,7 @@ import {
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import { AppThemeKey } from '../../../util/theme/models';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -186,6 +188,32 @@ describe('NavigationProvider', () => {
       ...DefaultTheme,
       colors: {
         ...DefaultTheme.colors,
+        background: 'transparent',
+      },
+    });
+  });
+
+  it('hands UIKit the dark navigation theme when the app theme is dark', () => {
+    // The global test setup also mocks this module, so spy on the instance the
+    // provider actually imports rather than relying on the file-level mock.
+    const themeModule: typeof import('../../../util/theme') = jest.requireMock(
+      '../../../util/theme',
+    );
+    jest.spyOn(themeModule, 'useTheme').mockReturnValue({
+      ...themeModule.mockTheme,
+      themeAppearance: AppThemeKey.dark,
+    });
+
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(mockCapturedNavContainerProps.theme).toEqual({
+      ...DarkTheme,
+      colors: {
+        ...DarkTheme.colors,
         background: 'transparent',
       },
     });

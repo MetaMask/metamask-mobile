@@ -9,6 +9,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ goBack: jest.fn() }),
+}));
+
 const mockStrings = jest.fn((key: string) => `mocked_${key}`);
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => mockStrings(key),
@@ -30,47 +34,6 @@ const setCapturedOnCloseProp = (fn: (() => void) | undefined) => {
 
 // Store reference for the mock to use (hoisting workaround)
 const getMockOnCloseBottomSheet = () => mockOnCloseBottomSheet;
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-
-    return React.forwardRef(
-      (
-        {
-          children,
-          testID,
-          onClose,
-        }: {
-          children: React.ReactNode;
-          testID?: string;
-          onClose?: () => void;
-        },
-        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
-      ) => {
-        // Capture onClose prop for testing
-        React.useEffect(() => {
-          setCapturedOnCloseProp(onClose);
-        }, [onClose]);
-
-        React.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => {
-            // Get the mock function at runtime to avoid hoisting issues
-            const mockFn = getMockOnCloseBottomSheet();
-            mockFn(callback);
-          },
-        }));
-        return React.createElement(
-          View,
-          { testID: testID || 'bottom-sheet' },
-          children,
-        );
-      },
-    );
-  },
-);
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
@@ -136,6 +99,36 @@ jest.mock('@metamask/design-system-react-native', () => {
       ),
     ButtonVariant: { Primary: 'Primary', Secondary: 'Secondary' },
     ButtonSize: { Lg: 'Lg' },
+    BottomSheet: React.forwardRef(
+      (
+        {
+          children,
+          testID,
+          onClose,
+        }: {
+          children: React.ReactNode;
+          testID?: string;
+          onClose?: () => void;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
+      ) => {
+        React.useEffect(() => {
+          setCapturedOnCloseProp(onClose);
+        }, [onClose]);
+
+        React.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            const mockFn = getMockOnCloseBottomSheet();
+            mockFn(callback);
+          },
+        }));
+        return React.createElement(
+          View,
+          { testID: testID || 'bottom-sheet' },
+          children,
+        );
+      },
+    ),
   };
 });
 

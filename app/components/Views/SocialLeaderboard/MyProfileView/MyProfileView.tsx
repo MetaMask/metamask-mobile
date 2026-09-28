@@ -2,6 +2,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonVariant,
   FontWeight,
@@ -20,15 +21,18 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import { useMyProfile } from './hooks';
+import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile, isLoading, error, refresh } = useMyProfile();
+  const { traders: following } = useFollowedTraders();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -37,7 +41,28 @@ const MyProfileView: React.FC = () => {
   const handleEditProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
-  const handleShareFirstTrade = useCallback(() => undefined, []);
+  const handleFollowersPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'followers',
+    });
+  }, [navigation]);
+  const handleFollowingPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'following',
+    });
+  }, [navigation]);
+  const handleShareFirstTrade = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
+  }, [navigation]);
+
+  const handleResetProfile = useCallback(() => {
+    resetLocalSocialProfile();
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  }, [navigation]);
+
+  const handleCreateProfile = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
     if (!profile) {
@@ -102,7 +127,12 @@ const MyProfileView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('flex-grow pb-6')}
         >
-          <MyProfileHeader profile={profile} />
+          <MyProfileHeader
+            profile={profile}
+            followingCount={following.length}
+            onFollowersPress={handleFollowersPress}
+            onFollowingPress={handleFollowingPress}
+          />
 
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -145,9 +175,44 @@ const MyProfileView: React.FC = () => {
             </Box>
           </Box>
 
-          <ProfilePostsEmptyState onShareFirstTrade={handleShareFirstTrade} />
+          <ProfilePostsEmptyState
+            onShareFirstTrade={handleShareFirstTrade}
+            onResetProfile={handleResetProfile}
+          />
         </ScrollView>
-      ) : null}
+      ) : (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          paddingHorizontal={4}
+          gap={3}
+          testID={MyProfileViewSelectorsIDs.NO_PROFILE}
+        >
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.no_profile_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.no_profile_description')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            onPress={handleCreateProfile}
+            testID={MyProfileViewSelectorsIDs.CREATE_PROFILE_BUTTON}
+          >
+            {strings('social_leaderboard.my_profile.create_profile')}
+          </Button>
+        </Box>
+      )}
     </SafeAreaView>
   );
 };

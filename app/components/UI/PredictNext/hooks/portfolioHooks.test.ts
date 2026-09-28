@@ -49,6 +49,13 @@ describe('PredictNext portfolio hooks', () => {
     expect(nextCursor).toBeUndefined();
   });
 
+  it('forwards the enabled gate to the Positions query', () => {
+    usePositions(venueId, { limit: 20 }, { enabled: false });
+    const options = mockedUseInfiniteQuery.mock.calls[0][0];
+
+    expect(options.enabled).toBe(false);
+  });
+
   it('uses a cursor-free Activity key and returns the next cursor', () => {
     useActivity(venueId, { limit: 20 });
     const options = mockedUseInfiniteQuery.mock.calls[0][0];
@@ -67,5 +74,12 @@ describe('PredictNext portfolio hooks', () => {
     ]);
     expect(options.initialPageParam).toBeUndefined();
     expect(nextCursor).toBe('next');
+  });
+
+  it('forwards the enabled gate to the Activity query', () => {
+    useActivity(venueId, { limit: 20 }, { enabled: false });
+    const options = mockedUseInfiniteQuery.mock.calls[0][0];
+
+    expect(options.enabled).toBe(false);
   });
 });

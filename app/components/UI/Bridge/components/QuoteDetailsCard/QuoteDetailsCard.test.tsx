@@ -787,13 +787,6 @@ describe('QuoteDetailsCard', () => {
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
         type: PriceImpactModalType.Info,
-        token: {
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          symbol: 'SOL',
-          decimals: 9,
-          name: 'Solana',
-        },
         location: MetaMetricsSwapsEventSource.MainView,
       },
     });

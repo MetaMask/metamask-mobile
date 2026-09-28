@@ -12,8 +12,10 @@ import { usePayMoneyAccountAvailable } from './usePayMoneyAccountAvailable';
 
 const PERPS_PREDICT_TRANSACTION_TYPES: TransactionType[] = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
 ];
 

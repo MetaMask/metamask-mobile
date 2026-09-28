@@ -37,7 +37,9 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  isInvertedPriceRange,
   isValidPriceRange,
+  PRICE_RANGE_CURRENCY,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   tokenPairRateFromFiatRates,
@@ -146,9 +148,8 @@ function PriceRangeAmountField({
 const PriceRangeSheet = ({
   sourceToken,
   destToken,
-  sourceFiatRate,
-  destFiatRate,
-  currentCurrency,
+  sourceUsdRate,
+  destUsdRate,
   initialTokenSide,
   initialMin,
   initialMax,
@@ -181,24 +182,25 @@ const PriceRangeSheet = ({
   }, [focusedField]);
 
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
-  const selectedFiatRate =
-    pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
+  const selectedUsdRate =
+    pendingTokenSide === 'source' ? sourceUsdRate : destUsdRate;
   const hasLivePrice =
-    selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
+    selectedUsdRate !== undefined && Number.isFinite(selectedUsdRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
-  const currencySymbol = getCurrencySymbol(currentCurrency);
+  const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
+  const currencySymbol = getCurrencySymbol(PRICE_RANGE_CURRENCY);
   const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
     () =>
       formatTokenPrice(
         selectedToken?.symbol,
-        selectedFiatRate,
-        currentCurrency,
+        selectedUsdRate,
+        PRICE_RANGE_CURRENCY,
       ),
-    [currentCurrency, selectedFiatRate, selectedToken?.symbol],
+    [selectedToken?.symbol, selectedUsdRate],
   );
   const exchangeRateLabel = useMemo(
     () =>
@@ -206,13 +208,13 @@ const PriceRangeSheet = ({
         selected: pendingTokenSide,
         sourceSymbol: sourceToken?.symbol,
         destSymbol: destToken?.symbol,
-        quoteRate: tokenPairRateFromFiatRates(sourceFiatRate, destFiatRate),
+        quoteRate: tokenPairRateFromFiatRates(sourceUsdRate, destUsdRate),
       }),
     [
-      destFiatRate,
+      destUsdRate,
       destToken?.symbol,
       pendingTokenSide,
-      sourceFiatRate,
+      sourceUsdRate,
       sourceToken?.symbol,
     ],
   );
@@ -248,22 +250,22 @@ const PriceRangeSheet = ({
 
   const handleMinPercentPress = useCallback(
     (percent: number) => {
-      if (selectedFiatRate === undefined) {
+      if (selectedUsdRate === undefined) {
         return;
       }
-      setPendingMin(applyPercentToPrice(selectedFiatRate, percent));
+      setPendingMin(applyPercentToPrice(selectedUsdRate, percent));
     },
-    [selectedFiatRate],
+    [selectedUsdRate],
   );
 
   const handleMaxPercentPress = useCallback(
     (percent: number) => {
-      if (selectedFiatRate === undefined) {
+      if (selectedUsdRate === undefined) {
         return;
       }
-      setPendingMax(applyPercentToPrice(selectedFiatRate, percent));
+      setPendingMax(applyPercentToPrice(selectedUsdRate, percent));
     },
-    [selectedFiatRate],
+    [selectedUsdRate],
   );
 
   const handleKeypadChange = useCallback(
@@ -296,7 +298,7 @@ const PriceRangeSheet = ({
       isValidPriceRange(pendingMin, pendingMax)
         ? {
             tokenSide: pendingTokenSide,
-            currency: currentCurrency,
+            currency: PRICE_RANGE_CURRENCY,
             min: pendingMin,
             max: pendingMax,
           }
@@ -306,7 +308,6 @@ const PriceRangeSheet = ({
   }, [
     canConfirm,
     closeSheet,
-    currentCurrency,
     onConfirm,
     pendingMax,
     pendingMin,
@@ -499,6 +500,15 @@ const PriceRangeSheet = ({
                 testID={PriceRangeSheetSelectorsIDs.MAX_INPUT}
                 onPress={() => focusField('max')}
               />
+              {showInvertedRangeError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={PriceRangeSheetSelectorsIDs.MAX_ERROR}
+                >
+                  {strings('bridge.recurring.price_range.max_must_exceed_min')}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         </ScrollView>

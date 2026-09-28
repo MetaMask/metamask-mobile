@@ -7,6 +7,8 @@ import {
   NavigationHelpers,
 } from '@react-navigation/native';
 
+import { IconName } from '@metamask/design-system-react-native';
+
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,6 +19,7 @@ import TabBarFloating, {
   type TabBarFloatingTrailingAction,
 } from './TabBarFloating';
 import {
+  FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
@@ -25,6 +28,9 @@ import {
   TabBarIconKey,
   ExtendedBottomTabDescriptor,
 } from '../TabBar/TabBar.types';
+
+/** `IconSize.Lg` in points, the dimension the design system renders it at. */
+const TAB_BAR_FLOATING_ICON_DIMENSION = 24;
 
 jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
   trackExploreSearchOpened: jest.fn(),
@@ -139,6 +145,12 @@ describe('TabBarFloating', () => {
 
   afterAll(() => jest.useRealTimers());
 
+  it('uses the filled people glyph for the selected Social tab', () => {
+    expect(FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Social]).toBe(
+      IconName.PeopleFilled,
+    );
+  });
+
   it('renders the pill, the four treatment tabs, and the search button', () => {
     const { getByTestId } = renderBar();
 
@@ -175,6 +187,19 @@ describe('TabBarFloating', () => {
     );
 
     expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
+  });
+
+  // The native iOS 26 bar draws 28pt glyphs, so the fallback has to reach for
+  // the largest design-system size the 62pt bar can hold.
+  it('draws tab glyphs at the size the native bar uses', () => {
+    const { UNSAFE_getAllByProps } = renderBar();
+
+    const [glyph] = UNSAFE_getAllByProps({ fill: 'currentColor' });
+
+    expect(glyph.props.style).toMatchObject({
+      width: TAB_BAR_FLOATING_ICON_DIMENSION,
+      height: TAB_BAR_FLOATING_ICON_DIMENSION,
+    });
   });
 
   it('highlights only the active tab, and follows it when the tab changes', () => {
@@ -277,6 +302,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON));
 
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
   });

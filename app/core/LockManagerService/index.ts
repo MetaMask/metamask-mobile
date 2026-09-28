@@ -49,6 +49,10 @@ export class LockManagerService {
       ) {
         // Lets other services know that the lock manager app state event is resolved while active
         if (nextAppState === 'active') {
+          // Android resumes as background -> inactive -> active, which lands
+          // here rather than in the `active` branch below. Without this the
+          // pending timer survives the resume and locks mid-session.
+          this.#clearBackgroundTimer();
           ReduxService.store.dispatch(checkForDeeplink());
         }
         this.#appState = nextAppState;

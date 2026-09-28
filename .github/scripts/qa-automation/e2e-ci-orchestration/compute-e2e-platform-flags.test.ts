@@ -7,6 +7,7 @@ import {
 describe('computeE2EPlatformFlags', () => {
   const baseInput = {
     githubEventName: 'pull_request',
+    githubRefName: 'main',
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
@@ -205,24 +206,40 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.message).toContain('iOS not requested for this PR');
   });
 
-  it('runs both platforms for E2E test-only pushes', () => {
+  it('runs Android only for E2E test-only pushes to main', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
     });
 
     expect(result.android).toBe(true);
-    expect(result.ios).toBe(true);
+    expect(result.ios).toBe(false);
     expect(result.e2eNeeded).toBe(true);
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
     expect(result.message).toContain('test-only');
     expect(result.runSmartE2ESelection).toBe(false);
   });
 
-  it('runs both platforms for shared app changes pushed to main or release/*', () => {
+  it('runs Android only for shared app changes pushed to main', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+      e2eNeeded: true,
+    });
+  });
+
+  it('runs both platforms for shared app changes pushed to release/*', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      githubRefName: 'release/1.0.0',
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 0,
     });
@@ -251,10 +268,29 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('selects iOS only for iOS-only pushes', () => {
+  it('skips E2E for iOS-only pushes to main', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      iosCount: 1,
+      iosOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+    });
+    expect(result.message).toContain('iOS not selected for pushes to main');
+  });
+
+  it('selects iOS only for iOS-only pushes to release/*', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      githubRefName: 'release/1.0.0',
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 0,
       iosCount: 1,
@@ -285,7 +321,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('keeps scheduled runs on both platforms', () => {
+  it('selects iOS only for scheduled runs', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'schedule',
@@ -295,9 +331,10 @@ describe('computeE2EPlatformFlags', () => {
     });
 
     expect(result).toMatchObject({
-      android: true,
+      android: false,
       ios: true,
       e2eNeeded: true,
+      message: 'E2E for iOS only (scheduled)',
     });
   });
 
@@ -375,10 +412,11 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.message).toContain('iOS not requested for this PR');
   });
 
-  it('keys iOS suppression off the event, not the target branch', () => {
+  it('keeps iOS enabled for release pushes regardless of PR target ref', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      githubRefName: 'release/1.0.0',
       prBaseRef: 'main',
     });
 

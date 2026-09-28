@@ -12,9 +12,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { TraceName } from '../../../../../util/trace';
+import { useActivity } from '../../hooks/useActivity';
 import { useBalance } from '../../hooks/useBalance';
+import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import type { PredictEntityId } from '../../types';
 import type {
   PredictNextStackParamList,
@@ -25,6 +28,8 @@ import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioTabs } from './internal/PortfolioTabs';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+
+const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
 
 export const PredictPortfolioScreen = () => {
   const navigation =
@@ -38,6 +43,15 @@ export const PredictPortfolioScreen = () => {
   const [activeTab, setActiveTab] = useState<PredictPortfolioTab>(
     route.params.initialTab ?? 'positions',
   );
+  const positionsActive = activeTab === 'positions';
+  const activityActive = activeTab === 'activity';
+  const positionsQuery = usePositions(venueId, PAGE_PARAMS, {
+    enabled: positionsActive,
+  });
+  const activityQuery = useActivity(venueId, PAGE_PARAMS, {
+    enabled: activityActive,
+  });
+  const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
     setActiveTab(route.params.initialTab ?? 'positions');
@@ -45,10 +59,10 @@ export const PredictPortfolioScreen = () => {
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextPortfolioView,
-    conditions: [!balanceQuery.isPending],
+    conditions: [!balanceQuery.isPending, !activeListQuery.isPending],
     debugContext: {
       hasBalance: Boolean(balanceQuery.data),
-      error: balanceQuery.isError,
+      error: balanceQuery.isError || activeListQuery.isError,
       tab: activeTab,
     },
   });
@@ -71,9 +85,6 @@ export const PredictPortfolioScreen = () => {
     },
     [navigation, venueId],
   );
-
-  const positionsActive = activeTab === 'positions';
-  const activityActive = activeTab === 'activity';
 
   return (
     <SafeAreaView
@@ -108,7 +119,7 @@ export const PredictPortfolioScreen = () => {
             testID={PredictPortfolioScreenTestIds.POSITIONS_CONTENT}
           >
             <PortfolioPositionsPanel
-              venueId={venueId}
+              query={positionsQuery}
               isPrivacyMode={Boolean(privacyMode)}
               onOpenEvent={openEvent}
               onBrowseMarkets={browseMarkets}
@@ -124,7 +135,7 @@ export const PredictPortfolioScreen = () => {
             testID={PredictPortfolioScreenTestIds.ACTIVITY_CONTENT}
           >
             <PortfolioActivityPanel
-              venueId={venueId}
+              query={activityQuery}
               isPrivacyMode={Boolean(privacyMode)}
               onOpenEvent={openEvent}
               onBrowseMarkets={browseMarkets}

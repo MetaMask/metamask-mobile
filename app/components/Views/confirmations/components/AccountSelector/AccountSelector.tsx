@@ -9,6 +9,7 @@ import {
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,
@@ -52,6 +53,7 @@ export interface AccountSelectorProps {
   /** Title in the account selection bottom sheet (header). */
   selectorTitle?: string;
   style?: StyleProp<ViewStyle>;
+  isAccountAllowed?: (account: InternalAccount) => boolean;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -60,6 +62,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   label = strings('confirm.label.to'),
   selectorTitle = strings('bridge.select_recipient'),
   style,
+  isAccountAllowed,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -71,9 +74,14 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getIsAccountSupported = useCallback(
-    (account: AccountId) =>
-      Boolean(internalAccountsById[account]?.scopes.includes(EthScope.Eoa)),
-    [internalAccountsById],
+    (accountId: AccountId) => {
+      const account = internalAccountsById[accountId];
+      return Boolean(
+        account?.scopes.includes(EthScope.Eoa) &&
+          (isAccountAllowed?.(account) ?? true),
+      );
+    },
+    [internalAccountsById, isAccountAllowed],
   );
 
   const openModal = useCallback(() => setIsModalVisible(true), []);

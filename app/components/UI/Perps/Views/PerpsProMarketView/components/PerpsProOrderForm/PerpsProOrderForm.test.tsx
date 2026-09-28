@@ -1781,6 +1781,22 @@ describe('PerpsProOrderForm', () => {
       });
     });
 
+    it('stretches margin mode and leverage to share the full column width', () => {
+      renderForm();
+
+      const marginModeStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.MARGIN_MODE_BUTTON).props.style,
+      );
+      const leverageStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.LEVERAGE_BUTTON).props.style,
+      );
+
+      expect(marginModeStyle.flexGrow).toBe(1);
+      expect(marginModeStyle.flexBasis).toBe('0%');
+      expect(leverageStyle.flexGrow).toBe(1);
+      expect(leverageStyle.flexBasis).toBe('0%');
+    });
+
     it('uses 4-point spacing between summary rows', () => {
       renderForm();
 

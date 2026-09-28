@@ -2,14 +2,25 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError';
+import { BridgeTabKey } from '../../../Views/BridgeView/BridgeView.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { InsufficientNativeReserveBanner } from './InsufficientNativeReserveBanner';
-import { renderBanner } from './testUtils';
+import { renderBanner, createBannerState } from './testUtils';
+import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../../enablement/assets/arc';
 
+/**
+ * Unit fallback: reserve banner needs isolated quote + session overrides.
+ * CV remounts Market on tab switch and cannot hold those matrices.
+ */
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useInsufficientBalance', () => ({
@@ -21,9 +32,22 @@ jest.mock('../../../hooks/useInsufficientNativeReserveError', () => ({
   useInsufficientNativeReserveError: jest.fn(),
 }));
 
+const createMockBridgeSession = (
+  overrides: Partial<ReturnType<typeof useBridgeSession>> = {},
+) => ({
+  selectedTab: BridgeTabKey.Market,
+  renderedTab: BridgeTabKey.Market,
+  setSelectedTab: jest.fn(),
+  setRenderedTab: jest.fn(),
+  latestSourceBalance: undefined,
+  quoteParams: {},
+  ...overrides,
+});
+
 describe('InsufficientNativeReserveBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useBridgeSession).mockReturnValue(createMockBridgeSession());
     jest.mocked(useBridgeQuoteDataContext).mockReturnValue({
       activeQuote: undefined,
       quoteFetchError: null,
@@ -47,6 +71,21 @@ describe('InsufficientNativeReserveBanner', () => {
     );
 
     expect(onAdjustSourceAmount).toHaveBeenCalledWith('5');
+  });
+
+  it('renders nothing for Arc USDC reserve errors', () => {
+    const { queryByTestId } = renderBanner(
+      <InsufficientNativeReserveBanner />,
+      {
+        state: createBannerState({
+          sourceToken: ARC_USDC_BRIDGE_TOKEN,
+        }),
+      },
+    );
+
+    expect(
+      queryByTestId(SwapsBannersSelectorsIDs.INSUFFICIENT_NATIVE_RESERVE),
+    ).toBeNull();
   });
 
   it('gives way to the insufficient balance state', () => {

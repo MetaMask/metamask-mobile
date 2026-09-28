@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BuyWidget, QuotesResponse } from '@metamask/ramps-controller';
+import type {
+  BuyWidget,
+  BuyWidgetFallback,
+  QuotesResponse,
+} from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
 import {
+  buildRampsBuyQuoteFetchCufCompletion,
+  buildRampsBuyQuoteFetchStartTags,
   endRampsBuyQuoteFetchTrace,
   startRampsBuyQuoteFetchTrace,
 } from '../utils/rampsBuyCufTrace';
@@ -30,6 +36,10 @@ export interface GetQuotesOptions {
 export interface UseRampsQuotesResult {
   getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
   getBuyWidgetData: (quote: Quote) => Promise<BuyWidget | null>;
+  getFallbackBuyWidgetData: (
+    fallback: BuyWidgetFallback,
+    options?: { redirectUrl?: string },
+  ) => Promise<BuyWidget | null>;
   data: QuotesResponse | null;
   loading: boolean;
   status: RampsQueryStatus;
@@ -52,6 +62,12 @@ export function useRampsQuotes(
     };
     return ramps.getBuyWidgetData(quote);
   }, []);
+
+  const getFallbackBuyWidgetData = useCallback(
+    (fallback: BuyWidgetFallback, opts?: { redirectUrl?: string }) =>
+      Engine.context.RampsController.getFallbackBuyWidgetData(fallback, opts),
+    [],
+  );
 
   const queryEnabled = Boolean(
     options?.assetId && options.walletAddress && options.amount > 0,
@@ -101,6 +117,7 @@ export function useRampsQuotes(
 
   const quoteCufOpIdRef = useRef<string | null>(null);
   const quoteCufKeyRef = useRef<string | null>(null);
+  const quoteCufProvidersRef = useRef<string[] | undefined>(undefined);
 
   const endOpenQuoteCuf = useCallback(
     (
@@ -118,6 +135,7 @@ export function useRampsQuotes(
       });
       quoteCufOpIdRef.current = null;
       quoteCufKeyRef.current = null;
+      quoteCufProvidersRef.current = undefined;
     },
     [],
   );
@@ -131,8 +149,14 @@ export function useRampsQuotes(
 
     if (quotesQuery.isFetching) {
       if (quoteCufKeyRef.current !== quoteFetchKey) {
-        quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace();
+        const providersAtStart = quoteFetchParams.providers
+          ? [...quoteFetchParams.providers]
+          : undefined;
+        quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace({
+          tags: buildRampsBuyQuoteFetchStartTags(providersAtStart),
+        });
         quoteCufKeyRef.current = quoteFetchKey;
+        quoteCufProvidersRef.current = providersAtStart;
       }
       return;
     }
@@ -140,6 +164,7 @@ export function useRampsQuotes(
     if (quoteCufOpIdRef.current && quoteCufKeyRef.current !== quoteFetchKey) {
       const opId = quoteCufOpIdRef.current;
       quoteCufOpIdRef.current = null;
+      quoteCufProvidersRef.current = undefined;
       endRampsBuyQuoteFetchTrace({
         id: opId,
         data: {
@@ -169,19 +194,22 @@ export function useRampsQuotes(
     }
 
     const opId = quoteCufOpIdRef.current;
+    const requestedProviders = quoteCufProvidersRef.current;
     quoteCufOpIdRef.current = null;
+    quoteCufProvidersRef.current = undefined;
     endRampsBuyQuoteFetchTrace({
       id: opId,
-      data: quotesQuery.isError
-        ? {
-            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-          }
-        : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      data: buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: quotesQuery.isError,
+        response: quotesQuery.data,
+        requestedProviders,
+      }),
     });
   }, [
     queryEnabled,
     quoteFetchKey,
+    quoteFetchParams.providers,
+    quotesQuery.data,
     quotesQuery.isFetching,
     quotesQuery.isSuccess,
     quotesQuery.isError,
@@ -211,6 +239,7 @@ export function useRampsQuotes(
   return {
     getQuotes,
     getBuyWidgetData,
+    getFallbackBuyWidgetData,
     data: quotesQuery.data ?? null,
     loading: status === 'loading',
     status,

@@ -101,6 +101,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       CardController: {
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        getContactDetails: jest.fn().mockResolvedValue({
+          email: 'cardholder@example.com',
+          phone: '+441234567890',
+        }),
+        patchContactDetails: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
         clearRedeemWithdrawal: jest.fn(),
         withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
@@ -119,6 +124,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
           supportsTransactionHistory: false,
+          supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
         }),
       },

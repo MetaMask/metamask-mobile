@@ -11,21 +11,31 @@ import {
   type PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import {
+  PredictOrderService,
+  type PredictOrderServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictOrderService';
+import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
 import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
+import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
+import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
+import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
   PredictMarketDataService,
-  PredictMarketDataServiceMessenger
-> = ({ controllerMessenger }) => {
+  PredictMarketDataServiceMessenger,
+  PredictMarketDataServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
       baseUrl: process.env.MM_PREDICT_API_URL,
       clientVersion: packageJSON.version,
+      getBearerToken: () =>
+        initMessenger.call('AuthenticationController:getBearerToken'),
     }),
   );
   return {
@@ -39,15 +49,19 @@ export const predictMarketDataServiceInit: MessengerClientInitFunction<
 
 export const predictLiveDataServiceInit: MessengerClientInitFunction<
   PredictLiveDataService,
-  PredictLiveDataServiceMessenger
-> = ({ controllerMessenger }) => {
+  PredictLiveDataServiceMessenger,
+  PredictLiveDataServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
   const controller = new PredictLiveDataService({
     messenger: controllerMessenger,
     venueId: KALSHI_VENUE_ID,
-    createClient: (onGameUpdate) =>
+    createClient: ({ onGameUpdate, onQuoteUpdate }) =>
       new PredictLiveDataClient({
         baseUrl: process.env.MM_PREDICT_API_URL,
+        getBearerToken: () =>
+          initMessenger.call('AuthenticationController:getBearerToken'),
         onGameUpdate,
+        onQuoteUpdate,
       }),
   });
 
@@ -71,6 +85,33 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
     controller: new PredictPortfolioService({
       messenger: controllerMessenger,
       portfolio: adapter.portfolio,
+      venueId: adapter.venueId,
+    }),
+  };
+};
+
+export const predictOrderServiceInit: MessengerClientInitFunction<
+  PredictOrderService,
+  PredictOrderServiceMessenger,
+  PredictOrderServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
+  // Trading-capable composition lives here, at the Engine composition root —
+  // product modules never import concrete adapters (see venue-adapters.md).
+  // Quote and Commit requests are single-flight workflow calls that must
+  // bypass the shared query cache, so they get their own client instead of
+  // the Engine-registered data services' cached reads.
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: process.env.MM_PREDICT_API_URL,
+      clientVersion: packageJSON.version,
+      getBearerToken: () =>
+        initMessenger.call('AuthenticationController:getBearerToken'),
+    }),
+  );
+  return {
+    controller: new PredictOrderService({
+      messenger: controllerMessenger,
+      trading: adapter.trading,
       venueId: adapter.venueId,
     }),
   };

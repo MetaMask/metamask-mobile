@@ -1,26 +1,15 @@
 import React from 'react';
-import { TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
-import Icon, {
+import { ActivityIndicator } from 'react-native';
+import {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import ListItem from '../../../../../component-library/components/List/ListItem/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import {
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
+  ListItem,
 } from '@metamask/design-system-react-native';
-import createStyles from './ManageCardListItem.styles';
 
 export interface ManageCardListItemProps {
   title: string;
   description: string | React.ReactNode;
-  descriptionOrientation?: 'row' | 'column';
   rightIcon?: IconName;
   rightElement?: React.ReactNode;
   testID?: string;
@@ -32,52 +21,33 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   title,
   onPress,
   description,
-  descriptionOrientation = 'column',
   rightIcon,
   rightElement,
   testID = 'manage-card-list-item',
   isLoading = false,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors, descriptionOrientation);
-
-  return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
-      <ListItem style={styles.root}>
-        <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {title}
-          </Text>
-          {typeof description === 'string' ? (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {description}
-            </Text>
-          ) : (
-            description
-          )}
-        </ListItemColumn>
-        {(isLoading || rightIcon || rightElement) && (
-          <ListItemColumn>
-            {isLoading ? (
-              <ActivityIndicator size="small" />
-            ) : (
-              (rightElement ??
-              (rightIcon && (
-                <Icon
-                  style={styles.action}
-                  size={IconSize.Md}
-                  name={rightIcon}
-                />
-              )))
-            )}
-          </ListItemColumn>
-        )}
-      </ListItem>
-    </TouchableOpacity>
+  const endAccessory = isLoading ? (
+    <ActivityIndicator size="small" />
+  ) : (
+    (rightElement ??
+    (rightIcon ? <Icon size={IconSize.Md} name={rightIcon} /> : undefined))
   );
+
+  const sharedProps = {
+    title,
+    titleProps: { numberOfLines: 1 as const },
+    description,
+    endAccessory,
+    accessoryGap: 4 as const,
+    testID,
+    twClassName: 'bg-background-default',
+  };
+
+  if (onPress) {
+    return <ListItem isInteractive onPress={onPress} {...sharedProps} />;
+  }
+
+  return <ListItem {...sharedProps} />;
 };
 
 export default ManageCardListItem;

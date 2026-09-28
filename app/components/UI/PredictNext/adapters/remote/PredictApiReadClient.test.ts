@@ -35,6 +35,7 @@ describe('PredictApiReadClient', () => {
       baseUrl: 'https://predict.example/api/',
       clientVersion: '7.0.0',
       fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
     });
   });
 
@@ -42,6 +43,7 @@ describe('PredictApiReadClient', () => {
     client = new PredictApiReadClient({
       clientVersion: '7.0.0',
       fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
     });
 
     await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
@@ -55,6 +57,7 @@ describe('PredictApiReadClient', () => {
       baseUrl: 'not a URL',
       clientVersion: '7.0.0',
       fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
     });
 
     await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
@@ -63,7 +66,7 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('requests Venue Status without authorization or content type headers', async () => {
+  it('authenticates Venue Status requests without a content type header', async () => {
     const getBearerToken = jest.fn().mockResolvedValue('secret-token');
     fetchMock.mockResolvedValue(createResponse());
     client = new PredictApiReadClient({
@@ -75,7 +78,7 @@ describe('PredictApiReadClient', () => {
 
     await client.fetchVenueStatus(venueId);
 
-    expect(getBearerToken).not.toHaveBeenCalled();
+    expect(getBearerToken).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
       'https://predict.example/api/v1/venues/kalshi/status',
       {
@@ -84,6 +87,7 @@ describe('PredictApiReadClient', () => {
           Accept: 'application/json',
           'x-metamask-clientproduct': 'metamask-mobile',
           'x-metamask-clientversion': '7.0.0',
+          Authorization: 'Bearer secret-token',
         },
         signal: undefined,
       },
@@ -92,12 +96,6 @@ describe('PredictApiReadClient', () => {
 
   it('authenticates Balance requests without retaining identity in the URL', async () => {
     fetchMock.mockResolvedValue(createResponse());
-    client = new PredictApiReadClient({
-      baseUrl: 'https://predict.example/api/',
-      clientVersion: '7.0.0',
-      fetch: fetchMock,
-      getBearerToken: async () => 'secret-token',
-    });
 
     await client.fetchBalance(venueId);
 
@@ -111,21 +109,42 @@ describe('PredictApiReadClient', () => {
     );
   });
 
-  it('fails Balance requests before HTTP when no bearer token is available', async () => {
+  it('fails requests before HTTP when no bearer token is available', async () => {
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => undefined,
+    });
+
     await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
       status: 401,
+    });
+    await expect(client.fetchFeed(venueId, feedId, {})).rejects.toMatchObject({
+      status: 401,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('fails requests before HTTP when the token provider rejects, without leaking its error', async () => {
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => {
+        throw new Error('wallet is locked');
+      },
+    });
+
+    await expect(client.fetchEvent(venueId, eventId)).rejects.toMatchObject({
+      status: 401,
+      message: 'Predict API request failed with status 401.',
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('authenticates Positions requests with encoded page parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
-    client = new PredictApiReadClient({
-      baseUrl: 'https://predict.example/api/',
-      clientVersion: '7.0.0',
-      fetch: fetchMock,
-      getBearerToken: async () => 'secret-token',
-    });
 
     await client.fetchPositions(venueId, { cursor: 'next page', limit: 20 });
 
@@ -141,12 +160,6 @@ describe('PredictApiReadClient', () => {
 
   it('authenticates Activity requests with encoded page parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
-    client = new PredictApiReadClient({
-      baseUrl: 'https://predict.example/api/',
-      clientVersion: '7.0.0',
-      fetch: fetchMock,
-      getBearerToken: async () => 'secret-token',
-    });
 
     await client.fetchActivity(venueId, { limit: 20 });
 
@@ -158,13 +171,6 @@ describe('PredictApiReadClient', () => {
         }),
       }),
     );
-  });
-
-  it('fails Positions requests before HTTP when no bearer token is available', async () => {
-    await expect(client.fetchPositions(venueId, {})).rejects.toMatchObject({
-      status: 401,
-    });
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('encodes event-list query parameters', async () => {
@@ -264,5 +270,72 @@ describe('PredictApiReadClient', () => {
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('commitOrder', () => {
+    const previewId = 'b3c2a1d0-1111-4222-8333-444455556666';
+
+    it('posts the Preview reference only, authenticated', async () => {
+      fetchMock.mockResolvedValue(createResponse());
+
+      await client.commitOrder(venueId, { previewId });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://predict.example/api/v1/venues/kalshi/orders/commit',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'x-metamask-clientproduct': 'metamask-mobile',
+            'x-metamask-clientversion': '7.0.0',
+            Authorization: 'Bearer secret-token',
+          },
+          body: JSON.stringify({ previewId }),
+          signal: undefined,
+        },
+      );
+    });
+
+    it('fails before HTTP when no bearer token is available', async () => {
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => undefined,
+      });
+
+      await expect(
+        client.commitOrder(venueId, { previewId }),
+      ).rejects.toMatchObject({ status: 401 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('forwards an AbortSignal without retrying', async () => {
+      fetchMock.mockResolvedValue(createResponse());
+      const signal = new AbortController().signal;
+
+      await client.commitOrder(venueId, { previewId }, { signal });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ signal }),
+      );
+    });
+
+    it('surfaces the canonical backend code from an error body', async () => {
+      fetchMock.mockResolvedValue(
+        createResponse({ status: 410, json: { code: 'preview_expired' } }),
+      );
+
+      await expect(client.commitOrder(venueId, { previewId })).rejects.toEqual(
+        expect.objectContaining({
+          status: 410,
+          bodyCode: 'preview_expired',
+        }),
+      );
+    });
   });
 });

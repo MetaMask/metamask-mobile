@@ -3,6 +3,7 @@ import { type Hex } from '@metamask/utils';
 import { selectPendingTradeConfiguration } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { useIsMoneyAccountPaymentOverride } from '../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -12,6 +13,10 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
   const selectedPaymentToken = usePerpsPayWithToken();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
+  // Paying from the Money Account owns the pay token (mUSD on Monad). Letting
+  // the allowlist default run would overwrite it and silently switch the
+  // funding source back to the EOA.
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
@@ -36,6 +41,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
 
   useEffect(() => {
     if (
+      isMoneyAccountSelected ||
       pendingConfigSelectedPaymentToken != null ||
       appliedPendingTokenRef.current != null
     )
@@ -64,13 +70,14 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     appliedPendingTokenRef.current = null;
     Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
   }, [
+    isMoneyAccountSelected,
     pendingConfigSelectedPaymentToken,
     defaultPayTokenWhenNoPerpsBalance,
     setPayToken,
   ]);
 
   useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken) return;
+    if (isMoneyAccountSelected || !pendingConfigSelectedPaymentToken) return;
 
     const pendingAddr = pendingConfigSelectedPaymentToken.address;
     const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
@@ -106,6 +113,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     }
   }, [
     initialAsset,
+    isMoneyAccountSelected,
     payToken,
     pendingConfigSelectedPaymentToken,
     setPayToken,

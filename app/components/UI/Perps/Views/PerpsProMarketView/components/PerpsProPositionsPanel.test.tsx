@@ -24,7 +24,10 @@ import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
 import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
 import {
+  getPerpsProChaseRowSelector,
+  getPerpsProChaseTerminateSelector,
   getPerpsProChaseSideFilterOptionSelector,
+  getPerpsProActivityViewSelector,
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   getPerpsProTwapRowSelector,
@@ -409,7 +412,7 @@ describe('PerpsProPositionsPanel', () => {
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY),
     ).toHaveStyle({ paddingTop: 12 });
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
@@ -433,7 +436,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
   });
 
@@ -461,12 +464,12 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
   });
 
-  it('keeps a retained TWAP selected through account-switch loading', () => {
-    // Arrange: placement rollout is off, but discovery found an active TWAP.
+  it('keeps a running TWAP selected through account-switch loading', () => {
+    // Arrange: the rollout is on and the account has an active TWAP.
     const activeOrder = makeTwapOrder();
     mockUsePerpsTwapOrders.mockReturnValue({
       twapOrders: [activeOrder],
@@ -475,7 +478,9 @@ describe('PerpsProPositionsPanel', () => {
       refresh: mockRefreshTwapOrders,
       isRefreshing: false,
     });
-    const view = renderPanel('SOL');
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
     fireEvent.press(
       screen.getByTestId(
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
@@ -494,7 +499,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert: the selected tab remains mounted while the new identity loads.
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
 
     // Act: the next account's active schedule arrives.
@@ -509,7 +514,7 @@ describe('PerpsProPositionsPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
     ).toBeOnTheScreen();
   });
 
@@ -539,15 +544,14 @@ describe('PerpsProPositionsPanel', () => {
     );
   });
 
-  it('keeps rollback discovery active until the TWAP tab starts live updates', () => {
+  it('reads no TWAP schedules while the rollout is disabled', () => {
     // Arrange
-    const view = renderPanel('SOL');
+    renderPanel('SOL');
 
-    // Assert: rollout is off and no schedule has surfaced yet, but discovery
-    // remains active while the hidden tab is unselected.
+    // Assert
     expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        enableDiscovery: true,
+        skipInitialFetch: true,
         enableLiveUpdates: false,
       }),
     );
@@ -556,8 +560,31 @@ describe('PerpsProPositionsPanel', () => {
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
       ),
     ).not.toBeOnTheScreen();
+  });
 
-    // Act: an error exposes the retained-access tab without a remount.
+  it('hides the TWAP tab while the rollout is disabled and a schedule is still running', () => {
+    // Arrange
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ orderId: 'retained-twap' })],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+
+    // Act
+    renderPanel('SOL');
+
+    // Assert
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the TWAP tab while the rollout is disabled and the schedule read failed', () => {
+    // Arrange
     mockUsePerpsTwapOrders.mockReturnValue({
       twapOrders: [],
       isLoading: false,
@@ -565,19 +592,41 @@ describe('PerpsProPositionsPanel', () => {
       refresh: mockRefreshTwapOrders,
       isRefreshing: false,
     });
-    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
-    fireEvent.press(
+
+    // Act
+    renderPanel('SOL');
+
+    // Assert
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('offers the TWAP tab while the rollout is enabled', () => {
+    // Arrange
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+
+    // Act
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+
+    // Assert
+    expect(
       screen.getByTestId(
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
       ),
-    );
-
-    // Assert
+    ).toBeOnTheScreen();
     expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        enableDiscovery: false,
-        enableLiveUpdates: true,
-      }),
+      expect.objectContaining({ skipInitialFetch: false }),
     );
   });
 
@@ -1032,7 +1081,14 @@ describe('PerpsProPositionsPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_HISTORY),
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector(
+          'history',
+        )}`,
+      ),
     );
 
     // Assert
@@ -1712,6 +1768,128 @@ describe('PerpsProPositionsPanel', () => {
       { symbol: 'ETH' },
       PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     );
+  });
+
+  it('switches to the market of a tapped Chase row', () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProChaseRowSelector('ETH', chaseOrder.handle, true),
+      ),
+    );
+
+    // Assert
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      { symbol: 'ETH' },
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
+    expect(screen.getByLabelText('Switch to the ETH market')).toBeOnTheScreen();
+  });
+
+  it('switches to the full market data of a tapped Chase row', () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    const ethMarket = { symbol: 'ETH', maxLeverage: '25x' };
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [ethMarket],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProChaseRowSelector('ETH', chaseOrder.handle, true),
+      ),
+    );
+
+    // Assert
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      ethMarket,
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
+  });
+
+  it('keeps Chase cancel scoped to its own handler when the row is pressable', async () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    // Terminating settles asynchronously, so let its state update flush here
+    // instead of leaking an un-acted update into the next test.
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          getPerpsProChaseTerminateSelector(
+            chaseOrder.status,
+            'ETH',
+            chaseOrder.handle,
+            true,
+          ),
+        ),
+      );
+    });
+
+    // Assert
+    expect(onSelectMarket).not.toHaveBeenCalled();
+  });
+
+  it('leaves the Chase row non-interactive when no market switch handler is provided', () => {
+    // Arrange
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL');
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+
+    // Assert
+    expect(screen.queryByLabelText('Switch to the ETH market')).toBeNull();
   });
 
   it('leaves rows non-interactive when no market switch handler is provided', () => {

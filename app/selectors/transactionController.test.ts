@@ -6,6 +6,8 @@ import {
 } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '@metamask/money-account-utils';
 import {
+  selectCurrentTransaction,
+  selectBatchTransactionCounts,
   selectTransactions,
   selectHasUnapprovedTransactions,
   selectLastUsedPaymentMethod,
@@ -74,6 +76,22 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual([]);
+    });
+  });
+
+  describe('selectBatchTransactionCounts', () => {
+    it('returns the counts, or an empty object before the controller initializes', () => {
+      const buildState = (TransactionController?: object) =>
+        ({
+          engine: { backgroundState: { TransactionController } },
+        }) as unknown as RootState;
+
+      expect(
+        selectBatchTransactionCounts(
+          buildState({ batchTransactionCounts: { '0xbatch': 2 } }),
+        ),
+      ).toStrictEqual({ '0xbatch': 2 });
+      expect(selectBatchTransactionCounts(buildState())).toStrictEqual({});
     });
   });
 
@@ -883,6 +901,120 @@ describe('TransactionController Selectors', () => {
       expect(
         selectTransactionMetadataById(state, 'non-existent'),
       ).toBeUndefined();
+    });
+  });
+
+  describe('selectCurrentTransaction', () => {
+    const transaction = { id: 'pending' };
+    const override = { id: 'override' };
+
+    function createState(approvalId: string | null = transaction.id) {
+      return {
+        engine: {
+          backgroundState: {
+            ApprovalController: {
+              pendingApprovals:
+                approvalId === null
+                  ? {}
+                  : { [approvalId]: { id: approvalId, requestData: {} } },
+            },
+            TransactionController: {
+              transactions: [transaction, override],
+            },
+          },
+        },
+      } as unknown as Parameters<typeof selectCurrentTransaction>[0];
+    }
+
+    it('returns the transaction for the first pending approval', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state);
+
+      expect(result).toBe(transaction);
+    });
+
+    it('returns undefined when there are no pending approvals', () => {
+      const state = createState(null);
+
+      const result = selectCurrentTransaction(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the pending approval has no transaction', () => {
+      const state = createState('signature');
+
+      const result = selectCurrentTransaction(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the override transaction without a pending approval', () => {
+      const state = createState(null);
+
+      const result = selectCurrentTransaction(state, override.id);
+
+      expect(result).toBe(override);
+    });
+
+    it('prioritizes the override over the pending approval', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state, override.id);
+
+      expect(result).toBe(override);
+    });
+
+    it('does not fall back to the pending transaction for a missing override', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state, 'missing');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('uses the pending approval when the gas modal override is null', () => {
+      const state = createState();
+
+      const result = selectCurrentTransaction(state, null);
+
+      expect(result).toBe(transaction);
+    });
+
+    it('reuses the ID lookup when approval details change without changing its ID', () => {
+      const state = createState();
+      const initial = selectCurrentTransaction(state);
+      const recomputations = selectTransactionMetadataById.recomputations();
+      const approvalController =
+        state.engine.backgroundState.ApprovalController;
+      const approval = approvalController.pendingApprovals[transaction.id];
+      const nextState = {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            ApprovalController: {
+              ...approvalController,
+              pendingApprovals: {
+                ...approvalController.pendingApprovals,
+                [transaction.id]: {
+                  ...approval,
+                  requestData: { ...approval.requestData, name: 'Updated' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = selectCurrentTransaction(nextState);
+
+      expect(result).toBe(initial);
+      expect(selectTransactionMetadataById.recomputations()).toBe(
+        recomputations,
+      );
     });
   });
 

@@ -23,9 +23,14 @@ import {
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { Json } from '@metamask/utils';
+import { TokenIcon, TokenIconVariant } from '../../token-icon';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useIsPaidByMetaMask');
+jest.mock('../../token-icon', () => ({
+  ...jest.requireActual('../../token-icon'),
+  TokenIcon: jest.fn(() => null),
+}));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
     trackInlineAlertClicked: jest.fn(),
@@ -33,6 +38,16 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
     trackAlertRendered: jest.fn(),
   }),
 }));
+
+const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const SOURCE_CHAIN_ID_MOCK = '0xa';
+const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
+
+function createQuoteMock(
+  request: Partial<TransactionPayQuote<Json>['request']>,
+): TransactionPayQuote<Json> {
+  return { request } as unknown as TransactionPayQuote<Json>;
+}
 
 function render(
   options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
@@ -71,9 +86,12 @@ describe('BridgeFeeRow', () => {
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
+  const tokenIconMock = jest.mocked(TokenIcon);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    tokenIconMock.mockReturnValue(null);
 
     useTransactionTotalsMock.mockReturnValue({
       fees: {
@@ -87,7 +105,10 @@ describe('BridgeFeeRow', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
 
     useTransactionPayQuotesMock.mockReturnValue([
-      {} as TransactionPayQuote<Json>,
+      createQuoteMock({
+        sourceChainId: SOURCE_CHAIN_ID_MOCK,
+        sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+      }),
     ]);
 
     useTransactionPaySourceAmountsMock.mockReturnValue([]);
@@ -171,6 +192,34 @@ describe('BridgeFeeRow', () => {
     const { getByText } = render();
 
     expect(getByText('$1.23')).toBeOnTheScreen();
+  });
+
+  it('shows direct mUSD provider and network fees in separate tooltip rows', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { fiat: '0.5', usd: '0.5' },
+        providerFiat: { fiat: '0.7', usd: '0.7' },
+        sourceNetwork: {
+          estimate: { fiat: '0.2', usd: '0.2', raw: '0', human: '0' },
+          max: { fiat: '0.2', usd: '0.2', raw: '0', human: '0' },
+        },
+        targetNetwork: { fiat: '0', usd: '0' },
+        metaMask: { fiat: '0', usd: '0' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByTestId, getByText } = render({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByText('$0.70')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('$0.20')).toBeOnTheScreen();
+    expect(getByText('$0.50')).toBeOnTheScreen();
   });
 
   it('renders tooltip for perps withdraw', async () => {
@@ -382,6 +431,138 @@ describe('BridgeFeeRow', () => {
           'Conversion fees include network costs and may include provider fees.',
         ),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('network fee token icon', () => {
+    it('renders native token of the source chain by default', async () => {
+      const { getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: NATIVE_TOKEN_ADDRESS_MOCK,
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          variant: TokenIconVariant.Row,
+        }),
+        undefined,
+      );
+    });
+
+    it('renders the source token when a source gas fee token is used', async () => {
+      useTransactionTotalsMock.mockReturnValue({
+        fees: {
+          isSourceGasFeeToken: true,
+          provider: { usd: '1.00' },
+          sourceNetwork: { estimate: { usd: '0.20' } },
+          targetNetwork: { usd: '0.03' },
+          metaMask: { usd: '0', fiat: '0' },
+        },
+      } as TransactionPayTotals);
+
+      const { getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: SOURCE_TOKEN_ADDRESS_MOCK,
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          variant: TokenIconVariant.Row,
+        }),
+        undefined,
+      );
+    });
+
+    it('uses the quote source, not the payment token, for post-quote withdrawals', async () => {
+      // Post-quote treats the payment token as the destination, so the source
+      // chain of the fee differs from the payment token's chain.
+      useTransactionPayQuotesMock.mockReturnValue([
+        createQuoteMock({
+          isPostQuote: true,
+          sourceChainId: SOURCE_CHAIN_ID_MOCK,
+          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+          targetChainId: '0x1',
+          targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        }),
+      ]);
+
+      const { getByTestId } = render({ type: TransactionType.perpsWithdraw });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: NATIVE_TOKEN_ADDRESS_MOCK,
+          chainId: SOURCE_CHAIN_ID_MOCK,
+        }),
+        undefined,
+      );
+    });
+
+    it('is absent when the network fee is zero', async () => {
+      useTransactionTotalsMock.mockReturnValue({
+        fees: {
+          provider: { usd: '1.00' },
+          sourceNetwork: { estimate: { usd: '0' } },
+          targetNetwork: { usd: '0' },
+          metaMask: { usd: '0', fiat: '0' },
+        },
+      } as TransactionPayTotals);
+
+      const { getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).not.toHaveBeenCalled();
+    });
+
+    it('is absent when the network fee is unavailable', async () => {
+      useTransactionTotalsMock.mockReturnValue({
+        fees: {
+          provider: { usd: '1.00' },
+          sourceNetwork: { estimate: {} },
+          targetNetwork: {},
+          metaMask: { usd: '0', fiat: '0' },
+        },
+      } as TransactionPayTotals);
+
+      const { getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the transaction chain when the quote has no request', async () => {
+      useTransactionPayQuotesMock.mockReturnValue([
+        {} as TransactionPayQuote<Json>,
+      ]);
+
+      const { getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: NATIVE_TOKEN_ADDRESS_MOCK,
+          chainId: '0x1',
+        }),
+        undefined,
+      );
     });
   });
 });

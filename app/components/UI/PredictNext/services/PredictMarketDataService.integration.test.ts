@@ -412,12 +412,16 @@ describe('PredictNext public market data', () => {
 
   it('forwards cancellation to fetch and preserves AbortError', async () => {
     const abort = Object.assign(new Error('cancelled'), { name: 'AbortError' });
-    const harness = buildPredictNextIntegrationHarness(
-      (_url, init) =>
-        new Promise((_resolve, reject) => {
-          init?.signal?.addEventListener('abort', () => reject(abort));
-        }),
-    );
+    let markFetchReached: () => void = () => undefined;
+    const fetchReached = new Promise<void>((resolve) => {
+      markFetchReached = resolve;
+    });
+    const harness = buildPredictNextIntegrationHarness((_url, init) => {
+      markFetchReached();
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(abort));
+      });
+    });
     const controller = new AbortController();
 
     const result = harness.messenger.call(
@@ -425,6 +429,9 @@ describe('PredictNext public market data', () => {
       KALSHI_VENUE_ID,
       { signal: controller.signal },
     );
+    // The transport resolves a bearer token before fetching; wait for the
+    // request to reach fetch so the abort exercises the in-flight path.
+    await fetchReached;
     controller.abort();
 
     await expect(result).rejects.toBe(abort);

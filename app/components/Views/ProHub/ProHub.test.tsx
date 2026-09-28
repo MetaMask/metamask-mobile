@@ -2,10 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { ALSO_INCLUDED_ITEMS } from './ProHub.constants';
+import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -26,6 +27,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (..._args: unknown[]) => ({}),
   }),
+}));
+
+// ─── Plus access ──────────────────────────────────────────────────────────────
+
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -51,6 +60,51 @@ describe('ProHub', () => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Subscriber,
+    );
+  });
+
+  // ── Access guard ───────────────────────────────────────────────────────────
+
+  describe('Access guard', () => {
+    it.each([
+      ['disabled', MoneyAccountPlusAccess.Disabled],
+      ['eligible but not entitled', MoneyAccountPlusAccess.Eligible],
+    ])('navigates back when Pro access is %s', (_label, access) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(access);
+
+      renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open while Plus access is unresolved', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('stays open for an entitled subscriber', () => {
+      renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not render subscriber content without access', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { queryByTestId } = renderProHub();
+
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -107,7 +161,7 @@ describe('ProHub', () => {
       const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
 
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_brand')),
+        toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
         toRegex(strings('pro_hub.membership_label')),
@@ -116,10 +170,18 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
       expect(moneyBalanceRow).toHaveTextContent(
-        toRegex(strings('pro_hub.money_balance')),
+        toRegex(
+          strings('pro_hub.money_balance', {
+            apy: `${MOCK_PRO_HUB_STATS.moneyBalanceApy}%`,
+          }),
+        ),
       );
       expect(musdBackRow).toHaveTextContent(
-        toRegex(strings('pro_hub.musd_back')),
+        toRegex(
+          strings('pro_hub.musd_back', {
+            rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+          }),
+        ),
       );
     });
 

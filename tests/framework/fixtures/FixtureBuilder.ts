@@ -36,6 +36,7 @@ import {
 } from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SPOT_PRICES_SUPPORT_INFO,
   TEST_ANALYTICS_ID,
 } from './constants.ts';
 import {
@@ -51,7 +52,6 @@ import {
   toWeiHex,
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
-import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import type { CaipAssetType } from '@metamask/utils';
 import type {
@@ -81,6 +81,20 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
+
+/**
+ * Keyring `metadata.id` (a.k.a. entropy source) of the primary HD keyring in
+ * {@link FixtureBuilder.withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController}.
+ * Because it is baked into that fixture's pre-encrypted vault, it is stable
+ * across runs — unlike fixtures whose keyrings are restored without metadata,
+ * where the KeyringController mints a fresh ULID at unlock.
+ *
+ * The AccountTreeController derives IDs from it: the wallet is
+ * `entropy:<id>` and its account groups are `entropy:<id>/<groupIndex>`, where
+ * `groupIndex` is the account's position in the keyring's `accounts` array.
+ * Tests can therefore target a specific group without scanning the UI.
+ */
+export const DEFAULT_FIXTURE_HD_KEYRING_1_ID = '01JX9NJ15HPNS6RRRYBCKDK33R';
 
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
@@ -1120,7 +1134,7 @@ class FixtureBuilder {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
           metadata: {
-            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
+            id: DEFAULT_FIXTURE_HD_KEYRING_1_ID,
             name: '',
           },
         },

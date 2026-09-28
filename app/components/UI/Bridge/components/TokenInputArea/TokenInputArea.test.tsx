@@ -18,10 +18,6 @@ import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
-}));
-
 const mockTrackUnifiedSwapBridgeEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,

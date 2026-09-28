@@ -8,16 +8,27 @@ import Logger from '../../../../util/Logger';
 
 const mockLaunch = jest.fn();
 const mockBuild = jest.fn();
+const mockWithTheme = jest.fn();
 const mockWithLocale = jest.fn();
 const mockWithDebug = jest.fn();
 const mockWithHandlers = jest.fn();
 const mockInit = jest.fn();
+const mockBuildSumSubTheme = jest.fn();
+
+const MOCK_SUMSUB_THEME = {
+  colors: { backgroundCommon: '#FFFFFF' },
+  metrics: { buttonHeight: 48 },
+};
 
 jest.mock('@sumsub/react-native-mobilesdk-module', () => ({
   __esModule: true,
   default: {
     init: (...args: unknown[]) => mockInit(...args),
   },
+}));
+
+jest.mock('./sumSubTheme', () => ({
+  buildSumSubTheme: (...args: unknown[]) => mockBuildSumSubTheme(...args),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -54,9 +65,11 @@ const wireSumSubSdkBuilderMocks = () => {
   mockInit.mockReturnValue({ withHandlers: mockWithHandlers });
   mockWithHandlers.mockReturnValue({ withDebug: mockWithDebug });
   mockWithDebug.mockReturnValue({ withLocale: mockWithLocale });
-  mockWithLocale.mockReturnValue({ build: mockBuild });
+  mockWithLocale.mockReturnValue({ withTheme: mockWithTheme });
+  mockWithTheme.mockReturnValue({ build: mockBuild });
   mockBuild.mockReturnValue({ launch: mockLaunch });
   mockLaunch.mockResolvedValue({ success: true, status: 'Approved' });
+  mockBuildSumSubTheme.mockReturnValue(MOCK_SUMSUB_THEME);
 };
 
 describe('sumsubLauncher', () => {
@@ -98,6 +111,16 @@ describe('sumsubLauncher', () => {
     expect(result).toStrictEqual({ success: true, status: 'Approved' });
   });
 
+  it('applies the wallet SumSub theme to the SDK builder', async () => {
+    await sumsubLauncher.launch({
+      applicantAccessToken: 'applicant-token',
+      onTokenExpiration: async () => 'applicant-token',
+    });
+
+    expect(mockBuildSumSubTheme).toHaveBeenCalledTimes(1);
+    expect(mockWithTheme).toHaveBeenCalledWith(MOCK_SUMSUB_THEME);
+  });
+
   it('uses the controller token refresh handler when the SDK asks to refresh', async () => {
     const onTokenExpiration = jest.fn().mockResolvedValue('refreshed-token');
     const captured = captureExpirationHandler();
@@ -135,6 +158,7 @@ describe('sumsubLauncher', () => {
     ).rejects.toThrow(SUMSUB_NATIVE_MODULE_MISSING_ERROR);
 
     expect(mockInit).not.toHaveBeenCalled();
+    expect(mockBuildSumSubTheme).not.toHaveBeenCalled();
   });
 
   it('forwards native SDK status changes to the controller', async () => {

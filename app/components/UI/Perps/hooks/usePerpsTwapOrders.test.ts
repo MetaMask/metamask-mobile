@@ -1111,32 +1111,6 @@ describe('usePerpsTwapOrders', () => {
     expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('discovers an externally active schedule after an empty read without remounting', async () => {
-    // Arrange
-    jest.useFakeTimers();
-    const discoveredOrder = buildTwapOrder({ orderId: 'external-twap' });
-    mockController.getTwapOrders
-      .mockResolvedValueOnce([])
-      .mockResolvedValue([discoveredOrder]);
-    const { result, unmount } = renderHook(() =>
-      usePerpsTwapOrders({
-        enableDiscovery: true,
-        discoveryInterval: 1000,
-      }),
-    );
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.twapOrders).toStrictEqual([]);
-
-    // Act
-    await act(async () => {
-      await jest.advanceTimersByTimeAsync(1000);
-    });
-
-    // Assert
-    expect(result.current.twapOrders).toStrictEqual([discoveredOrder]);
-    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
-    unmount();
-  });
   it('keeps the subscription alive when skipInitialFetch changes', async () => {
     // Arrange
     let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;

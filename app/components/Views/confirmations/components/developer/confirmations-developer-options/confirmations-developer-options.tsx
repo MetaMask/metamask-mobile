@@ -33,6 +33,9 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
+import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
+import { useMoneyAccountDeposit } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import Logger from '../../../../../../util/Logger';
 import { selectMmPayDebugEnabled } from '../../../../../../reducers/experimentalSettings/selectors';
 import { setMmPayDebugEnabled } from '../../../../../../actions/experimental';
 import { isRc, isTestEnvironment } from '../../../../../../util/test/utils';
@@ -65,6 +68,7 @@ export function ConfirmationsDeveloperOptions() {
 
   return (
     <>
+      <PerpsDeposit />
       <PredictDeposit />
       <PredictClaim />
       <PredictWithdraw />
@@ -79,6 +83,77 @@ export function ConfirmationsDeveloperOptions() {
       )}
       {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
       {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
+    </>
+  );
+}
+
+function usePerpsDepositConfirmation() {
+  const { depositWithConfirmation: controllerDeposit } = usePerpsTrading();
+  const { navigateToConfirmation } = useConfirmNavigation();
+
+  const depositWithConfirmation = useCallback(
+    async ({
+      forceBottomSheet = false,
+      bottomSheetHeightPercentage,
+    }: {
+      forceBottomSheet?: boolean;
+      bottomSheetHeightPercentage?: number;
+    } = {}) => {
+      navigateToConfirmation({
+        stack: Routes.PERPS.ROOT,
+        forceBottomSheet,
+        bottomSheetHeightPercentage,
+      });
+
+      try {
+        await controllerDeposit();
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'usePerpsDepositConfirmation: deposit initiation failed',
+        );
+      }
+    },
+    [controllerDeposit, navigateToConfirmation],
+  );
+
+  return { depositWithConfirmation };
+}
+
+function PerpsDeposit() {
+  const { depositWithConfirmation } = usePerpsDepositConfirmation();
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
+
+  const handleDeposit = useCallback(() => {
+    depositWithConfirmation();
+  }, [depositWithConfirmation]);
+
+  const handleDepositBottomSheet = useCallback(() => {
+    depositWithConfirmation({ forceBottomSheet: true });
+  }, [depositWithConfirmation]);
+
+  return (
+    <>
+      <DeveloperButton
+        title="Perps Deposit"
+        description="Trigger a Perps deposit confirmation."
+        buttonLabel="Deposit"
+        onPress={handleDeposit}
+        testID={ConfirmationsDeveloperOptionsTestIds.PERPS_DEPOSIT_BUTTON}
+      />
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleDepositBottomSheet}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.PERPS_DEPOSIT_BOTTOM_SHEET_BUTTON
+        }
+        isFullWidth
+        style={styles.accessory}
+      >
+        Deposit in BottomSheet
+      </Button>
     </>
   );
 }
@@ -163,23 +238,46 @@ function PredictDeposit() {
 }
 
 function MoneyAccountDeposit() {
-  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+  const { initiateDeposit } = useMoneyAccountDeposit();
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
 
   const handleDeposit = useCallback(() => {
-    addTransactionBatchAndNavigate({
-      loader: ConfirmationLoader.CustomAmount,
-      transactionType: TransactionType.moneyAccountDeposit,
+    initiateDeposit().catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
     });
-  }, [addTransactionBatchAndNavigate]);
+  }, [initiateDeposit]);
+
+  const handleDepositBottomSheet = useCallback(() => {
+    initiateDeposit({ forceBottomSheet: true }).catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
+    });
+  }, [initiateDeposit]);
 
   return (
-    <DeveloperButton
-      title="Money Account Deposit"
-      description="Trigger a Money Account deposit confirmation."
-      buttonLabel="Deposit"
-      onPress={handleDeposit}
-      testID={ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON}
-    />
+    <>
+      <DeveloperButton
+        title="Money Account Deposit"
+        description="Trigger a Money Account deposit confirmation."
+        buttonLabel="Deposit"
+        onPress={handleDeposit}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON
+        }
+      />
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleDepositBottomSheet}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BOTTOM_SHEET_BUTTON
+        }
+        isFullWidth
+        style={styles.accessory}
+      >
+        Deposit in BottomSheet
+      </Button>
+    </>
   );
 }
 

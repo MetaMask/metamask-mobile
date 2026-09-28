@@ -10,7 +10,8 @@ import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
-  NetworkToCaipChainId.ROBINHOOD,
+  // TODO: re-enable Robinhood RWA when cleared for release (#35854).
+  // NetworkToCaipChainId.ROBINHOOD,
 ];
 const STOCKS_FEED_ASSET_ID_PREFIXES = STOCKS_FEED_RWA_CHAIN_IDS.map(
   (chainId) => `${chainId}/`,

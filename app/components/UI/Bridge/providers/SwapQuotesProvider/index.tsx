@@ -49,12 +49,6 @@ interface UseQuoteRequestParams
   extends UseSwapQuotesParams,
     UseDebouncedUpdateParams {}
 
-interface SwapQuotesProviderProps
-  extends UseQuoteRequestParams,
-    UseQuoteDataParams {
-  children: React.ReactNode;
-}
-
 /**
  * Hook for handling bridge quote request updates
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes

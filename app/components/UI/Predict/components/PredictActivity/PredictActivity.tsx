@@ -3,6 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  FontWeight,
   Icon,
   IconName,
   Text,
@@ -98,7 +99,11 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
       </Box>
 
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+        <Text
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          variant={TextVariant.BodyMd}
+        >
           {activityTitleByType[item.type]}
         </Text>
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">

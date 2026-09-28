@@ -35,6 +35,10 @@ import {
   CardFlow,
   CardLinkingFailureReason,
 } from '../util/metrics';
+import {
+  BOTTOM_SHEET_NAMES,
+  SCREEN_NAMES,
+} from '../../Money/constants/moneyEventLocations';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -880,6 +884,54 @@ describe('useMoneyAccountCardLinkage', () => {
         },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getLinkFlowRedirectTarget', () => {
+    it('returns the link sheet for an authenticated verified card ready to link', () => {
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBe(BOTTOM_SHEET_NAMES.CARD_LINK_SHEET);
+    });
+
+    it.each([
+      {
+        name: 'authentication',
+        selectors: { isCardAuthenticated: false, isCardholder: true },
+      },
+      {
+        name: 'onboarding',
+        selectors: { isCardAuthenticated: false, isCardholder: false },
+      },
+    ])('returns Card Home for the $name branch', ({ selectors }) => {
+      applySelectorMocks(buildSelectors(selectors));
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBe(SCREEN_NAMES.CARD_HOME);
+    });
+
+    it('returns no target while linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBeUndefined();
+    });
+
+    it('returns no target for an authenticated card that is not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBeUndefined();
     });
   });
 

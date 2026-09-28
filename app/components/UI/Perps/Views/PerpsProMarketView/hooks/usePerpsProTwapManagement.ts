@@ -67,11 +67,11 @@ export const usePerpsProTwapManagement = ({
   const contextIdentityKey = `${selectedAddress ?? 'none'}|${activeProvider}|${network}`;
   const { twapOrders, isLoading, error, refresh, isRefreshing } =
     usePerpsTwapOrders({
-      // Discovery is independent of the placement rollout: users must retain a
-      // termination surface for venue-native schedules after a flag rollback.
-      enableLiveUpdates: isScreenFocused && isTabSelected,
-      enableDiscovery:
-        isScreenFocused && !isTwapPlacementEnabled && !isTabSelected,
+      // The rollout owns the whole surface, so a disabled rollout reads nothing:
+      // there is no tab left for a discovered schedule to appear in.
+      enableLiveUpdates:
+        isTwapPlacementEnabled && isScreenFocused && isTabSelected,
+      skipInitialFetch: !isTwapPlacementEnabled,
       pollingInterval: PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
       pauseLiveRestReconciliation: terminatingSelection !== null,
     });
@@ -83,11 +83,10 @@ export const usePerpsProTwapManagement = ({
     () => selectHistoricalTwapOrders(twapOrders),
     [twapOrders],
   );
-  const shouldShowTab =
-    isTwapPlacementEnabled ||
-    allActiveOrders.length > 0 ||
-    error !== null ||
-    (isTabSelected && isLoading);
+  // A withdrawn rollout takes the tab with it. Retained schedules, a failed read
+  // and an in-flight read used to re-reveal it, which left the tab on screen for
+  // any account with TWAP history after the flag was switched off.
+  const shouldShowTab = isTwapPlacementEnabled;
   const terminatingOrder = useMemo(() => {
     if (
       !terminatingSelection ||

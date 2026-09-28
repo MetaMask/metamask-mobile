@@ -2,23 +2,16 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { usePositions } from '../../../hooks/usePositions';
-import type {
-  PredictEntityId,
-  PredictPosition,
-  PredictVenueId,
-} from '../../../types';
-import { PORTFOLIO_PAGE_LIMIT } from '../../../queries/portfolioQueries';
+import type { usePositions } from '../../../hooks/usePositions';
+import type { PredictEntityId, PredictPosition } from '../../../types';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
 import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
 import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
 import { PortfolioPositionRow } from './PortfolioPositionRow';
 
-const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
-
 interface PortfolioPositionsPanelProps {
-  venueId: PredictVenueId;
+  query: ReturnType<typeof usePositions>;
   isPrivacyMode: boolean;
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
@@ -26,7 +19,7 @@ interface PortfolioPositionsPanelProps {
 
 /** Renders the independently cached open Positions list for one Venue. */
 export const PortfolioPositionsPanel = ({
-  venueId,
+  query,
   isPrivacyMode,
   onOpenEvent,
   onBrowseMarkets,
@@ -39,7 +32,7 @@ export const PortfolioPositionsPanel = ({
     isFetchingNextPage,
     isPending,
     refetch,
-  } = usePositions(venueId, PAGE_PARAMS);
+  } = query;
   const positions = useMemo(
     () => data?.pages.flatMap((page) => page.positions) ?? [],
     [data],

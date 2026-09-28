@@ -202,9 +202,39 @@ async function tryBiometricUnlock(): Promise<void> {
 }
 
 /**
+ * Prompts authentication, falling back to the Login screen on failure. The
+ * lock screen has no affordances of its own, so every path off it runs this.
+ */
+async function promptUnlockFromLockScreen(): Promise<void> {
+  // This is in a try catch since errors are not propogated in event channels.
+  try {
+    await tryBiometricUnlock();
+  } catch (error) {
+    // Navigate to login.
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+    trackErrorAsAnalytics(
+      'Lockscreen: Authentication failed',
+      (error as Error)?.message,
+    );
+  }
+}
+
+/**
  * Listens to app state changes and prompts authentication when the app is foregrounded.
  */
 export function* appStateListenerTask() {
+  // The lock can land after the app is already foregrounded: Android delivers a
+  // pending background timer and the `active` event together on resume, in no
+  // guaranteed order. Waiting on the channel here would block on an `active`
+  // event that has already been and gone, stranding the user on the lock
+  // screen, so prompt straight away instead.
+  if (AppState.currentState === 'active') {
+    yield call(promptUnlockFromLockScreen);
+    return;
+  }
+
   // Create channel to listen to app state changes.
   const channel: EventChannel<AppStateStatus> = yield call(
     appStateListenerChannel,
@@ -214,21 +244,7 @@ export function* appStateListenerTask() {
     while (true) {
       const appState: AppStateStatus = yield take(channel);
       if (appState === 'active') {
-        yield call(async () => {
-          // This is in a try catch since errors are not propogated in event channels.
-          try {
-            await tryBiometricUnlock();
-          } catch (error) {
-            // Navigate to login.
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.LOGIN }],
-            });
-            trackErrorAsAnalytics(
-              'Lockscreen: Authentication failed',
-              (error as Error)?.message,
-            );
-          }
-        });
+        yield call(promptUnlockFromLockScreen);
         // Close channel once authentication is prompted.
         channel.close();
       }
@@ -403,6 +419,19 @@ export function* handleDeeplinkSaga() {
 
     // App is locked or onboarding is not yet complete
     if (!isUnlocked || !completedOnboarding) {
+      continue;
+    }
+
+    // Password and biometric unlock dispatch SET_COMPLETED_ONBOARDING from the
+    // login or lock screen, before navigateToPostUnlockHome reads the pending
+    // link. Consuming it here clears the URL, then the home reset replaces any
+    // navigation this parse managed to start.
+    const currentRouteName = NavigationService.getCurrentRoute()?.name;
+    if (
+      value.type === SET_COMPLETED_ONBOARDING &&
+      (currentRouteName === Routes.ONBOARDING.LOGIN ||
+        currentRouteName === Routes.LOCK_SCREEN)
+    ) {
       continue;
     }
 

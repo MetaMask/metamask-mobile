@@ -83,6 +83,7 @@ import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
+import { useBasicFunctionalityConsolidation } from '../../hooks/useBasicFunctionalityConsolidation';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -130,6 +131,10 @@ const Main = (props) => {
   useNotificationHandler();
   useIdentityEffects();
   useMinimumVersions();
+  // Runs here rather than in App: the keyring unlocks while Login is still on
+  // screen, and Login hands the session over with a root-stack reset that
+  // would throw the migration sheet away with the rest of the stack.
+  useBasicFunctionalityConsolidation();
 
   const { chainId, networkClientId } = props;
 

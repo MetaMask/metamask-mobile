@@ -1,4 +1,9 @@
-import { Messenger } from '@metamask/messenger';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
 import {
   PREDICT_LIVE_DATA_SERVICE_NAME,
   type PredictLiveDataServiceActions,
@@ -24,3 +29,27 @@ export const getPredictLiveDataServiceMessenger = (
     namespace: PREDICT_LIVE_DATA_SERVICE_NAME,
     parent: rootMessenger,
   });
+
+export type PredictLiveDataServiceInitMessenger = Messenger<
+  'PredictLiveDataServiceInit',
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+  never
+>;
+
+export const getPredictLiveDataServiceInitMessenger = (
+  rootMessenger: RootMessenger<
+    MessengerActions<PredictLiveDataServiceInitMessenger>,
+    MessengerEvents<PredictLiveDataServiceInitMessenger>
+  >,
+): PredictLiveDataServiceInitMessenger => {
+  const messenger: PredictLiveDataServiceInitMessenger = new Messenger({
+    namespace: 'PredictLiveDataServiceInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['AuthenticationController:getBearerToken'],
+    events: [],
+    messenger,
+  });
+  return messenger;
+};
