@@ -35,6 +35,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
@@ -125,7 +126,9 @@ const AccountHub = () => {
   }, [navigation, trackEvent, createEventBuilder]);
 
   const handleManageAccountsPress = useCallback(() => {
-    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW);
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   }, [navigation]);
 
   const handleInfoPress = useCallback(() => {

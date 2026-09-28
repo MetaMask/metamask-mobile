@@ -17,9 +17,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   BottomSheet,
+  ContentVariant,
+  FontWeight,
   HeaderStandard,
   ListItemSelect,
   Text,
@@ -133,29 +133,40 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
+          variant={ContentVariant.OneLine}
           isSelected={selectedRegionKey === region.key}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
           testID="region-selector-item"
-          title={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+          titleStartAccessory={
+            <Text
+              variant={TextVariant.BodyMd}
+              testID="region-selector-item-emoji"
             >
-              <Box twClassName="pr-2" testID="region-selector-item-emoji">
-                <Text variant={TextVariant.BodyLg}>{region.emoji}</Text>
-              </Box>
-              <Box testID="region-selector-item-name">
-                <Text variant={TextVariant.BodyLg}>{region.name}</Text>
-              </Box>
-              {renderAreaCode && region.areaCode && (
-                <Box testID="region-selector-item-area-code">
-                  <Text variant={TextVariant.BodyLg}>(+{region.areaCode})</Text>
-                </Box>
-              )}
-            </Box>
+              {region.emoji}
+            </Text>
+          }
+          title={
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              testID="region-selector-item-name"
+            >
+              {region.name}
+            </Text>
+          }
+          titleEndAccessory={
+            renderAreaCode && region.areaCode ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-text-alternative"
+                testID="region-selector-item-area-code"
+              >
+                (+{region.areaCode})
+              </Text>
+            ) : undefined
           }
         />
       );

@@ -1,10 +1,12 @@
 import {
   CANCEL_TYPES,
   CRYPTO_AUTH_METHODS,
+  MoneyAccountFeature,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
+  type MoneyAccountEntitlements,
   type PricingCryptoPaymentMethod,
   type PricingResponse,
   type Subscription,
@@ -13,6 +15,8 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
+  selectHasAnyMoneyAccountPlusEntitlement,
+  selectHasMoneyAccountPlusEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
@@ -316,6 +320,22 @@ describe('subscriptionController selectors', () => {
       },
     );
 
+    it('stays subscribed for a subscription cancelled at period end', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status: SUBSCRIPTION_STATUSES.active,
+            cancelAtPeriodEnd: true,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(true);
+    });
+
     it.each([
       SUBSCRIPTION_STATUSES.canceled,
       SUBSCRIPTION_STATUSES.pastDue,
@@ -562,6 +582,129 @@ describe('subscriptionController selectors', () => {
           PRODUCT_TYPES.SHIELD,
         ),
       ).toBeUndefined();
+    });
+  });
+
+  describe('Money Account Plus entitlements', () => {
+    const createPlusState = (entitlements: Partial<MoneyAccountEntitlements>) =>
+      createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          }),
+        ],
+        trialedProducts: [],
+        productEntitlements: {
+          [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
+            plan: 'premium',
+            entitlements: {
+              swapFeeWaiver: false,
+              perpsFeeWaiver: false,
+              predictFreeTx: false,
+              premiumApy: false,
+              ...entitlements,
+            },
+          },
+        },
+      });
+
+    describe('selectHasMoneyAccountPlusEntitlement', () => {
+      it('returns the flag for the requested feature', () => {
+        const state = createPlusState({
+          premiumApy: true,
+          swapFeeWaiver: false,
+        });
+
+        expect(
+          selectHasMoneyAccountPlusEntitlement(
+            state,
+            MoneyAccountFeature.PremiumApy,
+          ),
+        ).toBe(true);
+        expect(
+          selectHasMoneyAccountPlusEntitlement(
+            state,
+            MoneyAccountFeature.SwapFeeWaiver,
+          ),
+        ).toBe(false);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(
+          selectHasMoneyAccountPlusEntitlement(
+            createState(),
+            MoneyAccountFeature.PremiumApy,
+          ),
+        ).toBe(false);
+      });
+    });
+
+    describe('selectHasAnyMoneyAccountPlusEntitlement', () => {
+      it.each(Object.values(MoneyAccountFeature))(
+        'returns true when only %s is granted',
+        (feature) => {
+          const state = createPlusState({ [feature]: true });
+
+          expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(true);
+        },
+      );
+
+      it('keeps entitlements for a past_due subscription the active-subscriber selector rejects', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.pastDue,
+            }),
+          ],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
+              plan: 'premium',
+              entitlements: {
+                swapFeeWaiver: true,
+                perpsFeeWaiver: true,
+                predictFreeTx: true,
+                premiumApy: true,
+              },
+            },
+          },
+        });
+
+        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(true);
+      });
+
+      it('returns false when every feature is revoked', () => {
+        expect(
+          selectHasAnyMoneyAccountPlusEntitlement(createPlusState({})),
+        ).toBe(false);
+      });
+
+      it('ignores entitlements granted for another product', () => {
+        const state = createState({
+          subscriptions: [],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.SHIELD]: {
+              entitlements: {
+                shieldClaim: true,
+                prioritySupport: true,
+              },
+            },
+          },
+        });
+
+        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(false);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
+          false,
+        );
+      });
     });
   });
 });

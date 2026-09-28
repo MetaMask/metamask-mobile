@@ -22,7 +22,6 @@ import { readSnapshot } from './leaderboardSnapshot';
 import { REVEAL_DWELL_MS } from './components/useLeaderboardReveal';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
-  getCohortFilterOptionTestId,
   getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,
@@ -781,21 +780,24 @@ describe('TopTradersView', () => {
   });
 
   describe('Social V1 filters', () => {
-    it('shows type, cohort, date range, and ranking chips', () => {
+    it('shows ranking and custom filters without type, cohort, or date chips', () => {
       renderWithProvider(<TopTradersView useV1Filters />);
 
       expect(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.FILTER_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+      ).toBeNull();
       expect(
         screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
       ).toBeNull();
@@ -807,6 +809,25 @@ describe('TopTradersView', () => {
       expectLatestQueryEnabledStates({
         all: true,
         tokens: false,
+        perps: false,
+      });
+    });
+
+    it('enables the tokens query when Custom filters apply the tokens type', () => {
+      const { DEFAULT_FILTERS } = jest.requireActual(
+        '../shell/filters/filterDefaults',
+      ) as typeof import('../shell/filters/filterDefaults');
+
+      renderWithProvider(
+        <TopTradersView
+          useV1Filters
+          v1AppliedFilters={{ ...DEFAULT_FILTERS, type: 'tokens' }}
+        />,
+      );
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: true,
         perps: false,
       });
     });
@@ -825,17 +846,6 @@ describe('TopTradersView', () => {
       latestCalls.forEach(([options]) => {
         expect(options).toEqual(expect.objectContaining({ sort: 'pnl' }));
       });
-    });
-
-    it('selects a trader cohort without changing the fetch sort', () => {
-      renderWithProvider(<TopTradersView useV1Filters />);
-
-      fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
-      );
-      fireEvent.press(screen.getByTestId(getCohortFilterOptionTestId('whale')));
-
-      expect(screen.getByText('Whale')).toBeOnTheScreen();
     });
   });
 

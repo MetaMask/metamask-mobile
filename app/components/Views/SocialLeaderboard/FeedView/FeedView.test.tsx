@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
@@ -172,6 +173,36 @@ const getAudienceToggleOrder = () =>
       Boolean(id?.startsWith(`${FeedViewSelectorsIDs.AUDIENCE_TOGGLE}-`)),
     );
 
+const getFilterRowStyle = () =>
+  StyleSheet.flatten(
+    screen.getByTestId(FeedViewSelectorsIDs.FILTER_ROW).props.style,
+  );
+
+/**
+ * Drives the filter row's layout measurements. Widths are in points, matching
+ * what the row's `px-4` / `gap={3}` are compared against.
+ */
+const measureFilterRow = ({
+  row,
+  typeFilter,
+  audienceToggle,
+}: {
+  row: number;
+  typeFilter: number;
+  audienceToggle: number;
+}) => {
+  const fireLayout = (testID: string, width: number) =>
+    fireEvent(screen.getByTestId(testID), 'layout', {
+      nativeEvent: { layout: { width, height: 40, x: 0, y: 0 } },
+    });
+
+  act(() => {
+    fireLayout(FeedViewSelectorsIDs.FILTER_ROW, row);
+    fireLayout(FeedViewSelectorsIDs.TYPE_FILTER_SLOT, typeFilter);
+    fireLayout(FeedViewSelectorsIDs.AUDIENCE_SLOT, audienceToggle);
+  });
+};
+
 describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -189,6 +220,46 @@ describe('FeedView', () => {
       screen.getByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
+  });
+
+  it('wraps the filter row so a long-locale audience toggle falls below the type filter', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(FeedViewSelectorsIDs.FILTER_ROW).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ flexWrap: 'wrap' }));
+  });
+
+  it('spreads the filter row apart while both controls fit on one line', () => {
+    renderWithProvider(<FeedView />);
+
+    measureFilterRow({ row: 390, typeFilter: 120, audienceToggle: 160 });
+
+    expect(getFilterRowStyle()).toEqual(
+      expect.objectContaining({ justifyContent: 'space-between' }),
+    );
+  });
+
+  it('centers the filter row once the controls no longer fit on one line', () => {
+    renderWithProvider(<FeedView />);
+
+    measureFilterRow({ row: 390, typeFilter: 190, audienceToggle: 215 });
+
+    expect(getFilterRowStyle()).toEqual(
+      expect.objectContaining({ justifyContent: 'center' }),
+    );
+  });
+
+  it('keeps the filter row spread until every control has been measured', () => {
+    renderWithProvider(<FeedView />);
+
+    measureFilterRow({ row: 390, typeFilter: 190, audienceToggle: 0 });
+
+    expect(getFilterRowStyle()).toEqual(
+      expect.objectContaining({ justifyContent: 'space-between' }),
+    );
   });
 
   it('does not offer a time frame filter', () => {

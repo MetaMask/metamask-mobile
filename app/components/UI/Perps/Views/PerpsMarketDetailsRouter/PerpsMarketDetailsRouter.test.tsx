@@ -1,15 +1,25 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import PerpsMarketDetailsRouter from './PerpsMarketDetailsRouter';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 
 jest.mock('./usePerpsProModeEnabled');
+
+const mockSwitchProvider = jest.fn();
+let mockActiveProvider = 'hyperliquid';
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: () => ({
+    activeProvider: mockActiveProvider,
+    switchProvider: mockSwitchProvider,
+  }),
+}));
 
 const mockUseRoute = jest.fn();
 const mockSetParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ setParams: mockSetParams }),
   useRoute: () => mockUseRoute(),
+  useIsFocused: () => true,
 }));
 
 const mockSafeAreaMount = jest.fn();
@@ -73,6 +83,7 @@ const mockUsePerpsProModeEnabled = jest.mocked(usePerpsProModeEnabled);
 
 describe('PerpsMarketDetailsRouter', () => {
   beforeEach(() => {
+    mockActiveProvider = 'hyperliquid';
     mockOutreachCampaign = null;
     mockUseRoute.mockReturnValue({
       params: { market: { symbol: 'ETH' } },
@@ -185,5 +196,35 @@ describe('PerpsMarketDetailsRouter', () => {
     expect(mockLiteProps).toHaveBeenLastCalledWith(
       expect.objectContaining({ generationTrigger: 'mode_switch' }),
     );
+  });
+  it('preserves market-switch attribution while selecting the venue', async () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockUseRoute.mockReturnValue({
+      params: {
+        market: { symbol: 'BTC', providerId: 'lighter' },
+        detailGenerationTrigger: 'market_switch',
+      },
+    });
+    let finish!: () => void;
+    mockSwitchProvider.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve({ success: true, providerId: 'lighter' });
+        }),
+    );
+    const { rerender } = render(<PerpsMarketDetailsRouter />);
+    mockActiveProvider = 'lighter';
+    rerender(<PerpsMarketDetailsRouter />);
+    expect(mockSetParams).not.toHaveBeenCalled();
+    expect(mockProProps).not.toHaveBeenCalled();
+
+    await act(async () => finish());
+
+    expect(mockProProps).toHaveBeenCalledWith(
+      expect.objectContaining({ generationTrigger: 'market_switch' }),
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({
+      detailGenerationTrigger: undefined,
+    });
   });
 });
