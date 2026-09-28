@@ -17,6 +17,7 @@ import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from './useMoneyAccountPlusAccess';
+import { SUBSCRIPTIONS_QUERY_KEY } from '../components/hooks/useSubscriptions';
 import {
   BENEFITS_QUERY_KEY,
   MoneyAccountPlusBenefitsStatus,
@@ -140,10 +141,32 @@ const applyAuthFromState = (state: RootState) => {
   );
 };
 
-const renderBenefits = (state: RootState) => {
+/** Seeds the subscriptions query the mocked access hook would have started. */
+const seedSubscriptionsQuery = (
+  queryClient: QueryClient,
+  subscriptions: 'settled' | 'fetching',
+) => {
+  if (subscriptions === 'settled') {
+    queryClient.setQueryData(SUBSCRIPTIONS_QUERY_KEY, []);
+    return;
+  }
+
+  queryClient
+    .fetchQuery({
+      queryKey: SUBSCRIPTIONS_QUERY_KEY,
+      queryFn: () => new Promise<never>(() => undefined),
+    })
+    .catch(() => undefined);
+};
+
+const renderBenefits = (
+  state: RootState,
+  subscriptions: 'settled' | 'fetching' = 'settled',
+) => {
   applyAuthFromState(state);
 
   const queryClient = createQueryClient();
+  seedSubscriptionsQuery(queryClient, subscriptions);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={configureStore(state)}>
@@ -237,23 +260,25 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).not.toHaveBeenCalled();
   });
 
-  it('reports loading while benefits are unresolved and uncached', () => {
-    mockGetBenefits.mockReturnValue(new Promise(() => undefined));
+  it('reports loading while the subscriptions refresh is in flight', () => {
+    const { result } = renderBenefits(createState(), 'fetching');
 
-    const { result } = renderBenefits(createState());
-
+    expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
     expect(result.current.items).toEqual([]);
   });
 
-  it('maps cached benefits after a successful fetch', async () => {
+  it('fetches benefits once when the subscriptions refresh left no snapshot', async () => {
+    renderBenefits(createState());
+
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(1));
+  });
+
+  it('maps cached benefits without fetching again', () => {
     const { result } = renderBenefits(createState({ benefits: BENEFITS }));
 
-    await waitFor(() =>
-      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready),
-    );
-
-    expect(mockGetBenefits).toHaveBeenCalledTimes(1);
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
     expect(result.current.resetsOn).toBe('Sep 15, 2026');
   });
@@ -299,16 +324,15 @@ describe('useMoneyAccountPlusBenefits', () => {
   it('keeps cached rows when a refresh fails', async () => {
     const { result } = renderBenefits(createState({ benefits: BENEFITS }));
 
-    await waitFor(() =>
-      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready),
-    );
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
 
     mockGetBenefits.mockRejectedValue(new Error('network down'));
     await act(async () => {
       result.current.retry();
     });
 
-    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(1));
 
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
@@ -332,7 +356,8 @@ describe('useMoneyAccountPlusBenefits', () => {
 
   it('clears the query when the session ends so the next subscriber re-fetches', async () => {
     const queryClient = createQueryClient(Infinity);
-    const state = createState({ benefits: BENEFITS });
+    queryClient.setQueryData(SUBSCRIPTIONS_QUERY_KEY, []);
+    const state = createState();
     applyAuthFromState(state);
 
     const Wrapper = ({ children }: { children: React.ReactNode }) => (

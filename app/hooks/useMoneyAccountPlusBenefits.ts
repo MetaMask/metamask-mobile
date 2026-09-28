@@ -7,6 +7,7 @@ import {
   mapPlusBenefitsToTradeAllowances,
 } from '../components/Views/ProHub/components/MemberPricingOnTrades/mapPlusBenefitsToTradeAllowances';
 import type { TradeAllowanceItem } from '../components/Views/ProHub/ProHub.constants';
+import useSubscriptions from '../components/hooks/useSubscriptions';
 import Engine from '../core/Engine';
 import { selectIsSignedIn } from '../selectors/identity';
 import { selectIsUnlocked } from '../selectors/keyringController';
@@ -43,18 +44,13 @@ export interface MoneyAccountPlusBenefits {
 }
 
 /**
- * Loads current-period Plus benefit usage through SubscriptionController.
+ * Maps current-period Plus benefit usage for the Member pricing section.
  *
- * `getBenefits()` is only called for active Plus subscribers. Core rejects
- * the call (and clears `state.benefits`) for entitled-but-inactive statuses
- * such as `past_due`, so those users keep cached meters instead of fetching.
- *
- * Cached `state.benefits` stays visible during a refresh or a failed refresh;
- * an error with no cache surfaces retry UI instead of paid meters.
- *
- * Fetch lifecycle is owned by TanStack Query. Redux remains the source of
- * truth for mapped meters — the controller persists `state.benefits` with no
- * loading flag, and subscription polling swallows benefits errors.
+ * The subscriptions refresh already calls `getBenefits()` for active
+ * subscribers and swallows its errors. This hook calls `getBenefits()` only
+ * when that refresh settled without a snapshot, so a failure can show retry
+ * instead of an empty section. Inactive statuses such as `past_due` never
+ * fetch and keep cached meters.
  *
  * @returns Mapped trade-allowance rows and the shared reset date.
  */
@@ -69,15 +65,19 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
 
   const isHubSubscriber = access === MoneyAccountPlusAccess.Subscriber;
   const canFetch = isActiveSubscriber && isSignedIn && isUnlocked;
+  const hasCache = benefits !== undefined;
+
+  // Observe only; useMoneyAccountPlusAccess owns the fetch and poll.
+  const { isFetched: subscriptionsFetched, isFetching: subscriptionsFetching } =
+    useSubscriptions({ enabled: false });
+  const subscriptionsSettled = subscriptionsFetched && !subscriptionsFetching;
 
   const { isPending, isFetching, isError, refetch } = useQuery({
     queryKey: BENEFITS_QUERY_KEY,
     queryFn: () => Engine.context.SubscriptionController.getBenefits(),
-    enabled: canFetch,
+    enabled: canFetch && subscriptionsSettled && !hasCache,
     retry: false,
-    // Focus and reconnect refetches stay off because they can run queryFn —
-    // and so reach AuthenticationController getBearerToken — before React
-    // commits enabled:false after a background auto-lock.
+    // Off so queryFn cannot run before enabled:false commits after auto-lock.
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -99,7 +99,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     [benefits],
   );
   const resetsOn = formatPlusPeriodEnd(plusSubscription?.currentPeriodEnd);
-  const hasCache = benefits !== undefined;
 
   if (!isHubSubscriber) {
     return {
