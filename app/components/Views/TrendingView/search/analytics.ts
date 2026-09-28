@@ -33,6 +33,9 @@ export const getExploreSearchResultCount = (
   return getTotalSectionResultCount(sections);
 };
 
+export const getSearchQueryLength = (query: string): number =>
+  query.trim().length;
+
 export type SearchInteractionType =
   | 'opened'
   | 'result_clicked'
@@ -61,6 +64,8 @@ export interface ExploreSearchInteractedProperties {
   position?: number;
   /** Total number of results visible to the user at the time of the interaction. */
   result_count?: number;
+  /** Trimmed query length. Only set on `searched` and `result_clicked`. */
+  query_length?: number;
 }
 
 export type ExploreTabName =
@@ -229,6 +234,7 @@ export const useInstrumentedSearchEffect = ({
       search_query: searchQuery,
       tab_name: pill,
       result_count: resultCount,
+      query_length: getSearchQueryLength(searchQuery),
     });
     instrumentedQueryRef.current = searchQuery;
   }, [searchQuery, isLoading, getPill, getSections]);

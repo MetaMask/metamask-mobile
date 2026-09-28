@@ -12,7 +12,11 @@ import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
-import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import {
+  getSearchQueryLength,
+  trackExploreSearchEvent,
+  type SearchFeedPill,
+} from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import EarnSearchRow from './EarnSearchRow';
@@ -70,6 +74,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       item_clicked: getItemId(feedId, item),
       position: index,
       result_count: resultCountRef.current,
+      query_length: getSearchQueryLength(searchQueryRef.current),
     });
   }, [feedId, tabName, item, index]);
 
