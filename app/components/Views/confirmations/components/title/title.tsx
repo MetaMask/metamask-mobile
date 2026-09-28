@@ -2,6 +2,7 @@ import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 import { SignatureRequest } from '@metamask/signature-controller';
 import {
+  hasTransactionType,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -36,6 +37,8 @@ import {
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
 import { TokenStandard } from '../../types/token';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ConfirmationParams } from '../confirm/confirm-component';
 import {
   Text,
   TextVariant,
@@ -91,6 +94,20 @@ const getTitleAndSubTitle = (
 ) => {
   const type = approvalRequest?.type;
   const transactionType = transactionMetadata?.type as TransactionType;
+
+  if (
+    (type === ApprovalType.Transaction ||
+      type === ApprovalType.TransactionBatch) &&
+    !isDowngrade &&
+    !isUpgradeOnly &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountDeposit,
+    ])
+  ) {
+    return {
+      title: strings('confirm.title.money_account_add_money'),
+    };
+  }
 
   switch (type) {
     case ApprovalType.PersonalSign: {
@@ -184,6 +201,12 @@ const getTitleAndSubTitle = (
         };
       }
 
+      if (transactionType === TransactionType.perpsDeposit) {
+        return {
+          title: strings('confirm.title.perps_deposit'),
+        };
+      }
+
       // Default to contract interaction
       const shouldHideSubTitle =
         isBatched || EARN_CONTRACT_INTERACTION_TYPES.includes(transactionType);
@@ -209,9 +232,10 @@ const getTitleAndSubTitle = (
 };
 
 const Title = () => {
+  const { forceBottomSheet } = useParams<ConfirmationParams>();
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { forceBottomSheet });
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
@@ -247,7 +271,12 @@ const Title = () => {
 
   return (
     <View style={styles.titleContainer}>
-      <Text style={styles.title} variant={TextVariant.HeadingMd}>
+      <Text
+        style={styles.title}
+        variant={
+          forceBottomSheet ? TextVariant.HeadingSm : TextVariant.HeadingMd
+        }
+      >
         {title}
       </Text>
       {subTitle && (
@@ -259,7 +288,9 @@ const Title = () => {
           {subTitle}
         </Text>
       )}
-      <BatchedTransactionTag />
+      {!hasTransactionType(transactionMetadata, [
+        TransactionType.moneyAccountDeposit,
+      ]) && <BatchedTransactionTag />}
     </View>
   );
 };

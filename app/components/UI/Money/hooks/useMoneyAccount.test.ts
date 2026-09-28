@@ -36,6 +36,7 @@ import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmatio
 
 jest.mock('react-redux');
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 jest.mock('../../../../util/errorHandling/isUserRejectedError', () => ({
@@ -67,6 +68,7 @@ jest.mock('../../../../core/NavigationService/NavigationService', () => ({
   default: {
     navigation: {
       getCurrentRoute: jest.fn(),
+      goBack: jest.fn(),
     },
   },
 }));
@@ -530,6 +532,52 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
+  });
+
+  it.each(['build', 'add'] as const)(
+    'targets the root modal on %s failure without going back in the caller stack',
+    async (failureStage) => {
+      const error = new Error('deposit setup failed');
+      if (failureStage === 'build') {
+        mockBuildDepositBatch.mockRejectedValueOnce(error);
+      } else {
+        mockAddTransactionBatch.mockRejectedValueOnce(error);
+      }
+      mockGetCurrentRoute.mockReturnValue({
+        key: 'confirmation-modal',
+        name: Routes.CONFIRMATION_REQUEST_MODAL,
+      });
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateDeposit({ forceBottomSheet: true }),
+        ).rejects.toBe(error);
+      });
+
+      expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+    },
+  );
+
+  it('does not dismiss another route when forced-sheet setup fails', async () => {
+    const error = new Error('deposit setup failed');
+    mockBuildDepositBatch.mockRejectedValueOnce(error);
+    mockGetCurrentRoute.mockReturnValue({
+      key: 'settings',
+      name: Routes.SETTINGS_VIEW,
+    });
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await expect(
+        result.current.initiateDeposit({ forceBottomSheet: true }),
+      ).rejects.toBe(error);
+    });
+
+    expect(NavigationService.navigation.goBack).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {

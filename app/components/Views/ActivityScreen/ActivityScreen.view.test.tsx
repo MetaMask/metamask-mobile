@@ -671,9 +671,11 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     );
 
     await waitFor(
-      async () => {
-        expect(await findByText(predictionsDescription)).toBeOnTheScreen();
-        expect(await findByText(makePredictionLabel)).toBeOnTheScreen();
+      () => {
+        const emptyState = getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE);
+        const scope = within(emptyState);
+        expect(scope.getByText(predictionsDescription)).toBeOnTheScreen();
+        expect(scope.getByText(makePredictionLabel)).toBeOnTheScreen();
       },
       { timeout: 10000 },
     );

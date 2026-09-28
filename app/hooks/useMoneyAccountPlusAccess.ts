@@ -17,8 +17,9 @@ export enum MoneyAccountPlusAccess {
   /** No active Plus subscription. Show the upsell. */
   Eligible = 'eligible',
   /**
-   * Subscriptions have not resolved yet. Empty controller state must not be
-   * treated as Eligible, or a paid user is bounced from subscriber surfaces.
+   * Subscriptions have not resolved yet, or the fetch failed. Empty
+   * controller state must not be treated as Eligible, or a paid user is
+   * bounced from subscriber surfaces.
    */
   Unknown = 'unknown',
 }
@@ -30,7 +31,7 @@ export enum MoneyAccountPlusAccess {
  * so control-group users get {@link MoneyAccountPlusAccess.Disabled} even
  * when they hold an active subscription. Past that, access is driven by
  * SubscriptionController's active-subscriber selector, but only after the
- * initial subscriptions query has settled.
+ * initial subscriptions query has succeeded.
  *
  * Entitlements are checked alongside subscription status: the server keeps
  * paid features on through recoverable states such as `past_due`, which the
@@ -42,7 +43,7 @@ export enum MoneyAccountPlusAccess {
  */
 export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isLoading } = useSubscriptions({
+  const { isLoading, isError } = useSubscriptions({
     enabled: isProSubscriptionEnabled,
   });
   const isSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
@@ -56,7 +57,7 @@ export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
     return MoneyAccountPlusAccess.Subscriber;
   }
 
-  if (isLoading) {
+  if (isLoading || isError) {
     return MoneyAccountPlusAccess.Unknown;
   }
 

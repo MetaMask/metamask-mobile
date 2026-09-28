@@ -220,6 +220,7 @@ enum EVENT_NAME {
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
   ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  MANAGE_ACCOUNTS_VIEWED = 'Manage Accounts Viewed',
   SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
@@ -395,6 +396,8 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_URL_CHANGED = 'Ramps Checkout URL Changed',
   RAMPS_CHECKOUT_LOAD_COMPLETED = 'Ramps Checkout Load Completed',
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout HTTP Error Received',
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED = 'Ramps Checkout Provider Event Received',
+  RAMPS_CHECKOUT_FALLBACK_OPENED = 'Ramps Checkout Fallback Opened',
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
@@ -1148,6 +1151,7 @@ const events = {
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
   ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  MANAGE_ACCOUNTS_VIEWED: generateOpt(EVENT_NAME.MANAGE_ACCOUNTS_VIEWED),
   SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
   // Bare form, for callers that supply `action` and `name` themselves; the
   // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
@@ -1433,6 +1437,12 @@ const events = {
   ),
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+  ),
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED,
+  ),
+  RAMPS_CHECKOUT_FALLBACK_OPENED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_FALLBACK_OPENED,
   ),
   RAMPS_CHECKOUT_CALLBACK_DETECTED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_CALLBACK_DETECTED,

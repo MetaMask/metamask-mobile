@@ -195,6 +195,30 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Something went wrong')).toBeOnTheScreen();
   });
 
+  it('does not display the USD price notice without a USD trigger price', () => {
+    const { queryByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
+    ).toBeNull();
+  });
+
+  it('displays the USD price notice with the USD trigger price', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({ usdTriggerPrice: '$3,412.2' })}
+      />,
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
+    ).toHaveTextContent(
+      'For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~$3,412.2)',
+    );
+  });
+
   it('fires the primary button onPress handler when pressed', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(

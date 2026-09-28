@@ -1,5 +1,5 @@
 import Engine from '../../../app/core/Engine';
-import { getLimitOrders } from '../../../app/components/UI/Bridge/api/limitOrders/getLimitOrders';
+import type { getLimitOrders } from '../../../app/components/UI/Bridge/api/limitOrders/getLimitOrders';
 import type { LimitOrdersQueryParams } from '../../../app/components/UI/Bridge/queries/limitOrders';
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
@@ -12,7 +12,8 @@ interface LimitOrdersDataServiceMockOptions {
 }
 
 export function setupLimitOrdersDataServiceMock({
-  limitOrders = getLimitOrders,
+  // An empty page, so component view tests never reach the API.
+  limitOrders = async () => ({ orders: [] }),
 }: LimitOrdersDataServiceMockOptions = {}) {
   // Captured at call time (not import time) so this composes with other
   // api-mocking helpers (e.g. recurringOrders) regardless of setup order.

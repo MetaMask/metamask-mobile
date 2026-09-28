@@ -878,6 +878,7 @@ interface MockTradeScreenProps {
   payWithBalance: string;
   showPayWith: boolean;
   isPayWithDisabled: boolean;
+  isPayWithLoading: boolean;
   feePercentage?: string;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;
@@ -1463,7 +1464,7 @@ describe('PerpsOrderView', () => {
     expect(setStopLossPrice).toHaveBeenCalledWith('2750');
   });
 
-  it('offers margin and liquidation explainers as content-sized nested Trade sheet screens', () => {
+  it('lets leverage and info screens resize the Trade sheet to their content', () => {
     useTradeSheetRoute();
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1473,6 +1474,7 @@ describe('PerpsOrderView', () => {
       'liquidation_price',
     );
     expect(mockTradeSheetContentSizedScreens).toEqual([
+      'leverage',
       'marginInfo',
       'liquidationInfo',
     ]);
@@ -1507,6 +1509,29 @@ describe('PerpsOrderView', () => {
     expect(getMockTradeScreenProps().isLiquidationLoading).toBe(true);
     expect(getMockTradeScreenProps().liquidationPrice).toBe('--');
     expect(getMockTradeScreenProps().liquidationDistance).toBeUndefined();
+  });
+
+  it('keeps the liquidation price visible while the API refetches it', () => {
+    (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+      liquidationPrice: '2700',
+      isCalculating: true,
+      error: null,
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().isLiquidationLoading).toBe(false);
+    expect(getMockTradeScreenProps().liquidationPrice).toBe('$2,700');
+  });
+
+  it('keeps Pay with visible while its quote refreshes', () => {
+    mockIsPayQuoteLoading = true;
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().isPayWithLoading).toBe(false);
   });
 
   it('hides Auto close in add-to-position Trade sheets', () => {

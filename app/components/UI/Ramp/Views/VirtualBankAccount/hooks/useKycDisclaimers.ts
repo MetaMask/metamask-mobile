@@ -6,7 +6,7 @@ import Logger from '../../../../../../util/Logger';
 import type { RootState } from '../../../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { VBA_KYC_VENDOR } from '../constants';
-import { saveVbaTermsOneAcceptance } from '../vbaTermsOneStorage';
+import { saveVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
 
 export type { KycDisclaimer };
 
@@ -27,8 +27,8 @@ const FETCH_TIMEOUT_MS = 10_000;
  * and stores the accepted document ids locally per wallet.
  *
  * The email step records the locally accepted ids against the customer after
- * creating the Iron session. This lets product put Terms 1 before email even
- * though the vendor API requires an email/customer before remote acceptance.
+ * creating the Iron session. This lets product show vendor terms before email
+ * even though the API requires an email/customer before remote acceptance.
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
@@ -60,7 +60,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
       if (!walletAddress) {
         throw new Error('No Money Account wallet is selected');
       }
-      await saveVbaTermsOneAcceptance(
+      await saveVbaVendorTermsAcceptance(
         walletAddress,
         disclaimers.map(({ id }) => id),
       );

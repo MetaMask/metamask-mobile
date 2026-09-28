@@ -48,8 +48,11 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
-import { MoneyActivityFilter } from '../../constants/mockActivityData';
-import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import { MoneyActivityFilter } from '../../constants/moneyActivity';
+import {
+  deriveMoneyMetaMaskCardMode,
+  MoneyMetaMaskCardMode,
+} from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -110,11 +113,10 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import useSubscriptions from '../../../../hooks/useSubscriptions';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
-const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
+const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
@@ -137,11 +139,10 @@ const MoneyHomeView = () => {
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
 
-  // Pro entry point: keep subscription state fresh only while the Pro flow is
-  // enabled so we do not generate API traffic for users without the flow.
+  // usePlusAccess already mounts the subscriptions query while the Pro flow
+  // is enabled, so this view only needs the resolved chrome flags.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
-  useSubscriptions({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
@@ -200,8 +201,8 @@ const MoneyHomeView = () => {
   });
   const { initiateDeposit } = useMoneyAccountDeposit();
   // Share the single merge/bucket path with the full activity view so the home
-  // preview and that view never diverge (notably in mock mode). The home
-  // preview shows the "All" bucket; `isLoading` is already mock-aware.
+  // preview and that view never diverge. The home preview shows the "All"
+  // bucket.
   const {
     buckets,
     hasMore: hasMoreActivity,
@@ -212,7 +213,6 @@ const MoneyHomeView = () => {
     isSettling: isActivitySettling,
     error: activityError,
     moneyAddress,
-    mockDataEnabled,
     cardEnrichmentByHash,
   } = useMoneyActivityItems({
     fill: {
@@ -230,6 +230,7 @@ const MoneyHomeView = () => {
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
+    getLinkFlowRedirectTarget,
     startLinkFlow,
     isCardAuthenticated,
     isCardVerified,
@@ -561,6 +562,34 @@ const MoneyHomeView = () => {
     navigateToCardHome,
   ]);
 
+  const getPressRedirectTargetByMode = useCallback(
+    (mode: MoneyMetaMaskCardMode) => {
+      if (mode === 'link') {
+        return getLinkFlowRedirectTarget();
+      }
+
+      if (mode === 'upsell' || mode === 'manage') {
+        return SCREEN_NAMES.CARD_HOME;
+      }
+
+      return undefined;
+    },
+    [getLinkFlowRedirectTarget],
+  );
+
+  const handleMetaMaskCardHeaderPress = useCallback(
+    (mode: MoneyMetaMaskCardMode) => {
+      const redirectTarget = getPressRedirectTargetByMode(mode);
+      if (!redirectTarget) return;
+
+      trackSurfaceClicked({
+        redirect_target: redirectTarget,
+        component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION_HEADER,
+      });
+    },
+    [getPressRedirectTargetByMode, trackSurfaceClicked],
+  );
+
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
       ...MONEY_HOME_CARD_ORIGIN,
@@ -588,7 +617,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.APY,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY_APY,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -627,11 +656,11 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackTooltipClicked]);
 
-  const handleEarnCryptoInfoPress = useCallback(() => {
+  const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -722,19 +751,16 @@ const MoneyHomeView = () => {
     [initiateDeposit, trackTokenSurfaceClicked],
   );
 
-  const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
-      label_key: 'money.potential_earnings.view_all',
+  const handleMoneyPotentialEarningsHeaderPressed = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
     navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS, {
       overrideToUsd: true,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
@@ -764,22 +790,19 @@ const MoneyHomeView = () => {
         redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
       });
 
-      navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+      navigation.navigate(Routes.MONEY.HOW_IT_WORKS);
     },
     [navigation, trackSurfaceClicked],
   );
 
-  const handleViewAllActivityPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
-      label_key: 'money.activity.view_all',
+  const handleActivityHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
-    navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation, trackButtonClicked]);
+    navigation.navigate(Routes.MONEY.ACTIVITY);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleActivityItemPress = useCallback(
     (transaction: TransactionMeta) => {
@@ -834,6 +857,7 @@ const MoneyHomeView = () => {
         node: (
           <MoneyMetaMaskCard
             mode={metamaskCardMode}
+            onHeaderPress={handleMetaMaskCardHeaderPress}
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
@@ -905,8 +929,8 @@ const MoneyHomeView = () => {
           items={activityItems}
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
-          onViewAllPress={handleViewAllActivityPress}
-          onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          onHeaderPress={handleActivityHeaderPress}
+          onItemPress={handleActivityItemPress}
           privacyMode={privacyMode}
           cardEnrichmentByHash={cardEnrichmentByHash}
         />
@@ -924,8 +948,8 @@ const MoneyHomeView = () => {
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
-          onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
-          onInfoPress={handleEarnCryptoInfoPress}
+          onHeaderPress={handleMoneyPotentialEarningsHeaderPressed}
+          onProjectedAmountPress={handleEarnCryptoProjectedAmountPressed}
           privacyMode={privacyMode}
         />
       ),

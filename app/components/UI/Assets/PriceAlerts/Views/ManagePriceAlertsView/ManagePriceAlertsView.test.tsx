@@ -1199,6 +1199,7 @@ describe('ManagePriceAlertsView', () => {
         assetId: 'xyz:BTC',
         mode: 'perps',
         marketId: MARKET_ID,
+        szDecimals: 5,
       };
       mockFetchPerpAlerts.mockResolvedValue(
         makeFetchResponse([perpAlert] as unknown as Alert[]),
@@ -1240,6 +1241,29 @@ describe('ManagePriceAlertsView', () => {
         Routes.PERPS.CREATE_PRICE_ALERT,
         expect.objectContaining({
           existingPercentAlerts: [],
+        }),
+      );
+    });
+
+    it('formats absolute thresholds like the live market header', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $95,000')).toBeOnTheScreen();
+    });
+
+    it('includes szDecimals when navigating to CreatePriceAlertView', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          szDecimals: 5,
         }),
       );
     });
