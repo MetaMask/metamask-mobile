@@ -83,7 +83,7 @@ const AdvancedDetailsRow = () => {
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
               withIcon={{
-                color: IconColor.Muted,
+                color: IconColor.Alternative,
                 size: IconSize.Sm,
                 name: IconName.ArrowDown,
               }}
@@ -115,6 +115,7 @@ const AdvancedDetailsRow = () => {
               <InfoRow
                 label={strings('transaction.custom_nonce')}
                 tooltip={strings('transaction.custom_nonce_tooltip')}
+                tooltipColor={IconColor.Alternative}
               >
                 <Text
                   variant={TextVariant.BodyMd}
@@ -132,6 +133,7 @@ const AdvancedDetailsRow = () => {
                 <InfoRow
                   label={strings('transaction.data')}
                   copyText={data}
+                  copyIconColor={IconColor.Alternative}
                   valueOnNewLine
                 >
                   {hasDataNeedsScroll ? (
