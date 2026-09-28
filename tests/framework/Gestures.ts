@@ -64,11 +64,12 @@ export default class Gestures {
     const location = await container.unwrap().getLocation();
     const size = await container.unwrap().getSize();
     const centerX = Math.floor(location.x + size.width / 2);
-    const travel = Math.floor(
-      size.height * Math.min(Math.max(percent, 0.1), 0.9),
-    );
+    const centerY = Math.floor(location.y + size.height / 2);
 
     if (swipeDirection === 'up' || swipeDirection === 'down') {
+      const travel = Math.floor(
+        size.height * Math.min(Math.max(percent, 0.1), 0.9),
+      );
       const fromY =
         swipeDirection === 'up'
           ? location.y + Math.floor(size.height * 0.8)
@@ -85,10 +86,22 @@ export default class Gestures {
       return;
     }
 
+    // Horizontal swipe bounded to the element's own coordinates.
+    const travelX = Math.floor(
+      size.width * Math.min(Math.max(percent, 0.1), 0.9),
+    );
+    const fromX =
+      swipeDirection === 'left'
+        ? location.x + Math.floor(size.width * 0.8)
+        : location.x + Math.floor(size.width * 0.2);
+    const toX = swipeDirection === 'left' ? fromX - travelX : fromX + travelX;
+
     await AppiumGestures.swipe({
       scrollParams: { direction: swipeDirection },
       percent,
       duration: 600,
+      from: { x: fromX, y: centerY },
+      to: { x: toX, y: centerY },
     });
   }
 
@@ -294,15 +307,6 @@ export default class Gestures {
     options: SwipeOptions = {},
   ): Promise<void> {
     const percent = options.percentage ?? 0.75;
-
-    if (direction === 'left' || direction === 'right') {
-      await AppiumGestures.swipe({
-        scrollParams: { direction },
-        percent,
-      });
-      return;
-    }
-
     await this.scrollWithinContainer(elem, direction, percent);
   }
 

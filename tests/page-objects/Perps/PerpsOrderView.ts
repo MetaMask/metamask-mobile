@@ -429,17 +429,17 @@ class PerpsOrderView {
       elemDescription: 'Open leverage modal',
     });
 
-    const pickerItem = await Matchers.getElementByID(
+    const pickerItem = Matchers.getElementByID(
       `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverageX}`,
     );
     const picker = await Matchers.getElementByID(
       PerpsLeverageBottomSheetSelectorsIDs.PICKER,
     );
 
-    await Gestures.scrollIntoView(pickerItem, {
-      direction: 'left',
-      scrollableElement: picker,
-    });
+    for (let attempt = 0; attempt < 15; attempt++) {
+      if (await Utilities.isElementVisible(pickerItem, 500)) break;
+      await Gestures.swipe(picker, 'left');
+    }
 
     await Gestures.waitAndTap(pickerItem, {
       elemDescription: `Select leverage ${leverageX}x`,
