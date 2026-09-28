@@ -48,6 +48,7 @@ import {
 } from '../../search/useExploreSearch';
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import { strings } from '../../../../../../locales/i18n';
 import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
@@ -88,6 +89,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
+  const floatingTabBarInset = useFloatingTabBarInset();
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
   );
@@ -197,7 +199,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         data={data}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={tw.style('px-4')}
+        contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"

@@ -28,6 +28,7 @@ import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { strings } from '../../../../../locales/i18n';
@@ -85,6 +86,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+  const floatingTabBarInset = useFloatingTabBarInset();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -376,7 +378,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         data={flatData}
         renderItem={renderFlatItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={tw.style('px-4')}
+        contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
