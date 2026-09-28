@@ -99,40 +99,53 @@ export function useFiatConfirm() {
       ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]
       : undefined;
 
-    startHeadlessBuy(
-      {
-        quote: rampsQuote,
-        assetId,
-        amount: totalAmountToBuy,
-        paymentMethodId: fiatPayment?.selectedPaymentMethodId,
-        currency: 'USD',
-        walletAddress: transactionMetadata?.txParams?.from,
-        rampSurface,
-      },
-      {
-        onOrderCreated: (orderIdFromCallback) => {
-          if (!transactionMetadata?.id) {
-            return;
-          }
-          Engine.context.TransactionPayController.updateFiatPayment({
-            transactionId: transactionMetadata.id,
-            callback: (fp) => {
-              fp.orderId = orderIdFromCallback;
-            },
-          });
+    try {
+      startHeadlessBuy(
+        {
+          quote: rampsQuote,
+          assetId,
+          amount: totalAmountToBuy,
+          paymentMethodId: fiatPayment?.selectedPaymentMethodId,
+          currency: 'USD',
+          walletAddress: transactionMetadata?.txParams?.from,
+          rampSurface,
         },
-        onError: (error: HeadlessBuyError) => {
-          setIsHeadlessBuyInProgress(false);
-          setHeadlessBuyError(
-            error.message ?? strings('alert_system.headless_buy_error.message'),
-          );
+        {
+          onOrderCreated: (orderIdFromCallback) => {
+            if (!transactionMetadata?.id) {
+              return;
+            }
+            Engine.context.TransactionPayController.updateFiatPayment({
+              transactionId: transactionMetadata.id,
+              callback: (fp) => {
+                fp.orderId = orderIdFromCallback;
+              },
+            });
+          },
+          onError: (error: HeadlessBuyError) => {
+            setIsHeadlessBuyInProgress(false);
+            setHeadlessBuyError(
+              error.message ??
+                strings('alert_system.headless_buy_error.message'),
+            );
+          },
+          onClose: () => {
+            setIsHeadlessBuyInProgress(false);
+            setHeadlessBuyError(undefined);
+          },
         },
-        onClose: () => {
-          setIsHeadlessBuyInProgress(false);
-          setHeadlessBuyError(undefined);
-        },
-      },
-    );
+      );
+    } catch (error) {
+      // startHeadlessBuy can throw before a session exists (token not in the
+      // catalog). onError is not guaranteed to have run, and the spinner was
+      // already turned on above.
+      setIsHeadlessBuyInProgress(false);
+      setHeadlessBuyError(
+        error instanceof Error
+          ? error.message
+          : strings('alert_system.headless_buy_error.message'),
+      );
+    }
   }, [
     fiatTestOptions?.testFundingSource,
     fiatPayment,

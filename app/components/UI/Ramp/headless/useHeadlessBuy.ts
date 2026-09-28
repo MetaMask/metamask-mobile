@@ -7,6 +7,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
+import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import useRampsController from '../hooks/useRampsController';
 import {
   closeSession,
@@ -154,7 +155,20 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         closeSession(previousId, { reason: 'consumer_cancelled' });
       }
 
-      setSelectedToken(params.assetId);
+      // Catalog ids from topTokens may be checksummed while the caller (for
+      // example TransactionPayController) sends lowercase. Select the
+      // catalog's own id so RampsController's exact match succeeds.
+      const catalogAssetId = resolveRampControllerAssetId(
+        params.assetId,
+        tokens?.allTokens ?? [],
+      );
+      try {
+        setSelectedToken(catalogAssetId);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        callbacks.onError({ code: 'UNKNOWN', message });
+        throw error;
+      }
       const matchedProvider =
         providers.find((p) => p.id === params.quote.providerInfo?.id) ?? null;
       setSelectedProvider(matchedProvider);
@@ -188,6 +202,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       navigation,
       providers,
       paymentMethods,
+      tokens,
       setSelectedToken,
       setSelectedProvider,
       setSelectedPaymentMethod,

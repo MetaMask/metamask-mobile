@@ -398,6 +398,55 @@ describe('useHeadlessBuy', () => {
       );
     });
 
+    it('selects the catalog asset id when the caller id differs only by EVM hex case', () => {
+      const checksummed =
+        'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
+      const setSelectedToken = jest.fn();
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        tokens: {
+          topTokens: [],
+          allTokens: [{ assetId: checksummed, chainId: 'eip155:143' }],
+        },
+        setSelectedToken,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      act(() => {
+        result.current.startHeadlessBuy(
+          {
+            ...baseStartParams,
+            assetId: checksummed.toLowerCase(),
+          },
+          buildCallbacks(),
+        );
+      });
+      expect(setSelectedToken).toHaveBeenCalledWith(checksummed);
+    });
+
+    it('reports onError and does not open a session when token selection throws', () => {
+      const setSelectedToken = jest.fn(() => {
+        throw new Error('Token with asset ID "missing" not found');
+      });
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        setSelectedToken,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = buildCallbacks();
+      expect(() => {
+        act(() => {
+          result.current.startHeadlessBuy(baseStartParams, callbacks);
+        });
+      }).toThrow('not found');
+      expect(callbacks.onError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'UNKNOWN',
+          message: expect.stringContaining('not found'),
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('seeds provider as null when quote provider is not in the loaded catalog', () => {
       const setSelectedProvider = jest.fn();
       (useRampsController as jest.Mock).mockReturnValue({
