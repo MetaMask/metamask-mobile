@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the "Manage connections" screen title being rendered in blue instead of the default text color (#36153)
 - Fixed grammar in the inaccurate network fee warning (#35975)
 - Fixed Immersve identity verification hanging on a black spinner on Android when camera or microphone access was missing (#35830)
+
 ## [8.12.1]
 
 ### Added
@@ -14082,7 +14083,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...HEAD
-[8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.13.0
+[8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.1...v8.13.0
 [8.12.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.12.1
 [8.12.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...v8.12.0
 [8.11.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.2...v8.11.0
