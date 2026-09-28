@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
@@ -13,6 +13,10 @@ const readOpenCount = (perpsEnabled: boolean): number => {
   return getPreloadedData<Position[]>('cachedPositions')?.length ?? 0;
 };
 
+const normalizePerpsAccountAddress = (
+  address: string | undefined,
+): string | null => address?.toLowerCase() ?? null;
+
 /**
  * Open Hyperliquid perps on the selected wallet.
  * Seeds from the PerpsController cache, then follows subscribeToPositions so
@@ -22,6 +26,8 @@ const readOpenCount = (perpsEnabled: boolean): number => {
 export const useMyOpenPerpsPositionCount = (): number => {
   const perpsEnabled = useSelector(selectPerpsEnabledFlag);
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const selectedAddressRef = useRef(selectedAddress);
+  selectedAddressRef.current = selectedAddress;
   const [count, setCount] = useState(() => readOpenCount(perpsEnabled));
 
   useEffect(() => {
@@ -30,8 +36,16 @@ export const useMyOpenPerpsPositionCount = (): number => {
       return;
     }
 
+    const subscriptionAddress = normalizePerpsAccountAddress(selectedAddress);
+
     const unsubscribe = Engine.context.PerpsController?.subscribeToPositions({
       callback: (positions) => {
+        const currentAddress = normalizePerpsAccountAddress(
+          selectedAddressRef.current,
+        );
+        if (subscriptionAddress !== currentAddress) {
+          return;
+        }
         setCount(positions.length);
       },
     });

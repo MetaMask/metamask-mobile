@@ -124,4 +124,36 @@ describe('useMyOpenPerpsPositionCount', () => {
     expect(mockSubscribeToPositions).toHaveBeenCalledTimes(2);
     expect(result.current).toBe(1);
   });
+
+  it('ignores stale position updates after the selected perps account changes', () => {
+    mockGetPreloadedData.mockReturnValue([]);
+
+    const { result, rerender } = renderHook(() =>
+      useMyOpenPerpsPositionCount(),
+    );
+
+    const staleCallback = positionsCallback;
+
+    act(() => {
+      staleCallback?.([{} as Position, {} as Position]);
+    });
+    expect(result.current).toBe(2);
+
+    mockGetPreloadedData.mockReturnValue([{}]);
+    selectedAddress = '0xdef';
+    rerender({});
+
+    expect(result.current).toBe(1);
+
+    act(() => {
+      staleCallback?.([
+        {} as Position,
+        {} as Position,
+        {} as Position,
+        {} as Position,
+      ]);
+    });
+
+    expect(result.current).toBe(1);
+  });
 });
