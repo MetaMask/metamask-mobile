@@ -2738,10 +2738,10 @@ describe('BridgeTokenSelectorContent', () => {
         balanceOnly: true,
       });
 
-      await waitFor(() => expect(getByTestId('token-USDT')).toBeTruthy());
-      expect(getByTestId('token-DAI')).toBeTruthy();
-      expect(queryByTestId('token-WETH')).toBeNull();
-      expect(queryByTestId('token-USDC')).toBeNull();
+      await waitFor(() => expect(getByTestId('token-USDT')).toBeOnTheScreen());
+      expect(getByTestId('token-DAI')).toBeOnTheScreen();
+      expect(queryByTestId('token-WETH')).not.toBeOnTheScreen();
+      expect(queryByTestId('token-USDC')).not.toBeOnTheScreen();
     });
 
     it('filters held tokens locally without a minimum query length', async () => {
@@ -2755,10 +2755,10 @@ describe('BridgeTokenSelectorContent', () => {
 
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'dai');
 
-      await waitFor(() => expect(getByTestId('token-DAI')).toBeTruthy());
-      expect(queryByTestId('token-USDT')).toBeNull();
-      expect(queryByTestId('token-DAX')).toBeNull();
-      expect(queryByTestId('skeleton-item')).toBeNull();
+      await waitFor(() => expect(getByTestId('token-DAI')).toBeOnTheScreen());
+      expect(queryByTestId('token-USDT')).not.toBeOnTheScreen();
+      expect(queryByTestId('token-DAX')).not.toBeOnTheScreen();
+      expect(queryByTestId('skeleton-item')).not.toBeOnTheScreen();
     });
 
     describe('watchlist mode', () => {
@@ -2808,9 +2808,11 @@ describe('BridgeTokenSelectorContent', () => {
 
         fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
 
-        await waitFor(() => expect(getByTestId('token-LINK')).toBeTruthy());
-        expect(getByTestId('token-UNI')).toBeTruthy();
-        expect(queryByTestId('token-PEPE')).toBeNull();
+        await waitFor(() =>
+          expect(getByTestId('token-LINK')).toBeOnTheScreen(),
+        );
+        expect(getByTestId('token-UNI')).toBeOnTheScreen();
+        expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
       });
 
       it('searches held watchlist tokens locally without a minimum query length', async () => {
@@ -2821,9 +2823,9 @@ describe('BridgeTokenSelectorContent', () => {
         fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
         fireEvent.changeText(getByTestId('bridge-token-search-input'), 'un');
 
-        await waitFor(() => expect(getByTestId('token-UNI')).toBeTruthy());
-        expect(queryByTestId('token-LINK')).toBeNull();
-        expect(queryByTestId('skeleton-item')).toBeNull();
+        await waitFor(() => expect(getByTestId('token-UNI')).toBeOnTheScreen());
+        expect(queryByTestId('token-LINK')).not.toBeOnTheScreen();
+        expect(queryByTestId('skeleton-item')).not.toBeOnTheScreen();
       });
 
       it('removes the excluded token from watchlist results', async () => {
@@ -2837,8 +2839,8 @@ describe('BridgeTokenSelectorContent', () => {
 
         fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
 
-        await waitFor(() => expect(getByTestId('token-UNI')).toBeTruthy());
-        expect(queryByTestId('token-LINK')).toBeNull();
+        await waitFor(() => expect(getByTestId('token-UNI')).toBeOnTheScreen());
+        expect(queryByTestId('token-LINK')).not.toBeOnTheScreen();
       });
     });
 
@@ -2869,8 +2871,8 @@ describe('BridgeTokenSelectorContent', () => {
         },
       });
 
-      await waitFor(() => expect(getByTestId('token-DAI')).toBeTruthy());
-      expect(queryByTestId('token-USDT')).toBeNull();
+      await waitFor(() => expect(getByTestId('token-DAI')).toBeOnTheScreen());
+      expect(queryByTestId('token-USDT')).not.toBeOnTheScreen();
     });
 
     it('removes the excluded token from popular tokens', async () => {
@@ -2892,8 +2894,8 @@ describe('BridgeTokenSelectorContent', () => {
         }),
       });
 
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-      expect(queryByTestId('token-PEPE')).toBeNull();
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeOnTheScreen());
+      expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
     });
 
     it('removes the excluded token from search results', async () => {
@@ -2918,8 +2920,8 @@ describe('BridgeTokenSelectorContent', () => {
 
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'pep');
 
-      await waitFor(() => expect(getByTestId('token-PEPE2')).toBeTruthy());
-      expect(queryByTestId('token-PEPE')).toBeNull();
+      await waitFor(() => expect(getByTestId('token-PEPE2')).toBeOnTheScreen());
+      expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
     });
   });
 
