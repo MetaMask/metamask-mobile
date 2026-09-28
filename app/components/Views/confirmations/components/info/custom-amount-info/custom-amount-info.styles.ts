@@ -31,6 +31,13 @@ const styleSheet = (params: { theme: Theme }) => {
       opacity: 0.5,
     },
 
+    // Mirrors the `gap` prop the live bottom block passes to `Box`, so the
+    // initialization shell lays out at the same height.
+    shellBottomBlock: {
+      gap: BOTTOM_BLOCK_GAP,
+      paddingBottom: BOTTOM_BLOCK_PADDING,
+    },
+
     footerText: {
       alignSelf: 'center',
     },
@@ -39,6 +46,12 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
       marginBottom: ACCOUNT_SELECTOR_VERTICAL_PADDING - BOTTOM_BLOCK_GAP,
+    },
+
+    // Matches the rendered balance projection row height to avoid layout shift.
+    balanceProjectionSkeleton: {
+      justifyContent: 'center',
+      minHeight: 24,
     },
 
     buttonSkeleton: {
