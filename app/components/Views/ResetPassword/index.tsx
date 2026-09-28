@@ -294,6 +294,41 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     );
   }, [originalPassword, password, selectedAddress]);
 
+  const handleChangePasswordError = useCallback(
+    async (castError: Error) => {
+      if (castError.toString() === PASSCODE_NOT_SET_ERROR) {
+        Alert.alert(
+          strings('choose_password.security_alert_title'),
+          strings('choose_password.security_alert_message'),
+        );
+        return;
+      }
+      if (!isSeedlessOnboardingLoginFlow) {
+        return;
+      }
+
+      Logger.error(castError);
+      try {
+        await Authentication.lockApp({ locked: true });
+      } catch (lockError) {
+        Logger.error(lockError as Error);
+      }
+      if (
+        castError.message ===
+        SeedlessOnboardingControllerErrorMessage.OutdatedPassword
+      ) {
+        handleSeedlessPasswordOutdated();
+      } else {
+        handleSeedlessChangePasswordError();
+      }
+    },
+    [
+      isSeedlessOnboardingLoginFlow,
+      handleSeedlessPasswordOutdated,
+      handleSeedlessChangePasswordError,
+    ],
+  );
+
   const onPressCreate = useCallback(async () => {
     if (loading) return;
     if (!passwordRequirementsMet(password)) {
@@ -358,31 +393,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       if (isSeedlessPasswordChangeKillHalt(castError)) {
         return;
       }
-      if (castError.toString() === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('choose_password.security_alert_title'),
-          strings('choose_password.security_alert_message'),
-        );
-        setLoading(false);
-      } else if (isSeedlessOnboardingLoginFlow) {
-        Logger.error(castError);
-        try {
-          await Authentication.lockApp({ locked: true });
-        } catch (lockError) {
-          Logger.error(lockError as Error);
-        }
-        if (
-          castError.message ===
-          SeedlessOnboardingControllerErrorMessage.OutdatedPassword
-        ) {
-          handleSeedlessPasswordOutdated();
-        } else {
-          handleSeedlessChangePasswordError();
-        }
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
+      await handleChangePasswordError(castError);
+      setLoading(false);
     }
   }, [
     loading,
@@ -392,9 +404,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     rememberMe,
     biometryType,
     recreateVault,
+    handleChangePasswordError,
     handleSeedlessPasswordOutdated,
-    handleSeedlessChangePasswordError,
-    isSeedlessOnboardingLoginFlow,
     dispatch,
     navigation,
   ]);

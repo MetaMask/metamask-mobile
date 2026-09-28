@@ -14,7 +14,6 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
-  setIsConnectionRemoved,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -70,10 +69,6 @@ import {
   isPasswordSyncInstructionOutdated,
 } from './seedlessPasswordChangeCoordinator';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
-import {
-  SeedlessOnboardingControllerError,
-  SeedlessOnboardingControllerErrorType,
-} from '../Engine/controllers/seedless-onboarding-controller/error';
 import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
