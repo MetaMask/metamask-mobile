@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import migrate, { Identity } from './036';
@@ -6,10 +5,29 @@ import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
+jest.mock('@metamask/accounts-controller', () => {
+  const actual = jest.requireActual<
+    typeof import('@metamask/accounts-controller')
+  >('@metamask/accounts-controller');
+
+  return {
+    ...actual,
+    getUUIDFromAddressOfNormalAccount: jest.fn(
+      actual.getUUIDFromAddressOfNormalAccount,
+    ),
+  };
+});
+
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
+const mockedGetUUIDFromAddressOfNormalAccount = jest.mocked(
+  getUUIDFromAddressOfNormalAccount,
+);
+const actualGetUUIDFromAddressOfNormalAccount = jest.requireActual<
+  typeof import('@metamask/accounts-controller')
+>('@metamask/accounts-controller').getUUIDFromAddressOfNormalAccount;
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -94,6 +112,10 @@ function createMockState(
 describe('Migration #036', () => {
   beforeEach(() => {
     mockedCaptureException.mockReset();
+    mockedGetUUIDFromAddressOfNormalAccount.mockReset();
+    mockedGetUUIDFromAddressOfNormalAccount.mockImplementation(
+      actualGetUUIDFromAddressOfNormalAccount,
+    );
   });
 
   describe('createDefaultAccountsController', () => {
@@ -461,12 +483,9 @@ describe('Migration #036', () => {
 
     it('should capture exception if internalAccount.id is undefined', () => {
       // Mock getUUIDFromAddressOfNormalAccount to return undefined
-      jest
-        .spyOn(
-          require('@metamask/accounts-controller'),
-          'getUUIDFromAddressOfNormalAccount',
-        )
-        .mockReturnValue(undefined);
+      mockedGetUUIDFromAddressOfNormalAccount.mockReturnValue(
+        undefined as never,
+      );
 
       const oldState = createMockState(
         createMockPreferenceControllerState(
@@ -482,12 +501,9 @@ describe('Migration #036', () => {
 
     it('should capture exception if selectedAccount.id is undefined', () => {
       // Mock getUUIDFromAddressOfNormalAccount to return undefined
-      jest
-        .spyOn(
-          require('@metamask/accounts-controller'),
-          'getUUIDFromAddressOfNormalAccount',
-        )
-        .mockReturnValue(undefined);
+      mockedGetUUIDFromAddressOfNormalAccount.mockReturnValue(
+        undefined as never,
+      );
 
       const oldState = createMockState(
         createMockPreferenceControllerState(
