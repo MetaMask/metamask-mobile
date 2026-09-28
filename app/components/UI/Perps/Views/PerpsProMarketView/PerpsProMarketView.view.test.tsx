@@ -2926,7 +2926,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-        expect(sizeInput).toHaveProp('value', '3000');
+        expect(sizeInput).toHaveProp('value', '3,000');
       });
     },
   );
@@ -2965,7 +2965,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 2500);
 
       await waitFor(() =>
-        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2500'),
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2,500'),
       );
     },
   );
