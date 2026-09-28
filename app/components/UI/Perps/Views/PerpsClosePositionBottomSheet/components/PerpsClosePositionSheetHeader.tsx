@@ -3,13 +3,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  SelectButton,
-  SelectButtonSize,
-  SelectButtonVariant,
   Tag,
   TagSeverity,
   Text,
@@ -18,6 +11,7 @@ import {
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
+import PerpsMarketLimitToggle from '../../../components/PerpsMarketLimitToggle';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import LivePriceHeader from '../../../components/LivePriceDisplay/LivePriceHeader';
 
@@ -27,8 +21,7 @@ export interface PerpsClosePositionSheetHeaderProps {
   /** Position leverage; omitted when the venue reports none. */
   leverage?: number;
   currentPrice: number;
-  /** Market or Limit, already localized for both the label and the a11y name. */
-  orderTypeLabel: string;
+  orderType: 'market' | 'limit';
   /** Hidden entirely when the close-position limit order flag is off. */
   isOrderTypeToggleVisible: boolean;
   isOrderTypeToggleDisabled: boolean;
@@ -46,7 +39,7 @@ const PerpsClosePositionSheetHeader: React.FC<
   isLong,
   leverage,
   currentPrice,
-  orderTypeLabel,
+  orderType,
   isOrderTypeToggleVisible,
   isOrderTypeToggleDisabled,
   onOrderTypeToggle,
@@ -94,27 +87,11 @@ const PerpsClosePositionSheetHeader: React.FC<
     </Box>
 
     {isOrderTypeToggleVisible ? (
-      <SelectButton
+      <PerpsMarketLimitToggle
         testID={PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-        variant={SelectButtonVariant.Primary}
-        size={SelectButtonSize.Md}
-        placeholder={orderTypeLabel}
-        value={orderTypeLabel}
-        accessibilityLabel={strings(
-          'perps.close_position.order_type_accessibility_label',
-          { orderType: orderTypeLabel },
-        )}
+        orderType={orderType}
         isDisabled={isOrderTypeToggleDisabled}
         onPress={onOrderTypeToggle}
-        hideEndArrow
-        twClassName="rounded-lg"
-        endAccessory={
-          <Icon
-            name={IconName.SwapHorizontal}
-            size={IconSize.Sm}
-            color={IconColor.IconDefault}
-          />
-        }
       />
     ) : null}
   </Box>

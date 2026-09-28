@@ -13,7 +13,7 @@ import {
  *
  * `selectCardUkMigrationState` is memoized on the remote flag bag only, so a
  * soft → forced transition at `endDate` would stay frozen until flags change.
- * This hook re-resolves with `Date.now()` whenever Card Home is focused or
+ * This hook re-resolves with a fresh `Date` whenever Card Home is focused or
  * {@link refresh} runs (e.g. pull-to-refresh).
  */
 export function useCardUkMigrationState(): {
@@ -21,10 +21,10 @@ export function useCardUkMigrationState(): {
   refresh: () => void;
 } {
   const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
-  const [evaluationEpoch, setEvaluationEpoch] = useState(0);
+  const [evaluationTime, setEvaluationTime] = useState(() => new Date());
 
   const refresh = useCallback(() => {
-    setEvaluationEpoch((epoch) => epoch + 1);
+    setEvaluationTime(new Date());
   }, []);
 
   useFocusEffect(
@@ -37,11 +37,9 @@ export function useCardUkMigrationState(): {
     () =>
       resolveCardUkMigrationState(
         remoteFeatureFlags as CardRemoteFeatureFlags,
-        new Date(),
+        evaluationTime,
       ),
-    // Re-resolve whenever flags change or Card Home asks for a fresh clock.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- evaluationEpoch is the intentional clock bump
-    [remoteFeatureFlags, evaluationEpoch],
+    [remoteFeatureFlags, evaluationTime],
   );
 
   return { state, refresh };

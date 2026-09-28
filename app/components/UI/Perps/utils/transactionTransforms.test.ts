@@ -1405,15 +1405,169 @@ describe('transactionTransforms', () => {
     });
 
     it('uses timestamp as fallback ID when orderId is missing', () => {
+      // Empty rather than undefined: that is what HyperLiquidProvider emits when a fill carries no
+      // `oid`, and it stays contract-valid against OrderFill.
       const noOrderIdFill = {
         ...mockFill,
-        orderId: undefined as unknown as string,
+        orderId: '',
       };
 
       const result = transformFillsToTransactions([noOrderIdFill]);
 
-      // ID format: fill-{timestamp}-{index}
-      expect(result[0].id).toBe(`fill-${mockFill.timestamp}-0`);
+      // A group with no order id is seeded on its timestamp, so the id is too.
+      expect(result[0].id).toBe(
+        `trade-ETH-OpenLong-solo-${mockFill.timestamp}`,
+      );
+    });
+
+    // HyperLiquid splits a triggered TP/SL into child orders that fill in the same millisecond, and
+    // returns them in no guaranteed order. The market page and Activity fetch independently (one
+    // merges websocket fills over REST, the other is REST only), so the same trade can arrive in
+    // either order - the id has to name the group, not whichever fill happened to come last.
+    it('gives an aggregated close the same ID whichever order its child fills arrive in', () => {
+      const childA = {
+        ...mockFill,
+        orderId: 'child-order-a',
+        direction: 'Close Long',
+        timestamp: 1640995500000,
+        pnl: '30',
+      };
+      const childB = {
+        ...mockFill,
+        orderId: 'child-order-b',
+        direction: 'Close Long',
+        timestamp: 1640995500000,
+        pnl: '20',
+      };
+
+      const [forward] = transformFillsToTransactions([childA, childB]);
+      const [reversed] = transformFillsToTransactions([childB, childA]);
+
+      expect(forward.id).toBe(reversed.id);
+    });
+
+    it('gives a set of fills the same IDs whichever order they arrive in', () => {
+      const fills = [
+        { ...mockFill, orderId: 'open-1', direction: 'Open Long' },
+        {
+          ...mockFill,
+          orderId: 'close-child-1',
+          direction: 'Close Long',
+          timestamp: 1640995600000,
+        },
+        {
+          ...mockFill,
+          orderId: 'close-child-2',
+          direction: 'Close Long',
+          timestamp: 1640995600000,
+        },
+        // Shares an order id with close-child-1 a second later, so the union-find merges the two
+        // per-second groups - the merged group's identity must not depend on input order either.
+        {
+          ...mockFill,
+          orderId: 'close-child-1',
+          direction: 'Close Long',
+          timestamp: 1640995601000,
+        },
+        { ...mockFill, orderId: '', symbol: 'BTC', direction: 'Open Short' },
+      ];
+
+      const ids = (input: typeof fills) =>
+        transformFillsToTransactions(input)
+          .map((transaction) => transaction.id)
+          .sort();
+
+      expect(ids([...fills].reverse())).toStrictEqual(ids(fills));
+      expect(
+        ids([fills[2], fills[0], fills[4], fills[3], fills[1]]),
+      ).toStrictEqual(ids(fills));
+    });
+
+    it('keeps an aggregated row ID unchanged when a newer fill joins its group', () => {
+      const firstFill = {
+        ...mockFill,
+        orderId: 'still-filling',
+        direction: 'Open Long',
+        timestamp: 1640995700000,
+      };
+      // Same order, filled further a second later - one trade the user placed, so one row whose
+      // identity must survive the refresh that picks up the new execution.
+      const laterFill = {
+        ...mockFill,
+        orderId: 'still-filling',
+        direction: 'Open Long',
+        timestamp: 1640995701000,
+      };
+
+      const [before] = transformFillsToTransactions([firstFill]);
+      const [after] = transformFillsToTransactions([firstFill, laterFill]);
+
+      expect(after.id).toBe(before.id);
+    });
+
+    // The market page transforms one market's fills, activity details all of them. A positional id
+    // differed between the two, so details found nothing: "Transaction details are unavailable".
+    it('gives a fill the same ID whether transformed alone or with other markets', () => {
+      const btcEarlier = {
+        ...mockFill,
+        orderId: 'order-btc-1',
+        symbol: 'BTC',
+        timestamp: 1640995200000,
+      };
+      const ethBetween = {
+        ...mockFill,
+        orderId: 'order-eth-1',
+        symbol: 'ETH',
+        timestamp: 1640995300000,
+      };
+      // The row that failed: an ETH fill sits before it in full history but not in the BTC-only set.
+      const btcLater = {
+        ...mockFill,
+        orderId: 'order-btc-2',
+        symbol: 'BTC',
+        timestamp: 1640995400000,
+      };
+      const allMarkets = [btcEarlier, ethBetween, btcLater];
+
+      const idsFromAllMarkets = transformFillsToTransactions(allMarkets)
+        .filter((transaction) => transaction.asset === 'BTC')
+        .map((transaction) => transaction.id);
+      const idsFromBtcOnly = transformFillsToTransactions(
+        allMarkets.filter((fill) => fill.symbol === 'BTC'),
+      ).map((transaction) => transaction.id);
+
+      expect(idsFromBtcOnly).toStrictEqual(idsFromAllMarkets);
+    });
+
+    it('gives every fill in a set a unique ID', () => {
+      // Covers what the positional index used to keep apart: same-second closes, and no order id.
+      const fills = [
+        { ...mockFill, orderId: 'order-open', direction: 'Open Long' },
+        {
+          ...mockFill,
+          orderId: 'order-close-a',
+          direction: 'Close Long',
+          timestamp: 1640995500000,
+          pnl: '50',
+        },
+        {
+          ...mockFill,
+          orderId: 'order-close-b',
+          direction: 'Close Long',
+          timestamp: 1640995500500,
+          pnl: '25',
+        },
+        // Empty rather than undefined: that is what HyperLiquidProvider emits when a fill carries
+        // no `oid`, and it stays contract-valid against OrderFill.
+        { ...mockFill, orderId: '', symbol: 'BTC', direction: 'Open Short' },
+      ];
+
+      const ids = transformFillsToTransactions(fills).map(
+        (transaction) => transaction.id,
+      );
+
+      expect(ids.length).toBeGreaterThan(0);
+      expect(new Set(ids).size).toBe(ids.length);
     });
 
     it('strips hip3 prefix from symbol in subtitle', () => {

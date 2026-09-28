@@ -2,8 +2,7 @@ import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { FlatList } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { FlatList, ScrollView } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -129,7 +128,10 @@ const PopularTradersCarousel: React.FC = () => {
   }
 
   return (
-    <Box testID={PopularTradersCarouselSelectorsIDs.SECTION} twClassName="mb-4">
+    <Box
+      testID={PopularTradersCarouselSelectorsIDs.SECTION}
+      twClassName="-mt-4"
+    >
       <SectionHeader
         title={title}
         isInteractive

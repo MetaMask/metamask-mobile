@@ -16,7 +16,7 @@ export const TERMINAL_API_HOSTS = {
 
 export const TERMINAL_API_PATHS = {
   MARKET_DATA: '/v1/perpetuals',
-  GLOBAL_SNAPSHOT: '/v2/perpetuals',
+  GLOBAL_SNAPSHOT: '/v3/perpetuals',
   OUTREACH: '/v1/outreach',
 } as const;
 
@@ -67,7 +67,7 @@ export function resolveTerminalApiHost(
   return TERMINAL_API_HOSTS.UAT;
 }
 
-/** Resolves the v2 global-snapshot URL, allowing an explicit dev-only override. */
+/** Resolves the v3 global-snapshot URL, allowing an explicit dev-only override. */
 export function resolveTerminalGlobalSnapshotUrl({
   isDevBundle,
   environment,
@@ -94,7 +94,7 @@ export function getTerminalApiUrl(host?: string): string {
   );
 }
 
-/** Resolves the runtime v2 global-snapshot URL from the Terminal host. */
+/** Resolves the runtime v3 global-snapshot URL from the Terminal host. */
 export function getTerminalGlobalSnapshotUrl(host?: string): string {
   return resolveTerminalGlobalSnapshotUrl({
     isDevBundle: __DEV__,

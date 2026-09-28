@@ -51,14 +51,9 @@ describeForPlatforms('WatchlistSection', () => {
       deterministicFiat: true,
     });
 
-    await waitFor(
-      () => {
-        for (const assetId of NEWEST_FIRST_ASSET_IDS) {
-          expect(getByTestId(getRowTestId(assetId))).toBeOnTheScreen();
-        }
-      },
-      { timeout: 5000 },
-    );
+    for (const assetId of NEWEST_FIRST_ASSET_IDS) {
+      await findByTestId(getRowTestId(assetId), {}, { timeout: 5000 });
+    }
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
       const tokenMeta = mockWatchlistTokensResponse.find(
