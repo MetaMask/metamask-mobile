@@ -145,7 +145,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 onPress={handleEditSlippage}
                 testID={QuickBuySheetSelectorsIDs.EDIT_SLIPPAGE}
                 text={formattedSlippage}
-                iconName={IconName.Edit}
+                iconName={IconName.ArrowRight}
               />
             }
           />
