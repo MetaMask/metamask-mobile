@@ -13,7 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
-} from '../../../../../hooks/useMoneyAccountPlusBenefits';
+} from '../../hooks/useMoneyAccountPlusBenefits';
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 import TradeAllowanceRow from './TradeAllowanceRow';
 

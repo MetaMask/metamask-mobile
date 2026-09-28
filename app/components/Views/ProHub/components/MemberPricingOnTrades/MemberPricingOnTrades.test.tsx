@@ -11,10 +11,10 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
-} from '../../../../../hooks/useMoneyAccountPlusBenefits';
+} from '../../hooks/useMoneyAccountPlusBenefits';
 
-jest.mock('../../../../../hooks/useMoneyAccountPlusBenefits', () => ({
-  ...jest.requireActual('../../../../../hooks/useMoneyAccountPlusBenefits'),
+jest.mock('../../hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('../../hooks/useMoneyAccountPlusBenefits'),
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 

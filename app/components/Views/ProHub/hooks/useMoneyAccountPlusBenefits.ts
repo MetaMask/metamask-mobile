@@ -5,21 +5,21 @@ import {
   PLUS_BENEFIT_PRODUCT_COUNT,
   formatPlusPeriodEnd,
   mapPlusBenefitsToTradeAllowances,
-} from '../components/Views/ProHub/components/MemberPricingOnTrades/mapPlusBenefitsToTradeAllowances';
-import type { TradeAllowanceItem } from '../components/Views/ProHub/ProHub.constants';
-import useSubscriptions from '../components/hooks/useSubscriptions';
-import Engine from '../core/Engine';
-import { selectIsSignedIn } from '../selectors/identity';
-import { selectIsUnlocked } from '../selectors/keyringController';
+} from '../components/MemberPricingOnTrades/mapPlusBenefitsToTradeAllowances';
+import type { TradeAllowanceItem } from '../ProHub.constants';
+import useSubscriptions from '../../../hooks/useSubscriptions';
+import Engine from '../../../../core/Engine';
+import { selectIsSignedIn } from '../../../../selectors/identity';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
   selectIsMoneyAccountPlusSubscriber,
   selectMoneyAccountPlusSubscription,
   selectSubscriptionBenefits,
-} from '../selectors/subscriptionController';
+} from '../../../../selectors/subscriptionController';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
-} from './useMoneyAccountPlusAccess';
+} from '../../../../hooks/useMoneyAccountPlusAccess';
 
 export const BENEFITS_QUERY_KEY = [
   'SubscriptionController:getBenefits',

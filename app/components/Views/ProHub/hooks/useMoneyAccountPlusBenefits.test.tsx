@@ -8,23 +8,23 @@ import {
   type SubscriptionBenefitsState,
   type Subscription,
 } from '@metamask/subscription-controller';
-import type { RootState } from '../reducers';
-import configureStore from '../util/test/configureStore';
-import Engine from '../core/Engine';
-import { selectIsSignedIn } from '../selectors/identity';
-import { selectIsUnlocked } from '../selectors/keyringController';
+import type { RootState } from '../../../../reducers';
+import configureStore from '../../../../util/test/configureStore';
+import Engine from '../../../../core/Engine';
+import { selectIsSignedIn } from '../../../../selectors/identity';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
-} from './useMoneyAccountPlusAccess';
-import { SUBSCRIPTIONS_QUERY_KEY } from '../components/hooks/useSubscriptions';
+} from '../../../../hooks/useMoneyAccountPlusAccess';
+import { SUBSCRIPTIONS_QUERY_KEY } from '../../../hooks/useSubscriptions';
 import {
   BENEFITS_QUERY_KEY,
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './useMoneyAccountPlusBenefits';
 
-jest.mock('../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     SubscriptionController: {
       getBenefits: jest.fn(),
@@ -32,18 +32,18 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
-jest.mock('./useMoneyAccountPlusAccess', () => ({
-  ...jest.requireActual('./useMoneyAccountPlusAccess'),
+jest.mock('../../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../../hooks/useMoneyAccountPlusAccess'),
   useMoneyAccountPlusAccess: jest.fn(),
 }));
 
-jest.mock('../selectors/identity', () => ({
-  ...jest.requireActual('../selectors/identity'),
+jest.mock('../../../../selectors/identity', () => ({
+  ...jest.requireActual('../../../../selectors/identity'),
   selectIsSignedIn: jest.fn(),
 }));
 
-jest.mock('../selectors/keyringController', () => ({
-  ...jest.requireActual('../selectors/keyringController'),
+jest.mock('../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../selectors/keyringController'),
   selectIsUnlocked: jest.fn(),
 }));
 

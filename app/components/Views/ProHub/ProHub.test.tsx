@@ -15,7 +15,7 @@ import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess
 import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
-} from '../../../hooks/useMoneyAccountPlusBenefits';
+} from './hooks/useMoneyAccountPlusBenefits';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -49,8 +49,8 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
 const mockUseMoneyAccountPlusBenefits = jest.mocked(
   useMoneyAccountPlusBenefits,
 );
-jest.mock('../../../hooks/useMoneyAccountPlusBenefits', () => ({
-  ...jest.requireActual('../../../hooks/useMoneyAccountPlusBenefits'),
+jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('./hooks/useMoneyAccountPlusBenefits'),
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
