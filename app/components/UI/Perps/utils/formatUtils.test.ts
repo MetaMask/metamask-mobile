@@ -12,6 +12,7 @@ import {
   formatCoinVolume,
   formatPositionSize,
   formatLeverage,
+  formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
   parsePercentageString,
@@ -918,6 +919,23 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatLiquidationDistance', () => {
+    it('formats the distance from entry to liquidation as a percentage', () => {
+      expect(formatLiquidationDistance(100, 70)).toBe('30.00%');
+      expect(formatLiquidationDistance(100, 130)).toBe('30.00%');
+      expect(formatLiquidationDistance('103.02', '70.45')).toBe('31.62%');
+    });
+
+    it('returns undefined when either price is unusable', () => {
+      expect(formatLiquidationDistance(100, undefined)).toBeUndefined();
+      expect(formatLiquidationDistance(null, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, '0')).toBeUndefined();
+      expect(formatLiquidationDistance(0, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
+      expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
+    });
+  });
+
   describe('formatLeverage', () => {
     it('should format leverage with x suffix', () => {
       expect(formatLeverage(2)).toBe('2.0x');
@@ -972,6 +990,22 @@ describe('formatUtils', () => {
       expect(parseCurrencyString(null as any)).toBe(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+
+    // A dust balance below 1e-6 serializes to exponential notation, whose
+    // exponent sign was being read as a negative amount.
+    it('reads exponential dust balances as small positives, not negatives', () => {
+      expect(parseCurrencyString('1.1e-7')).toBe(1.1e-7);
+      expect(parseCurrencyString('1e-7')).toBe(1e-7);
+      expect(parseCurrencyString('2.5e-8')).toBe(2.5e-8);
+    });
+
+    it('keeps a genuinely negative exponential negative', () => {
+      expect(parseCurrencyString('-1.1e-7')).toBe(-1.1e-7);
+    });
+
+    it('formats an exponential dust balance as zero rather than a negative', () => {
+      expect(formatPerpsBalance('1.1e-7')).toBe('$0');
     });
   });
 

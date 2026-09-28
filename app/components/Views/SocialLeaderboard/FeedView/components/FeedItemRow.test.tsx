@@ -354,6 +354,35 @@ describe('FeedItemRow', () => {
     expect(screen.queryByTestId(getFeedNewPositionTestId('spot-1'))).toBeNull();
   });
 
+  it('renders the Trade button by default', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(getFeedTradeButtonTestId('spot-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the Trade button when showTradeButton is false', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        showTradeButton={false}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId(getFeedTradeButtonTestId('spot-1'))).toBeNull();
+  });
+
   it('renders the relative timestamp from the injected now', () => {
     const timestamp = 1_700_000_000_000;
     // Minutes rather than the sub-minute range: every value under a minute

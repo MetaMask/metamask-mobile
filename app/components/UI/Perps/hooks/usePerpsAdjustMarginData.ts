@@ -9,6 +9,7 @@ import {
   calculateMaxRemovableMargin,
   estimateLiquidationPrice,
 } from '../utils/marginUtils';
+import { calculateLiquidationDistance } from '../utils/liquidationDistance';
 import {
   MARGIN_ADJUSTMENT_CONFIG,
   type Position,
@@ -231,10 +232,8 @@ export function usePerpsAdjustMarginData(
 
   // Calculate liquidation distance
   const calculateDistance = useCallback(
-    (liquidationPrice: number) => {
-      if (currentPrice === 0 || liquidationPrice === 0) return 0;
-      return (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
-    },
+    (liquidationPrice: number) =>
+      calculateLiquidationDistance(currentPrice, liquidationPrice),
     [currentPrice],
   );
 

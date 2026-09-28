@@ -5,7 +5,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
-import type { PriceUpdate, PerpsMarketData } from '@metamask/perps-controller';
+import type {
+  PerpsActiveProviderMode,
+  PerpsMarketData,
+  PriceUpdate,
+} from '@metamask/perps-controller';
 import { mockTheme } from '../../../../../util/theme';
 import type { OrderBookRouteParams } from './PerpsOrderBookView.types';
 
@@ -13,6 +17,7 @@ import type { OrderBookRouteParams } from './PerpsOrderBookView.types';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+let mockActiveProvider: PerpsActiveProviderMode | undefined;
 const mockUseRoute = jest.fn<{ params: OrderBookRouteParams }, []>(() => ({
   params: {
     symbol: 'BTC',
@@ -171,6 +176,7 @@ jest.mock('../../hooks', () => ({
     markets: [
       {
         symbol: 'BTC',
+        providerId: 'lighter',
         price: '$50,000.00',
         leverage: 50,
       },
@@ -369,6 +375,7 @@ jest.mock(
 // Mock perpsController selectors - return eligible by default for action button tests
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
+  selectPerpsProvider: jest.fn(() => mockActiveProvider),
 }));
 
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
@@ -393,6 +400,7 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockActiveProvider = undefined;
     mockBottomSheetRefState.refAvailable = true;
     mockUseRoute.mockReturnValue({
       params: {
@@ -404,6 +412,7 @@ describe('PerpsOrderBookView', () => {
       markets: [
         {
           symbol: 'BTC',
+          providerId: 'hyperliquid',
           price: '$50,000.00',
           leverage: 50,
         },
@@ -761,6 +770,103 @@ describe('PerpsOrderBookView', () => {
   });
 
   describe('action buttons', () => {
+    it.each([
+      {
+        name: 'explicit route provider',
+        activeProvider: 'hyperliquid' as const,
+        routeProvider: 'lighter' as const,
+        expectedProvider: 'lighter' as const,
+      },
+      {
+        name: 'concrete active provider',
+        activeProvider: 'lighter' as const,
+        routeProvider: undefined,
+        expectedProvider: 'lighter' as const,
+      },
+      {
+        name: 'default provider in aggregated mode',
+        activeProvider: 'aggregated' as const,
+        routeProvider: undefined,
+        expectedProvider: 'hyperliquid' as const,
+      },
+    ])(
+      'selects the $name from duplicate symbols',
+      ({ activeProvider, routeProvider, expectedProvider }) => {
+        mockActiveProvider = activeProvider;
+        mockUseRoute.mockReturnValue({
+          params: {
+            symbol: 'BTC',
+            ...(routeProvider
+              ? {
+                  marketData: {
+                    ...mockRouteMarketData,
+                    providerId: routeProvider,
+                  },
+                }
+              : {}),
+          },
+        });
+        const { usePerpsMarkets } = jest.requireMock('../../hooks');
+        const hyperliquidMarket = {
+          ...mockRouteMarketData,
+          providerId: 'hyperliquid' as const,
+        };
+        const lighterMarket = {
+          ...mockRouteMarketData,
+          providerId: 'lighter' as const,
+        };
+        usePerpsMarkets.mockReturnValue({
+          markets:
+            expectedProvider === 'lighter'
+              ? [hyperliquidMarket, lighterMarket]
+              : [lighterMarket, hyperliquidMarket],
+          isLoading: false,
+          error: null,
+        });
+        const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+          state: initialState,
+        });
+
+        fireEvent.press(
+          getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON),
+        );
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ providerId: expectedProvider }),
+        );
+      },
+    );
+
+    it('uses a providerless candidate as the concrete active provider', () => {
+      mockActiveProvider = 'lighter';
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            ...mockRouteMarketData,
+            providerId: 'hyperliquid',
+          },
+          {
+            ...mockRouteMarketData,
+            name: 'Legacy Bitcoin',
+          },
+        ],
+        isLoading: false,
+        error: null,
+      });
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON));
+
+      expect(mockNavigateToOrder).toHaveBeenCalledWith({
+        direction: 'long',
+        asset: 'BTC',
+        source: 'order_book_long_button',
+      });
+    });
+
     it('navigates to long order when Long button is pressed', () => {
       const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
@@ -775,6 +881,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
+        providerId: 'hyperliquid',
         source: 'order_book_long_button',
       });
       expect(mockTrack).toHaveBeenCalled();
@@ -794,6 +901,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
+        providerId: 'hyperliquid',
         source: 'order_book_short_button',
       });
       expect(mockTrack).toHaveBeenCalled();

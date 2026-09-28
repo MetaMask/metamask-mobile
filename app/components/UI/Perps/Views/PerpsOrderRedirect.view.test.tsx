@@ -97,4 +97,23 @@ describe('PerpsOrderRedirect', () => {
       expect(depositWithOrder).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('replaces the redirect with balance order for Lighter without a deposit', async () => {
+    renderPerpsView(PerpsOrderRedirect, Routes.PERPS.ORDER_REDIRECT, {
+      initialParams: defaultParams,
+      overrides: {
+        engine: {
+          backgroundState: { PerpsController: { activeProvider: 'lighter' } },
+        },
+      },
+      extraRoutes: [{ name: Routes.PERPS.BALANCE_ORDER }],
+    });
+
+    expect(
+      await screen.findByTestId(`route-${Routes.PERPS.BALANCE_ORDER}`),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.PerpsController.depositWithOrder,
+    ).not.toHaveBeenCalled();
+  });
 });

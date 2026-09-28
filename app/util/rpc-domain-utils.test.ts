@@ -13,7 +13,14 @@ import {
 } from './rpc-domain-utils';
 
 // Mock dependencies
-jest.mock('../store/storage-wrapper');
+jest.mock('../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    onKeyChange: jest.fn(),
+  },
+}));
 jest.mock('../core/Engine');
 jest.mock('./Logger');
 
@@ -31,6 +38,17 @@ interface MockNetworkController {
     [string]
   >;
 }
+
+const mockRpcDomainStorage = (
+  chainsRaw: string | null,
+  hostnamesRaw: string | null,
+) => {
+  (StorageWrapper.getItem as jest.Mock).mockImplementation((key: string) =>
+    key === 'SAFE_CHAINS_CACHE'
+      ? Promise.resolve(chainsRaw)
+      : Promise.resolve(hostnamesRaw),
+  );
+};
 
 function setupTestEnvironment() {
   jest.clearAllMocks();
@@ -114,9 +132,7 @@ describe('rpc-domain-utils', () => {
             ],
           },
         ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
         // Exercise
         await initializeRpcProviderDomains();
         // Verify
@@ -135,12 +151,10 @@ describe('rpc-domain-utils', () => {
             chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
-            rpc: ['invalid-url', 'https://mainnet.infura.io'],
+            rpc: ['not a url at all', 'https://mainnet.infura.io'],
           },
         ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
         // Exercise
         await initializeRpcProviderDomains();
         //verify
@@ -149,14 +163,33 @@ describe('rpc-domain-utils', () => {
         expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
         expect(knownDomains?.size).toBe(1);
       });
+      it('adds scheme-less host strings from the chains list', async () => {
+        setupTestEnvironment();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: 1,
+            name: 'Ethereum',
+            nativeCurrency: { symbol: 'ETH' },
+            rpc: [
+              'rpc.example.com',
+              'invalid-url',
+              'https://mainnet.infura.io',
+            ],
+          },
+        ];
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
+        await initializeRpcProviderDomains();
+        const knownDomains = getKnownDomains();
+        expect(knownDomains?.has('rpc.example.com')).toBe(true);
+        expect(knownDomains?.has('invalid-url')).toBe(true);
+        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
+      });
     });
     describe('when chains list is empty', () => {
       it('initializes with an empty set of domains', async () => {
         // Setup
         setupTestEnvironment(); // Reset state
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify([]),
-        );
+        mockRpcDomainStorage(JSON.stringify([]), null);
         // Exercise
         await initializeRpcProviderDomains();
         // Verify
@@ -178,6 +211,177 @@ describe('rpc-domain-utils', () => {
       spy.mockRestore();
     });
   });
+  describe('initializeRpcProviderDomains persisted hostname store', () => {
+    const chainsWithInfura: SafeChain[] = [
+      {
+        chainId: 1,
+        name: 'Ethereum',
+        nativeCurrency: { symbol: 'ETH' },
+        rpc: ['https://mainnet.infura.io'],
+      },
+    ];
+
+    const testCases = [
+      {
+        case: 'persists the derived hostnames when the store is missing',
+        hostnamesRaw: null,
+        setItemRejects: false,
+        expectedKnownDomains: ['mainnet.infura.io'],
+        expectedPersistedHostnames: ['mainnet.infura.io'],
+      },
+      {
+        case: 'hydrates from the persisted store without re-parsing the chains list',
+        hostnamesRaw: JSON.stringify(['hydrated.from.store']),
+        setItemRejects: false,
+        expectedKnownDomains: ['hydrated.from.store'],
+        expectedPersistedHostnames: null,
+      },
+      {
+        case: 're-derives from the chains list when the persisted store is corrupt',
+        hostnamesRaw: 'not valid json {',
+        setItemRejects: false,
+        expectedKnownDomains: ['mainnet.infura.io'],
+        expectedPersistedHostnames: ['mainnet.infura.io'],
+      },
+      {
+        case: 'keeps the derived set when persisting fails',
+        hostnamesRaw: null,
+        setItemRejects: true,
+        expectedKnownDomains: ['mainnet.infura.io'],
+        expectedPersistedHostnames: ['mainnet.infura.io'],
+      },
+    ];
+
+    it.each(testCases)(
+      '$case',
+      async ({
+        hostnamesRaw,
+        setItemRejects,
+        expectedKnownDomains,
+        expectedPersistedHostnames,
+      }) => {
+        // Arrange
+        setupTestEnvironment();
+        mockRpcDomainStorage(JSON.stringify(chainsWithInfura), hostnamesRaw);
+        if (setItemRejects) {
+          (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+            new Error('write failed'),
+          );
+        }
+        // Act
+        await initializeRpcProviderDomains();
+        // Assert
+        expect(getKnownDomains()).toStrictEqual(new Set(expectedKnownDomains));
+        const persistedCalls = (
+          StorageWrapper.setItem as jest.Mock
+        ).mock.calls.filter(
+          (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
+        );
+        if (expectedPersistedHostnames === null) {
+          expect(persistedCalls).toHaveLength(0);
+        } else {
+          expect(persistedCalls).toHaveLength(1);
+          expect(JSON.parse(persistedCalls[0][1])).toStrictEqual(
+            expectedPersistedHostnames,
+          );
+        }
+      },
+    );
+  });
+
+  describe('safe chains cache subscription', () => {
+    interface StorageChangeEvent {
+      key: string;
+      value: string;
+      action: 'set';
+    }
+    type StorageChangeListener = (event: StorageChangeEvent) => void;
+
+    const buildChain = (rpc: string): SafeChain => ({
+      chainId: 1,
+      name: 'Test Chain',
+      nativeCurrency: { symbol: 'TEST' },
+      rpc: [rpc],
+    });
+
+    const arrangeInitializedWithChain = async (
+      rpcUrl: string,
+    ): Promise<void> => {
+      setupTestEnvironment();
+      (StorageWrapper.onKeyChange as jest.Mock).mockImplementation(
+        (_key: string, _listener: StorageChangeListener) => jest.fn(),
+      );
+      mockRpcDomainStorage(JSON.stringify([buildChain(rpcUrl)]), null);
+      await initializeRpcProviderDomains();
+    };
+
+    const actOnChainsCacheChange = async (value: string): Promise<void> => {
+      const listener = (StorageWrapper.onKeyChange as jest.Mock).mock.calls.at(
+        -1,
+      )?.[1] as StorageChangeListener | undefined;
+      if (!listener) {
+        throw new Error('Expected a SAFE_CHAINS_CACHE listener');
+      }
+      await listener({ key: 'SAFE_CHAINS_CACHE', value, action: 'set' });
+    };
+
+    const getLatestUnsubscribe = (): jest.Mock =>
+      (StorageWrapper.onKeyChange as jest.Mock).mock.results.at(-1)
+        ?.value as jest.Mock;
+
+    const assertLastPersistedHostnames = (
+      expectedHostnames: string[],
+    ): void => {
+      const persistedCalls = (
+        StorageWrapper.setItem as jest.Mock
+      ).mock.calls.filter(
+        (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
+      );
+      expect(persistedCalls.at(-1)?.[1]).toBe(
+        JSON.stringify(expectedHostnames),
+      );
+    };
+
+    it('subscribes to safe chains cache changes during initialization', async () => {
+      await arrangeInitializedWithChain('https://old.example.com');
+      expect(StorageWrapper.onKeyChange).toHaveBeenCalledWith(
+        'SAFE_CHAINS_CACHE',
+        expect.any(Function),
+      );
+    });
+
+    it('refreshes the known domains and persisted cache when the chains list updates', async () => {
+      await arrangeInitializedWithChain('https://old.example.com');
+
+      await actOnChainsCacheChange(
+        JSON.stringify([buildChain('https://new.example.com')]),
+      );
+
+      expect(isKnownDomain('new.example.com')).toBe(true);
+      expect(isKnownDomain('old.example.com')).toBe(false);
+      assertLastPersistedHostnames(['new.example.com']);
+    });
+
+    it('keeps the current domains when the payload is malformed', async () => {
+      await arrangeInitializedWithChain('https://old.example.com');
+
+      await actOnChainsCacheChange('not valid json {');
+
+      expect(isKnownDomain('old.example.com')).toBe(true);
+      assertLastPersistedHostnames(['old.example.com']);
+    });
+
+    it('replaces the previous subscription when re-initialized', async () => {
+      await arrangeInitializedWithChain('https://one.example.com');
+      const firstUnsubscribe = getLatestUnsubscribe();
+
+      getModuleState().setInitPromise(null);
+      await initializeRpcProviderDomains();
+
+      expect(firstUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
       beforeEach(async () => {
@@ -190,9 +394,7 @@ describe('rpc-domain-utils', () => {
             rpc: ['https://known-domain.com/api'],
           },
         ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
         await initializeRpcProviderDomains();
       });
       it('returns true for known domains', () => {
@@ -228,9 +430,7 @@ describe('rpc-domain-utils', () => {
             rpc: ['https://Known-Domain.com/api'],
           },
         ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
         await initializeRpcProviderDomains();
         // Execute
         const result1 = isKnownDomain('known-domain.com');
@@ -253,9 +453,7 @@ describe('rpc-domain-utils', () => {
             rpc: ['https://known-domain.com/api'],
           },
         ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
         await initializeRpcProviderDomains();
       });
       it('returns domain for known domains', () => {
@@ -316,9 +514,7 @@ describe('rpc-domain-utils', () => {
             rpc: ['https://known-domain.com/api'],
           },
         ];
-        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
-          JSON.stringify(mockChains),
-        );
+        mockRpcDomainStorage(JSON.stringify(mockChains), null);
         await initializeRpcProviderDomains();
       });
 

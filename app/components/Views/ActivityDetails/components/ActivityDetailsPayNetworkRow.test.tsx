@@ -20,7 +20,6 @@ function payItem(overrides: Partial<ActivityListItem> = {}): ActivityListItem {
     status: 'success',
     timestamp: 1_765_361_640_000,
     hash: '0xperpsfunds',
-    raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
     data: { token: { amount: '1', symbol: 'USDC', direction: 'out' } },
     ...overrides,
   } as unknown as ActivityListItem;

@@ -124,6 +124,21 @@ jest.mock('../components/PositionTokenAvatar', () => ({
   default: () => null,
 }));
 
+jest.mock('./GifPickerSheet', () => {
+  const { Pressable, View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onSelect }: { onSelect: (gifUrl: string) => void }) => (
+      <View testID="gif-picker-sheet">
+        <Pressable
+          testID="gif-picker-select"
+          onPress={() => onSelect('https://media.test/picked.gif')}
+        />
+      </View>
+    ),
+  };
+});
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, unknown>) =>
     vars ? `${key}:${JSON.stringify(vars)}` : key,
@@ -233,19 +248,58 @@ describe('SocialPostComposerView', () => {
     ).toBe(true);
   });
 
-  it('focuses the comment field from the GIF chip without attaching a gif', () => {
+  it('opens the GIF picker from the GIF chip without attaching a gif', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
     );
 
+    expect(screen.getByTestId('gif-picker-sheet')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW),
     ).toBeNull();
-    expect(
+  });
+
+  it('includes the selected gif on the submitted post', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-    ).toBeOnTheScreen();
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    commitSocialV1PendingPost();
+
+    expect(getSocialV1ComposedPosts()[0]?.gifUri).toBe(
+      'https://media.test/picked.gif',
+    );
+  });
+
+  it('attaches the GIF chosen from the picker', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW).props
+        .source,
+    ).toEqual({ uri: 'https://media.test/picked.gif' });
+    expect(screen.queryByTestId('gif-picker-sheet')).toBeNull();
   });
 
   it('submits a pending post then returns to the social home', () => {

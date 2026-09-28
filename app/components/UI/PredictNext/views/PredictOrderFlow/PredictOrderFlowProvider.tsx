@@ -23,9 +23,9 @@ const PredictOrderFlowContext =
 /**
  * Composition point for the Order Flow: owns the one shared preview sheet.
  * Every Yes/No Outcome entry point (Event Screen buttons, Event cards) opens
- * the same flow. The preview service is the Engine-registered
- * PredictOrderPreviewService — adapter composition lives at the Engine
- * composition root, never in product modules (see venue-adapters.md).
+ * the same flow. The Order workflow service is the Engine-registered
+ * PredictOrderService — adapter composition lives at the Engine composition
+ * root, never in product modules (see venue-adapters.md).
  */
 export const PredictOrderFlowProvider = ({
   children,
@@ -50,7 +50,7 @@ export const PredictOrderFlowProvider = ({
       {open ? (
         <PredictOrderFlowSheet
           intent={open.intent}
-          service={Engine.context.PredictOrderPreviewService}
+          service={Engine.context.PredictOrderService}
           onClose={closeOrderFlow}
         />
       ) : null}
