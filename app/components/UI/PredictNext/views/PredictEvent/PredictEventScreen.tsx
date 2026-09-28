@@ -147,6 +147,8 @@ const EventScreenLayout = ({
   );
 };
 
+const isUngroupedMarket = (market: PredictMarket) => market.group === undefined;
+
 const EventLoadedHeader = ({
   event,
   winnerQuotes,
@@ -163,22 +165,12 @@ const EventLoadedHeader = ({
   onSelectMarket: (marketId: string) => void;
 }) => {
   const game = getEventGame(event);
+  const chartMarkets = event.markets.filter(isUngroupedMarket);
+  const selectedChartMarket = chartMarkets.find(
+    (market) => market.id === selectedMarketId,
+  );
 
   const renderMarketHistory = () => {
-    if (selectedMarketId) {
-      const selectedMarket = event.markets.find(
-        (market) => market.id === selectedMarketId,
-      );
-      if (selectedMarket) {
-        return (
-          <PredictMarketHistory
-            venueId={event.venueId}
-            market={selectedMarket}
-          />
-        );
-      }
-    }
-
     if (game && winnerQuotes) {
       return (
         <PredictGameMarketHistory
@@ -197,10 +189,9 @@ const EventLoadedHeader = ({
       );
     }
 
-    if (historyMarket) {
-      return (
-        <PredictMarketHistory venueId={event.venueId} market={historyMarket} />
-      );
+    const market = selectedChartMarket ?? historyMarket;
+    if (market) {
+      return <PredictMarketHistory venueId={event.venueId} market={market} />;
     }
 
     return null;
@@ -213,14 +204,14 @@ const EventLoadedHeader = ({
       ) : (
         <StandardEventHeader event={event} />
       )}
-      {event.markets.length > 1 && !winnerQuotes ? (
+      {!game && !winnerQuotes && chartMarkets.length > 1 ? (
         <FilterButtonGroup
           value={historyMarket?.id ?? ''}
           onChange={onSelectMarket}
           variant={FilterButtonVariant.Secondary}
           testID={PredictEventScreenTestIds.MARKETS}
         >
-          {event.markets.map((market) => (
+          {chartMarkets.map((market) => (
             <FilterButton
               key={market.id}
               value={market.id}
@@ -335,29 +326,12 @@ export const PredictEventScreen = () => {
         ...current,
         [groupKey]: marketId,
       }));
-      setSelectedMarketId(marketId);
     },
     [],
   );
-  const handleMarketSelect = useCallback(
-    (marketId: string) => {
-      setSelectedMarketId(marketId);
-      const market = liveEvent?.markets.find(
-        (candidate) => candidate.id === marketId,
-      );
-      const groupKey =
-        market?.group?.groupType === 'marketSelector'
-          ? market.group.key
-          : undefined;
-      if (groupKey !== undefined && market !== undefined) {
-        setSelectedMarketIds((current) => ({
-          ...current,
-          [groupKey]: market.id,
-        }));
-      }
-    },
-    [liveEvent?.markets],
-  );
+  const handleMarketSelect = useCallback((marketId: string) => {
+    setSelectedMarketId(marketId);
+  }, []);
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
@@ -441,7 +415,10 @@ export const PredictEventScreen = () => {
         ? marketProjection[0].markets[0]
         : marketProjection[0]?.market;
     const historyMarket =
-      event.markets.find((market) => market.id === selectedMarketId) ??
+      event.markets.find(
+        (market) => market.id === selectedMarketId && isUngroupedMarket(market),
+      ) ??
+      event.markets.find(isUngroupedMarket) ??
       firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
