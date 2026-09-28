@@ -6,9 +6,10 @@ import {
 } from '@react-navigation/native';
 import { useCallback, useEffect, useRef } from 'react';
 
-type FastOnboardingParamList = {
+interface FastOnboardingParamList {
   params: { onboardingType?: string; existing?: string };
-};
+  [key: string]: object | undefined;
+}
 
 export default function FastOnboarding(props: {
   onPressContinueWithGoogle: (createWallet: boolean) => void;
