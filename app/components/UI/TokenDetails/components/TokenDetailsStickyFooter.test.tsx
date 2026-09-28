@@ -1038,4 +1038,46 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('SWAPS-5094 entrypoint layouts', () => {
+    it('swap_buy hides lightning and opens Quick Buy from Swap', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByText, queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={jest.fn()}
+          quickBuyTestID="quick-buy-btn"
+          quickBuyEntrypointLayout="swap_buy"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(queryByTestId('quick-buy-btn')).toBeNull();
+      fireEvent.press(getByText(strings('asset_overview.swap')));
+
+      expect(onOpenQuickBuy).toHaveBeenCalledWith('buy');
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('buy_sell renders only Buy and Sell and opens Quick Buy in Sell', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(queryByText(strings('asset_overview.swap'))).toBeNull();
+      fireEvent.press(getByTestId('token-details-footer-quick-sell'));
+
+      expect(onOpenQuickBuy).toHaveBeenCalledWith('sell');
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({ ctaType: 'quick_sell' }),
+      );
+      expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+  });
 });

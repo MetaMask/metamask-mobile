@@ -1,11 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { useABTest } from '../../../../hooks/useABTest';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
-import {
-  SOCIAL_AI_QUICK_BUY_AB_KEY,
-  SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
-  SOCIAL_AI_QUICK_BUY_VARIANTS,
-} from '../../QuickBuy/abTestConfig';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
 import type { QuickBuySheetSource } from '../../QuickBuy/analytics';
 import type { QuickBuyTradeMode } from '../../QuickBuy/types';
@@ -19,30 +13,22 @@ interface UseStickyQuickBuyArgs {
 }
 
 interface UseStickyQuickBuyResult {
-  isQuickBuyEnabled: boolean;
-  /** Undefined when the quick-buy A/B flag is off; pass directly to TokenDetailsStickyFooter. */
-  onQuickBuyPress: (() => void) | undefined;
-  openQuickBuy: ((mode: QuickBuyTradeMode) => void) | undefined;
-  /** Null when the quick-buy A/B flag is off; render this node at the bottom of the screen. */
+  /** Pass directly to TokenDetailsStickyFooter. */
+  onQuickBuyPress: () => void;
+  openQuickBuy: (mode: QuickBuyTradeMode) => void;
+  /** Render this node at the bottom of the screen. */
   quickBuySheet: React.ReactNode;
 }
 
 /**
- * Encapsulates all quick-buy wiring: A/B flag read, visibility state, haptic
- * press handler, and the AssetDetailsQuickBuy sheet element.
+ * Encapsulates all quick-buy wiring: visibility state, haptic press handler,
+ * and the AssetDetailsQuickBuy sheet element.
  */
 export function useStickyQuickBuy({
   token,
   source,
   onPress,
 }: UseStickyQuickBuyArgs): UseStickyQuickBuyResult {
-  const { variant: quickBuyVariant } = useABTest(
-    SOCIAL_AI_QUICK_BUY_AB_KEY,
-    SOCIAL_AI_QUICK_BUY_VARIANTS,
-    SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
-  );
-  const isQuickBuyEnabled = quickBuyVariant.showQuickBuy;
-
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [initialTradeMode, setInitialTradeMode] =
     useState<QuickBuyTradeMode>('buy');
@@ -67,10 +53,9 @@ export function useStickyQuickBuy({
   }, []);
 
   return {
-    isQuickBuyEnabled,
-    onQuickBuyPress: isQuickBuyEnabled ? handleQuickBuyPress : undefined,
-    openQuickBuy: isQuickBuyEnabled ? openQuickBuy : undefined,
-    quickBuySheet: isQuickBuyEnabled ? (
+    onQuickBuyPress: handleQuickBuyPress,
+    openQuickBuy,
+    quickBuySheet: (
       <AssetDetailsQuickBuy
         isVisible={isQuickBuyVisible}
         token={token ?? null}
@@ -78,6 +63,6 @@ export function useStickyQuickBuy({
         source={source}
         initialTradeMode={initialTradeMode}
       />
-    ) : null,
+    ),
   };
 }

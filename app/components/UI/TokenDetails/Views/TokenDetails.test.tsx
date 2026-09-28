@@ -15,7 +15,6 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
 import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
-import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
@@ -389,13 +388,6 @@ const defaultUseABTestImpl = (key: string) => {
       isActive: false,
     };
   }
-  if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
-    return {
-      variant: { showQuickBuy: true },
-      variantName: 'treatment',
-      isActive: true,
-    };
-  }
   return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
@@ -740,30 +732,6 @@ describe('TokenDetails', () => {
       expect(getLastQuickBuyProps()).toEqual(
         expect.objectContaining({ isVisible: true }),
       );
-    });
-
-    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the control variant is assigned', () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
-          return {
-            variant: { showQuickBuy: false },
-            variantName: 'control',
-            isActive: true,
-          };
-        }
-        return {
-          variant: { useAmbientPriceColor: false },
-          variantName: 'control',
-          isActive: false,
-        };
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON),
-      ).toBeNull();
-      expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
     });
   });
 

@@ -47,6 +47,11 @@ import {
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
+import {
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
+} from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
@@ -112,6 +117,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         | 'swap_earn'
         | 'earn_buy'
         | 'earn'
+        | 'buy_sell'
         | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
@@ -190,7 +196,15 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (
-    shown: 'both' | 'buy' | 'swap' | 'swap_earn' | 'earn_buy' | 'earn' | null,
+    shown:
+      | 'both'
+      | 'buy'
+      | 'swap'
+      | 'swap_earn'
+      | 'earn_buy'
+      | 'earn'
+      | 'buy_sell'
+      | null,
   ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
@@ -211,7 +225,12 @@ const TokenDetails: React.FC<{
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
-  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+  const { variant: quickBuyEntrypointVariant } = useABTest(
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
+  );
+  const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
   });
@@ -667,6 +686,8 @@ const TokenDetails: React.FC<{
         onBuyPress={onCtaClicked}
         onQuickBuyPress={onQuickBuyPress}
         quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+        quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+        onOpenQuickBuy={openQuickBuy}
       />
 
       {isInsightsDisclaimerVisible && (
@@ -715,6 +736,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     | 'swap_earn'
     | 'earn_buy'
     | 'earn'
+    | 'buy_sell'
     | null
     | undefined
   >(undefined);
