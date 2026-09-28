@@ -1193,7 +1193,21 @@
   "social_leaderboard": {
     "entry_options": {
       "title": "Options",
-      "report": "Report"
+      "report": "Report",
+      "hide_post": "Hide post",
+      "block_user": "Block user",
+      "report_reason_title": "Report",
+      "report_reason_description": "Select the reason that best describes the issue.",
+      "report_reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment or bullying",
+        "misleading": "False or misleading information",
+        "other": "Something else"
+      },
+      "submit_report": "Submit",
+      "post_hidden_confirmation": "Post hidden",
+      "user_blocked_confirmation": "{{username}} has been blocked",
+      "report_confirmation": "Report submitted"
     },
     "feed_sort": {
       "title": "Sort",
