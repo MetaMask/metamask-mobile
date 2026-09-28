@@ -15,6 +15,15 @@ import type {
 export const PREDICT_LIVE_GAME_WINDOW_MS = 60 * 60 * 1000;
 
 /**
+ * Largest delay `setTimeout` can hold. Anything above it overflows the 32-bit
+ * counter and fires immediately, so a kickoff further out than this is left to
+ * the next watch instead.
+ */
+const MAX_TIMEOUT_MS = 0x7fffffff;
+
+type TimerId = ReturnType<typeof setTimeout>;
+
+/**
  * Which of an Event's Markets a watcher needs live prices for. `all` is every
  * Market (Event Screen); `card` is only the Markets a Home/Feed card prices,
  * so hidden props and grouped lines stay off the wire until the Event opens.
@@ -51,6 +60,31 @@ export const shouldWatchGame = (event: PredictEvent, now: number): boolean => {
   );
 };
 
+/**
+ * Milliseconds until a scheduled Game enters the game window, or `undefined`
+ * when it never will (no Game, not scheduled, missing or unparsable
+ * `startsAt`) or already has ({@link shouldWatchGame} is already true).
+ *
+ * Gating is decided once per resolution, so an Event that sits on screen while
+ * kickoff approaches would otherwise never pick up its `game` subscription.
+ * The caller arms a timer for this delay and re-gates when it fires.
+ */
+export const msUntilGameWindow = (
+  event: PredictEvent,
+  now: number,
+): number | undefined => {
+  const game = event.sports?.game;
+  if (!game || game.status !== 'scheduled' || !event.startsAt) {
+    return undefined;
+  }
+  const startsAt = Date.parse(event.startsAt);
+  if (!Number.isFinite(startsAt)) {
+    return undefined;
+  }
+  const delay = startsAt - PREDICT_LIVE_GAME_WINDOW_MS - now;
+  return delay > 0 ? delay : undefined;
+};
+
 /** Market ids one scope needs, in the order they should be subscribed. */
 export const getScopedMarketIds = (
   event: PredictEvent,
@@ -71,6 +105,11 @@ interface EventSubscriptionEntry {
   watchers: Record<LiveMarketScope, number>;
   resolving: boolean;
   resolved?: ResolvedEventSubscription;
+  /**
+   * Armed for a resolved Event whose scheduled Game is still outside the game
+   * window; fires when it enters and upgrades the Event to a `game` watcher.
+   */
+  gameWindowTimer?: TimerId;
 }
 
 const totalWatchers = (entry: EventSubscriptionEntry): number =>
@@ -114,6 +153,11 @@ export interface LiveEventSubscriptionsOptions {
  *
  * A watch released before its resolution settles subscribes nothing; a failed
  * resolution is retried on the next `watch` for that Event.
+ *
+ * Game gating is decided at resolution, with one exception: a scheduled Game
+ * still outside {@link PREDICT_LIVE_GAME_WINDOW_MS} arms a timer for the
+ * moment it enters the window, so an Event that stays on screen as kickoff
+ * approaches upgrades itself to a `game` watcher.
  */
 export class LiveEventSubscriptions {
   readonly #entries = new Map<PredictEntityId, EventSubscriptionEntry>();
@@ -165,6 +209,14 @@ export class LiveEventSubscriptions {
     eventIds.forEach((eventId) => {
       const entry = this.#entries.get(eventId);
       if (!entry || entry.watchers[scope] === 0) {
+        // Releasing what was never held is harmless here, but it means a
+        // surface's watch/unwatch pairs have drifted apart; the subscription
+        // it thinks it dropped belongs to someone else.
+        Logger.log(
+          'LiveEventSubscriptions: unwatch without a matching watch',
+          eventId,
+          scope,
+        );
         return;
       }
       entry.watchers[scope] -= 1;
@@ -175,6 +227,7 @@ export class LiveEventSubscriptions {
         return;
       }
       this.#entries.delete(eventId);
+      this.#clearGameWindowTimer(entry);
       this.#release(eventId, entry.resolved);
     });
   }
@@ -187,9 +240,10 @@ export class LiveEventSubscriptions {
   clear(): void {
     const entries = [...this.#entries.entries()];
     this.#entries.clear();
-    entries.forEach(([eventId, entry]) =>
-      this.#release(eventId, entry.resolved),
-    );
+    entries.forEach(([eventId, entry]) => {
+      this.#clearGameWindowTimer(entry);
+      this.#release(eventId, entry.resolved);
+    });
   }
 
   #resolve(eventId: PredictEntityId, entry: EventSubscriptionEntry): void {
@@ -199,6 +253,7 @@ export class LiveEventSubscriptions {
         entry.resolving = false;
         // Released, or replaced by a later watch cycle, while resolving.
         if (this.#entries.get(eventId) !== entry) {
+          this.#clearGameWindowTimer(entry);
           return;
         }
         const watchGame = shouldWatchGame(event, this.#now());
@@ -211,7 +266,9 @@ export class LiveEventSubscriptions {
         this.#syncMarkets(entry, resolved);
         if (watchGame) {
           this.#subscribe('game', [eventId]);
+          return;
         }
+        this.#armGameWindowTimer(eventId, entry, event);
       },
       (error: unknown) => {
         entry.resolving = false;
@@ -222,6 +279,52 @@ export class LiveEventSubscriptions {
         );
       },
     );
+  }
+
+  /**
+   * Arms the game-window timer for a resolved Event whose scheduled Game has
+   * not entered the window yet, so an Event that stays on screen across
+   * kickoff-minus-{@link PREDICT_LIVE_GAME_WINDOW_MS} starts receiving Game
+   * frames without waiting to be re-watched.
+   */
+  #armGameWindowTimer(
+    eventId: PredictEntityId,
+    entry: EventSubscriptionEntry,
+    event: PredictEvent,
+  ): void {
+    this.#clearGameWindowTimer(entry);
+    const delay = msUntilGameWindow(event, this.#now());
+    if (delay === undefined || delay > MAX_TIMEOUT_MS) {
+      return;
+    }
+    entry.gameWindowTimer = setTimeout(
+      () => this.#enterGameWindow(eventId, entry),
+      delay,
+    );
+  }
+
+  /** The scheduled Game entered the window while its Event stayed watched. */
+  #enterGameWindow(
+    eventId: PredictEntityId,
+    entry: EventSubscriptionEntry,
+  ): void {
+    entry.gameWindowTimer = undefined;
+    if (
+      this.#entries.get(eventId) !== entry ||
+      !entry.resolved ||
+      entry.resolved.watchGame
+    ) {
+      return;
+    }
+    entry.resolved.watchGame = true;
+    this.#subscribe('game', [eventId]);
+  }
+
+  #clearGameWindowTimer(entry: EventSubscriptionEntry): void {
+    if (entry.gameWindowTimer !== undefined) {
+      clearTimeout(entry.gameWindowTimer);
+      entry.gameWindowTimer = undefined;
+    }
   }
 
   /** Market ids the Event's current watchers need, widest scope first. */

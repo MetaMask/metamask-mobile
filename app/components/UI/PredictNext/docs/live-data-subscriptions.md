@@ -57,7 +57,11 @@ A visible Event also holds a `game` subscription when it has a Game and either
 - the Game is live: status `in_progress`, `delayed`, or `suspended`; or
 - the Game is `scheduled` and `event.startsAt` is at most `PREDICT_LIVE_GAME_WINDOW_MS` (60 minutes) in the future — including a scheduled Game whose kickoff has already passed but whose status has not caught up.
 
-Completed, canceled, and postponed Games, scheduled Games outside the window, and Events without a Game subscribe Markets only. Gating is evaluated once per resolution; an Event that crosses into the window while continuously on screen picks up its `game` subscription the next time it is watched (the Event Screen refetch, a tab switch, or a scroll cycle).
+Completed, canceled, and postponed Games, scheduled Games outside the window, and Events without a Game subscribe Markets only.
+
+Gating is evaluated at resolution, with one exception. A scheduled Game still outside the window arms a timer for the moment it enters (`startsAt - PREDICT_LIVE_GAME_WINDOW_MS`), so an Event that stays on screen as kickoff approaches upgrades itself to a `game` watcher with no re-watch. The timer is released with the Event and never outlives its last watcher; a kickoff further out than `setTimeout` can hold (~24.8 days) is left to the next watch instead.
+
+Other transitions are not tracked live: a Game that goes from `scheduled` to `in_progress` more than `PREDICT_LIVE_GAME_WINDOW_MS` before its listed `startsAt` picks up its `game` subscription the next time the Event is watched (a tab switch or a scroll cycle). Note that an Event Screen refetch does _not_ re-watch — `useLiveEventWatches` diffs Event ids, which a refetch leaves unchanged.
 
 ## Cap degradation
 
@@ -73,7 +77,7 @@ The transport logs when it truncates or refuses a subscribe so the condition is 
 
 ## Testing
 
-- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, gating, replay, market-scope widening and narrowing.
+- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, gating, the game-window timer, replay, market-scope widening and narrowing.
 - `services/PredictLiveDataService.test.ts` — messenger actions, per-Venue guard, value caching and replay.
 - `services/PredictLiveDataService.integration.test.ts` — the acceptance journeys over the shared `tests/integration/harnesses/predict-next.ts` harness with a fake gateway socket: Feed scroll in/out, one upstream subscription for Home + Feed, zero subscriptions after Event Screen unmount, deterministic cap degradation, background/foreground.
 - `views/PredictHome/internal/useVisibleSections.test.ts` and the `*.view.test.tsx` files — the per-surface visibility adapters.

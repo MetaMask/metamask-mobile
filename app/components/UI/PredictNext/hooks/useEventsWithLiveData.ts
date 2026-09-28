@@ -160,6 +160,11 @@ const useLiveEventWatches = (
     watchedRef.current = { ids, marketScope };
   }, [watchKey, venueId, marketScope]);
 
+  // Keyed on venueId only. When the venue changes React runs this cleanup
+  // (releasing the old venue's ids and emptying the ref) before re-running the
+  // diff effect above, which then sees an empty previous set and re-watches
+  // every id under the new venue. Do not add deps here: a cleanup on every
+  // ids change would release and reacquire the whole set on each scroll tick.
   useEffect(
     () => () => {
       const { ids, marketScope: heldScope } = watchedRef.current;

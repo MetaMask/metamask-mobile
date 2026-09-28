@@ -241,6 +241,32 @@ describe('useEventsWithLiveData', () => {
     expect(watchCalls()).toEqual([[WATCH, venueId, [eventA.id]]]);
   });
 
+  it('releases the old Venue before watching the new one', () => {
+    const otherVenueId = 'polymarket' as PredictVenueId;
+    const { rerender } = renderHook(
+      ({ currentVenueId }: { currentVenueId: PredictVenueId }) =>
+        useEventsWithLiveData(currentVenueId, [eventA]),
+      { initialProps: { currentVenueId: venueId } },
+    );
+    mockCall.mockClear();
+
+    rerender({ currentVenueId: otherVenueId });
+
+    expect(unwatchCalls()).toEqual([[UNWATCH, venueId, [eventA.id]]]);
+    expect(watchCalls()).toEqual([[WATCH, otherVenueId, [eventA.id]]]);
+    // The venue-keyed cleanup must run before the diff effect re-watches,
+    // or the new venue's watch would be undone by the old venue's release.
+    const [unwatchOrder] = mockCall.mock.calls
+      .map((call, index) => ({ call, index }))
+      .filter(({ call }) => call[0] === UNWATCH)
+      .map(({ index }) => mockCall.mock.invocationCallOrder[index]);
+    const [watchOrder] = mockCall.mock.calls
+      .map((call, index) => ({ call, index }))
+      .filter(({ call }) => call[0] === WATCH)
+      .map(({ index }) => mockCall.mock.invocationCallOrder[index]);
+    expect(unwatchOrder).toBeLessThan(watchOrder);
+  });
+
   it('holds no watches while the surface is hidden and rewatches on show', () => {
     const { rerender } = renderHook(
       ({ isVisible }: { isVisible: boolean }) =>

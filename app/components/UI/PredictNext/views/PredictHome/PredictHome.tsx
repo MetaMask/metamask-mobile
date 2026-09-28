@@ -67,9 +67,13 @@ export const PredictHome = () => {
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
-  const { visibleKeys, onViewportLayout, onSectionLayout } = useVisibleSections(
-    { keys: FEED_SECTION_IDS, scrollY },
-  );
+  const {
+    visibleKeys,
+    onViewportLayout,
+    onContentLayout,
+    onSectionLayout,
+    onScrollSettled,
+  } = useVisibleSections({ keys: FEED_SECTION_IDS, scrollY });
   const balanceQuery = useBalance(KALSHI_VENUE_ID);
   const nflQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
     limit: PREVIEW_LIMIT,
@@ -208,9 +212,14 @@ export const PredictHome = () => {
         testID={PredictHomeTestIds.SCROLL}
         onScroll={onScroll}
         onLayout={onViewportLayout}
+        // The animated handler above only reads contentOffset, so these plain
+        // handlers are free; they give the visible-set math the exact resting
+        // offset after a drag or fling.
+        onScrollEndDrag={onScrollSettled}
+        onMomentumScrollEnd={onScrollSettled}
         scrollEventThrottle={16}
       >
-        <Box twClassName="gap-6 px-4 pb-8">
+        <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
           <Text
             variant={TextVariant.HeadingLg}
             testID={PredictHomeTestIds.TITLE_SECTION}

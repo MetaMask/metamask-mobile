@@ -65,6 +65,14 @@ const feedEvents = {
     ...game('scheduled', '2999-01-01T00:00:00.000Z'),
     markets: [market('fg-m1')],
   },
+  /** Kickoff 70 minutes after {@link WINDOW_TEST_NOW}: outside the window. */
+  'window-game': {
+    venueId: 'kalshi',
+    id: 'window-game',
+    title: 'Window game',
+    ...game('scheduled', '2026-09-08T13:10:00.000Z'),
+    markets: [market('wg-m1')],
+  },
   /** A standard card shows three Markets; the other two are hidden props. */
   props: {
     venueId: 'kalshi',
@@ -73,6 +81,9 @@ const feedEvents = {
     markets: ['p-m1', 'p-m2', 'p-m3', 'p-m4', 'p-m5'].map(market),
   },
 };
+
+/** Fixed clock for the game-window journey, so `startsAt` stays meaningful. */
+const WINDOW_TEST_NOW = new Date('2026-09-08T12:00:00.000Z');
 
 const marketIds = (eventId: keyof typeof feedEvents) =>
   feedEvents[eventId].markets.map(({ id: marketId }) => marketId);
@@ -266,6 +277,32 @@ describe('PredictNext live-data subscriptions', () => {
       ...marketIds('live-game'),
       ...marketIds('future-game'),
     ]);
+  });
+
+  it('subscribes the game subject when a watched Game enters the window', async () => {
+    jest.setSystemTime(WINDOW_TEST_NOW);
+    const harness = buildHarness();
+
+    // Kickoff is 70 minutes out: Markets only, no Game yet.
+    watch(harness, 'window-game');
+    const socket = await openAndWelcome(harness);
+    await settle();
+
+    expect(socket.subscribedIds('market')).toEqual(marketIds('window-game'));
+    expect(socket.subscribedIds('game')).toEqual([]);
+
+    // Ten minutes on, the card is still on screen and kickoff is inside the
+    // window: the Event upgrades itself without being re-watched.
+    jest.advanceTimersByTime(10 * 60_000);
+    await settle();
+
+    expect(socket.subscribedIds('game')).toEqual(['window-game']);
+    expect(socket.subscribedIds('market')).toEqual(marketIds('window-game'));
+
+    unwatch(harness, 'window-game');
+    await settle();
+
+    expect(socket.subscribedIds('game')).toEqual([]);
   });
 
   it('degrades deterministically when the visible set exceeds the market cap', async () => {

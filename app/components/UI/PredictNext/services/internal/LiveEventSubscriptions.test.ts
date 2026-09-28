@@ -1,3 +1,4 @@
+import Logger from '../../../../../util/Logger';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -7,9 +8,17 @@ import type {
 } from '../../types';
 import {
   LiveEventSubscriptions,
+  msUntilGameWindow,
   PREDICT_LIVE_GAME_WINDOW_MS,
   shouldWatchGame,
 } from './LiveEventSubscriptions';
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
+
+const mockLoggerLog = jest.mocked(Logger.log);
 
 const venueId = 'kalshi' as PredictVenueId;
 const NOW = Date.parse('2026-09-08T12:00:00.000Z');
@@ -149,7 +158,86 @@ describe('shouldWatchGame', () => {
   });
 });
 
+describe('msUntilGameWindow', () => {
+  const scheduledIn = (ms: number) =>
+    makeEvent({
+      eventId: 'e',
+      marketIds: [],
+      gameStatus: 'scheduled',
+      startsAt: new Date(NOW + ms).toISOString(),
+    });
+
+  it('reports the delay until a scheduled Game enters the window', () => {
+    expect(
+      msUntilGameWindow(
+        scheduledIn(PREDICT_LIVE_GAME_WINDOW_MS + 30 * 60_000),
+        NOW,
+      ),
+    ).toBe(30 * 60_000);
+  });
+
+  it('reports nothing for a Game already inside the window', () => {
+    expect(
+      msUntilGameWindow(scheduledIn(PREDICT_LIVE_GAME_WINDOW_MS), NOW),
+    ).toBeUndefined();
+    expect(msUntilGameWindow(scheduledIn(-5 * 60_000), NOW)).toBeUndefined();
+  });
+
+  it('reports nothing for a Game that will never enter the window', () => {
+    expect(
+      msUntilGameWindow(
+        makeEvent({
+          eventId: 'e',
+          marketIds: [],
+          gameStatus: 'in_progress',
+          startsAt: new Date(
+            NOW + 2 * PREDICT_LIVE_GAME_WINDOW_MS,
+          ).toISOString(),
+        }),
+        NOW,
+      ),
+    ).toBeUndefined();
+    expect(
+      msUntilGameWindow(
+        makeEvent({
+          eventId: 'e',
+          marketIds: [],
+          gameStatus: 'postponed',
+          startsAt: new Date(
+            NOW + 2 * PREDICT_LIVE_GAME_WINDOW_MS,
+          ).toISOString(),
+        }),
+        NOW,
+      ),
+    ).toBeUndefined();
+    expect(
+      msUntilGameWindow(
+        makeEvent({ eventId: 'e', marketIds: [], gameStatus: 'scheduled' }),
+        NOW,
+      ),
+    ).toBeUndefined();
+    expect(
+      msUntilGameWindow(
+        makeEvent({
+          eventId: 'e',
+          marketIds: [],
+          gameStatus: 'scheduled',
+          startsAt: 'not-a-date',
+        }),
+        NOW,
+      ),
+    ).toBeUndefined();
+    expect(
+      msUntilGameWindow(makeEvent({ eventId: 'e', marketIds: [] }), NOW),
+    ).toBeUndefined();
+  });
+});
+
 describe('LiveEventSubscriptions', () => {
+  beforeEach(() => {
+    mockLoggerLog.mockClear();
+  });
+
   it('resolves an Event once and subscribes its Markets in Event order', async () => {
     const { subscriptions, subscribe, resolveEvent } = createSubscriptions({
       'event-1': makeEvent({ eventId: 'event-1', marketIds: ['m-b', 'm-a'] }),
@@ -259,6 +347,12 @@ describe('LiveEventSubscriptions', () => {
     subscriptions.unwatch([id('event-1')]);
 
     expect(unsubscribe).not.toHaveBeenCalled();
+    // Harmless, but it means a surface's watch/unwatch pairs have drifted.
+    expect(mockLoggerLog).toHaveBeenCalledWith(
+      'LiveEventSubscriptions: unwatch without a matching watch',
+      id('event-1'),
+      'all',
+    );
   });
 
   it('retries a failed resolution on the next watch and keeps the watcher count', async () => {
@@ -368,6 +462,131 @@ describe('LiveEventSubscriptions', () => {
 
       expect(unsubscribe).not.toHaveBeenCalled();
       expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'LiveEventSubscriptions: unwatch without a matching watch',
+        id('event-1'),
+        'all',
+      );
+    });
+  });
+
+  describe('game window timer', () => {
+    // The resolution decides gating from `now`; the timer only has to fire.
+    // `setImmediate` stays real so `flush` can still settle the resolution.
+    beforeEach(() => {
+      jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+    });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const scheduledEvent = (msFromNow: number) => ({
+      'event-1': makeEvent({
+        eventId: 'event-1',
+        marketIds: ['m-1'],
+        gameStatus: 'scheduled',
+        startsAt: new Date(NOW + msFromNow).toISOString(),
+      }),
+    });
+    // Kickoff 90 minutes out: 30 minutes outside the 60 minute window.
+    const outsideWindow = () =>
+      scheduledEvent(PREDICT_LIVE_GAME_WINDOW_MS + 30 * 60_000);
+
+    it('subscribes the game subject when a watched Game enters the window', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(outsideWindow());
+      subscriptions.watch([id('event-1')]);
+      await flush();
+
+      expect(subscribe).toHaveBeenCalledTimes(1);
+      expect(subscribe).toHaveBeenCalledWith('market', [id('m-1')]);
+
+      jest.advanceTimersByTime(30 * 60_000);
+
+      expect(subscribe).toHaveBeenCalledTimes(2);
+      expect(subscribe).toHaveBeenLastCalledWith('game', [id('event-1')]);
+    });
+
+    it('replays and releases the game subject acquired from the timer', async () => {
+      const { subscriptions, replay, unsubscribe } =
+        createSubscriptions(outsideWindow());
+      subscriptions.watch([id('event-1')]);
+      await flush();
+      jest.advanceTimersByTime(30 * 60_000);
+
+      subscriptions.watch([id('event-1')]);
+      expect(replay).toHaveBeenCalledWith('game', [id('event-1')]);
+
+      subscriptions.unwatch([id('event-1')]);
+      subscriptions.unwatch([id('event-1')]);
+      expect(unsubscribe).toHaveBeenCalledWith('game', [id('event-1')]);
+    });
+
+    it('does not fire for an Event released before the window opens', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(outsideWindow());
+      subscriptions.watch([id('event-1')]);
+      await flush();
+
+      subscriptions.unwatch([id('event-1')]);
+      jest.advanceTimersByTime(30 * 60_000);
+
+      expect(subscribe).not.toHaveBeenCalledWith('game', [id('event-1')]);
+    });
+
+    it('does not fire for an Event cleared before the window opens', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(outsideWindow());
+      subscriptions.watch([id('event-1')]);
+      await flush();
+
+      subscriptions.clear();
+      jest.advanceTimersByTime(30 * 60_000);
+
+      expect(subscribe).not.toHaveBeenCalledWith('game', [id('event-1')]);
+    });
+
+    it('arms one timer for an Event re-watched while its first resolution is in flight', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(outsideWindow());
+
+      subscriptions.watch([id('event-1')]);
+      subscriptions.unwatch([id('event-1')]);
+      subscriptions.watch([id('event-1')]);
+      await flush();
+
+      jest.advanceTimersByTime(30 * 60_000);
+
+      expect(
+        subscribe.mock.calls.filter(([topic]) => topic === 'game'),
+      ).toEqual([['game', [id('event-1')]]]);
+    });
+
+    it('leaves a kickoff beyond the timer ceiling to the next watch', async () => {
+      // setTimeout overflows above ~24.8 days and would fire immediately.
+      const { subscriptions, subscribe } = createSubscriptions(
+        scheduledEvent(40 * 24 * 60 * 60_000),
+      );
+      subscriptions.watch([id('event-1')]);
+      await flush();
+
+      jest.advanceTimersByTime(0);
+      expect(subscribe).not.toHaveBeenCalledWith('game', [id('event-1')]);
+
+      jest.advanceTimersByTime(40 * 24 * 60 * 60_000);
+      expect(subscribe).not.toHaveBeenCalledWith('game', [id('event-1')]);
+    });
+
+    it('does not arm a timer for a Game already inside the window', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(
+        scheduledEvent(10 * 60_000),
+      );
+      subscriptions.watch([id('event-1')]);
+      await flush();
+
+      expect(subscribe).toHaveBeenCalledWith('game', [id('event-1')]);
+
+      jest.advanceTimersByTime(PREDICT_LIVE_GAME_WINDOW_MS);
+
+      expect(
+        subscribe.mock.calls.filter(([topic]) => topic === 'game'),
+      ).toHaveLength(1);
     });
   });
 
