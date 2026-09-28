@@ -134,11 +134,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           result === 'new_user' ? 'choose_pw' : 'account_already_exists';
       });
       trackTimer(performanceTracker, timer2);
-      await captureOnboardingTtc(
-        performanceTracker,
-        postOauthScreen,
-        platform,
-      );
+      await captureOnboardingTtc(performanceTracker, postOauthScreen, platform);
 
       if (isNewUser) {
         // Password entry is excluded from measured steps (manual auth/typing).
