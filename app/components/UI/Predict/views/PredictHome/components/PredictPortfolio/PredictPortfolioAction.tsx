@@ -41,43 +41,40 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   const showBadge = badgeCount > 0;
 
   return (
-    <BadgeWrapper
-      badge={
-        showBadge ? (
-          <BadgeCount
-            count={badgeCount}
-            max={99}
-            size={BadgeCountSize.Md}
-            testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
-          />
-        ) : null
+    <ButtonAnimated
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessible
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
+      testID={testID}
+      style={({ pressed }) =>
+        tw.style(
+          'flex-1 items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]',
+          pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted',
+          disabled ? 'opacity-50' : 'opacity-100',
+        )
       }
-      position={BadgeWrapperPosition.TopRight}
-      positionAnchorShape={BadgeWrapperPositionAnchorShape.Rectangular}
-      twClassName="flex-1"
-      childrenContainerProps={{
-        style: { flex: 1 },
-      }}
     >
-      <ButtonAnimated
-        accessibilityLabel={accessibilityLabel ?? label}
-        accessible
-        disabled={disabled}
-        onPress={disabled ? undefined : onPress}
-        testID={testID}
-        style={({ pressed }) =>
-          tw.style(
-            'w-full items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]',
-            pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted',
-            disabled ? 'opacity-50' : 'opacity-100',
-          )
+      <BadgeWrapper
+        badge={
+          showBadge ? (
+            <BadgeCount
+              count={badgeCount}
+              max={99}
+              size={BadgeCountSize.Md}
+              testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
+            />
+          ) : null
         }
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
       >
         <Icon
           name={iconName}
           size={IconSize.Lg}
           color={IconColor.IconAlternative}
         />
+      </BadgeWrapper>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -88,8 +85,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         >
           {label}
         </Text>
-      </ButtonAnimated>
-    </BadgeWrapper>
+    </ButtonAnimated>
   );
 };
 
