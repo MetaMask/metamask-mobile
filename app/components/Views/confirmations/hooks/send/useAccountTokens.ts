@@ -1,29 +1,21 @@
-import type { Asset } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
-import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { EthAccountType } from '@metamask/keyring-api';
 import type { AccountGroupId } from '@metamask/account-api';
-import {
-  selectAssetsBySelectedAccountGroup,
-  selectAssetsByAccountGroupId,
-} from '../../../../../selectors/assets/assets-list';
-import { isTestNet } from '../../../../../util/networks';
-import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNetworkBadgeSource } from '../../utils/network';
+import { formatFiat } from '../../utils/fiat';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import type { RootState } from '../../../../../reducers';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import { useAssetFiatFormatter } from '../pay/useAssetFiatFormatter';
+import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import {
-  TokenFiatRateRequest,
-  useTokenFiatRates,
-} from '../tokens/useTokenFiatRates';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
-import { isNetworkTestnet } from './useNetworkFilter';
+  type ConfirmationAsset,
+  selectConfirmationAssetsByAccountGroupId,
+  selectConfirmationAssetsWithBalanceByAccountGroupId,
+} from '../../selectors/assets';
 import { useAccountOverrideGroupId } from './useAccountOverrideGroupId';
 import { useEnsureAccountGroupAssets } from './useEnsureAccountGroupAssets';
 
@@ -43,68 +35,98 @@ export function useAccountTokens({
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
-  const accountOverride = useTransactionAccountOverride();
-  const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
-  const overrideGroupId = useAccountOverrideGroupId();
-  const accountAssets = useAccountGroupAssets(overrideGroupId);
+  const accountGroupId = useAccountOverrideGroupId();
 
   // Assets are only fetched automatically for the selected account group, so an
   // override account the user has never activated has no entry in assets state.
   // Request it on demand, otherwise the token list stays permanently empty.
-  useEnsureAccountGroupAssets(overrideGroupId);
+  useEnsureAccountGroupAssets(accountGroupId);
 
-  // When an account override is active, always use its assets (even if empty)
-  // to avoid showing stale tokens from the globally selected account.
-  const assets = useMemo(
-    () =>
-      accountOverride !== undefined ? (accountAssets ?? {}) : globalAssets,
-    [accountOverride, accountAssets, globalAssets],
+  // Pay-flow confirmations price everything in USD. Resolved here and passed
+  // down so the selector stays unaware of transaction types.
+  const currencyOverride = useTransactionPayCurrency();
+
+  const decoratedAssets = useDecoratedAssets(
+    accountGroupId,
+    currencyOverride,
+    includeNoBalance,
+    tokenFilter,
   );
 
-  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-  const { format: formatFiat, fiatCurrency } = useAssetFiatFormatter();
+  const remoteTokens = useRemoteTokens(
+    decoratedAssets,
+    currencyOverride,
+    enrichTokenRequests,
+  );
 
-  const assetsWithBalance = useMemo(() => {
-    const flatAssets = Object.values(assets).flat();
-    return flatAssets.filter((asset) => {
-      if (tokenFilter) {
-        const address = asset.assetId;
-        if (
-          !asset.chainId ||
-          !address ||
-          !tokenFilter(asset.chainId, address)
-        ) {
-          return false;
-        }
+  const sortedAssets = useMemo(
+    () =>
+      [...decoratedAssets, ...remoteTokens].sort(
+        (a, b) => b.sortKey - a.sortKey,
+      ),
+    [decoratedAssets, remoteTokens],
+  );
+
+  return sortedAssets;
+}
+
+/**
+ * Decoration and fiat formatting happen in
+ * `selectConfirmationAssetsByAccountGroupId`, which memoises per store state
+ * rather than per hook instance, so every consumer shares one computation.
+ * Only the consumer-specific token filter remains here, since it depends on a
+ * callback the selector cannot see.
+ */
+function useDecoratedAssets(
+  accountGroupId: AccountGroupId | undefined,
+  currencyOverride: string | undefined,
+  includeNoBalance: boolean,
+  tokenFilter: ((chainId: string, address: string) => boolean) | undefined,
+): ConfirmationAsset[] {
+  const selectAssets = useCallback(
+    (state: RootState) =>
+      includeNoBalance
+        ? selectConfirmationAssetsByAccountGroupId(
+            state,
+            accountGroupId,
+            currencyOverride,
+          )
+        : selectConfirmationAssetsWithBalanceByAccountGroupId(
+            state,
+            accountGroupId,
+            currencyOverride,
+          ),
+    [accountGroupId, currencyOverride, includeNoBalance],
+  );
+
+  const assets = useSelector(selectAssets);
+
+  // Returns the selector's array untouched when no filter is supplied, so the
+  // reference stays stable and downstream memos are not invalidated.
+  return useMemo(() => {
+    if (!tokenFilter) {
+      return assets;
+    }
+
+    return assets.filter((asset) => {
+      const { assetId, chainId } = asset;
+
+      if (!chainId || !assetId) {
+        return false;
       }
 
-      if (includeNoBalance) {
-        return true;
-      }
-
-      const haveBalance =
-        (asset.fiat?.balance &&
-          new BigNumber(asset.fiat.balance).isGreaterThan(0)) ||
-        (asset.rawBalance && asset.rawBalance !== '0x0');
-
-      const isTestNetAsset =
-        isTestNet(asset.chainId) &&
-        asset.rawBalance &&
-        asset.rawBalance !== '0x0';
-
-      return haveBalance || isTestNetAsset;
+      return tokenFilter(chainId, assetId);
     });
-  }, [assets, includeNoBalance, tokenFilter]);
+  }, [assets, tokenFilter]);
+}
 
-  const fiatRateRequests = useMemo<TokenFiatRateRequest[]>(
-    () =>
-      assetsWithBalance
-        .filter(isEvmRateEligible)
-        .map((asset) => buildFiatRateRequest(asset, fiatCurrency)),
-    [assetsWithBalance, fiatCurrency],
-  );
-
-  const fiatRates = useTokenFiatRates(fiatRateRequests);
+function useRemoteTokens(
+  assets: ConfirmationAsset[],
+  currencyOverride: string | undefined,
+  enrichTokenRequests: EnrichTokenRequest[],
+): ConfirmationAsset[] {
+  const selectedCurrency = useSelector(getSelectedCurrency);
+  const currency = currencyOverride ?? selectedCurrency;
 
   const assetIds = useMemo(
     () =>
@@ -116,165 +138,53 @@ export function useAccountTokens({
 
   const tokensByAssetId = useTokensData(assetIds);
 
-  return useMemo(() => {
-    // "Show conversion on test networks" setting: when disabled, testnet
-    // assets must not display fiat values nor be ranked by them.
-    const isFiatHidden = (chainId?: string) =>
-      !showFiatOnTestnets &&
-      Boolean(chainId) &&
-      isNetworkTestnet(chainId as string);
-
-    const sortableFiatByAsset = new WeakMap<AssetType, BigNumber>();
-    let evmIndex = 0;
-    const processedAssets = assetsWithBalance.map((asset) => {
-      const rate = isEvmRateEligible(asset) ? fiatRates[evmIndex++] : undefined;
-      const fiatAmount = deriveAssetFiat(
-        asset,
-        rate,
-        isFiatHidden(asset.chainId),
-      );
-
-      const balanceInSelectedCurrency =
-        fiatAmount !== undefined ? formatFiat(fiatAmount) : undefined;
-
-      const processed = {
-        ...asset,
-        networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
-        balanceInSelectedCurrency,
-        standard: TokenStandard.ERC20 as const,
-      } as AssetType;
-
-      if (fiatAmount !== undefined) {
-        sortableFiatByAsset.set(processed, fiatAmount);
-      }
-      return processed;
-    });
-
-    if (enrichTokenRequests.length > 0) {
-      const zeroFiat = formatFiat(0) ?? '';
-
-      const existingKeys = new Set(
-        processedAssets.map(
-          (t) =>
-            `${t.chainId?.toLowerCase()}:${(t.address ?? '').toLowerCase()}`,
-        ),
-      );
-
-      for (let i = 0; i < enrichTokenRequests.length; i++) {
-        const req = enrichTokenRequests[i];
-        const key = `${req.chainId.toLowerCase()}:${req.address.toLowerCase()}`;
-        if (existingKeys.has(key)) continue;
-
-        const caipId = assetIds[i];
-        const data = tokensByAssetId[caipId];
-        if (!data?.name && !data?.symbol) continue;
-
-        processedAssets.push({
-          address: req.address.toLowerCase(),
-          chainId: req.chainId,
-          accountType: EthAccountType.Eoa,
-          name: data.name ?? '',
-          symbol: data.symbol ?? '',
-          decimals: data.decimals ?? 18,
-          image: data.iconUrl ?? '',
-          logo: data.iconUrl ?? undefined,
-          balance: '0',
-          balanceInSelectedCurrency: zeroFiat,
-          isETH: false,
-          isNative: false,
-          networkBadgeSource: getNetworkBadgeSource(req.chainId),
-          standard: TokenStandard.ERC20,
-        } as AssetType);
-      }
-    }
-
-    // Sort by the same fiat we display. Falls back to the assets-controller
-    // preferred-currency balance for tokens that have no derived fiat (e.g.
-    // enrichment placeholders added below with `zeroFiat`), so unknown
-    // tokens sink to the bottom.
-    const sortableFiatBalance = (asset: AssetType) => {
-      if (isFiatHidden(asset.chainId)) return new BigNumber(0);
-      const derived = sortableFiatByAsset.get(asset);
-      if (derived !== undefined) return derived;
-      return new BigNumber(asset.fiat?.balance || 0);
-    };
-
-    return processedAssets.sort(
-      (a, b) => sortableFiatBalance(b).comparedTo(sortableFiatBalance(a)) || 0,
-    );
-  }, [
-    assetsWithBalance,
-    showFiatOnTestnets,
-    enrichTokenRequests,
-    assetIds,
-    tokensByAssetId,
-    formatFiat,
-    fiatRates,
-  ]) as unknown as AssetType[];
-}
-
-function useAccountGroupAssets(accountGroupId?: AccountGroupId) {
-  const selectOverrideAssets = useCallback(
-    (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
-    [accountGroupId],
+  const existingKeys = useMemo(
+    () => new Set(assets.map((t) => t.key)),
+    [assets],
   );
 
-  const overrideAssets = useSelector(selectOverrideAssets);
-  return accountGroupId ? overrideAssets : undefined;
-}
-
-/**
- * Whether the asset is EVM-scoped with a hex address, i.e. eligible for
- * `useTokenFiatRates` (which crashes on non-hex addresses like Solana).
- * Non-EVM assets fall back to `asset.fiat.balance` in the render loop.
- *
- * This predicate is the single source of truth for the paired walks over
- * `assetsWithBalance` — request build and rate consumption — so they cannot
- * drift out of lockstep.
- */
-function isEvmRateEligible(asset: Asset): boolean {
-  return (
-    Boolean(asset.chainId) &&
-    !isNonEvmChainId(asset.chainId) &&
-    'address' in asset &&
-    Boolean(asset.address)
+  // Only format when there is at least one enrichment placeholder to build,
+  // so the formatter is never invoked for accounts with no remote tokens.
+  const zeroFiat = useMemo(
+    () =>
+      enrichTokenRequests.length > 0 ? (formatFiat(0, currency) ?? '') : '',
+    [currency, enrichTokenRequests.length],
   );
-}
 
-function buildFiatRateRequest(
-  asset: Asset,
-  currency: string,
-): TokenFiatRateRequest {
-  return {
-    address: (asset as { address: Hex }).address,
-    chainId: asset.chainId as Hex,
-    currency: currency.toLowerCase(),
-  };
-}
+  return useMemo(
+    () =>
+      enrichTokenRequests
+        .map((req, i) => {
+          const key = `${req.chainId.toLowerCase()}:${req.address.toLowerCase()}`;
 
-/**
- * Fiat amount to display for a single asset, or `undefined` to hide.
- *
- * - Testnet-hidden → undefined.
- * - EVM with rate → `balance * rate` (picks up stablecoin bypass).
- * - EVM zero balance without rate → `0` (currency-invariant, avoids
- * hiding `$0` rows when market data hasn't loaded).
- * - EVM non-zero without rate → undefined (can't safely render).
- * - Non-EVM → the assets-controller's preferred-currency `fiat.balance`.
- */
-function deriveAssetFiat(
-  asset: Asset,
-  rate: number | undefined,
-  isFiatHidden: boolean,
-): BigNumber | undefined {
-  if (isFiatHidden) return undefined;
+          if (existingKeys.has(key)) return undefined;
 
-  if (isEvmRateEligible(asset)) {
-    const balance = asset.balance ? new BigNumber(asset.balance) : undefined;
-    if (rate !== undefined && balance) return balance.multipliedBy(rate);
-    if (balance?.isZero()) return new BigNumber(0);
-    return undefined;
-  }
+          const caipId = assetIds[i];
+          const data = tokensByAssetId[caipId];
 
-  return asset.fiat?.balance ? new BigNumber(asset.fiat.balance) : undefined;
+          if (!data?.name && !data?.symbol) return undefined;
+
+          return {
+            accountType: EthAccountType.Eoa,
+            address: req.address.toLowerCase(),
+            balance: '0',
+            balanceInSelectedCurrency: zeroFiat,
+            chainId: req.chainId,
+            decimals: data.decimals ?? 18,
+            image: data.iconUrl ?? '',
+            isETH: false,
+            isNative: false,
+            key,
+            logo: data.iconUrl ?? undefined,
+            name: data.name ?? '',
+            networkBadgeSource: getNetworkBadgeSource(req.chainId),
+            // Placeholders have no fiat balance, so they sort last.
+            sortKey: 0,
+            standard: TokenStandard.ERC20,
+            symbol: data.symbol ?? '',
+          } as ConfirmationAsset;
+        })
+        .filter((token) => token !== undefined) as ConfirmationAsset[],
+    [enrichTokenRequests, existingKeys, assetIds, tokensByAssetId, zeroFiat],
+  );
 }

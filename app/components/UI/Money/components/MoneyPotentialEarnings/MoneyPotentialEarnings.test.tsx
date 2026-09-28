@@ -1,546 +1,346 @@
 import React from 'react';
 import { EthAccountType } from '@metamask/keyring-api';
-import { BigNumber } from 'bignumber.js';
-import { Platform } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
+import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
-import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
+import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import type { MoneyDepositAsset } from '../../selectors/depositTokens';
-import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+
+jest.mock('../../hooks/useProjectedEarnings', () => ({
+  useProjectedEarnings: jest.fn(),
+}));
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
   () => 'AssetLogo',
 );
-jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
-  () => ({
-    __esModule: true,
-    default: 'BadgeWrapper',
-    BadgePosition: { BottomRight: 'BottomRight' },
-  }),
-);
-jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
-  __esModule: true,
-  default: 'Badge',
-  BadgeVariant: { Network: 'Network' },
-}));
 jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
-jest.mock('react-native-linear-gradient', () => 'LinearGradient');
-jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 
 jest.mock('../../utils/moneyFormatFiat', () => ({
-  ...jest.requireActual('../../utils/moneyFormatFiat'),
-  moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
+  moneyFormatFiat: jest.fn(
+    (value: BigNumber, currency: string) => `${currency}:${value.toFixed(2)}`,
+  ),
+  moneySafeTokenFiatCurrency: jest.fn(
+    (token: MoneyDepositAsset | undefined | null) =>
+      token?.fiat?.currency ?? 'usd',
+  ),
 }));
 
-type TokenOverrides = Omit<Partial<MoneyDepositAsset>, 'fiat'> & {
-  balanceInSelectedCurrency?: string;
-  fiat?: {
-    balance: number;
-    currency?: string;
-    conversionRate?: number;
-  };
-};
+const mockUseProjectedEarnings = jest.mocked(useProjectedEarnings);
+const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
 
-const makeToken = (overrides: TokenOverrides): MoneyDepositAsset =>
+const createToken = (
+  symbol: string,
+  fiatBalance: number,
+  index: number,
+): MoneyDepositAsset =>
   ({
     accountType: EthAccountType.Eoa,
     accountId: 'account-id',
-    assetId: '0x0000000000000000000000000000000000000000',
-    name: 'Token',
-    symbol: 'TOK',
-    address: '0x0000000000000000000000000000000000000000',
+    assetId: `0x${index.toString(16).padStart(40, '0')}`,
+    name: `${symbol} Coin`,
+    symbol,
+    address: `0x${index.toString(16).padStart(40, '0')}`,
     chainId: '0x1',
-    decimals: 18,
-    image: '',
-    balance: '0',
-    rawBalance: '0x0',
+    decimals: 6,
+    image: `${symbol}.png`,
+    balance: String(fiatBalance),
+    rawBalance: fiatBalance > 0 ? '0x1' : '0x0',
     isNative: false,
-    balanceInSelectedCurrency: '$0.00',
-    fiat: { balance: 0, currency: 'USD', conversionRate: 1 },
-    ...overrides,
-    ...(overrides.fiat
-      ? {
-          fiat: {
-            conversionRate: 1,
-            ...overrides.fiat,
-          },
-        }
-      : {}),
+    balanceInSelectedCurrency: `$${fiatBalance.toFixed(2)}`,
+    fiat: {
+      balance: fiatBalance,
+      currency: 'USD',
+      conversionRate: 1,
+    },
   }) as MoneyDepositAsset;
 
-const MOCK_USDC = makeToken({
-  name: 'USD Coin',
-  symbol: 'USDC',
-  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  balanceInSelectedCurrency: '$5,000.00',
-  fiat: { balance: 5000 },
+const USDC = createToken('USDC', 100, 1);
+
+const projectedEarningsResult = (
+  overrides: Partial<ReturnType<typeof useProjectedEarnings>> = {},
+): ReturnType<typeof useProjectedEarnings> => ({
+  eligibleTokens: [USDC],
+  totalAssetsFiat: 100,
+  projectedAmount: 4,
+  currency: 'usd',
+  ...overrides,
 });
 
-const MOCK_USDT = makeToken({
-  name: 'Tether',
-  symbol: 'USDT',
-  address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  balanceInSelectedCurrency: '$4,000.00',
-  fiat: { balance: 4000 },
-});
-
-const MOCK_DAI = makeToken({
-  name: 'Dai',
-  symbol: 'DAI',
-  address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-  balanceInSelectedCurrency: '$1,000.00',
-  fiat: { balance: 1000 },
-});
-
-const MOCK_ETH = makeToken({
-  name: 'Ether',
-  symbol: 'ETH',
-  address: '0x0000000000000000000000000000000000000001',
-  balanceInSelectedCurrency: '$15,000.00',
-  fiat: { balance: 15000 },
-});
-
-const MOCK_SOL = makeToken({
-  name: 'Solana',
-  symbol: 'SOL',
-  address: '0x0000000000000000000000000000000000000002',
-  balanceInSelectedCurrency: '$2,000.00',
-  fiat: { balance: 2000 },
-});
-
-const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
+const renderComponent = (
+  props: Partial<React.ComponentProps<typeof MoneyPotentialEarnings>> = {},
+) =>
+  render(
+    <MoneyPotentialEarnings
+      tokens={[USDC]}
+      apyDecimal={0.04}
+      onProjectedAmountPress={jest.fn()}
+      {...props}
+    />,
+  );
 
 describe('MoneyPotentialEarnings', () => {
   beforeEach(() => {
-    mockMoneyFormatFiat.mockClear();
+    jest.clearAllMocks();
+    mockUseProjectedEarnings.mockReturnValue(projectedEarningsResult());
   });
 
-  it('returns null when there are no tokens with balance', () => {
-    const { queryByTestId } = render(
-      <MoneyPotentialEarnings apyDecimal={0.04} tokens={[]} />,
+  it('returns no content when no token has a positive balance', () => {
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: [],
+        totalAssetsFiat: 0,
+        projectedAmount: 0,
+      }),
     );
 
+    renderComponent({ tokens: [createToken('ZERO', 0, 2)] });
+
     expect(
-      queryByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
+      screen.queryByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the section title and parameterized description', () => {
-    const { getByText, getByTestId } = render(
-      <MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />,
-    );
+  it('renders the positive aggregate projection', () => {
+    renderComponent();
 
     expect(
-      getByText(strings('money.potential_earnings.title')),
-    ).toBeOnTheScreen();
-    const description = getByTestId(MoneyPotentialEarningsTestIds.TEXT);
-    expect(description).toHaveTextContent(
+      screen.getByTestId(MoneyPotentialEarningsTestIds.TOTAL),
+    ).toHaveTextContent('usd:100.00');
+    expect(
+      screen.getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('+usd:4.00');
+    expect(
+      screen.getByTestId(MoneyPotentialEarningsTestIds.TEXT),
+    ).toHaveTextContent(
       new RegExp(
         strings('money.potential_earnings.description_with_amounts_prefix'),
       ),
     );
-    expect(description).toHaveTextContent(/in one year\./);
   });
 
-  it('computes the aggregate projected amount from token fiat balances', () => {
-    // USDC $5000 + USDT $4000 = $9000 × (4% APY × 1 year) = $360.00
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT]}
-      />,
+  it('propagates a non-USD currency to aggregate formatting', () => {
+    const eurToken = createToken('EURC', 100, 2);
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: [eurToken],
+        currency: 'eur',
+      }),
     );
 
-    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
-      /\+\$360\.00/,
-    );
-  });
+    renderComponent({ tokens: [eurToken] });
 
-  it('formats the headline total using the token fiat currency instead of a Money default currency when defined', () => {
-    const eurToken = makeToken({
-      symbol: 'EURC',
-      address: '0x0000000000000000000000000000000000000005',
-      fiat: { balance: 5000, currency: 'eur' },
-    });
-
-    render(<MoneyPotentialEarnings apyDecimal={0.04} tokens={[eurToken]} />);
-
+    expect(
+      screen.getByTestId(MoneyPotentialEarningsTestIds.TOTAL),
+    ).toHaveTextContent('eur:100.00');
+    expect(
+      screen.getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('+eur:4.00');
     expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
       expect.any(BigNumber),
       'eur',
     );
   });
 
-  it('falls back to the Money default currency when tokens have no fiat currency', () => {
-    render(<MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />);
+  it('dispatches projected amount presses from the actual pressable', () => {
+    const onProjectedAmountPress = jest.fn();
+    renderComponent({ onProjectedAmountPress });
 
-    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
-      expect.any(BigNumber),
-      'usd',
+    fireEvent.press(
+      screen.getByTestId(MoneyPotentialEarningsTestIds.PROJECTED_BUTTON),
     );
+
+    expect(onProjectedAmountPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the projected amount as a plain Text (no gradient mask)', () => {
-    const { getByTestId, toJSON } = render(
-      <MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />,
-    );
-
-    // The filled state should be a plain DSRN Text, not the masked gradient
-    // wrapper that used to host it. `MaskedView` and `LinearGradient` are
-    // both mocked as plain string components in this suite, so their type
-    // would surface in the serialized tree if MoneyGradientText were used.
-    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toBeOnTheScreen();
-    const serialized = JSON.stringify(toJSON());
-    expect(serialized).not.toContain('MaskedView');
-    expect(serialized).not.toContain('LinearGradient');
-  });
-
-  it('renders the real token row balance when privacyMode is false', () => {
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.2}
-        tokens={[MOCK_USDC]}
-        privacyMode={false}
-      />,
-    );
+  it('masks aggregate amounts in privacy mode', () => {
+    renderComponent({ privacyMode: true });
 
     expect(
-      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
-    ).toHaveTextContent('$5000.00');
-  });
-
-  it('masks the token row balance when privacyMode is true', () => {
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.2}
-        tokens={[MOCK_USDC]}
-        privacyMode
-      />,
-    );
-
-    expect(
-      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+      screen.getByTestId(MoneyPotentialEarningsTestIds.TOTAL),
     ).toHaveTextContent('•'.repeat(9));
-  });
-
-  it('renders the real headline total and projected amounts when privacyMode is false', () => {
-    // USDC $5000 x 4% APY x 1 year = $200.00
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC]}
-        privacyMode={false}
-      />,
-    );
-
-    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
-      '$5000.00',
-    );
     expect(
-      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
-    ).toHaveTextContent('+$200.00');
-  });
-
-  it('masks the headline total and projected amounts when privacyMode is true', () => {
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC]}
-        privacyMode
-      />,
-    );
-
-    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
-      '•'.repeat(9),
-    );
-    expect(
-      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+      screen.getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
     ).toHaveTextContent('•'.repeat(6));
   });
 
-  it('excludes tokens with zero balance', () => {
-    const zeroBalanceToken = makeToken({
-      name: 'Zero',
-      symbol: 'ZERO',
-      address: '0x0000000000000000000000000000000000000003',
-      balanceInSelectedCurrency: '$0.00',
-      fiat: { balance: 0 },
-    });
-
-    const { queryByText } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, zeroBalanceToken]}
-      />,
+  it('renders fallback copy when projected earnings are zero', () => {
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({ projectedAmount: 0 }),
     );
 
-    expect(queryByText('ZERO')).not.toBeOnTheScreen();
-  });
-
-  it('renders at most five tokens', () => {
-    const extra = makeToken({
-      name: 'Extra',
-      symbol: 'EXT',
-      address: '0x0000000000000000000000000000000000000004',
-      fiat: { balance: 100 },
-    });
-    const { queryByText } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-      />,
-    );
-
-    expect(queryByText('EXT')).not.toBeOnTheScreen();
-  });
-
-  it('hides the View all button when fewer than six tokens are eligible', () => {
-    const { queryByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
-      />,
-    );
+    renderComponent({ apyDecimal: 0 });
 
     expect(
-      queryByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON),
+      screen.getByText(strings('money.potential_earnings.description')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneyPotentialEarningsTestIds.PROJECTED_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the View all button when six or more tokens are eligible', () => {
-    const extra = makeToken({
-      name: 'Extra',
-      symbol: 'EXT',
-      address: '0x0000000000000000000000000000000000000004',
-      fiat: { balance: 100 },
-    });
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-      />,
+  it('renders no section-header interaction for five eligible tokens', () => {
+    const tokens = Array.from({ length: 5 }, (_, index) =>
+      createToken(`T${index}`, index + 1, index + 10),
+    );
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: tokens,
+        totalAssetsFiat: 15,
+        projectedAmount: 0.6,
+      }),
     );
 
+    renderComponent({ tokens, onHeaderPress: jest.fn() });
+
     expect(
-      getByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON),
+      screen.queryByTestId(MoneyPotentialEarningsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('dispatches section-header presses when more than five tokens exist', () => {
+    const tokens = Array.from({ length: 6 }, (_, index) =>
+      createToken(`T${index}`, index + 1, index + 10),
+    );
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: tokens,
+        totalAssetsFiat: 21,
+        projectedAmount: 0.84,
+      }),
+    );
+    const onHeaderPress = jest.fn();
+    renderComponent({ tokens, onHeaderPress });
+
+    fireEvent.press(screen.getByTestId(MoneyPotentialEarningsTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(MoneySectionHeaderTestIds.CHEVRON),
     ).toBeOnTheScreen();
   });
 
-  it('calls onViewAllPress when View all is pressed', () => {
-    const extra = makeToken({
-      name: 'Extra',
-      symbol: 'EXT',
-      address: '0x0000000000000000000000000000000000000004',
-      fiat: { balance: 100 },
-    });
-    const onViewAll = jest.fn();
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-        onViewAllPress={onViewAll}
-      />,
+  it('omits section-header interaction without a handler', () => {
+    const tokens = Array.from({ length: 6 }, (_, index) =>
+      createToken(`T${index}`, index + 1, index + 10),
+    );
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: tokens,
+        totalAssetsFiat: 21,
+        projectedAmount: 0.84,
+      }),
     );
 
-    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON));
-    expect(onViewAll).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onTokenButtonPress with the pressed token when the Add button is tapped', () => {
-    const onTokenPress = jest.fn();
-    const { getByText } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC]}
-        onTokenButtonPress={onTokenPress}
-      />,
-    );
-
-    fireEvent.press(getByText(strings('money.potential_earnings.add')));
-
-    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC, 0, 1);
-  });
-
-  it('never renders the section arrow, even when more than five tokens are eligible', () => {
-    const extra = makeToken({
-      name: 'Extra',
-      symbol: 'EXT',
-      address: '0x0000000000000000000000000000000000000004',
-      fiat: { balance: 100 },
-    });
-    const { queryByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-      />,
-    );
+    renderComponent({ tokens });
 
     expect(
-      queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+      screen.queryByTestId(MoneyPotentialEarningsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the inline info button when onInfoPress is provided', () => {
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC]}
-        onInfoPress={jest.fn()}
-      />,
+  it('renders only the first five eligible token rows', () => {
+    const tokens = Array.from({ length: 6 }, (_, index) =>
+      createToken(`T${index}`, index + 1, index + 10),
+    );
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: tokens,
+        totalAssetsFiat: 21,
+        projectedAmount: 0.84,
+      }),
     );
 
+    renderComponent({ tokens });
+
     expect(
-      getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
+      screen.getByTestId(PotentialEarningsTokenRowTestIds.ROW('T4')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PotentialEarningsTokenRowTestIds.ROW('T5')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('passes token-row state through the production child contract', () => {
+    renderComponent({
+      privacyMode: true,
+      isNoFeeToken: (token) => token.symbol === 'USDC',
+    });
+
+    expect(
+      screen.getByTestId(PotentialEarningsTokenRowTestIds.ROW('USDC')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('money.potential_earnings.no_fee')),
     ).toBeOnTheScreen();
   });
 
-  it.each([
-    ['android', [{ translateY: 2 }]],
-    ['ios', undefined],
-  ] as const)(
-    'sets the info icon vertical offset on %s',
-    (platform, expectedTransform) => {
-      const originalOS = Platform.OS;
-      Platform.OS = platform;
-
-      try {
-        const { getByTestId } = render(
-          <MoneyPotentialEarnings
-            apyDecimal={0.04}
-            tokens={[MOCK_USDC]}
-            onInfoPress={jest.fn()}
-          />,
-        );
-
-        expect(
-          getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON).props.style
-            .transform,
-        ).toEqual(expectedTransform);
-      } finally {
-        Platform.OS = originalOS;
-      }
-    },
-  );
-
-  it('does not render the info button when onInfoPress is omitted', () => {
-    const { queryByTestId } = render(
-      <MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />,
+  it('dispatches token-card presses with token position and eligible count', () => {
+    const secondToken = createToken('USDT', 50, 2);
+    const onTokenCardPress = jest.fn();
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: [USDC, secondToken],
+        totalAssetsFiat: 150,
+        projectedAmount: 6,
+      }),
     );
 
-    expect(
-      queryByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('calls onInfoPress when the info button is pressed', () => {
-    const onInfoPress = jest.fn();
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC]}
-        onInfoPress={onInfoPress}
-      />,
-    );
-
-    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
-
-    expect(onInfoPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders the info button in the fallback description when apy is undefined', () => {
-    const onInfoPress = jest.fn();
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={undefined}
-        tokens={[MOCK_USDC]}
-        onInfoPress={onInfoPress}
-      />,
-    );
-
-    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
-
-    expect(onInfoPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides the projected amount when apy is undefined', () => {
-    const { queryByTestId } = render(
-      <MoneyPotentialEarnings apyDecimal={undefined} tokens={[MOCK_USDC]} />,
-    );
-
-    expect(
-      queryByTestId(MoneyPotentialEarningsTestIds.TEXT),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('hides the per-token projected earning text when apy is zero', () => {
-    const { queryByText } = render(
-      <MoneyPotentialEarnings apyDecimal={0} tokens={[MOCK_USDC]} />,
-    );
-
-    // With apy=0 the projected multiplier is 0 so projectedFiatNumber is 0,
-    // which fails isPositiveNumber and hides the "+$..." text in each token row.
-    expect(queryByText(/^\+\$/)).not.toBeOnTheScreen();
-  });
-
-  describe('isNoFeeToken prop — "No fee" badge', () => {
-    it('renders the No fee badge on a token row when isNoFeeToken returns true', () => {
-      const { getByText } = render(
-        <MoneyPotentialEarnings
-          apyDecimal={0.04}
-          tokens={[MOCK_USDC]}
-          isNoFeeToken={() => true}
-        />,
-      );
-
-      expect(
-        getByText(strings('money.potential_earnings.no_fee')),
-      ).toBeOnTheScreen();
+    renderComponent({
+      tokens: [USDC, secondToken],
+      onTokenCardPress,
     });
 
-    it('does not render the No fee badge when isNoFeeToken returns false', () => {
-      const { queryByText } = render(
-        <MoneyPotentialEarnings
-          apyDecimal={0.04}
-          tokens={[MOCK_USDC]}
-          isNoFeeToken={() => false}
-        />,
-      );
+    fireEvent.press(
+      screen.getByTestId(PotentialEarningsTokenRowTestIds.ROW('USDT')),
+    );
 
-      expect(
-        queryByText(strings('money.potential_earnings.no_fee')),
-      ).not.toBeOnTheScreen();
+    expect(onTokenCardPress).toHaveBeenCalledWith(secondToken, 1, 2);
+  });
+
+  it('dispatches token-button presses with token position and eligible count', () => {
+    const secondToken = createToken('USDT', 50, 2);
+    const onTokenButtonPress = jest.fn();
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({
+        eligibleTokens: [USDC, secondToken],
+        totalAssetsFiat: 150,
+        projectedAmount: 6,
+      }),
+    );
+
+    renderComponent({
+      tokens: [USDC, secondToken],
+      onTokenButtonPress,
     });
 
-    it('does not render any No fee badge when isNoFeeToken is omitted', () => {
-      const { queryByText } = render(
-        <MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />,
-      );
+    fireEvent.press(
+      screen.getByTestId(PotentialEarningsTokenRowTestIds.BUTTON('USDT')),
+    );
 
-      expect(
-        queryByText(strings('money.potential_earnings.no_fee')),
-      ).not.toBeOnTheScreen();
-    });
+    expect(onTokenButtonPress).toHaveBeenCalledWith(secondToken, 1, 2);
+  });
 
-    it('renders No fee badge only on eligible token rows', () => {
-      const { getAllByText, queryByText } = render(
-        <MoneyPotentialEarnings
-          apyDecimal={0.04}
-          tokens={[MOCK_USDC, MOCK_USDT]}
-          isNoFeeToken={(token) => token.symbol === 'USDC'}
-        />,
-      );
+  it('uses zero APY when the APY prop is undefined', () => {
+    mockUseProjectedEarnings.mockReturnValue(
+      projectedEarningsResult({ projectedAmount: 0 }),
+    );
 
-      expect(
-        getAllByText(strings('money.potential_earnings.no_fee')),
-      ).toHaveLength(1);
-      expect(queryByText('Tether')).toBeOnTheScreen();
-    });
+    renderComponent({ apyDecimal: undefined });
+
+    expect(mockUseProjectedEarnings).toHaveBeenCalledWith([USDC], 0);
   });
 });

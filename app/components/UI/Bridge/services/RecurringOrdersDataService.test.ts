@@ -1,5 +1,9 @@
 import { Messenger } from '@metamask/messenger';
-import { getRecurringOrders, getRecurringSwaps } from '../api/recurringOrders';
+import {
+  cancelRecurringOrder,
+  getRecurringOrders,
+  getRecurringSwaps,
+} from '../api/recurringOrders';
 import {
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_OPEN_ORDER_2,
@@ -16,10 +20,12 @@ import {
 } from './RecurringOrdersDataService';
 
 jest.mock('../api/recurringOrders', () => ({
+  cancelRecurringOrder: jest.fn(),
   getRecurringOrders: jest.fn(),
   getRecurringSwaps: jest.fn(),
 }));
 
+const mockCancelRecurringOrder = jest.mocked(cancelRecurringOrder);
 const mockGetRecurringOrders = jest.mocked(getRecurringOrders);
 const mockGetRecurringSwaps = jest.mocked(getRecurringSwaps);
 const PARAMS: RecurringOrdersQueryParams = {
@@ -65,6 +71,26 @@ describe('RecurringOrdersDataService', () => {
       cursor: undefined,
     });
     expect(result.orders).toStrictEqual([MOCK_RECURRING_OPEN_ORDER]);
+  });
+
+  it('forwards cancellation to the recurring-orders transport', async () => {
+    mockCancelRecurringOrder.mockResolvedValue(undefined);
+    const service = buildService();
+
+    await service.cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId);
+
+    expect(mockCancelRecurringOrder).toHaveBeenCalledWith(
+      MOCK_RECURRING_OPEN_ORDER.orderId,
+    );
+  });
+
+  it('propagates cancellation transport failures', async () => {
+    mockCancelRecurringOrder.mockRejectedValue(new Error('cancel failed'));
+    const service = buildService();
+
+    await expect(
+      service.cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId),
+    ).rejects.toThrow('cancel failed');
   });
 
   it('fetches the page identified by the previous response cursor', async () => {

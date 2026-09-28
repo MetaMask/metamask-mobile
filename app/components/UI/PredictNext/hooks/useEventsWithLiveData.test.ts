@@ -12,6 +12,7 @@ import type {
 import {
   getPresentMarketIds,
   useEventsWithLiveData,
+  type LiveMarketWatchScope,
 } from './useEventsWithLiveData';
 
 const mockCall = jest.fn();
@@ -76,10 +77,20 @@ const propsEvent = makeEvent('event-props', false);
 const WATCH = `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`;
 const UNWATCH = `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchEvents`;
 
+/** `[action, venueId, eventIds]` of every watch call; scope is asserted separately. */
 const watchCalls = () =>
-  mockCall.mock.calls.filter(([action]) => action === WATCH);
+  mockCall.mock.calls
+    .filter(([action]) => action === WATCH)
+    .map((call) => call.slice(0, 3));
 const unwatchCalls = () =>
-  mockCall.mock.calls.filter(([action]) => action === UNWATCH);
+  mockCall.mock.calls
+    .filter(([action]) => action === UNWATCH)
+    .map((call) => call.slice(0, 3));
+/** The `marketScope` each watch/unwatch call carried, in call order. */
+const scopeCalls = () =>
+  mockCall.mock.calls
+    .filter(([action]) => action === WATCH || action === UNWATCH)
+    .map(([action, , , options]) => [action, options]);
 const marketIds = (event: PredictEvent) =>
   event.markets.map((market) => market.id);
 
@@ -97,6 +108,51 @@ describe('getPresentMarketIds', () => {
     expect(getPresentMarketIds([eventA, propsEvent])).toEqual([
       ...marketIds(eventA),
       ...marketIds(propsEvent),
+    ]);
+  });
+
+  it('lists only card-visible Markets when the scope is card', () => {
+    const away = {
+      ...makeMarket('card-away'),
+      outcomes: [
+        {
+          ...makeMarket('card-away').outcomes[0],
+          gameSelection: 'away' as const,
+        },
+        makeMarket('card-away').outcomes[1],
+      ],
+    } as PredictMarket;
+    const home = {
+      ...makeMarket('card-home'),
+      outcomes: [
+        {
+          ...makeMarket('card-home').outcomes[0],
+          gameSelection: 'home' as const,
+        },
+        makeMarket('card-home').outcomes[1],
+      ],
+    } as PredictMarket;
+    const spread = makeMarket('card-spread');
+    const gameEvent: PredictEvent = {
+      ...eventA,
+      markets: [away, home, spread],
+    };
+    const extraProps: PredictEvent = {
+      ...propsEvent,
+      markets: [
+        makeMarket('p1'),
+        makeMarket('p2'),
+        makeMarket('p3'),
+        makeMarket('p4'),
+      ],
+    };
+
+    expect(getPresentMarketIds([gameEvent, extraProps], 'card')).toEqual([
+      away.id,
+      home.id,
+      extraProps.markets[0].id,
+      extraProps.markets[1].id,
+      extraProps.markets[2].id,
     ]);
   });
 });
@@ -445,5 +501,176 @@ describe('useEventsWithLiveData', () => {
     expect(unwatchCalls()).toEqual([
       [UNWATCH, venueId, [eventA.id, eventB.id]],
     ]);
+  });
+
+  it('watches with the all scope by default', () => {
+    const { unmount } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA]),
+    );
+
+    unmount();
+
+    expect(scopeCalls()).toEqual([
+      [WATCH, { marketScope: 'all' }],
+      [UNWATCH, { marketScope: 'all' }],
+    ]);
+  });
+
+  it('carries the card scope on every watch and unwatch', () => {
+    const { rerender, unmount } = renderHook(
+      ({ events }: { events: readonly PredictEvent[] }) =>
+        useEventsWithLiveData(venueId, events, { marketScope: 'card' }),
+      { initialProps: { events: [eventA] } },
+    );
+
+    rerender({ events: [eventB] });
+    unmount();
+
+    expect(scopeCalls()).toEqual([
+      [WATCH, { marketScope: 'card' }],
+      [WATCH, { marketScope: 'card' }],
+      [UNWATCH, { marketScope: 'card' }],
+      [UNWATCH, { marketScope: 'card' }],
+    ]);
+  });
+
+  it('re-issues held watches under the new scope when marketScope changes', () => {
+    const initialProps: { marketScope: LiveMarketWatchScope } = {
+      marketScope: 'card',
+    };
+    const { rerender } = renderHook(
+      ({ marketScope }: { marketScope: LiveMarketWatchScope }) =>
+        useEventsWithLiveData(venueId, [eventA, eventB], { marketScope }),
+      { initialProps },
+    );
+
+    rerender({ marketScope: 'all' });
+
+    expect(mockCall.mock.calls).toEqual([
+      [WATCH, venueId, [eventA.id, eventB.id], { marketScope: 'card' }],
+      [WATCH, venueId, [eventA.id, eventB.id], { marketScope: 'all' }],
+      [UNWATCH, venueId, [eventA.id, eventB.id], { marketScope: 'card' }],
+    ]);
+  });
+
+  it('keeps only card-visible quotes when marketScope is card', () => {
+    const away = {
+      ...makeMarket('live-away'),
+      outcomes: [
+        {
+          ...makeMarket('live-away').outcomes[0],
+          gameSelection: 'away' as const,
+        },
+        makeMarket('live-away').outcomes[1],
+      ],
+    } as PredictMarket;
+    const home = {
+      ...makeMarket('live-home'),
+      outcomes: [
+        {
+          ...makeMarket('live-home').outcomes[0],
+          gameSelection: 'home' as const,
+        },
+        makeMarket('live-home').outcomes[1],
+      ],
+    } as PredictMarket;
+    const spread = makeMarket('live-spread');
+    const gameEvent: PredictEvent = {
+      ...eventA,
+      markets: [away, home, spread],
+    };
+    const { result } = renderHook(() =>
+      useEventsWithLiveData(venueId, [gameEvent], { marketScope: 'card' }),
+    );
+    const onQuote = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+    ) as (quote: PredictQuote) => void;
+    const quoteFor = (market: PredictMarket): PredictQuote => ({
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: '0.61' as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
+      ],
+      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    });
+
+    act(() => {
+      onQuote(quoteFor(away));
+      onQuote(quoteFor(spread));
+    });
+
+    expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.61');
+    expect(result.current[0].markets[2]).toBe(spread);
+  });
+
+  it('keeps an Event that a quote did not touch', () => {
+    const { result } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA, eventB]),
+    );
+    const onQuote = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+    ) as (quote: PredictQuote) => void;
+    const market = eventA.markets[0];
+
+    act(() => {
+      onQuote({
+        venueId,
+        marketId: market.id,
+        outcomes: [
+          {
+            id: market.outcomes[0].id,
+            side: 'yes',
+            askPrice: '0.61' as PredictDecimal,
+          },
+          { id: market.outcomes[1].id, side: 'no' },
+        ],
+        updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    expect(result.current[1]).toBe(eventB);
+    expect(result.current[0]).not.toBe(eventA);
+  });
+
+  it('keeps a previously patched Event when a later quote belongs to another Event', () => {
+    const { result } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA, eventB]),
+    );
+    const onQuote = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+    ) as (quote: PredictQuote) => void;
+    const quoteFor = (
+      market: PredictMarket,
+      askPrice: string,
+      updatedAt: string,
+    ): PredictQuote => ({
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: askPrice as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
+      ],
+      updatedAt: updatedAt as PredictTimestamp,
+    });
+
+    act(() =>
+      onQuote(quoteFor(eventA.markets[0], '0.61', '2026-09-08T13:00:00.000Z')),
+    );
+    const afterFirst = result.current[0];
+    act(() =>
+      onQuote(quoteFor(eventB.markets[0], '0.33', '2026-09-08T13:01:00.000Z')),
+    );
+
+    expect(result.current[0]).toBe(afterFirst);
+    expect(result.current[1]).not.toBe(eventB);
   });
 });

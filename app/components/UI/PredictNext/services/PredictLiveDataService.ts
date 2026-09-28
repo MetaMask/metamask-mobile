@@ -8,13 +8,27 @@ import type {
 import { PredictError, PredictErrorCode } from '../errors';
 import type { PredictEntityId, PredictEvent, PredictVenueId } from '../types';
 import { isOlderLiveFrame, mergeGameLiveFrames } from '../utils/mergeLiveData';
-import { LiveEventSubscriptions } from './internal/LiveEventSubscriptions';
+import {
+  LiveEventSubscriptions,
+  type LiveMarketScope,
+} from './internal/LiveEventSubscriptions';
 
 export const PREDICT_LIVE_DATA_SERVICE_NAME = 'PredictLiveDataService' as const;
+
+export type { LiveMarketScope as PredictLiveMarketScope } from './internal/LiveEventSubscriptions';
+
+export interface PredictLiveDataWatchOptions {
+  /**
+   * Which of each Event's Markets to hold live prices for. Defaults to `all`;
+   * Home and Feed pass `card` so hidden lines stay off the wire.
+   */
+  marketScope?: LiveMarketScope;
+}
 
 type WatchHandler = (
   venueId: PredictVenueId,
   eventIds: readonly PredictEntityId[],
+  options?: PredictLiveDataWatchOptions,
 ) => void;
 
 export interface PredictLiveDataServiceWatchEventsAction {
@@ -157,17 +171,19 @@ export class PredictLiveDataService {
   watchEvents(
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
+    { marketScope = 'all' }: PredictLiveDataWatchOptions = {},
   ): void {
     this.#assertVenue(venueId);
-    this.#events.watch(eventIds);
+    this.#events.watch(eventIds, marketScope);
   }
 
   unwatchEvents(
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
+    { marketScope = 'all' }: PredictLiveDataWatchOptions = {},
   ): void {
     this.#assertVenue(venueId);
-    this.#events.unwatch(eventIds);
+    this.#events.unwatch(eventIds, marketScope);
   }
 
   /** Event ids at least one surface currently watches. */

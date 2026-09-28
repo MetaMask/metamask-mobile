@@ -6,6 +6,7 @@ import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import type {
@@ -335,6 +336,8 @@ describe('PredictHome', () => {
   });
 
   describe('live-data subscriptions', () => {
+    /** Home cards ask the live-data service for card-visible Markets only. */
+    const CARD_SCOPE = { marketScope: 'card' };
     const liveDataCalls = () =>
       messengerCall.mock.calls.filter(([action]: [string]) =>
         action.startsWith('PredictLiveDataService:'),
@@ -408,6 +411,7 @@ describe('PredictHome', () => {
           'PredictLiveDataService:unwatchEvents',
           'kalshi',
           eventIds(ncaaEvents),
+          CARD_SCOPE,
         ],
       ]);
 
@@ -415,8 +419,18 @@ describe('PredictHome', () => {
       await scrollHome(view, 600);
 
       expect(liveDataCalls()).toEqual([
-        ['PredictLiveDataService:watchEvents', 'kalshi', eventIds(ncaaEvents)],
-        ['PredictLiveDataService:unwatchEvents', 'kalshi', eventIds(nflEvents)],
+        [
+          'PredictLiveDataService:watchEvents',
+          'kalshi',
+          eventIds(ncaaEvents),
+          CARD_SCOPE,
+        ],
+        [
+          'PredictLiveDataService:unwatchEvents',
+          'kalshi',
+          eventIds(nflEvents),
+          CARD_SCOPE,
+        ],
       ]);
     });
 
@@ -447,6 +461,7 @@ describe('PredictHome', () => {
         'PredictLiveDataService:unwatchEvents',
         'kalshi',
         [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+        CARD_SCOPE,
       );
 
       messengerCall.mockClear();
@@ -456,6 +471,7 @@ describe('PredictHome', () => {
           'PredictLiveDataService:watchEvents',
           'kalshi',
           [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+          CARD_SCOPE,
         ),
       );
     });
@@ -662,7 +678,7 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('does not navigate when a disabled Outcome is pressed', async () => {
+  it('opens the Order flow when a Home game quote is pressed', async () => {
     const view = renderPredictNext();
     const card = await view.findByTestId(
       PredictHomeTestIds.event('kalshi', 'nfl-1'),
@@ -672,6 +688,8 @@ describe('PredictHome', () => {
       within(card).getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
     );
 
+    // The Order flow opens in place; the Home screen does not navigate.
+    expect(view.getByTestId(PredictOrderFlowTestIds.SHEET)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictEventScreenTestIds.VIEW),

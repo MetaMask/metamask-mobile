@@ -138,6 +138,8 @@ export interface PredictNextIntegrationHarness {
   marketDataService: PredictMarketDataService;
   portfolioService: PredictPortfolioService;
   liveDataService: PredictLiveDataService;
+  /** The shared remote adapter, for capability groups without a service. */
+  adapter: KalshiRemoteAdapter;
   fetchMock: jest.MockedFunction<typeof fetch>;
   getBearerTokenMock: jest.MockedFunction<() => Promise<string | undefined>>;
   /** Live-data sockets opened so far, oldest first. */
@@ -257,6 +259,7 @@ export const buildPredictNextIntegrationHarness = (
     marketDataService,
     portfolioService,
     liveDataService,
+    adapter,
     fetchMock,
     getBearerTokenMock,
     sockets,

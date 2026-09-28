@@ -296,6 +296,81 @@ describe('LiveEventSubscriptions', () => {
     expect(subscribe).not.toHaveBeenCalled();
   });
 
+  describe('market scope', () => {
+    // A standard card prices the first three Markets; the rest are hidden.
+    const fiveMarkets = ['m-1', 'm-2', 'm-3', 'm-4', 'm-5'].map(id);
+    const cardMarkets = fiveMarkets.slice(0, 3);
+    const hiddenMarkets = fiveMarkets.slice(3);
+    const events = () => ({
+      'event-1': makeEvent({ eventId: 'event-1', marketIds: fiveMarkets }),
+    });
+
+    it('subscribes only card-visible Markets for a card watcher', async () => {
+      const { subscriptions, subscribe } = createSubscriptions(events());
+
+      subscriptions.watch([id('event-1')], 'card');
+      await flush();
+
+      expect(subscribe).toHaveBeenCalledTimes(1);
+      expect(subscribe).toHaveBeenCalledWith('market', cardMarkets);
+    });
+
+    it('widens to every Market when an all watcher joins a card watcher', async () => {
+      const { subscriptions, subscribe, replay } =
+        createSubscriptions(events());
+      subscriptions.watch([id('event-1')], 'card');
+      await flush();
+
+      subscriptions.watch([id('event-1')], 'all');
+
+      expect(subscribe).toHaveBeenCalledTimes(2);
+      expect(subscribe).toHaveBeenLastCalledWith('market', hiddenMarkets);
+      // Only the ids that were already held are replayed; the new ones
+      // snapshot on subscribe.
+      expect(replay).toHaveBeenCalledWith('market', cardMarkets);
+    });
+
+    it('replays a joining card watcher only the Markets its card prices', async () => {
+      const { subscriptions, subscribe, replay } =
+        createSubscriptions(events());
+      subscriptions.watch([id('event-1')], 'all');
+      await flush();
+
+      subscriptions.watch([id('event-1')], 'card');
+
+      expect(subscribe).toHaveBeenCalledTimes(1);
+      expect(replay).toHaveBeenCalledWith('market', cardMarkets);
+    });
+
+    it('narrows back to card Markets when the all watcher leaves', async () => {
+      const { subscriptions, unsubscribe } = createSubscriptions(events());
+      subscriptions.watch([id('event-1')], 'card');
+      subscriptions.watch([id('event-1')], 'all');
+      await flush();
+
+      subscriptions.unwatch([id('event-1')], 'all');
+
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+      expect(unsubscribe).toHaveBeenCalledWith('market', hiddenMarkets);
+      expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+
+      subscriptions.unwatch([id('event-1')], 'card');
+      expect(unsubscribe).toHaveBeenLastCalledWith('market', cardMarkets);
+      expect(subscriptions.watchedEventIds).toEqual([]);
+    });
+
+    it('ignores an unwatch for a scope that has no watcher', async () => {
+      const { subscriptions, unsubscribe } = createSubscriptions(events());
+      subscriptions.watch([id('event-1')], 'card');
+      await flush();
+
+      subscriptions.unwatch([id('event-1')], 'all');
+
+      expect(unsubscribe).not.toHaveBeenCalled();
+      expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+    });
+  });
+
   it('clear releases every resolved subscription', async () => {
     const { subscriptions, unsubscribe } = createSubscriptions({
       'event-1': makeEvent({ eventId: 'event-1', marketIds: ['m-1'] }),

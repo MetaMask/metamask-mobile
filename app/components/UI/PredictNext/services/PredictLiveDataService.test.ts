@@ -130,6 +130,64 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
+  it('passes the market scope through to the Event subscriptions', async () => {
+    const markets = ['m-1', 'm-2', 'm-3', 'm-4'].map(
+      (marketIdValue) => marketIdValue as PredictEntityId,
+    );
+    const { service, messenger, client } = createService({
+      event: {
+        venueId,
+        id: eventId,
+        title: 'Props',
+        markets: markets.map((marketIdValue) => ({
+          id: marketIdValue,
+          question: marketIdValue,
+          status: 'active',
+          outcomes: [
+            {
+              id: `${marketIdValue}:yes` as PredictEntityId,
+              side: 'yes',
+              label: 'Yes',
+            },
+            {
+              id: `${marketIdValue}:no` as PredictEntityId,
+              side: 'no',
+              label: 'No',
+            },
+          ],
+        })),
+      },
+    });
+
+    messenger.call(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`,
+      venueId,
+      [eventId],
+      { marketScope: 'card' },
+    );
+    await flush();
+
+    expect(client.subscribe).toHaveBeenCalledTimes(1);
+    expect(client.subscribe).toHaveBeenCalledWith(
+      'market',
+      venueId,
+      markets.slice(0, 3),
+    );
+
+    messenger.call(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchEvents`,
+      venueId,
+      [eventId],
+      { marketScope: 'card' },
+    );
+    expect(client.unsubscribe).toHaveBeenCalledWith(
+      'market',
+      venueId,
+      markets.slice(0, 3),
+    );
+    service.destroy();
+  });
+
   it('rejects watches for another Venue', () => {
     const { service, messenger } = createService();
 

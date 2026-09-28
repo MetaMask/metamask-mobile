@@ -101,10 +101,10 @@ const OptionFilterButton = ({
   <FilterButton
     isSelected={isSelected}
     variant={FilterButtonVariant.Secondary}
-    size={FilterButtonSize.Lg}
+    size={FilterButtonSize.Md}
     onPress={onPress}
     accessibilityState={{ selected: isSelected }}
-    twClassName="flex-1"
+    twClassName={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
     testID={testID}
   >
     {label}
@@ -306,7 +306,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.listed_by')}
               </Text>
@@ -356,7 +356,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.group_by')}
               </Text>
@@ -387,7 +387,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.layout')}
               </Text>

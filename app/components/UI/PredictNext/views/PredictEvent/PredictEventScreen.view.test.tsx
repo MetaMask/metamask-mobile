@@ -31,6 +31,7 @@ import type {
   PredictVenueId,
 } from '../../types';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
+import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictMarketHistoryTestIds } from './internal/PredictMarketHistory.testIds';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 import { RulesBottomSheetTestIds } from './internal/RulesBottomSheet.testIds';
@@ -806,7 +807,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('loads winner Market history from the footer and restores dual-line history', async () => {
+  it('opens the Order flow from a Team control and keeps dual-line history', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
     resolveEvent(event);
     const view = renderPredictEventScreen(routeParams);
@@ -817,52 +818,21 @@ describe('PredictEventScreen', () => {
     await view.findByTestId(
       `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
     );
-    messengerCall.mockClear();
 
     fireEvent.press(view.getByTestId(MarketFooterCardTestIds.button('away')));
 
-    await waitFor(() =>
-      expectMessengerCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        awayMarket.id,
-        'ALL',
-      ),
-    );
-    const selectedChart = await view.findByTestId(
-      PredictMarketHistoryTestIds.CHART,
-    );
-    fireEvent(selectedChart, 'layout', {
-      nativeEvent: { layout: { width: 343, height: 250 } },
-    });
-
     expect(
-      await view.findByTestId(
-        PredictMarketHistoryTestIds.chartLabel(awayMarket.outcomes[0].id),
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      within(view.getByTestId(PredictOrderFlowTestIds.SHEET)).getByText(
+        awayMarket.outcomes[0].label,
       ),
     ).toBeOnTheScreen();
+
+    // The chart never rotates to the selected Team; both team lines stay.
     expect(
       view.getByTestId(
-        PredictMarketHistoryTestIds.chartLabel(awayMarket.outcomes[1].id),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-${homeMarket.outcomes[0].id}`,
-      ),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(view.getByTestId(MarketFooterCardTestIds.button('away')));
-
-    const restoredChart = await view.findByTestId(
-      PredictMarketHistoryTestIds.CHART,
-    );
-    fireEvent(restoredChart, 'layout', {
-      nativeEvent: { layout: { width: 343, height: 250 } },
-    });
-
-    expect(
-      await view.findByTestId(
         `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
       ),
     ).toBeOnTheScreen();
@@ -1280,16 +1250,14 @@ describe('PredictEventScreen', () => {
     expect(
       within(card).getByTestId(MarketGroupCardTestIds.title('nfl-spreads')),
     ).toHaveTextContent('Spreads');
-    expect(
-      getOutcomeButton('nfl-spread-new-england-2-5', 'yes'),
-    ).toBeDisabled();
+    expect(getOutcomeButton('nfl-spread-new-england-2-5', 'yes')).toBeEnabled();
     expect(getRow('nfl-spread-new-england-2-5', 'yes')).toHaveTextContent(
       /-2\.5/,
     );
     expect(getRow('nfl-spread-new-england-2-5', 'no')).toHaveTextContent(
       /\+2\.5/,
     );
-    expect(getOutcomeButton('nfl-spread-new-england-2-5', 'no')).toBeDisabled();
+    expect(getOutcomeButton('nfl-spread-new-england-2-5', 'no')).toBeEnabled();
     expect(
       getOutcomeButton('nfl-spread-new-england-2-5', 'yes').props
         .accessibilityLabel,
@@ -1557,7 +1525,17 @@ describe('PredictEventScreen', () => {
     );
 
     expect(view.getByTestId(PredictEventScreenTestIds.VIEW)).toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledTimes(serviceCallCount);
+    // Opening the Order Flow reads venue Balance and Venue Status (cached
+    // across the two opens); pressing Outcomes must not leave the Event Screen
+    // or request anything else from the services.
+    const newCalls = messengerCall.mock.calls.slice(serviceCallCount);
+    expect(newCalls.length).toBeGreaterThan(0);
+    for (const [action] of newCalls) {
+      expect([
+        'PredictPortfolioService:getBalance',
+        'PredictMarketDataService:getVenueStatus',
+      ]).toContain(action);
+    }
   });
 
   it('uses the standard header for Sports metadata without a Game', async () => {

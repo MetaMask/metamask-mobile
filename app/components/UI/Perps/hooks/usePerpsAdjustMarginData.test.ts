@@ -118,6 +118,7 @@ describe('usePerpsAdjustMarginData', () => {
 
       expect(result.current.position).toEqual(mockPosition);
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasValidPositionData).toBe(true);
     });
 
     it('returns null when position is not found', () => {
@@ -130,6 +131,24 @@ describe('usePerpsAdjustMarginData', () => {
       );
 
       expect(result.current.position).toBeNull();
+    });
+
+    it('accepts a position without a liquidation price', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, liquidationPrice: null }],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.hasValidPositionData).toBe(true);
+      expect(result.current.currentLiquidationPrice).toBe(0);
     });
 
     it('returns isLoading true when positions are loading', () => {
@@ -185,6 +204,79 @@ describe('usePerpsAdjustMarginData', () => {
       );
 
       expect(result.current.spendableBalance).toBe(10000);
+    });
+
+    it('uses safe finite values when live numeric data is malformed', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          {
+            ...mockPosition,
+            marginUsed: 'invalid',
+            positionValue: 'Infinity',
+            liquidationPrice: 'NaN',
+            size: 'invalid',
+            entryPrice: 'invalid',
+            leverage: { value: Number.NaN, type: 'isolated' },
+          },
+        ],
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccount,
+          spendableBalance: 'Infinity',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: 'invalid',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 100,
+        }),
+      );
+
+      expect(result.current.currentMargin).toBe(0);
+      expect(result.current.positionValue).toBe(0);
+      expect(result.current.currentLiquidationPrice).toBe(0);
+      expect(result.current.currentPrice).toBe(0);
+      expect(result.current.spendableBalance).toBe(0);
+      expect(result.current.maxAmount).toBe(0);
+      expect(Number.isFinite(result.current.positionLeverage)).toBe(true);
+      expect(result.current.hasValidPositionData).toBe(false);
+    });
+
+    it.each([
+      { marginUsed: '0' },
+      { marginUsed: '100abc' },
+      { positionValue: '0' },
+      { size: '0' },
+      { entryPrice: 'Infinity' },
+      { leverage: { value: 0, type: 'isolated' as const } },
+    ])('rejects incomplete authoritative position data: %o', (overrides) => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [{ ...mockPosition, ...overrides }],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.hasValidPositionData).toBe(false);
     });
   });
 
@@ -272,6 +364,7 @@ describe('usePerpsAdjustMarginData', () => {
       // marginDelta = 1000, positionSize = 0.5, currentLiqPrice = 80000
       // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 1 - 0.01 = 0.99
       // For long (direction=-1): newLiqPrice = 80000 + (-1 * 1000 / 0.5) / 0.99 ≈ 77979.80
+      expect(result.current.newMargin).toBe(6000);
       expect(result.current.newLiquidationPrice).toBeCloseTo(77979.8, 1);
     });
 
@@ -298,6 +391,7 @@ describe('usePerpsAdjustMarginData', () => {
       // marginDelta = -1000 (removing), positionSize = 0.5, currentLiqPrice = 80000
       // maintenanceMarginRate = 1/(2*50) = 0.01, denominator = 0.99
       // For long (direction=-1): newLiqPrice = 80000 + (-1 * -1000 / 0.5) / 0.99 ≈ 82020.20
+      expect(result.current.newMargin).toBe(7000);
       expect(result.current.newLiquidationPrice).toBeCloseTo(82020.2, 1);
     });
   });
@@ -388,6 +482,13 @@ describe('usePerpsAdjustMarginData', () => {
         ],
         isInitialLoading: false,
       });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [{ ...mockMarkets[0], maxLeverage: '25x' }],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
 
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({
@@ -397,7 +498,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.positionLeverage).toBe(50);
+      expect(result.current.positionLeverage).toBe(25);
     });
   });
 });

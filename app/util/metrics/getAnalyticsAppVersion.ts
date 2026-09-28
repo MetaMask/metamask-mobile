@@ -1,12 +1,13 @@
 import { getVersion } from 'react-native-device-info';
 
 const ENVIRONMENT_SUFFIXES: Record<string, string> = {
-  rc: 'release-candidate',
   exp: 'experimental',
   dev: 'development',
 };
 
 const NIGHTLY_ATTRIBUTION = 'nightly';
+const OFFICIAL_ATTRIBUTION = 'official';
+const UNOFFICIAL_RC_SUFFIX = 'rc-unofficial';
 
 /**
  * Formats the analytics App Version string from a native version, a
@@ -16,8 +17,11 @@ const NIGHTLY_ATTRIBUTION = 'nightly';
  * friendly suffixes; any other non-prod env uses `-{environment}`.
  *
  * Nightly builds keep the raw environment code instead of the friendly suffix
- * (`-rc-nightly`, `-exp-nightly`) so they can be told apart from the Runway
+ * (`-rc-nightly`, `-exp-nightly`) so they can be told apart from official
  * release candidates that share the same METAMASK_ENVIRONMENT.
+ *
+ * `rc` emits `-release-candidate` only when attribution is `official`. Any
+ * other rc build (local, BrowserStack, ad-hoc CI) emits `-rc-unofficial`.
  */
 export const formatAnalyticsAppVersion = (
   baseVersion: string,
@@ -25,7 +29,8 @@ export const formatAnalyticsAppVersion = (
   buildAttribution?: string,
 ): string => {
   const env = environment?.trim();
-  const isNightly = buildAttribution?.trim() === NIGHTLY_ATTRIBUTION;
+  const attribution = buildAttribution?.trim();
+  const isNightly = attribution === NIGHTLY_ATTRIBUTION;
 
   if (!env || env === 'production') {
     return isNightly ? `${baseVersion}-${NIGHTLY_ATTRIBUTION}` : baseVersion;
@@ -33,6 +38,14 @@ export const formatAnalyticsAppVersion = (
 
   if (isNightly) {
     return `${baseVersion}-${env}-${NIGHTLY_ATTRIBUTION}`;
+  }
+
+  if (env === 'rc') {
+    const suffix =
+      attribution === OFFICIAL_ATTRIBUTION
+        ? 'release-candidate'
+        : UNOFFICIAL_RC_SUFFIX;
+    return `${baseVersion}-${suffix}`;
   }
 
   const suffix = ENVIRONMENT_SUFFIXES[env] ?? env;

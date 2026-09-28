@@ -65,6 +65,13 @@ const feedEvents = {
     ...game('scheduled', '2999-01-01T00:00:00.000Z'),
     markets: [market('fg-m1')],
   },
+  /** A standard card shows three Markets; the other two are hidden props. */
+  props: {
+    venueId: 'kalshi',
+    id: 'props',
+    title: 'Props',
+    markets: ['p-m1', 'p-m2', 'p-m3', 'p-m4', 'p-m5'].map(market),
+  },
 };
 
 const marketIds = (eventId: keyof typeof feedEvents) =>
@@ -292,6 +299,47 @@ describe('PredictNext live-data subscriptions', () => {
       id('event-1'),
       id('event-2'),
     ]);
+  });
+
+  it('widens a card-scoped Feed watch to every Market while the Event Screen is open', async () => {
+    const harness = buildHarness();
+    const cardMarkets = marketIds('props').slice(0, 3);
+    const hiddenMarkets = marketIds('props').slice(3);
+
+    // Feed card: only the three Markets the card prices.
+    harness.messenger.call(
+      'PredictLiveDataService:watchEvents',
+      KALSHI_VENUE_ID,
+      [id('props')],
+      { marketScope: 'card' },
+    );
+    const socket = await openAndWelcome(harness);
+    await settle();
+    expect(socket.subscribedIds('market')).toEqual(cardMarkets);
+
+    // Event Screen on top: the hidden lines come in, nothing is re-subscribed.
+    watch(harness, 'props');
+    await settle();
+    expect(socket.subscribedIds('market')).toEqual(marketIds('props'));
+    expect(
+      socket.sent.filter((frame) => frame.type === 'subscribe'),
+    ).toHaveLength(2);
+
+    // Event Screen pops: back to the card's Markets; the Feed still holds them.
+    unwatch(harness, 'props');
+    await settle();
+    expect(socket.subscribedIds('market')).toEqual(cardMarkets);
+    expect(socket.sent.filter((frame) => frame.type === 'unsubscribe')).toEqual(
+      [
+        {
+          type: 'unsubscribe',
+          topic: 'market',
+          venueId: 'kalshi',
+          markets: hiddenMarkets,
+        },
+      ],
+    );
+    expect(harness.liveDataService.watchedEventIds).toEqual([id('props')]);
   });
 
   it('drops the connection in the background and resubscribes the visible set on foreground', async () => {

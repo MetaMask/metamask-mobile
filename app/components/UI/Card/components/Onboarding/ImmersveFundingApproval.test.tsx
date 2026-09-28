@@ -83,10 +83,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => ({ countryKey: 'GB' })),
 }));
 
+const mockMarkMigrationCompleted = jest.fn();
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
       fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+      markMigrationCompleted: (...args: unknown[]) =>
+        mockMarkMigrationCompleted(...args),
     },
   },
 }));
@@ -265,6 +269,7 @@ describe('ImmersveFundingApproval', () => {
     (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
     mockExecuteFunding.mockResolvedValue('0xtxhash');
     mockCreateCard.mockResolvedValue({ cardId: 'card-1' });
+    mockMarkMigrationCompleted.mockResolvedValue(undefined);
     mockBuildApproveWrite.mockReturnValue(WRITE);
     mockFetchCardHomeData.mockResolvedValue(undefined);
     setFundingState();
@@ -364,10 +369,11 @@ describe('ImmersveFundingApproval', () => {
 
     await waitFor(() => {
       expect(mockCreateCard).toHaveBeenCalledWith('fs-1');
-    });
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.HOME }],
+      expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
     });
   });
 
@@ -389,6 +395,7 @@ describe('ImmersveFundingApproval', () => {
       });
     });
     expect(mockCreateCard).not.toHaveBeenCalled();
+    expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
   });
 
   it('does not re-create the card on re-render while still active', async () => {

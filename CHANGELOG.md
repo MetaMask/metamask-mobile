@@ -7,6 +7,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.12.0]
+
+### Added
+
+- Added relayer fee transparency to swap and bridge quote details (#36060)
+- Added trust-signal badges to tokenized stock search results (#36043)
+- Added a back button to Money after adding funds from the Money Account Sweepstakes campaign, and an Updating indicator when qualifying deposits have not yet caught up to a confirmed Money Account transaction (#35918)
+- Added Perps error messages for invalid, unsupported, and occupied-position/order margin modes (#35967)
+- Added Robinhood RWA assets to Explore stocks, full list, and search (#35854)
+- Added recurring job details for open and completed recurring orders (#35769)
+- Added remotely configured Predict discovery content to the wallet homepage (#35641)
+- Added an Update badge on MetaMask Card in the Accounts menu for UK Card migration (#35826)
+- Added an Invoices row to the Pro Hub membership manage section (#35566)
+- Added insufficient funds and gas validation to the swaps limit order confirm button (#35800)
+- Added UK MetaMask Card migration prompts on Card Home for GB Baanx users (#35717)
+- Added support for identity verification in the Virtual Bank Account flow (#35469)
+
+### Changed
+
+- Changed limit orders so users can create orders from their limit price without waiting for a quote (#36022)
+- Restored the legacy Earn row in the trade menu while keeping the redesigned row behind a feature flag (#36004)
+- Updated the network controller dependency (#36031)
+- Improved swap and bridge quote handling to avoid duplicate balance requests (#35649)
+- Updated bridge quote details to use costs provided by the bridge service (#35393)
+- Updated the app typeface from Geist to Inter (#35748)
+- Updated the Predict market details About rows to match the Token Details styling (#35813)
+- Improved recurring swap scheduling and price range controls (#35914)
+- Updated Pro Hub to show additional included benefits and a manage membership footer (#35565)
+- Updated component-library icons to Phosphor Regular glyphs (#35526)
+- Updated swap limit orders to use live token fiat rates (#35859)
+- Updated the MetaMask Pro Hub home screen layout, earnings stats, and physical card promo (#35518)
+- Improved hardware-wallet deposit gas validation and reduced transient balance warnings (#35809)
+- Updated Money Account Sweepstakes last-checked row to match the existing balance type size and sit closer to it (#35770)
+- Migrated users with all toggles on/off to consolidated toggle on/off state (#35671)
+- Tightened the spacing above the chart on Predict market details (#35860)
+
+### Removed
+
+- Removed the estimated network fee row from the limit order details section (#36014)
+- Removed the trailing period from the Notifications accounts helper copy (#35734)
+- Removed an unused photo library permission from the Android app (#35737)
+
+### Fixed
+
+- Fixed Predict deposit-and-order Relay quotes to preserve exact-output sizing (#36144, #36151)
+- Restored the Money onboarding footer layout spacing (#36065)
+- Fixed Braze push notification consent synchronization with MetaMask notification settings (#35945)
+- Fixed Money onboarding navigation before the final animation completes (#35998)
+- Fixed push notification onboarding on Android versions earlier than 13 (#35387)
+- Fixed a bug where backing out of the Perps add-funds screen could leave the app stuck on a loading spinner (#35996)
+- Fixed a crash on Android when navigating between Perps screens (#35600)
+- Fixed recurring swaps to only show destination tokens on the selected source network (#35981)
+- Fixed MetaMask Card verify-identity illustration not being centered (#35102)
+- Fixed limit order destination token picker showing tokens from chains other than the selected source chain (#35941)
+- Fixed a bug that allowed Predict deposits and wallet-token bets to be submitted before MetaMask Pay was ready, causing failed deposits with the error "MetaMask Pay: Cannot submit without quote" (#35867)
+- Fixed Predict market details header icons not aligning with the title and image (#35197)
+- Fixed Money account deposits defaulting to a $0 Monad mUSD pay token and showing a loading skeleton instead of $0 (#35934)
+- Fixed Predict showing users as unavailable in their region when the eligibility check timed out (#35719)
+- Fixed missing padding between TWAP filters and the Active / History / Fill history tabs (#35774)
+- Fixed Braze full-screen in-app message CTAs opening in an in-app webview instead of the system browser on iOS (#35922)
+- Fixed transaction preflight checks while gas estimates are loading (#35869)
+- Fixed Predict claim failures for users with insufficient POL when gas-station fee tokens are unavailable (#35567)
+- Fixed a bug where scanning an extension QR code after onboarding could hang on the scanner instead of showing the verification code (#35931)
+- Fixed Predict carousel cards so the action buttons line up across cards (#35806)
+- Fixed Android onboarding background not filling the gesture/navigation area under the fox (#35838)
+- Fixed incorrect capitalization of "DeFi" in the homepage error message ("Unable to load defi" → "Unable to load DeFi") (#35703)
+- Fixed missing article in the Network details check description (#35728)
+- Fixed capitalization in the IPFS gateway banner copy (#35729)
+- Fixed wording in the Predict withdrawal error message (#35726)
+- Fixed extra space in the onboarding analytics opt-in alert copy (#35724)
+- Fixed missing word in the Display NFT media sheet copy (#35723)
+- Fixed MetaMask Card cashback and credit redeem so destination routing, withdraw locking, and failure toasts stay consistent across modes and networks (#35741)
+- Fixed wallet activity notifications being scoped to shared profile storage instead of the wallet's own accounts, and simplified the Wallet activity settings screen to per-account switches (#35474)
+- Fixed a bug where repeatedly pressing back in the Send flow could get stuck looping instead of returning to the previous screen (#35712)
+- Fixed the Claim button not appearing for pushed prediction markets bought above 50c, and the claim confirmation showing a push's negative P&L as a gain (#35646)
+- Fixed extra spacing in the Network details check description in Security and privacy settings (#35722)
+- Fixed grammar in the swap slippage warning messages (#35725)
+- Fixed take profit and stop loss failing to attach when opening a new Perps position (#35742)
+- Fixed Perps Pro order-book taps filling a limit price with more decimals than the market price displays (#35685)
+- Fixed spacing in the home onboarding trade step subtitle (#35711)
+
 ## [8.11.0]
 
 ### Added
@@ -13856,7 +13937,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...HEAD
+[8.12.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...v8.12.0
 [8.11.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.2...v8.11.0
 [8.10.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.1...v8.10.2
 [8.10.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.0...v8.10.1

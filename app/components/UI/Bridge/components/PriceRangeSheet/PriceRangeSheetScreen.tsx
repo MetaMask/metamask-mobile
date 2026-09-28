@@ -8,12 +8,8 @@ import {
   selectSourceToken,
   setRecurringPriceRange,
 } from '../../../../../core/redux/slices/bridge';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { useTokenFiatRate } from '../../hooks/useTokenFiatRate';
-import {
-  isPriceRangeInCurrentCurrency,
-  type RecurringPriceRange,
-} from '../../utils/priceRange';
+import { useTokenUsdRate } from '../../hooks/useTokenFiatRate';
+import type { RecurringPriceRange } from '../../utils/priceRange';
 import PriceRangeSheet from './PriceRangeSheet';
 
 export const PriceRangeSheetScreen = () => {
@@ -22,15 +18,8 @@ export const PriceRangeSheetScreen = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const priceRange = useSelector(selectRecurringPriceRange);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const sourceFiatRate = useTokenFiatRate(sourceToken);
-  const destFiatRate = useTokenFiatRate(destToken);
-  const effectiveRange = isPriceRangeInCurrentCurrency(
-    priceRange,
-    currentCurrency,
-  )
-    ? priceRange
-    : undefined;
+  const sourceUsdRate = useTokenUsdRate(sourceToken);
+  const destUsdRate = useTokenUsdRate(destToken);
 
   const handleConfirm = useCallback(
     (nextPriceRange?: RecurringPriceRange) => {
@@ -43,12 +32,11 @@ export const PriceRangeSheetScreen = () => {
     <PriceRangeSheet
       sourceToken={sourceToken}
       destToken={destToken}
-      sourceFiatRate={sourceFiatRate}
-      destFiatRate={destFiatRate}
-      currentCurrency={currentCurrency}
-      initialTokenSide={effectiveRange?.tokenSide}
-      initialMin={effectiveRange?.min}
-      initialMax={effectiveRange?.max}
+      sourceUsdRate={sourceUsdRate}
+      destUsdRate={destUsdRate}
+      initialTokenSide={priceRange?.tokenSide}
+      initialMin={priceRange?.min}
+      initialMax={priceRange?.max}
       onConfirm={handleConfirm}
       goBack={goBack}
     />

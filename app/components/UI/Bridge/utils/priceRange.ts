@@ -7,9 +7,11 @@ export const PRICE_RANGE_TOKEN_SIDES = ['source', 'dest'] as const;
 
 export type PriceRangeTokenSide = (typeof PRICE_RANGE_TOKEN_SIDES)[number];
 
+export const PRICE_RANGE_CURRENCY = 'USD' as const;
+
 export interface RecurringPriceRange {
   tokenSide: PriceRangeTokenSide;
-  currency: string;
+  currency: typeof PRICE_RANGE_CURRENCY;
   min: string;
   max: string;
 }
@@ -79,15 +81,13 @@ export function isValidPriceRange(min: string, max: string): boolean {
   );
 }
 
-export function isPriceRangeInCurrentCurrency(
-  range: RecurringPriceRange | undefined,
-  currentCurrency: string,
-): range is RecurringPriceRange {
-  if (!range?.currency || !currentCurrency) {
-    return false;
-  }
+export function isInvertedPriceRange(min: string, max: string): boolean {
+  const parsedMin = parsePriceInput(min);
+  const parsedMax = parsePriceInput(max);
 
-  return range.currency.toLowerCase() === currentCurrency.toLowerCase();
+  return (
+    parsedMin !== undefined && parsedMax !== undefined && parsedMin >= parsedMax
+  );
 }
 
 export function matchingPricePercent(

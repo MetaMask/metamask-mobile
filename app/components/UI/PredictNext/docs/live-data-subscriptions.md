@@ -13,23 +13,24 @@ Screen  ──watchEvents(eventIds)──▶  PredictLiveDataService  ──subs
 
 ### Surfaces (`hooks/useEventsWithLiveData.ts`)
 
-`useEventsWithLiveData(venueId, events, { visibleEventIds, isVisible })` is the only way product UI touches live data. It
+`useEventsWithLiveData(venueId, events, { visibleEventIds, isVisible, marketScope })` is the only way product UI touches live data. It
 
 - watches exactly the Events in `visibleEventIds` (defaulting to every Event in `events`) while `isVisible` is true, sending only the diff to the service as the visible set changes, and releasing whatever it still holds on unmount;
-- listens for `gameLiveUpdated` and `quoteUpdated` for every Event in `events`, so a frame for a card that is rendered but just outside the viewport still lands when it scrolls back;
-- returns the same Events with Game fields and Outcome prices patched.
+- passes `marketScope` (`all` by default; Home and Feed pass `card`) with every watch, so the service knows whether the surface prices every Market or only the ones a list card shows;
+- listens for `gameLiveUpdated` and `quoteUpdated` for every Event in `events` (narrowed to card Markets under `card` scope), so a frame for a card that is rendered but just outside the viewport still lands when it scrolls back;
+- returns the same Events with Game fields and Outcome prices patched, reusing the previous Event object when a tick did not touch it.
 
-Surfaces never see Market ids. Which Markets an Event needs is the service's business.
+Surfaces never see Market ids. Which Markets an Event needs for a given scope is the service's business.
 
 ### Event-keyed manager (`services/PredictLiveDataService.ts`, `services/internal/LiveEventSubscriptions.ts`)
 
-`PredictLiveDataService:watchEvents` / `unwatchEvents` are ref-counted per Event id. The first watcher of an Event
+`PredictLiveDataService:watchEvents` / `unwatchEvents` are ref-counted per Event id and market scope. The first watcher of an Event
 
 1. resolves the Event through `PredictMarketDataService:getEvent` (the cached REST read, so a card that was just rendered from a Feed does not hit the network again within `MARKET_DATA_EVENT_STALE_TIME`);
-2. subscribes the Event's `markets[].id` on the `market` topic, in the Event's own `markets` order;
+2. subscribes the Markets its scope needs on the `market` topic, in the Event's own `markets` order: every `markets[].id` for `all`, or `getEventCardLiveMarketIds` (winner lines of a Game card, the first three Markets of a standard card) for `card`;
 3. when [live-game gating](#live-game-gating) applies, subscribes the Event id on the `game` topic.
 
-The last watcher releases both. A watch released before its resolution settles subscribes nothing; a failed resolution is retried on the next watch for that Event. A watcher that joins an already-resolved Event is replayed the last known quote and Game values, because the Venue only snapshots on first subscribe.
+Further watchers only widen the Market set: a `card` Feed row under an `all` Event Screen holds every Market, and when the Event Screen pops the hidden lines are released while the card's Markets stay. The last watcher releases everything. A watch released before its resolution settles subscribes nothing; a failed resolution is retried on the next watch for that Event. A watcher that joins an already-resolved Event is replayed the last known values for the Markets its scope prices and for the Game, because the Venue only snapshots on first subscribe.
 
 Because Home and Feed watch the same Event id, and because the client additionally ref-counts per Market id, an Event visible on both surfaces holds exactly one upstream subscription per Market, and a Game detail read that appends sibling Markets shares them with the sibling Event.
 
@@ -39,11 +40,11 @@ The client ref-counts per id and topic, opens the socket lazily on the first wat
 
 ## Visibility adapters
 
-| Surface      | Granularity                                                                                                                                                                                                                                                                                       |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Event Screen | The one Event, watched from mount to unmount. Backgrounding is handled by the transport.                                                                                                                                                                                                          |
-| Feed Screen  | Per card. `FlatList` `onViewableItemsChanged` (10% visibility threshold) names the visible cards; until the list reports anything the first page stands in. A report that names nothing (fling, bounce, delayed callback from a previous tab) is ignored so the last measured set stays watched.  |
-| Home         | Per section. Each `FeedPreviewSection` reports its frame and the `ScrollView` its height; a section is visible while any part of it overlaps `[scrollY, scrollY + viewportHeight]`. Every Event of a visible section is watched. Unmeasured sections and an unmeasured viewport count as visible. |
+| Surface      | Granularity                                                                                                                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Event Screen | The one Event, watched from mount to unmount with `marketScope: 'all'`. Backgrounding is handled by the transport.                                                                                                                                                                                                       |
+| Feed Screen  | Per card, `marketScope: 'card'`. `FlatList` `onViewableItemsChanged` (10% visibility threshold) names the visible cards; until the list reports anything the first page stands in. A report that names nothing (fling, bounce, delayed callback from a previous tab) is ignored so the last measured set stays watched.  |
+| Home         | Per section, `marketScope: 'card'`. Each `FeedPreviewSection` reports its frame and the `ScrollView` its height; a section is visible while any part of it overlaps `[scrollY, scrollY + viewportHeight]`. Every Event of a visible section is watched. Unmeasured sections and an unmeasured viewport count as visible. |
 
 Home uses section-level rather than card-level tracking deliberately: it shows a handful of two-card sections, so the saving from per-card measurement would be one or two Markets, and section frames come free from `onLayout`. The scroll offset crosses from the UI thread through `useAnimatedReaction` → `scheduleOnRN`; the visible set only re-renders Home when it actually changes.
 
@@ -72,7 +73,7 @@ The transport logs when it truncates or refuses a subscribe so the condition is 
 
 ## Testing
 
-- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, gating, replay.
+- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, gating, replay, market-scope widening and narrowing.
 - `services/PredictLiveDataService.test.ts` — messenger actions, per-Venue guard, value caching and replay.
 - `services/PredictLiveDataService.integration.test.ts` — the acceptance journeys over the shared `tests/integration/harnesses/predict-next.ts` harness with a fake gateway socket: Feed scroll in/out, one upstream subscription for Home + Feed, zero subscriptions after Event Screen unmount, deterministic cap degradation, background/foreground.
 - `views/PredictHome/internal/useVisibleSections.test.ts` and the `*.view.test.tsx` files — the per-surface visibility adapters.

@@ -23,6 +23,7 @@ import {
 } from '../../navigation/feedScreens';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
+import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
 
 const makeOutcome = (
@@ -141,6 +142,9 @@ const configureFeeds = (feeds: Partial<Record<string, FeedResponse>> = {}) => {
 const gameEvent = makeGameEvent('game-1');
 const secondGameEvent = makeGameEvent('game-2');
 const propsEvent = makeEvent('props-1', 'NFL Win Total');
+
+/** Feed cards ask the live-data service for card-visible Markets only. */
+const CARD_SCOPE = { marketScope: 'card' };
 
 const liveDataCalls = () =>
   messengerCall.mock.calls.filter(([action]: [string]) =>
@@ -546,6 +550,60 @@ describe('PredictFeedScreen', () => {
     expect(within(propsCard).getByText('$1.5M Vol')).toBeOnTheScreen();
   });
 
+  it('opens the Order flow from a tradeable Outcome row', async () => {
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [propsEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    fireEvent.press(
+      await view.findByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'yes')),
+    );
+
+    expect(
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps a quote-less Outcome row unpressable', async () => {
+    const [yesOutcome, noOutcome] = propsEvent.markets[0].outcomes;
+    const quoteLessEvent: PredictEvent = {
+      ...propsEvent,
+      markets: [
+        {
+          ...propsEvent.markets[0],
+          outcomes: [
+            { ...yesOutcome, askPrice: undefined },
+            { ...noOutcome, askPrice: undefined },
+          ],
+        },
+      ],
+    };
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [quoteLessEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    // The row stays visible (a missing Ask Price is not a zero price) but
+    // cannot start the Order flow.
+    const row = await view.findByTestId(
+      PredictHomeTestIds.outcome(quoteLessEvent.id, 'yes'),
+    );
+    expect(row).toBeDisabled();
+    fireEvent.press(row);
+    expect(
+      view.queryByTestId(PredictOrderFlowTestIds.SHEET),
+    ).not.toBeOnTheScreen();
+  });
+
   it('applies live Game updates to a Feed card', async () => {
     configureFeeds({ [NFL_GAMES_FEED_ID]: [gameEvent] });
     const view = renderPredictFeedScreen({
@@ -594,6 +652,7 @@ describe('PredictFeedScreen', () => {
       'PredictLiveDataService:watchEvents',
       KALSHI_VENUE_ID,
       [gameEvent.id],
+      CARD_SCOPE,
     );
 
     fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('props')));
@@ -605,11 +664,13 @@ describe('PredictFeedScreen', () => {
       'PredictLiveDataService:unwatchEvents',
       KALSHI_VENUE_ID,
       [gameEvent.id],
+      CARD_SCOPE,
     );
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictLiveDataService:watchEvents',
       KALSHI_VENUE_ID,
       [propsEvent.id],
+      CARD_SCOPE,
     );
   });
 
@@ -656,6 +717,7 @@ describe('PredictFeedScreen', () => {
       'PredictLiveDataService:unwatchEvents',
       KALSHI_VENUE_ID,
       [gameEvent.id],
+      CARD_SCOPE,
     );
   });
 
@@ -666,11 +728,13 @@ describe('PredictFeedScreen', () => {
       'PredictLiveDataService:unwatchEvents',
       KALSHI_VENUE_ID,
       [gameEvent.id],
+      CARD_SCOPE,
     );
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictLiveDataService:watchEvents',
       KALSHI_VENUE_ID,
       [secondGameEvent.id],
+      CARD_SCOPE,
     );
   });
 
@@ -694,6 +758,7 @@ describe('PredictFeedScreen', () => {
       'PredictLiveDataService:unwatchEvents',
       KALSHI_VENUE_ID,
       [gameEvent.id],
+      CARD_SCOPE,
     );
 
     messengerCall.mockClear();
@@ -703,6 +768,7 @@ describe('PredictFeedScreen', () => {
         'PredictLiveDataService:watchEvents',
         KALSHI_VENUE_ID,
         [gameEvent.id],
+        CARD_SCOPE,
       ),
     );
   });
