@@ -4,6 +4,7 @@ import {
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
   formatSignedFullUsdNoDecimals,
+  formatUnsignedFullUsdNoDecimals,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -162,6 +163,16 @@ describe('formatSignedFullUsdNoDecimals', () => {
   it('returns an em dash for null and undefined', () => {
     expect(formatSignedFullUsdNoDecimals(null)).toBe('\u2014');
     expect(formatSignedFullUsdNoDecimals(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatUnsignedFullUsdNoDecimals', () => {
+  it('formats the full number with commas and no sign prefix', () => {
+    expect(formatUnsignedFullUsdNoDecimals(7100)).toBe('$7,100');
+  });
+
+  it('omits the sign for negative values', () => {
+    expect(formatUnsignedFullUsdNoDecimals(-1234)).toBe('$1,234');
   });
 });
 

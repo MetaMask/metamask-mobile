@@ -28,6 +28,7 @@ import {
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
+import { augmentTempoCurrencyRates } from '../../enablement/assets/tempo';
 
 // CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
 // vault token that should never surface as regular ERC-20 tokens in the wallet
@@ -613,7 +614,7 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       };
     }
 
-    return result;
+    return augmentTempoCurrencyRates(result, assetsPrice);
   },
 );
 

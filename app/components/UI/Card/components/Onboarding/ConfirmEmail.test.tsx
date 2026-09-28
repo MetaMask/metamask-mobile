@@ -146,6 +146,34 @@ jest.mock('@metamask/design-system-react-native', () => {
       Md: 'Md',
       Lg: 'Lg',
     },
+    IconName: {
+      UserCheck: 'UserCheck',
+    },
+    TextField: ({
+      value,
+      onChangeText,
+      onBlur,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 
@@ -462,6 +490,8 @@ describe('ConfirmEmail Component', () => {
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
+      isFocused: () => true,
+      addListener: jest.fn(() => jest.fn()),
     } as never);
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
@@ -597,7 +627,10 @@ describe('ConfirmEmail Component', () => {
       );
 
       const codeField = getByTestId('confirm-email-code-field');
-      expect(codeField).toBeTruthy();
+      expect(codeField.props.autoFocus).not.toBe(true);
+      expect(codeField.props.keyboardType).toBe('number-pad');
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(codeField.props.autoComplete).toBe('one-time-code');
     });
 
     it('renders code field input element', () => {

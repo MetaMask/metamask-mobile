@@ -1,6 +1,13 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   useNavigation,
+  useIsFocused,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
@@ -14,6 +21,9 @@ import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 import type { PerpsStackParamList } from '../../types/navigation';
 import { useIsNativeHeader } from '../../../../hooks/useNativeHeader';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import PerpsLoader from '../../components/PerpsLoader';
+import PerpsConnectionErrorView from '../../components/PerpsConnectionErrorView';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 // The outreach banner sits above the market header and paints its background up
@@ -55,6 +65,8 @@ function resolveGenerationTrigger(
 const PerpsMarketDetailsRouter: React.FC = () => {
   const tw = useTailwind();
   const isProModeEnabled = usePerpsProModeEnabled();
+  const isFocused = useIsFocused();
+  const { activeProvider, switchProvider } = usePerpsProvider();
   const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
@@ -63,6 +75,48 @@ const PerpsMarketDetailsRouter: React.FC = () => {
       NativeStackNavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>
     >();
   const symbol = route.params?.market?.symbol;
+  const providerId = route.params?.market?.providerId;
+  const requiresVenueSwitch =
+    isProModeEnabled &&
+    providerId !== undefined &&
+    activeProvider !== providerId;
+  const [venueSwitch, setVenueSwitch] = useState<
+    'idle' | 'pending' | 'ready' | 'failed'
+  >('idle');
+  const isVenueReady =
+    !isProModeEnabled ||
+    (!requiresVenueSwitch &&
+      venueSwitch !== 'pending' &&
+      venueSwitch !== 'failed');
+  const requestedProviderRef = useRef<typeof providerId>(undefined);
+  const selectVenue = useCallback(() => {
+    if (!providerId) return;
+    requestedProviderRef.current = providerId;
+    setVenueSwitch('pending');
+    switchProvider(providerId).then(
+      (result) => setVenueSwitch(result.success ? 'ready' : 'failed'),
+      () => setVenueSwitch('failed'),
+    );
+  }, [providerId, switchProvider]);
+  useEffect(() => {
+    if (
+      (!isProModeEnabled && venueSwitch === 'failed') ||
+      (venueSwitch === 'ready' && !requiresVenueSwitch) ||
+      ((venueSwitch === 'ready' || venueSwitch === 'failed') &&
+        requestedProviderRef.current !== providerId)
+    ) {
+      setVenueSwitch('idle');
+    } else if (requiresVenueSwitch && isFocused && venueSwitch === 'idle') {
+      selectVenue();
+    }
+  }, [
+    isFocused,
+    isProModeEnabled,
+    providerId,
+    requiresVenueSwitch,
+    selectVenue,
+    venueSwitch,
+  ]);
   const mode = isProModeEnabled ? 'pro' : 'lite';
   const previousIdentityRef = useRef<
     { symbol?: string; mode: string } | undefined
@@ -80,12 +134,13 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   );
 
   useLayoutEffect(() => {
+    if (!isVenueReady) return;
     previousIdentityRef.current = { symbol, mode };
     consumedExplicitTriggerRef.current = true;
     if (explicitGenerationTrigger) {
       navigation.setParams({ detailGenerationTrigger: undefined });
     }
-  }, [explicitGenerationTrigger, mode, navigation, symbol]);
+  }, [explicitGenerationTrigger, isVenueReady, mode, navigation, symbol]);
 
   // PoC: Lite only; Pro has its own layout and the banner would sit under the bar.
   const isNativeHeaderEnabled =
@@ -109,7 +164,15 @@ const PerpsMarketDetailsRouter: React.FC = () => {
             : SAFE_AREA_EDGES
         }
       >
-        {isProModeEnabled ? (
+        {isProModeEnabled && venueSwitch === 'failed' ? (
+          <PerpsConnectionErrorView
+            error="Unable to select the market's trading provider"
+            onRetry={selectVenue}
+            showBackButton
+          />
+        ) : !isVenueReady ? (
+          <PerpsLoader />
+        ) : isProModeEnabled ? (
           <PerpsProMarketView generationTrigger={generationTrigger} />
         ) : (
           <PerpsMarketDetailsView

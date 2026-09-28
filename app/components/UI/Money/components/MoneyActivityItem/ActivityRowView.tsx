@@ -69,7 +69,7 @@ const ActivityRowView = ({
       testID={`${MoneyActivityItemTestIds.ROW}-${id}`}
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center gap-4 px-4 py-3',
+          'w-full flex-row items-center gap-4 px-4 py-4',
           pressed && onPress !== undefined && 'bg-pressed',
         )
       }
@@ -86,6 +86,7 @@ const ActivityRowView = ({
                   typeof BadgeNetwork
                 >['src']
               }
+              testID={MoneyActivityItemTestIds.NETWORK_BADGE}
             />
           }
         >
@@ -93,6 +94,7 @@ const ActivityRowView = ({
             iconName={display.icon}
             severity={AvatarIconSeverity.Neutral}
             size={AvatarIconSize.Lg}
+            accessibilityLabel={display.icon}
             testID={MoneyActivityItemTestIds.ICON}
           />
         </BadgeWrapper>
@@ -102,6 +104,7 @@ const ActivityRowView = ({
             iconName={display.icon}
             severity={AvatarIconSeverity.Neutral}
             size={AvatarIconSize.Lg}
+            accessibilityLabel={display.icon}
             testID={MoneyActivityItemTestIds.ICON}
           />
         </Box>
@@ -117,6 +120,7 @@ const ActivityRowView = ({
             fontWeight={FontWeight.Medium}
             color={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
             numberOfLines={1}
+            testID={MoneyActivityItemTestIds.LABEL}
             twClassName="shrink"
           >
             {display.label}
@@ -131,35 +135,23 @@ const ActivityRowView = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
             numberOfLines={1}
+            testID={MoneyActivityItemTestIds.DESCRIPTION}
           >
             {display.description}
           </Text>
         ) : null}
       </Box>
-      <Box alignItems={BoxAlignItems.End} twClassName="shrink-0 gap-0.5">
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={amountColor}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          twClassName="text-right"
-          testID={MoneyActivityItemTestIds.PRIMARY_AMOUNT}
-        >
-          {display.primaryAmount}
-        </SensitiveText>
-        <SensitiveText
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-          twClassName="text-right"
-          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
-        >
-          {display.fiatAmount}
-        </SensitiveText>
-      </Box>
+      <SensitiveText
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={amountColor}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Short}
+        twClassName="text-right"
+        testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
+      >
+        {display.fiatAmount}
+      </SensitiveText>
     </Pressable>
   );
 };

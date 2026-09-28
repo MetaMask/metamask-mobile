@@ -10,6 +10,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { isNftFetchingProgressSelector } from '../../../reducers/collectibles';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
@@ -146,6 +147,14 @@ jest.mock('../../../component-library/components-temp/Skeleton', () => ({
 }));
 
 // Mock CollectiblesEmptyState - has complex dependencies
+jest.mock(
+  '../BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return () => <View testID="basic-functionality-empty-state" />;
+  },
+);
+
 jest.mock('../CollectiblesEmptyState', () => ({
   CollectiblesEmptyState: ({
     onAction,
@@ -230,6 +239,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
     );
   },
   ButtonVariant: { Secondary: 'Secondary' },
+  IconName: { Warning: 'Warning' },
 }));
 
 // Mock ButtonIcon and its enums
@@ -339,10 +349,12 @@ describe('NftGrid', () => {
     collectibles = {},
     isNftFetching = false,
     selectedGroupAccounts = [],
+    isBasicFunctionalityEnabled = true,
   }: {
     collectibles?: Record<string, Nft[]>;
     isNftFetching?: boolean;
     selectedGroupAccounts?: { address: string }[];
+    isBasicFunctionalityEnabled?: boolean;
   }) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === isNftFetchingProgressSelector) {
@@ -350,6 +362,9 @@ describe('NftGrid', () => {
       }
       if (selector === selectSelectedAccountGroupInternalAccounts) {
         return selectedGroupAccounts;
+      }
+      if (selector === selectBasicFunctionalityEnabled) {
+        return isBasicFunctionalityEnabled;
       }
       // For the custom selector function that calls multichainCollectiblesByEnabledNetworksSelector
       if (typeof selector === 'function') {
@@ -370,6 +385,26 @@ describe('NftGrid', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('replaces the NFT grid with the basic functionality empty state when Basic Functionality is off', () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      collectibles: mockCollectibles,
+      isBasicFunctionalityEnabled: false,
+    });
+    const store = mockStore(initialState);
+
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    expect(getByTestId('basic-functionality-empty-state')).toBeOnTheScreen();
+    expect(queryByTestId('base-control-bar')).toBeNull();
+    expect(queryByTestId('collectible-Test NFT-456')).toBeNull();
+    expect(queryByTestId('collectibles-empty-state')).toBeNull();
   });
 
   it('renders NFT grid when collectibles are present', async () => {
