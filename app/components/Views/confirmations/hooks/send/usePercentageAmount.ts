@@ -176,7 +176,7 @@ export const usePercentageAmount = () => {
         return undefined;
       }
 
-      return await getLayer1GasFeeForSend({
+      const layer1GasFee = await getLayer1GasFeeForSend({
         asset: asset as AssetType,
         chainId: chainId as Hex,
         from: from as Hex,
@@ -184,6 +184,9 @@ export const usePercentageAmount = () => {
         to: recipientAddress as Hex,
         value: transactionValue,
       });
+
+      // Chains without a layer 1 gas fee flow resolve to undefined.
+      return layer1GasFee ?? ('0x0' as Hex);
     },
     [
       asset,

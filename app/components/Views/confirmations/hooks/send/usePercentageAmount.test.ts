@@ -356,6 +356,26 @@ describe('usePercentageAmount', () => {
     });
   });
 
+  it('treats a missing L1 fee as zero on chains without an L1 fee flow', async () => {
+    jest
+      .spyOn(SendUtils, 'getLayer1GasFeeForSend')
+      .mockResolvedValue(undefined);
+    setNativeSendContext({
+      asset: { ...NATIVE_ASSET, chainId: '0x539' } as AssetType,
+      chainId: '0x539',
+    });
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+
+    await waitFor(() => {
+      expect(result.current.isMaxAmountSupported).toBe(true);
+      expect(result.current.getPercentageAmount(100)).toBe('9685000000000');
+    });
+  });
+
   it('returns the full balance for sponsored software accounts', () => {
     mockUseIsNetworkGasSponsored.mockReturnValue(true);
     setNativeSendContext();
