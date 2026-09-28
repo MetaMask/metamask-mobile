@@ -1188,6 +1188,11 @@
       "title": "Couldn't continue",
       "description": "Something went wrong while checking your bank account setup. Try again.",
       "button": "Try again"
+    },
+    "vba_details": {
+      "title": "Virtual bank account",
+      "description": "Your account is ready. Details for adding and receiving money will appear here.",
+      "button": "Done"
     }
   },
   "social_leaderboard": {

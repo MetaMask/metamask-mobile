@@ -8,6 +8,7 @@ export const VbaOnboardingRoutes = {
   KYC_REJECTED: 'VbaKycRejected',
   ACCOUNT_PROVISIONING_ERROR: 'VbaAccountProvisioningError',
   ERROR: 'VbaError',
+  DETAILS: 'VbaDetails',
 } as const;
 
 // React Navigation param lists must remain type aliases for strict route keys.
@@ -22,6 +23,7 @@ export type VbaOnboardingParamList = {
   VbaKycRejected: undefined;
   VbaAccountProvisioningError: undefined;
   VbaError: undefined;
+  VbaDetails: undefined;
 };
 
 export const VbaIdentityVerificationRoutes = {
