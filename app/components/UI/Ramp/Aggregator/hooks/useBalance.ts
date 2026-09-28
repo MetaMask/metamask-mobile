@@ -99,7 +99,10 @@ export default function useBalance(asset?: Asset) {
     // undefined) and fall through to the EVM logic below.
     if (assetBalance?.amount != null && assetBalance.amount !== '') {
       try {
-        balanceBN = toTokenMinimalUnit(assetBalance.amount, asset.decimals ?? 0);
+        balanceBN = toTokenMinimalUnit(
+          assetBalance.amount,
+          asset.decimals ?? 0,
+        );
       } catch {
         balanceBN = null;
       }

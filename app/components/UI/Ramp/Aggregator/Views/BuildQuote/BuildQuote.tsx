@@ -941,9 +941,7 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector
-                isEvmOnly={isSell && !isOffRampNonEvmEnabled}
-              />
+              <AccountSelector isEvmOnly={isSell && !isOffRampNonEvmEnabled} />
               <View style={styles.spacer} />
               {isFetchingRegions ? (
                 <SkeletonText thick />
