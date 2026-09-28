@@ -3,7 +3,10 @@ import {
   parsePredictBalance,
   parsePredictPositionsPage,
 } from '../../contracts/v1/portfolio';
-import { parsePredictOrderPreview } from '../../contracts/v1/trading';
+import {
+  parsePredictOrderPreview,
+  parsePredictOrderReceipt,
+} from '../../contracts/v1/trading';
 import {
   parsePredictEvent,
   parsePredictFeed,
@@ -22,11 +25,13 @@ import {
   PredictHttpError,
 } from './PredictApiReadClient';
 
-/** Backend canonical preview error codes → client error codes. */
-const PREVIEW_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
+/** Backend canonical trading error codes (preview and commit) → client
+ * error codes. */
+const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
   market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
   market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
+  preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
   balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
   insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
   insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
@@ -72,10 +77,10 @@ const mapError = (error: unknown): never => {
 };
 
 const mapTradingError = (error: unknown): never => {
-  // The backend reports canonical preview failure codes in the body; they
+  // The backend reports canonical trading failure codes in the body; they
   // describe product states the client renders, so they win over status.
   if (error instanceof PredictHttpError && error.bodyCode) {
-    const mapped = PREVIEW_ERROR_CODE_BY_BACKEND_CODE[error.bodyCode];
+    const mapped = TRADING_ERROR_CODE_BY_BACKEND_CODE[error.bodyCode];
     if (mapped) {
       throw PredictError.from(mapped);
     }
@@ -104,6 +109,27 @@ export class KalshiRemoteAdapter {
             result.marketId !== params.marketId ||
             result.side !== params.side ||
             !isSameAmount(result.requestedAmount, params.amount)
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapTradingError(error);
+        }
+      },
+      // One network attempt per invocation; observation and reconciliation
+      // re-commit deliberately, never automatically.
+      commitOrder: async (previewId, options) => {
+        try {
+          const value = await client.commitOrder(
+            this.venueId,
+            { previewId },
+            options,
+          );
+          const result = parsePredictOrderReceipt(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.previewId !== previewId
           ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -66,11 +66,11 @@ const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
-  const [activeOrdersTab, setActiveOrdersTab] = useState(
-    OrdersTabKey.OpenOrders,
-  );
-
-  const { latestSourceBalance } = useBridgeSession();
+  const {
+    latestSourceBalance,
+    recurringOrdersTab = OrdersTabKey.OpenOrders,
+    setRecurringOrdersTab = () => undefined,
+  } = useBridgeSession();
   const {
     destToken,
     destTokenAmount,
@@ -99,13 +99,13 @@ const BridgeRecurringBuyViewContent = () => {
     walletAddress,
     status: OPEN_ORDER_STATUSES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+    enabled: recurringOrdersTab === OrdersTabKey.OpenOrders,
   });
   const historyQuery = useRecurringOrders({
     walletAddress,
     status: HISTORY_ORDER_STATUSES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.History,
+    enabled: recurringOrdersTab === OrdersTabKey.History,
   });
 
   const {
@@ -168,14 +168,14 @@ const BridgeRecurringBuyViewContent = () => {
         return;
       }
 
-      if (activeOrdersTab === OrdersTabKey.OpenOrders) {
+      if (recurringOrdersTab === OrdersTabKey.OpenOrders) {
         openOrdersQuery.fetchNextPage();
         return;
       }
 
       historyQuery.fetchNextPage();
     },
-    [activeOrdersTab, historyQuery, openOrdersQuery],
+    [recurringOrdersTab, historyQuery, openOrdersQuery],
   );
 
   const priceRangeToken =
@@ -283,7 +283,8 @@ const BridgeRecurringBuyViewContent = () => {
               enabledChainIds={enabledChainIds}
               openOrders={openOrders}
               history={history}
-              onTabChange={setActiveOrdersTab}
+              activeTab={recurringOrdersTab}
+              onTabChange={setRecurringOrdersTab}
             />
           </Box>
         </ScrollView>
