@@ -95,6 +95,7 @@ import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
+import { handleXOAuthRedirect } from './legacy/handleXOAuthRedirect';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
@@ -136,6 +137,7 @@ const SUPPORTED_ACTIONS = {
   CONNECT: ACTIONS.CONNECT,
   MMSDK: ACTIONS.MMSDK,
   MONEY: ACTIONS.MONEY,
+  X_OAUTH_REDIRECT: ACTIONS.X_OAUTH_REDIRECT,
 } as const;
 
 type SUPPORTED_ACTIONS =
@@ -311,6 +313,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       handleTrendingUrl({ actionPath: actionBasedRampPath }),
     resolve: ({ actionBasedRampPath }) =>
       createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.X_OAUTH_REDIRECT]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleXOAuthRedirect({ xOAuthPath: actionBasedRampPath }),
   },
 };
 
