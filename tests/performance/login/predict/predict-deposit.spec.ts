@@ -39,7 +39,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await WalletView.scrollAndTapPredictSection();
+      await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           PredictMarketList.container,
