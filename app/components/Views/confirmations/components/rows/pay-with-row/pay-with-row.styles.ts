@@ -4,13 +4,10 @@ import { Theme } from '../../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
+      // Reserve the 24px text line plus bottom padding for skeleton and live rows.
+      minHeight: 34,
       paddingHorizontal: 8,
       paddingBottom: 10,
-    },
-
-    skeletonContainer: {
-      paddingVertical: 12,
-      paddingHorizontal: 8,
     },
 
     spinner: {
@@ -25,14 +22,7 @@ const styleSheet = (params: { theme: Theme }) =>
       marginLeft: -2,
     },
 
-    skeletonTop: {
-      marginTop: 6,
-      marginBottom: 7,
-      marginLeft: -2,
-    },
-
     skeletonCircle: {
-      marginLeft: -1,
       borderRadius: 99,
     },
 
