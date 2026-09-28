@@ -51,6 +51,7 @@ import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter
 import { strings } from '../../../../../../locales/i18n';
 import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
+import { useExploreSearchFooterPress } from '../../search/useExploreSearchFooterPress';
 import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors';
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -153,6 +154,12 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     }
   }, [hasMore, fetchMore]);
 
+  const handleFooterPress = useExploreSearchFooterPress({
+    searchQuery,
+    tabName,
+    resultCount,
+  });
+
   const footer = useMemo(
     () => (
       <>
@@ -162,10 +169,15 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
             accessibilityLabel="Loading more results"
           />
         )}
-        {feedId === 'sites' && <SitesSearchFooter searchQuery={searchQuery} />}
+        {feedId === 'sites' && (
+          <SitesSearchFooter
+            searchQuery={searchQuery}
+            onPress={handleFooterPress}
+          />
+        )}
       </>
     ),
-    [isFetchingMore, feedId, searchQuery, tw],
+    [isFetchingMore, feedId, searchQuery, handleFooterPress, tw],
   );
 
   if (isLoading) {

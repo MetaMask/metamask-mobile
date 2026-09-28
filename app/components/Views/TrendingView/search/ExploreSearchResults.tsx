@@ -51,6 +51,7 @@ import {
 } from './abTestConfig';
 import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { POPULAR_SEARCH_ASSETS } from './popularSearchAssets';
+import { useExploreSearchFooterPress } from './useExploreSearchFooterPress';
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -241,9 +242,18 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     networkFilter: 'all',
   });
 
+  const handleFooterPress = useExploreSearchFooterPress({
+    searchQuery,
+    tabName: activeTab,
+    resultCount: totalResultCount,
+  });
+
   const renderFooter =
     searchQuery.length > 0 ? (
-      <SitesSearchFooter searchQuery={searchQuery} />
+      <SitesSearchFooter
+        searchQuery={searchQuery}
+        onPress={handleFooterPress}
+      />
     ) : null;
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
