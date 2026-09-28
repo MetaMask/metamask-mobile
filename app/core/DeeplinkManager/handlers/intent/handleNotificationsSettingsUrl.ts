@@ -1,4 +1,5 @@
 import Routes from '../../../../constants/navigation/Routes';
+import { resolveNotificationSettingsSection } from '../../../../components/Views/Settings/NotificationsSettings/notificationSettingsSections';
 import NavigationService from '../../../NavigationService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
@@ -26,7 +27,7 @@ const parseSection = (notificationsSettingsPath: string): string | null => {
  * - https://link.metamask.io/notifications-settings?section=price-alerts
  *
  * Unknown or missing `section` values land on the main notification settings
- * page. Valid values are resolved by the settings screen itself.
+ * page. Valid values are mapped to their preference route here.
  *
  * Settings sits on the main stack above the tabs, so this is a `main-stack`
  * target. Startup resolution reuses the same intent.
@@ -34,15 +35,18 @@ const parseSection = (notificationsSettingsPath: string): string | null => {
 export const createNotificationsSettingsDeeplinkIntent = ({
   notificationsSettingsPath,
 }: HandleNotificationsSettingsUrlParams): DeeplinkIntent => {
-  const section = parseSection(notificationsSettingsPath);
+  const sectionParam = parseSection(notificationsSettingsPath);
+  const section = resolveNotificationSettingsSection(sectionParam);
 
   return {
     target: {
       type: 'main-stack',
       routeName: Routes.SETTINGS_VIEW,
       params: {
-        screen: Routes.SETTINGS.NOTIFICATIONS,
-        params: section ? { section } : undefined,
+        screen: section
+          ? Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION
+          : Routes.SETTINGS.NOTIFICATIONS,
+        params: section ? { type: section.type } : undefined,
       },
     },
   };

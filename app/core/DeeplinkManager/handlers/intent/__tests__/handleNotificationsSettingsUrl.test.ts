@@ -23,12 +23,14 @@ const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 const mockExecuteDeeplinkIntent = jest.mocked(executeDeeplinkIntent);
 const mockLog = DevLogger.log as jest.Mock;
 
-const notificationsSettingsTarget = (section?: string) => ({
+const notificationsSettingsTarget = (sectionType?: string) => ({
   type: 'main-stack' as const,
   routeName: Routes.SETTINGS_VIEW,
   params: {
-    screen: Routes.SETTINGS.NOTIFICATIONS,
-    params: section ? { section } : undefined,
+    screen: sectionType
+      ? Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION
+      : Routes.SETTINGS.NOTIFICATIONS,
+    params: sectionType ? { type: sectionType } : undefined,
   },
 });
 
@@ -48,33 +50,33 @@ describe('handleNotificationsSettingsUrl', () => {
       });
     });
 
-    it('passes the section query param through to the notification settings page', () => {
+    it('targets the requested notification preference section directly', () => {
       expect(
         createNotificationsSettingsDeeplinkIntent({
           notificationsSettingsPath: '?section=wallet-activity',
         }),
       ).toEqual({
-        target: notificationsSettingsTarget('wallet-activity'),
+        target: notificationsSettingsTarget('walletActivity'),
       });
     });
 
-    it('passes price-alerts through as the section param', () => {
+    it('targets price alerts directly', () => {
       expect(
         createNotificationsSettingsDeeplinkIntent({
           notificationsSettingsPath: '?section=price-alerts',
         }),
       ).toEqual({
-        target: notificationsSettingsTarget('price-alerts'),
+        target: notificationsSettingsTarget('priceAlerts'),
       });
     });
 
-    it('passes unknown section values through so the settings page can fall back', () => {
+    it('falls back to the notification settings page for unknown sections', () => {
       expect(
         createNotificationsSettingsDeeplinkIntent({
           notificationsSettingsPath: '?section=not-a-section',
         }),
       ).toEqual({
-        target: notificationsSettingsTarget('not-a-section'),
+        target: notificationsSettingsTarget(),
       });
     });
 
