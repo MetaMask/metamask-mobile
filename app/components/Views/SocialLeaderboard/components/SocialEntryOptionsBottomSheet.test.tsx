@@ -82,6 +82,31 @@ describe('SocialEntryOptionsBottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('does not submit a report until a reason is selected', () => {
+    const onClose = jest.fn();
+    const onReport = jest.fn();
+
+    renderWithProvider(
+      <SocialEntryOptionsBottomSheet
+        isOpen
+        onClose={onClose}
+        onReport={onReport}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.REPORT),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(onReport).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it.each([
     [SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST, 'onHidePost'],
     [SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER, 'onBlockUser'],

@@ -1,11 +1,16 @@
 import {
   ActionListItem,
   BottomSheetDialog,
-  BottomSheetFooter,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
   IconName,
-  RadioButton,
   Text,
   TextColor,
   TextVariant,
@@ -139,53 +144,77 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
               )}
             </BottomSheetHeader>
             {showReportReasons ? (
-              <>
-                <Box twClassName="px-4 pb-2">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'social_leaderboard.entry_options.report_reason_description',
-                    )}
-                  </Text>
-                </Box>
-                <Box twClassName="pb-2">
+              <Box twClassName="px-4 pb-10">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  twClassName="mb-4"
+                >
+                  {strings(
+                    'social_leaderboard.entry_options.report_reason_description',
+                  )}
+                </Text>
+                <Box gap={4}>
                   {REPORT_REASONS.map((reason) => {
                     const isSelected = selectedReason === reason;
                     return (
-                      <ActionListItem
+                      <Pressable
                         key={reason}
-                        label={strings(
-                          `social_leaderboard.entry_options.report_reasons.${reason}`,
-                        )}
                         onPress={() => setSelectedReason(reason)}
-                        endAccessory={
-                          <RadioButton
-                            isChecked={isSelected}
-                            isReadOnly
-                            accessibilityElementsHidden
-                          />
+                        style={({ pressed }) =>
+                          tw.style(pressed && 'opacity-70')
                         }
                         accessibilityRole="radio"
                         accessibilityState={{ selected: isSelected }}
                         testID={getSocialEntryReportReasonTestId(reason)}
-                      />
+                      >
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          gap={3}
+                          twClassName="py-1"
+                        >
+                          <Box
+                            twClassName={`h-6 w-6 rounded-full border ${
+                              isSelected
+                                ? 'border-primary-default'
+                                : 'border-muted'
+                            }`}
+                            alignItems={BoxAlignItems.Center}
+                            justifyContent={BoxJustifyContent.Center}
+                          >
+                            {isSelected ? (
+                              <Box twClassName="h-3 w-3 rounded-full bg-primary-default" />
+                            ) : null}
+                          </Box>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            fontWeight={FontWeight.Regular}
+                          >
+                            {strings(
+                              `social_leaderboard.entry_options.report_reasons.${reason}`,
+                            )}
+                          </Text>
+                        </Box>
+                      </Pressable>
                     );
                   })}
                 </Box>
-                <BottomSheetFooter
-                  primaryButtonProps={{
-                    children: strings(
-                      'social_leaderboard.entry_options.submit_report',
-                    ),
-                    onPress: handleSubmitReport,
-                    isDisabled: selectedReason === null,
-                    testID:
-                      SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
-                  }}
-                />
-              </>
+                <Box twClassName="mt-6">
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    isFullWidth
+                    isDisabled={selectedReason === null}
+                    onPress={handleSubmitReport}
+                    testID={
+                      SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT
+                    }
+                  >
+                    {strings('social_leaderboard.entry_options.submit_report')}
+                  </Button>
+                </Box>
+              </Box>
             ) : (
               <Box twClassName="pb-4">
                 <ActionListItem
