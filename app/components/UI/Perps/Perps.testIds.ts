@@ -1049,6 +1049,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   INFO_SCREEN: 'perps-trade-sheet-info-screen',
   INFO_BACK_BUTTON: 'perps-trade-sheet-info-back-button',
   INFO_GOT_IT_BUTTON: 'perps-trade-sheet-info-got-it-button',
+  PAY_WITH_SCREEN: 'perps-trade-sheet-pay-with-screen',
+  PAY_WITH_BACK_BUTTON: 'perps-trade-sheet-pay-with-back-button',
   LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
   LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
   LIMIT_PRICE_PRESET_PERCENTAGE_1:

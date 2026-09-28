@@ -186,6 +186,7 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('payWith');
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
@@ -490,6 +491,7 @@ describe('PerpsTradeScreen errors', () => {
     expect(payWithRow.props.accessibilityState).toEqual({ disabled: true });
     fireEvent.press(payWithRow);
     expect(onPayWithPress).not.toHaveBeenCalled();
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('payWith');
   });
 
   it('shows the reused keypad while editing a limit price', () => {

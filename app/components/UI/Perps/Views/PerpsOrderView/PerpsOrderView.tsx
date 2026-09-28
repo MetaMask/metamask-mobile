@@ -1,7 +1,6 @@
 import {
   useNavigation,
   useRoute,
-  useFocusEffect,
   CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
@@ -96,6 +95,7 @@ import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeS
 import {
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
+  PerpsTradePayWithScreen,
   PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
@@ -241,12 +241,14 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
   tpsl: 1,
+  payWith: 1,
   marginInfo: 1,
   liquidationInfo: 1,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'leverage',
+  'payWith',
   'marginInfo',
   'liquidationInfo',
 ];
@@ -588,23 +590,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? `${payToken.address}:${payToken.chainId}`
     : '';
 
-  useFocusEffect(
-    useCallback(() => {
-      const identityAtOpen = tradeSheetPayTokenIdentityRef.current;
-      if (!useBottomSheet || identityAtOpen === null) {
-        return;
-      }
-      tradeSheetPayTokenIdentityRef.current = null;
-      const selectionMade = consumePerpsPaymentTokenSelection();
-      if (!selectionMade && payTokenIdentity === identityAtOpen) {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
-          [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
-        });
-      }
-    }, [payToken?.symbol, payTokenIdentity, track, useBottomSheet]),
-  );
+  // The Trade sheet's payment token picker is an inline screen, so there is
+  // no focus change to observe: the screen reports when it is left and the
+  // selection marker tells an explicit pick apart from backing out.
+  const handleTradeSheetPayWithDismiss = useCallback(() => {
+    const identityAtOpen = tradeSheetPayTokenIdentityRef.current;
+    if (identityAtOpen === null) {
+      return;
+    }
+    tradeSheetPayTokenIdentityRef.current = null;
+    const selectionMade = consumePerpsPaymentTokenSelection();
+    if (!selectionMade && payTokenIdentity === identityAtOpen) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
+        [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
+      });
+    }
+  }, [payToken?.symbol, payTokenIdentity, track]);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -2041,16 +2044,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
+    // The Trade screen navigates to the sheet's inline `payWith` screen next.
     tradeSheetPayTokenIdentityRef.current = payTokenIdentity;
     resetPerpsPaymentTokenSelection();
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [
-    isPayWithDisabled,
-    navigation,
-    payTokenIdentity,
-    setConfirmationMetric,
-    track,
-  ]);
+  }, [isPayWithDisabled, payTokenIdentity, setConfirmationMetric, track]);
 
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
@@ -2466,6 +2463,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
+              />
+            ),
+            payWith: (
+              <PerpsTradePayWithScreen
+                onDismiss={handleTradeSheetPayWithDismiss}
               />
             ),
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,

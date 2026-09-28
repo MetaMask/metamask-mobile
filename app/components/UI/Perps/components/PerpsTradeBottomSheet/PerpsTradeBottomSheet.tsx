@@ -29,6 +29,7 @@ export type PerpsTradeSheetScreen =
   | 'trade'
   | 'leverage'
   | 'tpsl'
+  | 'payWith'
   | 'marginInfo'
   | 'liquidationInfo';
 
