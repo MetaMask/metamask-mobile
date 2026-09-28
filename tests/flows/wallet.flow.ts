@@ -118,7 +118,7 @@ export const ensureAccountListOpenPlaywright = async (
   while (Date.now() < deadline) {
     try {
       await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
+        AccountListBottomSheet.addAccountButton,
         { timeout: 1_500, description: 'Account list' },
       );
       return;
@@ -134,7 +134,7 @@ export const ensureAccountListOpenPlaywright = async (
       try {
         // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
+          AccountListBottomSheet.addAccountButton,
           {
             timeout: 3_000,
             description: 'Account list should open from wallet home',

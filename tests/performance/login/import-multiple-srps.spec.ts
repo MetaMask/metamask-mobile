@@ -49,7 +49,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       await WalletView.tapIdenticon();
       await accountListTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
+          AccountListBottomSheet.addAccountButton,
           {
             description: 'Account list should be visible',
           },

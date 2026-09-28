@@ -9,6 +9,7 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
+  PerpsLeverageBottomSheetSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import { type AppiumElement, PlatformDetector } from '../../framework';
 
@@ -58,9 +59,9 @@ class PerpsOrderView {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
-  /** Row label to open the leverage modal - wdio uses getElementByText('Leverage') */
+  /** Row label to open the leverage modal */
   get leverageRowLabel(): Promise<AppiumElement> {
-    return Matchers.getElementByText('Leverage');
+    return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.LEVERAGE_ROW);
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
@@ -417,26 +418,37 @@ class PerpsOrderView {
   }
 
   /**
-   * Set leverage for appium context — opens modal, selects option, confirms.
+   * Set leverage — opens the modal, scrolls the horizontal picker to the
+   * target value, taps it, then confirms with the Set button.
+   *
+   * The picker is a snapping horizontal ScrollView; items outside the visible
+   * window must be scrolled into view before they can be tapped.
    */
   async setLeverageAppium(leverageX: number): Promise<void> {
     await Gestures.waitAndTap(this.leverageRowLabel, {
       elemDescription: 'Open leverage modal',
     });
 
-    const leverageSelector = `${leverageX}x`;
-    const optionEl = PlatformDetector.isAndroid()
-      ? Matchers.getElementByNativeXPath(
-          `//*[@content-desc="${leverageSelector}"]`,
-        )
-      : Matchers.getElementByID(`quick-select-button-${leverageSelector}`);
-    await Gestures.waitAndTap(optionEl, {
-      elemDescription: `Select leverage ${leverageSelector}`,
+    const pickerItem = await Matchers.getElementByID(
+      `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverageX}`,
+    );
+    const picker = await Matchers.getElementByID(
+      PerpsLeverageBottomSheetSelectorsIDs.PICKER,
+    );
+
+    await Gestures.scrollIntoView(pickerItem, {
+      direction: 'left',
+      scrollableElement: picker,
     });
 
-    await Gestures.waitAndTap(Matchers.getElementByText(`Set ${leverageX}x`), {
-      elemDescription: `Confirm leverage ${leverageX}x`,
+    await Gestures.waitAndTap(pickerItem, {
+      elemDescription: `Select leverage ${leverageX}x`,
     });
+
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      { elemDescription: `Confirm leverage ${leverageX}x` },
+    );
   }
 
   async tapPlaceOrder(): Promise<void> {

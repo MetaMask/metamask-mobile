@@ -7,6 +7,7 @@ import ToastModal from '../../../page-objects/wallet/ToastModal';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 /*
  * Scenario: Predict Available Balance Performance Test
@@ -38,9 +39,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       );
       await ToastModal.waitForToastToDismiss();
 
-      await TabBarComponent.tapActions();
+      await WalletView.scrollAndTapPredictSection();
 
-      await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           PredictMarketList.container,
