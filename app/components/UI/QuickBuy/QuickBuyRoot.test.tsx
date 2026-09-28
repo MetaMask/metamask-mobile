@@ -386,6 +386,30 @@ describe('QuickBuyRoot', () => {
     );
   });
 
+  it('attributes SOCIAL_QUICK_BUY_SHEET_VIEWED to an allowed initial trade mode', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        initialTradeMode="sell"
+        onClose={jest.fn()}
+        analyticsContext={{ source: 'market_insights' }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      expect.objectContaining({
+        [QuickBuyEventProperties.TRADE_TYPE]: 'sell',
+      }),
+    );
+  });
+
   it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when analytics source is absent', () => {
     renderWithProvider(
       <QuickBuyRoot

@@ -68,6 +68,7 @@ export interface QuickBuyRootProps {
   target: QuickBuyTarget | null;
   onClose: () => void;
   features?: QuickBuyFeatures;
+  initialTradeMode?: QuickBuyTradeMode;
   analyticsContext?: QuickBuyAnalyticsContext;
   children?: ReactNode;
 }

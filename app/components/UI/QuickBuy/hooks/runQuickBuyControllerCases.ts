@@ -298,6 +298,7 @@ export const runQuickBuyControllerCases = ({
     onClose?: () => void,
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
+    initialTradeMode?: 'buy' | 'sell',
   ) => {
     result: {
       current: UseQuickBuyControllerResult;
@@ -2535,6 +2536,34 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.tradeMode).toBe('sell');
 
         (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+        rerender(undefined);
+
+        expect(result.current.tradeMode).toBe('buy');
+      });
+
+      it('keeps an initial sell mode until setup loads, then falls back to buy without a position', () => {
+        (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+        const setup = {
+          chainId: '0x1',
+          destToken: undefined,
+          isLoading: true,
+          isUnsupportedChain: false,
+        };
+        (useQuickBuySetup as jest.Mock).mockReturnValue(setup);
+        const { result, rerender } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'sell',
+        );
+
+        expect(result.current.tradeMode).toBe('sell');
+
+        (useQuickBuySetup as jest.Mock).mockReturnValue({
+          ...setup,
+          isLoading: false,
+        });
         rerender(undefined);
 
         expect(result.current.tradeMode).toBe('buy');

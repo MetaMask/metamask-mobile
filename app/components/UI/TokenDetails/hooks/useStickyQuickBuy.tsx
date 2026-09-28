@@ -8,6 +8,7 @@ import {
 } from '../../QuickBuy/abTestConfig';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
 import type { QuickBuySheetSource } from '../../QuickBuy/analytics';
+import type { QuickBuyTradeMode } from '../../QuickBuy/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
 interface UseStickyQuickBuyArgs {
@@ -21,6 +22,7 @@ interface UseStickyQuickBuyResult {
   isQuickBuyEnabled: boolean;
   /** Undefined when the quick-buy A/B flag is off; pass directly to TokenDetailsStickyFooter. */
   onQuickBuyPress: (() => void) | undefined;
+  openQuickBuy: ((mode: QuickBuyTradeMode) => void) | undefined;
   /** Null when the quick-buy A/B flag is off; render this node at the bottom of the screen. */
   quickBuySheet: React.ReactNode;
 }
@@ -42,12 +44,23 @@ export function useStickyQuickBuy({
   const isQuickBuyEnabled = quickBuyVariant.showQuickBuy;
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [initialTradeMode, setInitialTradeMode] =
+    useState<QuickBuyTradeMode>('buy');
 
-  const handleQuickBuyPress = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA);
-    onPress?.();
-    setIsQuickBuyVisible(true);
-  }, [onPress]);
+  const openQuickBuy = useCallback(
+    (mode: QuickBuyTradeMode) => {
+      playImpact(ImpactMoment.PrimaryCTA);
+      onPress?.();
+      setInitialTradeMode(mode);
+      setIsQuickBuyVisible(true);
+    },
+    [onPress],
+  );
+
+  const handleQuickBuyPress = useCallback(
+    () => openQuickBuy('buy'),
+    [openQuickBuy],
+  );
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -56,12 +69,14 @@ export function useStickyQuickBuy({
   return {
     isQuickBuyEnabled,
     onQuickBuyPress: isQuickBuyEnabled ? handleQuickBuyPress : undefined,
+    openQuickBuy: isQuickBuyEnabled ? openQuickBuy : undefined,
     quickBuySheet: isQuickBuyEnabled ? (
       <AssetDetailsQuickBuy
         isVisible={isQuickBuyVisible}
         token={token ?? null}
         onClose={handleQuickBuyClose}
         source={source}
+        initialTradeMode={initialTradeMode}
       />
     ) : null,
   };

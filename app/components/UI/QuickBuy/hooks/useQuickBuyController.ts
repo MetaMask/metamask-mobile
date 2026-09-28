@@ -261,6 +261,7 @@ export function useQuickBuyController(
   target: QuickBuyTarget,
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
+  initialTradeMode: QuickBuyTradeMode = 'buy',
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -274,7 +275,8 @@ export function useQuickBuyController(
     [target.chain, target.tokenAddress],
   );
 
-  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
+  const [tradeMode, setTradeMode] =
+    useState<QuickBuyTradeMode>(initialTradeMode);
 
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
@@ -494,11 +496,14 @@ export function useQuickBuyController(
 
   // If the position balance drops to zero while sell mode is active, fall back
   // to buy so the user is not stranded in a mode they can no longer use.
+  // Waits for setup so a sheet opened in Sell isn't dropped to Buy before the
+  // position token resolves.
   useEffect(() => {
+    if (isSetupLoading) return;
     if (positionToken === undefined && tradeMode === 'sell') {
       setTradeMode('buy');
     }
-  }, [positionToken, tradeMode]);
+  }, [isSetupLoading, positionToken, tradeMode]);
 
   // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
   const receiveTokenOptions = useReceiveTokens(

@@ -18,7 +18,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
-  QuickBuyEventValues,
 } from './analytics';
 import { useSocialLeaderboardAnalytics } from '../../Views/SocialLeaderboard/analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
@@ -43,6 +42,7 @@ import type {
   QuickBuyRootProps,
   QuickBuyScreen,
   QuickBuyTarget,
+  QuickBuyTradeMode,
 } from './types';
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
@@ -81,6 +81,7 @@ interface QuickBuyRootInnerProps {
   target: QuickBuyTarget;
   onClose: () => void;
   features: QuickBuyFeatures;
+  initialTradeMode?: QuickBuyRootProps['initialTradeMode'];
   analyticsContext?: QuickBuyAnalyticsContext;
   children?: React.ReactNode;
 }
@@ -89,6 +90,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   target,
   onClose,
   features,
+  initialTradeMode,
   analyticsContext,
   children,
 }) => {
@@ -107,6 +109,10 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // Suppresses the enter animation on the initial screen when the sheet opens;
   // transitions only kick in once the user navigates between screens.
   const [hasNavigated, setHasNavigated] = useState(false);
+  const openingTradeMode: QuickBuyTradeMode =
+    initialTradeMode && features.tradeModes.includes(initialTradeMode)
+      ? initialTradeMode
+      : 'buy';
   const { entering, exiting } = useMemo(
     () => makeScreenTransitions(directionSV),
     [directionSV],
@@ -133,9 +139,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       [QuickBuyEventProperties.ASSET_NAME]: target.tokenSymbol,
       ...buildQuickBuySharedAnalyticsProperties(analyticsContext),
       [QuickBuyEventProperties.TRADE_TYPE]:
-        analyticsContext.traderTradeType ?? QuickBuyEventValues.TRADE_TYPE.BUY,
+        analyticsContext.traderTradeType ?? openingTradeMode,
     });
-  }, [analyticsContext, target.tokenSymbol, track]);
+  }, [analyticsContext, openingTradeMode, target.tokenSymbol, track]);
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet(() => {
@@ -181,6 +187,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           target={target}
           onClose={requestClose}
           features={features}
+          initialTradeMode={openingTradeMode}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
@@ -219,6 +226,7 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   target,
   onClose,
   features = TOP_TRADERS_QUICK_BUY_FEATURES,
+  initialTradeMode,
   analyticsContext,
   children,
 }) => {
@@ -231,6 +239,7 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
       target={target}
       onClose={onClose}
       features={features}
+      initialTradeMode={initialTradeMode}
       analyticsContext={analyticsContext}
     >
       {children}
