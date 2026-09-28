@@ -1,5 +1,8 @@
 export { default } from './PerpsMarketHeader';
-export { PERPS_MARKET_HEADER_HEIGHT } from './PerpsMarketHeader';
+export {
+  PERPS_MARKET_HEADER_HEIGHT,
+  PerpsMarketHeaderIdentity,
+} from './PerpsMarketHeader';
 export type {
   PerpsMarketHeaderProps,
   PerpsMarketHeaderTestIDs,

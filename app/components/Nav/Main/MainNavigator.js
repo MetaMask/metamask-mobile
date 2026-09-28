@@ -263,31 +263,37 @@ const useDefaultStackScreenOptions = () => {
 };
 
 /* eslint-disable react/prop-types */
-const AssetStackFlow = (props) => (
-  <NativeStack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <NativeStack.Screen
-      name={'Asset'}
-      component={TokenDetails}
-      initialParams={props.route.params}
-    />
-    <NativeStack.Screen
-      name={Routes.SECURITY_TRUST}
-      component={SecurityTrustScreen}
-    />
-    <NativeStack.Screen
-      name={Routes.CREATE_PRICE_ALERT}
-      component={CreatePriceAlertView}
-    />
-    <NativeStack.Screen
-      name={Routes.MANAGE_PRICE_ALERTS}
-      component={ManagePriceAlertsView}
-    />
-  </NativeStack.Navigator>
-);
+const AssetStackFlow = (props) => {
+  // PoC: only Token Details and Create Price Alert take the native header here.
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <NativeStack.Screen
+        name={'Asset'}
+        component={TokenDetails}
+        initialParams={props.route.params}
+        options={nativeHeaderScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.SECURITY_TRUST}
+        component={SecurityTrustScreen}
+      />
+      <NativeStack.Screen
+        name={Routes.CREATE_PRICE_ALERT}
+        component={CreatePriceAlertView}
+        options={nativeHeaderScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MANAGE_PRICE_ALERTS}
+        component={ManagePriceAlertsView}
+      />
+    </NativeStack.Navigator>
+  );
+};
 
 /* eslint-enable react/prop-types */
 
@@ -604,6 +610,22 @@ const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
+// Single-screen PoC: the Social tab root gets a native large-title header,
+// which needs a stack to own the bar.
+const SocialTabStackFlow = () => {
+  const defaultScreenOptions = useDefaultStackScreenOptions();
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+  return (
+    <NativeStack.Navigator screenOptions={defaultScreenOptions}>
+      <NativeStack.Screen
+        name={Routes.SOCIAL.TAB_ROOT}
+        component={SocialV0View}
+        options={nativeHeaderScreenOptions}
+      />
+    </NativeStack.Navigator>
+  );
+};
+
 const HOME_TAB_COMPONENTS = {
   home: WalletTabStackFlow,
   explore: ExploreFeed,
@@ -611,7 +633,7 @@ const HOME_TAB_COMPONENTS = {
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   rewards: RewardsHomeUnmountOnTabBlur,
-  social: SocialV0View,
+  social: SocialTabStackFlow,
 };
 
 const HomeTabs = () => {
@@ -919,6 +941,8 @@ const MainNavigator = () => {
     selectMarketInsightsPerpsEnabled,
   );
   const defaultScreenOptions = useDefaultStackScreenOptions();
+  // Single-screen PoC: Sites full view takes the native header with search.
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
@@ -1337,6 +1361,7 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.SOCIAL.PROFILE}
               component={TraderProfileView}
+              options={nativeHeaderScreenOptions}
             />
             <NativeStack.Screen
               name={Routes.SOCIAL.POSITION}
@@ -1362,6 +1387,7 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={nativeHeaderScreenOptions}
         />
         <NativeStack.Screen
           name={Routes.WHATS_HAPPENING_DETAIL}

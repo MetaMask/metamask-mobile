@@ -14,10 +14,15 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type {
   AppNavigationProp,
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../hooks/useNativeHeader';
 import React, {
   useCallback,
   useEffect,
@@ -111,7 +116,10 @@ const SocialV0View: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
-      RouteProp<RootStackParamList, 'SocialV0View' | 'SocialLeaderboardTab'>
+      RouteProp<
+        RootStackParamList,
+        'SocialV0View' | 'SocialLeaderboardTab' | 'SocialLeaderboardTabRoot'
+      >
     >();
   const { track } = useSocialLeaderboardAnalytics();
   // Wait until the visible leaderboard query settles before warming feed
@@ -425,7 +433,8 @@ const SocialV0View: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+  const isPushedScreen =
+    route.name !== Routes.SOCIAL.TAB && route.name !== Routes.SOCIAL.TAB_ROOT;
   const title = strings('homepage.sections.top_traders');
 
   const notificationButtonProps = useMemo(
@@ -436,6 +445,45 @@ const SocialV0View: React.FC = () => {
     }),
     [openNotificationPreferences],
   );
+
+  const nativeHeaderRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('app_settings.notifications_title'),
+        icon: { type: 'sfSymbol', name: 'bell' },
+        onPress: openNotificationPreferences,
+      },
+    ],
+    [openNotificationPreferences],
+  );
+  // A left-aligned title item keeps HeaderRoot's single row; a native large
+  // title would put the bell on its own row above it.
+  const nativeHeaderLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'custom',
+        hidesSharedBackground: true,
+        element: (
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={SocialV0ViewSelectorsIDs.HEADER_TITLE}
+          >
+            {title}
+          </Text>
+        ),
+      },
+    ],
+    [title],
+  );
+  // Tab root only: the pushed variant keeps its JS animated header.
+  const isNativeHeader = useNativeHeader({
+    leftItems: nativeHeaderLeftItems,
+    rightItems: nativeHeaderRightItems,
+    isBackButtonHidden: true,
+    isEnabled: !isPushedScreen,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
 
   const titleTabsAndPager = (
     <>
@@ -514,10 +562,10 @@ const SocialV0View: React.FC = () => {
     // `includesTopInset` (JS `marginTop` off the already resolved provider).
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
-      style={tw.style('flex-1 bg-default')}
+      style={tw.style('flex-1 bg-default', { paddingTop: nativeHeaderInset })}
       testID={SocialV0ViewSelectorsIDs.CONTAINER}
     >
-      {isPushedScreen ? (
+      {isNativeHeader ? null : isPushedScreen ? (
         <HeaderStandardAnimated
           includesTopInset
           scrollY={scrollY}

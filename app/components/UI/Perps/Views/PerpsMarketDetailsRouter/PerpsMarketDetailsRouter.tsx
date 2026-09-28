@@ -2,9 +2,9 @@ import React, { useLayoutEffect, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
@@ -13,6 +13,7 @@ import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 import type { PerpsStackParamList } from '../../types/navigation';
+import { useIsNativeHeader } from '../../../../hooks/useNativeHeader';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 // The outreach banner sits above the market header and paints its background up
@@ -58,7 +59,9 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const navigation =
-    useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+    useNavigation<
+      NativeStackNavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>
+    >();
   const symbol = route.params?.market?.symbol;
   const mode = isProModeEnabled ? 'pro' : 'lite';
   const previousIdentityRef = useRef<
@@ -84,19 +87,35 @@ const PerpsMarketDetailsRouter: React.FC = () => {
     }
   }, [explicitGenerationTrigger, mode, navigation, symbol]);
 
+  // PoC: Lite only; Pro has its own layout and the banner would sit under the bar.
+  const isNativeHeaderEnabled =
+    useIsNativeHeader() && !isProModeEnabled && !outreachCampaign;
+  // Lite's `useNativeHeader` turns the bar on; this turns it back off when the
+  // same route swaps to Pro or the banner appears.
+  useLayoutEffect(() => {
+    if (!isNativeHeaderEnabled) {
+      navigation.setOptions({ headerShown: false });
+    }
+  }, [isNativeHeaderEnabled, navigation]);
+
   return (
     <>
       <PerpsOutreachBanner includesTopInset location="perp_market_details" />
       <SafeAreaView
         style={tw.style('flex-1 bg-default')}
         edges={
-          outreachCampaign ? SAFE_AREA_EDGES_UNDER_BANNER : SAFE_AREA_EDGES
+          outreachCampaign || isNativeHeaderEnabled
+            ? SAFE_AREA_EDGES_UNDER_BANNER
+            : SAFE_AREA_EDGES
         }
       >
         {isProModeEnabled ? (
           <PerpsProMarketView generationTrigger={generationTrigger} />
         ) : (
-          <PerpsMarketDetailsView generationTrigger={generationTrigger} />
+          <PerpsMarketDetailsView
+            generationTrigger={generationTrigger}
+            isNativeHeaderEnabled={isNativeHeaderEnabled}
+          />
         )}
       </SafeAreaView>
     </>

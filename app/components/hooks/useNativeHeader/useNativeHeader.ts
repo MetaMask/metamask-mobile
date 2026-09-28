@@ -13,8 +13,19 @@ import { useSelector } from 'react-redux';
 import { selectNativeHeaderEnabled } from '../../../selectors/featureFlagController/nativeHeader';
 import { useTheme } from '../../../util/theme';
 
+export type NativeHeaderTitleRenderer = Extract<
+  NativeStackNavigationOptions['headerTitle'],
+  (...args: never[]) => unknown
+>;
+
 export interface NativeHeaderConfig {
   title?: string;
+  /**
+   * Custom title view drawn inside the native bar (avatar + name, subtitle).
+   * Must be referentially stable (`useCallback`); iOS skips the title morph
+   * animation for custom titles.
+   */
+  renderTitle?: NativeHeaderTitleRenderer;
   /** Must be referentially stable (`useCallback`); a new function re-applies the bar. */
   leftItems?: () => NativeStackHeaderItem[];
   /** Must be referentially stable (`useCallback`); a new function re-applies the bar. */
@@ -47,18 +58,22 @@ const HIDDEN_HEADER_OPTIONS: NativeStackNavigationOptions = {
   headerShown: false,
 };
 
-/** Compact UINavigationBar height; a large-title bar is taller. */
+/** Compact UINavigationBar height; a large-title bar adds a second row. */
 const NATIVE_HEADER_BAR_HEIGHT = 44;
+const NATIVE_HEADER_LARGE_TITLE_BAR_HEIGHT = 96;
 
 /**
  * Top padding for a screen whose root is not a `ScrollView`. Scroll views inset
  * themselves under the transparent bar via `contentInsetAdjustmentBehavior`.
  */
-export const useNativeHeaderInset = (): number => {
+export const useNativeHeaderInset = (isLargeTitle = false): number => {
   const isNativeHeader = useIsNativeHeader();
   const insets = useSafeAreaInsets();
+  const barHeight = isLargeTitle
+    ? NATIVE_HEADER_LARGE_TITLE_BAR_HEIGHT
+    : NATIVE_HEADER_BAR_HEIGHT;
 
-  return isNativeHeader ? insets.top + NATIVE_HEADER_BAR_HEIGHT : 0;
+  return isNativeHeader ? insets.top + barHeight : 0;
 };
 
 /**
@@ -103,6 +118,7 @@ export const useNativeHeaderScreenOptions =
  */
 export const useNativeHeader = ({
   title,
+  renderTitle,
   leftItems,
   rightItems,
   searchBarOptions,
@@ -112,14 +128,19 @@ export const useNativeHeader = ({
 }: NativeHeaderConfig = {}): boolean => {
   const isNativeHeader = useIsNativeHeader() && isEnabled;
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const chromeOptions = useNativeHeaderScreenOptions();
 
   useLayoutEffect(() => {
     if (!isNativeHeader) {
       return;
     }
     navigation.setOptions({
+      // Shared screens are also registered in stacks that hide the bar; without
+      // this they would drop their JS header and show no header at all.
+      ...chromeOptions,
       // An empty title stops react-navigation printing the route name.
       title: title ?? '',
+      headerTitle: renderTitle ?? title ?? '',
       unstable_headerLeftItems: leftItems,
       unstable_headerRightItems: rightItems,
       headerSearchBarOptions: searchBarOptions,
@@ -129,7 +150,9 @@ export const useNativeHeader = ({
   }, [
     isNativeHeader,
     navigation,
+    chromeOptions,
     title,
+    renderTitle,
     leftItems,
     rightItems,
     searchBarOptions,

@@ -48,7 +48,9 @@ import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/feat
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
-import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
+import WalletHeaderCompact, {
+  useWalletHeaderCompactNativeHeader,
+} from './components/WalletHeader/WalletHeaderCompact';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   Box,
@@ -885,6 +887,20 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  // Compact variant only; the older `WalletHeader` layout stays JS.
+  const isNativeHeader = useWalletHeaderCompactNativeHeader({
+    accountAddress: selectedInternalAccount?.address ?? '',
+    avatarAccountType,
+    displayName,
+    handleRewardsPress,
+    handleAccountHubPress,
+    handleSearchPress: isHeaderSearchEnabled ? handleSearchPress : undefined,
+    touchAreaSlop,
+    scrollY: homepageScrollY,
+    titleSectionHeight: accountNameSectionBottom,
+    isEnabled: isCompactHeader && Boolean(selectedInternalAccount),
+  });
+
   const floatingTabBarInset = useFloatingTabBarInset();
 
   const scrollViewContentStyle = useMemo(
@@ -1190,12 +1206,13 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ top: 'additive' }}
+          // Native: content scrolls under the bar, which owns the top inset.
+          edges={isNativeHeader ? [] : { top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
-              {isCompactHeader ? (
+              {isNativeHeader ? null : isCompactHeader ? (
                 <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
@@ -1245,6 +1262,9 @@ const Wallet = ({
                     isScrollEnabled
                     scrollViewProps={{
                       testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                      contentInsetAdjustmentBehavior: isNativeHeader
+                        ? 'automatic'
+                        : undefined,
                       contentContainerStyle: scrollViewContentStyle,
                       showsVerticalScrollIndicator: false,
                       onScroll: handleHomepageScroll,

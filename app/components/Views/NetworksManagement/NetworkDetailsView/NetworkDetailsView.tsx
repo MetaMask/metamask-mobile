@@ -273,9 +273,37 @@ const NetworkDetailsView = () => {
     ],
     [handleDelete],
   );
-  // A native title is text only, so the network avatar is dropped from it.
+  const isAddMode = formHook.form.addMode;
+  const networkNickname = formHook.form.nickname;
+  // Avatar + name drawn inside the native bar, matching the JS header.
+  const renderNativeHeaderTitle = useCallback(
+    () => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        {!isAddMode && (
+          <AvatarNetwork
+            size={AvatarSize.Xs}
+            name={networkNickname}
+            imageSource={networkImageSource}
+          />
+        )}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+        >
+          {headerTitle}
+        </Text>
+      </Box>
+    ),
+    [isAddMode, networkNickname, networkImageSource, headerTitle],
+  );
   const isNativeHeader = useNativeHeader({
     title: headerTitle,
+    renderTitle: renderNativeHeaderTitle,
     rightItems: canRemoveNetwork ? nativeHeaderRightItems : undefined,
   });
 

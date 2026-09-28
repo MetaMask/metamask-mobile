@@ -152,13 +152,41 @@ describe('useNativeHeader', () => {
 
       expect(result.current).toBe(true);
       expect(mockSetOptions).toHaveBeenCalledWith({
+        headerShown: true,
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerBackButtonDisplayMode: 'minimal',
+        headerTintColor: expect.any(String),
+        headerTitleStyle: expect.any(Object),
         title: 'Settings',
+        headerTitle: 'Settings',
         unstable_headerLeftItems: undefined,
         unstable_headerRightItems: rightItems,
         headerSearchBarOptions: undefined,
         headerLargeTitle: false,
         headerBackVisible: true,
       });
+    });
+
+    it('shows the bar even when the screen stack hides headers', () => {
+      renderHook(() => useNativeHeader({ title: 'Reveal SRP' }));
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headerShown: true,
+          headerTransparent: true,
+        }),
+      );
+    });
+
+    it('draws a custom title view when one is provided', () => {
+      const renderTitle = jest.fn(() => null);
+
+      renderHook(() => useNativeHeader({ title: 'Linea', renderTitle }));
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Linea', headerTitle: renderTitle }),
+      );
     });
 
     it('stays on the JS header when the caller disables it', () => {

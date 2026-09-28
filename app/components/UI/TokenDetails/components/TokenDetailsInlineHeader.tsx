@@ -40,6 +40,7 @@ export const TokenDetailsInlineHeader = ({
   onSharePress,
   starButton,
   onCopyAddress,
+  isNativeTitle = false,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -49,6 +50,8 @@ export const TokenDetailsInlineHeader = ({
   /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
   starButton?: ReactNode;
   onCopyAddress?: () => void;
+  /** Render only the identity row, for use as the native bar's title view. */
+  isNativeTitle?: boolean;
 }) => {
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
@@ -188,6 +191,46 @@ export const TokenDetailsInlineHeader = ({
     );
   }, [contractAddress, handleCopyContractAddress]);
 
+  const avatar = (
+    <BadgeWrapper
+      twClassName="self-center"
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        networkBadgeSource ? (
+          <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
+        ) : undefined
+      }
+    >
+      <AssetLogo asset={token} />
+    </BadgeWrapper>
+  );
+  const title = token.ticker || token.symbol;
+
+  if (isNativeTitle) {
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        {avatar}
+        <Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+              {title}
+            </Text>
+            {titleEndAccessory}
+          </Box>
+          {inlineDescription}
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <HeaderSubpage
       includesTopInset
@@ -201,20 +244,8 @@ export const TokenDetailsInlineHeader = ({
         />
       }
       endAccessory={endAccessory}
-      avatar={
-        <BadgeWrapper
-          twClassName="self-center"
-          position={BadgeWrapperPosition.BottomRight}
-          badge={
-            networkBadgeSource ? (
-              <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
-            ) : undefined
-          }
-        >
-          <AssetLogo asset={token} />
-        </BadgeWrapper>
-      }
-      title={token.ticker || token.symbol}
+      avatar={avatar}
+      title={title}
       titleEndAccessory={titleEndAccessory}
       description={inlineDescription}
     />

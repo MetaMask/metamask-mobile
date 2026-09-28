@@ -38,6 +38,11 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+jest.mock('../../../../../hooks/useNativeHeader', () => ({
+  useNativeHeader: () => false,
+  useNativeHeaderInset: () => 0,
+}));
+
 jest.mock('../../hooks/useAlertSaveFlow', () => ({
   __esModule: true,
   default: jest.fn(() => ({ saveAlert: jest.fn() })),

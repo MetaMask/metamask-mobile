@@ -11,7 +11,11 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  HeaderStandardCenterColumn,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -28,6 +32,10 @@ import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../../hooks/useNativeHeader';
 
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
@@ -103,6 +111,26 @@ const CreatePriceAlertView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const title = strings(
+    isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
+    { ticker: displayTicker },
+  );
+  // Native bars have no subtitle slot, so the title view draws both lines.
+  const renderNativeHeaderTitle = useCallback(
+    () => (
+      <HeaderStandardCenterColumn
+        title={title}
+        subtitle={formattedCurrentPrice}
+      />
+    ),
+    [title, formattedCurrentPrice],
+  );
+  const isNativeHeader = useNativeHeader({
+    title,
+    renderTitle: renderNativeHeaderTitle,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   // Narrow the alert union so each form receives only its supported alert type.
   const editingAbsoluteAlert =
     editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
@@ -111,18 +139,23 @@ const CreatePriceAlertView: React.FC = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
+      edges={isNativeHeader ? ['bottom', 'left', 'right'] : undefined}
+      style={tw.style('flex-1 bg-default', { paddingTop: nativeHeaderInset })}
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
-      <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
-          title={strings(
-            isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
-            { ticker: displayTicker },
-          )}
-          subtitle={formattedCurrentPrice}
-          onBack={handleBack}
-        />
+      {/* The native bar is 44pt vs the JS header's 56pt; keep the old gap. */}
+      <Box
+        twClassName={
+          isNativeHeader ? 'flex-1 bg-default pt-3' : 'flex-1 bg-default'
+        }
+      >
+        {!isNativeHeader && (
+          <HeaderStandard
+            title={title}
+            subtitle={formattedCurrentPrice}
+            onBack={handleBack}
+          />
+        )}
 
         <AlertTypeToggle
           value={alertType}

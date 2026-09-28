@@ -5,6 +5,8 @@ export interface PerpsMarketDetailsViewProps {
     PerpsMarketDetailGenerationTrigger,
     'initial' | 'market_switch' | 'mode_switch'
   >;
+  /** iOS 26 PoC: the router decides when the native bar may own the header. */
+  isNativeHeaderEnabled?: boolean;
 }
 
 export interface MarketStatistics {

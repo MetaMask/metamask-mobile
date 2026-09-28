@@ -436,6 +436,7 @@ const Routes = {
   SOCIAL: {
     ROOT: 'Social',
     TAB: 'SocialLeaderboardTab',
+    TAB_ROOT: 'SocialLeaderboardTabRoot',
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',

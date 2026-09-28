@@ -98,68 +98,27 @@ const PerpsMarketHeaderCompactPrice = ({
   />
 );
 
+type PerpsMarketHeaderIdentityProps = Pick<
+  PerpsMarketHeaderProps,
+  'market' | 'testIDs' | 'onIdentityPress' | 'scrollY' | 'priceSectionHeight'
+> & { currentPrice?: number };
+
 /**
- * Fixed market-detail header shared by Lite and Pro screens.
- *
- * Left: back button. Center: tappable asset identity with optional
- * subtitle/compact-price crossfade. Right: default action row or
- * `endAccessory` override.
+ * Asset identity with the subtitle → compact-price crossfade. Shared by the JS
+ * header and the iOS 26 native bar (as a custom bar item).
  */
-const PerpsMarketHeader = ({
+export const PerpsMarketHeaderIdentity = ({
   market,
   testIDs,
-  onBackPress,
   onIdentityPress,
-  showMarketIdentity = true,
-  endAccessory,
-  onWalletPress,
-  onFavoritePress,
-  isFavorite = false,
-  mode,
-  onModeChange,
-  enableHaptics = false,
-  enableModeHaptics = false,
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
-}: PerpsMarketHeaderProps) => {
-  const { playImpact, playSelection } = useHaptics();
-  const shouldEnableModeHaptics = enableModeHaptics || enableHaptics;
+}: PerpsMarketHeaderIdentityProps) => {
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
   const scrollYSv = scrollY ?? fallbackScrollY;
   const priceSectionHeightSv = priceSectionHeight ?? fallbackPriceSectionHeight;
-
-  const handleBackPress = useCallback(() => {
-    if (enableHaptics) {
-      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
-    }
-    onBackPress?.();
-  }, [enableHaptics, onBackPress, playImpact]);
-
-  const handleIdentityPress = useCallback(() => {
-    if (!onIdentityPress) {
-      return;
-    }
-    if (enableHaptics) {
-      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
-    }
-    onIdentityPress();
-  }, [enableHaptics, onIdentityPress, playImpact]);
-
-  const handleWalletPress = useCallback(() => {
-    if (enableHaptics) {
-      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
-    }
-    onWalletPress?.();
-  }, [enableHaptics, onWalletPress, playImpact]);
-
-  const handleFavoritePress = useCallback(() => {
-    if (enableHaptics) {
-      playSelection().catch(() => undefined);
-    }
-    onFavoritePress?.();
-  }, [enableHaptics, onFavoritePress, playSelection]);
 
   const compactProgress = useSharedValue(0);
 
@@ -243,6 +202,84 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
+  return (
+    <PerpsMarketIdentity
+      symbol={market.symbol}
+      name={market.name}
+      maxLeverage={market.maxLeverage}
+      size={32}
+      gap={2}
+      onPress={onIdentityPress}
+      subtitleContent={displaySubtitleAndPrice}
+      testIDs={{
+        assetIcon: testIDs.assetIcon,
+        assetName: testIDs.assetName,
+        subtitle: testIDs.subtitle,
+        marketListButton: testIDs.marketListButton,
+      }}
+    />
+  );
+};
+
+/**
+ * Fixed market-detail header shared by Lite and Pro screens.
+ *
+ * Left: back button. Center: tappable asset identity with optional
+ * subtitle/compact-price crossfade. Right: default action row or
+ * `endAccessory` override.
+ */
+const PerpsMarketHeader = ({
+  market,
+  testIDs,
+  onBackPress,
+  onIdentityPress,
+  showMarketIdentity = true,
+  endAccessory,
+  onWalletPress,
+  onFavoritePress,
+  isFavorite = false,
+  mode,
+  onModeChange,
+  enableHaptics = false,
+  enableModeHaptics = false,
+  scrollY,
+  priceSectionHeight,
+  currentPrice: currentPriceOverride,
+}: PerpsMarketHeaderProps) => {
+  const { playImpact, playSelection } = useHaptics();
+  const shouldEnableModeHaptics = enableModeHaptics || enableHaptics;
+
+  const handleBackPress = useCallback(() => {
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onBackPress?.();
+  }, [enableHaptics, onBackPress, playImpact]);
+
+  const handleIdentityPress = useCallback(() => {
+    if (!onIdentityPress) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onIdentityPress();
+  }, [enableHaptics, onIdentityPress, playImpact]);
+
+  const handleWalletPress = useCallback(() => {
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onWalletPress?.();
+  }, [enableHaptics, onWalletPress, playImpact]);
+
+  const handleFavoritePress = useCallback(() => {
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    onFavoritePress?.();
+  }, [enableHaptics, onFavoritePress, playSelection]);
+
   const rightActions =
     endAccessory ??
     (onWalletPress || onFavoritePress || (onModeChange && mode) ? (
@@ -305,20 +342,13 @@ const PerpsMarketHeader = ({
 
       <Box twClassName="flex-1">
         {showMarketIdentity ? (
-          <PerpsMarketIdentity
-            symbol={market.symbol}
-            name={market.name}
-            maxLeverage={market.maxLeverage}
-            size={32}
-            gap={2}
-            onPress={onIdentityPress ? handleIdentityPress : undefined}
-            subtitleContent={displaySubtitleAndPrice}
-            testIDs={{
-              assetIcon: testIDs.assetIcon,
-              assetName: testIDs.assetName,
-              subtitle: testIDs.subtitle,
-              marketListButton: testIDs.marketListButton,
-            }}
+          <PerpsMarketHeaderIdentity
+            market={market}
+            testIDs={testIDs}
+            onIdentityPress={onIdentityPress ? handleIdentityPress : undefined}
+            scrollY={scrollY}
+            priceSectionHeight={priceSectionHeight}
+            currentPrice={currentPriceOverride}
           />
         ) : null}
       </Box>
