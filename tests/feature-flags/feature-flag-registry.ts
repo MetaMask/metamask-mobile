@@ -7325,6 +7325,56 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictHomeCategories: {
+    name: 'predictHomeCategories',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.13.0',
+      categories: [
+        {
+          id: 'politics',
+          tagSlug: 'politics',
+          iconName: 'Global',
+          enabled: true,
+        },
+        { id: 'sports', tagSlug: 'sports', iconName: 'Trophy', enabled: true },
+        {
+          id: 'crypto',
+          tagSlug: 'crypto',
+          iconName: 'MoneyBag',
+          enabled: true,
+        },
+        {
+          id: 'esports',
+          tagSlug: 'esports',
+          iconName: 'Speedometer',
+          enabled: true,
+        },
+        {
+          id: 'culture',
+          tagSlug: 'pop-culture',
+          iconName: 'StarFilled',
+          enabled: true,
+        },
+        {
+          id: 'finance',
+          tagSlug: 'finance',
+          iconName: 'Bank',
+          enabled: true,
+        },
+        {
+          id: 'tech',
+          tagSlug: 'tech',
+          iconName: 'Data',
+          enabled: true,
+        },
+      ],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictHomeRedesign: {
     name: 'predictHomeRedesign',
     type: FeatureFlagType.Remote,

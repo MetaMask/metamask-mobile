@@ -11,6 +11,7 @@ import React, {
   Fragment,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -20,6 +21,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
+import { useSocialEntryModeration } from '../components/SocialEntryOptionsBottomSheet';
 import FeedItemRow from '../FeedView/components/FeedItemRow';
 import { useFeedNow } from '../FeedView/hooks/useFeedNow';
 import type { FeedItem } from '../FeedView/types';
@@ -58,6 +60,19 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const scrollRef = useRef<ScrollView>(null);
   const now = useFeedNow({ enabled: true });
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
+  const { isEntryHidden } = useSocialEntryModeration();
+  const visibleItems = useMemo(
+    () =>
+      MOCK_LIVE_TRADES_ITEMS.filter(
+        (item) =>
+          !isEntryHidden({
+            postId: item.id,
+            authorId: item.traderId,
+            authorHandle: item.username,
+          }),
+      ),
+    [isEntryHidden],
+  );
 
   useImperativeHandle(
     pageRef,
@@ -144,7 +159,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
             {streamLabel}
           </FilterButton>
         </SocialTabFilterBar>
-        {MOCK_LIVE_TRADES_ITEMS.map((item, index) => (
+        {visibleItems.map((item, index) => (
           <Fragment key={item.id}>
             {index > 0 ? (
               <SectionDivider

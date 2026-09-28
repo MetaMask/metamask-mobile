@@ -131,6 +131,36 @@ export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
   tabs: PredictSportsFeedTabConfig[];
 }
 
+/**
+ * A single Predict home "Categories" tile, remotely configurable (PRED-1226).
+ *
+ * `id` is the stable analytics identifier and the feed id used to navigate to
+ * `PredictFeedView`. Every non-`sports` id resolves to a generic tag-filtered
+ * category feed (Politics/Crypto pattern) built from `tagSlug`; `sports` keeps
+ * the dedicated sports feed.
+ */
+export interface PredictHomeCategoryConfig {
+  id: string;
+  /** Polymarket Gamma `tag_slug` used to filter the category feed. */
+  tagSlug: string;
+  /** i18n key for the tile / feed title. Optional; omitted copy falls back to `predict.category.<id>`. */
+  titleKey?: string;
+  /** Literal label; preferred over `titleKey` so new tiles need no i18n release. */
+  label?: string;
+  /**
+   * Component-library `IconName`. Unknown names fall back to a default icon
+   * on the client rather than crashing.
+   */
+  iconName?: string;
+  /** Defaults to `true`. Disabled tiles are removed from the rail. */
+  enabled?: boolean;
+}
+
+export interface PredictHomeCategoriesConfig extends VersionGatedFeatureFlag {
+  /** Array order is display order. */
+  categories: PredictHomeCategoryConfig[];
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -143,6 +173,7 @@ export interface PredictFeatureFlags {
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictSportsFeed: PredictSportsFeedConfig;
+  predictHomeCategories: PredictHomeCategoriesConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
