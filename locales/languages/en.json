@@ -988,7 +988,7 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
       "login_with_email": "Log in with email"
     },
@@ -1159,8 +1159,15 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
-      "email_not_set_error": "Email is missing. Go back and enter your email."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "More information needed",
+      "more_info_description": "We need a bit more information to complete your verification. Continue to provide it.",
+      "more_info_button": "Continue verification",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Try again"
     },
     "kyc_pending": {
       "title": "Verification in progress",
@@ -3708,6 +3715,10 @@
       "sports": "Sports",
       "crypto": "Crypto",
       "politics": "Politics",
+      "esports": "E-sports",
+      "culture": "Culture",
+      "finance": "Finance",
+      "tech": "Tech",
       "hot": "Hot",
       "wimbledon": "Wimbledon"
     },
@@ -8106,7 +8117,7 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
@@ -9067,6 +9078,7 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "membership_top_up_info": "We’ll add {{amount}} to your Money account to cover this payment.",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "receive_title": "Receive",
@@ -11717,11 +11729,11 @@
     },
     "show_not_found": {
       "title": "Connection Not Found",
-      "description": "Please establish a new connection from the app to continue."
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Select project",
@@ -11730,7 +11742,7 @@
     },
     "show_method_error": {
       "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11862,7 +11874,7 @@
     },
     "awaiting_app": {
       "title": "Open {{app}}",
-      "message": "Please open the {{app}} app on your {{device}}",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "Currently open: {{app}}"
     },
     "awaiting_confirmation": {
@@ -12117,7 +12129,10 @@
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
+      "money_account": "Money account",
       "renews_on": "Renews on",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "Manage",
       "invoices": "Invoices",
       "contact_support": "Contact support",

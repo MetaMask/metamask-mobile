@@ -81,7 +81,12 @@ export function ConfirmationsDeveloperOptions() {
           }
         />
       )}
-      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
+      {isMoneyAccountDepositEnabled && (
+        <>
+          <MoneyAccountDeposit />
+          <MembershipSubscription />
+        </>
+      )}
       {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
   );
@@ -254,6 +259,12 @@ function MoneyAccountDeposit() {
     });
   }, [initiateDeposit]);
 
+  const handleDepositFiveDollars = useCallback(() => {
+    initiateDeposit({ forceBottomSheet: true, amount: '5' }).catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
+    });
+  }, [initiateDeposit]);
+
   return (
     <>
       <DeveloperButton
@@ -277,7 +288,48 @@ function MoneyAccountDeposit() {
       >
         Deposit in BottomSheet
       </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleDepositFiveDollars}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_FIVE_DOLLARS_BUTTON
+        }
+        isFullWidth
+        style={styles.accessory}
+      >
+        Deposit 5$
+      </Button>
     </>
+  );
+}
+
+function MembershipSubscription() {
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const handleMembershipSubscription = useCallback(() => {
+    initiateDeposit({
+      forceBottomSheet: true,
+      amount: '1',
+      transactionType: TransactionType.membershipSubscription,
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        'Developer Options: Membership subscription failed',
+      );
+    });
+  }, [initiateDeposit]);
+
+  return (
+    <DeveloperButton
+      title="Membership Subscription"
+      description="Trigger a Membership Subscription confirmation."
+      buttonLabel="Top-up 1$"
+      onPress={handleMembershipSubscription}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON
+      }
+    />
   );
 }
 

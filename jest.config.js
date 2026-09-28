@@ -67,6 +67,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@nktkas/hyperliquid',
   '@metamask/abi-utils',
   '@metamask/account-tree-controller',
+  '@metamask/approval-controller',
   '@metamask/assets-controller',
   '@metamask/assets-controllers',
   '@metamask/authenticated-user-storage',
@@ -78,6 +79,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
   '@metamask/client-utils',
+  '@metamask/claims-controller',
   '@metamask/config-registry-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
@@ -87,6 +89,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/gas-fee-controller',
   '@metamask/keyring-controller',
   '@metamask/kyc-controller',
+  '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
@@ -102,6 +105,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/sentinel-api-service',
   '@metamask/seedless-onboarding-controller',
   '@metamask/snap-account-service',
+  '@metamask/shield-controller',
   // 3.x ships ESM-only under dist/*.js (2.x used dist/index.cjs).
   '@metamask/social-controllers',
   '@signinwithethereum',
@@ -111,11 +115,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/native-utils',
   '@metamask/perps-controller',
   '@metamask/superstruct',
-  '@metamask/utils',
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
+  '@metamask/signature-controller',
   '@metamask/smart-transactions-controller',
+  '@metamask/storage-service',
   '@metamask/subscription-controller',
   '@metamask/transaction-controller',
   '@metamask/transaction-pay-controller',
@@ -127,6 +132,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@sumsub/react-native-mobilesdk-module',
   '@braze/react-native-sdk',
   'uuid',
+  '@metamask/wallet',
+  // We don't use `@metamask/passkey-controller` in mobile, but it's part of the `@metamask/wallet` package.
+  // We need to transpile it to avoid errors when running the tests.
+  '@metamask/passkey-controller',
+  '@metamask/accounts-controller',
 ];
 
 const config = {
