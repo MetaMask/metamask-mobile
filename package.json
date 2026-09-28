@@ -904,5 +904,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/seedless-onboarding-controller": {
+      "type": "breaking",
+      "previewVersion": "11.0.0-preview-0a1dd02ad"
+    }
   }
 }
