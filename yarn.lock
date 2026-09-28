@@ -12202,7 +12202,11 @@ __metadata:
     "@metamask/superstruct": "npm:^3.4.1"
   checksum: 10/d17c106538bb29aeab3c9f2b14aa709f6838702e50dc2a396c37f79bbe6267a76536a50dc5fbb409f625e5f5bae1bda201f059beff13fd67fcc5ee22e01b6780
   languageName: node
+  linkType: hard
+
+"@metamask/solana-wallet-snap@npm:^5.0.1":
   version: 5.0.1
+  resolution: "@metamask/solana-wallet-snap@npm:5.0.1"
   checksum: 10/b1b02da2d0a3cf0059851d3098654a81e826590b08153f289e83184fbcf4ad621a987d1b16876d2f9b5dca735509db7ce477ca045a73d1e601fb6c314b206294
   languageName: node
   linkType: hard
