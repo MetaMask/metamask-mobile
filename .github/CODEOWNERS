@@ -274,6 +274,7 @@ app/core/Engine/messengers/predict-live-data-service-messenger*         @MetaMas
 app/core/Engine/messengers/predict-market-data-service-messenger*       @MetaMask/predict
 app/core/Engine/messengers/predict-portfolio-service-messenger*         @MetaMask/predict
 app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts            @MetaMask/predict
+app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                           @MetaMask/predict
 **/predict/**                                                           @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/                     @MetaMask/predict
@@ -392,7 +393,7 @@ tests/api-mocking/                                              @MetaMask/qa
 tests/component-view/                                           @MetaMask/qa
 tests/component-view/fixtures/predictNext.ts                    @MetaMask/qa @MetaMask/predict
 tests/component-view/presets/predictNext.ts                     @MetaMask/qa @MetaMask/predict
-tests/component-view/renderers/predictNext.ts                   @MetaMask/qa @MetaMask/predict
+tests/component-view/renderers/predictNext.tsx                  @MetaMask/qa @MetaMask/predict
 tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa

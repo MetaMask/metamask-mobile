@@ -20,6 +20,8 @@ export interface ExplorePillProps {
   title: string;
   changeLabel?: string;
   changeTextColor?: TextColor;
+  /** Draws the pill as the active filter. */
+  isSelected?: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   title,
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
+  isSelected = false,
 }) => {
   const tw = useTailwind();
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
@@ -42,16 +45,23 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
       onPress={onPress}
       testID={testID}
       accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
       style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
+        backgroundColor={
+          isSelected
+            ? BoxBackgroundColor.BackgroundSection
+            : BoxBackgroundColor.BackgroundMuted
+        }
         paddingHorizontal={2}
         paddingVertical={2}
-        twClassName="rounded-full"
+        twClassName={
+          isSelected ? 'rounded-full border border-default' : 'rounded-full'
+        }
       >
         {leading}
         <Text

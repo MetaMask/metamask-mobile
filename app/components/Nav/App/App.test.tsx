@@ -1195,6 +1195,10 @@ describe('App', () => {
       expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
     });
 
+    it('has manage accounts route defined', () => {
+      expect(Routes.MANAGE_ACCOUNTS_VIEW).toBeDefined();
+    });
+
     it('has address selector route defined', () => {
       expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
     });

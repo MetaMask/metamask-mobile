@@ -1,6 +1,7 @@
 import {
   useNavigation,
   useRoute,
+  useFocusEffect,
   CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
@@ -18,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
-  Button as DSButton,
+  Button,
   ButtonBaseSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
@@ -35,6 +36,7 @@ import {
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -45,6 +47,10 @@ import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import {
+  completePerpsTradeSheetInteractiveTrace,
+  failPerpsTradeSheetInteractiveTrace,
+} from '../../utils/perpsTradeSheetInteractiveTrace';
 import Keypad from '../../../../Base/Keypad';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -59,6 +65,7 @@ import {
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
+import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePayTokenOrMoneyAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenOrMoneyAccountBalance';
 import { useMoneyAccountDepositAndOrder } from '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder';
@@ -87,8 +94,9 @@ import PerpsTradeBottomSheet, {
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
+  PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
-  PerpsTradeSettingsScreen,
+  PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -145,7 +153,6 @@ import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -156,7 +163,9 @@ import {
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
 import {
+  formatLiquidationDistance,
   formatPerpsFiat,
+  formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -178,9 +187,17 @@ import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import {
+  consumePerpsPaymentTokenSelection,
+  resetPerpsPaymentTokenSelection,
+} from '../../utils/perpsPaymentTokenSelection';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
+import { isHardwareAccount } from '../../../../../util/address';
+import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
+import { RootState } from '../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -222,9 +239,17 @@ interface PerpsOrderViewContentProps {
 
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
-  settings: 1,
   leverage: 1,
+  tpsl: 1,
+  marginInfo: 1,
+  liquidationInfo: 1,
 };
+/** Nested screens that size to their content instead of the Trade screen height. */
+const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
+  'leverage',
+  'marginInfo',
+  'liquidationInfo',
+];
 
 /**
  * PerpsOrderViewContentBase
@@ -280,6 +305,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   useTransactionPayMetrics();
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const styles = createStyles(colors);
 
@@ -323,12 +349,51 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Check if there's an active transaction
   const activeTransactionMeta = useTransactionMetadataRequest();
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(
+      state,
+      activeTransactionMeta?.id ?? '',
+    ),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
+  const isPayWithDisabled = Boolean(
+    isHardwareAccount(activeTransactionMeta?.txParams?.from ?? ''),
+  );
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
+  // Held only while the pay-with-token deposit confirmation is awaited, so a
+  // second tap cannot start a parallel confirmation. It is separate from
+  // `isSubmittingRef` because the deposit tracker re-enters
+  // `handlePlaceOrder(true)` from the transaction-confirmed event, which can
+  // fire while that await is still pending (`waitForResult` confirmations);
+  // that programmatic re-entry must place the order, not be treated as a
+  // double tap.
+  const isConfirmingDepositRef = useRef(false);
+  // Set by that forced re-entry once it has placed the order and navigated
+  // away, so the deposit branch does not navigate a second time when its own
+  // await settles.
+  const hasPlacedOrderAfterDepositRef = useRef(false);
+  // Set once the Trade sheet has been dismissed (`handleTradeSheetClose`) or
+  // the view unmounts, so `handlePlaceOrder` can bail after an `await` (e.g.
+  // validation still in flight) instead of placing an order the user can no
+  // longer see. The sheet's exit animation and `navigation.goBack()` run
+  // before the unmount, so an unmount-only flag would miss a validation that
+  // settles in that window. Reset in the effect body so a Fast Refresh effect
+  // re-run does not leave it stuck at `true`.
+  const isDismissedRef = useRef(false);
+  useEffect(() => {
+    isDismissedRef.current = false;
+    return () => {
+      isDismissedRef.current = true;
+    };
+  }, []);
   const inputMethodRef = useRef<InputMethod>('default');
+  const tradeSheetLimitPriceInputMethodRef = useRef<string | null>(null);
+  const tradeSheetPayTokenIdentityRef = useRef<string | null>(null);
 
   // Track whether the user actually placed a trade so leaving the
   // screen without one (back swipe, hardware back, tab switch) is emitted as an
@@ -356,12 +421,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
-  // Only the Trade sheet renders the asset icon, and resolving it costs a HEAD
-  // request, so the full-screen flow must not trigger that lookup.
-  const { assetUrl } = usePerpsAssetMetadata(
-    useBottomSheet ? orderForm.asset : undefined,
-  );
-
   // Live slider display value for immediate UI feedback while dragging. The
   // committed `orderForm.amount` only updates on drag end, since it drives
   // the expensive fee/rewards/slippage recompute pipeline (usePerpsOrderFees
@@ -421,32 +480,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
   }, [commitAmount, isDraggingSlider, liveDragAmount]);
 
-  // The Trade sheet currently supports market orders only. Clear restored
-  // advanced-order fields before they can silently affect an order that does
-  // not expose controls for editing them.
+  // The compact Trade sheet exposes market and limit orders only.
   useEffect(() => {
-    if (
-      useBottomSheet &&
-      (orderForm.type !== 'market' ||
-        orderForm.limitPrice ||
-        orderForm.takeProfitPrice ||
-        orderForm.stopLossPrice)
-    ) {
+    if (!useBottomSheet) {
+      return;
+    }
+
+    if (orderForm.type === 'market' && orderForm.limitPrice) {
+      updateOrderForm({ type: 'market', limitPrice: undefined });
+    } else if (orderForm.type !== 'market' && orderForm.type !== 'limit') {
       updateOrderForm({
         type: 'market',
         limitPrice: undefined,
-        takeProfitPrice: undefined,
-        stopLossPrice: undefined,
       });
     }
-  }, [
-    orderForm.limitPrice,
-    orderForm.stopLossPrice,
-    orderForm.takeProfitPrice,
-    orderForm.type,
-    updateOrderForm,
-    useBottomSheet,
-  ]);
+  }, [orderForm.limitPrice, orderForm.type, updateOrderForm, useBottomSheet]);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
@@ -481,8 +529,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
   const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
-  const isLoadingMarketData =
-    isMarketDataLoading && (szDecimals === null || maxLeverage === null);
+  const isMarketDataUnavailable = szDecimals === null || maxLeverage === null;
+  const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
   // Check if user has an existing position for this market
   const { existingPosition: currentMarketPosition } = useHasExistingPosition({
@@ -523,6 +571,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isLimitPriceFocused, setIsLimitPriceFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
   // Max slippage from persisted controller state via hook so the component
@@ -534,6 +583,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
+  );
+  const payTokenIdentity = payToken
+    ? `${payToken.address}:${payToken.chainId}`
+    : '';
+
+  useFocusEffect(
+    useCallback(() => {
+      const identityAtOpen = tradeSheetPayTokenIdentityRef.current;
+      if (!useBottomSheet || identityAtOpen === null) {
+        return;
+      }
+      tradeSheetPayTokenIdentityRef.current = null;
+      const selectionMade = consumePerpsPaymentTokenSelection();
+      if (!selectionMade && payTokenIdentity === identityAtOpen) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
+          [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
+        });
+      }
+    }, [payToken?.symbol, payTokenIdentity, track, useBottomSheet]),
   );
 
   // Handle opening limit price modal after order type modal closes
@@ -1064,28 +1134,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
-  const {
-    placeOrder: executeOrder,
-    isPlacing: isPlacingOrder,
-    error: orderExecutionError,
-  } = usePerpsOrderExecution({
-    onSuccess: (_position) => {
-      showToast(
-        PerpsToastOptions.orderManagement[
-          getOrderManagementToastKey(orderForm.type)
-        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
-      );
-    },
-    onError: (error) => {
-      // Error is already captured in usePerpsOrderExecution hook
-      // No need to capture again here to avoid duplicate Sentry reports
-      showToast(
-        PerpsToastOptions.orderManagement[
-          getOrderManagementToastKey(orderForm.type)
-        ].creationFailed(error),
-      );
-    },
-  });
+  // Execution failures surface through the `onError` toast on the market
+  // screen, which both surfaces navigate to as soon as the order is submitted.
+  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
+    usePerpsOrderExecution({
+      onSuccess: (_position) => {
+        showToast(
+          PerpsToastOptions.orderManagement[
+            getOrderManagementToastKey(orderForm.type)
+          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+        );
+      },
+      onError: (error) => {
+        // Error is already captured in usePerpsOrderExecution hook
+        // No need to capture again here to avoid duplicate Sentry reports
+        showToast(
+          PerpsToastOptions.orderManagement[
+            getOrderManagementToastKey(orderForm.type)
+          ].creationFailed(error),
+        );
+      },
+    });
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(
@@ -1108,7 +1177,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [marginRequired]);
 
   // Real-time liquidation price calculation
-  const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
+  const { liquidationPrice, isCalculating: isCalculatingLiquidationPrice } =
+    usePerpsLiquidationPrice(liquidationPriceParams);
 
   // Minimum order amount (in USD notional) for the current asset/network
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -1203,7 +1273,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: isInputFocused,
+    skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
   });
 
@@ -1281,6 +1351,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   ]);
 
   const handleAmountPress = () => {
+    setIsLimitPriceFocused(false);
     setIsInputFocused(true);
   };
 
@@ -1315,6 +1386,135 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const handleDonePress = () => {
     setIsInputFocused(false);
   };
+
+  const handleTradeSheetLimitPricePress = useCallback(() => {
+    setIsInputFocused(false);
+    setIsLimitPriceFocused(true);
+    tradeSheetLimitPriceInputMethodRef.current = null;
+  }, []);
+
+  const handleTradeSheetLimitPriceChange = useCallback(
+    ({ value }: { value: string; valueAsNumber: number }) => {
+      const digitCount = (value.match(/\d/g) || []).length;
+      if (digitCount <= MAX_PERPS_INPUT_DIGITS) {
+        setLimitPrice(value || undefined);
+        tradeSheetLimitPriceInputMethodRef.current =
+          PERPS_EVENT_VALUE.INPUT_METHOD.KEYBOARD;
+      }
+    },
+    [setLimitPrice],
+  );
+
+  const handleTradeSheetLimitPricePreset = useCallback(
+    (preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2') => {
+      const parsedLimitPrice = Number.parseFloat(orderForm.limitPrice ?? '');
+      const marketPrice = assetData.price;
+      const basePrice =
+        Number.isFinite(parsedLimitPrice) && parsedLimitPrice > 0
+          ? parsedLimitPrice
+          : marketPrice;
+      let nextPrice =
+        preset === 'book'
+          ? Number.parseFloat(
+              (orderForm.direction === 'long'
+                ? currentTopOfBook?.bestBid
+                : currentTopOfBook?.bestAsk) ||
+                currentPrice?.price ||
+                '',
+            )
+          : marketPrice;
+
+      if (preset === 'percentage-1' || preset === 'percentage-2') {
+        const percentage = preset === 'percentage-1' ? 1 : 2;
+        const multiplier =
+          orderForm.direction === 'long'
+            ? 1 - percentage / 100
+            : 1 + percentage / 100;
+        nextPrice = new BigNumber(basePrice)
+          .multipliedBy(multiplier)
+          .toNumber();
+      }
+
+      if (!Number.isFinite(nextPrice) || nextPrice <= 0) {
+        return;
+      }
+
+      setLimitPrice(
+        formatWithSignificantDigits(
+          nextPrice,
+          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+        ).value.toString(),
+      );
+      tradeSheetLimitPriceInputMethodRef.current =
+        preset === 'percentage-1' || preset === 'percentage-2'
+          ? PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PERPS_EVENT_VALUE.INPUT_METHOD.PRESET;
+    },
+    [
+      assetData.price,
+      currentTopOfBook?.bestAsk,
+      currentTopOfBook?.bestBid,
+      currentPrice?.price,
+      orderForm.direction,
+      orderForm.limitPrice,
+      setLimitPrice,
+    ],
+  );
+
+  const handleTradeSheetLimitPriceDone = useCallback(() => {
+    const inputMethod = tradeSheetLimitPriceInputMethodRef.current;
+    if (inputMethod) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          // eslint-disable-next-line @typescript-eslint/no-deprecated -- Keep parity with the existing limit-price analytics contract.
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
+        [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
+        [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethod,
+        [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+        [PERPS_EVENT_PROPERTY.DIRECTION]: orderForm.direction,
+      });
+      tradeSheetLimitPriceInputMethodRef.current = null;
+    }
+    setIsLimitPriceFocused(false);
+  }, [orderForm.asset, orderForm.direction, track]);
+
+  // The sheet only offers market and limit, so the header control swaps
+  // between them on tap rather than opening a second bottom sheet.
+  const handleTradeSheetOrderTypeToggle = useCallback(() => {
+    const nextType = orderForm.type === 'limit' ? 'market' : 'limit';
+
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
+        orderForm.direction === 'long'
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+        nextType === 'limit'
+          ? PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT
+          : PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
+    });
+
+    setOrderType(nextType);
+    if (nextType === 'market') {
+      setLimitPrice(undefined);
+      setIsLimitPriceFocused(false);
+      return;
+    }
+    // Switching to market clears the price, so limit always needs one.
+    tradeSheetLimitPriceInputMethodRef.current = null;
+    setIsInputFocused(false);
+    setIsLimitPriceFocused(true);
+  }, [
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    setLimitPrice,
+    setOrderType,
+    track,
+  ]);
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
@@ -1361,7 +1561,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
-      if (isSubmittingRef.current) {
+      if (
+        isSubmittingRef.current ||
+        (!forceTrade && isConfirmingDepositRef.current)
+      ) {
         return;
       }
 
@@ -1401,12 +1604,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
         const estPct = bpsToPercent(estimatedSlippageBps);
         const maxPct = bpsToPercent(maxSlippageBps);
+        // The Trade sheet deliberately has no slippage control, so its copy
+        // must not tell the user to raise a cap they cannot reach; reducing
+        // the order size is the only remedy there.
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
-            strings('perps.slippage.exceeds_max', {
-              est: estPct.toFixed(2),
-              max: maxPct.toFixed(2),
-            }),
+            strings(
+              useBottomSheet
+                ? 'perps.slippage.exceeds_max_reduce_size'
+                : 'perps.slippage.exceeds_max',
+              {
+                est: estPct.toFixed(2),
+                max: maxPct.toFixed(2),
+              },
+            ),
           ),
         );
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -1430,6 +1641,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           submissionErrors = validationAttempt.errors;
         } finally {
           isSubmittingRef.current = false;
+        }
+        // Only a user-initiated submit is abandoned with the sheet. The
+        // post-deposit re-entry (`forceTrade`) runs by design after the user
+        // has left — the deposit branch itself navigates away once the
+        // confirmation resolves — and the confirmed deposit is a commitment
+        // that must still produce the order.
+        if (!forceTrade && isDismissedRef.current) {
+          return;
         }
       }
 
@@ -1478,21 +1697,41 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
         // useTransactionConfirm swallows confirm errors and reports them via
         // onError, so capture failure explicitly instead of assuming success.
+        // Hold the deposit lock across the await so a second tap cannot start
+        // a parallel deposit confirmation.
+        isConfirmingDepositRef.current = true;
         let depositConfirmError: unknown;
-        await onDepositConfirm({
-          onError: (error) => {
-            depositConfirmError = error;
-          },
-        });
+        try {
+          await onDepositConfirm({
+            onError: (error) => {
+              depositConfirmError = error;
+            },
+          });
+        } finally {
+          isConfirmingDepositRef.current = false;
+        }
         if (depositConfirmError) {
           // A cancelled/failed deposit confirmation is not a commitment: keep
           // abandon tracking armed and stay on the screen so the user can retry
           // (leaving later then correctly counts as an abandon).
           return;
         }
+        if (hasPlacedOrderAfterDepositRef.current) {
+          // The deposit confirmed while this await was still pending and the
+          // tracker already re-entered `handlePlaceOrder(true)`, which placed
+          // the order and navigated away; a second navigation here would pop
+          // the market screen it just landed on.
+          return;
+        }
         // Deposit confirmed: the order is placed once funds arrive, so leaving
         // now is a real commitment, not an abandoned order.
         hasPlacedOrderRef.current = true;
+        if (isDismissedRef.current) {
+          // The user already swiped the sheet away while the confirmation was
+          // pending, so `handleTradeSheetClose` has navigated; a second
+          // `goBack` here would pop whatever screen is now on top.
+          return;
+        }
         if (fromTokenDetails) {
           navigation.dispatch(
             CommonActions.reset({
@@ -1561,13 +1800,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Monitoring both ensures we route to the correct tab regardless of execution speed
         // Real placement is underway; leaving now is not an abandon.
         hasPlacedOrderRef.current = true;
-
-        // Keep the treatment sheet mounted until execution succeeds so a
-        // controller error can be rendered in its footer. The control path
-        // retains its existing optimistic navigation behavior.
-        if (!useBottomSheet) {
-          navigateToMarketAfterOrder();
+        if (forceTrade) {
+          hasPlacedOrderAfterDepositRef.current = true;
         }
+
+        // Both the full-screen form and the Trade sheet leave as soon as the
+        // order is submitted; the "submitted" / "confirmed" / "failed" toasts
+        // then report the outcome on the market screen.
+        navigateToMarketAfterOrder();
 
         // Execute order using the new hook
         // Only include TP/SL if they have valid, non-empty values
@@ -1650,10 +1890,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           if (!orderResult?.success) {
             return;
           }
-        }
-
-        if (useBottomSheet) {
-          navigateToMarketAfterOrder();
         }
 
         // Clear pending trade config after successful submission to prevent
@@ -1777,8 +2013,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleSlippageEditPress = useCallback(() => {
-    setIsSlippageVisible(true);
+  const trackSlippageConfigOpened = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
@@ -1787,6 +2022,35 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
+
+  const handleSlippageEditPress = useCallback(() => {
+    setIsSlippageVisible(true);
+    trackSlippageConfigOpened();
+  }, [trackSlippageConfigOpened]);
+
+  const handlePayWithPress = useCallback(() => {
+    if (isPayWithDisabled) {
+      return;
+    }
+    setConfirmationMetric({
+      properties: {
+        mm_pay_token_list_opened: true,
+      },
+    });
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
+    });
+    tradeSheetPayTokenIdentityRef.current = payTokenIdentity;
+    resetPerpsPaymentTokenSelection();
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
+  }, [
+    isPayWithDisabled,
+    navigation,
+    payTokenIdentity,
+    setConfirmationMetric,
+    track,
+  ]);
 
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
@@ -1803,6 +2067,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       });
     },
     [orderForm.asset, setMaxSlippage, track],
+  );
+
+  const handleTradeTPSLSave = useCallback(
+    (takeProfitPrice?: string, stopLossPrice?: string) => {
+      setTakeProfitPrice(takeProfitPrice);
+      setStopLossPrice(stopLossPrice);
+    },
+    [setStopLossPrice, setTakeProfitPrice],
   );
 
   useInitPerpsPaymentToken(orderForm.asset ?? '');
@@ -1846,6 +2118,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const hasInvalidTPSL = isTakeProfitPriceInvalid || isStopLossPriceInvalid;
+
+  // Keep every order-validity and submission-safety gate shared between the
+  // full-screen and Trade-sheet CTAs. Async validation is intentionally not a
+  // presentation blocker: both surfaces allow the tap and handlePlaceOrder
+  // awaits validateNow() before any deposit or order execution.
+  const isOrderSubmissionBlocked =
+    !orderValidation.isValid ||
+    isPlacingOrder ||
+    doesStopLossRiskLiquidation ||
+    hasInvalidTPSL ||
+    isAtOICap ||
+    shouldBlockBecauseOfFeesLoading ||
+    hasBlockingPayAlerts;
 
   let rewardAnimationState = RewardAnimationState.Idle;
   if (rewardsState.isLoading) {
@@ -1908,32 +2193,105 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ],
   );
 
+  const handleTradeSheetClose = useCallback(() => {
+    // The sheet is gone from the user's point of view even though this view
+    // stays mounted until the navigation transition finishes; stop any submit
+    // that is still awaiting validation from placing an order.
+    isDismissedRef.current = true;
+    if (fromTokenDetails) {
+      const parentNavigation = navigation.getParent();
+      if (parentNavigation?.canGoBack()) {
+        parentNavigation.goBack();
+        return;
+      }
+    }
+    navigation.goBack();
+  }, [fromTokenDetails, navigation]);
+
+  const handleTradeSheetInteractive = useCallback(() => {
+    completePerpsTradeSheetInteractiveTrace();
+  }, []);
+
+  const handleTradeSheetCancelBeforeInteractive = useCallback(() => {
+    failPerpsTradeSheetInteractiveTrace('dismissed_before_interactive');
+  }, []);
+
   if (useBottomSheet) {
-    const currentMarketPrice = assetData.price;
-    const numericLiquidationPrice = Number.parseFloat(liquidationPrice);
-    const liquidationPercentage =
-      currentMarketPrice > 0 &&
-      Number.isFinite(numericLiquidationPrice) &&
-      numericLiquidationPrice > 0
-        ? `${(
-            (Math.abs(currentMarketPrice - numericLiquidationPrice) /
-              currentMarketPrice) *
-            100
-          ).toFixed(2)}%`
-        : undefined;
     const totalFeeRate =
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+    let payWithName = payToken?.symbol ?? '';
+    if (isPayTokenPerpsBalance) {
+      payWithName = strings('perps.adjust_margin.perps_balance');
+    }
+    if (isMoneyAccountSelected) {
+      payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
+    }
+    const payWithBalance = formatPerpsFiat(
+      isPayTokenPerpsBalance
+        ? (account?.totalBalance ?? '0')
+        : payTokenBalanceUsd,
+      { ranges: PRICE_RANGES_MINIMAL_VIEW },
+    );
+    const marginDisplay =
+      marginRequired !== undefined && marginRequired !== null
+        ? formatPerpsFiat(marginRequired, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : PERPS_CONSTANTS.FallbackDataDisplay;
+    const tradeSheetOrderType = orderForm.type === 'limit' ? 'limit' : 'market';
+    const limitPriceWarning = getLimitPriceCrossingWarning({
+      orderType: tradeSheetOrderType,
+      direction: orderForm.direction,
+      limitPrice: orderForm.limitPrice,
+      midPrice: assetData.price,
+      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+    });
+    const rawPercentChange = Number.parseFloat(
+      currentPrice?.percentChange24h ?? '',
+    );
+    const tradeSheetPercentChange = Number.isFinite(rawPercentChange)
+      ? rawPercentChange
+      : null;
+    const isTradeSheetHeaderLoading = !currentPrice || assetData.price <= 0;
+    // Keep the selected pay token visible while its quote refreshes after form
+    // changes. The token and balance are still valid during that refetch.
+    const isTradeSheetPayWithLoading = isLoadingAccount;
+    const isTradeSheetMarginLoading =
+      isLoadingMarketData || (hasValidAmount && marginRequired == null);
+    const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
+    const hasLiquidationPrice =
+      hasValidAmount &&
+      Number.isFinite(parsedLiquidationPrice) &&
+      parsedLiquidationPrice > 0;
+    // Keep the last valid price visible during a refetch. The liquidation hook
+    // retains it while calculating; only the initial unresolved request needs
+    // a skeleton.
+    const isTradeSheetLiquidationLoading =
+      isLoadingMarketData ||
+      (hasValidAmount && isCalculatingLiquidationPrice && !hasLiquidationPrice);
+    const tradeSheetLiquidationPrice = hasLiquidationPrice
+      ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+      : PERPS_CONSTANTS.FallbackDataDisplay;
+    const tradeSheetLiquidationDistance = hasLiquidationPrice
+      ? formatLiquidationDistance(effectivePrice, liquidationPrice)
+      : undefined;
     const submitDisabled =
-      !orderValidation.isValid ||
-      isPlacingOrder ||
-      doesStopLossRiskLiquidation ||
-      hasInvalidTPSL ||
-      isAtOICap ||
-      shouldBlockBecauseOfFeesLoading ||
-      hasBlockingPayAlerts;
+      isOrderSubmissionBlocked ||
+      isLoadingAccount ||
+      isLoadingMarketData ||
+      isMarketDataUnavailable ||
+      isFeesLoading;
     const bottomSheetErrors = [
+      ...(isMarketDataUnavailable && !isMarketDataLoading
+        ? [
+            {
+              key: 'market-data-unavailable',
+              message: strings('perps.failed_to_load_market_data'),
+            },
+          ]
+        : []),
       ...(hasInsufficientFundsError
         ? [
             {
@@ -2001,86 +2359,122 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             },
           ]
         : []),
-      ...(orderExecutionError
-        ? [
-            {
-              key: `execution-${orderExecutionError}`,
-              message: orderExecutionError,
-            },
-          ]
-        : []),
     ];
 
     return (
-      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
-        onClose={() => navigation.goBack()}
-        rootScreen="trade"
-        screenDepth={TRADE_SHEET_SCREEN_DEPTH}
-        screens={{
-          trade: (
-            <PerpsTradeScreen
-              asset={getPerpsDisplaySymbol(orderForm.asset)}
-              oiCapSymbol={orderForm.asset}
-              assetIconUrl={assetUrl}
-              direction={orderForm.direction}
-              leverage={orderForm.leverage}
-              amount={displayAmount}
-              tokenAmount={livePositionSize}
-              sliderMaximum={maxPossibleAmount}
-              isAmountDisabled={isAmountDisabled}
-              isAmountLoading={isLoadingAccount}
-              hasAmountError={spendableBalance > 0 && filteredErrors.length > 0}
-              showAmountWarning={!isLoadingAccount && spendableBalance === 0}
-              amountWarningMessage={strings(
-                'perps.order.validation.insufficient_funds_to_cover_trade',
-              )}
-              isInputFocused={isInputFocused}
-              liquidationPrice={
-                hasValidAmount
-                  ? formatPerpsFiat(liquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  : undefined
-              }
-              liquidationPercentage={liquidationPercentage}
-              feePercentage={feePercentage}
-              isSubmitting={isPlacingOrder}
-              isSubmitDisabled={submitDisabled}
-              submitLabel={placeOrderLabel}
-              errorMessages={bottomSheetErrors}
-              isAtOICap={isAtOICap}
-              showServiceInterruptionBanner={isServiceInterruptionBannerEnabled}
-              onAmountPress={handleAmountPress}
-              onSliderValueChange={handleSliderValueChange}
-              onSliderDragEnd={handleSliderDragEnd}
-              onKeypadChange={handleKeypadChange}
-              onPercentagePress={handlePercentagePress}
-              onMaxPress={handleMaxPress}
-              onDonePress={handleDonePress}
-              onSubmit={() => handlePlaceOrder()}
-            />
-          ),
-          leverage: (
-            <PerpsTradeLeverageScreen
-              onConfirm={handleLeverageConfirm}
-              leverage={orderForm.leverage}
-              minLeverage={1}
-              maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
-              currentPrice={assetData.price}
-              direction={orderForm.direction}
-              asset={orderForm.asset}
-              limitPrice={orderForm.limitPrice}
-              orderType={orderForm.type}
-            />
-          ),
-          settings: (
-            <PerpsTradeSettingsScreen
-              currentValueBps={maxSlippageBps}
-              onSave={handleSlippageSave}
-            />
-          ),
-        }}
-      />
+      <>
+        <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+          onClose={handleTradeSheetClose}
+          onInteractive={handleTradeSheetInteractive}
+          onCancelBeforeInteractive={handleTradeSheetCancelBeforeInteractive}
+          rootScreen="trade"
+          screenDepth={TRADE_SHEET_SCREEN_DEPTH}
+          contentSizedScreens={TRADE_SHEET_CONTENT_SIZED_SCREENS}
+          screens={{
+            trade: (
+              <PerpsTradeScreen
+                asset={getPerpsDisplaySymbol(orderForm.asset)}
+                oiCapSymbol={orderForm.asset}
+                direction={orderForm.direction}
+                leverage={orderForm.leverage}
+                maxLeverage={maxLeverage}
+                currentPrice={assetData.price}
+                percentChange24h={tradeSheetPercentChange}
+                orderType={tradeSheetOrderType}
+                limitPrice={orderForm.limitPrice}
+                limitPriceWarning={limitPriceWarning}
+                autoCloseText={tpSlDisplayText}
+                showAutoClose={!hideTPSL}
+                margin={marginDisplay}
+                liquidationPrice={tradeSheetLiquidationPrice}
+                liquidationDistance={tradeSheetLiquidationDistance}
+                amount={displayAmount}
+                tokenAmount={livePositionSize}
+                sliderMaximum={maxPossibleAmount}
+                isAmountDisabled={isAmountDisabled}
+                isAmountLoading={isLoadingAccount || isLoadingMarketData}
+                isHeaderLoading={isTradeSheetHeaderLoading}
+                isPayWithLoading={isTradeSheetPayWithLoading}
+                isMarginLoading={isTradeSheetMarginLoading}
+                isLiquidationLoading={isTradeSheetLiquidationLoading}
+                isFeeLoading={isFeesLoading}
+                isOrderTypeDisabled={isMarketDataUnavailable || isPlacingOrder}
+                areLimitPricePresetsDisabled={assetData.price <= 0}
+                hasAmountError={
+                  spendableBalance > 0 && filteredErrors.length > 0
+                }
+                showAmountWarning={!isLoadingAccount && spendableBalance === 0}
+                amountWarningMessage={strings(
+                  'perps.order.validation.insufficient_funds_to_cover_trade',
+                )}
+                isInputFocused={isInputFocused}
+                isLimitPriceFocused={isLimitPriceFocused}
+                payWithName={payWithName}
+                payWithBalance={payWithBalance}
+                showPayWith={isPayRowVisible}
+                isPayWithDisabled={isPayWithDisabled}
+                feePercentage={feePercentage}
+                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                isSubmitting={isPlacingOrder}
+                isSubmitDisabled={submitDisabled}
+                submitLabel={placeOrderLabel}
+                errorMessages={bottomSheetErrors}
+                isAtOICap={isAtOICap}
+                showServiceInterruptionBanner={
+                  isServiceInterruptionBannerEnabled
+                }
+                onAmountPress={handleAmountPress}
+                onSliderValueChange={handleSliderValueChange}
+                onSliderDragEnd={handleSliderDragEnd}
+                onKeypadChange={handleKeypadChange}
+                onPercentagePress={handlePercentagePress}
+                onMaxPress={handleMaxPress}
+                onDonePress={handleDonePress}
+                onOrderTypeToggle={handleTradeSheetOrderTypeToggle}
+                onLimitPricePress={handleTradeSheetLimitPricePress}
+                onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
+                onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
+                onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
+                onPayWithPress={handlePayWithPress}
+                onSubmit={() => handlePlaceOrder()}
+              />
+            ),
+            leverage: (
+              <PerpsTradeLeverageScreen
+                onConfirm={handleLeverageConfirm}
+                leverage={orderForm.leverage}
+                minLeverage={1}
+                maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
+                currentPrice={assetData.price}
+                direction={orderForm.direction}
+                asset={orderForm.asset}
+                limitPrice={orderForm.limitPrice}
+                orderType={orderForm.type}
+              />
+            ),
+            tpsl: (
+              <PerpsTradeTPSLScreen
+                asset={orderForm.asset}
+                amount={orderForm.amount}
+                currentPrice={assetData.price}
+                direction={orderForm.direction}
+                initialTakeProfitPrice={orderForm.takeProfitPrice}
+                initialStopLossPrice={orderForm.stopLossPrice}
+                leverage={orderForm.leverage}
+                limitPrice={orderForm.limitPrice}
+                liquidationPrice={liquidationPrice}
+                orderType={tradeSheetOrderType}
+                szDecimals={szDecimals ?? undefined}
+                onSave={handleTradeTPSLSave}
+              />
+            ),
+            marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,
+            liquidationInfo: (
+              <PerpsTradeInfoScreen contentKey="liquidation_price" />
+            ),
+          }}
+        />
+      </>
     );
   }
 
@@ -2425,42 +2819,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <DSButton
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.25)}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               25%
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.5)}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               50%
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleMaxPress}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.max_button')}
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleDonePress}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.done_button')}
-            </DSButton>
+            </Button>
           </View>
 
           <Keypad
@@ -2520,40 +2914,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPress={() => handlePlaceOrder()}
               isFullWidth
               size={ButtonBaseSize.Lg}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
+              isDisabled={isOrderSubmissionBlocked}
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
             </ButtonSemantic>
           ) : (
-            <DSButton
+            <Button
               variant={ButtonVariant.Primary}
               size={ButtonSizeRNDesignSystem.Lg}
               isFullWidth
               onPress={() => handlePlaceOrder()}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
+              isDisabled={isOrderSubmissionBlocked}
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
-            </DSButton>
+            </Button>
           )}
         </View>
       )}
@@ -2755,6 +3133,7 @@ const PerpsOrderView: React.FC = () => {
       initialDirection={direction}
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
+      initialSzDecimals={defaultSzDecimals}
       existingPosition={existingPosition}
       effectiveAvailableBalance={effectiveAvailableBalance}
     >

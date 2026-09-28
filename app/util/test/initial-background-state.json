@@ -597,6 +597,7 @@
     "drafts": []
   },
   "AuthenticationController": {
+    "enrolledCredentials": [],
     "isSignedIn": false,
     "needsProfilePairing": true,
     "needsSocialPairing": true
@@ -775,7 +776,9 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
-    "redeemWithdrawal": null
+    "redeemWithdrawal": null,
+    "signInLink": null,
+    "accountLookupCache": {}
   },
   "UiSlotsController": {
     "enabled": false,
@@ -806,6 +809,7 @@
     "providerDisclaimersAccepted": {
       "sumsub": null
     },
+    "providerFlowStatus": "not_started",
     "idosDisclaimersAccepted": null,
     "credentialReusabilityConsentGiven": null
   },
@@ -901,6 +905,7 @@
     "predictThePitchPrizePool": {},
     "moneyAccountSweepstakesStats": {},
     "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesVolumeStats": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
     "campaignParticipantStatus": {},

@@ -223,20 +223,11 @@ export const HiddenRow = {
   },
 };
 
-/** Imported row — remove control only. */
+/** Imported / hardware row — remove control only. */
 export const RemoveVariant = {
   render: renderRow,
   args: {
     variant: ManageAccountRowVariant.Remove,
-    isHidden: false,
-  },
-};
-
-/** Hardware row — both hide and remove controls. */
-export const HideAndRemoveVariant = {
-  render: renderRow,
-  args: {
-    variant: ManageAccountRowVariant.HideAndRemove,
     isHidden: false,
   },
 };

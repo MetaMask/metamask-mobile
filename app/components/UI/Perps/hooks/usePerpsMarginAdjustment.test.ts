@@ -4,11 +4,16 @@ import { usePerpsMarginAdjustment } from './usePerpsMarginAdjustment';
 
 const mockUpdateMargin = jest.fn();
 const mockShowToast = jest.fn();
+const mockTrack = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
     updateMargin: mockUpdateMargin,
   }),
+}));
+
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
 jest.mock('./usePerpsToasts', () => ({
@@ -49,6 +54,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
+jest.mock('../utils/translatePerpsError', () => ({
+  translatePerpsError: (error: unknown) => {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return typeof error === 'string' ? error : 'perps.errors.unknownError';
+  },
+}));
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -57,6 +71,15 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   PERPS_CONSTANTS: { FeatureName: 'perps' },
+  PERPS_EVENT_PROPERTY: {
+    ACTION: 'action',
+    ASSET: 'asset',
+    ERROR_MESSAGE: 'error_message',
+    STATUS: 'status',
+  },
+  PERPS_EVENT_VALUE: {
+    STATUS: { FAILED: 'failed', SUCCESS: 'success' },
+  },
   getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
 }));
 
@@ -119,6 +142,29 @@ describe('usePerpsMarginAdjustment', () => {
       });
     });
 
+    it('ignores duplicate submissions while an adjustment is pending', async () => {
+      let resolveMargin: (value: { success: boolean }) => void;
+      mockUpdateMargin.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveMargin = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      act(() => {
+        result.current.handleAddMargin('ETH', 100);
+        result.current.handleAddMargin('ETH', 100);
+      });
+
+      expect(mockUpdateMargin).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveMargin({ success: true });
+      });
+    });
+
     it('shows success toast on successful add margin', async () => {
       mockUpdateMargin.mockResolvedValue({ success: true });
       const mockOnSuccess = jest.fn();
@@ -137,6 +183,16 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnSuccess).toHaveBeenCalled();
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'add',
+          asset: 'BTC',
+          status: 'success',
+        },
+      );
     });
 
     it('shows error toast on failed add margin', async () => {
@@ -160,6 +216,17 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnError).toHaveBeenCalledWith('Insufficient funds');
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'add',
+          asset: 'ETH',
+          error_message: 'Insufficient funds',
+          status: 'failed',
+        },
+      );
     });
   });
 
@@ -236,7 +303,7 @@ describe('usePerpsMarginAdjustment', () => {
         await result.current.handleAddMargin('ETH', 100);
       });
 
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
+      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
     it('handles exceptions and logs via Logger.error', async () => {
@@ -273,6 +340,17 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnError).toHaveBeenCalledWith('Network error');
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'add',
+          asset: 'ETH',
+          error_message: 'Network error',
+          status: 'failed',
+        },
+      );
     });
 
     it('captures remove action in Logger context', async () => {
@@ -327,7 +405,7 @@ describe('usePerpsMarginAdjustment', () => {
           }),
         }),
       );
-      expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
+      expect(mockOnError).toHaveBeenCalledWith('String error');
     });
   });
 

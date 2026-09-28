@@ -8,7 +8,9 @@ export const LimitOrderConfirmationModalSelectorsIDs = {
   TRIGGER_COMPARISON: 'limit-order-confirmation-modal-trigger-comparison',
   EXPIRY: 'limit-order-confirmation-modal-expiry',
   COST_TOLERANCE: 'limit-order-confirmation-modal-cost-tolerance',
+  COST_TOLERANCE_TOOLTIP:
+    'limit-order-confirmation-modal-cost-tolerance-tooltip',
   NETWORK_FEE: 'limit-order-confirmation-modal-network-fee',
-  NETWORK_FEE_SKELETON: 'limit-order-confirmation-modal-network-fee-skeleton',
   FEE_DISCLAIMER: 'limit-order-confirmation-modal-fee-disclaimer',
+  USD_PRICE_NOTICE: 'limit-order-confirmation-modal-usd-price-notice',
 } as const;

@@ -12,13 +12,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
-import { Image, Linking, Pressable } from 'react-native';
+import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
+import ProfileAvatar from './ProfileAvatar';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
 import MyProfileStats from './MyProfileStats';
 
 const RANKING_TAG_DISPLAY: Record<
@@ -32,26 +32,29 @@ const RANKING_TAG_DISPLAY: Record<
 
 interface MyProfileHeaderProps {
   profile: MySocialProfile;
+  overlayedStats: OverlayedMyProfileStats;
   followingCount: number;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
+  onStatsPress?: () => void;
 }
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   profile,
+  overlayedStats,
   followingCount,
   onFollowersPress,
   onFollowingPress,
+  onStatsPress,
 }) => {
-  const tw = useTailwind();
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
       Linking.openURL(`https://x.com/${profile.xHandle}`);
     }
   }, [profile.xHandle]);
 
-  const rankingTag = profile.rankingTag
-    ? RANKING_TAG_DISPLAY[profile.rankingTag]
+  const rankingTag = overlayedStats.rankingTag
+    ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
     : null;
 
   return (
@@ -61,14 +64,13 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={4}
       >
-        <Image
-          source={
-            profile.imageUrl ? { uri: profile.imageUrl } : superheroAvatar
-          }
+        <ProfileAvatar
+          imageUrl={profile.imageUrl}
+          avatarPresetId={profile.avatarPresetId}
+          size="lg"
           accessibilityLabel={strings(
             'social_leaderboard.my_profile.avatar_accessibility_label',
           )}
-          style={tw.style('w-16 h-16 rounded-full')}
           testID={MyProfileViewSelectorsIDs.AVATAR}
         />
 
@@ -141,7 +143,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           accessibilityRole="button"
           accessibilityLabel={strings(
             'social_leaderboard.my_profile.followers_tab',
-            { count: profile.followerCount ?? 0 },
+            { count: overlayedStats.followerCount },
           )}
           testID={MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON}
         >
@@ -154,7 +156,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
               variant={TextVariant.BodyMd}
               testID={MyProfileViewSelectorsIDs.FOLLOWERS_COUNT}
             >
-              {profile.followerCount ?? 0}
+              {overlayedStats.followerCount}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
@@ -197,7 +199,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      <MyProfileStats profile={profile} />
+      <MyProfileStats stats={overlayedStats} onPress={onStatsPress} />
     </Box>
   );
 };

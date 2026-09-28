@@ -196,11 +196,32 @@ export const mergeMarketQuote = (
       : outcome;
   }) as [PredictOutcome, PredictOutcome];
 
+  const lastPrice = quote.lastPrice;
+  const volume = quote.volume ?? current.volume;
+  const updatedAt = quote.updatedAt;
+  const pricesUnchanged = current.outcomes.every((outcome, index) => {
+    const next = outcomes[index];
+    return (
+      next !== undefined &&
+      outcome.bidPrice === next.bidPrice &&
+      outcome.askPrice === next.askPrice
+    );
+  });
+
+  if (
+    pricesUnchanged &&
+    current.lastPrice === lastPrice &&
+    current.volume === volume &&
+    current.updatedAt === updatedAt
+  ) {
+    return current;
+  }
+
   return {
     ...current,
     outcomes,
-    lastPrice: quote.lastPrice,
-    volume: quote.volume ?? current.volume,
-    updatedAt: quote.updatedAt,
+    lastPrice,
+    volume,
+    updatedAt,
   };
 };

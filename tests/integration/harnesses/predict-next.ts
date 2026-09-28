@@ -51,6 +51,8 @@ export interface PredictNextIntegrationHarness {
   messenger: PredictNextRootMessenger;
   marketDataService: PredictMarketDataService;
   portfolioService: PredictPortfolioService;
+  /** The shared remote adapter, for capability groups without a service. */
+  adapter: KalshiRemoteAdapter;
   fetchMock: jest.MockedFunction<typeof fetch>;
   getBearerTokenMock: jest.MockedFunction<() => Promise<string | undefined>>;
   destroy: () => void;
@@ -107,6 +109,7 @@ export const buildPredictNextIntegrationHarness = (
     messenger,
     marketDataService,
     portfolioService,
+    adapter,
     fetchMock,
     getBearerTokenMock,
     destroy: () => {

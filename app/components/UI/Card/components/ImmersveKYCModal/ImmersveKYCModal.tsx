@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, View } from 'react-native';
+import { Linking, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -15,6 +15,8 @@ import {
   Text,
   TextVariant,
   HeaderStandard,
+  IconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
 import {
   PERMISSIONS,
@@ -111,12 +113,10 @@ export const clearImmersveKycOnClose = () => {
   onCloseCallback = null;
 };
 
-const getMediaPermissions = (): Permission[] => {
-  if (Platform.OS === 'ios') {
-    return [PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.MICROPHONE];
-  }
-  return [PERMISSIONS.ANDROID.CAMERA, PERMISSIONS.ANDROID.RECORD_AUDIO];
-};
+const getMediaPermissions = (): Permission[] => [
+  PERMISSIONS.ANDROID.CAMERA,
+  PERMISSIONS.ANDROID.RECORD_AUDIO,
+];
 
 const areAllPermissionsGranted = (
   statuses: Record<string, PermissionStatus>,
@@ -230,6 +230,11 @@ const ImmersveKYCModal: React.FC = () => {
 
   const requestMediaPermissions = useCallback(
     async (isRetry: boolean) => {
+      if (Platform.OS !== 'android') {
+        setStatus('loading');
+        return;
+      }
+
       setStatus('requesting-permissions');
 
       try {
@@ -506,7 +511,7 @@ const ImmersveKYCModal: React.FC = () => {
               )}
               testID="immersve-kyc-loading"
             >
-              <ActivityIndicator size="large" />
+              <Spinner spinnerIconProps={{ size: IconSize.Xl }} />
             </View>
           )}
         </View>
