@@ -5,10 +5,10 @@ import {
   sumAmounts,
   isStellarChainId,
   isTronChainId,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 
-type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+type ActiveQuote = QuoteResponse | null | undefined;
 
 export const isQuoteNetworkFeeUnavailable = (
   activeQuote: ActiveQuote,

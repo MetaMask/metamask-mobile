@@ -12,8 +12,8 @@ import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
@@ -30,6 +30,7 @@ import {
   ChainId,
   MetaMetricsSwapsEventSource,
   formatChainIdToCaip,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
@@ -166,7 +167,7 @@ const mockActiveQuote = {
   },
 };
 
-const mockBtcQuoteWithUnavailableNetworkFee = {
+const mockBtcQuoteWithUnavailableNetworkFee: QuoteResponse = {
   ...mockActiveQuote,
   chainId: formatChainIdToCaip(ChainId.BTC),
   quote: {
@@ -179,25 +180,15 @@ const mockBtcQuoteWithUnavailableNetworkFee = {
           normalizedAmount: '0',
         },
       ],
-    },
+    } as unknown as QuoteResponse['quote']['feeData'],
   },
 };
 
-// Mock useBridgeQuoteData
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
-
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData } = jest.requireMock(
-    '../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
-  };
-});
 
 // Mock useIsInsufficientBalance
 jest.mock('../../hooks/useInsufficientBalance', () => ({
@@ -328,12 +319,10 @@ describe('SwapsMarketOrderConfirmButton', () => {
       .mocked(selectSourceWalletAddress)
       .mockReturnValue('0x1234567890123456789012345678901234567890');
     jest.mocked(isHardwareAccount).mockReturnValue(false);
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        activeQuote: mockActiveQuote,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      activeQuote: mockActiveQuote,
+    }));
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
     jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
@@ -396,12 +385,10 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('displays "Insufficient funds" when BTC network fee is unavailable', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+      }));
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -444,13 +431,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
   describe('Button Disabled State', () => {
     it('disables button when loading without active quote', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: true,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        activeQuote: null,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -535,12 +520,10 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('disables button when blockaid error exists', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          blockaidError: 'Transaction flagged as suspicious',
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        blockaidError: 'Transaction flagged as suspicious',
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -911,13 +894,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
   describe('Button Loading State', () => {
     it('marks the button as loading when loading without active quote', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: true,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        activeQuote: null,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -958,13 +939,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('shows loading when awaiting quote (valid amount, no quote, not loading)', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: false,
+        activeQuote: null,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -984,14 +963,12 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // Regression: after flipping tokens or changing the destination token the
       // bridge controller keeps the previous quote in state until the first new
       // quote arrives. isActiveQuoteForCurrentTokenPair catches this mismatch.
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuoteWithMetadata,
-          isLoading: true,
-          isActiveQuoteForCurrentTokenPair: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockQuoteWithMetadata,
+        isLoading: true,
+        isActiveQuoteForCurrentTokenPair: false,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1007,13 +984,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('does not show loading when source amount is empty', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: false,
+        activeQuote: null,
+      }));
 
       const emptyAmountState = {
         ...mockState,
@@ -1039,13 +1014,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it.each(['0', '0.0', '0.00'])(
       'does not show loading when source amount is "%s"',
       (zeroAmount) => {
-        jest
-          .mocked(useBridgeQuoteData as unknown as jest.Mock)
-          .mockImplementation(() => ({
-            ...mockUseBridgeQuoteData,
-            isLoading: false,
-            activeQuote: null,
-          }));
+        jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: null,
+        }));
 
         const zeroAmountState = {
           ...mockState,
@@ -1070,13 +1043,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     );
 
     it('does not show loading when loading with active quote present', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: true,
-          activeQuote: mockActiveQuote,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        activeQuote: mockActiveQuote,
+      }));
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1156,12 +1127,10 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('does not show loading when disabled due to unavailable BTC network fee', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+      }));
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1282,7 +1251,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
         isLoading: false,
       };
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext)
         .mockImplementation(() => quoteData);
       const state = {
         ...mockState,
@@ -1351,13 +1320,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
   describe('Quote Expired (needsNewQuote)', () => {
     it('displays "Get new quote" label when quote is expired', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
-          isLoading: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        needsNewQuote: true,
+        isLoading: false,
+      }));
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1374,14 +1341,12 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('keeps "Get new quote" enabled when BTC network fee is unavailable', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
-          needsNewQuote: true,
-          isLoading: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+        needsNewQuote: true,
+        isLoading: false,
+      }));
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1400,13 +1365,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('button is not disabled when quote is expired', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
-          isLoading: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        needsNewQuote: true,
+        isLoading: false,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1422,13 +1385,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('calls resetState and updateQuoteParams when expired quote button is pressed', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
-          isLoading: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        needsNewQuote: true,
+        isLoading: false,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1451,14 +1412,12 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('shows "Get new quote" when expired and loading with no active quote (escape hatch)', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          needsNewQuote: true,
-          isLoading: true,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        needsNewQuote: true,
+        isLoading: true,
+        activeQuote: null,
+      }));
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1479,14 +1438,12 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('does not show "Get new quote" when expired and loading with active quote', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          needsNewQuote: false,
-          isLoading: true,
-          activeQuote: mockActiveQuote,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        needsNewQuote: false,
+        isLoading: true,
+        activeQuote: mockActiveQuote,
+      }));
 
       const { queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1504,13 +1461,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('does not show "Get new quote" when expired but submitting', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          needsNewQuote: false,
-          isLoading: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        needsNewQuote: false,
+        isLoading: false,
+      }));
 
       const submittingState = {
         ...mockState,
@@ -1578,12 +1533,10 @@ describe('SwapsMarketOrderConfirmButton', () => {
         },
       };
 
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: solanaActiveQuote,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: solanaActiveQuote,
+      }));
 
       const solanaState = {
         ...mockState,
@@ -1662,13 +1615,11 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('does not submit when activeQuote is null', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: null,
-          isLoading: false,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        isLoading: false,
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1850,18 +1801,16 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('bypasses price impact check when token warning is present', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockActiveQuote,
-            quote: {
-              ...mockActiveQuote.quote,
-              priceData: { priceImpact: { amount: '0.90' } }, // well above danger threshold
-            },
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockActiveQuote,
+          quote: {
+            ...mockActiveQuote.quote,
+            priceData: { priceImpact: { amount: '0.90' } }, // well above danger threshold
           },
-        }));
+        },
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1885,18 +1834,16 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('shows the token warning modal before the missing price modal when both warnings are present', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockActiveQuote,
-            quote: {
-              ...mockActiveQuote.quote,
-              priceData: undefined,
-            },
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockActiveQuote,
+          quote: {
+            ...mockActiveQuote.quote,
+            priceData: undefined,
           },
-        }));
+        },
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1943,18 +1890,16 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
   describe('handleContinue — missing price routing', () => {
     it('navigates to MissingPriceModal when price data is unavailable', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockActiveQuote,
-            quote: {
-              ...mockActiveQuote.quote,
-              priceData: undefined,
-            },
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockActiveQuote,
+          quote: {
+            ...mockActiveQuote.quote,
+            priceData: undefined,
           },
-        }));
+        },
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -1976,18 +1921,16 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('does not submit the transaction when navigating to MissingPriceModal', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockActiveQuote,
-            quote: {
-              ...mockActiveQuote.quote,
-              priceData: undefined,
-            },
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockActiveQuote,
+          quote: {
+            ...mockActiveQuote.quote,
+            priceData: undefined,
           },
-        }));
+        },
+      }));
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
@@ -2007,7 +1950,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
   describe('handleContinue — price impact routing', () => {
     it('navigates to PriceImpactModal when priceImpact exceeds the error threshold', async () => {
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2045,7 +1988,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
     it('does not submit the transaction when navigating to PriceImpactModal', async () => {
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2078,7 +2021,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('navigates to PriceImpactModal when priceImpact is exactly at the threshold', async () => {
       // 0.25 >= 0.25, so the modal IS shown and the transaction is not submitted
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2117,7 +2060,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
     it('submits the transaction when priceImpact is below the threshold', async () => {
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2151,7 +2094,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
     it('navigates to MissingPriceModal when priceImpact is undefined', async () => {
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2190,7 +2133,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('submits the transaction when priceImpact is not a finite number', async () => {
       // Number.parseFloat('NaN') → NaN → Number.isFinite(NaN) = false → skip modal
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2224,7 +2167,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
     it('passes the location prop into the PriceImpactModal params', async () => {
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2266,7 +2209,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // in mockState (defaultBridgeConfigV2.priceImpactThreshold.error = 0.25),
       // confirming the component reads bridgeFeatureFlags from the Redux store.
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
@@ -2325,7 +2268,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
       };
 
       jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           activeQuote: {
