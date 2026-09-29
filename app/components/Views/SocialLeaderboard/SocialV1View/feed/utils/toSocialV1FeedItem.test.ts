@@ -507,6 +507,29 @@ describe('toSocialV1FeedItem', () => {
       expect(result.mockedFields).toStrictEqual([]);
     });
 
+    it('strips a static.klipy.com gif url from the caption', () => {
+      const gifUrl =
+        'https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/14/af/um0L4dFH.gif';
+      const row = buildRow(
+        mockPerpFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: `Thesis unchanged.\n${gifUrl}`,
+            timestamp: 1_700_000_000,
+            engagement: {
+              reactions: [],
+              userReaction: null,
+              replyCount: 2,
+            },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.comment).toBe('Thesis unchanged.');
+    });
+
     it('omits the caption when the position has no author comment', () => {
       const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
 
