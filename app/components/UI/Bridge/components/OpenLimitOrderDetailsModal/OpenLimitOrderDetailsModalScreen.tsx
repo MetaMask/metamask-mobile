@@ -28,18 +28,12 @@ export const OpenLimitOrderDetailsModalScreen = () => {
     fiatToUsdRate,
   );
 
-  // STUB FOR LIMIT ORDER CANCELLATION: the order still needs to be cancelled
-  // through the limit orders service.
-  const handleCancelConfirmed = useCallback(() => {
-    console.warn('cancel');
-  }, []);
-
   const handleCancelOrder = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.CANCEL_LIMIT_ORDER_MODAL,
-      params: { onConfirm: handleCancelConfirmed },
+      params: { order },
     });
-  }, [handleCancelConfirmed, navigation]);
+  }, [navigation, order]);
 
   return (
     <OpenLimitOrderDetailsModal
@@ -59,7 +53,9 @@ export const OpenLimitOrderDetailsModalScreen = () => {
       triggerToken={triggerToken}
       usdTriggerPrice={usdTriggerPrice}
       expiry={formatLimitOrderDate(order.timingData.expiresAt)}
-      onCancelOrder={handleCancelOrder}
+      onCancelOrder={
+        order.isCancellable === false ? undefined : handleCancelOrder
+      }
       goBack={navigation.goBack}
     />
   );

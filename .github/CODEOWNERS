@@ -143,6 +143,8 @@ app/components/Views/AccountSelector                        @MetaMask/accounts-e
 # Swaps Team
 app/components/UI/Swaps                                  @MetaMask/swaps-engineers
 app/components/UI/Bridge                                 @MetaMask/swaps-engineers
+app/components/UI/QuickBuy/                              @MetaMask/swaps-engineers
+**/QuickBuy/**                                           @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
@@ -245,10 +247,10 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
-app/components/UI/QuickBuy/                                          @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
+app/core/Engine/controllers/social/                                  @MetaMask/social-ai
 app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
 app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
@@ -261,7 +263,6 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/SocialLeaderboard/**                                              @MetaMask/social-ai
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
-**/QuickBuy/**                                                       @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
@@ -274,6 +275,7 @@ app/core/Engine/messengers/predict-live-data-service-messenger*         @MetaMas
 app/core/Engine/messengers/predict-market-data-service-messenger*       @MetaMask/predict
 app/core/Engine/messengers/predict-portfolio-service-messenger*         @MetaMask/predict
 app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts            @MetaMask/predict
+app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                           @MetaMask/predict
 **/predict/**                                                           @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/                     @MetaMask/predict
