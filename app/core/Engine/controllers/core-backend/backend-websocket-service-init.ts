@@ -7,6 +7,37 @@ import {
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
+const LOCAL_WEBSOCKET_URL_PREFIX = 'ws://127.0.0.1';
+const LOCAL_DEVELOPMENT_BEARER_TOKEN = 'local-development-token';
+
+const getBackendWebSocketMessenger = (
+  controllerMessenger: BackendWebSocketServiceMessenger,
+  url: string,
+): BackendWebSocketServiceMessenger => {
+  if (!url.startsWith(LOCAL_WEBSOCKET_URL_PREFIX)) {
+    return controllerMessenger;
+  }
+
+  return new Proxy(controllerMessenger, {
+    get(target, property) {
+      if (property === 'call') {
+        const targetCall = target.call.bind(target);
+        return (...args: Parameters<typeof targetCall>) => {
+          const [action] = args;
+          if (action === 'AuthenticationController:getBearerToken') {
+            return Promise.resolve(LOCAL_DEVELOPMENT_BEARER_TOKEN);
+          }
+
+          return Reflect.apply(targetCall, target, args);
+        };
+      }
+
+      const value = Reflect.get(target, property, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  }) as BackendWebSocketServiceMessenger;
+};
+
 /**
  * Initialize the Backend Platform WebSocket service with authentication support.
  * This provides WebSocket connectivity for backend platform services
@@ -29,18 +60,23 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
   BackendWebSocketServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   Logger.log('Initializing BackendWebSocketService');
+  const url =
+    process.env.MM_BACKEND_WEBSOCKET_URL ||
+    'wss://gateway.api.cx.metamask.io/v1';
 
   const controller = new BackendWebSocketService({
-    messenger: controllerMessenger,
-    url:
-      process.env.MM_BACKEND_WEBSOCKET_URL ||
-      'wss://gateway.api.cx.metamask.io/v1',
+    messenger: getBackendWebSocketMessenger(controllerMessenger, url),
+    url,
     // Inject the Sentry-backed trace function from mobile platform
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,
     // Feature flag AND app lifecycle integration
     // Service will check this callback before connecting/reconnecting
     isEnabled: () => {
+      if (__DEV__ || url.startsWith(LOCAL_WEBSOCKET_URL_PREFIX)) {
+        return true;
+      }
+
       try {
         const remoteFeatureFlagState = initMessenger?.call(
           'RemoteFeatureFlagController:getState',

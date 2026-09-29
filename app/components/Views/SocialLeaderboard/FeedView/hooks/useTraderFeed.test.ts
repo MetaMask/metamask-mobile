@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { SocialFeedEvent } from '@metamask/social-controllers';
 import { useTraderFeed } from './useTraderFeed';
 import type { FeedTypeFilter } from '../types';
 import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
@@ -17,6 +18,12 @@ const expectedFeedFetchOptions = {
 };
 
 const mockCall = jest.fn();
+const mockRealtimeService = {
+  addListener: jest.fn(),
+  addReconnectListener: jest.fn(() => jest.fn()),
+  setActive: jest.fn().mockResolvedValue(undefined),
+};
+let realtimeListener: ((event: SocialFeedEvent) => void) | undefined;
 
 // Emulate the real messenger: `call` relies on its `this` binding (it looks up
 // `this.getAction(...)`). If the hook aliases `.call` into a local and detaches
@@ -26,6 +33,11 @@ const mockCall = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
+    context: {
+      get SocialRealtimeService() {
+        return mockRealtimeService;
+      },
+    },
     controllerMessenger: {
       _brand: 'rootMessenger',
       call(this: unknown, ...args: unknown[]) {
@@ -37,6 +49,13 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+
+mockRealtimeService.addListener.mockImplementation(
+  (listener: (event: SocialFeedEvent) => void) => {
+    realtimeListener = listener;
+    return jest.fn();
+  },
+);
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => true),
@@ -61,6 +80,40 @@ const createWrapper = (queryClient?: QueryClient) => {
 describe('useTraderFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    realtimeListener = undefined;
+  });
+
+  it('activates realtime and prepends a newer leaderboard item', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([]));
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() =>
+      expect(mockRealtimeService.setActive).toHaveBeenCalledWith(true),
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const event = {
+      version: 1,
+      kind: 'feed-item',
+      eventId: 'social.v1.feed.all.trade.live',
+      feedItemId: 'live-position',
+      revision: 1,
+      occurredAt: new Date().toISOString(),
+      data: mockPerpFeedItem({ positionId: 'live-position' }),
+    } satisfies SocialFeedEvent;
+
+    await act(async () => {
+      realtimeListener?.(event);
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(result.current.rows[0]?.core.positionId).toBe('live-position'),
+    );
+    expect(result.current.rows[0]?.realtimeEventId).toBe(event.eventId);
   });
 
   it('fetches the leaderboard scope for the "all" audience and groups items', async () => {
@@ -71,6 +124,7 @@ describe('useTraderFeed', () => {
     });
 
     await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.rows[0]?.realtimeEventId).toBeUndefined();
     expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
       scope: 'leaderboard',
       ...expectedFeedFetchOptions,

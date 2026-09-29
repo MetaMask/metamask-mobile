@@ -917,7 +917,7 @@ const MainNavigator = () => {
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
   const isSocialV1Enabled =
-    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
+    __DEV__ || (isSocialLeaderboardEnabled && socialV1Variant.useSocialV1);
   return (
     <NativeStack.Navigator
       screenOptions={defaultScreenOptions}
