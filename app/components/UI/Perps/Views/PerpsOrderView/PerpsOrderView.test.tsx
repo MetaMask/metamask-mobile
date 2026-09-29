@@ -6103,6 +6103,54 @@ describe('PerpsOrderView', () => {
       expect(hasWarningBuilder).toBe(false);
     });
 
+    it('warns when the pay token covers the margin but not the pay-token deposit headroom', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          balanceUsd: '999999999',
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockPayTokenAccountBalanceUsd = '999999999';
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const marginText = await waitFor(
+        () =>
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.MARGIN_VALUE).props
+            .children as string,
+      );
+      const marginUsd = marginText.replace(/[^0-9.]/g, '');
+      expect(Number(marginUsd)).toBeGreaterThan(0);
+
+      mockPayTokenAccountBalanceUsd = marginUsd;
+      mockCreateEventBuilder.mockClear();
+      rerender(<PerpsOrderView />);
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'warning',
+            warning_message: 'insufficient_balance',
+          }),
+        );
+      });
+    });
+
     it('uses title as alertMessage fallback when message is not a string', async () => {
       const expectedTitle = 'Alert title fallback';
       const { useInsufficientPayTokenBalanceAlert: mockAlert } =

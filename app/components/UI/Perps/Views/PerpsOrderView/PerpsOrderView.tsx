@@ -177,7 +177,10 @@ import {
   calculateRoEForPrice,
   getPerpsOrderTpSlWarnings,
 } from '../../utils/tpslValidation';
-import { deriveOrderSizing } from '../../utils/orderSizing';
+import {
+  deriveOrderSizing,
+  getPayWithTokenDepositAmount,
+} from '../../utils/orderSizing';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
@@ -897,13 +900,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
 
+  // Margin plus fees plus a slippage buffer, so the order still fits the
+  // credited funds at its submitted price.
+  const depositAmount = useMemo(
+    () =>
+      getPayWithTokenDepositAmount({
+        marginRequired,
+        estimatedFeesUsd: estimatedFees,
+        orderType: orderForm.type,
+        maxSlippageBps,
+      }),
+    [marginRequired, estimatedFees, orderForm.type, maxSlippageBps],
+  );
+
   const hasInsufficientPayTokenBalance = useMemo(() => {
-    if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
+    if (!depositAmount || !payToken || !hasCustomTokenSelected) {
       return false;
     }
-    const requiredUsd = Number(marginRequired);
-    return requiredUsd > Number(payTokenBalanceUsd);
-  }, [hasCustomTokenSelected, marginRequired, payToken, payTokenBalanceUsd]);
+    return Number(depositAmount) > Number(payTokenBalanceUsd);
+  }, [hasCustomTokenSelected, depositAmount, payToken, payTokenBalanceUsd]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -1166,15 +1181,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }),
     [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
   );
-
-  const depositAmount = useMemo(() => {
-    if (marginRequired !== undefined && marginRequired !== null) {
-      return new BigNumber(marginRequired)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-        .toString(10);
-    }
-    return '';
-  }, [marginRequired]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice, isCalculating: isCalculatingLiquidationPrice } =
@@ -1692,9 +1698,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
 
         // Show deposit toast and set up tracking before confirming
-        handleDepositConfirm(activeTransactionMeta, () => {
-          handlePlaceOrder(true);
-        });
+        handleDepositConfirm(
+          activeTransactionMeta,
+          () => {
+            handlePlaceOrder(true);
+          },
+          marginRequired,
+        );
         // useTransactionConfirm swallows confirm errors and reports them via
         // onError, so capture failure explicitly instead of assuming success.
         // Hold the deposit lock across the await so a second tap cannot start

@@ -1829,6 +1829,8 @@
       "cancel_trade": "Cancel trade",
       "trade_canceled": "Trade canceled",
       "funds_returned_to_account": "Funds returned to your account",
+      "order_not_placed": "Deposit received, order not placed",
+      "order_not_placed_description": "Your funds are in your Perps balance. Place the order again when ready.",
       "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
