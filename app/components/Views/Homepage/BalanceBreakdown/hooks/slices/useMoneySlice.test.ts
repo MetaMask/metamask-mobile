@@ -1,19 +1,24 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
 import { getMoneySliceStatus, useMoneySlice } from './useMoneySlice';
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountInfo');
 
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 const READY_INPUT = {
-  isFeatureEnabled: true,
+  isMoneyAccountVisible: true,
   hasMoneyAccount: true,
   isBalanceLoading: false,
   isBalanceFetchError: false,
@@ -21,12 +26,12 @@ const READY_INPUT = {
 };
 
 describe('getMoneySliceStatus', () => {
-  it('requires the feature and an existing account', () => {
+  it('requires Money visibility and an existing account', () => {
     expect(
       getMoneySliceStatus({ ...READY_INPUT, hasMoneyAccount: false }),
     ).toBe('ineligible');
     expect(
-      getMoneySliceStatus({ ...READY_INPUT, isFeatureEnabled: false }),
+      getMoneySliceStatus({ ...READY_INPUT, isMoneyAccountVisible: false }),
     ).toBe('ineligible');
   });
 
@@ -44,6 +49,7 @@ describe('getMoneySliceStatus', () => {
 describe('useMoneySlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(true);
     mockUseMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
@@ -133,10 +139,11 @@ describe('useMoneySlice', () => {
     expect(result.current.apyLoading).toBe(false);
   });
 
-  it('suppresses APY when the Money feature is disabled', () => {
+  it('hides Money and skips requests when the account is geo-ineligible', () => {
+    mockUseSelector.mockReturnValue(false);
     mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: false,
-      hasMoneyAccount: false,
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: true,
     } as ReturnType<typeof useMoneyAccountInfo>);
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.1,
