@@ -3,6 +3,14 @@ import { providerErrors } from '@metamask/rpc-errors';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import {
+  beginUnclaimedPrewarmTransaction,
+  dropAllUnclaimedPrewarmTransactions,
+  dropUnclaimedPrewarmTransaction,
+  endUnclaimedPrewarmTransaction,
+  releaseAllStashedPrewarmTransactionAdded,
+  retainOnlyUnclaimedPrewarmTransaction,
+} from './unclaimedPrewarmTransactionMetrics';
 
 /**
  * The provider a deposit-with-order transaction is prepared against. Aggregated
@@ -151,9 +159,18 @@ export function prewarmDepositOrder(
     state = { status: 'idle' };
   }
 
+  // Hold Transaction Added / Rejected until Long/Short claims this insert.
+  beginUnclaimedPrewarmTransaction();
   const transactionId = depositWithOrder()
+    .catch((error: unknown) => {
+      // Creation failed before the transaction existed, so nothing of ours was
+      // held back. Release anything else suppressed during this window.
+      releaseAllStashedPrewarmTransactionAdded();
+      throw error;
+    })
     .then(({ result }) => result)
     .then((id) => {
+      retainOnlyUnclaimedPrewarmTransaction(id);
       if (
         state.status === 'preparing' &&
         state.transactionId === transactionId
@@ -163,6 +180,7 @@ export function prewarmDepositOrder(
       return id;
     })
     .catch((error: unknown) => {
+      dropAllUnclaimedPrewarmTransactions();
       if (
         state.status === 'preparing' &&
         state.transactionId === transactionId
@@ -170,6 +188,9 @@ export function prewarmDepositOrder(
         state = { status: 'idle' };
       }
       throw error;
+    })
+    .finally(() => {
+      endUnclaimedPrewarmTransaction();
     });
 
   state = {
@@ -277,6 +298,9 @@ function rejectTransaction(transactionId: string): void {
       error,
     );
   }
+  // The rejected handler drops the id when the approval exists. This covers a
+  // missing approval, which returns without emitting Transaction Rejected.
+  dropUnclaimedPrewarmTransaction(transactionId);
 }
 
 /** Test-only: clears module state without touching the controllers. */

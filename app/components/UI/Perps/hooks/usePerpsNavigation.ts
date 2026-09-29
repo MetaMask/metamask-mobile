@@ -25,6 +25,7 @@ import {
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { trackStashedPrewarmTransactionAdded } from '../utils/unclaimedPrewarmTransactionMetrics';
 import {
   claimPrewarmedDepositOrder,
   resolveDepositOrderProvider,
@@ -338,6 +339,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
               [transactionId],
               params.transactionActiveAbTests,
             );
+            // Added was held back at prewarm time. Emit it now, after
+            // attribution is registered, because the user actually started.
+            trackStashedPrewarmTransactionAdded(transactionId);
             return;
           } catch {
             // Prewarm failed or became unusable; create a fresh transaction.

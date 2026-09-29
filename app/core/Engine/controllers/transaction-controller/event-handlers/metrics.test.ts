@@ -1,4 +1,13 @@
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+
+// ESM-only package. This suite needs the origin constant and Jest does not
+// transform the package.
+jest.mock('@metamask/approval-controller', () => ({
+  ORIGIN_METAMASK: 'metamask',
+}));
 import { merge } from 'lodash';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
@@ -16,6 +25,13 @@ import {
 import { TransactionEventHandlerRequest } from '../types';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  beginUnclaimedPrewarmTransaction,
+  endUnclaimedPrewarmTransaction,
+  isUnclaimedPrewarmTransaction,
+  resetUnclaimedPrewarmTransactionMetricsForTesting,
+  trackStashedPrewarmTransactionAdded,
+} from '../../../../../components/UI/Perps/utils/unclaimedPrewarmTransactionMetrics';
 
 const enabledSmartTransactionsState = {
   engine: {
@@ -176,6 +192,7 @@ describe('Transaction Metric Event Handlers', () => {
   } as unknown as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>;
 
   beforeEach(() => {
+    resetUnclaimedPrewarmTransactionMetricsForTesting();
     jest.clearAllMocks();
 
     jest
@@ -542,6 +559,74 @@ describe('Transaction Metric Event Handlers', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('unclaimed deposit prewarm', () => {
+    const prewarmTransaction = {
+      id: 'prewarm-tx',
+      chainId: '0x1',
+      type: TransactionType.perpsDepositAndOrder,
+      networkClientId: 'test-network',
+      time: 1234567890,
+      txParams: {},
+    } as unknown as TransactionMeta;
+
+    it('does not track Transaction Added until the prewarm is claimed', async () => {
+      beginUnclaimedPrewarmTransaction();
+
+      await handleTransactionAddedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockInitMessengerCall).not.toHaveBeenCalled();
+
+      endUnclaimedPrewarmTransaction();
+      await trackStashedPrewarmTransactionAdded('prewarm-tx');
+
+      expect(mockInitMessengerCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.any(Object),
+      );
+    });
+
+    it('does not track Transaction Rejected for an unclaimed prewarm', async () => {
+      beginUnclaimedPrewarmTransaction();
+      await handleTransactionAddedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+      mockInitMessengerCall.mockClear();
+
+      await handleTransactionRejectedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockInitMessengerCall).not.toHaveBeenCalled();
+      expect(isUnclaimedPrewarmTransaction('prewarm-tx')).toBe(false);
+    });
+
+    it('tracks Transaction Rejected after the prewarm was claimed', async () => {
+      beginUnclaimedPrewarmTransaction();
+      await handleTransactionAddedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+      endUnclaimedPrewarmTransaction();
+      await trackStashedPrewarmTransactionAdded('prewarm-tx');
+      mockInitMessengerCall.mockClear();
+
+      await handleTransactionRejectedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockInitMessengerCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.any(Object),
+      );
     });
   });
 });

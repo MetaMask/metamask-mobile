@@ -25,6 +25,7 @@ import {
   startPerpsTradeSheetInteractiveTrace,
 } from '../utils/perpsTradeSheetInteractiveTrace';
 import { claimPrewarmedDepositOrder } from '../utils/prewarmedDepositOrder';
+import { trackStashedPrewarmTransactionAdded } from '../utils/unclaimedPrewarmTransactionMetrics';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 
 jest.mock('@react-navigation/native', () => ({
@@ -84,6 +85,10 @@ jest.mock(
 jest.mock('../utils/prewarmedDepositOrder', () => ({
   ...jest.requireActual('../utils/prewarmedDepositOrder'),
   claimPrewarmedDepositOrder: jest.fn(),
+}));
+
+jest.mock('../utils/unclaimedPrewarmTransactionMetrics', () => ({
+  trackStashedPrewarmTransactionAdded: jest.fn(),
 }));
 
 describe('usePerpsNavigation', () => {
@@ -455,6 +460,9 @@ describe('usePerpsNavigation', () => {
         );
       });
       expect(mockDepositWithOrder).not.toHaveBeenCalled();
+      expect(trackStashedPrewarmTransactionAdded).toHaveBeenCalledWith(
+        'prewarmed-tx',
+      );
     });
 
     it('binds AB test attribution to the prewarmed transaction', async () => {
@@ -475,6 +483,16 @@ describe('usePerpsNavigation', () => {
           mockRegisterTransactionAbTestAttributionForIds,
         ).toHaveBeenCalledWith(['prewarmed-tx'], transactionActiveAbTests);
       });
+      expect(trackStashedPrewarmTransactionAdded).toHaveBeenCalledWith(
+        'prewarmed-tx',
+      );
+      expect(
+        mockRegisterTransactionAbTestAttributionForIds.mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        jest.mocked(trackStashedPrewarmTransactionAdded).mock
+          .invocationCallOrder[0],
+      );
     });
 
     it('claims for the order provider so a pending switch never reuses a prewarm', () => {

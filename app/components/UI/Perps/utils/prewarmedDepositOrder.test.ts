@@ -1,6 +1,16 @@
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import {
+  isUnclaimedPrewarmTransaction,
+  resetUnclaimedPrewarmTransactionMetricsForTesting,
+  stashUnclaimedPrewarmTransactionAdded,
+  suppressUnclaimedPrewarmTransactionAdded,
+  trackStashedPrewarmTransactionAdded,
+} from './unclaimedPrewarmTransactionMetrics';
 import {
   claimPrewarmedDepositOrder,
   discardPrewarmedDepositOrder,
@@ -55,6 +65,7 @@ describe('prewarmedDepositOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetPrewarmedDepositOrderForTesting();
+    resetUnclaimedPrewarmTransactionMetricsForTesting();
     Engine.context.TransactionController.state.transactions = [];
   });
 
@@ -114,6 +125,57 @@ describe('prewarmedDepositOrder', () => {
 
       expect(second).toBeUndefined();
       expect(deposit).toHaveBeenCalledTimes(1);
+    });
+
+    it('holds Transaction Added until claim and drops it when the prewarm is rejected', async () => {
+      const emitted: string[] = [];
+      const deposit = jest.fn().mockImplementation(async () => {
+        const transaction = {
+          id: 'tx-1',
+          type: TransactionType.perpsDepositAndOrder,
+        };
+        if (suppressUnclaimedPrewarmTransactionAdded(transaction)) {
+          stashUnclaimedPrewarmTransactionAdded('tx-1', () => {
+            emitted.push('tx-1');
+          });
+        }
+        return { result: Promise.resolve('tx-1') };
+      });
+      setTransactionStatus('tx-1');
+
+      await prewarmDepositOrder(CRITERIA, deposit);
+
+      expect(emitted).toEqual([]);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(true);
+
+      await claimPrewarmedDepositOrder(CRITERIA);
+      trackStashedPrewarmTransactionAdded('tx-1');
+
+      expect(emitted).toEqual(['tx-1']);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(false);
+    });
+
+    it('does not emit Transaction Added when an unclaimed prewarm is discarded', async () => {
+      const emitted: string[] = [];
+      const deposit = jest.fn().mockImplementation(async () => {
+        const transaction = {
+          id: 'tx-1',
+          type: TransactionType.perpsDepositAndOrder,
+        };
+        if (suppressUnclaimedPrewarmTransactionAdded(transaction)) {
+          stashUnclaimedPrewarmTransactionAdded('tx-1', () => {
+            emitted.push('tx-1');
+          });
+        }
+        return { result: Promise.resolve('tx-1') };
+      });
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, deposit);
+
+      discardPrewarmedDepositOrder();
+
+      expect(emitted).toEqual([]);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(false);
     });
 
     it('allows a new preparation after one fails', async () => {
