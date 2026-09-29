@@ -1117,7 +1117,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Rekening bank",
       "title": "Dapatkan Kunci Pix Anda",
       "description": "Kirim dana langsung ke Money account dari rekening bank mana pun.",
@@ -9890,7 +9890,7 @@
       "view_on_block_explorer": "Lihat di block explorer"
     },
     "share_address_qr": {
-      "title": "alamat {{networkName}}",
+      "title": "Alamat {{networkName}}",
       "copy_address": "Salin alamat",
       "description": "Gunakan alamat ini untuk menerima token dan koleksi di",
       "description_prefix": "Gunakan ini untuk menerima aset pada"

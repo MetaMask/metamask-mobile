@@ -325,6 +325,12 @@ describe('PrivateKeyList', () => {
     ).toBeOnTheScreen();
   });
 
+  it('separates the warning banner from the header by 8px', () => {
+    const { getByTestId } = renderWithPrivateKeyList();
+
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toHaveStyle({ marginTop: 8 });
+  });
+
   it('renders warning banner with a "Learn more" link', () => {
     const { getByText } = renderWithPrivateKeyList();
 

@@ -2,14 +2,10 @@ import React, { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import {
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxFlexWrap,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -24,7 +20,12 @@ import { isPositiveNumber } from '../../utils/number';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../selectors/depositTokens';
-import { Platform } from 'react-native';
+import { useTheme } from '../../../../../util/theme';
+import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
+import InlineTextFlow from '../../../../../component-library/components-temp/InlineTextFlow';
+import { Pressable } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 
 const VISIBLE_TOKENS_COUNT = 5;
 
@@ -36,6 +37,7 @@ interface MoneyPotentialEarningsProps {
    * alongside each token and in the description.
    */
   apyDecimal: number | undefined;
+  onProjectedAmountPress: () => void;
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
    * deposit into the Money account. Used to render the "No fee" badge on
@@ -52,12 +54,7 @@ interface MoneyPotentialEarningsProps {
     index: number,
     tokensCount: number,
   ) => void;
-  onViewAllPress?: () => void;
-  /**
-   * Called when the inline info button next to the section title is pressed.
-   * Typically navigates to the Earn-on-your-crypto info bottom sheet.
-   */
-  onInfoPress?: () => void;
+  onHeaderPress?: () => void;
   /** Whether each token's balance/projected values should be masked. */
   privacyMode?: boolean;
 }
@@ -65,13 +62,15 @@ interface MoneyPotentialEarningsProps {
 const MoneyPotentialEarnings = ({
   tokens,
   apyDecimal = 0,
+  onProjectedAmountPress,
   isNoFeeToken = () => false,
   onTokenCardPress,
   onTokenButtonPress,
-  onViewAllPress,
-  onInfoPress,
+  onHeaderPress,
   privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
+  const { colors } = useTheme();
+  const tw = useTailwind();
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
@@ -102,38 +101,33 @@ const MoneyPotentialEarnings = ({
     return null;
   }
 
-  const infoIcon = onInfoPress ? (
-    <>
-      {' '}
-      <Text twClassName="align-middle">
-        <Icon
-          testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-          name={IconName.Info}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-          onPress={onInfoPress}
-          twClassName={Platform.OS === 'android' ? 'translate-y-0.5' : ''}
-        />
-      </Text>
-    </>
-  ) : null;
-
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
-        <MoneySectionHeader title={strings('money.potential_earnings.title')} />
+        <MoneySectionHeader
+          testID={MoneyPotentialEarningsTestIds.HEADER}
+          title={strings('money.potential_earnings.title')}
+          onPress={hasMoreTokens && onHeaderPress ? onHeaderPress : undefined}
+        />
 
         {isPositiveNumber(projectedAmount) &&
         isPositiveNumber(totalAssetsFiat) ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            color={TextColor.TextAlternative}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            flexWrap={BoxFlexWrap.Wrap}
+            alignItems={BoxAlignItems.Center}
             testID={MoneyPotentialEarningsTestIds.TEXT}
           >
-            {`${strings(
-              'money.potential_earnings.description_with_amounts_prefix',
-            )} `}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              twClassName="shrink-0"
+            >
+              {`${strings(
+                'money.potential_earnings.description_with_amounts_prefix',
+              )} `}
+            </Text>
             <SensitiveText
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Regular}
@@ -144,24 +138,48 @@ const MoneyPotentialEarnings = ({
             >
               {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
             </SensitiveText>
-            {` ${strings(
-              'money.potential_earnings.description_with_amounts_middle',
-            )} `}
-            <SensitiveText
+            <InlineTextFlow
+              text={strings(
+                'money.potential_earnings.description_with_amounts_middle',
+              )}
+              keyPrefix="potential-earnings-middle"
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Regular}
               variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              testID={MoneyPotentialEarningsTestIds.PROJECTED}
+              leadingSpace
+            />
+            <Pressable
+              testID={MoneyPotentialEarningsTestIds.PROJECTED_BUTTON}
+              style={({ pressed }) => tw.style(pressed && 'opacity-50')}
+              onPress={onProjectedAmountPress}
             >
-              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
-            </SensitiveText>
-            {` ${strings(
-              'money.potential_earnings.description_with_amounts_suffix',
-            )}`}
-            {infoIcon}
-          </Text>
+              <DottedUnderline
+                color={colors.success.default}
+                twClassName="shrink-0"
+              >
+                <SensitiveText
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                  testID={MoneyPotentialEarningsTestIds.PROJECTED}
+                >
+                  {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
+                </SensitiveText>
+              </DottedUnderline>
+            </Pressable>
+            <InlineTextFlow
+              text={strings(
+                'money.potential_earnings.description_with_amounts_suffix',
+              )}
+              keyPrefix="potential-earnings-suffix"
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Regular}
+              variant={TextVariant.BodyMd}
+              leadingSpace
+            />
+          </Box>
         ) : (
           <Text
             variant={TextVariant.BodyMd}
@@ -169,38 +187,21 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
           >
             {strings('money.potential_earnings.description')}
-            {infoIcon}
           </Text>
         )}
       </Box>
-
-      <>
-        {visibleTokens.map((token, index) => (
-          <PotentialEarningsTokenRow
-            key={`${token.address}-${token.chainId}`}
-            token={token}
-            hasSubsidizedFee={isNoFeeToken(token)}
-            apyDecimal={apyDecimal}
-            onCardPress={handleTokenCardPress(token, index)}
-            onButtonPress={handleTokenButtonPress(token, index)}
-            privacyMode={privacyMode}
-          />
-        ))}
-
-        {hasMoreTokens && (
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={onViewAllPress}
-              testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
-            >
-              {strings('money.potential_earnings.view_all')}
-            </Button>
-          </Box>
-        )}
-      </>
+      {visibleTokens.map((token, index) => (
+        <PotentialEarningsTokenRow
+          key={`${token.address}-${token.chainId}`}
+          token={token}
+          hasSubsidizedFee={isNoFeeToken(token)}
+          apyDecimal={apyDecimal}
+          onCardPress={handleTokenCardPress(token, index)}
+          onButtonPress={handleTokenButtonPress(token, index)}
+          testID={PotentialEarningsTokenRowTestIds.ROW(token.symbol)}
+          privacyMode={privacyMode}
+        />
+      ))}
     </Box>
   );
 };

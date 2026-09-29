@@ -7,6 +7,7 @@ import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategor
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
 import {
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -67,8 +68,9 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
       {showSortRow && (
         <View style={styles.sortRow}>
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
             testID={testID ? `${testID}-market-count` : undefined}
           >
             {marketCount === 1

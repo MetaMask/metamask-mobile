@@ -17,6 +17,7 @@
  */
 
 import type { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 
 /**
@@ -153,20 +154,16 @@ export async function mockOccurrenceApis(
   mockServer: Mockttp,
   { failOccurrenceFloors = false }: { failOccurrenceFloors?: boolean } = {},
 ): Promise<void> {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) =>
-      getDecodedProxiedURL(request.url).includes(
-        'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
-      ),
-    )
-    .always()
-    .thenCallback(() =>
-      failOccurrenceFloors
-        ? { statusCode: 500, json: { message: 'Internal server error' } }
-        : { statusCode: 200, json: SUGGESTED_OCCURRENCE_FLOORS },
-    );
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
+    responseCode: failOccurrenceFloors ? 500 : 200,
+    response: failOccurrenceFloors
+      ? { message: 'Internal server error' }
+      : SUGGESTED_OCCURRENCE_FLOORS,
+  });
 
+  // thenCallback needed to filter TRACKED_ASSETS by the assetIds query param.
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -176,6 +173,7 @@ export async function mockOccurrenceApis(
         url.searchParams.get('includeOccurrences') === 'true'
       );
     })
+    .asPriority(999)
     .always()
     .thenCallback((request) => {
       const url = new URL(getDecodedProxiedURL(request.url));

@@ -103,6 +103,7 @@ function renderSheet({
     status: 'ready',
     displayFee: '$1.23',
     preciseNativeFeeInHex: '0x1',
+    retry: jest.fn(),
   },
   goBack = jest.fn(),
   isSubmitting = false,
@@ -541,6 +542,7 @@ describe('RecurringConfirmOrderSheet', () => {
         status: 'ready',
         displayFee: '$1.23',
         preciseNativeFeeInHex: '0x123',
+        retry: jest.fn(),
       },
     });
 
@@ -553,7 +555,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
-      delegationFee: { status: 'loading' },
+      delegationFee: { status: 'loading', retry: jest.fn() },
       onConfirm,
     });
 
@@ -574,7 +576,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('hides the delegation fee row when an upgrade is not required', () => {
     const onConfirm = jest.fn();
     const { getByTestId, queryByTestId } = renderSheet({
-      delegationFee: { status: 'not-required' },
+      delegationFee: { status: 'not-required', retry: jest.fn() },
       onConfirm,
     });
 
@@ -590,7 +592,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('shows a placeholder and disables Confirm when estimation fails', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
-      delegationFee: { status: 'error' },
+      delegationFee: { status: 'error', retry: jest.fn() },
       onConfirm,
     });
 

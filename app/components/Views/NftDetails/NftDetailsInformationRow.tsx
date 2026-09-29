@@ -1,56 +1,72 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import Text from '../../../component-library/components/Texts/Text';
-import { NftDetailsInformationRowProps } from './NftDetails.types';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { NftDetailsInformationRowProps } from './NftDetails.types';
 
-const createStyles = () =>
-  StyleSheet.create({
-    inputWrapper: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      marginTop: 4,
-      flexDirection: 'row',
-    },
-    valueWithIcon: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-  });
-
+/**
+ * NFT details key/value row. Typography and spacing match token details rows
+ * (`TokenDetailsListItem`): alternative medium label, default body value,
+ * 4px vertical padding, space-between.
+ */
 const NftDetailsInformationRow = ({
   title,
-  titleStyle,
   value,
-  valueStyle,
   icon,
   onValuePress,
 }: NftDetailsInformationRowProps) => {
-  const styles = createStyles();
-
   if (!value) {
     return null;
   }
 
+  const valueText = (
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+      {value}
+    </Text>
+  );
+
   return (
-    <View style={[styles.inputWrapper]}>
-      <Text style={titleStyle}>{title}</Text>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="py-1"
+    >
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
+        {title}
+      </Text>
       {icon ? (
-        <View style={styles.valueWithIcon}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
           {onValuePress ? (
             <TouchableOpacity onPress={onValuePress}>
-              <Text style={valueStyle}>{value}</Text>
+              {valueText}
             </TouchableOpacity>
           ) : (
-            <Text style={valueStyle}>{value}</Text>
+            valueText
           )}
           {icon}
-        </View>
+        </Box>
       ) : (
-        <Text style={valueStyle}>{value}</Text>
+        valueText
       )}
-    </View>
+    </Box>
   );
 };
+
 export default NftDetailsInformationRow;

@@ -22,7 +22,10 @@ export interface IWalletProviderAdapter {
   /** Check if the wallet is available on this device */
   checkAvailability(): Promise<boolean>;
 
-  /** Get detailed wallet eligibility including existing card status */
+  /**
+   * Get detailed wallet eligibility including existing card status.
+   * An existing pass is matched by the PAN suffix.
+   */
   getEligibility(lastFourDigits?: string): Promise<WalletEligibility>;
 
   /** Check the status of a specific card in the wallet */

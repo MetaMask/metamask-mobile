@@ -2,10 +2,12 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import renderWithProviderBase from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem, {
   getAssetNavigationParams,
 } from './TrendingTokenRowItem';
+import { getTrendingTokenRowAddButtonTestId } from './TrendingTokenRowItem.testIds';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -1755,8 +1757,8 @@ describe('TrendingTokenRowItem', () => {
     });
   });
 
-  describe('Quick Trade button (onQuickTrade)', () => {
-    it('does not render the quick trade button when onQuickTrade is not provided', () => {
+  describe('Quick Trade button (endAction: quick-trade)', () => {
+    it('does not render the quick trade button when no endAction is provided', () => {
       const token = createMockToken();
 
       const { queryByTestId } = renderWithProvider(
@@ -1765,15 +1767,18 @@ describe('TrendingTokenRowItem', () => {
         false,
       );
 
-      expect(queryByTestId('quick-trade-button')).toBeNull();
+      expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
     });
 
-    it('renders the quick trade button when onQuickTrade is provided', () => {
+    it('renders the quick trade button when provided', () => {
       const token = createMockToken();
-      const onQuickTrade = jest.fn();
+      const onPress = jest.fn();
 
       const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
         { state: mockState },
         false,
       );
@@ -1781,28 +1786,34 @@ describe('TrendingTokenRowItem', () => {
       expect(getByTestId('quick-trade-button')).toBeOnTheScreen();
     });
 
-    it('calls onQuickTrade with the token when the button is pressed', () => {
+    it('calls onPress with the token when the button is pressed', () => {
       const token = createMockToken();
-      const onQuickTrade = jest.fn();
+      const onPress = jest.fn();
 
       const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
         { state: mockState },
         false,
       );
 
       fireEvent.press(getByTestId('quick-trade-button'));
 
-      expect(onQuickTrade).toHaveBeenCalledTimes(1);
-      expect(onQuickTrade).toHaveBeenCalledWith(token);
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(token);
     });
 
     it('does not trigger row navigation when the quick trade button is pressed', async () => {
       const token = createMockToken();
-      const onQuickTrade = jest.fn();
+      const onPress = jest.fn();
 
       const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
         { state: mockState },
         false,
       );
@@ -1813,6 +1824,90 @@ describe('TrendingTokenRowItem', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('Add to watchlist button (endAction: watchlist)', () => {
+    const renderWatchlistRow = () => {
+      const onPress = jest.fn();
+      const token = createMockToken();
+      const renderResult = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'watchlist', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+      return {
+        onPress,
+        token,
+        addButtonId: getTrendingTokenRowAddButtonTestId(
+          token.assetId as string,
+        ),
+        ...renderResult,
+      };
+    };
+
+    it('does not render the add button when no endAction is provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(
+        queryByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the add button when provided', () => {
+      const { getByTestId, addButtonId } = renderWatchlistRow();
+
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
+    });
+
+    it('calls onPress with the token when the button is pressed', () => {
+      const { getByTestId, onPress, token, addButtonId } = renderWatchlistRow();
+
+      fireEvent.press(getByTestId(addButtonId));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(token);
+    });
+
+    it('renders an outline star button matching the perps suggested add affordance (PR 36358)', () => {
+      const { UNSAFE_getByType } = renderWatchlistRow();
+
+      const button = UNSAFE_getByType(ButtonIcon);
+
+      expect(button.props.iconName).toStrictEqual(IconName.Star);
+      // No variant → outline style, mirroring PerpsMarketRowItem.
+      expect(button.props.variant).toBeUndefined();
+      // The star is vertically centered against the row's text columns.
+      expect(button.props.twClassName).toBe('self-center');
+    });
+
+    it('does not trigger row navigation when the add button is pressed', async () => {
+      const { getByTestId, addButtonId } = renderWatchlistRow();
+
+      fireEvent.press(getByTestId(addButtonId));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('renders only the watchlist action when both variants could apply', () => {
+      const { getByTestId, queryByTestId, addButtonId } = renderWatchlistRow();
+
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
+      expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
     });
   });
 

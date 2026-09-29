@@ -5747,6 +5747,43 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getMoneyAccountSweepstakesVolumeStats', () => {
+    const mockCampaignId = 'mas-campaign-api-1';
+    const mockVolumeStats = {
+      totalVolumeUsd: 3000000,
+      eligibleParticipantCount: 420,
+      yieldEarnedUsd: 8123.55,
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockVolumeStats),
+      } as unknown as Response);
+    });
+
+    it('calls the public volume stats endpoint with GET and returns data', async () => {
+      const result =
+        await service.getMoneyAccountSweepstakesVolumeStats(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/money-account-sweepstakes/${mockCampaignId}/stats/volume`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockVolumeStats);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getMoneyAccountSweepstakesVolumeStats(mockCampaignId),
+      ).rejects.toThrow(
+        'Get Money Account Sweepstakes volume stats failed: 500',
+      );
+    });
+  });
+
   describe('Predict The Pitch endpoints', () => {
     const mockCampaignId = 'predict-campaign-1';
     const mockSubscriptionId = 'sub-predict-1';

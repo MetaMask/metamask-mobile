@@ -1765,8 +1765,8 @@ class AuthenticationService {
       // below is signed in by `useAutoSignIn` from a React effect on a later
       // tick (after `dispatchLogin`), so the flag must stay set until the app
       // is locked — clearing it when `newWalletAndKeychain` returns would let
-      // that deferred effect fire a `changeUser` + banner refresh for a wallet
-      // that is discarded immediately, which is pure request noise.
+      // that deferred effect fire a `changeUser` for a wallet that is
+      // discarded immediately, which is pure request noise.
       setBrazeResetInProgress(true);
 
       // Previous profile must be gone before the throwaway vault unlocks.

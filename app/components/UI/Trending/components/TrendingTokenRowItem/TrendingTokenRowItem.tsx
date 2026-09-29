@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowAddButtonTestId,
+  getTrendingTokenRowItemTestId,
+} from './TrendingTokenRowItem.testIds';
 import { Pressable, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -12,6 +16,8 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  ButtonIcon,
+  ButtonIconSize,
   Icon,
   IconName,
   IconSize,
@@ -85,9 +91,19 @@ interface TrendingTokenRowItemProps {
    * `testID` (and E2E selectors) unique per instance.
    */
   testIdInstanceKey?: string;
-  /** When provided, shows a circular Quick Trade button on the right of the row. */
-  onQuickTrade?: (token: TrendingAsset) => void;
+  /** Optional trailing action button rendered on the right of the row. */
+  endAction?: QuickActionButton;
 }
+
+/**
+ * Trailing action button variants for {@link TrendingTokenRowItem}.
+ *
+ * - `quick-trade`: circular Quick Trade button.
+ * - `watchlist`: outline star button (add to watchlist), matching perps.
+ */
+export type QuickActionButton =
+  | { type: 'quick-trade'; onPress: (token: TrendingAsset) => void }
+  | { type: 'watchlist'; onPress: (token: TrendingAsset) => void };
 
 /**
  * Converts a TrendingAsset to Asset navigation params
@@ -139,7 +155,7 @@ const TrendingTokenRowItem = ({
   onPress,
   onCardPress,
   testIdInstanceKey,
-  onQuickTrade,
+  endAction,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -264,11 +280,21 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
-      {onQuickTrade && (
+      {endAction?.type === 'watchlist' && (
+        <ButtonIcon
+          iconName={IconName.Star}
+          size={ButtonIconSize.Md}
+          onPress={() => endAction.onPress(token)}
+          accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
+          testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
+          twClassName="self-center"
+        />
+      )}
+      {endAction?.type === 'quick-trade' && (
         <Pressable
           onPress={(e) => {
             e?.stopPropagation?.();
-            onQuickTrade(token);
+            endAction.onPress(token);
           }}
           hitSlop={8}
           testID="quick-trade-button"

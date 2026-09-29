@@ -13,7 +13,7 @@ export interface PositionCardShellProps {
 }
 
 const PositionCardShell: React.FC<PositionCardShellProps> = ({ children }) => (
-  <Box twClassName="bg-default rounded-2xl p-4 gap-3 border border-muted">
+  <Box twClassName="bg-background-alternative rounded-2xl p-4 gap-3 border border-muted">
     {children}
   </Box>
 );

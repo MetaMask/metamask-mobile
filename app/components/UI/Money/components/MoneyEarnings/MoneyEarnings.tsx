@@ -1,6 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import React from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -14,9 +13,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
 import { useTheme } from '../../../../../util/theme';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface MoneyEarningsProps {
   /**
@@ -47,25 +48,6 @@ interface MoneyEarningsProps {
   privacyMode?: boolean;
 }
 
-const UNDERLINE_HEIGHT = 2;
-/** Pull the underline closer to the label baseline. */
-const UNDERLINE_GAP = -1;
-const UNDERLINE_STROKE_WIDTH = 1.5;
-/** Extra left inset so round stroke caps don't peek past the first letter. */
-const UNDERLINE_START_INSET = 1.5;
-
-const styles = StyleSheet.create({
-  labelPressable: {
-    alignSelf: 'flex-start',
-  },
-  labelColumn: {
-    alignItems: 'flex-start',
-  },
-  underline: {
-    marginTop: UNDERLINE_GAP,
-  },
-});
-
 const ValueText = ({
   children,
   testID,
@@ -90,10 +72,6 @@ const ValueText = ({
   );
 };
 
-/**
- * Info label with a custom SVG dotted underline so we can control vertical
- * offset and dot density (native textDecoration dotted is too coarse/tight).
- */
 const DottedInfoLabel = ({
   children,
   onPress,
@@ -106,14 +84,7 @@ const DottedInfoLabel = ({
   accessibilityLabel: string;
 }) => {
   const { colors } = useTheme();
-  const [textWidth, setTextWidth] = useState(0);
-
-  const handleTextLayout = useCallback((event: LayoutChangeEvent) => {
-    const nextWidth = event.nativeEvent.layout.width;
-    setTextWidth((current) => (current === nextWidth ? current : nextWidth));
-  }, []);
-
-  const underlineWidth = textWidth;
+  const tw = useTailwind();
 
   return (
     <Pressable
@@ -122,37 +93,15 @@ const DottedInfoLabel = ({
       accessibilityLabel={accessibilityLabel}
       disabled={!onPress}
       testID={testID}
-      style={styles.labelPressable}
+      style={({ pressed }) =>
+        tw.style('align-self-flex-start', pressed && 'opacity-50')
+      }
     >
-      <View style={styles.labelColumn}>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          onLayout={handleTextLayout}
-        >
+      <DottedUnderline color={colors.text.alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {children}
         </Text>
-        {underlineWidth > 0 ? (
-          <Svg
-            width={underlineWidth}
-            height={UNDERLINE_HEIGHT}
-            style={styles.underline}
-          >
-            <Line
-              // Inset so round caps stay flush with the glyph edges.
-              x1={UNDERLINE_STROKE_WIDTH / 2 + UNDERLINE_START_INSET}
-              y1={UNDERLINE_HEIGHT / 2}
-              x2={underlineWidth - UNDERLINE_STROKE_WIDTH / 2}
-              y2={UNDERLINE_HEIGHT / 2}
-              stroke={colors.text.alternative}
-              strokeWidth={UNDERLINE_STROKE_WIDTH}
-              // Zero-length dashes + round caps render as fine circular dots.
-              strokeDasharray="0, 3"
-              strokeLinecap="round"
-            />
-          </Svg>
-        ) : null}
-      </View>
+      </DottedUnderline>
     </Pressable>
   );
 };

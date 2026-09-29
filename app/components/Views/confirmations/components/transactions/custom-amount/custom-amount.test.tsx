@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
@@ -61,6 +62,19 @@ describe('CustomAmount', () => {
     );
 
     expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
+  });
+
+  it('calls onPress when the loading skeleton is pressed', () => {
+    // The skeleton stays pressable so a prefill or quote that never resolves
+    // cannot strand the user on a loader.
+    const onPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" isLoading onPress={onPress} />,
+    );
+
+    fireEvent.press(getByTestId('custom-amount-skeleton'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
