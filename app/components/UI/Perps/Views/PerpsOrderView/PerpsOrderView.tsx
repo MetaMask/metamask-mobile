@@ -183,7 +183,7 @@ import {
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
 import createStyles from './PerpsOrderView.styles';
-import { PerpsPayRow } from './PerpsPayRow';
+import { PerpsPayRow, PerpsPayTokenIcon } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
@@ -2408,6 +2408,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isLimitPriceFocused={isLimitPriceFocused}
                 payWithName={payWithName}
                 payWithBalance={payWithBalance}
+                payWithIcon={<PerpsPayTokenIcon />}
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}

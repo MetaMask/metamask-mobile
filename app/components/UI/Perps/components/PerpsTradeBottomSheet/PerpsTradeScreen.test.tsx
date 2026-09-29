@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import {
   fireEvent,
   render,
@@ -210,6 +210,33 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the payment asset icon beside the pay with value', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
+      ).getByTestId('pay-with-icon'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the payment asset icon while the pay with row is loading', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isPayWithLoading
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(screen.queryByTestId('pay-with-icon')).toBeNull();
   });
 
   it('shows the market maximum leverage in the header, not the selected one', () => {

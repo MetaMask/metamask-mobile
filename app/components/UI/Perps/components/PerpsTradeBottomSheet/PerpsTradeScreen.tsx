@@ -85,6 +85,8 @@ interface PerpsTradeScreenProps {
   isLimitPriceFocused: boolean;
   payWithName: string;
   payWithBalance: string;
+  /** Asset icon for the selected payment source, matching the full-screen row. */
+  payWithIcon?: React.ReactNode;
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
@@ -276,6 +278,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isLimitPriceFocused,
   payWithName,
   payWithBalance,
+  payWithIcon,
   showPayWith,
   isPayWithDisabled,
   feePercentage,
@@ -573,18 +576,26 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                           height={20}
                         />
                       ) : (
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
+                        <Box
+                          accessible={false}
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          gap={2}
                         >
-                          {payWithName}{' '}
+                          {payWithIcon}
                           <Text
                             variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
+                            fontWeight={FontWeight.Medium}
                           >
-                            ({payWithBalance})
+                            {payWithName}{' '}
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              color={TextColor.TextAlternative}
+                            >
+                              ({payWithBalance})
+                            </Text>
                           </Text>
-                        </Text>
+                        </Box>
                       )
                     }
                     isDisabled={isPayWithDisabled}
