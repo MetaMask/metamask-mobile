@@ -647,6 +647,11 @@ describe('RewardsMoneyDashboard', () => {
       }),
     ).toBeTruthy();
     expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
     ).not.toBeOnTheScreen();
 
