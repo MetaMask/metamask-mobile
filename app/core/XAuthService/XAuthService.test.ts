@@ -11,6 +11,8 @@ import {
 } from './XAuthService';
 import { setTokens, getTokens, clearTokens } from './XTokenStorage';
 import { XAuthError, XAuthErrorType } from './XAuthError';
+import { getXClientId } from './XAuthConfig';
+import Logger from '../../util/Logger';
 
 jest.mock('expo-auth-session', () => ({
   AuthRequest: jest.fn(),
@@ -32,6 +34,11 @@ jest.mock('./XAuthConfig', () => ({
   X_REDIRECT_URI: 'metamask://x-oauth',
   X_OAUTH_SCOPES: ['users.read', 'tweet.read', 'offline.access'],
   getXClientId: jest.fn(() => 'test-client-id'),
+}));
+
+jest.mock('../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
 }));
 
 const mockPromptAsync = jest.fn();
@@ -284,5 +291,52 @@ describe('isXConnected', () => {
     );
 
     await expect(isXConnected()).resolves.toBe(false);
+  });
+});
+
+describe('XAuthService logging', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (AuthRequest as unknown as jest.Mock).mockImplementation(() => ({
+      promptAsync: mockPromptAsync,
+      codeVerifier: 'SECRET_VERIFIER',
+    }));
+  });
+
+  it('logs the flow but never logs secrets (codes, tokens, verifier, client id)', async () => {
+    (getXClientId as jest.Mock).mockReturnValue('SECRET_CLIENT');
+    mockPromptAsync.mockResolvedValue({
+      type: 'success',
+      params: { code: 'SECRET_CODE', state: 'SECRET_STATE' },
+    });
+    (exchangeCodeAsync as jest.Mock).mockResolvedValue({
+      accessToken: 'SECRET_ACCESS',
+      refreshToken: 'SECRET_REFRESH',
+      expiresIn: 7200,
+      issuedAt: 1735689600,
+    });
+    (getTokens as jest.Mock).mockResolvedValue({
+      accessToken: 'SECRET_ACCESS',
+      refreshToken: 'SECRET_REFRESH',
+      expiresAt: 1735689600000,
+    });
+    (refreshAsync as jest.Mock).mockResolvedValue({
+      accessToken: 'SECRET_ACCESS',
+      refreshToken: 'SECRET_REFRESH',
+      expiresIn: 7200,
+      issuedAt: 1735689600,
+    });
+
+    await connectX();
+    await refreshXToken();
+
+    const loggedMessages = JSON.stringify((Logger.log as jest.Mock).mock.calls);
+    expect(loggedMessages).not.toContain('SECRET_CODE');
+    expect(loggedMessages).not.toContain('SECRET_VERIFIER');
+    expect(loggedMessages).not.toContain('SECRET_ACCESS');
+    expect(loggedMessages).not.toContain('SECRET_REFRESH');
+    expect(loggedMessages).not.toContain('SECRET_CLIENT');
+    expect(loggedMessages).not.toContain('SECRET_STATE');
+    expect(Logger.log).toHaveBeenCalled();
   });
 });

@@ -11,6 +11,11 @@ jest.mock('react-native-keychain', () => ({
   resetGenericPassword: jest.fn(),
 }));
 
+jest.mock('../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+}));
+
 const X_OAUTH_KEYCHAIN_SERVICE = 'com.metamask.x-oauth';
 
 const sampleTokens: XTokens = {

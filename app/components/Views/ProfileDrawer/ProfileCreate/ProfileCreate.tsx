@@ -55,6 +55,30 @@ function toError(error: unknown): Error {
 }
 
 /**
+ * Flow logging for developer debugging in Metro/console output
+ * (console.log in __DEV__, Sentry breadcrumb in production for opted-in
+ * users). SECURITY: never log tokens, error messages, or client ids —
+ * metadata only.
+ */
+const log = (
+  message: string,
+  data?: Record<string, string | number | boolean | undefined>,
+) => Logger.log(`[XAuth][ProfileCreate] ${message}`, data ?? '');
+
+/**
+ * Safe metadata for logging caught errors: the error class name and, for
+ * XAuthError, its OAuth error type. Never the full message.
+ */
+function logErrorMetadata(
+  error: unknown,
+): Record<string, string | number | boolean | undefined> {
+  return {
+    errorName: error instanceof Error ? error.name : 'unknown',
+    errorType: error instanceof XAuthError ? error.type : undefined,
+  };
+}
+
+/**
  * ProfileCreate — profile creation onboarding flow (see
  * docs/profile-drawer-design.md). Step 1 connects the user's X (Twitter)
  * account through XAuthService's OAuth PKCE flow (skipped when X is
@@ -77,6 +101,7 @@ const ProfileCreate: React.FC = () => {
   useEffect(() => {
     isXConnected()
       .then((connected) => {
+        log('mount X connection check resolved', { connected });
         if (isMountedRef.current) {
           setIsConnected(connected);
         }
@@ -98,15 +123,18 @@ const ProfileCreate: React.FC = () => {
     // Double-press guard: the CTA is also disabled while connecting, but
     // a rapid second tap can re-enter before the disabled state commits.
     if (isConnectingRef.current) {
+      log('Connect X press ignored: connect already in flight');
       return;
     }
     isConnectingRef.current = true;
+    log('Connect X pressed');
     if (isMountedRef.current) {
       setIsConnecting(true);
     }
 
     try {
       await connectX();
+      log('X connect succeeded, advancing to step 2');
       if (isMountedRef.current) {
         setIsConnected(true);
         setCurrentStep((step) => step + 1);
@@ -115,24 +143,27 @@ const ProfileCreate: React.FC = () => {
       // A user cancellation or consent denial is not an error — stay on
       // step 1 silently.
       if (
-        !(
-          error instanceof XAuthError &&
-          error.type === XAuthErrorType.UserCancelled
-        )
+        error instanceof XAuthError &&
+        error.type === XAuthErrorType.UserCancelled
       ) {
-        Logger.error(toError(error), 'ProfileCreate: X connect failed');
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: strings(
-                'profile_drawer.profile_create.connect_x.error_toast',
-              ),
-            },
-          ],
-          hasNoTimeout: false,
+        log('X connect cancelled by user, staying on step 1', {
+          errorType: error.type,
         });
+        return;
       }
+      log('X connect failed, showing toast', logErrorMetadata(error));
+      Logger.error(toError(error), 'ProfileCreate: X connect failed');
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: strings(
+              'profile_drawer.profile_create.connect_x.error_toast',
+            ),
+          },
+        ],
+        hasNoTimeout: false,
+      });
     } finally {
       isConnectingRef.current = false;
       if (isMountedRef.current) {
@@ -149,19 +180,23 @@ const ProfileCreate: React.FC = () => {
   const handleDisconnectX = useCallback(async () => {
     // Double-press guard, same as the connect CTA.
     if (isDisconnectingRef.current) {
+      log('Disconnect X press ignored: disconnect already in flight');
       return;
     }
     isDisconnectingRef.current = true;
+    log('Disconnect X pressed');
     if (isMountedRef.current) {
       setIsDisconnecting(true);
     }
 
     try {
       await disconnectX();
+      log('X disconnect succeeded');
       if (isMountedRef.current) {
         setIsConnected(false);
       }
     } catch (error) {
+      log('X disconnect failed, showing toast', logErrorMetadata(error));
       Logger.error(toError(error), 'ProfileCreate: X disconnect failed');
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
