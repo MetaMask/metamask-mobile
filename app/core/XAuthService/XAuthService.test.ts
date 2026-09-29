@@ -97,10 +97,41 @@ describe('connectX', () => {
   it('throws XAuthError(UserCancelled) when the user dismisses the browser', async () => {
     mockPromptAsync.mockResolvedValue({ type: 'dismiss' });
 
-    await expect(connectX()).rejects.toBeInstanceOf(XAuthError);
+    const promise = connectX();
+
+    await expect(promise).rejects.toBeInstanceOf(XAuthError);
+    await expect(promise).rejects.toMatchObject({
+      type: XAuthErrorType.UserCancelled,
+    });
+  });
+
+  it('throws XAuthError(UserCancelled) when the user denies consent', async () => {
+    mockPromptAsync.mockResolvedValue({
+      type: 'error',
+      error: { code: 'access_denied' },
+      params: {},
+    });
+
     await expect(connectX()).rejects.toMatchObject({
       type: XAuthErrorType.UserCancelled,
     });
+    expect(exchangeCodeAsync).not.toHaveBeenCalled();
+  });
+
+  it('includes the auth error code in the TokenExchangeFailed message for other auth errors', async () => {
+    mockPromptAsync.mockResolvedValue({
+      type: 'error',
+      error: { code: 'server_error' },
+      params: {},
+    });
+
+    const promise = connectX();
+
+    await expect(promise).rejects.toMatchObject({
+      type: XAuthErrorType.TokenExchangeFailed,
+    });
+    await expect(promise).rejects.toThrow('server_error');
+    expect(exchangeCodeAsync).not.toHaveBeenCalled();
   });
 
   it('throws XAuthError(StateMismatch) when the returned state does not match the sent state', async () => {

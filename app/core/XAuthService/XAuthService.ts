@@ -19,6 +19,15 @@ import { setTokens, getTokens, clearTokens } from './XTokenStorage';
 import type { XTokens } from './types';
 
 /**
+ * Extracts a human-readable message from an unknown thrown value.
+ * Non-Error rejections (strings, plain objects) would otherwise render
+ * as "undefined" when interpolated via `(error as Error).message`.
+ */
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
  * Initiates the X (Twitter) OAuth 2.0 Authorization Code + PKCE flow,
  * opens the system browser for the user to authorize, exchanges the
  * returned code for tokens, and stores them. X issues authorization
@@ -49,7 +58,7 @@ export async function connectX(): Promise<XTokens> {
   } catch (error) {
     throw new XAuthError(
       XAuthErrorType.NetworkFailure,
-      `Failed to open X authorization session: ${(error as Error).message}`,
+      `Failed to open X authorization session: ${getErrorMessage(error)}`,
     );
   }
 
@@ -67,10 +76,18 @@ export async function connectX(): Promise<XTokens> {
     );
   }
 
+  if (result.type === 'error' && result.error?.code === 'access_denied') {
+    throw new XAuthError(
+      XAuthErrorType.UserCancelled,
+      'User denied the X authorization request',
+    );
+  }
+
   if (result.type !== 'success') {
+    const code = result.type === 'error' ? result.error?.code : undefined;
     throw new XAuthError(
       XAuthErrorType.TokenExchangeFailed,
-      `X authorization did not succeed: ${result.type}`,
+      `X authorization did not succeed: ${result.type}${code ? ` (${code})` : ''}`,
     );
   }
 
@@ -88,7 +105,7 @@ export async function connectX(): Promise<XTokens> {
   } catch (error) {
     throw new XAuthError(
       XAuthErrorType.TokenExchangeFailed,
-      `Failed to exchange X authorization code: ${(error as Error).message}`,
+      `Failed to exchange X authorization code: ${getErrorMessage(error)}`,
     );
   }
 
@@ -138,7 +155,7 @@ export async function refreshXToken(): Promise<XTokens> {
   } catch (error) {
     throw new XAuthError(
       XAuthErrorType.TokenExchangeFailed,
-      `Failed to refresh X token: ${(error as Error).message}`,
+      `Failed to refresh X token: ${getErrorMessage(error)}`,
     );
   }
 
