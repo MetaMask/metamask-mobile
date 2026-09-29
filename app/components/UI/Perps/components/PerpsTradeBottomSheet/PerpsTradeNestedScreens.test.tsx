@@ -284,24 +284,30 @@ describe('PerpsTradeNestedScreens', () => {
       );
     });
 
-    it('returns to Trade when the token list route pops after a selection', () => {
+    it('returns to Trade when the token list route pops after a selection', async () => {
       const onDismiss = jest.fn();
       render(<PerpsTradePayWithScreen onDismiss={onDismiss} />);
 
-      act(() => mockNavigationListeners.blur());
-      markPerpsPaymentTokenSelection();
-      act(() => mockNavigationListeners.focus());
+      // The list route focuses this screen before its close callback marks
+      // the selection, which is the order PayWithModal actually uses.
+      act(() => {
+        mockNavigationListeners.blur();
+        mockNavigationListeners.focus();
+        markPerpsPaymentTokenSelection();
+      });
+      await Promise.resolve();
 
       expect(onDismiss).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('stays on the picker when the token list route is dismissed without a selection', () => {
+    it('stays on the picker when the token list route is dismissed without a selection', async () => {
       const onDismiss = jest.fn();
       render(<PerpsTradePayWithScreen onDismiss={onDismiss} />);
 
       act(() => mockNavigationListeners.blur());
       act(() => mockNavigationListeners.focus());
+      await Promise.resolve();
 
       expect(onDismiss).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();

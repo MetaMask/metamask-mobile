@@ -10,7 +10,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
@@ -62,6 +62,21 @@ const tokenIconStyles = StyleSheet.create({
 });
 
 /**
+ * The pay-with row already has an accessibility label. The icon, including its
+ * network badge, is decorative and must not be announced again.
+ */
+const DecorativePayIcon = ({ children }: { children: React.ReactNode }) => (
+  <View
+    accessible={false}
+    accessibilityElementsHidden
+    importantForAccessibility="no-hide-descendants"
+    testID="perps-pay-row-token-icon-frame"
+  >
+    {children}
+  </View>
+);
+
+/**
  * Payment token icon shared by the full-screen pay row and the Trade sheet
  * row: Money Account, Perps balance, or the selected token with its network.
  */
@@ -102,22 +117,27 @@ export const PerpsPayTokenIcon = () => {
 
   if (isMoneyAccountSelected) {
     return (
-      <Image
-        testID="perps-pay-row-token-icon"
-        source={MoneyIcon}
-        style={tokenIconStyles.iconSmall}
-      />
+      <DecorativePayIcon>
+        <Image
+          accessible={false}
+          testID="perps-pay-row-token-icon"
+          source={MoneyIcon}
+          style={tokenIconStyles.iconSmall}
+        />
+      </DecorativePayIcon>
     );
   }
 
   if (matchesPerpsBalance) {
     return (
-      <BaseTokenIcon
-        testID="perps-pay-row-token-icon"
-        icon={PERPS_BALANCE_ICON_URI}
-        symbol={strings('perps.adjust_margin.perps_balance')}
-        style={tokenIconStyles.iconSmall}
-      />
+      <DecorativePayIcon>
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={PERPS_BALANCE_ICON_URI}
+          symbol={strings('perps.adjust_margin.perps_balance')}
+          style={tokenIconStyles.iconSmall}
+        />
+      </DecorativePayIcon>
     );
   }
 
@@ -126,22 +146,24 @@ export const PerpsPayTokenIcon = () => {
   }
 
   return (
-    <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
+    <DecorativePayIcon>
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+          />
+        }
+      >
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={token.image}
+          symbol={token.symbol}
+          style={tokenIconStyles.iconSmall}
         />
-      }
-    >
-      <BaseTokenIcon
-        testID="perps-pay-row-token-icon"
-        icon={token.image}
-        symbol={token.symbol}
-        style={tokenIconStyles.iconSmall}
-      />
-    </BadgeWrapper>
+      </BadgeWrapper>
+    </DecorativePayIcon>
   );
 };
 

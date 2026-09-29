@@ -232,8 +232,11 @@ export const PerpsTradePayWithScreen: React.FC<
   // "Other assets" pushes the full token list as its own route. When that
   // route pops after an explicit selection, leave the picker as well; a plain
   // dismissal of the token list returns here.
+  // The token list pops itself before its close callback marks the selection,
+  // so the marker is not visible until this focus turn finishes.
   const hasBlurredRef = useRef(false);
   useEffect(() => {
+    let cancelled = false;
     const unsubscribeBlur = navigation.addListener('blur', () => {
       hasBlurredRef.current = true;
     });
@@ -242,12 +245,16 @@ export const PerpsTradePayWithScreen: React.FC<
         return;
       }
       hasBlurredRef.current = false;
-      if (hasPerpsPaymentTokenSelection()) {
+      queueMicrotask(() => {
+        if (cancelled || !hasPerpsPaymentTokenSelection()) {
+          return;
+        }
         handleDismiss();
-      }
+      });
     });
 
     return () => {
+      cancelled = true;
       unsubscribeBlur();
       unsubscribeFocus();
     };
