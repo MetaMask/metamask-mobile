@@ -69,6 +69,9 @@ export interface ExploreSearchInteractedProperties {
   result_count?: number;
   /** Trimmed query length. Only set on `searched` and `result_clicked`. */
   query_length?: number;
+  /** Only set on result_clicked for tokens and stocks. */
+  token_name?: string;
+  token_symbol?: string;
   /** Predict market identity; only set on result_clicked for the predictions feed. */
   market_id?: string;
   market_slug?: string;

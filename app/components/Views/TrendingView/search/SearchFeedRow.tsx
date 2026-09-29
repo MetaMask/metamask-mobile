@@ -52,6 +52,20 @@ export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   }
 };
 
+export const getTokenIdentityProperties = (
+  feedId: SearchFeedId,
+  item: unknown,
+): Pick<ExploreSearchInteractedProperties, 'token_name' | 'token_symbol'> => {
+  if (feedId !== 'tokens' && feedId !== 'stocks') {
+    return {};
+  }
+  const { name, symbol } = item as TrendingAsset;
+  return {
+    ...(name ? { token_name: name } : {}),
+    ...(symbol ? { token_symbol: symbol } : {}),
+  };
+};
+
 export const getPredictMarketProperties = (
   feedId: SearchFeedId,
   item: unknown,
@@ -96,6 +110,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       position: index,
       result_count: resultCountRef.current,
       query_length: getSearchQueryLength(searchQueryRef.current),
+      ...getTokenIdentityProperties(feedId, item),
       ...getPredictMarketProperties(feedId, item),
     });
   }, [feedId, tabName, item, index]);
