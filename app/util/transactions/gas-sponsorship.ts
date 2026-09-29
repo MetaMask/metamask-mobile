@@ -14,8 +14,6 @@ export interface GasFeeSponsorshipRequest {
   transaction: TransactionMeta;
 }
 
-export { isGasFeeSponsorshipRequested };
-
 /**
  * Whether the transaction is published with Smart Transactions sendBundle.
  *

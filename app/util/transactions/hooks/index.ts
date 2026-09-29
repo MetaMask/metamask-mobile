@@ -46,7 +46,6 @@ import {
   type GasFeeSponsorshipRequest,
   isDelegationRelaySupported,
   isGasFeeSponsored,
-  isGasFeeSponsorshipRequested,
   isSenderEIP7702Supported,
   isSmartTransactionBundleSupported,
 } from '../gas-sponsorship';
@@ -55,7 +54,10 @@ import {
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../../components/Views/confirmations/constants/confirmations';
-import { getPostQuoteTransactionType } from '../../../components/Views/confirmations/utils/transaction';
+import {
+  getPostQuoteTransactionType,
+  isGasFeeSponsorshipRequested,
+} from '../../../components/Views/confirmations/utils/transaction';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';

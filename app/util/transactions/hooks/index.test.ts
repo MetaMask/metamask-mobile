@@ -70,6 +70,7 @@ const FEATURE_FLAGS = {
 
 function buildRequest(
   overrides: Partial<TransactionControllerHookRequest> = {},
+  { predictShouldSign = true }: { predictShouldSign?: boolean } = {},
 ): TransactionControllerHookRequest {
   const initMessenger = {
     call: jest.fn((action: string) => {
@@ -86,7 +87,7 @@ function buildRequest(
       }
 
       if (action === 'PredictController:shouldSign') {
-        return { shouldSign: true };
+        return { shouldSign: predictShouldSign };
       }
 
       if (action === 'TransactionPayController:getState') {
@@ -203,14 +204,9 @@ describe('getTransactionControllerHooks', () => {
     });
 
     it('skips local signing when Predict publishes the transaction', async () => {
-      const request = buildRequest();
-      const call = jest.mocked(request.initMessenger.call);
-      const defaultCall = call.getMockImplementation();
-      call.mockImplementation(((action: string, ...args: never[]) =>
-        action === 'PredictController:shouldSign'
-          ? { shouldSign: false }
-          : defaultCall?.(action as never, ...args)) as never);
-      const hooks = getTransactionControllerHooks(request);
+      const hooks = getTransactionControllerHooks(
+        buildRequest({}, { predictShouldSign: false }),
+      );
 
       await expect(
         hooks.shouldSign?.({ transactionMeta: MOCK_TRANSACTION_META }),
