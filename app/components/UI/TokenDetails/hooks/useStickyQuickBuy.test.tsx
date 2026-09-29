@@ -1,7 +1,6 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useStickyQuickBuy } from './useStickyQuickBuy';
-import { SOCIAL_AI_QUICK_BUY_VARIANTS } from '../../QuickBuy/abTestConfig';
 import type { AssetDetailsQuickBuyProps } from '../components/AssetDetailsQuickBuy';
 import { TokenDetailsSource } from '../constants/constants';
 
@@ -9,15 +8,6 @@ const mockPlayImpact = jest.fn();
 jest.mock('../../../../util/haptics', () => ({
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
-}));
-
-let mockShowQuickBuy = false;
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variant: { showQuickBuy: mockShowQuickBuy },
-    variantName: mockShowQuickBuy ? 'treatment' : 'control',
-    isActive: mockShowQuickBuy,
-  }),
 }));
 
 jest.mock('../components/AssetDetailsQuickBuy', () => ({
@@ -44,48 +34,9 @@ const defaultToken = {
 describe('useStickyQuickBuy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShowQuickBuy = false;
   });
 
-  describe('when the quick-buy flag is off', () => {
-    it('returns onQuickBuyPress as undefined', () => {
-      const { result } = renderHook(() =>
-        useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
-      );
-
-      expect(result.current.onQuickBuyPress).toBeUndefined();
-    });
-
-    it('returns quickBuySheet as null', () => {
-      const { result } = renderHook(() =>
-        useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
-      );
-
-      expect(result.current.quickBuySheet).toBeNull();
-    });
-
-    it('returns isQuickBuyEnabled as false', () => {
-      const { result } = renderHook(() =>
-        useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
-      );
-
-      expect(result.current.isQuickBuyEnabled).toBe(false);
-    });
-  });
-
-  describe('when the quick-buy flag is on', () => {
-    beforeEach(() => {
-      mockShowQuickBuy = true;
-    });
-
-    it('returns isQuickBuyEnabled as true', () => {
-      const { result } = renderHook(() =>
-        useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
-      );
-
-      expect(result.current.isQuickBuyEnabled).toBe(true);
-    });
-
+  describe('sheet wiring', () => {
     it('returns a defined onQuickBuyPress', () => {
       const { result } = renderHook(() =>
         useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
@@ -158,17 +109,5 @@ describe('useStickyQuickBuy', () => {
         .quickBuySheet as React.ReactElement<AssetDetailsQuickBuyProps>;
       expect(sheet.props.token).toEqual(defaultToken);
     });
-  });
-
-  it('derives isQuickBuyEnabled from the A/B variant showQuickBuy flag', () => {
-    expect(SOCIAL_AI_QUICK_BUY_VARIANTS.control.showQuickBuy).toBe(false);
-    expect(SOCIAL_AI_QUICK_BUY_VARIANTS.treatment.showQuickBuy).toBe(true);
-
-    mockShowQuickBuy = true;
-    const { result } = renderHook(() =>
-      useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
-    );
-
-    expect(result.current.isQuickBuyEnabled).toBe(true);
   });
 });

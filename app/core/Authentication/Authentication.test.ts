@@ -6,7 +6,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
-import { Authentication } from './Authentication';
 import { applySeedlessUnlockRecovery } from './seedlessPasswordChangeCoordinator';
 
 jest.mock('./seedlessPasswordChangeCoordinator', () => ({
@@ -17,18 +16,6 @@ jest.mock('./seedlessPasswordChangeCoordinator', () => ({
 const mockApplySeedlessUnlockRecovery = jest.mocked(
   applySeedlessUnlockRecovery,
 );
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
-// eslint-disable-next-line import-x/no-namespace
-import * as Keychain from 'react-native-keychain';
-import SecureKeychain from '../SecureKeychain';
-import ReduxService, { ReduxStore } from '../redux';
-import AuthenticationError from './AuthenticationError';
-import {
-  AUTHENTICATION_FAILED_WALLET_CREATION,
-  AUTHENTICATION_STORE_PASSWORD_FAILED,
-  AUTHENTICATION_RESET_PASSWORD_FAILED,
-  AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
-} from '../../constants/error';
 import {
   SecretType,
   SeedlessOnboardingController,
@@ -36,6 +23,7 @@ import {
   EncAccountDataType,
   SeedlessOnboardingMigrationVersion,
   PasswordSyncInstruction,
+  InvalidPrimarySecretDataTypeError,
 } from '@metamask/seedless-onboarding-controller';
 import {
   KeyringController,
@@ -79,6 +67,22 @@ import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { MultichainAccountService } from '@metamask/multichain-account-service';
 import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
 import { createDataDeletionTask as createDataDeletionTaskMock } from '../../util/analytics/analyticsDataDeletion';
+import {
+  Authentication,
+  identifyIncident1745AffectedUser,
+} from './Authentication';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
+// eslint-disable-next-line import-x/no-namespace
+import * as Keychain from 'react-native-keychain';
+import SecureKeychain from '../SecureKeychain';
+import ReduxService, { ReduxStore } from '../redux';
+import AuthenticationError from './AuthenticationError';
+import {
+  AUTHENTICATION_FAILED_WALLET_CREATION,
+  AUTHENTICATION_STORE_PASSWORD_FAILED,
+  AUTHENTICATION_RESET_PASSWORD_FAILED,
+  AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
+} from '../../constants/error';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -2489,54 +2493,90 @@ describe('Authentication', () => {
           authPreference: mockAuthData,
         }),
       ).rejects.toThrow('No account data found');
-      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message:
-            'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
-        }),
-        {
-          incident: 'incident_1745',
-          shape: 'no_secrets',
-          profile_id: 'test-analytics-id-1745',
-        },
-      );
+      // Empty array after a successful fetch is defensive only; controller 11+
+      // throws NoSecretDataFound before returning. No forced Shape 1 here.
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
     });
 
-    it('force-captures incident_1745 when first secret is not a mnemonic', async () => {
+    it('force-captures incident_1745 when fetchAllSecretData finds no secrets', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
-      ).mockResolvedValueOnce([
-        {
-          data: mockPrivateKeyData,
-          type: SecretType.PrivateKey,
-          itemId: 'pk-only-id',
-          dataType: EncAccountDataType.ImportedPrivateKey,
-        },
-      ]);
-      const newWalletVaultAndRestoreSpy = jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
-        .mockResolvedValueOnce(undefined);
+      ).mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.NoSecretDataFound),
+      );
 
-      await Authentication.unlockWallet({
-        password: mockPassword,
-        authPreference: mockAuthData,
-      });
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow(
+        SeedlessOnboardingControllerErrorMessage.NoSecretDataFound,
+      );
 
       expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
         expect.objectContaining({
           message:
             'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
         }),
-        {
+        expect.objectContaining({
           incident: 'incident_1745',
-          shape: 'first_item_not_mnemonic',
+          shape: 'no_secrets',
           profile_id: 'test-analytics-id-1745',
-        },
+        }),
       );
-      // Still attempts restore with the first secret's data as mnemonic bytes
-      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
+    });
+
+    it('force-captures incident_1745 when primary secret data type is invalid', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(
+        new InvalidPrimarySecretDataTypeError([
+          EncAccountDataType.ImportedPrivateKey,
+        ]),
+      );
+
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow(
+        SeedlessOnboardingControllerErrorMessage.InvalidPrimarySecretDataType,
+      );
+
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
+        }),
+        expect.objectContaining({
+          incident: 'incident_1745',
+          shape: 'invalid_primary_secret',
+          profile_id: 'test-analytics-id-1745',
+        }),
+      );
+    });
+
+    it('does not force-capture incident_1745 for incorrect password', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
+      );
+
+      await expect(
+        Authentication.unlockWallet({
+          password: mockPassword,
+          authPreference: mockAuthData,
+        }),
+      ).rejects.toThrow(
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      );
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
     });
 
     it('re-throw errors from fetchAllSeedPhrases', async () => {
@@ -3853,7 +3893,7 @@ describe('Authentication', () => {
     });
 
     it('throw error when no root secret is found', async () => {
-      // Arrange
+      // Arrange — successful empty fetch (defensive); controller 11+ throws instead
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [],
       );
@@ -3862,16 +3902,7 @@ describe('Authentication', () => {
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
         'No root SRP found',
       );
-      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'incident_1745: no root SRP found in syncSeedPhrases',
-        }),
-        {
-          incident: 'incident_1745',
-          shape: 'no_root_srp',
-          profile_id: 'test-analytics-id-1745',
-        },
-      );
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
     });
 
     it('throw error when root secret is falsy', async () => {
@@ -3884,36 +3915,50 @@ describe('Authentication', () => {
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
         'No root SRP found',
       );
-      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'incident_1745: no root SRP found in syncSeedPhrases',
-        }),
-        expect.objectContaining({
-          incident: 'incident_1745',
-          shape: 'no_root_srp',
-          profile_id: 'test-analytics-id-1745',
-        }),
-      );
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
     });
 
-    it('force-captures first_item_not_mnemonic when root secret is a private key', async () => {
-      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
-        [mockPrivateKeySecret, mockMnemonicSecret],
+    it('force-captures incident_1745 when sync fetch finds no secrets', async () => {
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockRejectedValue(
+        new Error(SeedlessOnboardingControllerErrorMessage.NoSecretDataFound),
       );
 
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
-        'No root SRP found',
+        SeedlessOnboardingControllerErrorMessage.NoSecretDataFound,
       );
       expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
         expect.objectContaining({
           message:
             'incident_1745: corrupted seedless backup detected in syncSeedPhrases',
         }),
-        {
+        expect.objectContaining({
           incident: 'incident_1745',
-          shape: 'first_item_not_mnemonic',
+          shape: 'no_secrets',
           profile_id: 'test-analytics-id-1745',
-        },
+        }),
+      );
+    });
+
+    it('force-captures incident_1745 when sync primary secret data type is invalid', async () => {
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockRejectedValue(
+        new InvalidPrimarySecretDataTypeError([
+          EncAccountDataType.ImportedPrivateKey,
+        ]),
+      );
+
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        SeedlessOnboardingControllerErrorMessage.InvalidPrimarySecretDataType,
+      );
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in syncSeedPhrases',
+        }),
+        expect.objectContaining({
+          incident: 'incident_1745',
+          shape: 'invalid_primary_secret',
+          profile_id: 'test-analytics-id-1745',
+        }),
       );
       expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
       expect(
@@ -3932,6 +3977,7 @@ describe('Authentication', () => {
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
         'Failed to fetch secret data',
       );
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
     });
 
     it('handle importAccountFromPrivateKey failure', async () => {
@@ -4041,6 +4087,213 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
+    });
+  });
+
+  describe('identifyIncident1745AffectedUser', () => {
+    const Engine = jest.requireMock('../Engine');
+    const localPrimary = new Uint8Array([1, 2, 3, 4]);
+    const remoteImportedPrimary = new Uint8Array([9, 9, 9, 9]);
+    const mockPassword = 'identify-password';
+
+    const seedlessReduxState = {
+      engine: {
+        backgroundState: {
+          SeedlessOnboardingController: {
+            vault: 'existing vault data',
+            socialBackupsMetadata: [],
+          },
+          AnalyticsController: {
+            analyticsId: 'test-analytics-id-1745',
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockCaptureExceptionForced.mockResolvedValue(undefined);
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => seedlessReduxState,
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest.fn(),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      Engine.context.KeyringController = {
+        exportSeedPhrase: jest.fn().mockResolvedValue(localPrimary),
+        state: {
+          keyrings: [createMockHdKeyringObject()],
+        },
+      } as unknown as KeyringController;
+    });
+
+    it('skips identification when not in seedless login flow', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: undefined,
+              },
+            },
+          },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).not.toHaveBeenCalled();
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
+    });
+
+    it('force-captures Shape A when remote secrets are missing', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.NoSecretDataFound),
+      );
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in unlockIdentify',
+        }),
+        expect.objectContaining({
+          incident: 'incident_1745',
+          shape: 'no_secrets',
+          profile_id: 'test-analytics-id-1745',
+        }),
+      );
+    });
+
+    it('force-captures Shape A when primary secret data type is invalid', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(
+        new InvalidPrimarySecretDataTypeError([
+          EncAccountDataType.ImportedPrivateKey,
+        ]),
+      );
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in unlockIdentify',
+        }),
+        expect.objectContaining({
+          incident: 'incident_1745',
+          shape: 'invalid_primary_secret',
+          profile_id: 'test-analytics-id-1745',
+        }),
+      );
+    });
+
+    it('does not classify network failures as affected', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce(new Error('Network request failed'));
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
+    });
+
+    it('force-captures primary_mismatch when remote primary differs from local', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: remoteImportedPrimary,
+          type: SecretType.Mnemonic,
+          itemId: 'imported-as-primary',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(
+        Engine.context.KeyringController.exportSeedPhrase,
+      ).toHaveBeenCalledWith({ password: mockPassword });
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in unlockIdentify',
+        }),
+        expect.objectContaining({
+          incident: 'incident_1745',
+          shape: 'primary_mismatch',
+          profile_id: 'test-analytics-id-1745',
+          remote_data_type: String(EncAccountDataType.PrimarySrp),
+        }),
+      );
+    });
+
+    it('does not report when remote primary matches local primary HD keyring', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: localPrimary,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
+    });
+
+    it('does not classify when local primary cannot be exported', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: remoteImportedPrimary,
+          type: SecretType.Mnemonic,
+          itemId: 'imported-as-primary',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      (
+        Engine.context.KeyringController.exportSeedPhrase as jest.Mock
+      ).mockRejectedValueOnce(new Error('Keyring locked'));
+
+      await identifyIncident1745AffectedUser(mockPassword);
+
+      expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
+    });
+
+    it('never throws to the caller', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockImplementationOnce(() => {
+        throw 'non-error throw';
+      });
+
+      await expect(
+        identifyIncident1745AffectedUser(mockPassword),
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -5332,6 +5585,74 @@ describe('Authentication', () => {
       await Authentication.unlockWallet({ password: passwordToUse });
 
       expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
+    });
+
+    it('schedules incident 1745 identify after seedless unlock (non-oauth)', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const localPrimary = new Uint8Array([1, 2, 3, 4]);
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(false);
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          user: { existingUser: true },
+          security: { allowLoginWithRememberMe: false },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'seedless vault',
+              },
+              AnalyticsController: {
+                analyticsId: 'test-analytics-id-1745',
+              },
+            },
+          },
+        }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+
+      Engine.context.SeedlessOnboardingController = {
+        submitPassword: jest.fn().mockResolvedValue(undefined),
+        checkIsPasswordOutdated: jest.fn().mockResolvedValue(false),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        fetchAllSecretData: jest.fn().mockResolvedValue([
+          {
+            data: new Uint8Array([9, 9, 9]),
+            type: SecretType.Mnemonic,
+            dataType: EncAccountDataType.PrimarySrp,
+          },
+        ]),
+        state: { vault: 'seedless vault' },
+      };
+      Engine.context.KeyringController = {
+        submitPassword: jest.fn(),
+        verifyPassword: jest.fn(),
+        exportSeedPhrase: jest.fn().mockResolvedValue(localPrimary),
+        state: {
+          keyrings: [createMockHdKeyringObject()],
+        },
+      };
+
+      await Authentication.unlockWallet({ password: passwordToUse });
+      // Identify is fire-and-forget; flush microtasks.
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).toHaveBeenCalled();
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in unlockIdentify',
+        }),
+        expect.objectContaining({
+          shape: 'primary_mismatch',
+          profile_id: 'test-analytics-id-1745',
+        }),
+      );
     });
 
     it('does not navigate home directly after login', async () => {
