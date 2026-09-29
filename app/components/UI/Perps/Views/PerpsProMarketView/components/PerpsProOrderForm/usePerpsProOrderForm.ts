@@ -85,6 +85,7 @@ import {
   usePerpsChaseOrders,
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
@@ -613,6 +614,7 @@ export const usePerpsProOrderForm = ({
   const { playImpact } = useHaptics();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { updatePositionTPSL } = usePerpsTrading();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   const {
     orderForm,
@@ -2821,6 +2823,7 @@ export const usePerpsProOrderForm = ({
       amount: effectiveUsdAmount,
       szDecimals,
       enableHaptics: true,
+      ...(useBottomSheet ? { useBottomSheet: true } : {}),
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -2848,6 +2851,7 @@ export const usePerpsProOrderForm = ({
     setTakeProfitPrice,
     setStopLossPrice,
     szDecimals,
+    useBottomSheet,
   ]);
 
   const onLeverageConfirm = useCallback(
