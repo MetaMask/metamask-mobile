@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -48,6 +48,7 @@ export const useLast7DaysEarnings = (
   const [data, setData] = useState<EarningsSummaryDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const isLoadingRef = useRef(false);
 
   const fetchLast7Days = useCallback(
     async ({ forceFresh }: { forceFresh?: boolean } = {}): Promise<void> => {
@@ -55,6 +56,10 @@ export const useLast7DaysEarnings = (
         setIsLoading(false);
         return;
       }
+      if (isLoadingRef.current) {
+        return;
+      }
+      isLoadingRef.current = true;
 
       setIsLoading(true);
       setError(false);
@@ -70,6 +75,7 @@ export const useLast7DaysEarnings = (
       } catch {
         setError(true);
       } finally {
+        isLoadingRef.current = false;
         setIsLoading(false);
       }
     },

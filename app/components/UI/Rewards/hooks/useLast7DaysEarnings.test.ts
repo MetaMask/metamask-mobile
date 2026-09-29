@@ -114,4 +114,36 @@ describe('useLast7DaysEarnings', () => {
       expect.objectContaining({ forceFresh: true, includeClaimable: false }),
     );
   });
+
+  it('skips a second fetch while one is still in flight', async () => {
+    let resolveInFlight: (value: typeof mockSummary) => void = () => undefined;
+    mockEngineCall.mockReturnValue(
+      new Promise((resolve) => {
+        resolveInFlight = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() => useLast7DaysEarnings(PROFILE_A));
+    await act(async () => {
+      focusEffect?.();
+    });
+    await act(async () => {
+      result.current.retry();
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveInFlight(mockSummary);
+      await flushPromises();
+    });
+
+    mockEngineCall.mockResolvedValue(mockSummary);
+    await act(async () => {
+      result.current.retry();
+      await flushPromises();
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+  });
 });
