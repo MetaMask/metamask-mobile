@@ -150,7 +150,8 @@ export const selectLatestAnalyticsRelease = (
 ): AnalyticsContractRelease => {
   const candidates = releases
     .filter((release) => release.tag.startsWith(ANALYTICS_RELEASE_PREFIX))
-    .toSorted(
+    .slice()
+    .sort(
       (left, right) =>
         Date.parse(right.publishedAt) - Date.parse(left.publishedAt),
     );
