@@ -1,3 +1,4 @@
+import type { Trade } from '@metamask/social-controllers';
 import {
   mockPerpFeedItem,
   mockSpotFeedItem,
@@ -146,7 +147,7 @@ describe('toLiveTradeRow', () => {
           timestamp: 1_700_000_000,
           transactionHash: '0x4',
           classification: 'spot',
-        },
+        } as Trade,
       ],
       timestamp: 1_700_000_000,
     });
