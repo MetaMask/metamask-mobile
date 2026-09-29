@@ -34,6 +34,7 @@ import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
+import { flushStartupStageSpans } from '../../core/Performance/startupStageSpans';
 const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
@@ -53,6 +54,10 @@ jest.mock('../../core/Performance', () => ({
   Performance: {
     appLaunchTime: 1640995200000,
   },
+}));
+
+jest.mock('../../core/Performance/startupStageSpans', () => ({
+  flushStartupStageSpans: jest.fn(),
 }));
 
 jest.mock('../device', () => ({
@@ -1453,6 +1458,17 @@ describe('setupSentry', () => {
     // automatically when tracesSampleRate is set and enableAutoPerformanceTracing is true.
     // Adding it explicitly here would be a no-op after the SDK's name-deduplication pass.
     expect(integrationNames).not.toContain('ReactNativeTracing');
+  });
+
+  it('sends a startup held for Sentry once Sentry is initialised', async () => {
+    jest.mocked(flushStartupStageSpans).mockClear();
+
+    await setupSentry();
+
+    expect(flushStartupStageSpans).toHaveBeenCalledTimes(1);
+    expect(
+      jest.mocked(flushStartupStageSpans).mock.invocationCallOrder[0],
+    ).toBeGreaterThan(mockedInit.mock.invocationCallOrder[0]);
   });
 
   it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {

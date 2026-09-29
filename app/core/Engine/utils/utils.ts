@@ -1,4 +1,5 @@
 import { createProjectLogger } from '@metamask/utils';
+import performance from 'react-native-performance';
 import type {
   ControllerMessenger,
   MessengerClientsByName,
@@ -11,6 +12,7 @@ import type {
 } from '../types';
 import { MESSENGER_FACTORIES } from '../messengers';
 import { Wallet } from '@metamask/wallet';
+import { noteStartupControllerInit } from '../../Performance/startupStageSpans';
 
 const log = createProjectLogger('messenger-client-init');
 
@@ -62,6 +64,7 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
     initFunctions,
   )) {
     const messengerClientName = key as MessengerClientsToInitialize;
+    const initStartedAt = performance.now();
 
     const initFunction = messengerClientInitFunction as InitFunction<
       typeof messengerClientName
@@ -97,6 +100,10 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
       ...partialMessengerClientsByName,
       [messengerClientName]: controller,
     };
+    noteStartupControllerInit(
+      messengerClientName,
+      performance.now() - initStartedAt,
+    );
 
     log('Initialized messenger client', messengerClientName);
   }

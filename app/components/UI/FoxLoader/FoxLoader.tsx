@@ -16,6 +16,10 @@ import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
+import {
+  markStartup,
+  setStartupStageTag,
+} from '../../../core/Performance/startupStageSpans';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -36,6 +40,14 @@ const EXIT_ANIMATION_MS = 800;
 let animationStarted = false;
 let animationComplete = false;
 
+/** How the splash animation finished, which decides how long the app waits behind it. */
+type SplashCompletion = 'exit_animation' | 'timeout' | 'rive_error';
+
+const hideNativeSplash = (failureMessage: string) =>
+  hideAsync()
+    .then(() => markStartup('nativeSplashHidden'))
+    .catch((error: unknown) => Logger.error(error as Error, failureMessage));
+
 interface FoxLoaderProps {
   appServicesReady?: boolean;
   onAnimationComplete?: () => void;
@@ -48,9 +60,7 @@ const FoxLoaderE2E = ({
   onAnimationCompleteRef.current = onAnimationComplete;
 
   useEffect(() => {
-    hideAsync().catch((error: unknown) =>
-      Logger.error(error as Error, 'Failed to hide splash screen in E2E mode'),
-    );
+    hideNativeSplash('Failed to hide splash screen in E2E mode');
     // eslint-disable-next-line react-compiler/react-compiler
     animationComplete = true;
     onAnimationCompleteRef.current?.();
@@ -82,11 +92,16 @@ const FoxLoaderAnimation = ({
     timeoutMs: ANIMATION_TIMEOUT_MS,
   });
 
-  const completeAnimation = useCallback(() => {
+  const completeAnimation = useCallback((completion: SplashCompletion) => {
     if (isCompleteRef.current) return;
     // eslint-disable-next-line react-compiler/react-compiler
     animationComplete = true;
     isCompleteRef.current = true;
+    setStartupStageTag(
+      'splash_reveal_tax',
+      'startup.splash.completion',
+      completion,
+    );
     onAnimationCompleteRef.current?.();
   }, []);
 
@@ -152,13 +167,8 @@ const FoxLoaderAnimation = ({
           Logger.log('FoxLoader: forcing app reveal after timeout');
         }
         // Ensure the native splash is hidden even if onLoad never fired on the static fox image.
-        hideAsync().catch((error: unknown) =>
-          Logger.error(
-            error as Error,
-            'Failed to hide splash screen in timeout fallback',
-          ),
-        );
-        completeAnimation();
+        hideNativeSplash('Failed to hide splash screen in timeout fallback');
+        completeAnimation('timeout');
       }
     }, ANIMATION_TIMEOUT_MS);
 
@@ -173,7 +183,10 @@ const FoxLoaderAnimation = ({
       return undefined;
     }
     stopAnimation();
-    const timer = setTimeout(completeAnimation, EXIT_ANIMATION_MS);
+    const timer = setTimeout(
+      () => completeAnimation('exit_animation'),
+      EXIT_ANIMATION_MS,
+    );
     return () => clearTimeout(timer);
   }, [appServicesReady, isPlaying, stopAnimation, completeAnimation]);
 
@@ -196,9 +209,7 @@ const FoxLoaderAnimation = ({
             // Hide native splash once static fox is rendered — the static fox
             // (opacity 1) bridges the gap until Rive begins playing, so there
             // is no visible white flash between the two.
-            hideAsync().catch((error: unknown) =>
-              Logger.error(error as Error, 'Failed to hide splash screen'),
-            );
+            hideNativeSplash('Failed to hide splash screen');
           }}
         />
         <Animated.View
@@ -228,13 +239,10 @@ const FoxLoaderAnimation = ({
                     })`,
                   );
                   // onLoad may not have fired if Rive errored before the image rendered
-                  hideAsync().catch((error: unknown) =>
-                    Logger.error(
-                      error as Error,
-                      'Failed to hide splash screen on Rive error',
-                    ),
+                  hideNativeSplash(
+                    'Failed to hide splash screen on Rive error',
                   );
-                  completeAnimation();
+                  completeAnimation('rive_error');
                 }
               }}
             />

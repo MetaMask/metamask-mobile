@@ -6,11 +6,14 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
 } from '../../constants/storage';
-import { Authentication } from './Authentication';
+import {
+  Authentication,
+  type SeedlessPasswordCheckTimings,
+} from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 // eslint-disable-next-line import-x/no-namespace
 import * as Keychain from 'react-native-keychain';
-import SecureKeychain from '../SecureKeychain';
+import SecureKeychain, { type CredentialReadTimings } from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
 import AuthenticationError from './AuthenticationError';
 import {
@@ -274,6 +277,7 @@ const mockMarkUnlockCompleted = jest.fn();
 const mockClearUnlockAppStartType = jest.fn();
 const mockGetUnlockAppStartType = jest.fn(() => 'warm');
 const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
+const mockNoteStartupCredentialRequest = jest.fn();
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
@@ -309,6 +313,11 @@ jest.mock('../Performance/unlockTraces', () => ({
   resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
     mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
   startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+}));
+
+jest.mock('../Performance/startupStageSpans', () => ({
+  noteStartupCredentialRequest: (...args: unknown[]) =>
+    mockNoteStartupCredentialRequest(...args),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -3338,6 +3347,58 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith({ skipCache: true });
       expect(Logger.log).toHaveBeenCalled();
       expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['succeeds', jest.fn().mockResolvedValue(false)],
+      ['fails', jest.fn().mockRejectedValue(new Error('controller failed'))],
+    ])(
+      'fills in the timings around the controller check when it %s',
+      async (_, checkIsPasswordOutdated) => {
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: jest.fn(),
+          getState: jest.fn(() => ({
+            engine: {
+              backgroundState: {
+                SeedlessOnboardingController: {
+                  vault: 'existing vault data',
+                  socialBackupsMetadata: [],
+                },
+              },
+            },
+          })),
+        } as unknown as ReduxStore);
+        Engine.context.SeedlessOnboardingController = {
+          state: { vault: {} },
+          checkIsPasswordOutdated,
+        } as unknown as SeedlessOnboardingController<EncryptionKey>;
+        const timings: SeedlessPasswordCheckTimings = {};
+
+        await Authentication.checkIsSeedlessPasswordOutdated({ timings });
+
+        expect(timings.startedAt).toEqual(expect.any(Number));
+        expect(timings.endedAt).toBeGreaterThanOrEqual(
+          timings.startedAt as number,
+        );
+      },
+    );
+
+    it('leaves the timings unset when the user is not seedless', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: { socialBackupsMetadata: [] },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+      const timings: SeedlessPasswordCheckTimings = {};
+
+      await Authentication.checkIsSeedlessPasswordOutdated({ timings });
+
+      expect(timings).toEqual({});
     });
   });
 
@@ -6461,6 +6522,45 @@ describe('Authentication', () => {
         expect(mockCancelUnlockTraces.mock.invocationCallOrder[0]).toBeLessThan(
           alertSpy.mock.invocationCallOrder[0],
         );
+      });
+    });
+
+    describe('startup credential request', () => {
+      beforeEach(() => {
+        mockNoteStartupCredentialRequest.mockClear();
+      });
+
+      it('gives the startup recorder the keychain read timings while the read is pending', async () => {
+        let readTimings: CredentialReadTimings | undefined;
+        let notedWhileReading = false;
+        jest
+          .spyOn(SecureKeychain, 'getGenericPassword')
+          .mockImplementationOnce(async (timings) => {
+            readTimings = timings;
+            await Promise.resolve();
+            notedWhileReading =
+              mockNoteStartupCredentialRequest.mock.calls.length === 1;
+            return {
+              password: passwordToUse,
+              username: 'test-username',
+              service: 'test-service',
+              storage: Keychain.STORAGE_TYPE.AES_GCM,
+            };
+          });
+
+        await Authentication.unlockWallet();
+
+        expect(mockNoteStartupCredentialRequest).toHaveBeenCalledTimes(1);
+        expect(mockNoteStartupCredentialRequest.mock.calls[0][0]).toBe(
+          readTimings,
+        );
+        expect(notedWhileReading).toBe(true);
+      });
+
+      it('does not note a typed password', async () => {
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockNoteStartupCredentialRequest).not.toHaveBeenCalled();
       });
     });
   });

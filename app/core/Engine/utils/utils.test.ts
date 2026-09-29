@@ -18,10 +18,14 @@ import { InitMessengerClientsFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
+import { noteStartupControllerInit } from '../../Performance/startupStageSpans';
 
 jest.mock('../controllers/preferences-controller-init');
 jest.mock('../controllers/permission-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
+jest.mock('../../Performance/startupStageSpans', () => ({
+  noteStartupControllerInit: jest.fn(),
+}));
 
 describe('initMessengerClients', () => {
   const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
@@ -81,6 +85,30 @@ describe('initMessengerClients', () => {
     expect(
       controllers.messengerClientsByName.PermissionController,
     ).toBeDefined();
+  });
+
+  it('times each controller init for the startup recorder', () => {
+    const request = buildModularizedControllerRequest();
+    initMessengerClients(request);
+
+    expect(jest.mocked(noteStartupControllerInit).mock.calls).toEqual([
+      ['PreferencesController', expect.any(Number)],
+      ['PermissionController', expect.any(Number)],
+    ]);
+  });
+
+  it('does not time a controller whose init throws', () => {
+    const request = buildModularizedControllerRequest({
+      initFunctions: {
+        PreferencesController: createMockMessengerClientInitFunction<
+          PreferencesControllerWithSavedGasFees,
+          PreferencesControllerMessenger
+        >('GasFeeController'),
+      },
+    });
+
+    expect(() => initMessengerClients(request)).toThrow();
+    expect(noteStartupControllerInit).not.toHaveBeenCalled();
   });
 
   it('initializes function including initMessenger', () => {

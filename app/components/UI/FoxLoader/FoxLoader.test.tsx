@@ -5,6 +5,10 @@ import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 import { hideAsync } from 'expo-splash-screen';
 import Logger from '../../../util/Logger';
+import {
+  markStartup,
+  setStartupStageTag,
+} from '../../../core/Performance/startupStageSpans';
 
 // Override the global Rive mock so tests control when the view becomes ready
 // (the global mock makes riveViewRef available immediately) and can fire onError.
@@ -88,6 +92,18 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
 }));
+
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
+  setStartupStageTag: jest.fn(),
+}));
+
+const expectSplashCompletion = (completion: string) =>
+  expect(setStartupStageTag).toHaveBeenCalledWith(
+    'splash_reveal_tax',
+    'startup.splash.completion',
+    completion,
+  );
 
 const renderFoxLoader = ({
   appServicesReady = false,
@@ -204,6 +220,7 @@ describe('FoxLoader', () => {
     });
 
     expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    expectSplashCompletion('exit_animation');
     jest.useRealTimers();
   });
 
@@ -245,6 +262,7 @@ describe('FoxLoader', () => {
     expect(Logger.log).toHaveBeenCalledWith(
       'FoxLoader: forcing app reveal after timeout',
     );
+    expectSplashCompletion('timeout');
     jest.useRealTimers();
   });
 
@@ -266,6 +284,7 @@ describe('FoxLoader', () => {
       expect.any(Error),
       'FoxLoader: Rive failed before playback (FileNotFound)',
     );
+    expectSplashCompletion('rive_error');
   });
 
   it('ignores Rive runtime errors after the animation has already started', () => {
@@ -318,6 +337,16 @@ describe('FoxLoader', () => {
     expect(hideAsync).toHaveBeenCalled();
   });
 
+  it('marks the native splash hidden for the startup recorder once it is hidden', async () => {
+    renderFoxLoader();
+
+    await act(async () => {
+      screen.getByTestId(FoxLoaderSelectorsIDs.STATIC_FOX).props.onLoad();
+    });
+
+    expect(markStartup).toHaveBeenCalledWith('nativeSplashHidden');
+  });
+
   it('logs an error when hideAsync rejects during static fox onLoad', async () => {
     jest.mocked(hideAsync).mockRejectedValueOnce(new Error('hide failed'));
     renderFoxLoader();
@@ -330,6 +359,7 @@ describe('FoxLoader', () => {
       expect.any(Error),
       'Failed to hide splash screen',
     );
+    expect(markStartup).not.toHaveBeenCalled();
   });
 
   it('logs an error when triggerInput throws during animation start', () => {

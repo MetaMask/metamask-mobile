@@ -4,6 +4,10 @@ import { Animated, View as MockView } from 'react-native';
 import { render, act, screen } from '@testing-library/react-native';
 import ControllersGate from './ControllersGate';
 import { useSelector } from 'react-redux';
+import {
+  markStartup,
+  timeStartupStep,
+} from '../../../core/Performance/startupStageSpans';
 
 const MOCK_FOX_LOADER_ID = 'FOX_LOADER_ID';
 const MOCK_CHILDREN_ID = 'MOCK_CHILDREN_ID';
@@ -11,6 +15,12 @@ const MOCK_CHILDREN_ID = 'MOCK_CHILDREN_ID';
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+}));
+
+const mockStopFadeTimer = jest.fn();
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
+  timeStartupStep: jest.fn(() => mockStopFadeTimer),
 }));
 
 const mockHasTestOverrides = false;
@@ -44,6 +54,7 @@ describe('ControllersGate', () => {
   );
 
   beforeEach(() => {
+    jest.clearAllMocks();
     capturedOnAnimationComplete = undefined;
   });
 
@@ -107,6 +118,31 @@ describe('ControllersGate', () => {
 
     // Overlay must remain — removing it now would show a blank screen
     expect(screen.getByTestId(MOCK_FOX_LOADER_ID)).toBeOnTheScreen();
+    expect(markStartup).not.toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
+  it('times the fade and marks splash gone for the startup recorder once it ends', () => {
+    jest.useFakeTimers();
+    (useSelector as jest.Mock).mockReturnValue(true);
+
+    render(<ControllersGate>{mockChildren}</ControllersGate>);
+    act(() => {
+      capturedOnAnimationComplete?.();
+    });
+
+    expect(timeStartupStep).toHaveBeenCalledWith(
+      'splash_reveal_tax',
+      'startup.splash.fade_ms',
+    );
+    expect(markStartup).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(mockStopFadeTimer).toHaveBeenCalledTimes(1);
+    expect(markStartup).toHaveBeenCalledWith('splashGone');
     jest.useRealTimers();
   });
 

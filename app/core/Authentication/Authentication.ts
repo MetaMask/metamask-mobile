@@ -126,6 +126,7 @@ import {
   type UnlockHandBack,
   type UnlockTraceTokens,
 } from '../Performance/unlockTraces';
+import { noteStartupCredentialRequest } from '../Performance/startupStageSpans';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -147,6 +148,8 @@ export interface CheckIsSeedlessPasswordOutdatedOptions {
   skipCache?: boolean;
   /** When true, failed controller checks are reported to Sentry via {@link Logger.error}. Default: false */
   captureSentryError?: boolean;
+  /** Filled in as the check runs. */
+  timings?: SeedlessPasswordCheckTimings;
 }
 
 class AuthenticationService {
@@ -843,9 +846,11 @@ class AuthenticationService {
         } else {
           // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
           const credentialReadTimings: CredentialReadTimings = {};
-          const credentials = await SecureKeychain.getGenericPassword(
+          const credentialRead = SecureKeychain.getGenericPassword(
             credentialReadTimings,
           );
+          noteStartupCredentialRequest(credentialReadTimings);
+          const credentials = await credentialRead;
           passwordToUse = credentials?.password;
           handBack = { source: 'keychain', credentialReadTimings };
         }
@@ -1618,9 +1623,13 @@ class AuthenticationService {
   ): Promise<boolean> => {
     const skipCache = options.skipCache ?? true;
     const captureSentryError = options.captureSentryError ?? false;
+    const { timings } = options;
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
+    }
+    if (timings) {
+      timings.startedAt = performance.now();
     }
     try {
       const isSeedlessPasswordOutdated =
@@ -1638,6 +1647,10 @@ class AuthenticationService {
         Logger.log('checkIsSeedlessPasswordOutdated', error);
       }
       return false;
+    } finally {
+      if (timings) {
+        timings.endedAt = performance.now();
+      }
     }
   };
 
