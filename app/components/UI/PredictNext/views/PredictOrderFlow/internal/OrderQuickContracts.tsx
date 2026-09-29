@@ -30,7 +30,10 @@ interface OrderQuickContractsProps {
 /**
  * The quick-sell chips beneath the contract entry: 25% and 50% of the held
  * Position, floored to whole contracts, plus Max for the full position.
- * Unlike the buy chips these set (not add to) the entered count.
+ * Unlike the buy chips these set (not add to) the entered count. A fraction
+ * chip that floors below one contract — as on small positions — would only
+ * trigger the minimum-count error, so it is disabled; Max always stays
+ * available.
  */
 export const OrderQuickContracts = ({
   maxContracts,
@@ -44,7 +47,7 @@ export const OrderQuickContracts = ({
         testID={PredictOrderFlowTestIds.QUICK_CONTRACT(key)}
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        isDisabled={isDisabled}
+        isDisabled={isDisabled || Math.floor(maxContracts * fraction) < 1}
         onPress={() => onSetContracts(Math.floor(maxContracts * fraction))}
         twClassName="h-11 flex-1 min-w-0 rounded-xl"
       >

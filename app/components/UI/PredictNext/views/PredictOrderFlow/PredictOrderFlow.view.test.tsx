@@ -189,6 +189,11 @@ const Probe = ({ intent }: { intent: PredictOrderFlowIntent }) => {
 const BuyProbe = () => <Probe intent={buyIntent} />;
 const SellProbe = () => <Probe intent={sellIntent} />;
 
+/** A sell probe bounded by a specific whole-contract position size. */
+const sellProbeWithMax =
+  (maxContracts: number): React.ComponentType =>
+  () => <Probe intent={{ ...sellIntent, maxContracts }} />;
+
 const renderProbe = (Component: React.ComponentType = BuyProbe) =>
   renderPredictOrderFlow(Component);
 
@@ -1086,6 +1091,70 @@ describe('PredictOrderFlow', () => {
         contracts: '75',
       });
     });
+
+    it('disables fraction chips that floor below one contract, keeping Max', () => {
+      stubEchoingSellPreview();
+
+      // 3 contracts: 25% floors to 0, which would only trigger the
+      // minimum-count error, so it is disabled; Max always stays available.
+      openSheet(sellProbeWithMax(3));
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      ).toBeEnabled();
+    });
+
+    it('enables the 25% chip once its floored count reaches one contract', () => {
+      stubEchoingSellPreview();
+
+      openSheet(sellProbeWithMax(4));
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      ).toBeEnabled();
+    });
+
+    it('renders fractional venue fills exactly as the venue reported them', async () => {
+      // Authoritative execution evidence beats whole-contract cosmetics: a
+      // venue-reported 2.5 fill renders 2.5, never a floored count.
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({
+          body: makePredictNextSellReceipt({
+            status: 'partially_filled',
+            quotedContracts: 6,
+            filledContracts: '2.50',
+            averageFillPrice: '0.6000',
+            fee: '0.05',
+            actualProceeds: '1.50',
+            netProceeds: '1.45',
+          }),
+        }),
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_PARTIALLY_FILLED),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REMAINDER),
+      ).toHaveTextContent(/2.5 of 6 contracts sold/);
+      expect(
+        screen.getByText(/other 3.5 remain in your position/),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.POSITION_CONTEXT),
+      ).toHaveTextContent('You sold 2.5 Buffalo Bills contracts');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FILLED_CONTRACTS),
+      ).toHaveTextContent('2.5');
+    }, 30000);
 
     it('prevents an over-sell locally before any quote', async () => {
       stubEchoingSellPreview();
