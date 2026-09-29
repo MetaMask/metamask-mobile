@@ -1,4 +1,5 @@
 import { AppState, type AppStateStatus } from 'react-native';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
   endTrace,
@@ -17,10 +18,15 @@ import {
   RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+  RAMPS_BUY_CUF_LOG_MARKER,
   RAMPS_BUY_CUF_TIMEOUT_MS,
   RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
   type RampsBuyCufSurface,
 } from '../constants/rampsBuyCufTags';
+import {
+  getRampsBuyLifecycleContext,
+  settleRampsBuyForegroundOnSpan,
+} from './rampsBuyLifecycleContext';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
 
 const CUF_META = {
@@ -147,8 +153,21 @@ export function buildRampsBuyCufStartTags(
   return {
     [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
     [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+    [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]: getRampsBuyLifecycleContext(),
     ...extra,
   };
+}
+
+export function logRampsBuyCufSpan(
+  phase: 'started' | 'completed',
+  name: TraceName,
+  fields?: Record<string, TraceValue>,
+): void {
+  DevLogger?.log?.(
+    `${RAMPS_BUY_CUF_LOG_MARKER} ${name} ${phase} ${JSON.stringify(
+      fields ?? {},
+    )}`,
+  );
 }
 
 function withStartSpanAttributes(
@@ -197,6 +216,7 @@ export function startRampsBuyCufTrace({
   });
 
   parentOpId = opId;
+  logRampsBuyCufSpan('started', TraceName.RampBuyToOrderDetails, startTags);
   parentSpan = trace({
     name: TraceName.RampBuyToOrderDetails,
     id: opId,
@@ -244,8 +264,6 @@ export function endRampsBuyCufTrace({
     [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: measuredForegroundMs,
     [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: backgroundCount,
     [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: resumeCount,
-    [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]:
-      backgroundCount > 0 ? 'background_resumed' : 'foreground_only',
   };
   setTraceMeasurement(
     { name: TraceName.RampBuyToOrderDetails, id: targetId },
@@ -255,12 +273,17 @@ export function endRampsBuyCufTrace({
   );
   abandonOpenChildTraces(RAMPS_BUY_CUF_END_REASON.ABANDONED);
   clearStaleParentState();
+  const endData = { ...data, ...lifecycleData };
+  logRampsBuyCufSpan('completed', TraceName.RampBuyToOrderDetails, endData);
   endTrace({
     name: TraceName.RampBuyToOrderDetails,
     id: targetId,
-    data: { ...data, ...lifecycleData },
+    data: endData,
     timestamp,
   });
+  if (data?.[RAMPS_BUY_CUF_TAG.SUCCESS] !== false) {
+    settleRampsBuyForegroundOnSpan(TraceName.RampBuyToOrderDetails);
+  }
 }
 
 export function endRampsBuyCufTraceAfter(
