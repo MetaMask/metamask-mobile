@@ -1,0 +1,100 @@
+diff --git a/dist/NeoBankService.js b/dist/NeoBankService.js
+index 8dd918e..eab9aa9 100644
+--- a/dist/NeoBankService.js
++++ b/dist/NeoBankService.js
+@@ -255,10 +255,75 @@ export class NeoBankService {
+      */
+     async getAutoramps() {
+         const response = await this.#getJson('autoramps');
+-        if (!Array.isArray(response)) {
++        const autoramps = Array.isArray(response)
++            ? response
++            : response && Array.isArray(response.items)
++                ? response.items
++                : null;
++        if (!autoramps) {
+             throw new Error('Malformed response received from neo-bank autoramps API');
+         }
+-        return response.map((autoramp) => this.#mapAutorampResponse(autoramp));
++        return autoramps.map((autoramp) => this.#mapAutorampResponse(autoramp));
++    }
++    /**
++     * PIX deposit rail for an autoramp. Null until MoonPay attaches deposit_rails.
++     *
++     * @param autorampId - Autoramp id.
++     */
++    async getPixDepositInstructions(autorampId) {
++        const response = await this.#getJson(`autoramps/${encodeURIComponent(autorampId)}`);
++        const rails = response?.deposit_rails;
++        if (!Array.isArray(rails)) {
++            return null;
++        }
++        for (const rail of rails) {
++            if (!rail || rail.type !== 'Pix' || typeof rail.br_code !== 'string' || !rail.br_code || typeof rail.instruction !== 'string') {
++                continue;
++            }
++            const instructions = { brCode: rail.br_code, instruction: rail.instruction };
++            if (typeof rail.pix_key === 'string' && rail.pix_key) {
++                instructions.pixKey = rail.pix_key;
++            }
++            if (typeof rail.expires_at === 'string' && rail.expires_at) {
++                instructions.expiresAt = rail.expires_at;
++            }
++            return instructions;
++        }
++        return null;
++    }
++    /**
++     * Transactions for one autoramp. Poll `status` (Completed, Failed, ...).
++     *
++     * @param autorampId - Autoramp id.
++     */
++    async listAutorampTransactions(autorampId) {
++        const response = await this.#getJson('autoramp-transactions', { autoramp_id: autorampId });
++        const transactions = Array.isArray(response)
++            ? response
++            : response && Array.isArray(response.items)
++                ? response.items
++                : null;
++        if (!transactions) {
++            throw new Error('Malformed response received from neo-bank autoramp transactions API');
++        }
++        return transactions.map((transaction) => {
++            if (!transaction || typeof transaction.id !== 'string' || typeof transaction.status !== 'string') {
++                throw new Error('Malformed response received from neo-bank autoramp transactions API');
++            }
++            const sourceAmount = transaction.source_amount && typeof transaction.source_amount.amount === 'string'
++                ? transaction.source_amount.amount
++                : undefined;
++            const destinationAmount = transaction.destination_amount && typeof transaction.destination_amount.amount === 'string'
++                ? transaction.destination_amount.amount
++                : undefined;
++            return {
++                id: transaction.id,
++                autorampId: typeof transaction.autoramp_id === 'string' ? transaction.autoramp_id : autorampId,
++                status: transaction.status,
++                sourceAmount,
++                destinationAmount,
++            };
++        });
+     }
+     /**
+      * Registers a Pix address via neobank-proxy `POST /neobank/addresses/pix`.
+diff --git a/dist/RampsController.js b/dist/RampsController.js
+index b98f48a..d55ea37 100644
+--- a/dist/RampsController.js
++++ b/dist/RampsController.js
+@@ -2651,7 +2651,12 @@ export class RampsController extends BaseController {
+                 autoramp.status !== AutorampStatus.Rejected &&
+                 autoramp.status !== AutorampStatus.Cancelled);
+             if (!hasUsableAutoramp) {
+-                await this.createAutoramp({});
++                await this.createAutoramp({
++                    source_currencies: [{ type: 'Fiat', code: 'BRL' }],
++                    destination_currency: { type: 'Crypto', token: 'mUSD', blockchain: 'Monad' },
++                    recipient_account: { type: 'Crypto', chain: 'Monad', address: walletAddress.trim() },
++                    source_is_third_party: false,
++                });
+             }
+         }
+         catch {
