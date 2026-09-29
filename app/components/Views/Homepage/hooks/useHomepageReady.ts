@@ -9,6 +9,7 @@ import {
   type HomepageReadyContentState,
   type HomepageReadyTraceToken,
 } from '../../../../core/Performance/HomepageReady';
+import { markHomepageReadyHomeFocused } from '../../../../core/Performance/homepageReadyStages';
 
 interface UseHomepageReadyOptions {
   contentReady: boolean;
@@ -50,6 +51,7 @@ export const useHomepageReady = ({
     }
 
     focusedTraceTokenRef.current = getActiveHomepageReadyTraceToken();
+    markHomepageReadyHomeFocused();
     return () => cancelTraceSeenWhileFocused(focusedTraceTokenRef);
   }, [isFocused]);
 

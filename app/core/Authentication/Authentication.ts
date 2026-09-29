@@ -126,6 +126,11 @@ import {
   type UnlockHandBack,
   type UnlockTraceTokens,
 } from '../Performance/unlockTraces';
+import {
+  markHomepageReadyNavigate,
+  recordHomepageReadyStage,
+  startHomepageReadyStage,
+} from '../Performance/homepageReadyStages';
 import { noteStartupCredentialRequest } from '../Performance/startupStageSpans';
 
 /**
@@ -864,17 +869,25 @@ class AuthenticationService {
             beforeNavigate: onBeforeNavigate !== undefined,
           });
 
+          const seedlessCheckTimings: SeedlessPasswordCheckTimings = {};
           if (authPreference?.oauth2Login) {
             // If seedless flow, rehydrate and nest OnboardingFetchSrps under
             // the onboarding journey when a parent context is supplied.
+            const stopSeedlessRehydrate =
+              startHomepageReadyStage('seedless_rehydrate');
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
+            stopSeedlessRehydrate();
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
               skipCache: false,
               captureSentryError: true,
+              timings: seedlessCheckTimings,
             })
           ) {
+            const stopSeedlessPasswordSync = startHomepageReadyStage(
+              'seedless_password_sync',
+            );
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
@@ -882,12 +895,21 @@ class AuthenticationService {
               true,
               false,
             );
+            stopSeedlessPasswordSync();
             fallbackToPassword = true;
           }
+          recordHomepageReadyStage(
+            'seedless_password_check',
+            seedlessCheckTimings.startedAt,
+            seedlessCheckTimings.endedAt,
+          );
 
           // Unlock keyrings.
+          const stopVaultUnlock = startHomepageReadyStage('vault_unlock');
           await this.loginVaultCreation(passwordToUse);
+          stopVaultUnlock();
 
+          const stopUnlockFinalize = startHomepageReadyStage('unlock_finalize');
           // Update authentication preference.
           if (authPreference) {
             await this.updateAuthPreference({
@@ -904,10 +926,15 @@ class AuthenticationService {
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
+          stopUnlockFinalize();
 
           if (onBeforeNavigate) {
+            const stopBeforeNavigate =
+              startHomepageReadyStage('before_navigate');
             await onBeforeNavigate();
+            stopBeforeNavigate();
           }
+          markHomepageReadyNavigate();
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.

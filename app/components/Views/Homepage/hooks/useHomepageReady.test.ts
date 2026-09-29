@@ -6,6 +6,7 @@ import {
   getActiveHomepageReadyTraceToken,
   startHomepageReadyTrace,
 } from '../../../../core/Performance/HomepageReady';
+import { markHomepageReadyHomeFocused } from '../../../../core/Performance/homepageReadyStages';
 import { useHomepageReady } from './useHomepageReady';
 
 let mockIsFocused = true;
@@ -21,12 +22,17 @@ jest.mock('../../../../core/Performance/HomepageReady', () => ({
   getActiveHomepageReadyTraceToken: jest.fn(),
 }));
 
+jest.mock('../../../../core/Performance/homepageReadyStages', () => ({
+  markHomepageReadyHomeFocused: jest.fn(),
+}));
+
 const mockStartHomepageReadyTrace = jest.mocked(startHomepageReadyTrace);
 const mockEndHomepageReadyTrace = jest.mocked(endHomepageReadyTrace);
 const mockCancelHomepageReadyTrace = jest.mocked(cancelHomepageReadyTrace);
 const mockGetActiveHomepageReadyTraceToken = jest.mocked(
   getActiveHomepageReadyTraceToken,
 );
+const mockMarkHomeFocused = jest.mocked(markHomepageReadyHomeFocused);
 
 describe('useHomepageReady', () => {
   let appStateListener: ((state: AppStateStatus) => void) | undefined;
@@ -63,6 +69,27 @@ describe('useHomepageReady', () => {
     expect(mockEndHomepageReadyTrace).toHaveBeenCalledWith({
       contentState: 'filled',
     });
+  });
+
+  it('marks the focused homepage for the unlock stages before ending the trace', () => {
+    renderHook(() =>
+      useHomepageReady({ contentReady: true, contentState: 'filled' }),
+    );
+
+    expect(mockMarkHomeFocused).toHaveBeenCalledTimes(1);
+    expect(mockMarkHomeFocused.mock.invocationCallOrder[0]).toBeLessThan(
+      mockEndHomepageReadyTrace.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('does not mark the homepage while Home is unfocused', () => {
+    mockIsFocused = false;
+
+    renderHook(() =>
+      useHomepageReady({ contentReady: true, contentState: 'filled' }),
+    );
+
+    expect(mockMarkHomeFocused).not.toHaveBeenCalled();
   });
 
   it('waits for token content before ending the trace', () => {

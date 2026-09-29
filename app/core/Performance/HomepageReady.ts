@@ -1,11 +1,17 @@
 import { AppState, type NativeEventSubscription } from 'react-native';
 import {
   endTrace,
+  getPerformanceTimestamp,
   trace,
   TraceName,
   TraceOperation,
   TRACES_CLEANUP_INTERVAL,
 } from '../../util/trace';
+import {
+  discardHomepageReadyStages,
+  finishHomepageReadyStages,
+} from './homepageReadyStages';
+import { noteStartupLeg2Ended } from './startupStageSpans';
 
 export type HomepageReadyContentState = 'filled' | 'empty' | 'error';
 export type HomepageReadyStartSource = 'app_open' | 'unlock';
@@ -36,6 +42,8 @@ interface CancelHomepageReadyTraceOptions {
 }
 
 let startedAt: number | null = null;
+/** Start of the active trace on the clock `trace` uses. */
+let traceStartTime = 0;
 let activeTraceToken: HomepageReadyTraceToken | null = null;
 let nextTraceToken = 0;
 let appStateSubscription: NativeEventSubscription | null = null;
@@ -60,7 +68,16 @@ const clearActiveTrace = () => {
   startedAt = null;
   activeTraceToken = null;
   stopListeningForBackground();
+  noteStartupLeg2Ended();
 };
+
+/**
+ * Sentry can move the start of the first transaction after launch to the app
+ * start, so the span's own duration is not reliable for this trace.
+ */
+const getDurationData = (endTime: number) => ({
+  'homepage.duration_ms': Math.round(endTime - traceStartTime),
+});
 
 /**
  * Ends an in-flight Homepage Ready CUF that cannot reach the homepage without
@@ -81,9 +98,11 @@ export const cancelHomepageReadyTrace = ({
     return;
   }
 
+  discardHomepageReadyStages();
   endTrace({
     name: TraceName.HomepageReady,
     data: {
+      ...getDurationData(getPerformanceTimestamp()),
       success: false,
       reason,
     },
@@ -122,6 +141,7 @@ export const startHomepageReadyTrace = ({
   }
 
   startedAt = now;
+  traceStartTime = startTime ?? getPerformanceTimestamp();
   nextTraceToken += 1;
   activeTraceToken = nextTraceToken;
   trace({
@@ -155,9 +175,14 @@ export const endHomepageReadyTrace = ({
     return;
   }
 
+  const stages = finishHomepageReadyStages(activeTraceToken);
+  const timestamp = stages?.timestamp ?? getPerformanceTimestamp();
   endTrace({
     name: TraceName.HomepageReady,
+    timestamp,
     data: {
+      ...stages?.data,
+      ...getDurationData(timestamp),
       success: contentState !== 'error',
       content_state: contentState,
     },
@@ -166,6 +191,7 @@ export const endHomepageReadyTrace = ({
 };
 
 export const resetHomepageReadyTraceForTesting = () => {
+  discardHomepageReadyStages();
   clearActiveTrace();
   nextTraceToken = 0;
 };

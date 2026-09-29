@@ -12,6 +12,11 @@ import {
   type DeeplinkPerfAppStartType,
   type DeeplinkTraceToken,
 } from './DeeplinkPerformance';
+import {
+  beginHomepageReadyStages,
+  recordHomepageReadyStage,
+} from './homepageReadyStages';
+import { getStartupKind, noteStartupHandBack } from './startupStageSpans';
 
 /**
  * The moment `unlockWallet` has a password for the wallet. Time before it can
@@ -31,17 +36,6 @@ export type UnlockHandBack =
 export interface UnlockTraceTokens {
   homepageReadyTraceToken: HomepageReadyTraceToken | null;
   deeplinkNavigatedTraceToken: DeeplinkTraceToken | null;
-}
-
-/**
- * Unlock marks converted to the trace clock with the offset read when Leg 2
- * started, so child spans line up with its start.
- */
-export interface UnlockHandBackTimestamps {
-  source: UnlockHandBack['source'];
-  handBackAt: number;
-  unlockEnteredAt: number;
-  credentialDecryptedAt?: number;
 }
 
 interface StartUnlockTracesOptions {
@@ -74,9 +68,7 @@ let unlockAppStartType: DeeplinkPerfAppStartType | undefined;
 let unlockPendingDeeplink: string | null = null;
 
 let hasUnlockedInProcess = false;
-let hasStartedLeg2InProcess = false;
 let unlockHomepageReadyTraceToken: HomepageReadyTraceToken | null = null;
-let unlockHandBackTimestamps: UnlockHandBackTimestamps | null = null;
 
 /** The first successful unlock in this JS runtime is cold; later ones are warm. */
 const getProcessAppStartType = (): DeeplinkPerfAppStartType =>
@@ -100,22 +92,11 @@ export const markUnlockCompleted = () => {
   hasUnlockedInProcess = true;
 };
 
-/**
- * Whether an unlock in this JS runtime has started Homepage Ready. An
- * unlocked keyring without it means an unlock path skipped the hand-back.
- */
-export const wasLeg2StartedThisProcess = () => hasStartedLeg2InProcess;
-
-/** Hand-back marks of the latest unlock that started Homepage Ready. */
-export const getUnlockHandBackTimestamps = () => unlockHandBackTimestamps;
-
 export const resetUnlockTracesForTesting = () => {
   unlockAppStartType = undefined;
   unlockPendingDeeplink = null;
   hasUnlockedInProcess = false;
-  hasStartedLeg2InProcess = false;
   unlockHomepageReadyTraceToken = null;
-  unlockHandBackTimestamps = null;
 };
 
 const getHandBackMark = (
@@ -129,7 +110,7 @@ const getHandBackMark = (
 /**
  * Starts the unlock-anchored CUFs at hand-back, from `unlockWallet`, so every
  * unlock path is covered:
- * - **HomepageReady** (Leg 2): for existing users
+ * - **HomepageReady** (Leg 2): for existing users, with its stages
  * - **DeeplinkNavigated**: only when a pending deeplink will divert the launch
  *
  * Both are backdated to the hand-back, so neither includes the prompt or the
@@ -142,37 +123,47 @@ export const startUnlockTraces = ({
   beforeNavigate,
 }: StartUnlockTracesOptions): UnlockTraceTokens => {
   const offset = getPerformanceTimestampOffset();
-  const startTime = getHandBackMark(handBack, unlockEnteredAt) + offset;
+  const handBackAt = getHandBackMark(handBack, unlockEnteredAt);
+  const startTime = handBackAt + offset;
   const appStartType = getProcessAppStartType();
   rememberUnlockAppStartType(appStartType);
   const pendingDeeplink = AppStateEventProcessor.pendingDeeplink;
   unlockPendingDeeplink = pendingDeeplink;
 
+  const tags: Record<string, string | boolean> = {
+    'unlock.before_navigate': beforeNavigate,
+    ...(appStartType === 'cold' ? { 'startup.kind': getStartupKind() } : {}),
+  };
   const homepageReadyTraceToken = existingUser
     ? startHomepageReadyTrace({
         source: 'unlock',
         appStartType,
         startTime,
-        tags: { 'unlock.before_navigate': beforeNavigate },
+        tags,
       })
     : null;
   unlockHomepageReadyTraceToken = homepageReadyTraceToken;
-  unlockHandBackTimestamps = null;
   if (homepageReadyTraceToken !== null) {
-    hasStartedLeg2InProcess = true;
-    const decryptedAt =
-      handBack.source === 'keychain'
-        ? handBack.credentialReadTimings.decryptedAt
-        : undefined;
-    unlockHandBackTimestamps = {
-      source: handBack.source,
-      handBackAt: startTime,
-      unlockEnteredAt: unlockEnteredAt + offset,
-      ...(decryptedAt === undefined
-        ? {}
-        : { credentialDecryptedAt: decryptedAt + offset }),
-    };
+    beginHomepageReadyStages({
+      traceToken: homepageReadyTraceToken,
+      offset,
+      handBackAt,
+      tags: { ...tags, start_source: 'unlock', app_start_type: appStartType },
+    });
+    if (handBack.source === 'keychain') {
+      recordHomepageReadyStage(
+        'credential_decrypt',
+        handBackAt,
+        handBack.credentialReadTimings.decryptedAt,
+      );
+    } else if (handBack.submittedAt !== undefined) {
+      recordHomepageReadyStage('submit_to_unlock', handBackAt, unlockEnteredAt);
+    }
   }
+  noteStartupHandBack(handBackAt, {
+    leg2Started: homepageReadyTraceToken !== null,
+    leg2InFlight: homepageReadyTraceToken !== null,
+  });
 
   return {
     homepageReadyTraceToken,
@@ -235,7 +226,6 @@ export const cancelUnlockTraces = ({
   clearUnlockAppStartType();
   unlockPendingDeeplink = null;
   unlockHomepageReadyTraceToken = null;
-  unlockHandBackTimestamps = null;
   cancelHomepageReadyTrace({
     reason: 'unlock_failed',
     traceToken: homepageReadyTraceToken,

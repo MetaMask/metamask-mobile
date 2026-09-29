@@ -277,6 +277,13 @@ const mockMarkUnlockCompleted = jest.fn();
 const mockClearUnlockAppStartType = jest.fn();
 const mockGetUnlockAppStartType = jest.fn(() => 'warm');
 const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
+const mockStopHomepageReadyStages: Record<string, jest.Mock> = {};
+const mockStartHomepageReadyStage = jest.fn((stage: string) => {
+  mockStopHomepageReadyStages[stage] = jest.fn();
+  return mockStopHomepageReadyStages[stage];
+});
+const mockRecordHomepageReadyStage = jest.fn();
+const mockMarkHomepageReadyNavigate = jest.fn();
 const mockNoteStartupCredentialRequest = jest.fn();
 
 jest.mock('../NavigationService', () => ({
@@ -313,6 +320,14 @@ jest.mock('../Performance/unlockTraces', () => ({
   resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
     mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
   startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+}));
+
+jest.mock('../Performance/homepageReadyStages', () => ({
+  markHomepageReadyNavigate: () => mockMarkHomepageReadyNavigate(),
+  recordHomepageReadyStage: (...args: unknown[]) =>
+    mockRecordHomepageReadyStage(...args),
+  startHomepageReadyStage: (stage: string) =>
+    mockStartHomepageReadyStage(stage),
 }));
 
 jest.mock('../Performance/startupStageSpans', () => ({
@@ -6521,6 +6536,136 @@ describe('Authentication', () => {
         );
         expect(mockCancelUnlockTraces.mock.invocationCallOrder[0]).toBeLessThan(
           alertSpy.mock.invocationCallOrder[0],
+        );
+      });
+    });
+
+    describe('Homepage Ready stages', () => {
+      beforeEach(() => {
+        mockStartHomepageReadyStage.mockClear();
+        mockRecordHomepageReadyStage.mockClear();
+        mockMarkHomepageReadyNavigate.mockClear();
+        mockNavigateToPostUnlockHome.mockClear();
+      });
+
+      it('times the vault unlock and the unlock finalize, then marks the navigation home', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockStartHomepageReadyStage.mock.calls).toEqual([
+          ['vault_unlock'],
+          ['unlock_finalize'],
+        ]);
+        expect(
+          Engine.context.KeyringController.submitPassword.mock
+            .invocationCallOrder[0],
+        ).toBeLessThan(
+          mockStopHomepageReadyStages.vault_unlock.mock.invocationCallOrder[0],
+        );
+        expect(
+          mockStopHomepageReadyStages.unlock_finalize.mock
+            .invocationCallOrder[0],
+        ).toBeLessThan(
+          mockMarkHomepageReadyNavigate.mock.invocationCallOrder[0],
+        );
+        expect(
+          mockMarkHomepageReadyNavigate.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+          mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('times onBeforeNavigate before marking the navigation home', async () => {
+        const onBeforeNavigate = jest.fn().mockResolvedValue(undefined);
+
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          onBeforeNavigate,
+        });
+
+        expect(mockStartHomepageReadyStage).toHaveBeenCalledWith(
+          'before_navigate',
+        );
+        const stopBeforeNavigate = mockStopHomepageReadyStages.before_navigate;
+        expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+          stopBeforeNavigate.mock.invocationCallOrder[0],
+        );
+        expect(stopBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+          mockMarkHomepageReadyNavigate.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('times the seedless rehydrate of a social login', async () => {
+        const rehydrateSpy = jest
+          .spyOn(Authentication, 'rehydrateSeedPhrase')
+          .mockResolvedValueOnce();
+
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        });
+
+        expect(mockStartHomepageReadyStage).toHaveBeenCalledWith(
+          'seedless_rehydrate',
+        );
+        expect(rehydrateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+          mockStopHomepageReadyStages.seedless_rehydrate.mock
+            .invocationCallOrder[0],
+        );
+      });
+
+      it('records the seedless password check from the timings it filled in', async () => {
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockImplementationOnce(async ({ timings } = {}) => {
+            if (timings) {
+              timings.startedAt = 10;
+              timings.endedAt = 30;
+            }
+            return false;
+          });
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockRecordHomepageReadyStage).toHaveBeenCalledWith(
+          'seedless_password_check',
+          10,
+          30,
+        );
+      });
+
+      it('times the password sync of an outdated seedless password before the vault unlock', async () => {
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(true);
+        const syncSpy = jest
+          .spyOn(Authentication, 'syncPasswordAndUnlockWallet')
+          .mockResolvedValueOnce();
+        const authTypeSpy = jest.spyOn(
+          Authentication,
+          'componentAuthenticationType',
+        );
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockStartHomepageReadyStage.mock.calls).toEqual([
+          ['seedless_password_sync'],
+          ['vault_unlock'],
+          ['unlock_finalize'],
+        ]);
+        const stopSync = mockStopHomepageReadyStages.seedless_password_sync;
+        expect(
+          mockStartHomepageReadyStage.mock.invocationCallOrder[0],
+        ).toBeLessThan(syncSpy.mock.invocationCallOrder[0]);
+        expect(authTypeSpy.mock.invocationCallOrder[0]).toBeLessThan(
+          stopSync.mock.invocationCallOrder[0],
+        );
+        expect(stopSync.mock.invocationCallOrder[0]).toBeLessThan(
+          mockStartHomepageReadyStage.mock.invocationCallOrder[1],
         );
       });
     });
