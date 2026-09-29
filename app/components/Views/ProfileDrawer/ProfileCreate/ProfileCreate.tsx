@@ -30,6 +30,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import {
   connectX,
+  disconnectX,
   isXConnected,
   XAuthError,
   XAuthErrorType,
@@ -68,7 +69,9 @@ const ProfileCreate: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const isConnectingRef = useRef(false);
+  const isDisconnectingRef = useRef(false);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -138,6 +141,47 @@ const ProfileCreate: React.FC = () => {
     }
   }, [toastRef]);
 
+  /**
+   * Dev-only affordance (see the step 1 secondaryCta): clears locally
+   * stored X tokens so the connect flow can be re-tested in development
+   * builds. No server-side revocation is performed.
+   */
+  const handleDisconnectX = useCallback(async () => {
+    // Double-press guard, same as the connect CTA.
+    if (isDisconnectingRef.current) {
+      return;
+    }
+    isDisconnectingRef.current = true;
+    if (isMountedRef.current) {
+      setIsDisconnecting(true);
+    }
+
+    try {
+      await disconnectX();
+      if (isMountedRef.current) {
+        setIsConnected(false);
+      }
+    } catch (error) {
+      Logger.error(toError(error), 'ProfileCreate: X disconnect failed');
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: strings(
+              'profile_drawer.profile_create.connect_x.disconnect_error_toast',
+            ),
+          },
+        ],
+        hasNoTimeout: false,
+      });
+    } finally {
+      isDisconnectingRef.current = false;
+      if (isMountedRef.current) {
+        setIsDisconnecting(false);
+      }
+    }
+  }, [toastRef]);
+
   const steps = useMemo((): StepperCardStep[] => {
     const goToNextStep = () => setCurrentStep((step) => step + 1);
 
@@ -155,6 +199,7 @@ const ProfileCreate: React.FC = () => {
           ? {
               text: strings('profile_drawer.profile_create.steps.next_cta'),
               onPress: goToNextStep,
+              disabled: isDisconnecting,
             }
           : {
               text: isConnecting
@@ -163,6 +208,19 @@ const ProfileCreate: React.FC = () => {
               onPress: handleConnectX,
               disabled: isConnecting,
             },
+        // Dev-only affordance: clears locally stored X tokens (no
+        // server-side revocation) so the connect flow can be re-tested
+        // in development builds. Never rendered in production.
+        secondaryCta:
+          __DEV__ && isConnected
+            ? {
+                text: strings(
+                  'profile_drawer.profile_create.connect_x.disconnect_cta',
+                ),
+                onPress: handleDisconnectX,
+                disabled: isDisconnecting,
+              }
+            : undefined,
       },
       {
         title: strings('profile_drawer.profile_create.steps.step_2.title'),
@@ -190,7 +248,13 @@ const ProfileCreate: React.FC = () => {
         },
       },
     ];
-  }, [isConnected, isConnecting, handleConnectX]);
+  }, [
+    isConnected,
+    isConnecting,
+    isDisconnecting,
+    handleConnectX,
+    handleDisconnectX,
+  ]);
 
   return (
     <SafeAreaView

@@ -10,6 +10,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import {
   connectX,
+  disconnectX,
   isXConnected,
   XAuthError,
   XAuthErrorType,
@@ -21,6 +22,8 @@ const mockShowToast = jest.fn();
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
+const globalWithDev = globalThis as { __DEV__?: boolean };
+let originalDev: boolean | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -33,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/XAuthService', () => ({
   ...jest.requireActual('../../../../core/XAuthService'),
   connectX: jest.fn(),
+  disconnectX: jest.fn(),
   isXConnected: jest.fn(),
 }));
 
@@ -65,8 +69,14 @@ const getStepperCta = () =>
 describe('ProfileCreate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    originalDev = globalWithDev.__DEV__;
     (isXConnected as jest.Mock).mockResolvedValue(false);
     (connectX as jest.Mock).mockResolvedValue(undefined);
+    (disconnectX as jest.Mock).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    globalWithDev.__DEV__ = originalDev;
   });
 
   describe('Rendering', () => {
@@ -207,6 +217,83 @@ describe('ProfileCreate', () => {
         expect(screen.getByText('Connect with others')).toBeOnTheScreen();
       });
       expect(connectX).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('X disconnect (dev-only)', () => {
+    it('shows the disconnect button when connected, and returns to the Connect X CTA after disconnecting', async () => {
+      // The RN jest preset pins __DEV__ to false; the button is dev-only.
+      globalWithDev.__DEV__ = true;
+      (isXConnected as jest.Mock).mockResolvedValue(true);
+      await renderProfileCreate();
+
+      await waitFor(() => {
+        expect(screen.getByText('Disconnect X (dev)')).toBeOnTheScreen();
+      });
+
+      // StepperCard's secondaryCta renders without a testID, so the button
+      // is pressed via its unique label text.
+      fireEvent.press(screen.getByText('Disconnect X (dev)'));
+
+      await waitFor(() => {
+        expect(disconnectX).toHaveBeenCalledTimes(1);
+      });
+      await waitFor(() => {
+        expect(screen.getByText('Connect X')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('Disconnect X (dev)')).not.toBeOnTheScreen();
+    });
+
+    it('shows a toast and logs, staying connected, when the X disconnect fails', async () => {
+      // The RN jest preset pins __DEV__ to false; the button is dev-only.
+      globalWithDev.__DEV__ = true;
+      (isXConnected as jest.Mock).mockResolvedValue(true);
+      (disconnectX as jest.Mock).mockRejectedValue(
+        new Error('keychain locked'),
+      );
+      await renderProfileCreate();
+
+      await waitFor(() => {
+        expect(screen.getByText('Disconnect X (dev)')).toBeOnTheScreen();
+      });
+      fireEvent.press(screen.getByText('Disconnect X (dev)'));
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: ToastVariants.Plain,
+            labelOptions: [
+              { label: "Couldn't disconnect your X account. Try again." },
+            ],
+            hasNoTimeout: false,
+          }),
+        );
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'ProfileCreate: X disconnect failed',
+      );
+      expect(screen.getByText('Next')).toBeOnTheScreen();
+      expect(screen.getByText('Disconnect X (dev)')).toBeOnTheScreen();
+    });
+
+    it('does not show the disconnect button when X is not connected', async () => {
+      await renderProfileCreate();
+
+      expect(screen.queryByText('Disconnect X (dev)')).not.toBeOnTheScreen();
+    });
+
+    it('does not show the disconnect button in non-dev builds even when connected', async () => {
+      globalWithDev.__DEV__ = false;
+      (isXConnected as jest.Mock).mockResolvedValue(true);
+      await renderProfileCreate();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Your X account is connected.'),
+        ).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('Disconnect X (dev)')).not.toBeOnTheScreen();
     });
   });
 

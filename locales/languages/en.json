@@ -1207,7 +1207,9 @@
         "cta": "Connect X",
         "connecting": "Connecting...",
         "connected_description": "Your X account is connected.",
-        "error_toast": "Couldn't connect your X account. Try again."
+        "error_toast": "Couldn't connect your X account. Try again.",
+        "disconnect_cta": "Disconnect X (dev)",
+        "disconnect_error_toast": "Couldn't disconnect your X account. Try again."
       },
       "steps": {
         "next_cta": "Next",
