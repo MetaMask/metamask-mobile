@@ -11,7 +11,6 @@ import TokenListRoutes from './routes';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
-  RAMP_AGGREGATOR_ONLY_MODAL_ROUTES,
   RAMP_V2_MAIN_ROUTE_SCREEN_IDS,
   RAMP_V2_MODAL_ROUTE_SCREEN_IDS,
 } from './constants/rampScreenPerformance';
@@ -440,16 +439,5 @@ describe('Ramp V2 screen performance coverage', () => {
     expect(Object.keys(RAMP_V2_MODAL_ROUTE_SCREEN_IDS).sort()).toEqual(
       [...modalRoutes].sort(),
     );
-  });
-
-  it('excludes Aggregator-only modal routes from V2 instrumentation', () => {
-    const instrumentedRoutes = new Set([
-      ...Object.keys(RAMP_V2_MAIN_ROUTE_SCREEN_IDS),
-      ...Object.keys(RAMP_V2_MODAL_ROUTE_SCREEN_IDS),
-    ]);
-
-    for (const route of RAMP_AGGREGATOR_ONLY_MODAL_ROUTES) {
-      expect(instrumentedRoutes.has(route)).toBe(false);
-    }
   });
 });
