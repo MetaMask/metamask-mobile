@@ -298,6 +298,16 @@ export function isHardwareAccount(
 }
 
 /**
+ * Determines if an address belongs to the key-less watch-only keyring
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isWatchOnlyAccount(address: string) {
+  return getKeyringByAddress(address)?.type === KeyringTypes.watchOnly;
+}
+
+/**
  * Determines if an address belongs to a snap account
  *
  * @param {String} address - String corresponding to an address
@@ -435,6 +445,8 @@ export function getLabelTextByInternalAccount(
       return strings('accounts.qr_hardware');
     case ExtendedKeyringTypes.simple:
       return strings('accounts.imported');
+    case KeyringTypes.watchOnly:
+      return strings('accounts.watch_only');
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     case KeyringTypes.snap: {
       // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:

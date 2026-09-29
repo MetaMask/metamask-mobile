@@ -31,11 +31,14 @@ import { RootState } from '../../../../../../reducers';
 export interface PredictClaimFooterProps {
   onPress: () => void | Promise<void>;
   onError: (error?: Error) => void;
+  /** Disables the claim button, e.g. while a blocking alert is shown. */
+  isDisabled?: boolean;
 }
 
 export function PredictClaimFooter({
   onPress,
   onError,
+  isDisabled = false,
 }: PredictClaimFooterProps) {
   const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
@@ -96,6 +99,7 @@ export function PredictClaimFooter({
       <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
         onPress={handlePress}
+        isDisabled={isDisabled}
         size={ButtonBaseSize.Lg}
         isFullWidth
       >

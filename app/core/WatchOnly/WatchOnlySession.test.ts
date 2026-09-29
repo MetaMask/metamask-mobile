@@ -1,0 +1,250 @@
+import Engine from '../Engine';
+import { removeAccountsFromPermissions } from '../Permissions';
+import { WatchOnlyKeyring } from './WatchOnlyKeyring';
+import { WatchOnlySession } from './WatchOnlySession';
+
+jest.mock('../Engine', () => ({
+  context: {
+    KeyringController: {
+      state: { keyrings: [] },
+      addNewKeyring: jest.fn(),
+      removeAccount: jest.fn(),
+    },
+  },
+  setSelectedAddress: jest.fn(),
+}));
+
+jest.mock('../Permissions', () => ({
+  removeAccountsFromPermissions: jest.fn(),
+}));
+
+const VALID_ADDRESS = '0x1234567890123456789012345678901234567890';
+const OTHER_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
+
+const mockAddNewKeyring = Engine.context.KeyringController
+  .addNewKeyring as jest.Mock;
+const mockRemoveAccount = Engine.context.KeyringController
+  .removeAccount as jest.Mock;
+const mockSetSelectedAddress = Engine.setSelectedAddress as jest.Mock;
+const mockRemoveAccountsFromPermissions =
+  removeAccountsFromPermissions as jest.Mock;
+
+describe('WatchOnlySession', () => {
+  // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+  const devGlobal = global as unknown as { __DEV__: boolean };
+  const originalDev = devGlobal.__DEV__;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devGlobal.__DEV__ = true;
+    Engine.context.KeyringController.state.keyrings = [];
+  });
+
+  afterEach(() => {
+    devGlobal.__DEV__ = originalDev;
+  });
+
+  describe('start', () => {
+    it('throws outside of development builds', async () => {
+      devGlobal.__DEV__ = false;
+
+      await expect(WatchOnlySession.start(VALID_ADDRESS)).rejects.toThrow(
+        'Watch-only sessions are only available in development',
+      );
+    });
+
+    it('rejects an invalid EVM address', async () => {
+      await expect(WatchOnlySession.start('not-an-address')).rejects.toThrow(
+        'Invalid EVM address: not-an-address',
+      );
+      expect(mockAddNewKeyring).not.toHaveBeenCalled();
+    });
+
+    it('rejects an address held by a wallet keyring, whatever its casing', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: 'Ledger Hardware',
+          accounts: [VALID_ADDRESS.toUpperCase().replace('0X', '0x')],
+          metadata: { id: 'ledger', name: '' },
+        },
+      ];
+
+      await expect(WatchOnlySession.start(VALID_ADDRESS)).rejects.toThrow(
+        'already belongs to this wallet',
+      );
+      expect(mockRemoveAccount).not.toHaveBeenCalled();
+      expect(mockAddNewKeyring).not.toHaveBeenCalled();
+    });
+
+    it('stops any previous session before adding the new keyring', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-keyring', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.start(VALID_ADDRESS);
+
+      expect(mockRemoveAccount).toHaveBeenCalledWith(OTHER_ADDRESS);
+      expect(mockAddNewKeyring).toHaveBeenCalledWith(WatchOnlyKeyring.type, {
+        addresses: [VALID_ADDRESS],
+      });
+    });
+
+    it('revokes dapp permissions of the previously watched address', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-keyring', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.start(VALID_ADDRESS);
+
+      expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+        OTHER_ADDRESS,
+      ]);
+    });
+
+    it('serializes overlapping starts so only one watch-only keyring remains', async () => {
+      const SECOND_ADDRESS = '0xabcdef1234567890abcdef1234567890abcdef12';
+      const { state } = Engine.context.KeyringController;
+      mockAddNewKeyring.mockImplementation(
+        async (type: string, { addresses }: { addresses: string[] }) => {
+          await Promise.resolve();
+          state.keyrings = [
+            ...state.keyrings,
+            {
+              type,
+              accounts: addresses,
+              metadata: { id: `watch-only-${addresses[0]}`, name: '' },
+            },
+          ];
+        },
+      );
+      mockRemoveAccount.mockImplementation(async (address: string) => {
+        state.keyrings = state.keyrings.filter(
+          ({ accounts }) => !accounts.includes(address),
+        );
+      });
+
+      await Promise.all([
+        WatchOnlySession.start(VALID_ADDRESS),
+        WatchOnlySession.start(SECOND_ADDRESS),
+      ]);
+
+      const watchOnlyKeyrings = state.keyrings.filter(
+        ({ type }) => type === WatchOnlyKeyring.type,
+      );
+      expect(watchOnlyKeyrings).toHaveLength(1);
+      expect(watchOnlyKeyrings[0].accounts).toStrictEqual([SECOND_ADDRESS]);
+    });
+
+    it('selects the newly watched address', async () => {
+      await WatchOnlySession.start(VALID_ADDRESS);
+
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(VALID_ADDRESS);
+    });
+  });
+
+  describe('stop', () => {
+    it('throws outside of development builds', async () => {
+      devGlobal.__DEV__ = false;
+
+      await expect(WatchOnlySession.stop()).rejects.toThrow(
+        'Watch-only sessions are only available in development',
+      );
+    });
+
+    it('removes every watched address', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [VALID_ADDRESS],
+          metadata: { id: 'watch-only-keyring', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.stop();
+
+      expect(mockRemoveAccount).toHaveBeenCalledWith(VALID_ADDRESS);
+    });
+
+    it('removes watched addresses from every watch-only keyring', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [VALID_ADDRESS],
+          metadata: { id: 'watch-only-1', name: '' },
+        },
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-2', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.stop();
+
+      expect(mockRemoveAccount).toHaveBeenCalledWith(VALID_ADDRESS);
+      expect(mockRemoveAccount).toHaveBeenCalledWith(OTHER_ADDRESS);
+    });
+
+    it('revokes dapp permissions of watched addresses before removing them', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [VALID_ADDRESS],
+          metadata: { id: 'watch-only-1', name: '' },
+        },
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-2', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.stop();
+
+      expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+        VALID_ADDRESS,
+        OTHER_ADDRESS,
+      ]);
+      expect(
+        mockRemoveAccountsFromPermissions.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockRemoveAccount.mock.invocationCallOrder[0]);
+    });
+
+    it('does not call removeAccount when no watch-only keyring exists', async () => {
+      await WatchOnlySession.stop();
+
+      expect(mockRemoveAccount).not.toHaveBeenCalled();
+      expect(mockRemoveAccountsFromPermissions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getStatus', () => {
+    it('reports inactive when there is no watch-only keyring', () => {
+      const status = WatchOnlySession.getStatus();
+
+      expect(status).toEqual({ active: false, address: null });
+    });
+
+    it('reports the active watched address', () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [VALID_ADDRESS],
+          metadata: { id: 'watch-only-keyring', name: '' },
+        },
+      ];
+
+      const status = WatchOnlySession.getStatus();
+
+      expect(status).toEqual({ active: true, address: VALID_ADDRESS });
+    });
+  });
+});

@@ -1,0 +1,75 @@
+diff --git a/dist/AccountsController.js b/dist/AccountsController.js
+index 10d97560c457a9a6676ea542c169cc383be0046f..e9b4055735ec6270e1108777a6e689f15304206c 100644
+--- a/dist/AccountsController.js
++++ b/dist/AccountsController.js
+@@ -7,7 +7,7 @@ import { isScopeEqualToAny } from '@metamask/keyring-utils';
+ import { isCaipChainId } from '@metamask/utils';
+ import { cloneDeep } from 'lodash-es';
+ import { projectLogger as log } from './logger.js';
+-import { constructAccountIdByAddress, getEvmDerivationPathForIndex, getEvmGroupIndexFromAddressIndex, getUUIDFromAddressOfNormalAccount, isHdKeyringType, isHdSnapKeyringAccount, isMoneyKeyringType, isSnapKeyringType, isSnapKeyringV2Type, keyringTypeToName, } from './utils.js';
++import { constructAccountIdByAddress, getEvmDerivationPathForIndex, getEvmGroupIndexFromAddressIndex, getUUIDFromAddressOfNormalAccount, isHdKeyringType, isHdSnapKeyringAccount, isMoneyKeyringType, isSnapKeyringType, isSnapKeyringV2Type, isWatchOnlyKeyringType, keyringTypeToName, } from './utils.js';
+ const controllerName = 'AccountsController';
+ const MESSENGER_EXPOSED_METHODS = [
+     'setSelectedAccount',
+@@ -487,14 +487,17 @@ export class AccountsController extends BaseController {
+             id,
+             address,
+             options,
+-            methods: [
+-                EthMethod.PersonalSign,
+-                EthMethod.Sign,
+-                EthMethod.SignTransaction,
+-                EthMethod.SignTypedDataV1,
+-                EthMethod.SignTypedDataV3,
+-                EthMethod.SignTypedDataV4,
+-            ],
++            // Watch-only accounts have no key material, so they cannot sign.
++            methods: isWatchOnlyKeyringType(keyring.type)
++                ? []
++                : [
++                    EthMethod.PersonalSign,
++                    EthMethod.Sign,
++                    EthMethod.SignTransaction,
++                    EthMethod.SignTypedDataV1,
++                    EthMethod.SignTypedDataV3,
++                    EthMethod.SignTypedDataV4,
++                ],
+             scopes: [EthScope.Eoa],
+             type: EthAccountType.Eoa,
+             metadata,
+diff --git a/dist/utils.d.ts b/dist/utils.d.ts
+index d9c31fae485ed68e92f8b7b05111e82fa32fca2d..8d72b8305e7a70aee45f80adda37de4d6b3a94f5 100644
+--- a/dist/utils.d.ts
++++ b/dist/utils.d.ts
+@@ -61,6 +61,7 @@ export declare function isSimpleKeyringType(keyringType: KeyringTypes | string):
+  * @param keyringType - The account's keyring type.
+  * @returns True if the keyring is a HD keyring, false otherwise.
+  */
++export declare function isWatchOnlyKeyringType(keyringType: KeyringTypes | string): boolean;
+ export declare function isHdKeyringType(keyringType: KeyringTypes | string): boolean;
+ /**
+  * Check if a keyring type is a Money keyring.
+diff --git a/dist/utils.js b/dist/utils.js
+index ded6e79346970930153cd327e26d1ff0b6a7d0d5..004e2dc1860cc9793f7d2c7aa078a0d5f3bbb5cc 100644
+--- a/dist/utils.js
++++ b/dist/utils.js
+@@ -44,6 +44,9 @@ export function keyringTypeToName(keyringType) {
+             // FIXME: This should probably live in the `KeyringController` package instead.
+             return 'Money';
+         }
++        case KeyringTypes.watchOnly: {
++            return 'Watch-only';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }
+@@ -114,6 +117,9 @@ export function isSimpleKeyringType(keyringType) {
+  * @param keyringType - The account's keyring type.
+  * @returns True if the keyring is a HD keyring, false otherwise.
+  */
++export function isWatchOnlyKeyringType(keyringType) {
++    return keyringType === KeyringTypes.watchOnly;
++}
+ export function isHdKeyringType(keyringType) {
+     return keyringType === KeyringTypes.hd;
+ }

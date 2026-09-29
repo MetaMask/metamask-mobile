@@ -11,6 +11,7 @@ import {
   parseAccountGroupId,
 } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   AccountWalletObject,
@@ -427,6 +428,19 @@ export const selectSelectedAccountGroupEvmInternalAccount = createSelector(
   selectSelectedAccountGroupInternalAccounts,
   (accounts): InternalAccount | null =>
     accounts.find((account) => isEvmAccountType(account.type)) ?? null,
+);
+
+/**
+ * Selector to check whether the selected account group's EVM account is a
+ * key-less watch-only account.
+ *
+ * @param state - The Redux root state
+ * @returns True if the selected EVM account belongs to the watch-only keyring.
+ */
+export const selectIsSelectedAccountWatchOnly = createSelector(
+  selectSelectedAccountGroupEvmInternalAccount,
+  (account): boolean =>
+    account?.metadata.keyring.type === KeyringTypes.watchOnly,
 );
 
 /**

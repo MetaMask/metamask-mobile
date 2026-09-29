@@ -17,6 +17,7 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
@@ -87,6 +88,7 @@ const DeveloperOptions = () => {
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <SentryTest />
+        {__DEV__ && <WatchOnlyDeveloperOptionsSection />}
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         }

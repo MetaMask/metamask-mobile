@@ -136,6 +136,7 @@ import PerpsMoreSection, {
   type PerpsMoreItem,
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsWatchOnlyBanner from '../../components/PerpsWatchOnlyBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
@@ -263,6 +264,7 @@ const PerpsHomeView = () => {
     handleAddFunds,
     handleWithdraw,
     isEligible,
+    isWatchOnly,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
@@ -759,7 +761,7 @@ const PerpsHomeView = () => {
             isLoading={isLoading.positions}
             isEmpty={positions.length === 0}
             showWhenEmpty={false}
-            onActionPress={handleCloseAllPress}
+            onActionPress={isWatchOnly ? undefined : handleCloseAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
             <View>
@@ -786,7 +788,7 @@ const PerpsHomeView = () => {
             isLoading={isLoading.orders}
             isEmpty={orders.length === 0}
             showWhenEmpty={false}
-            onActionPress={handleCancelAllPress}
+            onActionPress={isWatchOnly ? undefined : handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
             <View>
@@ -981,6 +983,7 @@ const PerpsHomeView = () => {
       positionsSubtitleSuffix,
       handleCloseAllPress,
       handleCancelAllPress,
+      isWatchOnly,
       isWhatsHappeningVisible,
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
@@ -1164,6 +1167,7 @@ const PerpsHomeView = () => {
               setTitleSectionHeight(event.nativeEvent.layout.height)
             }
           >
+            <PerpsWatchOnlyBanner twClassName="mx-4 mb-4" />
             {isServiceInterruptionBannerEnabled && (
               <Box twClassName="px-4 mb-4">
                 <PerpsServiceInterruptionBanner
@@ -1260,6 +1264,7 @@ const PerpsHomeView = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
               onPress={handleWithdraw}
+              isDisabled={isWatchOnly}
               style={styles.footerButton}
               testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
             >
@@ -1269,6 +1274,7 @@ const PerpsHomeView = () => {
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               onPress={handleAddFunds}
+              isDisabled={isWatchOnly}
               style={styles.footerButton}
               testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
             >

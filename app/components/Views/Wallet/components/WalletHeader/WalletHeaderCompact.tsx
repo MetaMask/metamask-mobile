@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import {
@@ -19,6 +20,7 @@ import {
   HeaderStandardAnimated,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  Tag,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -29,6 +31,7 @@ import {
 } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface TouchAreaSlop {
   top: number;
@@ -66,6 +69,7 @@ const WalletHeaderCompact = ({
   handleSearchPress,
 }: WalletHeaderCompactProps) => {
   const hasAccountsMenuAttention = useAccountsMenuAttention();
+  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
 
   return (
     <HeaderStandardAnimated
@@ -78,13 +82,25 @@ const WalletHeaderCompact = ({
           accessibilityLabel={displayName}
           testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_BUTTON}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
           >
-            {displayName}
-          </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={1}
+              twClassName="shrink"
+            >
+              {displayName}
+            </Text>
+            {isWatchOnly && (
+              <Tag testID={WalletViewSelectorsIDs.WATCH_ONLY_TAG}>
+                {strings('accounts.watch_only')}
+              </Tag>
+            )}
+          </Box>
         </ButtonAnimated>
       }
       scrollY={scrollY}
