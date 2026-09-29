@@ -15,6 +15,7 @@ import Engine from '../Engine/Engine';
 import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
 import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
+import { withFreshMoneyBalanceOptions } from './moneyBalanceFreshWindow';
 
 type ActionType = MessengerActions<RootMessenger>['type'];
 type EventType = MessengerEvents<RootMessenger>['type'];
@@ -24,9 +25,14 @@ type DataServiceHandler = (
 ) => void;
 
 const adapter = {
-  call: async (method: string, ...params: Json[]) =>
+  call: async (method: string, ...params: Json[]) => {
+    const nextParams = withFreshMoneyBalanceOptions(method, params);
     // @ts-expect-error Target requires 1 element(s) but source may have fewer.
-    Engine.controllerMessenger.call(method as ActionType, ...params) as Json,
+    return Engine.controllerMessenger.call(
+      method as ActionType,
+      ...nextParams,
+    ) as Json;
+  },
   subscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.subscribe(event as EventType, callback);
   },

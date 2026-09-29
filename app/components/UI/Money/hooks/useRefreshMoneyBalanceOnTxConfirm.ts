@@ -2,6 +2,7 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
+import { hexToNumber, isStrictHexString } from '@metamask/utils';
 import { useEffect } from 'react';
 import type { CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import Engine from '../../../../core/Engine';
@@ -14,7 +15,7 @@ import {
   isMoneyAccountTx,
   isPerpsPredictMoneyActivity,
 } from '../utils/moneyTransactionGuards';
-import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
+import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
 import Logger from '../../../../util/Logger';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 
@@ -41,14 +42,42 @@ const didBalanceChange = (
 ) => before?.totalBalance !== after?.totalBalance;
 
 /**
- * Capture the pre-invalidation cached snapshot as a baseline, then invalidate +
- * refetch and compare. Retry up to MAX_RETRIES times if subsequent reads are
- * byte-identical to baseline. Guards against RPC nodes / API indexes serving
- * stale reads immediately after a `transactionConfirmed` event. Fails visibly
- * via Logger.error if the retry budget exhausts.
+ * Confirmed receipts store `blockNumber` as a 0x-prefixed hex quantity. A
+ * missing or non-hex value omits `minBlock` so the refresh still runs.
+ * Unprefixed numeric strings are rejected: `hexToNumber` would read them as
+ * hex (`'16'` → 22).
+ *
+ * @param blockNumber - Block number from the confirmed transaction meta.
+ * @returns The block as a number, or undefined when it cannot be used.
  */
-const refreshMoneyBalanceQueries = async (address: string) => {
+const toConfirmedMinBlock = (
+  blockNumber: string | undefined,
+): number | undefined => {
+  if (!blockNumber || !isStrictHexString(blockNumber)) {
+    return undefined;
+  }
+  return hexToNumber(blockNumber);
+};
+
+/**
+ * Capture the pre-refresh cached snapshot as a baseline, then request a fresh
+ * balance (bypassing the Money API response cache, and requiring the API to
+ * have reached the confirmed block when known). Retry up to MAX_RETRIES times
+ * if subsequent reads match the baseline or the fetch fails. Guards against
+ * RPC nodes / API indexes serving stale reads immediately after a
+ * `transactionConfirmed` event. Fails visibly via Logger.error if the retry
+ * budget exhausts.
+ *
+ * @param address - Primary Money account address.
+ * @param minBlock - Confirmed transaction block the API result must reach.
+ */
+const refreshMoneyBalanceQueries = async (
+  address: string,
+  minBlock?: number,
+) => {
   const baseline = readBalanceSnapshot(address);
+  let sawSuccessfulRead = false;
+  let lastError: Error | undefined;
 
   Logger.log(`${LOG_PREFIX} Baseline snapshot established`, { baseline });
 
@@ -63,13 +92,29 @@ const refreshMoneyBalanceQueries = async (address: string) => {
       );
     }
 
-    await invalidateMoneyAccountBalanceCaches(address);
-    const next = readBalanceSnapshot(address);
-    const changed = didBalanceChange(baseline, next);
+    try {
+      const next = await refreshMoneyAccountBalanceFresh(address, {
+        minBlock,
+      });
+      sawSuccessfulRead = true;
+      lastError = undefined;
+      const changed = didBalanceChange(baseline, next);
 
-    Logger.log(`${LOG_PREFIX} attempt ${attempt} result`, { changed, next });
+      Logger.log(`${LOG_PREFIX} attempt ${attempt} result`, { changed, next });
 
-    if (changed) return;
+      if (changed) return;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      Logger.error(lastError, `${LOG_PREFIX} attempt ${attempt} failed`);
+    }
+  }
+
+  if (!sawSuccessfulRead && lastError) {
+    Logger.error(
+      lastError,
+      `${LOG_PREFIX} Balance refresh failed after ${MAX_RETRIES} attempts`,
+    );
+    return;
   }
 
   Logger.error(
@@ -102,7 +147,10 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
         setLastLocalMoneyFlow({ address, confirmedAt: Date.now() }),
       );
 
-      refreshMoneyBalanceQueries(address).catch((error) => {
+      refreshMoneyBalanceQueries(
+        address,
+        toConfirmedMinBlock(transactionMeta.blockNumber),
+      ).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
       });
     };

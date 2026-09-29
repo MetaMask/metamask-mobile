@@ -10,9 +10,10 @@ import { waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
+import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { store } from '../../../../store';
 import { setLastLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
+import Logger from '../../../../util/Logger';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 jest.mock('../../../../core/Engine');
@@ -34,7 +35,7 @@ jest.mock('../../../../core/ReactQueryService', () => ({
 }));
 
 jest.mock('../utils/invalidateMoneyAccountBalanceCaches', () => ({
-  invalidateMoneyAccountBalanceCaches: jest.fn().mockResolvedValue(undefined),
+  refreshMoneyAccountBalanceFresh: jest.fn(),
 }));
 
 const mockQueryClient = ReactQueryService.queryClient as unknown as {
@@ -43,9 +44,25 @@ const mockQueryClient = ReactQueryService.queryClient as unknown as {
 };
 const mockGetQueryData = mockQueryClient.getQueryData;
 
-const mockInvalidateMoneyAccountBalanceCaches = jest.mocked(
-  invalidateMoneyAccountBalanceCaches,
+const mockRefreshMoneyAccountBalanceFresh = jest.mocked(
+  refreshMoneyAccountBalanceFresh,
 );
+
+const CHANGED_BALANCE = {
+  musdBalance: '1100000',
+  vmusdValueInMusd: '2100000',
+  totalBalance: '3200000',
+  source: 'api' as const,
+  usedFallback: false,
+};
+
+const BASELINE_BALANCE = {
+  musdBalance: '1000000',
+  vmusdValueInMusd: '2000000',
+  totalBalance: '3000000',
+  source: 'api' as const,
+  usedFallback: false,
+};
 
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as jest.MockedFunction<
@@ -95,17 +112,8 @@ const getConfirmedHandler = (): TransactionConfirmedHandler => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  let readCount = 0;
-  mockGetQueryData.mockImplementation(() => {
-    const phase = readCount < 1 ? 'baseline' : 'next';
-    readCount += 1;
-
-    return {
-      musdBalance: phase === 'baseline' ? '1000000' : '1100000',
-      vmusdValueInMusd: phase === 'baseline' ? '2000000' : '2100000',
-      totalBalance: phase === 'baseline' ? '3000000' : '3200000',
-    };
-  });
+  mockGetQueryData.mockReturnValue(BASELINE_BALANCE);
+  mockRefreshMoneyAccountBalanceFresh.mockResolvedValue(CHANGED_BALANCE);
 
   mockSelectPrimaryMoneyAccount.mockReturnValue({
     address: MOCK_ADDRESS,
@@ -136,11 +144,12 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledWith(
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
       MOCK_ADDRESS,
+      { minBlock: undefined },
     );
   });
 
@@ -150,10 +159,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountWithdraw));
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on confirmed tx with nested deposit', async () => {
@@ -166,10 +175,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on confirmed tx with nested withdraw', async () => {
@@ -182,10 +191,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
   });
 
   const MUSD_ON_MONAD = {
@@ -202,10 +211,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       metamaskPay: MUSD_ON_MONAD,
     } as unknown as TransactionMeta);
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on a confirmed Predict withdraw landing in the Money account', async () => {
@@ -219,10 +228,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       metamaskPay: MUSD_ON_MONAD,
     } as unknown as TransactionMeta);
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
   });
 
   it('does not invalidate for a Perps deposit NOT funded from the Money account', () => {
@@ -237,7 +246,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       },
     } as unknown as TransactionMeta);
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+    expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
   });
 
   it('does not invalidate for non-confirmed status', () => {
@@ -248,7 +257,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       makeTx(TransactionType.moneyAccountDeposit, TransactionStatus.failed),
     );
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+    expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
   });
 
   it('does not invalidate for unrelated tx type', () => {
@@ -257,7 +266,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.contractInteraction));
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+    expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
   });
 
   it('does not invalidate when no primary money account address', () => {
@@ -267,7 +276,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+    expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
   });
 
   it('reads store state at call time (not stale closure)', async () => {
@@ -282,10 +291,107 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes minBlock parsed from the confirmed hex block number', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()({
+      ...makeTx(TransactionType.moneyAccountDeposit),
+      blockNumber: '0x10',
+    });
+
+    await waitFor(() => {
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
+        MOCK_ADDRESS,
+        { minBlock: 16 },
+      );
+    });
+  });
+
+  it('omits minBlock when the confirmed block number is not 0x-prefixed hex', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()({
+      ...makeTx(TransactionType.moneyAccountDeposit),
+      blockNumber: '16',
+    });
+
+    await waitFor(() => {
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
+        MOCK_ADDRESS,
+        { minBlock: undefined },
+      );
+    });
+  });
+
+  it('omits minBlock when the confirmed tx has no block number', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()(makeTx(TransactionType.moneyAccountDeposit));
+
+    await waitFor(() => {
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
+        MOCK_ADDRESS,
+        { minBlock: undefined },
+      );
+    });
+  });
+
+  it('retries after a failed fresh read', async () => {
+    jest.useFakeTimers();
+    mockRefreshMoneyAccountBalanceFresh
+      .mockRejectedValueOnce(new Error('api still stale'))
+      .mockResolvedValueOnce(CHANGED_BALANCE);
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()(makeTx(TransactionType.moneyAccountDeposit));
+    await jest.advanceTimersByTimeAsync(500);
+
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('stops retrying once the refreshed balance differs from the baseline', async () => {
+    jest.useFakeTimers();
+    mockRefreshMoneyAccountBalanceFresh
+      .mockResolvedValueOnce(BASELINE_BALANCE)
+      .mockResolvedValueOnce(CHANGED_BALANCE);
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()(makeTx(TransactionType.moneyAccountDeposit));
+    await jest.advanceTimersByTimeAsync(500);
+
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(2);
+
+    await jest.advanceTimersByTimeAsync(4000);
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('logs the last fetch error when every fresh read throws', async () => {
+    jest.useFakeTimers();
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    const failure = new Error('api still stale');
+    mockRefreshMoneyAccountBalanceFresh.mockRejectedValue(failure);
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()(makeTx(TransactionType.moneyAccountDeposit));
+    await jest.advanceTimersByTimeAsync(4000);
+
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(4);
+    expect(errorSpy).toHaveBeenCalledWith(
+      failure,
+      expect.stringContaining('Balance refresh failed after 4 attempts'),
+    );
+    errorSpy.mockRestore();
+    jest.useRealTimers();
   });
 
   describe('local flow marker', () => {
