@@ -159,6 +159,10 @@ import {
 } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
+import {
+  getSocialRealtimeServiceInitMessenger,
+  getSocialRealtimeServiceMessenger,
+} from './social-realtime-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
@@ -516,6 +520,10 @@ export const MESSENGER_FACTORIES = {
   SocialService: {
     getMessenger: getSocialServiceMessenger,
     getInitMessenger: noop,
+  },
+  SocialRealtimeService: {
+    getMessenger: getSocialRealtimeServiceMessenger,
+    getInitMessenger: getSocialRealtimeServiceInitMessenger,
   },
   SocialController: {
     getMessenger: getSocialControllerMessenger,
