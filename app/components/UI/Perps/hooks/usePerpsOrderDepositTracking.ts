@@ -22,6 +22,20 @@ import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS } from '../constants/perpsConfig';
 import { store } from '../../../../store';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+
+/** Account, provider and Perps network that together own a Perps balance. */
+const getPerpsBalanceContextKey = (): string => {
+  const state = store.getState();
+  return [
+    selectPerpsSelectedAccountAddress(state),
+    selectPerpsProvider(state),
+    selectPerpsNetwork(state),
+  ].join('|');
+};
 
 const getSpendableBalance = (account: AccountState | null): number => {
   const spendable = Number.parseFloat(account?.spendableBalance ?? '');
@@ -89,11 +103,9 @@ export const usePerpsOrderDepositTracking = () => {
       // credit (or part of it). Without a live snapshot, the first delivery
       // becomes the baseline so a preloaded balance is never read as credit.
       const initialAccount = accountChannel.getSnapshot();
-      // The account channel is shared across account switches, so balances
-      // are only comparable while the initiating account stays selected.
-      const initiatingAddress = selectPerpsSelectedAccountAddress(
-        store.getState(),
-      );
+      // The account channel is shared across account, provider and network
+      // switches, so balances are only comparable in the initiating context.
+      const initiatingContextKey = getPerpsBalanceContextKey();
       let baselineSpendable = initialAccount
         ? getSpendableBalance(initialAccount)
         : undefined;
@@ -174,10 +186,7 @@ export const usePerpsOrderDepositTracking = () => {
             if (isSettled) {
               return;
             }
-            if (
-              selectPerpsSelectedAccountAddress(store.getState()) !==
-              initiatingAddress
-            ) {
+            if (getPerpsBalanceContextKey() !== initiatingContextKey) {
               settleWithoutOrder();
               return;
             }

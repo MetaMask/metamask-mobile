@@ -122,6 +122,12 @@ jest.mock('../../../../store', () => ({
 jest.mock('../selectors/selectedAccountAddress', () => ({
   selectPerpsSelectedAccountAddress: () => mockSelectedAddress,
 }));
+let mockPerpsProvider = 'hyperliquid';
+let mockPerpsNetwork = 'mainnet';
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsProvider: () => mockPerpsProvider,
+  selectPerpsNetwork: () => mockPerpsNetwork,
+}));
 
 jest.mock('../constants/perpsConfig', () => ({
   PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS: 1000,
@@ -174,6 +180,8 @@ describe('usePerpsOrderDepositTracking', () => {
     mockAccountSnapshot = { spendableBalance: '10' };
     mockAccountCallbacks.clear();
     mockSelectedAddress = '0xinitiating';
+    mockPerpsProvider = 'hyperliquid';
+    mockPerpsNetwork = 'mainnet';
   });
 
   afterEach(() => {
@@ -401,6 +409,41 @@ describe('usePerpsOrderDepositTracking', () => {
       expect(mockShowToast).toHaveBeenCalledWith({ orderNotPlaced: true });
       expect(mockAccountUnsubscribe).toHaveBeenCalledTimes(1);
     });
+  });
+
+  describe('provider or network switch', () => {
+    it.each([
+      ['provider', () => (mockPerpsProvider = 'lighter')],
+      ['network', () => (mockPerpsNetwork = 'testnet')],
+    ])(
+      'places no order when the %s changes on the same account during the credit wait',
+      (_context, switchContext) => {
+        const handlers = captureTransactionHandlers();
+        const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+          wrapper,
+        });
+        const callback = jest.fn();
+        act(() => {
+          result.current.handleDepositConfirm(
+            perpsDepositMeta,
+            callback,
+            '3.39',
+          );
+        });
+        act(() => {
+          handlers.statusUpdated?.({ transactionMeta: confirmedMeta });
+        });
+
+        switchContext();
+        act(() => {
+          emitAccount('500');
+        });
+
+        expect(callback).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalledWith({ orderNotPlaced: true });
+        expect(mockAccountUnsubscribe).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 
   describe('credit timeout', () => {
