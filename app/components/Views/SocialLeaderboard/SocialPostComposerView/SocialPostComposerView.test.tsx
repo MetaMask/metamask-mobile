@@ -100,11 +100,10 @@ jest.mock('../MyProfileView/hooks', () => ({
   }),
 }));
 
-const mockUseComposerSharePositions = jest.fn();
+const mockUseTraderPositions = jest.fn();
 
-jest.mock('./useComposerSharePositions', () => ({
-  useComposerSharePositions: (...args: unknown[]) =>
-    mockUseComposerSharePositions(...args),
+jest.mock('../TraderProfileView/hooks', () => ({
+  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -179,7 +178,7 @@ describe('SocialPostComposerView', () => {
       commentText: 'this is alpha',
       timestamp: 1700000000,
     });
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [openSpot],
       closedPositions: [],
       isLoadingOpen: false,

@@ -114,6 +114,11 @@ export function createQuickBuyFetchedQuote(
     priceImpactAmount?: string;
     destAddress?: string;
     gasIncluded?: boolean;
+    metabridgeFee?: {
+      quoteBpsFee: number;
+      baseBpsFee: number;
+      discountType: string;
+    };
   },
 ) {
   // v1→v2 conversion sets `src.amount` to srcTokenAmount + src-token txFee.
@@ -150,6 +155,7 @@ export function createQuickBuyFetchedQuote(
         metabridge: {
           amount: '0',
           asset: QUICK_BUY_ETH_ASSET,
+          ...extras?.metabridgeFee,
         },
         network: {
           amount: QUICK_BUY_QUOTE_TX_FEE_AMOUNT,
