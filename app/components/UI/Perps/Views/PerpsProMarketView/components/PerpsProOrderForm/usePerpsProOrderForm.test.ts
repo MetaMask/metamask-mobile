@@ -6969,8 +6969,9 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(mockNavigate.mock.calls[0][1]).not.toHaveProperty(
-        'useBottomSheet',
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.not.objectContaining({ useBottomSheet: expect.anything() }),
       );
     });
 
