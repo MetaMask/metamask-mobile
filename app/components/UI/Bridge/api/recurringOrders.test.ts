@@ -9,6 +9,7 @@ import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from './recurringSwaps.mock';
 import {
   cancelRecurringOrder,
   getRecurringOrders,
+  getRecurringOrdersByAsset,
   getRecurringSwaps,
   resetRecurringOrdersMockState,
 } from './recurringOrders';
@@ -86,6 +87,77 @@ describe('getRecurringOrders', () => {
     const request = getRecurringOrders(
       {
         walletAddress: WALLET_ADDRESS,
+      },
+      10,
+    ).then((response) => {
+      hasResolved = true;
+      return response;
+    });
+
+    expect(hasResolved).toBe(false);
+    await request;
+
+    expect(hasResolved).toBe(true);
+  });
+});
+
+describe('getRecurringOrdersByAsset', () => {
+  it('returns the newest open order for a source asset', async () => {
+    const result = await getRecurringOrdersByAsset({
+      walletAddress: WALLET_ADDRESS,
+      assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].orderId).toBe(MOCK_RECURRING_OPEN_ORDER_3.orderId);
+  });
+
+  it('returns an order for a destination asset', async () => {
+    const result = await getRecurringOrdersByAsset({
+      walletAddress: WALLET_ADDRESS,
+      assetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+    });
+
+    expect(result[0].orderId).toBe(MOCK_RECURRING_OPEN_ORDER_3.orderId);
+  });
+
+  it('does not match the same token address on another network', async () => {
+    const result = await getRecurringOrdersByAsset({
+      walletAddress: WALLET_ADDRESS,
+      assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    });
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it('scopes the returned order to the requested wallet', async () => {
+    const result = await getRecurringOrdersByAsset({
+      walletAddress: WALLET_ADDRESS,
+      assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+    });
+
+    expect(result[0].src.walletAddress).toBe(WALLET_ADDRESS);
+    expect(result[0].dest.walletAddress).toBe(WALLET_ADDRESS);
+  });
+
+  it('excludes cancelled orders from the result', async () => {
+    await cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER_3.orderId);
+
+    const result = await getRecurringOrdersByAsset({
+      walletAddress: WALLET_ADDRESS,
+      assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+    });
+
+    expect(result[0].orderId).toBe(MOCK_RECURRING_OPEN_ORDER.orderId);
+    expect(result[0].status).toBe(RecurringOrderStatus.Open);
+  });
+
+  it('resolves only after the configured delay', async () => {
+    let hasResolved = false;
+    const request = getRecurringOrdersByAsset(
+      {
+        walletAddress: WALLET_ADDRESS,
+        assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
       },
       10,
     ).then((response) => {
