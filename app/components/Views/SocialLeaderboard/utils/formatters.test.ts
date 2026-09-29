@@ -3,7 +3,9 @@ import {
   formatTradeUnitPrice,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
+  formatAbbreviatedUsd,
   formatSignedFullUsdNoDecimals,
+  formatUnsignedFullUsdNoDecimals,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -63,6 +65,12 @@ describe('formatUsd', () => {
   it('returns an em dash for undefined', () => {
     expect(formatUsd(undefined)).toBe('\u2014');
   });
+
+  // Two decimals would round this to `$0.00` and lose the trade entirely.
+  it('writes a dust amount with subscript zeros', () => {
+    expect(formatUsd(0.00000005)).toBe('$0.0₇5');
+    expect(formatUsd(-0.00000005)).toBe('-$0.0₇5');
+  });
 });
 
 describe('formatTradeUnitPrice', () => {
@@ -78,6 +86,11 @@ describe('formatTradeUnitPrice', () => {
   it('returns an em dash for nullish values', () => {
     expect(formatTradeUnitPrice(null)).toBe('\u2014');
     expect(formatTradeUnitPrice(undefined)).toBe('\u2014');
+  });
+
+  it('collapses a run of leading zeros into subscript notation', () => {
+    expect(formatTradeUnitPrice(0.00000005)).toBe('$0.0₇5');
+    expect(formatTradeUnitPrice(0.00000614)).toBe('$0.0₅614');
   });
 });
 
@@ -96,6 +109,11 @@ describe('formatSignedUsd', () => {
 
   it('formats small fractional amounts with two decimal places', () => {
     expect(formatSignedUsd(0.12)).toBe('+$0.12');
+  });
+
+  it('writes a dust amount with subscript zeros, keeping its sign', () => {
+    expect(formatSignedUsd(0.00000005)).toBe('+$0.0₇5');
+    expect(formatSignedUsd(-0.00000005)).toBe('-$0.0₇5');
   });
 
   it('returns an em dash for null and undefined', () => {
@@ -136,6 +154,13 @@ describe('formatSignedAbbreviatedUsd', () => {
     expect(formatSignedAbbreviatedUsd(0.5)).toBe('+$0.50');
   });
 
+  // Abbreviating a dust P&L rounds it to `$0.00`. The subscript keeps the magnitude.
+  it('writes a dust amount with subscript zeros instead of abbreviating it away', () => {
+    expect(formatSignedAbbreviatedUsd(0.00000005)).toBe('+$0.0₇5');
+    expect(formatSignedAbbreviatedUsd(-0.00000614)).toBe('-$0.0₅614');
+    expect(formatAbbreviatedUsd(0.00000005)).toBe('$0.0₇5');
+  });
+
   it('returns an em dash for null and undefined', () => {
     expect(formatSignedAbbreviatedUsd(null)).toBe('\u2014');
     expect(formatSignedAbbreviatedUsd(undefined)).toBe('\u2014');
@@ -162,6 +187,16 @@ describe('formatSignedFullUsdNoDecimals', () => {
   it('returns an em dash for null and undefined', () => {
     expect(formatSignedFullUsdNoDecimals(null)).toBe('\u2014');
     expect(formatSignedFullUsdNoDecimals(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatUnsignedFullUsdNoDecimals', () => {
+  it('formats the full number with commas and no sign prefix', () => {
+    expect(formatUnsignedFullUsdNoDecimals(7100)).toBe('$7,100');
+  });
+
+  it('omits the sign for negative values', () => {
+    expect(formatUnsignedFullUsdNoDecimals(-1234)).toBe('$1,234');
   });
 });
 
