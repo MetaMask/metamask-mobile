@@ -1188,6 +1188,11 @@
       "title": "Couldn't continue",
       "description": "Something went wrong while checking your bank account setup. Try again.",
       "button": "Try again"
+    },
+    "vba_details": {
+      "title": "Virtual bank account",
+      "description": "Your account is ready. Details for adding and receiving money will appear here.",
+      "button": "Done"
     }
   },
   "social_leaderboard": {
@@ -1312,6 +1317,10 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "No data",
+      "copies": {
+        "one": "{{count}} copy",
+        "other": "{{count}} copies"
+      },
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
@@ -1320,12 +1329,14 @@
         "mock_data_footnote": "* Mock data",
         "entry_price": "Entry price",
         "exit_price": "Exit price",
+        "entry": "Entry",
+        "exit": "Exit",
+        "cost": "Cost",
         "hold_time": "Hold time",
-        "max_hold_time": "Max hold time",
-        "status": "Status",
-        "closed": "Closed",
         "buy": "Buy",
-        "sell": "Sell"
+        "sell": "Sell",
+        "bought": "Bought",
+        "sold": "Sold"
       }
     },
     "composer": {
@@ -1354,7 +1365,8 @@
       "empty_closed": "No closed positions",
       "error_title": "Couldn't load positions",
       "retry": "Try again",
-      "posting": "Posting..."
+      "posting": "Posting...",
+      "post_failed": "Couldn't create post. Try again."
     },
     "shell": {
       "subnav": {
@@ -1479,10 +1491,25 @@
       "followers_count_plural": "{{count}} followers",
       "win_rate": "Win rate",
       "pnl_7d": "7D P&L",
+      "pnl_30d": "30D P&L",
       "hold_time": "Avg. hold",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
       "hold_time_days": "{{count}} days",
+      "stats_sheet_title": "30D stats",
+      "stats_sheet_hold_time": "Hold time",
+      "stats_sheet_breakdown": "Breakdown",
+      "stats_sheet_performance": "Performance",
+      "stats_sheet_profile_age": "Profile age",
+      "stats_sheet_positions": "Positions",
+      "stats_sheet_avg_position_value": "Avg. position value",
+      "stats_sheet_avg_30d_sample": "Avg. 30D sample",
+      "stats_sheet_copy_success_rate": "Copy success rate",
+      "stats_sheet_accessibility_label": "View trader stats",
+      "trading_volume": "Trading volume",
+      "number_of_trades": "Number of trades",
+      "followers": "Followers",
+      "trades_copied": "Trades copied",
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
@@ -1600,11 +1627,14 @@
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
+      "sell_title": "Sell {{symbol}}",
+      "change_trade_mode": "Change trade mode",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
       "buy_mode": "Buy",
       "with": "with",
-      "total": "Total",
+      "est_receive": "Est. receive",
+      "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "slippage": "Slippage",
       "minimum_received": "Minimum received",
@@ -1620,14 +1650,8 @@
       "select_quote_title": "Select quote",
       "rate": "Rate",
       "get_new_quote": "Get new quote",
-      "available_balance": "{{amount}} available",
+      "available_balance": "{{amount}} Available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
-      "pay_with_no_tokens": "No tokens available to pay with",
-      "receive_with_no_tokens": "No tokens available to receive",
-      "pay_with_filter_all": "All",
-      "buy_label": "Buy",
-      "sell_label": "Sell",
       "receive": "Receive",
       "max": "Max",
       "add_funds": "Add funds",
@@ -1636,15 +1660,7 @@
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
-      "toast_failed_sell": "Couldn't sell {{symbol}}",
-      "edit_quick_amounts_title": "Edit default amounts",
-      "edit_quick_amounts_set_buy": "To buy",
-      "edit_quick_amounts_set_sell": "To sell",
-      "edit_quick_amounts_confirm": "Save",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "toast_failed_sell": "Couldn't sell {{symbol}}"
     }
   },
   "perps": {
@@ -1963,6 +1979,14 @@
       "twap": "TWAP",
       "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} only",
+      "positions_hidden_by_filters": {
+        "one": "1 position is hidden by the filters.",
+        "other": "{{count}} positions are hidden by the filters."
+      },
+      "orders_hidden_by_filters": {
+        "one": "1 order is hidden by the filters.",
+        "other": "{{count}} orders are hidden by the filters."
+      },
       "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
@@ -2115,7 +2139,7 @@
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
-        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
@@ -4415,13 +4439,14 @@
     "privacy_policy_button": "Privacy Policy",
     "agree": "I Agree",
     "decline": "No thanks",
-    "description_title": "Improve MetaMask",
+    "description_title": "Help us improve MetaMask",
     "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
+    "stay_informed": "Stay informed",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
     "action_description_1_prefix": "Private:",
@@ -9406,8 +9431,10 @@
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
       "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "error_canceling_order": "Could not cancel your order. Please try again.",
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
+      "order_canceled_title": "Order canceled",
       "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
@@ -9435,6 +9462,7 @@
       "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "local_currency_notice": "Prices are shown in your local currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
       "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
@@ -12125,7 +12153,10 @@
       "predict": {
         "label": "Predict",
         "footnote": "One prediction trade per month. Unused trades don't roll over."
-      }
+      },
+      "resets_on": "Resets on {{date}}",
+      "load_error": "Couldn't load your allowances.",
+      "retry": "Try again"
     },
     "physical_card": {
       "title": "Get your free MetaMask Card",

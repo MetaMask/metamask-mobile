@@ -26,7 +26,6 @@ import OnboardingView from '../../../page-objects/Onboarding/OnboardingView.js';
 import OnboardingSheet from '../../../page-objects/Onboarding/OnboardingSheet.js';
 import SocialLoginView from '../../../page-objects/Onboarding/SocialLoginView.js';
 import CreatePasswordView from '../../../page-objects/Onboarding/CreatePasswordView.js';
-import OnboardingSuccessView from '../../../page-objects/Onboarding/OnboardingSuccessView.js';
 import MetaMetricsOptInView from '../../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import ExperienceEnhancerBottomSheet from '../../../page-objects/Onboarding/ExperienceEnhancerBottomSheet.js';
 import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
@@ -299,16 +298,6 @@ export const completeSocialLoginOnboarding = async (
     await OnboardingInterestQuestionnaireView.tapSkipButton();
   } catch {
     // Only appears for ~25% of users based on deterministic rollout
-  }
-
-  try {
-    await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-      description: 'Onboarding success screen should be visible',
-      timeout: 30000,
-    });
-    await OnboardingSuccessView.tapDone();
-  } catch {
-    // May go directly to home in some flows
   }
 
   // iOS may have wallet-screen in the tree with displayed === false while child
