@@ -239,32 +239,34 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
-  const bankAccountOption: MoneySheetOption | null =
-    bankAccountVisibility === 'hidden'
-      ? null
-      : bankAccountVisibility === 'enabled'
-        ? {
-            label: strings('money.add_money_sheet.bank_account'),
-            icon: IconName.Bank,
+  // Live row (eligible): promoted to the top. Coming-soon row (flag off):
+  // keeps its pre-flag position further down. Hidden (flag on but not
+  // eligible, or region still loading): omitted.
+  const bankAccountBaseOption: Pick<
+    MoneySheetOption,
+    'label' | 'icon' | 'testID'
+  > = {
+    label: strings('money.add_money_sheet.bank_account'),
+    icon: IconName.Bank,
+    testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+  };
+  const enabledBankAccountOptions: MoneySheetOption[] =
+    bankAccountVisibility === 'enabled'
+      ? [
+          {
+            ...bankAccountBaseOption,
             onPress: handleBankAccount,
-            testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
             newBadge: true,
-          }
-        : {
-            label: strings('money.add_money_sheet.bank_account'),
-            icon: IconName.Bank,
-            testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-            disabled: true,
-            comingSoon: true,
-          };
+          },
+        ]
+      : [];
+  const comingSoonBankAccountOptions: MoneySheetOption[] =
+    bankAccountVisibility === 'coming-soon'
+      ? [{ ...bankAccountBaseOption, disabled: true, comingSoon: true }]
+      : [];
 
   const baseOptions: MoneySheetOption[] = [
-    // Live row (eligible): promoted to the top. Coming-soon row (flag off):
-    // keeps its pre-flag position further down. Hidden (flag on but not
-    // eligible, or region still loading): omitted.
-    ...(bankAccountOption && bankAccountVisibility === 'enabled'
-      ? [bankAccountOption]
-      : []),
+    ...enabledBankAccountOptions,
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -299,9 +301,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
     },
-    ...(bankAccountOption && bankAccountVisibility === 'coming-soon'
-      ? [bankAccountOption]
-      : []),
+    ...comingSoonBankAccountOptions,
     {
       label: strings('money.add_money_sheet.receive_external'),
       icon: IconName.QrCode,
