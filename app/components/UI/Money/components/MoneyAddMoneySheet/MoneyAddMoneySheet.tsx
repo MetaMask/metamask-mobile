@@ -56,7 +56,6 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
-import VbaEligibilityDebugChip from '../../../Ramp/Views/VirtualBankAccount/components/VbaEligibilityDebugChip';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -77,7 +76,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
-  // Flag, min version, Brazil region (Settings first, IP fallback), dev bypass.
+  // Flag, min version, Brazil IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
   const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
@@ -324,8 +323,6 @@ const MoneyAddMoneySheet: React.FC = () => {
           {strings('money.add_money_sheet.title')}
         </Text>
       </BottomSheetHeader>
-      {/* DEBUG: remove before marking the PR ready for review. */}
-      <VbaEligibilityDebugChip />
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>
