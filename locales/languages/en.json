@@ -3371,6 +3371,16 @@
       "submit": "Submit"
     }
   },
+  "gacha": {
+    "title": "Gacha",
+    "tabs": {
+      "packs": "Packs",
+      "cards": "My cards"
+    },
+    "home_section": {
+      "open_pack": "Open a pack"
+    }
+  },
   "predict_next": {
     "available_balance": "Available balance",
     "balance_unavailable": {

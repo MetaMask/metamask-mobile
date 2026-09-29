@@ -6,11 +6,9 @@ import {
   getBuildNumber,
   getVersion,
 } from 'react-native-device-info';
-import Device from '../../util/device';
-import Logger from '../../util/Logger';
-import initialRootState, {
-  backgroundState,
-} from '../../util/test/initial-root-state';
+import Device from '../device';
+import Logger from '../Logger';
+import initialRootState, { backgroundState } from '../test/initial-root-state';
 import { merge } from 'lodash';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
@@ -32,12 +30,12 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
 }));
 
-jest.mock('../../util/device', () => ({
+jest.mock('../device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
 }));
 
-jest.mock('../../util/Logger', () => ({
+jest.mock('../Logger', () => ({
   error: jest.fn(),
 }));
 
@@ -160,6 +158,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('DeFiPositionsController')).toBe(false);
     expect(logs.includes('DeFiPositionsControllerV2')).toBe(false);
     expect(logs.includes('PredictController')).toBe(false);
+    expect(logs.includes('GachaController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 

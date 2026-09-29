@@ -1252,6 +1252,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  // Gacha, controlled by the version-gated remote flag.
+  gachaEnabled: {
+    name: 'gachaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '99.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   configRegistryApiEnabled: {
     name: 'configRegistryApiEnabled',
     type: FeatureFlagType.Remote,

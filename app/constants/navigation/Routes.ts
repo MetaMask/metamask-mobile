@@ -470,6 +470,10 @@ const Routes = {
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
+  GACHA: {
+    ROOT: 'Gacha',
+    HOME: 'GachaHome',
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',

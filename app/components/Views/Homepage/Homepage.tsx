@@ -11,6 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
 import PredictionsSection from './Sections/Predictions';
+import GachaSection from './Sections/Gacha';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
@@ -22,6 +23,7 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { useIsActivePerpsTrader } from '../../UI/Perps/hooks';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { selectGachaEnabledFlag } from '../../UI/Gacha';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -63,6 +65,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
     const earnSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
+    const gachaSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
@@ -70,6 +73,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isGachaEnabled = useSelector(selectGachaEnabledFlag);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
@@ -145,6 +149,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               ]),
           { name: HomeSectionNames.EARN, enabled: shouldRenderEarnSection },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.GACHA, enabled: isGachaEnabled },
           { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
@@ -158,6 +163,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         showPerpsAboveTokens,
         shouldRenderEarnSection,
         isPredictEnabled,
+        isGachaEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
         isWatchlistEnabled,
@@ -180,6 +186,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         perpsSectionRef.current?.refresh(),
         earnSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
+        gachaSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
         defiSectionRef.current?.refresh(),
@@ -245,6 +252,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
                 totalSectionsLoaded={totalSectionsLoaded}
               />
+              {isGachaEnabled && (
+                <GachaSection
+                  ref={gachaSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.GACHA)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
               {isWatchlistEnabled && (
                 <WatchlistSection
                   ref={watchlistSectionRef}

@@ -6,7 +6,7 @@ import {
 } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import RNFS from 'react-native-fs';
-import Logger from '../../util/Logger';
+import Logger from '../Logger';
 import { RootState } from '../../reducers';
 import { analytics } from '../analytics/analytics';
 import {
@@ -90,6 +90,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsController;
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
+  delete fullState.engine.backgroundState.GachaController;
 
   const cardControllerState = fullState.engine.backgroundState.CardController;
   if (cardControllerState) {

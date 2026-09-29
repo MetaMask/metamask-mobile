@@ -174,15 +174,12 @@ jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
   })),
 }));
 
-jest.mock(
-  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
-  () => ({
-    useHomepageSparklines: jest.fn(() => ({
-      sparklines: {},
-      refresh: jest.fn(),
-    })),
-  }),
-);
+jest.mock('./Sections/Perpetuals/hooks/useHomepageSparklines', () => ({
+  useHomepageSparklines: jest.fn(() => ({
+    sparklines: {},
+    refresh: jest.fn(),
+  })),
+}));
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
@@ -207,6 +204,16 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     providerFee: 0.02,
   })),
 }));
+
+jest.mock('../../UI/Gacha', () => ({
+  selectGachaEnabledFlag: jest.fn(() => false),
+}));
+
+const mockGachaSection = (enabled: boolean) => {
+  jest
+    .requireMock('../../UI/Gacha')
+    .selectGachaEnabledFlag.mockReturnValue(enabled);
+};
 
 jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
   UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
@@ -358,6 +365,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
+    GACHA: 'gacha',
   },
 }));
 
@@ -463,6 +471,7 @@ describe('Homepage', () => {
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
     mockHomepageEarnSectionVisible = false;
+    mockGachaSection(false);
   });
 
   const mockEarnSectionExperiment = (
@@ -811,6 +820,43 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
+    });
+  });
+
+  describe('section indices — Gacha enabled', () => {
+    const callBySectionName = (name: string) =>
+      getUseHomeViewedEventCalls().find((c) => c[0]?.sectionName === name)?.[0];
+
+    it('places Gacha right after Predictions when its flag is enabled', () => {
+      mockGachaSection(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('gacha')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
+      getUseHomeViewedEventCalls().forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(6);
+      });
+    });
+
+    it('renders the Gacha section when its flag is enabled without a Solana account', () => {
+      mockGachaSection(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(screen.getByText('Gacha')).toBeOnTheScreen();
+    });
+
+    it('leaves Gacha out of the sections when its flag is disabled', () => {
+      mockGachaSection(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(callBySectionName('gacha')).toBeUndefined();
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
+      expect(screen.queryByText('Gacha')).not.toBeOnTheScreen();
     });
   });
 

@@ -72,7 +72,7 @@ import { captureException } from '@sentry/react-native';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../../core/redux/slices/inpageProvider';
+} from '../redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import {
@@ -134,6 +134,7 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import { gachaControllerInit } from './controllers/gacha-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
@@ -395,6 +396,7 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        GachaController: gachaControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
@@ -462,6 +464,7 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
+    const gachaController = messengerClientsByName.GachaController;
     const rewardsController = messengerClientsByName.RewardsController;
     const rewardsMoneyController =
       messengerClientsByName.RewardsMoneyController;
@@ -706,6 +709,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      GachaController: gachaController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
@@ -1445,6 +1449,7 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      GachaController,
     } = this.context;
 
     // Remove all permissions.
@@ -1492,6 +1497,9 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+
+    // Gacha:
+    GachaController.clearState();
   };
 
   removeAllListeners() {
@@ -1662,6 +1670,7 @@ export default {
       PerpsController,
       PhishingController,
       PredictController,
+      GachaController,
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
@@ -1744,6 +1753,7 @@ export default {
       PerpsController: PerpsController.state,
       PhishingController: PhishingController.state,
       PredictController: PredictController.state,
+      GachaController: GachaController.state,
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,

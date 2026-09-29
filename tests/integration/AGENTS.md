@@ -30,10 +30,11 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 ## Domains
 
-| Domain             | Folder                                       | Strategy (harness inventory + rollout)                             | Use-case matrix                                                                      |
-| ------------------ | -------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| Perps              | [`harnesses/perps/`](harnesses/perps/)       | [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md)       | [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md)           |
-| Networks / Core UX | [`harnesses/networks/`](harnesses/networks/) | [`harnesses/networks/STRATEGY.md`](harnesses/networks/STRATEGY.md) | [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md) |
+| Domain             | Folder                                                     | Strategy (harness inventory + rollout)                                           | Use-case matrix                                                                                                    |
+| ------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Perps              | [`harnesses/perps/`](harnesses/perps/)                     | [`harnesses/perps/STRATEGY.md`](harnesses/perps/STRATEGY.md)                     | [`harnesses/perps/perps-use-cases.md`](harnesses/perps/perps-use-cases.md)                                         |
+| Networks / Core UX | [`harnesses/networks/`](harnesses/networks/)               | [`harnesses/networks/STRATEGY.md`](harnesses/networks/STRATEGY.md)               | [`harnesses/networks/core-ux-use-cases.md`](harnesses/networks/core-ux-use-cases.md)                               |
+| CollectorCrypt     | [`harnesses/collector-crypt/`](harnesses/collector-crypt/) | [`harnesses/collector-crypt/STRATEGY.md`](harnesses/collector-crypt/STRATEGY.md) | [`harnesses/collector-crypt/collector-crypt-use-cases.md`](harnesses/collector-crypt/collector-crypt-use-cases.md) |
 
 ### PredictNext — [`harnesses/predict-next.ts`](harnesses/predict-next.ts)
 

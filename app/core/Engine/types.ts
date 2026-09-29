@@ -377,6 +377,12 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import {
+  GachaController,
+  type GachaControllerActions,
+  type GachaControllerEvents,
+  type GachaControllerState,
+} from '../../components/UI/Gacha/controllers/GachaController';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -742,6 +748,7 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | GachaControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
@@ -868,6 +875,7 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | GachaControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
@@ -1033,6 +1041,7 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  GachaController: GachaController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
@@ -1143,6 +1152,7 @@ export type EngineState = {
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  GachaController: GachaControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1249,6 +1259,7 @@ export type MessengerClientsToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'GachaController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'

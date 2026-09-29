@@ -166,6 +166,9 @@ import type {
   PredictNavigationParamList,
 } from '../../components/UI/Predict/types/navigation';
 
+// Gacha params
+import type { GachaStackParamList } from '../../components/UI/Gacha/types/navigation';
+
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
 import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
@@ -983,6 +986,10 @@ export type RootStackParamList = {
   PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
+
+  // Gacha routes — `Gacha` is a nested stack navigator.
+  Gacha: NavigatorScreenParams<GachaStackParamList> | undefined;
+  GachaHome: GachaStackParamList['GachaHome'];
 
   // Social Leaderboard routes
   SocialV0View:

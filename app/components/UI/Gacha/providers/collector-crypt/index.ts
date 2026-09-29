@@ -1,0 +1,1 @@
+export { CollectorCryptProvider } from './CollectorCryptProvider';
