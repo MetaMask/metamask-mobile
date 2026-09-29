@@ -274,3 +274,6 @@ sourcemaps/**/*.js.map
 
 # Deepwork session state (git-local, OpenCode-readable via .ignore)
 .slim/deepwork/
+
+# Superpowers subagent-driven-development worktrees
+.worktrees/
