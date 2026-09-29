@@ -89,7 +89,7 @@ describe('useValidateMoneyReferralCode', () => {
 
     await act(async () => {
       const error = await result.current.validateCode('KOL1');
-      expect(error).toBe('Invalid referral code. Please check and try again.');
+      expect(error).toBe('Invalid referral code. Check and try again.');
     });
   });
 
@@ -146,13 +146,13 @@ describe('useValidateMoneyReferralCode', () => {
 
     await act(async () => {
       expect(await result.current.validateCode('AB')).toBe(
-        'Invalid referral code. Please check and try again.',
+        'Invalid referral code. Check and try again.',
       );
       expect(await result.current.validateCode('KOL-1')).toBe(
-        'Invalid referral code. Please check and try again.',
+        'Invalid referral code. Check and try again.',
       );
       expect(await result.current.validateCode('A'.repeat(25))).toBe(
-        'Invalid referral code. Please check and try again.',
+        'Invalid referral code. Check and try again.',
       );
     });
 
