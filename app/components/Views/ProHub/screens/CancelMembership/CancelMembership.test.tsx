@@ -86,13 +86,7 @@ const PLUS_SUBSCRIPTION: Subscription = {
   cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
 };
-const FORMATTED_PERIOD_END = new Date(
-  PLUS_SUBSCRIPTION.currentPeriodEnd,
-).toLocaleDateString(undefined, {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-});
+const FORMATTED_PERIOD_END = 'Jul 20, 2027';
 
 const mockProFlowState = {
   key: 'stack',
