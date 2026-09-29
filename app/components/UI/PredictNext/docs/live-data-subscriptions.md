@@ -77,7 +77,8 @@ The transport logs when it truncates or refuses a subscribe so the condition is 
 
 ## Testing
 
-- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, retryable-resolution backoff, gating, the game-window timer, replay, market-scope widening and narrowing.
+- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, gating, the game-window timer, replay, market-scope widening and narrowing.
+- `services/internal/LiveEventSubscriptions.retry.test.ts` — retryable-resolution backoff.
 - `services/PredictLiveDataService.test.ts` — messenger actions, per-Venue guard, value caching and replay.
 - `services/PredictLiveDataService.integration.test.ts` — the acceptance journeys over the shared `tests/integration/harnesses/predict-next.ts` harness with a fake gateway socket: Feed scroll in/out, one upstream subscription for Home + Feed, zero subscriptions after Event Screen unmount, deterministic cap degradation, background/foreground.
 - `views/PredictHome/internal/useVisibleSections.test.ts` and the `*.view.test.tsx` files — the per-surface visibility adapters.
