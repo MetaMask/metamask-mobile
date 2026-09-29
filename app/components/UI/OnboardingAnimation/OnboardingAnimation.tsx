@@ -78,6 +78,7 @@ const OnboardingAnimation = ({
         >
           {renderWordmark(
             <MetaMaskWordmark
+              name="metamask-wordmark"
               width={wordmarkWidth}
               height={wordmarkHeight}
               color={colors.text.default}
