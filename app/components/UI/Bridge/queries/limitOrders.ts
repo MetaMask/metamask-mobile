@@ -8,6 +8,11 @@ export type LimitOrdersQueryParams = Omit<GetLimitOrdersQuery, 'cursor'>;
 
 export const limitOrdersQueries = {
   /**
+   * Partial query key matching every limit orders query, open and history
+   * alike, whichever wallet, chain or page size it was made for.
+   */
+  allOrdersKey: () => ['LimitOrdersDataService:getLimitOrders'] as const,
+  /**
    * Partial query key matching every open orders query, whichever wallet,
    * chain or page size it was made for, and none of the history ones.
    */
