@@ -15,7 +15,7 @@ import { useSocialEntryOptions } from '../../components/SocialEntryOptionsBottom
 import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import SocialTraderIdentityRow from '../../components/SocialTraderIdentityRow';
-import PositionCardTitleMeta from '../../SocialV1View/feed/components/PositionCardTitleMeta';
+import LiveTradeCardTitle from './LiveTradeCardTitle';
 import type { LiveTradeRowModel } from '../types';
 import LiveTradeCardSurface from './LiveTradeCardSurface';
 import {
@@ -106,8 +106,7 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
               showChainBadge
             />
             <Box twClassName="flex-1 min-w-0">
-              <PositionCardTitleMeta
-                layout="closed"
+              <LiveTradeCardTitle
                 symbol={item.symbol}
                 direction={item.direction}
                 leverageLabel={item.leverageLabel}

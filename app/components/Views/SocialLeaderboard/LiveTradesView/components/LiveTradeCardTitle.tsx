@@ -8,18 +8,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-import { strings } from '../../../../../../../locales/i18n';
-import type { SocialV1PerpDirection, SocialV1SpotSide } from '../types';
+import { strings } from '../../../../../../locales/i18n';
+import type {
+  SocialV1PerpDirection,
+  SocialV1SpotSide,
+} from '../../SocialV1View/feed/types';
 
-/**
- * `open` leads with current value on the right; `closed` stacks a hero realized
- * P&L under the identity. Both are used by perps and spot alike -- the asset
- * class only changes which stat rows follow.
- */
-export type PositionCardHeaderLayout = 'open' | 'closed';
-
-export interface PositionCardTitleMetaProps {
-  layout: PositionCardHeaderLayout;
+export interface LiveTradeCardTitleProps {
   symbol: string;
   direction?: SocialV1PerpDirection;
   leverageLabel?: string;
@@ -40,20 +35,20 @@ const directionClassName = (direction: SocialV1PerpDirection) =>
   direction === 'long' ? 'text-success-default' : 'text-error-default';
 
 /**
- * Symbol plus Buy/Sell or Long/Short (and leverage on closed perps). Shared
- * by the Following position card and the Live trades compact card.
+ * `SOL · 10x Long`, `AMD · Buy`. The title line of a Live trades card.
+ *
+ * Unlike the feed's `PositionCardHeader`, which renders one single-coloured
+ * string because the P&L beside it carries the green/red, a live trade has no
+ * P&L to colour -- so the side is the only thing that can carry it.
  */
-const PositionCardTitleMeta: React.FC<PositionCardTitleMetaProps> = ({
-  layout,
+const LiveTradeCardTitle: React.FC<LiveTradeCardTitleProps> = ({
   symbol,
   direction,
   leverageLabel,
   side,
 }) => (
   // No `flex-1`: this row's parent is a column, so `flex-1` would resolve
-  // against the height and give the row a zero basis. The open layout hides
-  // that -- its mark-price sibling gives the column height to grow into -- but
-  // on a closed card this is the only child, and the title vanished.
+  // against the height and give the row a zero basis, collapsing the title.
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -81,7 +76,7 @@ const PositionCardTitleMeta: React.FC<PositionCardTitleMetaProps> = ({
           fontWeight={FontWeight.Medium}
           twClassName={directionClassName(direction)}
         >
-          {layout === 'closed' && leverageLabel
+          {leverageLabel
             ? `${leverageLabel} ${strings(DIRECTION_I18N[direction])}`
             : strings(DIRECTION_I18N[direction])}
         </Text>
@@ -89,7 +84,7 @@ const PositionCardTitleMeta: React.FC<PositionCardTitleMetaProps> = ({
     ) : null}
     {/* Rendered exactly like a perp direction -- same size, same separator,
       same green/red -- so Buy/Sell and Long/Short read as one column of
-      information across the feed rather than two different treatments. */}
+      information down the list rather than two different treatments. */}
     {side ? (
       <>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
@@ -109,4 +104,4 @@ const PositionCardTitleMeta: React.FC<PositionCardTitleMetaProps> = ({
   </Box>
 );
 
-export default PositionCardTitleMeta;
+export default LiveTradeCardTitle;
