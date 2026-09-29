@@ -591,6 +591,7 @@ const SocialV1View: React.FC = () => {
                         pageRef={pageRef}
                         onOpenFilters={handleOpenLiveTradesFilters}
                         isFilterActive={hasActiveFilters('liveTrades')}
+                        appliedFilters={applied.liveTrades}
                       />
                     ) : (
                       <EmptyShellTabPage
