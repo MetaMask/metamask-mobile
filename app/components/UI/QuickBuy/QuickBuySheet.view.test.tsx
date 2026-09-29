@@ -13,7 +13,6 @@ import {
 } from '@metamask/bridge-controller';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
-import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   QUICK_BUY_QUOTE_TOTAL_FOR_10_USD,
@@ -37,6 +36,8 @@ import {
 } from '../Bridge/_mocks_/bridgeViewTestConstants';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import Routes from '../../../constants/navigation/Routes';
+import { KeypadTestIds } from '../../Base/Keypad/Keypad.testIds';
+import { QuoteViewSelectorIDs } from '../../../../tests/selectors/Bridge/QuoteView.selectors';
 import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
   getQuickBuyBuyPillTestId,
@@ -64,7 +65,9 @@ const findTextColor = (
 
 const typeAmount = (screen: Pick<RenderAPI, 'getByTestId'>, digits: string) => {
   for (const digit of digits) {
-    fireEvent.press(screen.getByTestId(`keypad-key-${digit}`));
+    const keyTestId =
+      KeypadTestIds[`KEY_${digit}` as keyof typeof KeypadTestIds];
+    fireEvent.press(screen.getByTestId(keyTestId));
   }
 };
 
@@ -406,7 +409,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PRICE_IMPACT_DESCRIPTION,
     );
-    fireEvent.press(await screen.findByText(strings('bridge.proceed')));
+    fireEvent.press(await screen.findByText('Proceed'));
 
     await waitFor(() => {
       expect(submitSpy).toHaveBeenCalled();
@@ -462,9 +465,10 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
-    expect(
-      screen.getByText(strings('social_leaderboard.quick_buy.receive')),
-    ).toBeOnTheScreen();
+    const pickerHeader = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.PAY_WITH_HEADER,
+    );
+    expect(within(pickerHeader).getByText('Receive')).toBeOnTheScreen();
     // USDT is not in the balance fixture, so its row proves Receive is not balance-only.
     const usdtRow = await screen.findByTestId(USDT_PICKER_ROW);
     expect(
@@ -565,12 +569,14 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
-    await screen.findByTestId('bridge-token-search-input');
+    await screen.findByTestId(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
 
     // One held chain fits in the pills, so the in-sheet list is not offered.
-    expect(screen.queryByTestId('network-pills-more-button')).toBeNull();
-    expect(screen.queryByText('Base')).toBeNull();
-    expect(screen.queryByText('Optimism')).toBeNull();
+    expect(
+      screen.queryByTestId('network-pills-more-button'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Base')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Optimism')).not.toBeOnTheScreen();
   });
 
   it('keeps the network filter on back and clears it from All networks', async () => {
@@ -617,12 +623,8 @@ describeForPlatforms('QuickBuySheet', () => {
 
     expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
-    ).toBeNull();
-    expect(
-      screen.getByText(
-        strings('social_leaderboard.quick_buy.title', { symbol: 'USDC' }),
-      ),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('Buy USDC')).toBeOnTheScreen();
   });
 
   it('hides the trade mode toggle when sell is not enabled', async () => {
@@ -635,7 +637,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('opens in sell mode when initialTradeMode is sell', async () => {
@@ -650,11 +652,7 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(
       screen.queryByTestId(getQuickBuyBuyPillTestId(10)),
     ).not.toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        strings('social_leaderboard.quick_buy.sell_title', { symbol: 'USDC' }),
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('Sell USDC')).toBeOnTheScreen();
   });
 
   it('keeps the keypad inert and shows Add funds when the wallet is empty', async () => {
@@ -676,7 +674,7 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(
       within(
         screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
-      ).getByText(strings('social_leaderboard.quick_buy.add_funds')),
+      ).getByText('Add funds'),
     ).toBeOnTheScreen();
   });
 
@@ -693,11 +691,7 @@ describeForPlatforms('QuickBuySheet', () => {
     const amountArea = screen.getByTestId(
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
-    expect(
-      await within(amountArea).findByText(
-        strings('social_leaderboard.quick_buy.add_funds'),
-      ),
-    ).toBeOnTheScreen();
+    expect(await within(amountArea).findByText('Add funds')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.EST_RECEIVE_LOADING),
     ).not.toBeOnTheScreen();
@@ -705,12 +699,8 @@ describeForPlatforms('QuickBuySheet', () => {
     const confirm = screen.getByTestId(
       QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
     );
-    expect(
-      within(confirm).getByText(
-        strings('social_leaderboard.quick_buy.add_funds'),
-      ),
-    ).toBeOnTheScreen();
-    expect(confirm.props.accessibilityState?.disabled).toBe(false);
+    expect(within(confirm).getByText('Add funds')).toBeOnTheScreen();
+    expect(confirm).toBeEnabled();
   });
 
   it('keeps Sell disabled without relabelling when the typed amount exceeds the balance', async () => {
@@ -731,11 +721,7 @@ describeForPlatforms('QuickBuySheet', () => {
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
     expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
-    expect(
-      within(amountArea).queryByText(
-        strings('social_leaderboard.quick_buy.add_funds'),
-      ),
-    ).toBeNull();
+    expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
     await waitFor(() => {
       expect(findTextColor(screen, /^3000000000000$/)).toBe(
         TextColor.ErrorDefault,
@@ -745,12 +731,8 @@ describeForPlatforms('QuickBuySheet', () => {
     const confirm = screen.getByTestId(
       QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
     );
-    expect(
-      within(confirm).getByText(
-        strings('social_leaderboard.trader_position.sell'),
-      ),
-    ).toBeOnTheScreen();
-    expect(confirm.props.accessibilityState?.disabled).toBe(true);
+    expect(within(confirm).getByText('Sell')).toBeOnTheScreen();
+    expect(confirm).toBeDisabled();
   });
 
   it('shows the available balance in sell mode', async () => {
@@ -829,9 +811,7 @@ describeForPlatforms('QuickBuySheet', () => {
   it('hides the fee token chip in quote details for regular quotes', async () => {
     const screen = await openQuoteDetails(false);
 
-    expect(
-      screen.getByText(strings('social_leaderboard.quick_buy.metamask_fee')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
     ).not.toBeOnTheScreen();
@@ -844,14 +824,8 @@ describeForPlatforms('QuickBuySheet', () => {
       discountType: DiscountType.PROMO,
     });
 
-    expect(
-      screen.getByText(strings('bridge.discount_badge_promo')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        strings('bridge.fee_percentage', { feePercentage: 0.875 }),
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('Promo')).toBeOnTheScreen();
+    expect(screen.getByText('0.875%')).toBeOnTheScreen();
     expect(screen.getByText('0%')).toBeOnTheScreen();
   });
 
@@ -915,7 +889,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PRICE_IMPACT_DESCRIPTION,
     );
-    fireEvent.press(await screen.findByText(strings('bridge.cancel')));
+    fireEvent.press(await screen.findByText('Cancel'));
 
     expect(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
