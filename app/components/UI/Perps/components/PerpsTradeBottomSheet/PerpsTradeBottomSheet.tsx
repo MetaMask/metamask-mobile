@@ -15,6 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { BackHandler, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -160,6 +161,7 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   contentSizedScreens,
 }: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hasClosedRef = useRef(false);
   const isClosingRef = useRef(false);
@@ -198,12 +200,18 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        // A route stacked on the confirmation, such as the pay-with token
+        // list, owns this press. Consuming it here would dismiss the picker
+        // while that route is still showing.
+        if (!navigation.isFocused()) {
+          return false;
+        }
         goBack();
         return true;
       },
     );
     return () => subscription.remove();
-  }, [activeScreen, goBack, rootScreen]);
+  }, [activeScreen, goBack, navigation, rootScreen]);
 
   const handleContentLayout = useCallback(
     ({ nativeEvent }: LayoutChangeEvent) => {
