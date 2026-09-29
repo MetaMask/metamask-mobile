@@ -44,17 +44,6 @@ yarn analytics:contract:check \
   --output-directory temp/my-analytics-contract-check
 ```
 
-Compare the strict pilot with pinned stock Typewriter locally:
-
-```sh
-yarn analytics:contract:compare
-```
-
-The comparison uses TypeScript with `analytics-react-native`, the exact lock
-fixture, and a local `plan.json`. It does not update Segment or require a
-Segment API token. Typewriter output and the comparison report remain under
-the ignored `temp/analytics-contract-comparison/` directory.
-
 The reviewed Quick Buy facade is tracked publicly under
 `app/util/analytics/generated/`. CI regenerates it and compares the result to
 the tracked files. The `.test-d.ts` file checks compile-time contracts; the

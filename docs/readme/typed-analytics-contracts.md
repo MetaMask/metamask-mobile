@@ -87,25 +87,12 @@ The reviewed Quick Buy facade is public and tracked at
 CI regenerates the facade from the downloaded contract and fails if the tracked
 types drift from the deployed contract.
 
-## Typewriter comparison
+## Generator decision
 
-Run the local comparison against the same pinned Quick Buy v1/v2 fixture:
-
-```sh
-yarn analytics:contract:compare
-```
-
-This uses pinned Typewriter 9.2.0 with TypeScript and
-`analytics-react-native`. It reads a temporary local `plan.json`, does not
-update Segment, and does not require Segment credentials. Typewriter output,
-the adapted plan, and `comparison.json` remain under the ignored
-`temp/analytics-contract-comparison/` directory.
-
-The comparison is reference material, not production output. Stock Typewriter
-normalizes Track rules and retains only the highest version for a repeated event
-key. The strict pilot preserves explicit v1 and v2 APIs and adds the version
-context. The comparison also records permissive index signatures, event-version
-context, documentation/deprecation markers, and progressive-builder support.
+The Quick Buy pilot uses the narrow strict generator. It preserves explicit
+event versions, rejects unknown properties, and adds the event-version context.
+The generator comparison was a time-boxed design spike; its temporary
+comparison tooling is not part of the production dependency graph.
 
 ## Quick Buy pilot and versions
 
@@ -148,7 +135,7 @@ provenance and a broader JSON Schema support matrix.
 ## Planned progression
 
 1. Merge and observe the incubation workflow.
-2. Review the pinned lock and local Typewriter comparison.
+2. Review the pinned lock and generator decision.
 3. Add optional `AnalyticsContext` plumbing through Mobile's existing analytics
    queue and adapter.
 4. Integrate the generated facade into one reviewed Quick Buy production call.
