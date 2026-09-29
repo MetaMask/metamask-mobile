@@ -386,7 +386,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-metrics-controller": "^5.1.0",
     "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch",
-    "@metamask/ramps-controller": "^26.1.0",
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A26.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-26.1.0-brlmusd.patch",
     "@metamask/react-data-query": "^1.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
