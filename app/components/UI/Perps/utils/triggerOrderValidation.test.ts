@@ -517,6 +517,9 @@ describe('scale partial crossing copy', () => {
   it('matches the long partial warning, with below in place of above', () => {
     const copy = enTranslations.perps.order.validation;
 
+    expect(copy.scale_price_above_partial_warning).not.toContain(
+      'incur taker fees',
+    );
     expect(copy.scale_price_below_partial_warning).toBe(
       copy.scale_price_above_partial_warning.replace('above', 'below'),
     );
