@@ -21,7 +21,6 @@ import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
 import {
   classifyNonEvmSendError,
-  isNonEvmSendUserRejection,
   NonEvmSendErrorCode,
   NonEvmSendFailurePhase,
   useNonEvmSendMetrics,
@@ -111,6 +110,8 @@ export const useSendActions = () => {
         } catch (error) {
           // Check for user rejection using error code (4001) - this is language-independent
           const { errorCode, failurePhase } = classifyNonEvmSendError(error);
+          const isUserRejection =
+            errorCode === NonEvmSendErrorCode.UserRejected;
 
           captureSendFailed({
             chainIdCaip: resolvedChainIdCaip,
@@ -119,7 +120,7 @@ export const useSendActions = () => {
             errorCode,
           });
 
-          if (!isNonEvmSendUserRejection(error)) {
+          if (!isUserRejection) {
             // Actual snap/internal error - display error message to user
             Alert.alert(strings('send.transaction_error'));
           }
