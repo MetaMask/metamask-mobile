@@ -1819,7 +1819,10 @@ describe('MainNavigator', () => {
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {
-    const stateForArm = (headerNavBarVariant?: string) => ({
+    const stateForArm = (
+      headerNavBarVariant?: string,
+      socialV1Variant?: string,
+    ) => ({
       ...initialRootState,
       engine: {
         ...initialRootState.engine,
@@ -1837,6 +1840,9 @@ describe('MainNavigator', () => {
               },
               ...(headerNavBarVariant
                 ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+              ...(socialV1Variant
+                ? { socialAiTSA1122AbtestSocialBundleV1: socialV1Variant }
                 : {}),
             },
           },
@@ -1932,6 +1938,41 @@ describe('MainNavigator', () => {
         expect(
           renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
         ).toBe(trailingAction);
+      },
+    );
+
+    const socialTabComponentName = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string | undefined =>
+      renderHomeTabs(container, state)
+        .findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabScreen' &&
+            node.props?.name === Routes.SOCIAL.TAB,
+        )[0]?.props?.component?.name;
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
+      (arm) => {
+        const state = stateForArm(arm, 'treatment');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV1View');
+      },
+    );
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      (arm) => {
+        const state = stateForArm(arm, 'control');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV0View');
       },
     );
   });

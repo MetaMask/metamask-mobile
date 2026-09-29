@@ -16,6 +16,7 @@ import { TabBarIconKey } from '../../../../component-library/components/Navigati
 import { BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { NATIVE_TAB_ICONS } from './homeTabs.icons';
 import { shouldHideRewardsTabBar } from './homeTabs.mappers';
 import type { HomeTabDefinition } from './homeTabs.types';
@@ -199,6 +200,12 @@ export const useHomeTabDefinitions = ({
               break;
             case Routes.MONEY.HOME:
               navigateToMoneyHome();
+              break;
+            case Routes.SOCIAL.TAB:
+              // Same onboarding + TSA-1122 home as the homepage Top Traders carousel.
+              navigateToSocialLeaderboard(navigation.navigate, {
+                source: 'nav_tab',
+              });
               break;
             default:
               break;
