@@ -23,7 +23,6 @@ import {
   TIMEFRAME_OPTIONS,
   TYPE_LABEL_KEY,
   TYPE_OPTIONS,
-  TYPE_OPTIONS_FOLLOWING,
   VERIFICATION_LABEL_KEY,
   VERIFICATION_OPTIONS,
   VOLUME_24H_RANGE,
@@ -97,8 +96,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const showTimeframe = tab === 'leaderboard';
   const showRanges = tab !== 'leaderboard';
   const showVerification = tab === 'following' || tab === 'liveTrades';
-  const typeOptions =
-    tab === 'following' ? TYPE_OPTIONS_FOLLOWING : TYPE_OPTIONS;
+  const typeOptions = TYPE_OPTIONS;
   const typeTitleKey =
     tab === 'leaderboard'
       ? 'social_leaderboard.shell.filters.section.asset_type'

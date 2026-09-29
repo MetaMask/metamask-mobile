@@ -211,6 +211,7 @@ describe('SocialFiltersBottomSheet', () => {
 
     expect(screen.getByTestId('social-filters-type-all')).toBeOnTheScreen();
     expect(screen.getByTestId('social-filters-type-tokens')).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
   });
 
   it('hides the Time frame section on Following and Live trades', () => {
@@ -440,7 +441,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-network-all')).toBeNull();
   });
 
-  it('omits Predictions on Following and shows Verification', () => {
+  it('omits Predictions on every tab and shows Verification on Following', () => {
     render(
       <SocialFiltersBottomSheet
         tab="following"
