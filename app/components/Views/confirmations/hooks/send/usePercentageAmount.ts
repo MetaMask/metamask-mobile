@@ -110,6 +110,54 @@ export const getPercentageValueFn = ({
   return fromBNWithDecimals(percentageValue, asset.decimals);
 };
 
+/**
+ * Estimates the gas limit of a native send with the node.
+ *
+ * @param args - The estimate arguments.
+ * @param args.asset - The native asset being sent.
+ * @param args.from - The sender address.
+ * @param args.networkClientId - The network client to estimate with.
+ * @param args.to - The recipient address.
+ * @param args.value - The amount to send, in decimal native units.
+ * @returns The estimated gas limit, or `undefined` if the simulation failed.
+ */
+const estimateMaxSendGasLimit = async ({
+  asset,
+  from,
+  networkClientId,
+  to,
+  value,
+}: {
+  asset: AssetType;
+  from: string;
+  networkClientId: string;
+  to: string;
+  value: string;
+}) => {
+  const transaction = prepareEVMTransaction(asset, { from, to, value });
+  const { gas, simulationFails } = await estimateGas(
+    transaction,
+    networkClientId,
+  );
+
+  return simulationFails ? undefined : (gas as Hex);
+};
+
+/**
+ * Estimates the layer 1 fee of a native send.
+ *
+ * @param args - The estimate arguments, as accepted by `getLayer1GasFeeForSend`.
+ * @returns The layer 1 fee, or `0x0` for chains without a layer 1 fee flow.
+ */
+const estimateMaxSendLayer1GasFee = async (
+  args: Parameters<typeof getLayer1GasFeeForSend>[0],
+) => {
+  const layer1GasFee = await getLayer1GasFeeForSend(args);
+
+  // Chains without a layer 1 gas fee flow resolve to undefined.
+  return layer1GasFee ?? ('0x0' as Hex);
+};
+
 const useMaxAmountEstimator = () => {
   const { asset, chainId, from } = useSendContext();
   const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
@@ -140,17 +188,13 @@ const useMaxAmountEstimator = () => {
         return undefined;
       }
 
-      const transaction = prepareEVMTransaction(asset as AssetType, {
+      return await estimateMaxSendGasLimit({
+        asset: asset as AssetType,
         from,
+        networkClientId,
         to: recipientAddress,
         value: maxTransactionValue,
       });
-      const { gas, simulationFails } = await estimateGas(
-        transaction,
-        networkClientId,
-      );
-
-      return simulationFails ? undefined : (gas as Hex);
     },
     [
       asset,
@@ -176,7 +220,7 @@ const useMaxAmountEstimator = () => {
         return undefined;
       }
 
-      const layer1GasFee = await getLayer1GasFeeForSend({
+      return await estimateMaxSendLayer1GasFee({
         asset: asset as AssetType,
         chainId: chainId as Hex,
         from: from as Hex,
@@ -184,9 +228,6 @@ const useMaxAmountEstimator = () => {
         to: recipientAddress as Hex,
         value: maxTransactionValue,
       });
-
-      // Chains without a layer 1 gas fee flow resolve to undefined.
-      return layer1GasFee ?? ('0x0' as Hex);
     },
     [
       asset,
