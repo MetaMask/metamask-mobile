@@ -41,6 +41,7 @@ import {
   testConfig,
 } from './app/util/test/utils.js';
 import { WS_SERVICES } from './tests/websocket/constants.ts';
+import { resolveWebSocketTarget } from './tests/websocket/route.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
@@ -450,9 +451,14 @@ if (enableApiCallLogs || isTestEnvironment) {
         );
       }
 
-      // Patch WebSocket to route production wss:// URLs to local mock servers.
-      // Each WS service gets its own mock port via WS_SERVICES config.
-      // Non-matching wss:// URLs pass through unchanged.
+      // Patch WebSocket to route production ws:// / wss:// URLs to mock
+      // servers. Each WS_SERVICES match gets its own per-service mock port.
+      // Unmatched ws:// / wss:// URLs fall back to the central mock server's
+      // /proxy-ws upgrade path (mirrors the /proxy HTTP path): the original
+      // URL is carried in the `url` query param and the server either scripts
+      // frames or live-proxies upstream. Local URLs, the mock server itself,
+      // anything containing /proxy, and performance-build bypass hosts pass
+      // through untouched.
       if (WS_SERVICES.length > 0 && global.WebSocket) {
         const OriginalWebSocket = global.WebSocket;
 
@@ -463,15 +469,12 @@ if (enableApiCallLogs || isTestEnvironment) {
         }
 
         global.WebSocket = function (url, protocols) {
-          let targetUrl = url;
-          if (typeof url === 'string') {
-            for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
-              if (url.startsWith(prefix)) {
-                targetUrl = localUrl;
-                break;
-              }
-            }
-          }
+          const targetUrl = resolveWebSocketTarget(
+            url,
+            wsRoutes,
+            mockServerPort,
+            shouldBypassProxy,
+          );
           return protocols !== undefined
             ? new OriginalWebSocket(targetUrl, protocols)
             : new OriginalWebSocket(targetUrl);
@@ -482,7 +485,9 @@ if (enableApiCallLogs || isTestEnvironment) {
         global.WebSocket.prototype = OriginalWebSocket.prototype;
 
         // eslint-disable-next-line no-console
-        console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
+        console.log(
+          `[WS Patch] Routes: ${JSON.stringify(wsRoutes)}; generic fallback → ws://localhost:${mockServerPort}/proxy-ws?url=<original>`,
+        );
       }
 
       // Patch expo/fetch so its native networking routes through the mock
