@@ -13,13 +13,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-// Slow down the motion for debugging purposes.
+// Knob to slow down the motion for debugging purposes. It's safe to set to any value, because it's only effective in dev as per next line.
 const DEBUG_SLOW_MOTION = 1;
+const MOTION_MULTIPLIER = __DEV__ ? DEBUG_SLOW_MOTION : 1;
 
-export const FEED_ITEM_ENTRY_DURATION_MS = 520 * DEBUG_SLOW_MOTION;
+export const FEED_ITEM_ENTRY_DURATION_MS = 520 * MOTION_MULTIPLIER;
 export const FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS =
-  200 * DEBUG_SLOW_MOTION;
-export const FEED_ITEM_ENTRY_STAGGER_MS = 70 * DEBUG_SLOW_MOTION;
+  200 * MOTION_MULTIPLIER;
+export const FEED_ITEM_ENTRY_STAGGER_MS = 70 * MOTION_MULTIPLIER;
 export const FEED_ITEM_ENTRY_BLUR_RADIUS = 8;
 export const FEED_ITEM_ENTRY_SNAPSHOT_TIMEOUT_MS = 300;
 
