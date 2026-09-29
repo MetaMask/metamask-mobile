@@ -149,55 +149,6 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(screen.getByText('0%')).toBeOnTheScreen();
   });
 
-  it('shows the fee token chip for gasless quotes', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({
-        isGasless: true,
-        activeQuote: {
-          quote: {
-            feeData: {
-              txFee: [
-                {
-                  asset: {
-                    assetId:
-                      'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
-                    symbol: 'USDT',
-                    iconUrl: 'https://example.com/usdt.png',
-                  },
-                },
-              ],
-            },
-          },
-        },
-      }),
-    );
-
-    render(<QuickBuyQuoteDetailsScreen />);
-
-    expect(screen.getByText('USDT')).toBeOnTheScreen();
-  });
-
-  it('does not show a fee token chip for regular quotes', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({
-        isGasless: false,
-        activeQuote: {
-          quote: {
-            feeData: {
-              network: [
-                { asset: { assetId: 'eip155:56/slip44:714', symbol: 'BNB' } },
-              ],
-            },
-          },
-        },
-      }),
-    );
-
-    render(<QuickBuyQuoteDetailsScreen />);
-
-    expect(screen.queryByText('BNB')).not.toBeOnTheScreen();
-  });
-
   it('calls setActiveScreen("selectQuote") when the rate row is pressed', () => {
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(

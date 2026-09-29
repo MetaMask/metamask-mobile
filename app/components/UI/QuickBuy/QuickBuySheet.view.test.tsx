@@ -1,4 +1,5 @@
 import '../../../../tests/component-view/mocks';
+import { merge } from 'lodash';
 import {
   fireEvent,
   waitFor,
@@ -451,6 +452,68 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(within(payWith).getByText(/USDT/)).toBeOnTheScreen();
   });
 
+  it('lists held tokens but not the token being bought in the pay-with list', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: merge(
+        quickBuyUsdtPayWithOverrides(),
+        quickBuySellableUsdcOverrides(),
+      ),
+    });
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
+    );
+
+    expect(await screen.findByTestId(USDT_PICKER_ROW)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getAssetTestId(`${USDC_DEST.chainId}-USDC`)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('filters the picker by the network chosen in the network list', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: quickBuySellableUsdcOverrides(),
+    });
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
+    );
+    fireEvent.press(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
+    );
+    await screen.findByTestId(USDT_PICKER_ROW);
+    fireEvent.press(screen.getByTestId('network-pills-more-button'));
+
+    expect(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.NETWORK_LIST_HEADER),
+    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('network-option-eip155:8453'));
+
+    expect(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_HEADER),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(screen.queryByTestId(USDT_PICKER_ROW)).not.toBeOnTheScreen();
+    });
+  });
+
+  it('opens the slippage modal from the settings button', async () => {
+    const screen = renderQuickBuySheet({
+      extraRoutes: [{ name: Routes.BRIDGE.MODALS.ROOT }],
+    });
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.SETTINGS_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
+    ).toBeOnTheScreen();
+  });
+
   it('keeps the keypad inert and shows Add funds when the wallet is empty', async () => {
     const screen = renderQuickBuySheet({
       overrides: quickBuyZeroEthOverrides(),
@@ -474,6 +537,47 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows Add funds without a quote skeleton when the typed amount exceeds the balance', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+    // Exceeds both the cached 10 ETH and the mocked 100 ETH RPC balance at $2000.
+    fireEvent.press(screen.getByTestId(QuickBuySheetSelectorsIDs.KEYPAD_KEY_1));
+    for (let i = 0; i < 6; i += 1) {
+      fireEvent.press(screen.getByTestId('keypad-key-0'));
+    }
+
+    const amountArea = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.AMOUNT_AREA,
+    );
+    expect(
+      await within(amountArea).findByText(
+        strings('social_leaderboard.quick_buy.add_funds'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.EST_RECEIVE_LOADING),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the available balance in sell mode', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: quickBuySellableUsdcOverrides(),
+    });
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
+    );
+
+    const amountArea = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.AMOUNT_AREA,
+    );
+    expect(
+      await within(amountArea).findByText(/^100 .*Available$/),
+    ).toBeOnTheScreen();
+  });
+
   it('shows quote detail fields after a quote loads', async () => {
     const screen = renderQuickBuySheet();
 
@@ -491,6 +595,45 @@ describeForPlatforms('QuickBuySheet', () => {
       screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_ROW),
     ).toBeOnTheScreen();
     expect(screen.getAllByText(/USDC/).length).toBeGreaterThan(0);
+  });
+
+  const openQuoteDetails = async (gasIncluded: boolean) => {
+    mockFetchQuotes((params) => [
+      createQuickBuyFetchedQuote(String(params.srcTokenAmount ?? '0'), {
+        destAddress: params.destTokenAddress,
+        gasIncluded,
+      }),
+    ]);
+    const screen = renderQuickBuySheet();
+
+    await selectTenDollarBuy(screen);
+    await waitForQuoteTotal(screen);
+    fireEvent.press(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE),
+    );
+    await screen.findByTestId(QuickBuySheetSelectorsIDs.EDIT_SLIPPAGE);
+    return screen;
+  };
+
+  it('shows the fee token chip in quote details for gasless quotes', async () => {
+    const screen = await openQuoteDetails(true);
+
+    expect(
+      within(
+        screen.getByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
+      ).getByText('ETH'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the fee token chip in quote details for regular quotes', async () => {
+    const screen = await openQuoteDetails(false);
+
+    expect(
+      screen.getByText(strings('social_leaderboard.quick_buy.metamask_fee')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the slippage modal from quote details', async () => {

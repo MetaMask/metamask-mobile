@@ -110,7 +110,11 @@ export function clearQuickBuyApiMocks(): void {
  */
 export function createQuickBuyFetchedQuote(
   srcTokenAmount: string,
-  extras?: { priceImpactAmount?: string; destAddress?: string },
+  extras?: {
+    priceImpactAmount?: string;
+    destAddress?: string;
+    gasIncluded?: boolean;
+  },
 ) {
   // v1→v2 conversion sets `src.amount` to srcTokenAmount + src-token txFee.
   // Echo the post-fee routing amount so `src.amount` still equals the request
@@ -167,7 +171,7 @@ export function createQuickBuyFetchedQuote(
       srcTokenAmount: postFeeSrcTokenAmount,
       destTokenAmount: '10000000',
       minDestTokenAmount: '9900000',
-      gasIncluded: true,
+      gasIncluded: extras?.gasIncluded ?? true,
       ...(extras?.priceImpactAmount
         ? {
             priceData: {

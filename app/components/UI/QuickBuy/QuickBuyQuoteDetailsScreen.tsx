@@ -174,6 +174,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                     alignItems={BoxAlignItems.Center}
                     gap={1}
                     twClassName="rounded-md bg-muted px-1.5"
+                    testID={QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN}
                   >
                     <AvatarToken
                       name={gaslessFeeAsset.symbol}

@@ -2862,19 +2862,6 @@ describe('BridgeTokenSelectorContent', () => {
   });
 
   describe('excludeToken', () => {
-    it('removes the excluded token from held tokens regardless of address case', async () => {
-      const { getByTestId, queryByTestId } = renderContent({
-        balanceOnly: true,
-        excludeToken: {
-          ...heldUsdt,
-          address: heldUsdt.address.toLowerCase(),
-        },
-      });
-
-      await waitFor(() => expect(getByTestId('token-DAI')).toBeOnTheScreen());
-      expect(queryByTestId('token-USDT')).not.toBeOnTheScreen();
-    });
-
     it('removes the excluded token from popular tokens', async () => {
       mockPopularTokensState = {
         popularTokens: [
@@ -2945,15 +2932,5 @@ describe('BridgeTokenSelectorContent', () => {
 
       expect(setTokenSelectorNetworkFilter).not.toHaveBeenCalled();
     });
-  });
-
-  it('delegates the network list to the host', () => {
-    const onOpenNetworkList = jest.fn();
-    const { getByTestId } = renderContent({ onOpenNetworkList });
-
-    fireEvent.press(getByTestId('open-network-modal'));
-
-    expect(onOpenNetworkList).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

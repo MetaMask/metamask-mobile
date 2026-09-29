@@ -170,42 +170,6 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 
-  it('renders the Est. receive row and navigates to quote details when pressed', () => {
-    const setActiveScreen = jest.fn();
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      setActiveScreen,
-    });
-
-    render(<QuickBuyActionFooter />);
-
-    expect(
-      screen.getByText('social_leaderboard.quick_buy.est_receive'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('$123.75')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('quick-buy-gas-fee-deduction'),
-    ).not.toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
-    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
-  });
-
-  it('shows Est. receive with the gas deduction badge for gasless quotes', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      estimatedReceiveFiat: '$121.40',
-      gasFeeDeductionLabel: '-$1.19 for gas',
-    });
-
-    render(<QuickBuyActionFooter />);
-
-    expect(
-      screen.getByText('social_leaderboard.quick_buy.est_receive'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('-$1.19 for gas')).toBeOnTheScreen();
-    expect(screen.getByText('$121.40')).toBeOnTheScreen();
-  });
-
   it('hides the Est. receive row until a quote value is available', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
