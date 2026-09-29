@@ -19,7 +19,7 @@ import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMon
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { navigateToSocialLeaderboard } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { navigateToSocialTab } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
@@ -153,8 +153,7 @@ const TabBarFloating = ({
             navigateToMoneyHome();
             break;
           case Routes.SOCIAL.TAB:
-            // Same onboarding + TSA-1122 home as the homepage Top Traders carousel.
-            navigateToSocialLeaderboard(navigation.navigate, {
+            navigateToSocialTab(navigation.navigate, {
               source: 'nav_tab',
             });
             break;

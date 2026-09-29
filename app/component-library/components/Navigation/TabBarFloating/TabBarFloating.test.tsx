@@ -45,12 +45,12 @@ jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
   }),
 }));
 
-const mockNavigateToSocialLeaderboard = jest.fn();
+const mockNavigateToSocialTab = jest.fn();
 jest.mock(
   '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
   () => ({
-    navigateToSocialLeaderboard: (...args: unknown[]) =>
-      mockNavigateToSocialLeaderboard(...args),
+    navigateToSocialTab: (...args: unknown[]) =>
+      mockNavigateToSocialTab(...args),
   }),
 );
 
@@ -366,16 +366,14 @@ describe('TabBarFloating', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
-  it('routes Social through the same onboarding-aware helper as the homepage carousel', () => {
+  it('selects the Social tab through the onboarding-aware tab helper', () => {
     const { getByTestId } = renderBar();
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
 
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
-      navigation.navigate,
-      { source: 'nav_tab' },
-    );
-    expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.SOCIAL.TAB);
+    expect(mockNavigateToSocialTab).toHaveBeenCalledWith(navigation.navigate, {
+      source: 'nav_tab',
+    });
   });
 
   it('routes Money through the money navigation hook', () => {

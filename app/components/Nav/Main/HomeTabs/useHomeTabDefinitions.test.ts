@@ -9,7 +9,7 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import initialRootState from '../../../../util/test/initial-root-state';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
-import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { useHomeTabDefinitions } from './useHomeTabDefinitions';
 
 jest.mock('../../../../util/haptics');
@@ -35,7 +35,7 @@ jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
 jest.mock(
   '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
   () => ({
-    navigateToSocialLeaderboard: jest.fn(),
+    navigateToSocialTab: jest.fn(),
   }),
 );
 
@@ -227,7 +227,7 @@ describe('useHomeTabDefinitions', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('sends Social through the same onboarding-aware helper as the homepage carousel', () => {
+    it('selects the Social tab through the onboarding-aware tab helper', () => {
       const { result } = renderDefinitions({ showSocialTab: true });
       const social = result.current.tabs[4];
 
@@ -235,7 +235,7 @@ describe('useHomeTabDefinitions', () => {
         .getNativeTabListeners(social)({ navigation: mockNavigation })
         .tabPress?.();
 
-      expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect(navigateToSocialTab).toHaveBeenCalledWith(
         mockNavigation.navigate,
         { source: 'nav_tab' },
       );
