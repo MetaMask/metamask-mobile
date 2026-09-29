@@ -86,8 +86,8 @@ const WalletHeaderCompact = ({
             placeholder={strings('wallet.homepage_search_placeholder')}
             showPastePill={showSearchPastePill}
             onPastePress={handleSearchPastePress}
-            pasteButtonTestID={
-              WalletViewSelectorsIDs.HOMEPAGE_SEARCH_PASTE_BUTTON
+            clipboardButtonTestID={
+              WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON
             }
           />
         ) : (

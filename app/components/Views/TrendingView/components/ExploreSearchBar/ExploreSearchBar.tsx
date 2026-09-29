@@ -5,12 +5,8 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
   Text,
   TextVariant,
   TextFieldSearch,
@@ -37,7 +33,7 @@ interface ExploreSearchBarButtonProps {
   placeholder?: string;
   showPastePill?: boolean;
   onPastePress?: () => void;
-  pasteButtonTestID?: string;
+  clipboardButtonTestID?: string;
   /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
   rowTwClassName?: string;
 }
@@ -50,8 +46,7 @@ interface ExploreSearchBarInteractiveProps {
   placeholder?: string;
   showPastePill?: boolean;
   onPastePress?: () => void;
-  pasteButtonTestID?: string;
-  hideDismissButton?: boolean;
+  clipboardButtonTestID?: string;
   /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
   rowTwClassName?: string;
   /**
@@ -73,7 +68,7 @@ interface SearchEndAccessoryProps {
   hasSearchQuery: boolean;
   onPastePress: () => void;
   onClearPress: () => void;
-  pasteButtonTestID?: string;
+  clipboardButtonTestID?: string;
 }
 
 const SearchEndAccessory = ({
@@ -81,11 +76,11 @@ const SearchEndAccessory = ({
   hasSearchQuery,
   onPastePress,
   onClearPress,
-  pasteButtonTestID,
+  clipboardButtonTestID,
 }: SearchEndAccessoryProps) => {
   const tw = useTailwind();
   const shouldShowPastePill = showPastePill && !hasSearchQuery;
-  const { containerStyle, pasteStyle, clearStyle } =
+  const { containerStyle, clipboardStyle, clearStyle } =
     useSearchAccessoryAnimation(shouldShowPastePill);
 
   if (!shouldShowPastePill && !hasSearchQuery) {
@@ -103,18 +98,16 @@ const SearchEndAccessory = ({
         pointerEvents={shouldShowPastePill ? 'auto' : 'none'}
         style={[
           tw.style('absolute inset-0 items-center justify-center'),
-          pasteStyle,
+          clipboardStyle,
         ]}
       >
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonBaseSize.Sm}
-          twClassName="h-8 w-20"
+        <ButtonIcon
+          iconName={IconName.Clipboard}
+          size={ButtonIconSize.Md}
           onPress={onPastePress}
-          testID={pasteButtonTestID ?? 'explore-search-paste-button'}
-        >
-          {strings('send.paste')}
-        </Button>
+          accessibilityLabel={strings('send.paste')}
+          testID={clipboardButtonTestID ?? 'explore-search-clipboard-button'}
+        />
       </Animated.View>
       <Animated.View
         pointerEvents={shouldShowPastePill ? 'none' : 'auto'}
@@ -174,23 +167,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
 
   const buttonPastePill =
     props.type === 'button' && props.showPastePill && props.onPastePress ? (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="h-8"
-      >
-        <Animated.View entering={FadeInDown.duration(180)}>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonBaseSize.Sm}
-            twClassName="h-8 w-20"
-            onPress={props.onPastePress}
-            testID={props.pasteButtonTestID ?? 'explore-search-paste-button'}
-          >
-            {strings('send.paste')}
-          </Button>
-        </Animated.View>
-      </Box>
+      <Animated.View entering={FadeInDown.duration(180)}>
+        <ButtonIcon
+          iconName={IconName.Clipboard}
+          size={ButtonIconSize.Md}
+          onPress={props.onPastePress}
+          accessibilityLabel={strings('send.paste')}
+          testID={
+            props.clipboardButtonTestID ?? 'explore-search-clipboard-button'
+          }
+        />
+      </Animated.View>
     ) : null;
 
   const searchBarContent = (
@@ -216,7 +203,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="h-12 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
+      twClassName="h-10 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
     >
       <TouchableOpacity
         onPress={props.type === 'button' ? props.onPress : undefined}
@@ -258,6 +245,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT}
           >
             <TextFieldSearch
+              twClassName="h-10"
               {...(shouldRenderEndAccessory
                 ? {
                     endAccessory: (
@@ -266,7 +254,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
                         hasSearchQuery={hasSearchQuery}
                         onPastePress={onPastePress ?? (() => undefined)}
                         onClearPress={() => props.onSearchChange('')}
-                        pasteButtonTestID={props.pasteButtonTestID}
+                        clipboardButtonTestID={props.clipboardButtonTestID}
                       />
                     ),
                   }
@@ -298,7 +286,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               }}
             />
           </Box>
-          {!isBackVariant && !props.hideDismissButton && (
+          {!isBackVariant && (
             <TouchableOpacity
               onPress={dismissSearch}
               testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}

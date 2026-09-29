@@ -1,10 +1,6 @@
 import React, { memo, useCallback, useRef } from 'react';
-import { Animated, useAnimatedValue, View, type ViewStyle } from 'react-native';
-import {
-  useFocusEffect,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { View, type ViewStyle } from 'react-native';
+import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -43,7 +39,6 @@ interface TouchAreaSlop {
 
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
-const menuTransitionWrapperStyle: ViewStyle = { height: 48 };
 
 export interface WalletHeaderProps {
   displayName: string;
@@ -82,30 +77,6 @@ const WalletHeader = ({
 }: WalletHeaderProps) => {
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
-  const menuTransition = useAnimatedValue(0);
-  const searchTransitionStarted = useRef(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      searchTransitionStarted.current = false;
-      menuTransition.setValue(0);
-    }, [menuTransition]),
-  );
-
-  const menuTransitionStyle = {
-    width: menuTransition.interpolate({
-      inputRange: [0, 1],
-      outputRange: [32, 0],
-    }),
-    marginRight: menuTransition.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, -8],
-    }),
-    opacity: menuTransition.interpolate({
-      inputRange: [0, 0.6, 1],
-      outputRange: [1, 1, 0],
-    }),
-  };
 
   const measureSearchOrigin = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
@@ -159,28 +130,9 @@ const WalletHeader = ({
 
   const startSearchTransition = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
-      measureSearchOrigin((origin) => {
-        if (process.env.NODE_ENV === 'test') {
-          callback(origin);
-          return;
-        }
-
-        if (searchTransitionStarted.current) {
-          return;
-        }
-        searchTransitionStarted.current = true;
-        Animated.timing(menuTransition, {
-          duration: 220,
-          toValue: 1,
-          useNativeDriver: false,
-        }).start(({ finished }) => {
-          if (finished) {
-            callback(origin);
-          }
-        });
-      });
+      measureSearchOrigin(callback);
     },
-    [measureSearchOrigin, menuTransition],
+    [measureSearchOrigin],
   );
 
   const handleHeaderSearchPress = () => {
@@ -296,24 +248,16 @@ const WalletHeader = ({
               touchAreaSlop={touchAreaSlop}
             />
           )}
-          <AddressCopy
-            testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
-            hitSlop={touchAreaSlop}
-          />
         </Box>
       }
-      twClassName="pl-4 pr-3"
+      twClassName="pl-4 pr-3 gap-2"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="h-12 flex-1 gap-2"
       >
-        <Animated.View
-          style={[menuTransitionWrapperStyle, menuTransitionStyle]}
-        >
-          {menuButton}
-        </Animated.View>
+        {menuButton}
         <View
           ref={searchBarRef}
           collapsable={false}
@@ -325,8 +269,8 @@ const WalletHeader = ({
             placeholder={strings('wallet.homepage_search_placeholder')}
             showPastePill={showSearchPastePill}
             onPastePress={handleHeaderPastePress}
-            pasteButtonTestID={
-              WalletViewSelectorsIDs.HOMEPAGE_SEARCH_PASTE_BUTTON
+            clipboardButtonTestID={
+              WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON
             }
           />
         </View>

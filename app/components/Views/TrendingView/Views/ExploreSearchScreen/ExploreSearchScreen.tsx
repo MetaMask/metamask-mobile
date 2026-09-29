@@ -8,13 +8,18 @@ import React, {
 import {
   ActivityIndicator,
   Keyboard,
-  LayoutAnimation,
   Platform,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
+  ScrollView,
   useWindowDimensions,
 } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from '../../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
@@ -33,8 +38,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
@@ -71,12 +74,47 @@ import {
   type ExploreSearchRouteParams,
 } from './ExploreSearchScreen.types';
 import { useHomepageSearchPaste } from '../../search/useHomepageSearchPaste';
-import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
 
-const rootContainerStyle: ViewStyle = { flex: 1 };
+const SEARCH_LOADING_FEEDS: SearchFeedId[] = [
+  'tokens',
+  'perps',
+  'predictions',
+  'sites',
+];
+
+const ExploreSearchLoadingContent = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box twClassName="flex-1">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2 px-4 py-3"
+      >
+        {Array.from({ length: 5 }, (_, index) => (
+          <Box key={index} twClassName="h-9 w-20 rounded-xl bg-muted" />
+        ))}
+      </Box>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4')}
+      >
+        {SEARCH_LOADING_FEEDS.map((feedId) => (
+          <Box key={feedId} twClassName="mb-4">
+            <Box twClassName="mb-2 h-6 w-32 rounded bg-muted" />
+            {Array.from({ length: 3 }, (_, index) => (
+              <SearchFeedSkeleton key={index} feedId={feedId} />
+            ))}
+          </Box>
+        ))}
+      </ScrollView>
+    </Box>
+  );
+};
 
 interface FullFeedListProps {
   feedId: SearchFeedId;
@@ -371,40 +409,34 @@ const ExploreSearchScreen: React.FC = () => {
   );
   const isHomepageSearch = routeParams?.entryPoint === 'home';
   const searchOrigin = routeParams?.searchOrigin;
-  const [homeSearchExpanded, setHomeSearchExpanded] = useState(false);
-  const homeSearchOriginStyle = useMemo<ViewStyle | undefined>(
+  const homeSearchTransition = useSharedValue(0);
+  const homeSearchTransitionStarted = useRef(false);
+  const isHomeSearchHandoff = isHomepageSearch && Boolean(searchOrigin);
+  const [isHomepageSearchContentReady, setIsHomepageSearchContentReady] =
+    useState(!isHomepageSearch || isHomeSearchHandoff);
+  const [isHomeSearchAnimationComplete, setIsHomeSearchAnimationComplete] =
+    useState(!isHomeSearchHandoff);
+  const homeSearchAnimatedStyle = useAnimatedStyle(
     () =>
       searchOrigin
         ? {
             height: searchOrigin.height,
-            left: homeSearchExpanded ? 16 : searchOrigin.x,
+            left: interpolate(
+              homeSearchTransition.value,
+              [0, 1],
+              [searchOrigin.x, 16],
+            ),
             position: 'absolute',
+            right: interpolate(
+              homeSearchTransition.value,
+              [0, 1],
+              [screenWidth - searchOrigin.x - searchOrigin.width, 16],
+            ),
             top: searchOrigin.y,
-            width: homeSearchExpanded
-              ? screenWidth - 16 - 72 - 8 - 16
-              : searchOrigin.width,
             zIndex: 10,
           }
-        : undefined,
-    [homeSearchExpanded, screenWidth, searchOrigin],
-  );
-  const homeSearchCancelStyle = useMemo<ViewStyle | undefined>(
-    () =>
-      searchOrigin
-        ? {
-            alignItems: 'center',
-            height: searchOrigin.height,
-            justifyContent: 'center',
-            left: homeSearchExpanded
-              ? screenWidth - 88
-              : searchOrigin.x + searchOrigin.width + 8,
-            position: 'absolute',
-            top: searchOrigin.y,
-            width: 72,
-            zIndex: 10,
-          }
-        : undefined,
-    [homeSearchExpanded, screenWidth, searchOrigin],
+        : {},
+    [screenWidth, searchOrigin],
   );
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -427,11 +459,54 @@ const ExploreSearchScreen: React.FC = () => {
   const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
 
   useEffect(() => {
-    if (isHomepageSearch && searchOrigin && !homeSearchExpanded) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setHomeSearchExpanded(true);
+    if (!isHomepageSearch || isHomeSearchHandoff) {
+      return;
     }
-  }, [homeSearchExpanded, isHomepageSearch, searchOrigin]);
+
+    // Let the input and its focus reaction paint before mounting all feeds.
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const frame = requestAnimationFrame(() => {
+      timeout = setTimeout(() => {
+        setIsHomepageSearchContentReady(true);
+      }, 0);
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
+  }, [isHomeSearchHandoff, isHomepageSearch]);
+
+  useEffect(() => {
+    if (
+      !isHomepageSearch ||
+      !searchOrigin ||
+      homeSearchTransitionStarted.current
+    ) {
+      return;
+    }
+
+    homeSearchTransitionStarted.current = true;
+    homeSearchTransition.value = withTiming(
+      1,
+      {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+      },
+      (finished) => {
+        if (finished) {
+          scheduleOnRN(setIsHomeSearchAnimationComplete, true);
+        }
+      },
+    );
+  }, [
+    homeSearchTransition,
+    isHomepageSearch,
+    isHomeSearchHandoff,
+    searchOrigin,
+  ]);
 
   useEffect(() => {
     if (!routeParams?.entryPoint) {
@@ -472,20 +547,29 @@ const ExploreSearchScreen: React.FC = () => {
           ? strings('wallet.homepage_search_placeholder')
           : undefined
       }
-      autoFocus={isTransitionComplete}
-      dismissVariant={
-        isHomepageSearch ? 'cancel' : isHeaderRefreshEnabled ? 'back' : 'cancel'
+      autoFocus={
+        (isHomepageSearch || isTransitionComplete) &&
+        isHomeSearchAnimationComplete
       }
-      hideDismissButton={isHomepageSearch}
-      showPastePill={showPastePill && !searchQuery}
+      dismissVariant={
+        isHomepageSearch ? 'back' : isHeaderRefreshEnabled ? 'back' : 'cancel'
+      }
+      showPastePill={showPastePill}
       onPastePress={handlePastePress}
-      pasteButtonTestID="homepage-search-paste-button"
+      clipboardButtonTestID="homepage-search-clipboard-button"
       rowTwClassName={isHomepageSearch ? 'flex-1' : undefined}
     />
   );
 
+  const shouldMountSearchContent = isHomepageSearch
+    ? isHomeSearchHandoff
+      ? isHomeSearchAnimationComplete
+      : isHomepageSearchContentReady
+    : isTransitionComplete &&
+      (!isHomeSearchHandoff || isHomeSearchAnimationComplete);
+
   return (
-    <View style={rootContainerStyle}>
+    <Box twClassName="flex-1">
       <Box
         style={{
           paddingTop: insets.top + (Platform.OS === 'android' ? 16 : 0),
@@ -494,20 +578,9 @@ const ExploreSearchScreen: React.FC = () => {
       >
         {isHomepageSearch && searchOrigin ? (
           <>
-            <Box style={homeSearchOriginStyle}>{exploreSearchBar}</Box>
-            <Box style={homeSearchCancelStyle}>
-              <TouchableOpacity
-                onPress={handleSearchCancel}
-                testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-default font-medium"
-                >
-                  {strings('transaction.cancel')}
-                </Text>
-              </TouchableOpacity>
-            </Box>
+            <Animated.View style={homeSearchAnimatedStyle}>
+              {exploreSearchBar}
+            </Animated.View>
             <Box twClassName="h-12" />
           </>
         ) : isHomepageSearch ? (
@@ -516,21 +589,7 @@ const ExploreSearchScreen: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             twClassName="h-12 px-4"
           >
-            <Box twClassName="h-12 w-8" />
-            <Box twClassName="ml-2 flex-1">{exploreSearchBar}</Box>
-            <Box twClassName="w-[72px] items-center justify-center">
-              <TouchableOpacity
-                onPress={handleSearchCancel}
-                testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="text-default font-medium"
-                >
-                  {strings('transaction.cancel')}
-                </Text>
-              </TouchableOpacity>
-            </Box>
+            <Box twClassName="flex-1">{exploreSearchBar}</Box>
           </Box>
         ) : (
           <Box
@@ -550,16 +609,18 @@ const ExploreSearchScreen: React.FC = () => {
           </Box>
         )}
 
-        {isTransitionComplete ? (
-          <PerpsSectionProvider>
+        <PerpsSectionProvider>
+          {shouldMountSearchContent ? (
             <ExploreSearchContent
               searchQuery={searchQuery}
               redactSearchQuery={isClipboardQuery}
             />
-          </PerpsSectionProvider>
-        ) : null}
+          ) : (
+            <ExploreSearchLoadingContent />
+          )}
+        </PerpsSectionProvider>
       </Box>
-    </View>
+    </Box>
   );
 };
 

@@ -7,12 +7,12 @@ import {
 } from 'react-native-reanimated';
 import {
   SEARCH_ACCESSORY_ANIMATION_DURATION,
+  SEARCH_ACCESSORY_CLIPBOARD_WIDTH,
   SEARCH_ACCESSORY_CLEAR_WIDTH,
-  SEARCH_ACCESSORY_PASTE_WIDTH,
 } from './ExploreSearchBar.constants';
 
 /**
- * Animates the search end accessory between the paste pill and clear button.
+ * Animates the search end accessory between the clipboard and clear buttons.
  */
 export const useSearchAccessoryAnimation = (showPastePill: boolean) => {
   const transition = useSharedValue(showPastePill ? 0 : 1);
@@ -27,14 +27,14 @@ export const useSearchAccessoryAnimation = (showPastePill: boolean) => {
     width: interpolate(
       transition.value,
       [0, 1],
-      [SEARCH_ACCESSORY_PASTE_WIDTH, SEARCH_ACCESSORY_CLEAR_WIDTH],
+      [SEARCH_ACCESSORY_CLIPBOARD_WIDTH, SEARCH_ACCESSORY_CLEAR_WIDTH],
     ),
   }));
-  const pasteStyle = useAnimatedStyle(() => ({
+  const clipboardStyle = useAnimatedStyle(() => ({
     opacity: interpolate(transition.value, [0, 0.65, 1], [1, 1, 0]),
     transform: [
       {
-        scaleX: interpolate(transition.value, [0, 0.65, 1], [1, 0.65, 0.2]),
+        scale: interpolate(transition.value, [0, 1], [1, 0.65]),
       },
     ],
   }));
@@ -47,5 +47,5 @@ export const useSearchAccessoryAnimation = (showPastePill: boolean) => {
     ],
   }));
 
-  return { containerStyle, pasteStyle, clearStyle };
+  return { containerStyle, clipboardStyle, clearStyle };
 };

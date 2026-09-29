@@ -55,7 +55,7 @@ describe('WalletHeader', () => {
   });
 
   it('renders the header root and search field', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <WalletHeader {...defaultProps} />,
     );
 
@@ -65,6 +65,9 @@ describe('WalletHeader', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('preserves the legacy header layout for control users', () => {
@@ -88,13 +91,13 @@ describe('WalletHeader', () => {
     expect(defaultProps.handleSearchPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls handleSearchPastePress when the paste pill is pressed', () => {
+  it('calls handleSearchPastePress when the clipboard icon is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeader {...defaultProps} showSearchPastePill />,
     );
 
     fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_PASTE_BUTTON),
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
     );
 
     expect(defaultProps.handleSearchPastePress).toHaveBeenCalledTimes(1);

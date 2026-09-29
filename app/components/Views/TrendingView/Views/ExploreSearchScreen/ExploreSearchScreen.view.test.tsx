@@ -127,11 +127,11 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
     ).toBeOnTheScreen();
 
     await actButtonPress(
-      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
     );
 
     await waitFor(() => {

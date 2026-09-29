@@ -82,7 +82,7 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('textfieldsearch')).toBeDefined();
     });
 
-    it('renders the paste pill when enabled', () => {
+    it('renders the clipboard icon when enabled', () => {
       const mockOnPastePress = jest.fn();
 
       const { getByTestId } = render(
@@ -93,14 +93,14 @@ describe('ExploreSearchBar', () => {
           onCancel={jest.fn()}
           showPastePill
           onPastePress={mockOnPastePress}
-          pasteButtonTestID="homepage-search-paste-button"
+          clipboardButtonTestID="homepage-search-clipboard-button"
         />,
       );
 
-      expect(getByTestId('homepage-search-paste-button')).toBeOnTheScreen();
+      expect(getByTestId('homepage-search-clipboard-button')).toBeOnTheScreen();
     });
 
-    it('handles the paste pill press', () => {
+    it('handles the clipboard icon press', () => {
       const mockOnPastePress = jest.fn();
 
       const { getByTestId } = render(
@@ -111,11 +111,11 @@ describe('ExploreSearchBar', () => {
           onCancel={jest.fn()}
           showPastePill
           onPastePress={mockOnPastePress}
-          pasteButtonTestID="homepage-search-paste-button"
+          clipboardButtonTestID="homepage-search-clipboard-button"
         />,
       );
 
-      fireEvent.press(getByTestId('homepage-search-paste-button'));
+      fireEvent.press(getByTestId('homepage-search-clipboard-button'));
       expect(mockOnPastePress).toHaveBeenCalledTimes(1);
     });
 

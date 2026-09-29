@@ -13,7 +13,7 @@ export const HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS: Record<
   { showPastePill: boolean }
 > = {
   [HomepageSearchPastePillVariant.Control]: {
-    showPastePill: false,
+    showPastePill: true,
   },
   [HomepageSearchPastePillVariant.Treatment]: {
     showPastePill: true,
