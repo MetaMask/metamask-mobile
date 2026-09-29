@@ -357,7 +357,7 @@ export const dismissOnboardingInterestQuestionnaire =
           await Gestures.waitAndTap(
             OnboardingInterestQuestionnaireView.skipButton,
             {
-              timeout: 5000,
+              timeout: 2000,
               checkForDisplayed: true,
               checkEnabled: true,
             },
@@ -365,7 +365,7 @@ export const dismissOnboardingInterestQuestionnaire =
           await Assertions.expectElementToNotBeVisible(
             OnboardingInterestQuestionnaireView.skipButton,
             {
-              timeout: 5000,
+              timeout: 2000,
               description: 'Interest questionnaire skip should close',
             },
           );

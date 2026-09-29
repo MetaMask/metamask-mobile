@@ -52,15 +52,22 @@ class WalletView extends WalletHomeSectionsBase {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
 
+  /**
+   * Wallet account icon / name button — works across both header A/B variants:
+   * - Compact (searchFocused / tradeFocused): `wallet-account-name-button`
+   * - Non-compact (control): `account-picker` (PickerAccount in WalletHeader)
+   */
   get accountIcon(): Promise<AppiumElement> {
-    const id = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    const compactId = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON;
+    const controlId = WalletViewSelectorsIDs.ACCOUNT_ICON;
     if (PlatformDetector.isIOS()) {
-      // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
       return Matchers.getElementByNativeXPath(
-        `//*[contains(@name,'${id}') or contains(@label,'${id}') or contains(@text,'${id}')]`,
+        `//*[contains(@name,'${compactId}') or contains(@name,'${controlId}') or contains(@label,'${compactId}') or contains(@label,'${controlId}')]`,
       );
     }
-    return Matchers.getElementByID(id);
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${compactId}' or @resource-id='${controlId}']`,
+    );
   }
 
   get eyeSlashIcon(): Promise<AppiumElement> {
@@ -111,12 +118,32 @@ class WalletView extends WalletHomeSectionsBase {
     );
   }
 
+  /**
+   * Finds the active account name element regardless of which header variant is
+   * active. Two variants exist:
+   * - Non-compact (control A/B): PickerAccount renders `account-label`
+   * - Compact (searchFocused / tradeFocused A/B): WalletHeaderCompact renders
+   * `wallet-account-name-heading` (no `account-label` in the tree)
+   */
+  private get activeAccountNameElement(): Promise<AppiumElement> {
+    const accountLabel = WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT;
+    const headingLabel = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountLabel}' or @name='${headingLabel}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountLabel}' or @resource-id='${headingLabel}']`,
+    );
+  }
+
   async checkActiveAccount(
     expectedName: string,
     timeout = 10_000,
   ): Promise<void> {
     await Assertions.expectElementToHaveText(
-      this.accountNameLabelText,
+      this.activeAccountNameElement,
       expectedName,
       { timeout },
     );

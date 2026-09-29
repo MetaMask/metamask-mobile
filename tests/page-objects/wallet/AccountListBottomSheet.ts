@@ -17,9 +17,12 @@ import {
   sleep,
   Utilities,
 } from '../../framework';
+import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
+import { getPerformanceLocatorRecovery } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
 import WalletView from './WalletView';
+import { AccountHubSelectorsIDs } from '../../../app/components/Views/AccountHub/AccountHub.testIds';
 
 const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
 
@@ -78,9 +81,7 @@ class AccountListBottomSheet {
   }
 
   get addWalletButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-    );
+    return Matchers.getElementByID(AccountHubSelectorsIDs.ADD_WALLET_BUTTON);
   }
 
   get addEthereumAccountButton(): Promise<AppiumElement> {
@@ -357,9 +358,46 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
-    const name = Matchers.getElementByText(accountName);
-    await Gestures.scrollIntoView(name);
-    await Gestures.waitAndTap(name, {
+    const recovery = getPerformanceLocatorRecovery();
+
+    const { element: accountElement } = await findWithSelfHealingLocator({
+      intent: `scroll account list to and tap account named "${accountName}"`,
+      primary: async () => {
+        if (PlatformDetector.isAndroid()) {
+          // getElementByText finds the Text child, which React Native view-flattening
+          // may detach from its TouchableOpacity — so we anchor on the name text
+          // and step up to the tappable account-cell-select container instead.
+          const cells =
+            await this.getAccountElementsByAccountNameV2(accountName);
+          if (cells.length === 0) {
+            throw new Error(`No account row found for "${accountName}"`);
+          }
+          const cell = cells[cells.length - 1];
+          await Gestures.scrollIntoView(Promise.resolve(cell), {
+            direction: 'down',
+            maxScrolls: 10,
+          });
+          return cell;
+        }
+        const name = Matchers.getElementByText(accountName);
+        await Gestures.scrollIntoView(name);
+        return name;
+      },
+      driver: getDriver(),
+      recovery: recovery?.provider,
+      recoverAction: async (recoveredElement) => {
+        await Gestures.scrollIntoView(Promise.resolve(recoveredElement));
+        return recoveredElement;
+      },
+      onRecovered: async (result) => {
+        logger.info(
+          `AI locator recovery for account "${accountName}": strategy=${result.locator.strategy} value=${result.locator.value} (${result.durationMs}ms)`,
+        );
+        await recovery?.onRecovered?.(result);
+      },
+    });
+
+    await Gestures.waitAndTap(Promise.resolve(accountElement), {
       elemDescription: `Account "${accountName}"`,
     });
     await WalletView.checkActiveAccount(accountName);
@@ -830,9 +868,6 @@ class AccountListBottomSheet {
         }
         await sleep(pollInterval);
       }
-
-      logger.debug('⏳ Step 3: Waiting 1 second...');
-      await sleep(1000);
     } else {
       // Step 2: Wait for "Syncing" to disappear
       logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
@@ -845,10 +880,6 @@ class AccountListBottomSheet {
         }
         await sleep(pollInterval);
       }
-
-      // Step 3: Wait 1 second delay
-      logger.debug('⏳ Step 3: Waiting 1 second...');
-      await sleep(1000);
 
       // Step 4: Wait for "Discovering" to disappear
       logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
