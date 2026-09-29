@@ -67,10 +67,11 @@ export const toCancellationReason = (
  * Maps the server-provided cancellation capability to the request timing.
  *
  * Undefined means cancellation is currently unavailable and no request should
- * be sent.
+ * be sent. `cancelType` is optional on the subscription (absent for paused or
+ * payment-failed crypto subscriptions), which also maps to unavailable.
  */
 export const getCancellationTiming = (
-  cancelType: CancelType,
+  cancelType: CancelType | undefined,
 ): CancellationTiming | undefined => {
   if (cancelType === CANCEL_TYPES.ALLOWED_IMMEDIATE) {
     return CANCELLATION_TIMINGS.IMMEDIATE;

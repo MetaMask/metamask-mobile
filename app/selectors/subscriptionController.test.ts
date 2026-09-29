@@ -6,11 +6,12 @@ import {
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
+  VAULT_NAMES,
+  isVaultShareToken,
   type MoneyAccountEntitlements,
   type PricingCryptoPaymentMethod,
   type PricingResponse,
   type Subscription,
-  type VaultTokenPaymentInfo,
 } from '@metamask/subscription-controller';
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
@@ -134,7 +135,7 @@ const PRICING_FIXTURE: PricingResponse = {
               symbol: 'veda',
               address: VAULT_TOKEN_ADDRESS,
               decimals: 6,
-              isVaultShare: true,
+              vault: VAULT_NAMES.premium,
               accountantAddress: ACCOUNTANT_ADDRESS,
             },
           ],
@@ -263,13 +264,13 @@ describe('subscriptionController selectors', () => {
           method.type === PAYMENT_TYPES.byCrypto &&
           method.cryptoAuthMethod === CRYPTO_AUTH_METHODS.DELEGATION,
       );
-      const vaultToken = cryptoMethod?.chains?.[0]?.tokens.find(
-        (token): token is VaultTokenPaymentInfo => token.isVaultShare === true,
-      );
+      const vaultToken =
+        cryptoMethod?.chains?.[0]?.tokens.find(isVaultShareToken);
 
       expect(cardMethod?.type).toBe(PAYMENT_TYPES.byCard);
       expect(cryptoMethod?.chains?.[0]?.delegateAddress).toBe(DELEGATE_ADDRESS);
       expect(vaultToken?.accountantAddress).toBe(ACCOUNTANT_ADDRESS);
+      expect(vaultToken?.vault).toBe(VAULT_NAMES.premium);
       expect(vaultToken?.conversionRate).toBeUndefined();
     });
   });
