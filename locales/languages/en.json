@@ -1188,12 +1188,31 @@
       "title": "Couldn't continue",
       "description": "Something went wrong while checking your bank account setup. Try again.",
       "button": "Try again"
+    },
+    "vba_details": {
+      "title": "Virtual bank account",
+      "description": "Your account is ready. Details for adding and receiving money will appear here.",
+      "button": "Done"
     }
   },
   "social_leaderboard": {
     "entry_options": {
       "title": "Options",
-      "report": "Report"
+      "report": "Report",
+      "hide_post": "Hide post",
+      "block_user": "Block user",
+      "report_reason_title": "Report",
+      "report_reason_description": "Select the reason that best describes the issue.",
+      "report_reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment or bullying",
+        "misleading": "False or misleading information",
+        "other": "Something else"
+      },
+      "submit_report": "Submit",
+      "post_hidden_confirmation": "Post hidden",
+      "user_blocked_confirmation": "{{username}} has been blocked",
+      "report_confirmation": "Report submitted"
     },
     "feed_sort": {
       "title": "Sort",
@@ -1465,10 +1484,25 @@
       "followers_count_plural": "{{count}} followers",
       "win_rate": "Win rate",
       "pnl_7d": "7D P&L",
+      "pnl_30d": "30D P&L",
       "hold_time": "Avg. hold",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
       "hold_time_days": "{{count}} days",
+      "stats_sheet_title": "30D stats",
+      "stats_sheet_hold_time": "Hold time",
+      "stats_sheet_breakdown": "Breakdown",
+      "stats_sheet_performance": "Performance",
+      "stats_sheet_profile_age": "Profile age",
+      "stats_sheet_positions": "Positions",
+      "stats_sheet_avg_position_value": "Avg. position value",
+      "stats_sheet_avg_30d_sample": "Avg. 30D sample",
+      "stats_sheet_copy_success_rate": "Copy success rate",
+      "stats_sheet_accessibility_label": "View trader stats",
+      "trading_volume": "Trading volume",
+      "number_of_trades": "Number of trades",
+      "followers": "Followers",
+      "trades_copied": "Trades copied",
       "open": "Open",
       "closed": "Closed",
       "no_positions": "No positions yet",
@@ -3715,6 +3749,10 @@
       "sports": "Sports",
       "crypto": "Crypto",
       "politics": "Politics",
+      "esports": "E-sports",
+      "culture": "Culture",
+      "finance": "Finance",
+      "tech": "Tech",
       "hot": "Hot",
       "wimbledon": "Wimbledon"
     },
@@ -4397,13 +4435,14 @@
     "privacy_policy_button": "Privacy Policy",
     "agree": "I Agree",
     "decline": "No thanks",
-    "description_title": "Improve MetaMask",
+    "description_title": "Help us improve MetaMask",
     "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data at any time.",
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
     "gather_basic_usage_title": "Gather basic usage data",
     "gather_basic_usage_description": "We'll collect basic product usage data. We may associate this information with on-chain data.",
     "gather_basic_usage_learn_more": "Learn more",
+    "stay_informed": "Stay informed",
     "checkbox_marketing": "Marketing updates",
     "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
     "action_description_1_prefix": "Private:",
@@ -5547,6 +5586,7 @@
     "convert": "Convert",
     "bridge": "Bridge",
     "earn": "Earn",
+    "orders": "Orders",
     "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
@@ -9074,6 +9114,7 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "membership_top_up_info": "We’ll add {{amount}} to your Money account to cover this payment.",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "receive_title": "Receive",
@@ -9386,8 +9427,10 @@
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
       "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "error_canceling_order": "Could not cancel your order. Please try again.",
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
+      "order_canceled_title": "Order canceled",
       "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
@@ -9415,6 +9458,7 @@
       "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "local_currency_notice": "Prices are shown in your local currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
       "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",

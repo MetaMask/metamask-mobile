@@ -137,10 +137,17 @@ module.exports = {
     // them to `undefined` first, producing the runtime error
     // "The global process.env.EXPO_OS is not defined". Excluding them lets
     // babel-preset-expo define them correctly.
+    // `NODE_ENV` is excluded for the same reason: babel-preset-expo inlines it
+    // from Metro's `dev` option, which is part of Metro's transform cache key.
+    // Inlining the bundler process's NODE_ENV instead is not cache-keyed, so
+    // `expo export:embed --dev false` (which skips --reset-cache in CI) could
+    // reuse transforms made under NODE_ENV=development and ship dev React
+    // (react.development.js, withDevTools) in a release bundle.
     [
       'transform-inline-environment-variables',
       {
         exclude: [
+          'NODE_ENV',
           'JEST_WORKER_ID',
           'EXPO_OS',
           'EXPO_SERVER',

@@ -46,6 +46,7 @@ import {
   FeedSortFilterSheet,
   type FeedSort,
 } from '../components/Filters';
+import { useSocialEntryModeration } from '../components/SocialEntryOptionsBottomSheet';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
@@ -133,6 +134,19 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     error,
     refresh,
   } = useSocialV1Feed(tab);
+  const { isEntryHidden } = useSocialEntryModeration();
+  const visiblePosts = useMemo(
+    () =>
+      posts.filter(
+        (post) =>
+          !isEntryHidden({
+            postId: post.id,
+            authorId: post.item.author.id,
+            authorHandle: post.authorHandle,
+          }),
+      ),
+    [isEntryHidden, posts],
+  );
 
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
@@ -171,7 +185,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const selectedInPosts =
     selectedHotTokenId != null &&
-    posts.some(
+    visiblePosts.some(
       (post) => getSocialV1HotTokenId(post.item) === selectedHotTokenId,
     );
   // A contract chip's token feed does not depend on the unfiltered posts.
@@ -194,15 +208,22 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const filteredPosts = useMemo(() => {
     if (!activeHotTokenId) {
-      return posts;
+      return visiblePosts;
     }
     if (activeTokenFeed) {
-      return activeTokenFeed.posts;
+      return activeTokenFeed.posts.filter(
+        (post) =>
+          !isEntryHidden({
+            postId: post.id,
+            authorId: post.item.author.id,
+            authorHandle: post.authorHandle,
+          }),
+      );
     }
-    return posts.filter(
+    return visiblePosts.filter(
       (post) => getSocialV1HotTokenId(post.item) === activeHotTokenId,
     );
-  }, [activeHotTokenId, activeTokenFeed, posts]);
+  }, [activeHotTokenId, activeTokenFeed, isEntryHidden, visiblePosts]);
 
   const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
     setSelectedHotTokenId((current) =>
@@ -433,7 +454,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           <Box twClassName="pb-8 gap-6">
             {showHotTokens ? (
               <HotTokensCarousel
-                posts={posts}
+                posts={visiblePosts}
                 isLoading={isLoading}
                 selectedTokenId={activeHotTokenId}
                 onTokenPress={handleHotTokenPress}
