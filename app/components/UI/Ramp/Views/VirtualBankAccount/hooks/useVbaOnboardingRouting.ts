@@ -25,9 +25,8 @@ export const navigateToVbaOnboardingDestination = (
   snapshot?: VbaOnboardingSnapshot,
 ): void => {
   if (destinationId === 'complete') {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+    navigation.navigate(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.DETAILS,
     });
     return;
   }

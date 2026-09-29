@@ -8,7 +8,6 @@ import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
-import { useQuickBuyQuickAmountPreferences } from './hooks/useQuickBuyQuickAmountPreferences';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
@@ -25,15 +24,6 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
-jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
-  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
-    buyAmounts: [10, 50, 100, 250],
-    sellPercentages: [25, 50, 75, 100],
-    savePreferences: jest.fn(),
-    isLoaded: true,
-  })),
-}));
-
 jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
@@ -48,7 +38,7 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
-// Captures the onOpenDialog callback registered by QuickBuyRootInner.
+// Captures the onOpenBottomSheet callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -61,7 +51,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    BottomSheet: ReactMock.forwardRef(
       (
         {
           children,
@@ -73,10 +63,10 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
+          onOpenBottomSheet: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
-          onCloseDialog: (cb?: () => void) => cb?.(),
+          onCloseBottomSheet: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
           View,
@@ -217,6 +207,7 @@ const buildHookResult = (
   sourceToken: undefined,
   sourceChainId: '0x1',
   sourceTokenOptions: [],
+  payWithChainIds: [],
   selectedSourceToken: undefined,
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
@@ -238,7 +229,6 @@ const buildHookResult = (
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -262,6 +252,12 @@ const buildHookResult = (
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
   hasNoPayWithFunds: false,
+  hasInsufficientBalance: false,
+  isGasless: false,
+  estimatedReceiveFiat: undefined,
+  gasFeeDeductionLabel: undefined,
+  discountBadge: undefined,
+  baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
@@ -283,9 +279,9 @@ const buildHookResult = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
-  sellDestTokenOptions: [],
-  selectedDestStable: undefined,
-  handleSelectDestStable: jest.fn(),
+  positionTokenFromSetup: undefined,
+  selectedReceiveToken: undefined,
+  handleSelectReceiveToken: jest.fn(),
   amountDisplayMode: 'fiat',
   handleConfirm: jest.fn(),
   ...overrides,
@@ -319,21 +315,11 @@ const setMockQuickBuyController = (
   );
 };
 
-const setMockQuickBuyPreferences = () => {
-  (useQuickBuyQuickAmountPreferences as jest.Mock).mockReturnValue({
-    buyAmounts: [10, 50, 100, 250],
-    sellPercentages: [25, 50, 75, 100],
-    savePreferences: jest.fn(),
-    isLoaded: true,
-  });
-};
-
 describe('QuickBuy.Root', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
     setMockQuickBuyController();
-    setMockQuickBuyPreferences();
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
       destToken: undefined,

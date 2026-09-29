@@ -16,11 +16,12 @@ import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
   selectHasAnyMoneyAccountPlusEntitlement,
-  selectHasMoneyAccountPlusEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
+  selectMoneyAccountPlusSubscription,
+  selectSubscriptionBenefits,
   selectSubscriptionByProduct,
   selectSubscriptionControllerState,
   selectSubscriptionPricing,
@@ -609,34 +610,92 @@ describe('subscriptionController selectors', () => {
         },
       });
 
-    describe('selectHasMoneyAccountPlusEntitlement', () => {
-      it('returns the flag for the requested feature', () => {
-        const state = createPlusState({
-          premiumApy: true,
-          swapFeeWaiver: false,
+    describe('selectSubscriptionBenefits', () => {
+      const benefits = {
+        billingPeriodId: 'bp_2026_08_15',
+        swaps: {
+          feeBips: '0',
+          capMicroUsd: 500_000_000,
+          consumedMicroUsd: 100_000_000,
+          remainingMicroUsd: 400_000_000,
+          exhausted: false,
+        },
+        perps: {
+          builderFeeBips: '0',
+          builderCode: 'code',
+          capMicroUsd: 1_500_000_000,
+          consumedMicroUsd: 500_000_000,
+          remainingMicroUsd: 1_000_000_000,
+          exhausted: false,
+        },
+        predict: {
+          builderCode: 'code',
+          capTxCount: 3,
+          consumedTxCount: 1,
+          remainingTxCount: 2,
+          exhausted: false,
+        },
+      };
+
+      it('returns persisted benefits from controller state', () => {
+        const result = selectSubscriptionBenefits(
+          createState({
+            subscriptions: [],
+            trialedProducts: [],
+            benefits,
+          }),
+        );
+
+        expect(result).toEqual(benefits);
+      });
+
+      it('returns undefined when benefits have not been fetched', () => {
+        expect(
+          selectSubscriptionBenefits(
+            createState({
+              subscriptions: [],
+              trialedProducts: [],
+            }),
+          ),
+        ).toBeUndefined();
+      });
+
+      it('returns undefined when the controller is absent', () => {
+        expect(selectSubscriptionBenefits(createState())).toBeUndefined();
+      });
+    });
+
+    describe('selectMoneyAccountPlusSubscription', () => {
+      it('returns the Plus subscription when present', () => {
+        const plusSubscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
         });
 
         expect(
-          selectHasMoneyAccountPlusEntitlement(
-            state,
-            MoneyAccountFeature.PremiumApy,
+          selectMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [plusSubscription],
+              trialedProducts: [],
+            }),
           ),
-        ).toBe(true);
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            state,
-            MoneyAccountFeature.SwapFeeWaiver,
-          ),
-        ).toBe(false);
+        ).toEqual(plusSubscription);
       });
 
-      it('fails closed when the controller is absent', () => {
+      it('returns undefined when no Plus subscription exists', () => {
         expect(
-          selectHasMoneyAccountPlusEntitlement(
-            createState(),
-            MoneyAccountFeature.PremiumApy,
+          selectMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [
+                createSubscription({
+                  id: 'sub-shield',
+                  products: [createProduct(PRODUCT_TYPES.SHIELD)],
+                }),
+              ],
+              trialedProducts: [],
+            }),
           ),
-        ).toBe(false);
+        ).toBeUndefined();
       });
     });
 
