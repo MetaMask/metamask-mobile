@@ -263,6 +263,32 @@ describe('rampsBuyCufTrace', () => {
     );
   });
 
+  it('does not count the first active event as a resume when the journey starts inactive', () => {
+    appState = 'inactive';
+    const opId = startRampsBuyCufTrace({ startTime: 0 });
+    now = 1_000;
+    appState = 'active';
+    appStateListener('active');
+    now = 2_000;
+
+    endRampsBuyCufTrace();
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: TraceName.RampBuyToOrderDetails, id: opId },
+      RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+      2_000,
+      'millisecond',
+    );
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 0,
+          [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 0,
+        }),
+      }),
+    );
+  });
+
   it('does not treat iOS inactive as a backgrounded quote fetch', () => {
     startRampsBuyCufTrace();
     const quoteId = startRampsBuyQuoteFetchTrace();
@@ -352,6 +378,7 @@ describe('rampsBuyCufTrace', () => {
         name: TraceName.RampBuyContinueToCheckout,
         id: childId,
         parentContext: { mocked: 'parent-span' },
+        maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
       }),
     );
   });
