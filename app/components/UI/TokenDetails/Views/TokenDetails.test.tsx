@@ -18,14 +18,21 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
 } from '../components/abTestConfig';
-import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
+const mockUseLatestOpenRecurringOrderForAsset = jest.fn();
+
+jest.mock('../../Bridge/hooks/useLatestOpenRecurringOrderForAsset', () => ({
+  useLatestOpenRecurringOrderForAsset: (params: unknown) =>
+    mockUseLatestOpenRecurringOrderForAsset(params),
+}));
 
 jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
   useMoneyAssetOverviewCtas: () => mockUseMoneyAssetOverviewCtas(),
@@ -392,13 +399,6 @@ const defaultUseABTestImpl = (key: string) => {
       isActive: false,
     };
   }
-  if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
-    return {
-      variant: { showQuickBuy: true },
-      variantName: 'treatment',
-      isActive: true,
-    };
-  }
   if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
     return {
       variant: { showMoneyDepositFooterCta: false },
@@ -465,6 +465,11 @@ describe('TokenDetails', () => {
       onFooterPress: jest.fn(),
       projectedEarningsFormatted: undefined,
     });
+    mockUseLatestOpenRecurringOrderForAsset.mockReturnValue({
+      order: undefined,
+      isLoading: false,
+      isError: false,
+    });
     mockBeforeRemoveListener = undefined;
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
@@ -520,7 +525,21 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return '0x1234567890123456789012345678901234567890';
+      if (selector === selectBridgeRecurringBuyFeatureFlags)
+        return { enabled: true, enabledChainIds: ['eip155:1'] };
       return undefined;
+    });
+  });
+
+  it('loads the latest open recurring order for the current asset', () => {
+    render(<TokenDetails />);
+
+    expect(mockUseLatestOpenRecurringOrderForAsset).toHaveBeenCalledWith({
+      walletAddress: '0x1234567890123456789012345678901234567890',
+      assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      enabled: true,
     });
   });
 
@@ -800,30 +819,6 @@ describe('TokenDetails', () => {
       expect(getLastQuickBuyProps()).toEqual(
         expect.objectContaining({ isVisible: true }),
       );
-    });
-
-    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the control variant is assigned', () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
-          return {
-            variant: { showQuickBuy: false },
-            variantName: 'control',
-            isActive: true,
-          };
-        }
-        return {
-          variant: { useAmbientPriceColor: false },
-          variantName: 'control',
-          isActive: false,
-        };
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(
-        queryByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON),
-      ).toBeNull();
-      expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
     });
   });
 
