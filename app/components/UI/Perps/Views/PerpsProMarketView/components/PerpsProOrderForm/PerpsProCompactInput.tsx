@@ -153,7 +153,14 @@ const PerpsProCompactInput = React.forwardRef<
     const isInputVisible = !usesFloatingLabel || isInlineActive;
     useImperativeHandle(
       ref,
-      () => ({ focus: () => inputRef.current?.focus() }),
+      () => ({
+        focus: () => {
+          // Match a tap: expand the empty inline field, then focus it once it
+          // has a real frame. Focusing the collapsed input dismisses iOS.
+          setIsFocused(true);
+          setShouldFocusInput(true);
+        },
+      }),
       [],
     );
     const inputAccessoryViewID =
@@ -232,7 +239,11 @@ const PerpsProCompactInput = React.forwardRef<
           importantForAccessibility={isInputVisible ? 'yes' : 'no'}
         />
         {isFocused ? (
-          <Box testID={`${testID}-keyboard-focus`} accessible={false} />
+          <Box
+            testID={`${testID}-keyboard-focus`}
+            accessible={false}
+            twClassName="absolute h-0 w-0 overflow-hidden"
+          />
         ) : null}
       </>
     );
