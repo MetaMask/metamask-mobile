@@ -2330,7 +2330,7 @@ enum DESCRIPTION {
   SEND_ASSET_SELECTED = 'Send asset selected',
   SEND_AMOUNT_SELECTED = 'Send amount selected',
   SEND_RECIPIENT_SELECTED = 'Send recipient selected',
-  SEND_EXIT = 'Send flow exitted',
+  SEND_EXIT = 'Send flow exited',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,

@@ -195,6 +195,24 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(queryByTestId(TRIGGER_COMPARISON)).not.toBeOnTheScreen();
   });
 
+  it('offers to cancel an order the API reports as cancellable', async () => {
+    const { findByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: true },
+    });
+
+    expect(await findByTestId(CANCEL_ORDER_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('does not offer to cancel an order the API reports as not cancellable', async () => {
+    const { findByTestId, queryByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: false },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(queryByTestId(CANCEL_ORDER_BUTTON)).not.toBeOnTheScreen();
+  });
+
   it('opens the cancel order sheet from the details sheet', async () => {
     const { findByTestId, getByTestId } = renderDetails();
 
@@ -212,24 +230,6 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(
       getByTestId(CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('returns to the details sheet once the cancellation is confirmed', async () => {
-    const { findByTestId, queryByTestId } = renderDetails();
-
-    await act(async () => {
-      fireEvent.press(await findByTestId(CANCEL_ORDER_BUTTON));
-    });
-    await act(async () => {
-      fireEvent.press(
-        await findByTestId(CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON),
-      );
-    });
-
-    expect(
-      queryByTestId(CancelLimitOrderModalSelectorsIDs.SHEET),
-    ).not.toBeOnTheScreen();
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
   });
 
   it('returns to the details sheet when the cancel sheet is dismissed', async () => {

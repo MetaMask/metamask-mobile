@@ -36,8 +36,10 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
   MOCK_RECURRING_OPEN_ORDER_3,
 } from '../../../api/recurringOrders.mock';
+import { getRecurringOrders } from '../../../api/recurringOrders';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import {
+  type GetRecurringOrdersResponse,
   RecurringOrderStatus,
   type RecurringOrder,
 } from '../../../api/recurringOrders.types';
@@ -69,6 +71,7 @@ const ETH_EUR_RATE = 1800;
 const MUSD_ETH_PRICE = 0.0005;
 const MUSD_USD_RATE = ETH_USD_RATE * MUSD_ETH_PRICE;
 const MUSD_EUR_RATE = ETH_EUR_RATE * MUSD_ETH_PRICE;
+const recurringOrdersRequest = jest.fn(getRecurringOrders);
 const STORED_USD_PRICE_RANGE: RecurringPriceRange = {
   tokenSide: 'dest',
   currency: USD_PRICE_RANGE_CURRENCY,
@@ -444,7 +447,11 @@ async function selectPriceRangeSourceToken(
 
 describeForPlatforms('BridgeRecurringBuyView', () => {
   beforeEach(() => {
-    setupRecurringOrdersDataServiceMock();
+    recurringOrdersRequest.mockClear();
+    recurringOrdersRequest.mockImplementation(getRecurringOrders);
+    setupRecurringOrdersDataServiceMock({
+      recurringOrders: recurringOrdersRequest,
+    });
   });
 
   afterEach(() => {
@@ -1237,6 +1244,99 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     [MOCK_RECURRING_COMPLETED_ORDER, MOCK_RECURRING_CANCELLED_ORDER].forEach(
       (order) => assertRecurringOrderRow(renderResult, order),
     );
+  });
+
+  it('refreshes the active Open orders query', async () => {
+    const renderResult = renderBridgeView();
+    await openRecurringTab(renderResult);
+    await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+        MOCK_RECURRING_OPEN_ORDER.orderId,
+      ),
+    );
+    recurringOrdersRequest.mockClear();
+
+    await act(async () => {
+      await renderResult
+        .getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL)
+        .props.refreshControl.props.onRefresh();
+    });
+
+    expect(recurringOrdersRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: [RecurringOrderStatus.Open],
+      }),
+    );
+  });
+
+  it('refreshes the active History orders query', async () => {
+    const renderResult = renderBridgeView();
+    await openRecurringTab(renderResult);
+    await userEvent.press(
+      renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+    );
+    await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
+        MOCK_RECURRING_COMPLETED_ORDER.orderId,
+      ),
+    );
+    recurringOrdersRequest.mockClear();
+
+    await act(async () => {
+      await renderResult
+        .getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL)
+        .props.refreshControl.props.onRefresh();
+    });
+
+    expect(recurringOrdersRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: [
+          RecurringOrderStatus.Completed,
+          RecurringOrderStatus.Cancelled,
+        ],
+      }),
+    );
+  });
+
+  it('keeps the refresh spinner visible until Open orders refreshes', async () => {
+    const renderResult = renderBridgeView();
+    await openRecurringTab(renderResult);
+    await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+        MOCK_RECURRING_OPEN_ORDER.orderId,
+      ),
+    );
+    recurringOrdersRequest.mockClear();
+
+    let resolveRequest!: (response: GetRecurringOrdersResponse) => void;
+    const pendingRequest = new Promise<GetRecurringOrdersResponse>(
+      (resolve) => {
+        resolveRequest = resolve;
+      },
+    );
+    recurringOrdersRequest.mockImplementationOnce(() => pendingRequest);
+
+    let refreshPromise = Promise.resolve();
+    await act(async () => {
+      refreshPromise = renderResult
+        .getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL)
+        .props.refreshControl.props.onRefresh();
+    });
+
+    expect(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL)
+        .props.refreshControl.props.refreshing,
+    ).toBe(true);
+
+    await act(async () => {
+      resolveRequest({ orders: [] });
+      await refreshPromise;
+    });
+
+    expect(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL)
+        .props.refreshControl.props.refreshing,
+    ).toBe(false);
   });
 
   it('reloads only matching orders when the network filter changes', async () => {
