@@ -26,8 +26,10 @@ import { ButtonProps } from '../../../../../component-library/components/Buttons
 import styleSheet from './DeleteAccount.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+} from '@metamask/design-system-react-native';
 import {
   AlignItems,
   FlexDirection,
@@ -107,7 +109,7 @@ export const DeleteAccount = () => {
       >
         <AccountInfo account={account} />
         <BannerAlert
-          severity={BannerAlertSeverity.Error}
+          severity={BannerAlertSeverity.Danger}
           title={strings('multichain_accounts.delete_account.warning_title')}
           description={strings(
             'multichain_accounts.delete_account.warning_description',
