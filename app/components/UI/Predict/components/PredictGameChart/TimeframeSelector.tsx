@@ -42,7 +42,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
             disabled={disabled}
             style={({ pressed }) =>
               tw.style(
-                'px-4 py-2 rounded-md flex-1',
+                'px-4 py-2 rounded-full flex-1',
                 isSelected ? 'bg-background-pressed' : 'bg-transparent',
                 disabled && 'opacity-50',
                 pressed && !isSelected && 'bg-background-hover',

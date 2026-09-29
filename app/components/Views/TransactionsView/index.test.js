@@ -20,14 +20,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () =>
-  jest.fn(() => null),
-);
-
-jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () =>
-  jest.fn(() => null),
-);
-
 jest.mock('../../UI/Transactions', () => {
   const { View, Text } = require('react-native');
   const MockTransactions = ({ transactions, loading }) => (
@@ -80,20 +72,12 @@ const createMockStore = (overrides = {}) =>
               selectedAccount: '0x1234567890abcdef1234567890abcdef12345678',
             },
           },
-          AccountTrackerController: {
-            accountsByChainId: {},
-          },
-          CurrencyRateController: {
+          AssetsController: {
+            assetsBalance: {},
+            assetsInfo: {},
+            customAssets: {},
+            assetsPrices: {},
             currentCurrency: 'USD',
-            currencyRates: {
-              ETH: {
-                conversionRate: 2000,
-              },
-            },
-          },
-          TokensController: {
-            tokens: [],
-            allTokens: {},
           },
           TransactionController: {
             transactions: [mockTransaction],
@@ -111,9 +95,6 @@ const createMockStore = (overrides = {}) =>
           },
           NftController: {
             allNfts: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {},
           },
           BridgeStatusController: {
             bridgeHistory: {},
@@ -176,31 +157,5 @@ describe('TransactionsView', () => {
     );
 
     expect(getByTestId('loading-state')).toBeTruthy();
-  });
-
-  it('uses currency rate polling', () => {
-    const useCurrencyRatePolling = require('../../hooks/AssetPolling/useCurrencyRatePolling');
-    const store = createMockStore();
-
-    render(
-      <Provider store={store}>
-        <TransactionsView />
-      </Provider>,
-    );
-
-    expect(useCurrencyRatePolling).toHaveBeenCalled();
-  });
-
-  it('uses token rates polling', () => {
-    const useTokenRatesPolling = require('../../hooks/AssetPolling/useTokenRatesPolling');
-    const store = createMockStore();
-
-    render(
-      <Provider store={store}>
-        <TransactionsView />
-      </Provider>,
-    );
-
-    expect(useTokenRatesPolling).toHaveBeenCalled();
   });
 });

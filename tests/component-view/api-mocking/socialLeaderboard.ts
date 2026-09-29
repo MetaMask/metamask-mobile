@@ -32,6 +32,7 @@ export interface MockLeaderboardEntry {
   winRate7d: number;
   winRate30d: number;
   pnlPerChain: Record<string, number>;
+  followerCount: number;
 }
 
 /**
@@ -59,6 +60,7 @@ export const mockLeaderboardTraders: MockLeaderboardEntry[] = [
     winRate7d: 0.92,
     winRate30d: 0.88,
     pnlPerChain: { base: 500_000, ethereum: 463_146.8 },
+    followerCount: 48_707,
   },
   {
     profileId: 'trader-2',
@@ -73,6 +75,7 @@ export const mockLeaderboardTraders: MockLeaderboardEntry[] = [
     winRate7d: 0.61,
     winRate30d: 0.58,
     pnlPerChain: { base: 474_751.45 },
+    followerCount: 21_999,
   },
   {
     profileId: 'trader-3',
@@ -87,6 +90,7 @@ export const mockLeaderboardTraders: MockLeaderboardEntry[] = [
     winRate7d: 0.48,
     winRate30d: 0.52,
     pnlPerChain: { hyperliquid: 374_735.16 },
+    followerCount: 11_772,
   },
 ];
 

@@ -5,6 +5,8 @@
 .claude/worktrees/
 # claude code per-user settings (agent-local, not shipped)
 .claude/settings.local.json
+# claude code per-user dev server config (agent-local, not shipped)
+.claude/launch.json
 
 # osx
 .DS_Store

@@ -126,7 +126,7 @@ describe('Feature Flag Registry', () => {
       expect(extendedSportsFlag).toEqual(
         expect.objectContaining({
           versions: expect.objectContaining({
-            '8.6.0': expect.objectContaining({
+            '8.10.0': expect.objectContaining({
               enabledSportsMarketTypes: expect.arrayContaining([
                 'first_half_moneyline',
                 'first_half_spreads',
@@ -155,6 +155,344 @@ describe('Feature Flag Registry', () => {
         enabled: false,
         minimumVersion: '8.10.0',
       });
+    });
+
+    it('keeps the Money hub default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps mUSD conversion and Get-mUSD CTAs default-off', () => {
+      const musdCtaFlags = [
+        'earnMusdCtaEnabled',
+        'earnMusdConversionFlowEnabled',
+        'earnMusdConversionAssetOverviewCtaEnabled',
+        'earnMusdConversionTokenListItemCtaEnabled',
+      ];
+
+      for (const flagName of musdCtaFlags) {
+        expect(getRegistryEntry(flagName)?.productionDefault).toEqual({
+          enabled: false,
+          minimumVersion: '0.0.0',
+        });
+      }
+    });
+
+    it('version-gates the Earn banner and token-list Money CTA on at 8.4.0', () => {
+      expect(
+        getRegistryEntry('earnMoneyEarnBannerEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+      expect(
+        getRegistryEntry('earnMoneyTokenListItemCtaEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+    });
+
+    it('registers Earn catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'earnMoneyDepositCtaTokens',
+        'earnMoneyEarnBannerTokens',
+        'earnMoneyBalanceAnimationEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'musd1313AbtestEarnSectionOnHomepage',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('includes Monad in mUSD token registration chain ids', () => {
+      expect(
+        getRegistryEntry('earnMusdTokenRegistrationChainIds')
+          ?.productionDefault,
+      ).toEqual({
+        chainIds: ['0x1', '0xe708', '0x8f'],
+      });
+    });
+
+    it('pins Earn homepage and token-details A/B flags to control', () => {
+      const abTestFlags = [
+        'musd1313AbtestEarnSectionOnHomepage',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+        const treatment = variants.find(
+          (variant) => variant.name === 'treatment',
+        );
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        expect(treatment?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 0,
+        });
+      }
+    });
+
+    it('version-gates Money account on at 8.0.0', () => {
+      expect(
+        getRegistryEntry('moneyEnableMoneyAccount')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'cardImmersve',
+        'cardImmersveChains',
+        'cardImmersveConfig',
+        'cardImmersveCountries',
+        'cardIntercomSupport',
+        'immersveOnboardingEnabled',
+        'moneyHeadlessAllProviders',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+      expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+      expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.13.0',
+        },
+      });
+    });
+
+    it('keeps Immersve onboarding and Intercom support default-off', () => {
+      expect(
+        getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+      expect(
+        getRegistryEntry('cardIntercomSupport')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('pins the Card attention-badge A/B flag to control', () => {
+      const productionDefault = getRegistryEntry(
+        'cardCARD338AbtestAttentionBadge',
+      )?.productionDefault;
+      expect(Array.isArray(productionDefault)).toBe(true);
+
+      const variants = productionDefault as {
+        name: string;
+        scope: { type: string; value: number };
+      }[];
+      const control = variants.find((variant) => variant.name === 'control');
+      const withBadge = variants.find(
+        (variant) => variant.name === 'withBadge',
+      );
+
+      expect(control?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 1,
+      });
+      expect(withBadge?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 0,
+      });
+    });
+
+    it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'homeTMCU470AbtestTrendingSections',
+        'homeTMCU828AbtestOnboardingChecklistStepper',
+        'aiSocialFeedEnabled',
+        'socialAIQuickBuyStreamQuotes',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('aiSocialLeaderboardOnboaridngEnabled'),
+      ).toBeUndefined();
+    });
+
+    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
+      expect(
+        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+      expect(
+        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+    });
+
+    it('enables the Social AI feed and leaderboard at 8.0.0+', () => {
+      expect(
+        getRegistryEntry('aiSocialFeedEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.3.0',
+      });
+      expect(
+        getRegistryEntry('aiSocialLeaderboardEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('pins Home and Social AI percentage A/B flags to control', () => {
+      const abTestFlags = [
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'homeTMCU610AbtestWalletHomePostOnboardingSteps',
+        'socialAiTSA531AbtestWhatsHappeningExplore',
+        'socialAiTSA612AbtestQuickBuy',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope).toEqual({
+            type: 'percentage_rollout',
+            value: 0,
+          });
+        }
+      }
+
+      expect(
+        (
+          getRegistryEntry('homeTMCU610AbtestWalletHomePostOnboardingSteps')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'postOnboardingSteps']);
+    });
+
+    it('registers Assets and leftover catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'ASSETS3831TestFeatureFlagPermissions',
+        'assetsAccountsApiV6',
+        'assetsMemeCoinView',
+        'networkAssetsSnapsMigrationSolana',
+        'networkAssetsSnapsMigrationStellar',
+        'platformTestStructure',
+        'priceAlertsEnabled',
+        'productSafetyScamQuestionnaireEnabled',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationSolana')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationStellar')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+    });
+
+    it('version-gates global watchlist on at 8.9.0 and price alerts on at 8.2.0', () => {
+      expect(
+        getRegistryEntry('assetsGlobalWatchlistV1')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.9.0',
+      });
+      expect(getRegistryEntry('priceAlertsEnabled')?.productionDefault).toEqual(
+        {
+          enabled: true,
+          minimumVersion: '8.2.0',
+        },
+      );
+    });
+
+    it('pins Assets and Pro-subscription A/B flags to control', () => {
+      const abTestFlags = [
+        'assetsASSETS3205AbtestAmbientPriceColor',
+        'assetsASSETS3380AbtestExploreQuickBuy',
+        'subSUB990AbtestProSubscriptionFlow',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope.value).toBe(0);
+        }
+      }
+
+      expect(
+        (
+          getRegistryEntry('assetsASSETS3380AbtestExploreQuickBuy')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'treatment']);
     });
   });
 

@@ -93,7 +93,7 @@ import {
 import { getFollowTradingHomeRoute } from './socialLeaderboardOnboardingNavigation';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v6.riv');
+const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v7.riv');
 
 const ONBOARDING_SOURCE = 'nux';
 

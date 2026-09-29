@@ -64,7 +64,8 @@ const GetPixKey = () => {
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
   // The user can't agree to disclaimers they haven't been shown.
-  const canAgreeAndContinue = !isLoading && !error && disclaimers.length > 0;
+  const canAgreeAndContinue =
+    !isLoading && !error && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -181,7 +182,7 @@ const GetPixKey = () => {
               </Box>
             </Box>
           ) : (
-            disclaimers.map((disclaimer) => (
+            disclaimers?.map((disclaimer) => (
               <LegalLink
                 key={disclaimer.id}
                 onPress={() => Linking.openURL(disclaimer.url)}

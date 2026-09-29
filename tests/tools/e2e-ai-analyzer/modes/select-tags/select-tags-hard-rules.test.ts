@@ -76,6 +76,8 @@ describe('checkHardRules', () => {
   it.each([
     '.github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs',
     '.github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs',
+    '.github/actions/setup-e2e-env/action.yml',
+    '.github/actions/smart-e2e-selection/action.yml',
     '.github/actions/smart-e2e-selection/e2e-smart-selection.mjs',
     '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs',
     '.github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.mjs',

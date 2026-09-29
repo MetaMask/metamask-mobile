@@ -5,6 +5,25 @@ let mockIsPredictBalanceSelected = true;
 let mockBalance = 100;
 let mockIsBalanceLoading = false;
 let mockPayToken: { balanceUsd?: number } | null = null;
+let mockIsMoneyAccountSelected = false;
+let mockResolvedPayBalanceUsd = 0;
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useTransactionPayBalance',
+  () => ({
+    useMoneyAccountPayBalance: () => ({
+      balanceUsd: mockResolvedPayBalanceUsd,
+      balanceRaw: '0',
+    }),
+  }),
+);
 
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -35,6 +54,8 @@ describe('usePredictBuyAvailableBalance', () => {
     mockBalance = 100;
     mockIsBalanceLoading = false;
     mockPayToken = null;
+    mockIsMoneyAccountSelected = false;
+    mockResolvedPayBalanceUsd = 0;
   });
 
   describe('availableBalance', () => {
@@ -79,6 +100,20 @@ describe('usePredictBuyAvailableBalance', () => {
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
       expect(result.current.availableBalance).toBe(100);
+    });
+
+    it('returns the Money Account redeemable balance instead of the EOA pay token balance', () => {
+      // Money Account pays with mUSD on Monad, so the pay token snapshot
+      // reports the (possibly empty) wallet balance rather than the
+      // redeemable funds the order can actually draw on.
+      mockIsPredictBalanceSelected = false;
+      mockIsMoneyAccountSelected = true;
+      mockPayToken = { balanceUsd: 0 };
+      mockResolvedPayBalanceUsd = 7.56;
+
+      const { result } = renderHook(() => usePredictBuyAvailableBalance());
+
+      expect(result.current.availableBalance).toBe(7.56);
     });
   });
 

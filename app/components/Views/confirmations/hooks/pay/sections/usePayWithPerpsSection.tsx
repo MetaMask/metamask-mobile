@@ -6,6 +6,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
@@ -18,6 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import { RootState } from '../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectPerpsAccountState } from '../../../../../UI/Perps/selectors/perpsController';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
@@ -49,6 +52,12 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const { onReject } = useApprovalRequest();
   const hasLeftForDeposit = useRef(false);
   const isRestoringOrder = useRef(false);
+  const transactionId = transactionMeta?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
@@ -128,7 +137,7 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),
-      isSelected: isPerpsBalanceSelected,
+      isSelected: isPerpsBalanceSelected && !isMoneyAccountSelected,
       trailingElement: (
         <Button
           variant={ButtonVariant.Secondary}
@@ -154,5 +163,6 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     handleSelect,
     isPerpsBalanceSelected,
     isPerpsDepositAndOrder,
+    isMoneyAccountSelected,
   ]);
 }

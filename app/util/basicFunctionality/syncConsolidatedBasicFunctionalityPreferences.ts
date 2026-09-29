@@ -26,7 +26,15 @@ export function syncConsolidatedBasicFunctionalityPreferences(
   PreferencesController.setIsMultiAccountBalancesEnabled(enabled);
   PreferencesController.setSecurityAlertsEnabled(enabled);
   PreferencesController.setUseTokenDetection(enabled);
-  PreferencesController.setUseNftDetection(enabled);
-  PreferencesController.setDisplayNftMedia(enabled);
   PreferencesController.setUseSafeChainsListValidation(enabled);
+
+  // PreferencesController rejects enabling NFT autodetection while NFT media
+  // is off. Enable media first; disable autodetection first.
+  if (enabled) {
+    PreferencesController.setDisplayNftMedia(true);
+    PreferencesController.setUseNftDetection(true);
+  } else {
+    PreferencesController.setUseNftDetection(false);
+    PreferencesController.setDisplayNftMedia(false);
+  }
 }

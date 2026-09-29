@@ -56,6 +56,8 @@ jest.mock('@metamask/perps-controller', () => {
       actualConstants.DEFAULT_ORDER_BOOK_PREFERENCES,
     DEFAULT_SELECTED_ORDER_TYPE: actualConstants.DEFAULT_SELECTED_ORDER_TYPE,
     VISIBLE_CANDLE_COUNT_CONFIG: actualConstants.VISIBLE_CANDLE_COUNT_CONFIG,
+    PERPS_TRANSACTIONS_HISTORY_CONSTANTS:
+      actualConstants.PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
     HYPERLIQUID_TWAP_LIMITS: actualConstants.HYPERLIQUID_TWAP_LIMITS,
     CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
   };
@@ -224,7 +226,6 @@ function buildSeedPrefs(
       pushNotificationsEnabled: false,
       watchlistMarkets: {
         hyperliquid: { testnet: [], mainnet: [] },
-        myx: { testnet: [], mainnet: [] },
       },
     },
     agenticCli: {
@@ -379,7 +380,6 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
           pushNotificationsEnabled: false,
           watchlistMarkets: {
             hyperliquid: { testnet: [], mainnet: ['SOL'] },
-            myx: { testnet: [], mainnet: [] },
           },
         },
       });

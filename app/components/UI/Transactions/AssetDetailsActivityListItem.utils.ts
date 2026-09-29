@@ -6,15 +6,12 @@ import {
   enrichLocalActivity,
   getActivityFromTo,
   getActivityValue,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
   type ActivityListItem,
   type TransactionGroup,
 } from '../../../util/activity-adapters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity enrichment, kept next to the Activity list that owns it; route-isolation backlog
-import {
-  getBridgeActivityStatus,
-  getSwapTokenEnrichment,
-} from '../../Views/ActivityList/hooks/useLocalActivityItems';
 
 export type TransactionWithImportTime = TransactionMeta & {
   insertImportTime?: boolean;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { View as ReactNativeView } from 'react-native';
 import SelectField from './SelectField';
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -81,7 +82,9 @@ describe('SelectField', () => {
   it('applies text-text-alternative style in read-only mode', () => {
     const { getByText } = render(<SelectField value="Canada" />);
     const textElement = getByText('Canada');
-    expect(textElement.props.accessibilityHint).toBe('text-text-alternative');
+    expect(textElement.props.accessibilityHint).toContain(
+      'text-text-alternative',
+    );
   });
 
   it('does not apply alternative text style in interactive mode', () => {
@@ -89,7 +92,23 @@ describe('SelectField', () => {
       <SelectField value="Canada" onPress={mockOnPress} />,
     );
     const textElement = getByText('Canada');
-    expect(textElement.props.accessibilityHint).toBeUndefined();
+    expect(textElement.props.accessibilityHint).not.toContain(
+      'text-text-alternative',
+    );
+  });
+
+  it('renders a start accessory before the value', () => {
+    const { getByTestId } = render(
+      <SelectField
+        value="Account 1"
+        onPress={mockOnPress}
+        startAccessory={<ReactNativeView testID="start-accessory" />}
+        testID="select-field"
+      />,
+    );
+
+    expect(getByTestId('start-accessory')).toBeOnTheScreen();
+    expect(getByTestId('select-field')).toHaveTextContent('Account 1');
   });
 
   it('renders the arrow-down icon when interactive', () => {

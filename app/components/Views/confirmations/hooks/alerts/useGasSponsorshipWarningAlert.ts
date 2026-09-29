@@ -14,7 +14,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 /**
@@ -99,7 +99,7 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
   const isGasSponsored = useIsGasSponsored();
   const { goToBuy } = useRampNavigation();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
 
   const { chainId, simulationData } = transactionMetadata ?? {};
 

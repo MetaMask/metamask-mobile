@@ -5,7 +5,7 @@ import { createBridgeTestState } from '../../testUtils';
 import LimitOrderDetails from './index';
 import { LimitOrderDetailsSelectorsIDs } from './testIds';
 import { ExpirationRowSelectorsIDs } from './ExpirationRow/testIds';
-import { PriceRowSelectorsIDs } from './PriceRow/testIds';
+import { CostToleranceRowSelectorsIDs } from './CostToleranceRow/testIds';
 import type { LimitOrderDetailsProps } from './types';
 
 /**
@@ -17,8 +17,8 @@ import type { LimitOrderDetailsProps } from './types';
 const defaultProps: LimitOrderDetailsProps = {
   expiration: '1 hour',
   onExpirationPress: jest.fn(),
-  slippage: '2%',
-  onPricePress: jest.fn(),
+  costTolerance: '2%',
+  onCostTolerancePress: jest.fn(),
 };
 
 function renderLimitOrderDetails(
@@ -42,14 +42,16 @@ describe('LimitOrderDetails', () => {
     jest.clearAllMocks();
   });
 
-  it('renders expiration and slippage rows when an amount is entered', () => {
+  it('renders expiration and cost tolerance rows when an amount is entered', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
     expect(
       getByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByTestId(ExpirationRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(PriceRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(
+      getByTestId(CostToleranceRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('applies a custom testID when provided', () => {
@@ -94,11 +96,11 @@ describe('LimitOrderDetails', () => {
     expect(defaultProps.onExpirationPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onPricePress when the slippage row is pressed', () => {
+  it('calls onCostTolerancePress when the cost tolerance row is pressed', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
-    fireEvent.press(getByTestId(PriceRowSelectorsIDs.CONTAINER));
+    fireEvent.press(getByTestId(CostToleranceRowSelectorsIDs.CONTAINER));
 
-    expect(defaultProps.onPricePress).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onCostTolerancePress).toHaveBeenCalledTimes(1);
   });
 });

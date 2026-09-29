@@ -174,6 +174,13 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder',
+  () => ({
+    useMoneyAccountDepositAndOrder: jest.fn(),
+  }),
+);
+
 let mockCurrentValue = 20;
 let mockIsOrderNotFilled = false;
 

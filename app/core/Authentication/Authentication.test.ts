@@ -85,6 +85,16 @@ jest.mock('../Braze', () => ({
   clearBrazeUser: () => mockClearBrazeUser(),
 }));
 
+jest.mock('../Braze/resetInProgress', () => {
+  let value = false;
+  return {
+    setBrazeResetInProgress: jest.fn((next: boolean) => {
+      value = next;
+    }),
+    isBrazeResetInProgress: () => value,
+  };
+});
+
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: (...args: unknown[]) =>
@@ -204,9 +214,14 @@ jest.mock('../Engine', () => ({
       },
     },
 
+    AuthenticationController: {
+      clearState: jest.fn(),
+    },
+
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
+      clearState: jest.fn(),
       state: { vault: null },
     },
 
@@ -220,8 +235,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
-      enrichPrimaryProvisioningEntry: jest.fn(),
-      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
+      importRemainingSecrets: jest.fn(),
     },
   },
 }));
@@ -304,6 +318,7 @@ jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
     trackEvent: jest.fn(),
+    identify: jest.fn(),
   },
 }));
 
@@ -1475,10 +1490,6 @@ describe('Authentication', () => {
 
       it('imports remaining QR sync secrets after primary vault restore', async () => {
         const Engine = jest.requireMock('../Engine');
-        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
-        Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
-          PRIMARY_ENTROPY_SOURCE,
-        );
 
         await Authentication.newWalletAndRestore(
           'password',
@@ -1488,9 +1499,6 @@ describe('Authentication', () => {
           true,
         );
 
-        expect(
-          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
-        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
         expect(
           Engine.context.QrSyncController.importRemainingSecrets,
         ).toHaveBeenCalledWith();
@@ -1733,6 +1741,9 @@ describe('Authentication', () => {
       const Engine = jest.requireMock('../Engine');
 
       // Mock the required Engine context methods to fail
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      };
       Engine.context.SeedlessOnboardingController = {
         state: {},
         createToprfKeyAndBackupSeedPhrase: jest
@@ -1763,6 +1774,13 @@ describe('Authentication', () => {
 
       // Verify rollback was called
       expect(newWalletSpy).toHaveBeenCalled();
+      expect(
+        Engine.context.AuthenticationController.clearState,
+      ).toHaveBeenCalled();
+      expect(
+        (Engine.context.AuthenticationController.clearState as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(newWalletSpy.mock.invocationCallOrder[0]);
       expect(
         Engine.context.SeedlessOnboardingController.clearState,
       ).toHaveBeenCalled();
@@ -1888,6 +1906,12 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.submitPassword,
       ).toHaveBeenCalledWith('');
+      expect(
+        Engine.context.AuthenticationController.clearState,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.clearState,
+      ).toHaveBeenCalled();
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
     });
   });
@@ -4444,6 +4468,10 @@ describe('Authentication', () => {
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      } as unknown as (typeof Engine.context)['AuthenticationController'];
+
       Engine.context.SeedlessOnboardingController = {
         clearState: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
@@ -4501,6 +4529,10 @@ describe('Authentication', () => {
     it('completes wallet deletion successfully', async () => {
       // Arrange
       const clearVaultSpy = jest.mocked(clearAllVaultBackups);
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
       const clearStateSpy = jest.spyOn(
         Engine.context.SeedlessOnboardingController,
         'clearState',
@@ -4512,6 +4544,7 @@ describe('Authentication', () => {
 
       // Assert
       expect(clearVaultSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setExistingUser(false),
@@ -4535,6 +4568,10 @@ describe('Authentication', () => {
         dispatch: jest.fn(),
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
+
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      } as unknown as (typeof Engine.context)['AuthenticationController'];
 
       Engine.context.SeedlessOnboardingController = {
         clearState: jest.fn(),
@@ -4562,6 +4599,32 @@ describe('Authentication', () => {
 
     afterEach(() => {
       EngineClass.disableAutomaticVaultBackup = false;
+    });
+
+    it('clears auth state before the throwaway vault and again after lock', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+      const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(lockAppSpy).toHaveBeenCalledWith({ navigateToLogin: false });
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(clearAuthStateSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        lockAppSpy.mock.invocationCallOrder[0],
+      );
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledWith({
+        canonical_profile_id: null,
+      });
     });
 
     it('calls vault backup clear before creating temporary wallet', async () => {
@@ -4623,11 +4686,47 @@ describe('Authentication', () => {
       ).toHaveBeenLastCalledWith(false);
     });
 
+    it('holds the Braze reset flag until the app is locked', async () => {
+      // Arrange
+      const { setBrazeResetInProgress } = jest.requireMock(
+        '../Braze/resetInProgress',
+      ) as {
+        setBrazeResetInProgress: jest.Mock;
+      };
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert - flag is set before the temp vault is created, and cleared
+      // only after lockApp so the deferred useAutoSignIn effect is covered.
+      const setTrueOrder =
+        setBrazeResetInProgress.mock.invocationCallOrder[
+          setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === true)
+        ];
+      const setFalseOrder =
+        setBrazeResetInProgress.mock.invocationCallOrder[
+          setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === false)
+        ];
+      expect(setTrueOrder).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(setFalseOrder).toBeGreaterThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
     it('calls all required methods to reset wallet state', async () => {
       // Arrange
       const newWalletAndKeychain = jest.spyOn(
         Authentication,
         'newWalletAndKeychain',
+      );
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
       );
       const clearStateSpy = jest.spyOn(
         Engine.context.SeedlessOnboardingController,
@@ -4646,6 +4745,13 @@ describe('Authentication', () => {
       expect(newWalletAndKeychain).toHaveBeenCalledWith(expect.any(String), {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
+      expect(clearAuthStateSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
+      );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(
@@ -4665,6 +4771,23 @@ describe('Authentication', () => {
       expect(Authentication.lockApp).toHaveBeenCalledWith({
         navigateToLogin: false,
       });
+    });
+
+    it('clears auth state after a later reset step throws', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('lock failed'));
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
     });
 
     it('logs error when resetWalletState fails', async () => {

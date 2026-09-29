@@ -22,13 +22,19 @@ jest.mock('../../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { success: { default: 'mock-success' } } }),
 }));
 
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: () => ({}) }));
+
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      addProperties: () => ({ build: () => ({}) }),
-      build: () => ({}),
-    }),
+    createEventBuilder: (event: unknown) => {
+      mockCreateEventBuilder(event);
+      return {
+        addProperties: mockAddProperties,
+        build: () => ({}),
+      };
+    },
   }),
 }));
 
@@ -45,15 +51,18 @@ jest.mock('../../../hooks/useCardFreeze', () => ({
   default: () => ({ freeze: jest.fn(), unfreeze: jest.fn() }),
 }));
 
-jest.mock('../../../hooks/useCardDetailsToken', () => ({
-  __esModule: true,
-  default: () => ({
-    fetchCardDetailsToken: jest.fn(),
-    isLoading: false,
-    isImageLoading: false,
-    onImageLoad: jest.fn(),
-    imageUrl: undefined,
-    clearImageUrl: jest.fn(),
+jest.mock('../../../hooks/useRevealCardDetails', () => ({
+  useRevealCardDetails: () => ({
+    isCardDetailsLoading: false,
+    isCardDetailsImageLoading: false,
+    onCardDetailsImageLoad: jest.fn(),
+    cardDetailsImageUrl: undefined,
+    onCardDetailsImageError: jest.fn(),
+    cardSensitiveDetails: null,
+    isSensitiveDetailsLoading: false,
+    clearCardSensitiveDetails: jest.fn(),
+    copyCardDetail: jest.fn(),
+    viewCardDetailsAction: jest.fn(),
   }),
 }));
 
@@ -104,7 +113,13 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-function setup({ isAuthenticated = true }: { isAuthenticated?: boolean } = {}) {
+function setup({
+  isAuthenticated = true,
+  providerId = 'baanx',
+}: {
+  isAuthenticated?: boolean;
+  providerId?: string;
+} = {}) {
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
   } as never);
@@ -114,7 +129,7 @@ function setup({ isAuthenticated = true }: { isAuthenticated?: boolean } = {}) {
       return isAuthenticated;
     }
     if (selector === selectCardActiveProviderId) {
-      return 'baanx';
+      return providerId;
     }
     // selectSelectedInternalAccountByScope returns a function
     if (typeof selector === 'function') {
@@ -172,6 +187,78 @@ describe('useCardHomeActions — transactionHistoryAction', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
       showAuthPrompt: true,
       postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
+    });
+  });
+});
+
+describe('useCardHomeActions — contactDetailsAction', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens contact details and reports the Immersve entry click', () => {
+    const { result } = setup({ providerId: 'immersve' });
+
+    act(() => {
+      result.current.contactDetailsAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CONTACT_DETAILS);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'immersve',
+      action: 'CONTACT_DETAILS_BUTTON',
+    });
+  });
+
+  it('opens authentication with a contact-details redirect when unauthenticated', () => {
+    const { result } = setup({
+      isAuthenticated: false,
+      providerId: 'immersve',
+    });
+
+    act(() => {
+      result.current.contactDetailsAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+      showAuthPrompt: true,
+      postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
+    });
+  });
+});
+
+describe('useCardHomeActions — redeem entry points', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the credit redeem screen and reports the entry click', () => {
+    const { result } = setup();
+
+    act(() => {
+      result.current.redeemCreditAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CREDIT_REDEEM);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      action: 'CREDIT_BUTTON',
+      type: 'open_redeem',
+    });
+  });
+
+  it('distinguishes the cashback entry click from the withdraw press', () => {
+    const { result } = setup();
+
+    act(() => {
+      result.current.cashbackAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CASHBACK);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      action: 'CASHBACK_BUTTON',
+      type: 'open_redeem',
     });
   });
 });

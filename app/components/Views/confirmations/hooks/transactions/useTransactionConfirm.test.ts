@@ -114,11 +114,11 @@ const gasFeeToken = (
   ({
     tokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
     symbol: 'USDC',
-    transferTransaction: {
+    getTransferTransaction: () => ({
       data: '0xabc',
       to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
       value: '0x0',
-    },
+    }),
     gas: '0x5208',
     maxFeePerGas: '0x1',
     maxPriorityFeePerGas: '0x2',
@@ -824,7 +824,11 @@ describe('useTransactionConfirm', () => {
       });
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(true));
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc', to: '0xdef', value: '0x0' },
+        getTransferTransaction: () => ({
+          data: '0xabc',
+          to: '0xdef',
+          value: '0x0',
+        }),
         gas: '0x5208',
         maxFeePerGas: '0x1',
         maxPriorityFeePerGas: '0x2',
@@ -923,7 +927,7 @@ describe('useTransactionConfirm', () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc' },
+        getTransferTransaction: () => ({ data: '0xabc' }),
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
 
       const { result } = renderHook();
@@ -943,7 +947,7 @@ describe('useTransactionConfirm', () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc' },
+        getTransferTransaction: () => ({ data: '0xabc' }),
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
 
       const { result } = renderHook();
@@ -979,7 +983,7 @@ describe('useTransactionConfirm', () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc' },
+        getTransferTransaction: () => ({ data: '0xabc' }),
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
 
       useTransactionMetadataRequestMock.mockReturnValue({

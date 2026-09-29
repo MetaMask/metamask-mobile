@@ -38,6 +38,9 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
             currentCurrency: 'USD',
             currencyRates: {},
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+          },
           AccountTrackerController: {
             accountsByChainId: {
               '0x1': {
@@ -95,6 +98,26 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
               ETH: { conversionRate: 2000 },
             },
             conversionRate: 2000,
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
           },
           TokenRatesController: {
             marketData: {

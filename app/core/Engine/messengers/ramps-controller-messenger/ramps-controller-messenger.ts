@@ -1,4 +1,5 @@
 import {
+  RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
   RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
@@ -40,12 +41,13 @@ export function getRampsControllerMessenger(
   rootMessenger.delegate({
     messenger,
     actions: [
-      // The controller reads the `moneyHeadlessAllProviders` feature flag
-      // itself for quote widening.
-      'RemoteFeatureFlagController:getState',
       // Spread the package-owned required list so new service actions
-      // (e.g. getDefaultRedirectCallbackUrl) cannot be forgotten at upgrade.
+      // (e.g. getDefaultRedirectCallbackUrl / NeoBankService) cannot be
+      // forgotten at upgrade.
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
+      // The onboarding stage lookup refreshes KYC and resolves the customer
+      // before reading wallet and autoramp status.
+      ...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
     ],
     events: [],
   });

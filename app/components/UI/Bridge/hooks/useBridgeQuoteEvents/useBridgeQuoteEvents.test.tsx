@@ -51,10 +51,10 @@ describe('useBridgeQuoteEvents', () => {
     slippage_limit: 0,
     token_symbol_destination: 'USDC',
     token_symbol_source: 'SOL',
-    usd_amount_source: 0,
-    usd_balance_source: 0,
+    usd_amount_source: 2e21,
+    usd_balance_source: 6000,
     usd_quoted_gas: 0,
-    usd_quoted_return: 0,
+    usd_quoted_return: 57.056221,
   };
 
   beforeEach(() => {

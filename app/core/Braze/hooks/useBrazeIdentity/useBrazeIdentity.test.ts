@@ -10,6 +10,7 @@ import {
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { setBrazeResetInProgress } from '../../resetInProgress';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -61,6 +62,11 @@ const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
           ...(canonicalProfileId
             ? {
                 srpSessionData: {
+                  // Stale first entry from a previous wallet, keyed ahead of
+                  // the live one — the selector must ignore it.
+                  'stale-entropy': {
+                    profile: { canonicalProfileId: 'stale-canonical-profile' },
+                  },
                   'entropy-1': {
                     profile: {
                       profileId: 'per-srp-id',
@@ -77,6 +83,19 @@ const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
                 },
               }
             : {}),
+        },
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: Boolean(canonicalProfileId),
+          keyrings: canonicalProfileId
+            ? [
+                {
+                  type: 'HD Key Tree',
+                  accounts: [],
+                  metadata: { id: 'entropy-1', name: '' },
+                },
+              ]
+            : [],
         },
         NotificationServicesController: {
           ...backgroundState.NotificationServicesController,
@@ -137,6 +156,38 @@ describe('useBrazeIdentity', () => {
 
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
+  });
+
+  it('suppresses the sign-in branch while a wallet reset is in progress', async () => {
+    setBrazeResetInProgress(true);
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-temp-vault';
+    renderHook(() => useBrazeIdentity());
+
+    // Let the effect run; the temp-vault identity must never reach Braze.
+    await waitFor(() =>
+      expect(mockRetryPendingBrazePushUnregistration).not.toHaveBeenCalled(),
+    );
+    expect(mockSetBrazeUser).not.toHaveBeenCalled();
+    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
+  });
+
+  it('identifies normally once the reset flag is cleared', async () => {
+    setBrazeResetInProgress(true);
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-temp-vault';
+    const { rerender } = renderHook(() => useBrazeIdentity());
+
+    expect(mockSetBrazeUser).not.toHaveBeenCalled();
+
+    // Reset finished; the real wallet's sign-in must identify as usual.
+    setBrazeResetInProgress(false);
+    mockCanonicalProfileId = 'canonical-real';
+    rerender({});
+
+    await waitFor(() =>
+      expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-real'),
+    );
   });
 
   it('registers push after Braze identifies the signed-in profile', async () => {

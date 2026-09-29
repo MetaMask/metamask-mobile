@@ -4,6 +4,7 @@ export const AccountHubSelectorsIDs = {
   NOTIFICATIONS_BUTTON: 'account-hub-notifications-button',
   NOTIFICATIONS_BADGE: 'account-hub-notifications-badge',
   MENU_BUTTON: 'account-hub-menu-button',
+  MENU_BADGE: 'account-hub-menu-badge',
   ACCOUNT_AVATAR: 'account-hub-account-avatar',
   ACCOUNT_NAME: 'account-hub-account-name',
   INFO_BUTTON: 'account-hub-info-button',

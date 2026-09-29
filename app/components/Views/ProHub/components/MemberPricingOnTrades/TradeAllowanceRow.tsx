@@ -71,7 +71,11 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
             {label}
           </Text>
           <Box flexDirection={BoxFlexDirection.Row}>
@@ -84,6 +88,7 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
             </Text>
             <Text
               variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {` / ${formatAllowanceValue(item)}`}
@@ -111,7 +116,11 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
         </Box>
       </Box>
 
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {strings(footnoteKey)}
       </Text>
     </Box>

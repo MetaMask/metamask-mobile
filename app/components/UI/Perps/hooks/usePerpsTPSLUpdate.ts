@@ -54,6 +54,10 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
+      // The TP/SL screen dismisses on tap, so the pending toast is the only
+      // feedback until the venue confirms. Every path below replaces it.
+      showToast(PerpsToastOptions.positionManagement.tpsl.updateTPSLInProgress);
+
       // Confirmation CUF: ends when the live positions stream delivers the
       // backend-confirmed TP/SL change (that delivery runs the CUF dispatcher).
       // The optimistic cache patch renders sooner but does not end the span, so

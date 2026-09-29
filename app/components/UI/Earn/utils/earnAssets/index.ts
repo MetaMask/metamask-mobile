@@ -1,9 +1,9 @@
 export {
-  createDiscoveryEarnAsset,
-  createHeldEarnAsset,
+  createTrackedEarnAsset,
+  createUntrackedEarnAsset,
+  earnAssetToBridgeToken,
   earnAssetToToken,
   getAssetEarnId,
-  getEarnAssetMetadata,
 } from './assetAdapters';
 export { buildEarnAssets } from './buildEarnAssets';
 export {
@@ -14,4 +14,11 @@ export {
 export { hasEarnAssetSubsidizedFee } from './earnAssetFee';
 export { deriveEarnAssetDisplayData } from './deriveEarnAssetDisplayData';
 export { deriveMoneyDepositAssets } from './deriveMoneyDepositAssets';
+export {
+  getReadyEarnDepositExperiences,
+  getEarnInputExperiences,
+  getNonMoneyEarnStrategyExperiences,
+  requiresEarnAssetAcquisition,
+} from './earnExperience';
 export { getMoneyDepositPaymentToken } from './getMoneyDepositPaymentToken';
+export { requireTrackedWalletAsset } from './requireTrackedWalletAsset';

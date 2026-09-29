@@ -16,7 +16,7 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { RankMedal, isTopRank } from '../topRank';
-import type { TopTrader } from '../types';
+import type { TraderRowProps } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -29,41 +29,6 @@ const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
 // drifting due to font-scale or button-size differences.
 export const TRADER_ROW_HEIGHT = 71;
-
-/**
- * The figure shown under the username. Callers that rank by something other
- * than PnL (e.g. the leaderboard's Sort by control) pass the ranked value here
- * so the row shows what the list is ordered by.
- */
-export interface TraderRowMetric {
-  /** Pre-formatted value, e.g. `+$45,900.89`, `+43.00%` or `92%`. */
-  label: string;
-  /** Renders the value in success green rather than error red. */
-  isPositive: boolean;
-}
-
-export interface TraderRowProps {
-  trader: TopTrader;
-  /** Defaults to the trader's PnL for the loaded window. */
-  metric?: TraderRowMetric;
-  onFollowPress: (traderId: string) => void;
-  onTraderPress?: (
-    traderId: string,
-    traderName: string,
-    /* Used downstream for podium decoration */
-    overallRank: number,
-  ) => void;
-  /** Whether this trader's alerts are paused. Only used when muting is shown. */
-  isMuted?: boolean;
-  /**
-   * When true (and the trader is followed), render the inline mute chip beside
-   * the Follow button. Gated by the caller on push-notification availability.
-   */
-  showMute?: boolean;
-  /** Toggles the muted state for this trader. */
-  onMuteToggle?: (traderId: string) => void;
-  testID?: string;
-}
 
 /**
  * TraderRow -- a single row in the Top Traders leaderboard.

@@ -41,6 +41,13 @@ import Logger from '../../../../util/Logger';
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+// Only the sink is mocked, so the real `AnalyticsEventBuilder` still runs.
+const mockTrackAnalyticsEvent = jest.fn();
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args: unknown[]) => mockTrackAnalyticsEvent(...args),
+  },
+}));
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn((_request, fn) => fn(undefined)),
@@ -327,6 +334,8 @@ describe('CardController', () => {
       cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
       redeemWithdrawal: null,
+      signInLink: null,
+      accountLookupCache: {},
     });
   });
 
@@ -448,7 +457,7 @@ describe('CardController — auth methods', () => {
 
       await controller.initiateAuth('US');
 
-      expect(provider.initiateAuth).toHaveBeenCalledWith('US', undefined);
+      expect(provider.initiateAuth).toHaveBeenCalledWith('US', {});
       expect(controller.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
@@ -1425,7 +1434,6 @@ describe('CardController — 401 retry and forced logout', () => {
       accessToken: 'newer-at',
     };
     // getValidTokens() sees the stale set; the #forceRefresh re-read sees
-    // the set another caller stored in the meantime.
     mockTokenStore.get
       .mockResolvedValueOnce(mockTokenSet)
       .mockResolvedValue(newerTokenSet);
@@ -2585,7 +2593,6 @@ describe('CardController — freezeCard', () => {
     provider.validateTokens.mockReturnValue('valid');
     provider.freezeCard.mockResolvedValue(undefined);
     // Refresh fails for a non-auth (transient) reason: session stays intact and
-    // the mutation still counts as successful.
     provider.getCardDetails.mockRejectedValue(new Error('network blip'));
 
     const { controller } = buildControllerWithMockMessenger(provider, {
@@ -2732,7 +2739,6 @@ describe('CardController — unfreezeCard', () => {
     provider.validateTokens.mockReturnValue('valid');
     provider.unfreezeCard.mockResolvedValue(undefined);
     // Refresh fails for a non-auth (transient) reason: session stays intact and
-    // the mutation still counts as successful.
     provider.getCardDetails.mockRejectedValue(new Error('network blip'));
 
     const frozenHomeData = {
@@ -3106,6 +3112,7 @@ describe('CardController — getCapabilities', () => {
     supportsTravel: true,
     supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
+    supportsContactDetails: false,
   };
 
   it('returns base capabilities', () => {
@@ -4415,6 +4422,29 @@ describe('CardController — data pass-throughs', () => {
       });
     });
 
+    it('caps excess-precision amounts before submitting to the provider', async () => {
+      const mockWithdraw = jest.fn().mockResolvedValue({ txHash: '0xcap' });
+      const provider = buildMockProvider({
+        withdrawCashback: mockWithdraw,
+        getCashbackWithdrawEstimation: jest.fn().mockResolvedValue({
+          wei: '1',
+          eth: '0.001',
+          price: '0.5',
+          network: 'linea',
+        }),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      await controller.withdrawCashback({ amount: '17.96660759' });
+
+      expect(mockWithdraw).toHaveBeenCalledWith(
+        { amount: '17.9666' },
+        mockTokenSet,
+      );
+    });
+
     it('throws when unsupported', async () => {
       const provider = buildMockProvider({
         withdrawCashback: undefined,
@@ -4833,7 +4863,6 @@ describe('CardController — data pass-throughs', () => {
         });
         const { controller, messenger } =
           buildAuthenticatedController(provider);
-        // Hung receipt never resolves — raceWithTimeout fires.
         wireRedeemNetworkMessenger(
           messenger,
           jest.fn().mockReturnValue(new Promise(() => undefined)),
@@ -5077,6 +5106,349 @@ describe('CardController — data pass-throughs', () => {
         status: 'failed',
         error: { reason: 'submit_failed' },
       });
+    });
+  });
+
+  describe('redeem funnel analytics', () => {
+    // Literals, not `MetaMetricsEvents`: these strings are the wire contract
+    // for the dashboards, so a rename must fail the test.
+    const STARTED = 'Card Redeem Process Started';
+    const COMPLETED = 'Card Redeem Process Completed';
+    const FAILED = 'Card Redeem Process Failed';
+
+    // The parent suite only restores spies, so counts leak without this.
+    beforeEach(() => {
+      mockTrackAnalyticsEvent.mockClear();
+    });
+
+    const emitsOf = (name: string) =>
+      mockTrackAnalyticsEvent.mock.calls
+        .map(([event]) => event as { name: string; properties: unknown })
+        .filter((event) => event.name === name);
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        providerOverrides: {
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xok' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+        amountBucket: '1-10',
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '250' }),
+        providerOverrides: {
+          withdrawCredit: jest.fn().mockResolvedValue({ txHash: '0xok' }),
+          getCreditWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+        amountBucket: '100-1000',
+      },
+    ])(
+      'emits started then completed for a successful $mode redeem',
+      async ({ mode, withdraw, providerOverrides, amountBucket }) => {
+        const provider = buildMockProvider(providerOverrides);
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(messenger);
+        jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+        await withdraw(controller);
+
+        expect(emitsOf(STARTED)).toHaveLength(1);
+        expect(emitsOf(STARTED)[0].properties).toStrictEqual({
+          provider: 'baanx',
+          mode,
+          amount_bucket: amountBucket,
+        });
+        expect(emitsOf(COMPLETED)).toHaveLength(1);
+        expect(emitsOf(COMPLETED)[0].properties).toMatchObject({
+          provider: 'baanx',
+          mode,
+          amount_bucket: amountBucket,
+          chain_id: '0xe708',
+          duration_ms: expect.any(Number),
+        });
+        expect(emitsOf(FAILED)).toHaveLength(0);
+      },
+    );
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        estimationKey: 'getCashbackWithdrawEstimation' as const,
+        submitKey: 'withdrawCashback' as const,
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '5' }),
+        estimationKey: 'getCreditWithdrawEstimation' as const,
+        submitKey: 'withdrawCredit' as const,
+      },
+    ])(
+      'reports an estimation-stage failure for $mode',
+      async ({ mode, withdraw, estimationKey, submitKey }) => {
+        const provider = buildMockProvider({
+          [estimationKey]: jest
+            .fn()
+            .mockRejectedValue(
+              new CardApiError(503, '/withdraw-estimation', 'down'),
+            ),
+          [submitKey]: jest.fn(),
+        });
+        const { controller } = buildAuthenticatedController(provider);
+
+        await expect(withdraw(controller)).rejects.toBeInstanceOf(CardApiError);
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          provider: 'baanx',
+          mode,
+          stage: 'estimation',
+          reason: 'server_error',
+          status_code: 503,
+          chain_id: null,
+          error_name: 'CardApiError',
+        });
+        expect(emitsOf(COMPLETED)).toHaveLength(0);
+      },
+    );
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        providerOverrides: {
+          withdrawCashback: jest
+            .fn()
+            .mockRejectedValue(
+              new CardProviderError(
+                CardProviderErrorCode.Network,
+                'offline',
+                0,
+              ),
+            ),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '5' }),
+        providerOverrides: {
+          withdrawCredit: jest
+            .fn()
+            .mockRejectedValue(
+              new CardProviderError(
+                CardProviderErrorCode.Network,
+                'offline',
+                0,
+              ),
+            ),
+          getCreditWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+    ])(
+      'reports a submit-stage failure for $mode with the resolved chain',
+      async ({ mode, withdraw, providerOverrides }) => {
+        const provider = buildMockProvider(providerOverrides);
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(messenger);
+
+        await expect(withdraw(controller)).rejects.toMatchObject({
+          message: 'offline',
+        });
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          mode,
+          stage: 'submit',
+          reason: 'network',
+          error_code: CardProviderErrorCode.Network,
+          chain_id: '0xe708',
+        });
+      },
+    );
+
+    it.each([
+      {
+        mode: 'cashback' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCashback({ amount: '5' }),
+        providerOverrides: {
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xrev' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+      {
+        mode: 'credit' as const,
+        withdraw: (controller: CardController) =>
+          controller.withdrawCredit({ amount: '5' }),
+        providerOverrides: {
+          withdrawCredit: jest.fn().mockResolvedValue({ txHash: '0xrev' }),
+          getCreditWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        },
+      },
+    ])(
+      'reports an on-chain revert for $mode',
+      async ({ mode, withdraw, providerOverrides }) => {
+        const provider = buildMockProvider(providerOverrides);
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(
+          messenger,
+          jest.fn().mockResolvedValue({ status: '0x0' }),
+        );
+
+        await expect(withdraw(controller)).rejects.toMatchObject({
+          name: 'ExternalTransactionRevertedError',
+        });
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          mode,
+          stage: 'on_chain',
+          reason: 'tx_reverted',
+          chain_id: '0xe708',
+          error_name: 'ExternalTransactionRevertedError',
+        });
+      },
+    );
+
+    it('reports an on-chain timeout with the polling chain', async () => {
+      jest.useFakeTimers();
+      try {
+        const provider = buildMockProvider({
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xtime' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        });
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(
+          messenger,
+          jest.fn().mockReturnValue(new Promise(() => undefined)),
+        );
+
+        const withdrawal = controller.withdrawCashback({ amount: '5' });
+        withdrawal.catch(() => undefined);
+        await jest.advanceTimersByTimeAsync(3 * 60 * 1000 + 1000);
+        await expect(withdrawal).rejects.toMatchObject({
+          name: 'ExternalTransactionReceiptTimeoutError',
+        });
+
+        expect(emitsOf(FAILED)).toHaveLength(1);
+        expect(emitsOf(FAILED)[0].properties).toMatchObject({
+          mode: 'cashback',
+          stage: 'on_chain',
+          reason: 'tx_timeout',
+          chain_id: '0xe708',
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('reports no_polling_chain at the estimation stage', async () => {
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn(),
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue({ ...lineaEstimation, network: 'nope' }),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.withdrawCashback({ amount: '5' }),
+      ).rejects.toThrow('Unable to resolve withdrawal network for monitoring');
+
+      expect(emitsOf(FAILED)).toHaveLength(1);
+      expect(emitsOf(FAILED)[0].properties).toMatchObject({
+        stage: 'estimation',
+        reason: 'no_polling_chain',
+        chain_id: null,
+      });
+    });
+
+    it('does not emit for a duplicate submit rejected while one is in flight', async () => {
+      let resolveEstimation!: (value: unknown) => void;
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xabc' }),
+        getCashbackWithdrawEstimation: jest.fn().mockReturnValue(
+          new Promise((resolve) => {
+            resolveEstimation = resolve;
+          }),
+        ),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      const first = controller.withdrawCashback({ amount: '5' });
+      await expect(
+        controller.withdrawCashback({ amount: '1' }),
+      ).rejects.toBeInstanceOf(CardRedeemWithdrawalInProgressError);
+
+      expect(emitsOf(STARTED)).toHaveLength(1);
+      expect(emitsOf(FAILED)).toHaveLength(0);
+
+      resolveEstimation(lineaEstimation);
+      await first;
+      expect(emitsOf(COMPLETED)).toHaveLength(1);
+    });
+
+    it('does not report a failure when monitoring is abandoned mid-withdrawal', async () => {
+      let resolveSubmit!: (value: unknown) => void;
+      const provider = buildMockProvider({
+        withdrawCashback: jest.fn().mockReturnValue(
+          new Promise((resolve) => {
+            resolveSubmit = resolve;
+          }),
+        ),
+        getCashbackWithdrawEstimation: jest
+          .fn()
+          .mockResolvedValue(lineaEstimation),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      const providerRequest = wireRedeemNetworkMessenger(messenger);
+
+      const withdrawal = controller.withdrawCashback({ amount: '5' });
+      withdrawal.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Abandon while the submit is still in flight, so the monitor's first
+      // `shouldContinue` check cancels without waiting on a poll interval.
+      controller.clearRedeemWithdrawal();
+      resolveSubmit({ txHash: '0xgone' });
+
+      await expect(withdrawal).rejects.toMatchObject({
+        name: 'ExternalTransactionMonitorCancelledError',
+      });
+      expect(providerRequest).not.toHaveBeenCalled();
+      expect(emitsOf(FAILED)).toHaveLength(0);
+      expect(emitsOf(COMPLETED)).toHaveLength(0);
+      expect(emitsOf(STARTED)).toHaveLength(1);
     });
   });
 
@@ -5361,6 +5733,30 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     expect(result).toStrictEqual({ cardId: 'card-1' });
   });
 
+  it('getContactDetails forwards valid tokens and returns contact details', async () => {
+    const getContactDetails = jest.fn().mockResolvedValue({
+      email: 'cardholder@example.com',
+      phone: '+441234567890',
+    });
+    const { controller } = withValidSession({ getContactDetails });
+
+    const result = await controller.getContactDetails();
+
+    expect(getContactDetails).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual({
+      email: 'cardholder@example.com',
+      phone: '+441234567890',
+    });
+  });
+
+  it('getContactDetails throws when the active provider does not support contact reads', async () => {
+    const { controller } = withValidSession();
+
+    await expect(controller.getContactDetails()).rejects.toMatchObject({
+      message: 'Contact details retrieval not supported',
+    });
+  });
+
   it('patchContactDetails forwards details with tokens', async () => {
     const patchContactDetails = jest.fn().mockResolvedValue(undefined);
     const { controller } = withValidSession({ patchContactDetails });
@@ -5454,6 +5850,670 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
         code: CardProviderErrorCode.Network,
         statusCode: 0,
       });
+    });
+  });
+});
+
+describe('CardController — sign-in resolution and migration', () => {
+  const IMMERSVE_FLAGS = {
+    cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+    cardImmersveCountries: ['GB'],
+    cardUkMigrationSignInRouting: { enabled: true, minimumVersion: '0.0.0' },
+  };
+
+  const ADDR_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  const ADDR_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+  const ADDR_C = '0xcccccccccccccccccccccccccccccccccccccccc';
+
+  function buildSignInController({
+    flags = IMMERSVE_FLAGS,
+    lookupAccount,
+    state = {},
+  }: {
+    flags?: Record<string, unknown>;
+    lookupAccount?: jest.Mock;
+    state?: Partial<typeof defaultCardControllerState>;
+  } = {}) {
+    const messenger = buildMockMessenger();
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: flags };
+      }
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'id-1': {
+                address: ADDR_A,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+            },
+            selectedAccount: 'id-1',
+          },
+        };
+      }
+      if (action === 'KeyringController:signPersonalMessage') {
+        return '0xsignature';
+      }
+      return undefined;
+    });
+
+    const immersve = buildMockProvider({
+      id: CardProviderIds.Immersve,
+      capabilities: { authMethod: 'siwe' } as ICardProvider['capabilities'],
+      lookupAccount: lookupAccount ?? jest.fn().mockResolvedValue('not_found'),
+      initiateAuth: jest.fn().mockResolvedValue({
+        id: 'sess-1',
+        currentStep: { type: 'siwe', message: 'Sign in' },
+        _metadata: { address: ADDR_A, country: 'GB' },
+      }),
+      submitCredentials: jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          ...mockTokenSet,
+          providerUserId: 'imv-user',
+          accountAddress: ADDR_A,
+        },
+      }),
+    });
+    const baanx = buildMockProvider({
+      id: CardProviderIds.Baanx,
+      capabilities: {
+        authMethod: 'email_password',
+      } as ICardProvider['capabilities'],
+    });
+
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger,
+      providers: {
+        [CardProviderIds.Immersve]: immersve,
+        [CardProviderIds.Baanx]: baanx,
+      },
+      state,
+    });
+
+    return { controller, immersve, baanx, messenger };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockTokenStore.get.mockResolvedValue(null);
+    mockTokenStore.set.mockResolvedValue(true);
+    mockTokenStore.remove.mockResolvedValue(true);
+  });
+
+  it('includes signInLink and accountLookupCache in default state', () => {
+    const { controller } = buildSignInController();
+    expect(controller.state.signInLink).toBeNull();
+    expect(controller.state.accountLookupCache).toStrictEqual({});
+  });
+
+  describe('getSignInOptions', () => {
+    it('returns Immersve SIWE + Baanx email for GB when Immersve claims the country', () => {
+      const { controller } = buildSignInController();
+      expect(controller.getSignInOptions('GB')).toStrictEqual([
+        { providerId: CardProviderIds.Immersve, method: 'siwe' },
+        { providerId: CardProviderIds.Baanx, method: 'email_password' },
+      ]);
+    });
+
+    it('returns a single email option for US', () => {
+      const { controller } = buildSignInController();
+      expect(controller.getSignInOptions('US')).toStrictEqual([
+        { providerId: CardProviderIds.Baanx, method: 'email_password' },
+      ]);
+    });
+  });
+
+  describe('resolveSignIn', () => {
+    it('returns wallet from a completed record when the address is on device', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'completed',
+            address: ADDR_A,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet',
+        source: 'record',
+        address: ADDR_A,
+      });
+    });
+
+    it('returns wallet_account_missing when the record address is off-device', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'linked',
+            address: ADDR_B,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet_account_missing',
+        address: ADDR_B,
+      });
+    });
+
+    it('returns resume for a started record', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'started',
+            address: ADDR_A,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'resume',
+        address: ADDR_A,
+        stage: 'identity',
+      });
+    });
+
+    it('returns wallet_account_missing when a started record address is off-device', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'started',
+            address: ADDR_B,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet_account_missing',
+        address: ADDR_B,
+      });
+    });
+
+    it('returns email for a single-option country without lookups', async () => {
+      const lookupAccount = jest.fn();
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'US',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({ kind: 'email' });
+      expect(lookupAccount).not.toHaveBeenCalled();
+    });
+
+    it('skips lookups and returns unresolved when routing flag is off', async () => {
+      const lookupAccount = jest.fn();
+      const { controller } = buildSignInController({
+        lookupAccount,
+        flags: {
+          cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+          cardImmersveCountries: ['GB'],
+          cardUkMigrationSignInRouting: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B, ADDR_C],
+          deviceAddresses: [ADDR_A, ADDR_B, ADDR_C],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'no_match',
+      });
+      expect(lookupAccount).not.toHaveBeenCalled();
+    });
+
+    it('writes a linked record when a candidate is found', async () => {
+      const lookupAccount = jest
+        .fn()
+        .mockResolvedValueOnce('not_found')
+        .mockResolvedValueOnce('found')
+        .mockResolvedValueOnce('not_found');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B, ADDR_C],
+          deviceAddresses: [ADDR_A, ADDR_B, ADDR_C],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet',
+        source: 'lookup',
+        address: ADDR_B,
+      });
+      expect(controller.getSignInLink()).toMatchObject({
+        status: 'linked',
+        address: ADDR_B,
+        providerId: CardProviderIds.Immersve,
+      });
+    });
+
+    it('returns unresolved no_match when all candidates are not_found', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('not_found');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B],
+          deviceAddresses: [ADDR_A, ADDR_B],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'no_match',
+      });
+    });
+
+    it('returns unresolved check_failed when any lookup is unknown', async () => {
+      const lookupAccount = jest
+        .fn()
+        .mockResolvedValueOnce('not_found')
+        .mockResolvedValueOnce('unknown');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B],
+          deviceAddresses: [ADDR_A, ADDR_B],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'check_failed',
+      });
+    });
+
+    it('reuses a cached found result without calling lookup again', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await controller.resolveSignIn({
+        country: 'GB',
+        candidateAddresses: [ADDR_A],
+        deviceAddresses: [ADDR_A],
+      });
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+
+      const { controller: controller2 } = buildSignInController({
+        lookupAccount,
+        state: {
+          accountLookupCache: controller.state.accountLookupCache,
+          signInLink: null,
+        },
+      });
+
+      await controller2.resolveSignIn({
+        country: 'GB',
+        candidateAddresses: [ADDR_A],
+        deviceAddresses: [ADDR_A],
+      });
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+    });
+
+    it('reuses a cached not_found result within the 24h TTL', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const cacheKey = `${CardProviderIds.Immersve}:${ADDR_A.toLowerCase()}`;
+      const { controller } = buildSignInController({
+        lookupAccount,
+        state: {
+          accountLookupCache: {
+            [cacheKey]: { result: 'not_found', checkedAt: Date.now() },
+          },
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'no_match',
+      });
+      expect(lookupAccount).not.toHaveBeenCalled();
+    });
+
+    it('looks up again when a cached not_found result is older than 24h', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const cacheKey = `${CardProviderIds.Immersve}:${ADDR_A.toLowerCase()}`;
+      const { controller } = buildSignInController({
+        lookupAccount,
+        state: {
+          accountLookupCache: {
+            [cacheKey]: {
+              result: 'not_found',
+              checkedAt: Date.now() - 25 * 60 * 60 * 1000,
+            },
+          },
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet',
+        source: 'lookup',
+        address: ADDR_A,
+      });
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+    });
+
+    it('times out slow lookups after 2s as check_failed', async () => {
+      jest.useFakeTimers();
+      try {
+        const lookupAccount = jest.fn(
+          () =>
+            new Promise<'found' | 'not_found' | 'unknown'>(() => {
+              // hang
+            }),
+        );
+        const { controller } = buildSignInController({ lookupAccount });
+
+        const promise = controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        });
+        await jest.advanceTimersByTimeAsync(2000);
+        await expect(promise).resolves.toMatchObject({
+          kind: 'unresolved',
+          reason: 'check_failed',
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps a found result when another candidate hangs past the timeout', async () => {
+      jest.useFakeTimers();
+      try {
+        const lookupAccount = jest.fn((address: string) => {
+          if (address === ADDR_A) {
+            return Promise.resolve('found' as const);
+          }
+          return new Promise<'found' | 'not_found' | 'unknown'>(() => {
+            // hang
+          });
+        });
+        const { controller } = buildSignInController({ lookupAccount });
+
+        const promise = controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B],
+          deviceAddresses: [ADDR_A, ADDR_B],
+        });
+        await jest.advanceTimersByTimeAsync(2000);
+        await expect(promise).resolves.toMatchObject({
+          kind: 'wallet',
+          source: 'lookup',
+          address: ADDR_A,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
+  describe('verifyAccountForSignIn', () => {
+    it('returns the live lookup result and caches found/not_found', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const { controller } = buildSignInController({ lookupAccount });
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+
+      await expect(
+        controller.verifyAccountForSignIn(ADDR_A, option),
+      ).resolves.toBe('found');
+      await expect(
+        controller.verifyAccountForSignIn(ADDR_A, option),
+      ).resolves.toBe('found');
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('authenticateWithWallet / migration', () => {
+    it('records started only when beginMigration was called', async () => {
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+
+      const { controller } = buildSignInController();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      expect(controller.getSignInLink()?.status).toBe('linked');
+
+      const { controller: migrating } = buildSignInController();
+      migrating.beginMigration();
+      await migrating.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      expect(migrating.getSignInLink()?.status).toBe('started');
+    });
+
+    it('cancelMigration prevents writing started on the next SIWE auth', async () => {
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      const { controller } = buildSignInController();
+
+      controller.beginMigration();
+      controller.cancelMigration();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(controller.getSignInLink()?.status).toBe('linked');
+    });
+
+    it('does not write started for email_password even if migration flag is set', async () => {
+      const { controller, baanx } = buildSignInController();
+      (baanx.initiateAuth as jest.Mock).mockResolvedValue({
+        id: 'sess-1',
+        currentStep: { type: 'email_password' },
+      });
+      (baanx.submitCredentials as jest.Mock).mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+
+      controller.beginMigration();
+      controller.selectSignInOption(
+        { providerId: CardProviderIds.Baanx, method: 'email_password' },
+        'GB',
+      );
+      await controller.initiateAuth('GB');
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.getSignInLink()).toBeNull();
+    });
+
+    it('markMigrationCompleted writes completed and logs out the previous provider', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'started',
+            address: ADDR_A,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await controller.markMigrationCompleted();
+
+      expect(controller.getSignInLink()?.status).toBe('completed');
+      expect(baanx.logout).toHaveBeenCalled();
+      expect(mockTokenStore.remove).toHaveBeenCalledWith(CardProviderIds.Baanx);
+    });
+
+    it('logoutProvider clears tokens without touching the active session', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+        },
+      });
+
+      await controller.logoutProvider(CardProviderIds.Baanx);
+
+      expect(baanx.logout).toHaveBeenCalled();
+      expect(controller.state.activeProviderId).toBe(CardProviderIds.Immersve);
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe('requestLegacyAccountClosure', () => {
+    it('calls the Baanx provider even when Immersve is the active provider', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+        },
+      });
+      baanx.validateTokens.mockReturnValue('valid');
+      baanx.requestAccountClosure = jest.fn().mockResolvedValue(undefined);
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(mockTokenStore.get).toHaveBeenCalledWith(CardProviderIds.Baanx);
+      expect(baanx.requestAccountClosure).toHaveBeenCalledWith(mockTokenSet);
+    });
+
+    it('does nothing when there are no Baanx tokens', async () => {
+      mockTokenStore.get.mockResolvedValue(null);
+      const { controller, baanx } = buildSignInController();
+      baanx.requestAccountClosure = jest.fn();
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(baanx.requestAccountClosure).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when Baanx tokens are expired', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController();
+      baanx.validateTokens.mockReturnValue('expired');
+      baanx.requestAccountClosure = jest.fn();
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(baanx.requestAccountClosure).not.toHaveBeenCalled();
+    });
+
+    it('swallows and logs provider errors', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController();
+      baanx.validateTokens.mockReturnValue('valid');
+      const error = new Error('closure failed');
+      baanx.requestAccountClosure = jest.fn().mockRejectedValue(error);
+      jest.mocked(Logger.error).mockClear();
+
+      await expect(
+        controller.requestLegacyAccountClosure(),
+      ).resolves.toBeUndefined();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: { feature: 'card', provider: CardProviderIds.Baanx },
+          context: expect.objectContaining({
+            name: 'CardController',
+            data: { method: 'requestLegacyAccountClosure' },
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('selectSignInOption', () => {
+    it('pins activeProviderId without re-resolving from country', () => {
+      const { controller } = buildSignInController({
+        state: { activeProviderId: CardProviderIds.Immersve },
+      });
+
+      controller.selectSignInOption(
+        {
+          providerId: CardProviderIds.Baanx,
+          method: 'email_password',
+        },
+        'GB',
+      );
+
+      expect(controller.state.activeProviderId).toBe(CardProviderIds.Baanx);
+      expect(controller.state.selectedCountry).toBe('GB');
     });
   });
 });

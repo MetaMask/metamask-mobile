@@ -591,7 +591,11 @@ describe('Login', () => {
       ['Decrypt failed', 'generic decryption failure'],
       [
         'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
-        'Android BAD_DECRYPT',
+        'Android legacy OPENSSL BAD_DECRYPT',
+      ],
+      [
+        'Cipher.final(...): Cipher final failed: error:1C800064:Provider routines::bad decrypt',
+        'Android Provider routines bad decrypt',
       ],
       ['error in DoCipher, status: 2', 'Android DoCipher'],
       ['Incorrect password. Try again.', 'incorrect password'],

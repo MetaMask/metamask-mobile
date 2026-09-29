@@ -29,6 +29,7 @@ import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 import { playSelection } from '../../../../../util/haptics';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
@@ -82,19 +83,14 @@ export const useSourceAmountInput = ({
   sourceAmount,
   sourceToken,
   onSourceAmountChange,
-  featureId,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   onSourceAmountChange: (value: string | undefined) => void;
-  /**
-   * Identifies the flow using this input so analytics events are attributed to
-   * it rather than to plain swaps.
-   */
-  featureId: FeatureId;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
+  const featureId = useSwapsFeatureId();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const destToken = useSelector(selectDestToken);
   const currentCurrency = useSelector(selectCurrentCurrency);

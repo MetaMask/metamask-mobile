@@ -1,10 +1,12 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID } from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.constants';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import {
@@ -50,7 +52,8 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock useAnalytics
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
+// Declares the event parameter so recorded calls carry the event name.
+const mockCreateEventBuilder = jest.fn((_eventName: unknown) => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn(() => ({})),
 }));
@@ -193,6 +196,64 @@ describe('AccountSelector', () => {
       [mockAccountGroup1, mockAccountGroup2],
       mockAccountGroup1.id,
     );
+  });
+
+  describe('Search Interacted', () => {
+    const searchInteractedProperties = () =>
+      mockCreateEventBuilder.mock.calls
+        .map(([eventName], index) => ({ eventName, index }))
+        .filter(
+          ({ eventName }) => eventName === MetaMetricsEvents.SEARCH_INTERACTED,
+        )
+        .flatMap(
+          ({ index }) =>
+            mockCreateEventBuilder.mock.results[index].value.addProperties.mock
+              .calls,
+        )
+        .map(([properties]) => properties);
+
+    it('reports focusing the account list search', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      fireEvent(
+        screen.getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+        'focus',
+      );
+
+      expect(searchInteractedProperties()).toContainEqual({
+        source: 'account_list',
+        interaction_type: 'focused',
+      });
+    });
+
+    it('reports a completed search once the query settles', async () => {
+      jest.useFakeTimers();
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      fireEvent.changeText(
+        screen.getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+        'Acc',
+      );
+      await act(async () => {
+        jest.advanceTimersByTime(250);
+      });
+
+      expect(searchInteractedProperties()).toContainEqual({
+        source: 'account_list',
+        interaction_type: 'searched',
+      });
+      jest.useRealTimers();
+    });
   });
 
   describe('Rendering', () => {

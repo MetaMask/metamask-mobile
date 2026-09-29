@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Text } from 'react-native';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../../util/Logger';
 import { loadingSet } from '../../../../actions/user';
@@ -9,12 +9,21 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import type {
+  TopTrader,
+  TraderRowProps,
+} from '../../Homepage/Sections/TopTraders/types';
+/* eslint-enable import-x/no-restricted-paths */
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
+import { readSnapshot } from './leaderboardSnapshot';
+import { REVEAL_DWELL_MS } from './components/useLeaderboardReveal';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
+  getCohortFilterOptionTestId,
+  getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,
   getTypeFilterOptionTestId,
@@ -48,6 +57,14 @@ const selectSort = (sort: LeaderboardSort) => {
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
+
+jest.mock('./leaderboardSnapshot', () => ({
+  ...jest.requireActual('./leaderboardSnapshot'),
+  readSnapshot: jest.fn(() => null),
+  writeSnapshot: jest.fn(),
+}));
+
+const mockReadSnapshot = jest.mocked(readSnapshot);
 
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
 const mockPlayImpact = jest.fn();
@@ -156,6 +173,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 963146.8,
     winRatePercent: 92,
     pnlPerChain: { base: 500000, ethereum: 463146.8 },
+    followerCount: 48707,
     isFollowing: false,
   },
   {
@@ -169,6 +187,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 474751.45,
     winRatePercent: 61,
     pnlPerChain: { base: 474751.45 },
+    followerCount: 21999,
     isFollowing: false,
   },
   {
@@ -182,6 +201,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 374735.16,
     winRatePercent: 48,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
     isFollowing: false,
   },
 ];
@@ -329,6 +349,7 @@ jest.mock('../analytics', () => {
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockReadSnapshot.mockReturnValue(null);
     resetTabResults();
     mockUseTopTradersHook.mockImplementation(
       (options?: UseTopTradersHookOptions) =>
@@ -700,6 +721,124 @@ describe('TopTradersView', () => {
     });
   });
 
+  describe('pinned type filter', () => {
+    it('scopes the queries to the pinned type and hides the type pill', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeNull();
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('does not prefetch the other type queries', () => {
+      jest.useFakeTimers();
+      try {
+        setTabResult('all', { isFetching: false });
+        const { rerender } = renderWithProvider(
+          <TopTradersView pinnedTypeFilter="all" />,
+        );
+
+        rerender(<TopTradersView pinnedTypeFilter="all" />);
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+
+        expectLatestQueryEnabledStates({
+          all: true,
+          tokens: false,
+          perps: false,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps the pinned type enabled when the sort changes', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      selectSort('winRate');
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('reports the pinned type as the analytics chain filter', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+        expect.objectContaining({ chain_filter: 'all' }),
+      );
+    });
+  });
+
+  describe('Social V1 filters', () => {
+    it('shows type, cohort, date range, and ranking chips', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
+      ).toBeNull();
+    });
+
+    it('starts on the all-types query', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('keeps the API sort on pnl when Volume is selected', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
+      );
+      fireEvent.press(
+        screen.getByTestId(getRankingFilterOptionTestId('volume')),
+      );
+
+      const latestCalls = mockUseTopTradersHook.mock.calls.slice(-3);
+      latestCalls.forEach(([options]) => {
+        expect(options).toEqual(expect.objectContaining({ sort: 'pnl' }));
+      });
+    });
+
+    it('selects a trader cohort without changing the fetch sort', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+      );
+      fireEvent.press(screen.getByTestId(getCohortFilterOptionTestId('whale')));
+
+      expect(screen.getByText('Whale')).toBeOnTheScreen();
+    });
+  });
+
   it('uses the spot-only chains for the All tab when perps are disabled', () => {
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
     renderWithProvider(<TopTradersView />);
@@ -801,6 +940,126 @@ describe('TopTradersView', () => {
       screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+  });
+
+  describe('previous-order reveal', () => {
+    it('does not read a snapshot unless the surface opts in', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expect(mockReadSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('reads the snapshot for the active ranking when opted in', () => {
+      renderWithProvider(<TopTradersView revealPreviousOrder />);
+
+      expect(mockReadSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({ type: LANDING_TAB }),
+      );
+    });
+
+    it('renders the remembered order before revealing the fresh one', () => {
+      jest.useFakeTimers();
+      try {
+        // The query has already answered (warm cache), so the only thing
+        // holding the fresh order back is the reveal dwell.
+        setTabResult(LANDING_TAB, { hasFetched: true });
+        // Remembered order is the reverse of the fixture order.
+        mockReadSnapshot.mockReturnValue(
+          [...fixtureTraders].reverse().map((trader, index) => ({
+            ...trader,
+            rank: index + 1,
+          })),
+        );
+
+        renderWithProvider(<TopTradersView revealPreviousOrder />);
+
+        const remembered = screen
+          .getAllByText(/\.eth$/)
+          .map((node) => node.props.children);
+        expect(remembered[0]).toBe('gamma.eth');
+
+        act(() => {
+          jest.advanceTimersByTime(REVEAL_DWELL_MS);
+        });
+
+        const revealed = screen
+          .getAllByText(/\.eth$/)
+          .map((node) => node.props.children);
+        expect(revealed[0]).toBe('alpha.eth');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('suppresses the loading skeleton while a snapshot stands in', () => {
+      setTabResult(LANDING_TAB, {
+        isLoading: true,
+        traders: [],
+        hasFetched: false,
+      });
+      mockReadSnapshot.mockReturnValue(fixtureTraders);
+
+      renderWithProvider(<TopTradersView revealPreviousOrder />);
+
+      expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    });
+  });
+
+  describe('injected row components', () => {
+    it('renders the legacy follow-button row by default', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expect(screen.getAllByText('Follow').length).toBeGreaterThan(0);
+    });
+
+    it('renders an injected RowComponent with the trader and ranked metric', () => {
+      const InjectedRow: React.FC<TraderRowProps> = ({ trader, metric }) => (
+        <Text testID={`injected-row-${trader.id}`}>{metric?.label}</Text>
+      );
+
+      renderWithProvider(<TopTradersView RowComponent={InjectedRow} />);
+
+      expect(screen.getByTestId('injected-row-trader-1')).toBeOnTheScreen();
+      expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+      expect(screen.queryByText('Follow')).toBeNull();
+    });
+
+    it('renders an injected SkeletonComponent while loading', () => {
+      setTabResult(LANDING_TAB, { isLoading: true, traders: [] });
+      const InjectedSkeleton: React.FC = () => (
+        <Text testID="injected-skeleton">loading</Text>
+      );
+
+      renderWithProvider(
+        <TopTradersView SkeletonComponent={InjectedSkeleton} />,
+      );
+
+      expect(screen.getAllByTestId('injected-skeleton').length).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('sizes the skeleton count off the injected rowHeight', () => {
+      setTabResult(LANDING_TAB, { isLoading: true, traders: [] });
+      const InjectedSkeleton: React.FC = () => (
+        <Text testID="injected-skeleton">loading</Text>
+      );
+
+      const renderWithRowHeight = (rowHeight: number) => {
+        const { unmount } = renderWithProvider(
+          <TopTradersView
+            SkeletonComponent={InjectedSkeleton}
+            rowHeight={rowHeight}
+          />,
+        );
+        const count = screen.getAllByTestId('injected-skeleton').length;
+        unmount();
+        return count;
+      };
+
+      // Taller rows cover the viewport with fewer placeholders.
+      expect(renderWithRowHeight(200)).toBeLessThan(renderWithRowHeight(50));
+    });
   });
 
   describe('performance', () => {

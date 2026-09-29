@@ -56,10 +56,12 @@ export function wirePerpsControllerForStore(
   const perpsController = Engine.context.PerpsController as unknown as {
     setProLayoutPreferences: (prefs: ProLayoutPreferencesPatch) => void;
     setPerpsMode: (mode: PerpsMode) => void;
+    setVisibleCandleCount: (count: number) => void;
   };
   const originalSetProLayoutPreferences =
     perpsController.setProLayoutPreferences;
   const originalSetPerpsMode = perpsController.setPerpsMode;
+  const originalSetVisibleCandleCount = perpsController.setVisibleCandleCount;
 
   const syncPerpsControllerState = (patch: Record<string, unknown>): void => {
     const engineWithState = Engine as unknown as EngineWithState;
@@ -114,9 +116,14 @@ export function wirePerpsControllerForStore(
     syncPerpsControllerState({ mode });
   });
 
+  perpsController.setVisibleCandleCount = jest.fn((count: number) => {
+    syncPerpsControllerState({ visibleCandleCount: count });
+  });
+
   return () => {
     perpsController.setProLayoutPreferences = originalSetProLayoutPreferences;
     perpsController.setPerpsMode = originalSetPerpsMode;
+    perpsController.setVisibleCandleCount = originalSetVisibleCandleCount;
     if (previousStore) {
       ReduxService.store = previousStore;
     }

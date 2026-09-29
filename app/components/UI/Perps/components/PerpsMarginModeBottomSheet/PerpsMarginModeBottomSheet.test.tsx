@@ -1,11 +1,25 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
+import { Icon } from '@metamask/design-system-react-native';
 import PerpsMarginModeBottomSheet from './PerpsMarginModeBottomSheet';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
+  const resolveStyle = (...args: unknown[]) => {
+    const classNames = JSON.stringify(args);
+    const style: Record<string, string> = {};
+    if (classNames.includes('bg-background-muted')) {
+      style.backgroundColor = 'muted';
+    }
+    return style;
+  };
+  const tw = (...args: unknown[]) => resolveStyle(...args);
+  tw.style = jest.fn(resolveStyle);
   return { useTailwind: () => tw };
 });
 
@@ -88,6 +102,17 @@ describe('PerpsMarginModeBottomSheet', () => {
       screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
     );
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('highlights Isolated without a selected checkmark', () => {
+    render(<PerpsMarginModeBottomSheet {...defaultProps} />);
+
+    const selectedOption = screen.getByTestId(
+      PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+    );
+
+    expect(selectedOption).toHaveStyle({ backgroundColor: 'muted' });
+    expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
   });
 
   it('calls onClose when the header close button is pressed', () => {

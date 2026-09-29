@@ -23,13 +23,77 @@ import { act } from '@testing-library/react-native';
 import {
   AccountTrackerController,
   TokensController,
+  type AccountTrackerControllerState,
+  type CurrencyRateState,
+  type TokensControllerState,
 } from '@metamask/assets-controllers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { zeroAddress } from 'ethereumjs-util';
 
+// Test-only state shape that keeps the legacy `TokensController` /
+// `AccountTrackerController` / `CurrencyRateController` keys available for
+// the mocked compat selectors above, while still being assignable to
+// `RootState` wherever the real selectors are invoked.
+type MockRootState = RootState & {
+  engine: RootState['engine'] & {
+    backgroundState: RootState['engine']['backgroundState'] & {
+      TokensController: TokensControllerState;
+      AccountTrackerController: AccountTrackerControllerState;
+      CurrencyRateController: CurrencyRateState;
+    };
+  };
+};
+
+// The following AssetsController-derived compat selectors have their own
+// dedicated coverage in assets-migration.test.ts. Here we mock them to read
+// from the legacy `TokensController` / `AccountTrackerController` /
+// `CurrencyRateController` shapes on the mock state so these tests can keep
+// exercising the composition logic in `./evm` without needing to
+// hand-construct full AssetsController fixtures. These are built with
+// `createSelector` (rather than plain functions) so the `.clearCache()`/
+// `.recomputations()` calls elsewhere in this file keep working.
+jest.mock('../assets/assets-migration', () => {
+  const actual = jest.requireActual('../assets/assets-migration');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createSelector } = require('reselect');
+  return {
+    ...actual,
+    getTokensControllerAllTokens: createSelector(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state: any) =>
+        state?.engine?.backgroundState?.TokensController?.allTokens ?? {},
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (allTokens: any) => allTokens,
+    ),
+    getAccountTrackerControllerAccountsByChainId: createSelector(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state: any) =>
+        state?.engine?.backgroundState?.AccountTrackerController
+          ?.accountsByChainId ?? {},
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (accountsByChainId: any) => accountsByChainId,
+    ),
+    getCurrencyRateControllerCurrencyRates: createSelector(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state: any) =>
+        state?.engine?.backgroundState?.CurrencyRateController?.currencyRates ??
+        {},
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (currencyRates: any) => currencyRates,
+    ),
+    getCurrencyRateControllerCurrentCurrency: createSelector(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state: any) =>
+        state?.engine?.backgroundState?.CurrencyRateController?.currentCurrency,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (currentCurrency: any) => currentCurrency,
+    ),
+  };
+});
+
 describe('Multichain Selectors', () => {
-  const mockState: RootState = {
+  const mockState: MockRootState = {
     engine: {
       backgroundState: {
         NetworkController: {
@@ -144,7 +208,7 @@ describe('Multichain Selectors', () => {
     settings: {
       showFiatOnTestnets: true,
     },
-  } as unknown as RootState;
+  } as unknown as MockRootState;
 
   const MOCK_SELECTED_ADDRESS = '0xAddress1';
 
@@ -538,7 +602,8 @@ describe('re-renders', () => {
       name: 'New Token',
     };
 
-    Engine.state.TokensController.allTokens = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (Engine.state as any).TokensController.allTokens = {
       ...mockAllTokens,
       [CHAIN_IDS.MAINNET]: {
         ...mockAllTokens[CHAIN_IDS.MAINNET],
@@ -570,7 +635,8 @@ describe('re-renders', () => {
       mockAccountId,
     );
 
-    Engine.state.TokensController.allTokens = mockAllTokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (Engine.state as any).TokensController.allTokens = mockAllTokens;
 
     act(() => {
       store.dispatch({

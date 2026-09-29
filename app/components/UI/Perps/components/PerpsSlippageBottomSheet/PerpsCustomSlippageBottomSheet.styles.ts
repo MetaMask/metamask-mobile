@@ -3,6 +3,12 @@ import { Theme } from '../../../../../util/theme/models';
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
+    screen: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
     container: {
       paddingHorizontal: 16,
       paddingBottom: 16,

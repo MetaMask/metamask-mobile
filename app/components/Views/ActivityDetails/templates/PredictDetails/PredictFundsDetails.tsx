@@ -95,7 +95,7 @@ export function PredictFundsDetails({
               <ActivityDetailsPayFeesAndTotal pay={pay} />
             ) : null}
             {showPaySection && steps ? (
-              <SectionDivider marginVertical={3} />
+              <SectionDivider marginVertical={0} />
             ) : null}
             {steps ? (
               <ActivityDetailsStepTimeline
