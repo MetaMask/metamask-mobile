@@ -1945,12 +1945,11 @@ describe('MainNavigator', () => {
       container: { root: ReactTestInstance },
       state: ReturnType<typeof stateForArm>,
     ): string | undefined =>
-      renderHomeTabs(container, state)
-        .findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabScreen' &&
-            node.props?.name === Routes.SOCIAL.TAB,
-        )[0]?.props?.component?.name;
+      renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0]?.props?.component?.name;
 
     it.each(['searchFocused', 'tradeFocused'])(
       'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
