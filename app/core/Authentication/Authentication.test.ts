@@ -357,6 +357,12 @@ jest.mock('@sentry/react-native', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
+const mockCaptureExceptionForced = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../util/sentry/utils', () => ({
+  captureExceptionForced: (...args: unknown[]) =>
+    mockCaptureExceptionForced(...args),
+}));
+
 jest.mock('../../components/UI/Ramp/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
 }));
@@ -2066,6 +2072,13 @@ describe('Authentication', () => {
         getState: () => ({
           user: { existingUser: true },
           security: { allowLoginWithRememberMe: true },
+          engine: {
+            backgroundState: {
+              AnalyticsController: {
+                analyticsId: 'test-analytics-id-1745',
+              },
+            },
+          },
         }),
       } as unknown as ReduxStore);
 
@@ -2464,6 +2477,54 @@ describe('Authentication', () => {
           authPreference: mockAuthData,
         }),
       ).rejects.toThrow('No account data found');
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
+        }),
+        {
+          incident: 'incident_1745',
+          shape: 'no_secrets',
+          profile_id: 'test-analytics-id-1745',
+        },
+      );
+    });
+
+    it('force-captures incident_1745 when first secret is not a mnemonic', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockPrivateKeyData,
+          type: SecretType.PrivateKey,
+          itemId: 'pk-only-id',
+          dataType: EncAccountDataType.ImportedPrivateKey,
+        },
+      ]);
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      });
+
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
+        }),
+        {
+          incident: 'incident_1745',
+          shape: 'first_item_not_mnemonic',
+          profile_id: 'test-analytics-id-1745',
+        },
+      );
+      // Still attempts restore with the first secret's data as mnemonic bytes
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
     });
 
     it('re-throw errors from fetchAllSeedPhrases', async () => {
@@ -4005,6 +4066,9 @@ describe('Authentication', () => {
                 vault: 'existing vault data',
                 socialBackupsMetadata: [],
               },
+              AnalyticsController: {
+                analyticsId: 'test-analytics-id-1745',
+              },
             },
           },
         }),
@@ -4154,6 +4218,16 @@ describe('Authentication', () => {
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
         'No root SRP found',
       );
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'incident_1745: no root SRP found in syncSeedPhrases',
+        }),
+        {
+          incident: 'incident_1745',
+          shape: 'no_root_srp',
+          profile_id: 'test-analytics-id-1745',
+        },
+      );
     });
 
     it('throw error when root secret is falsy', async () => {
@@ -4166,6 +4240,41 @@ describe('Authentication', () => {
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
         'No root SRP found',
       );
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'incident_1745: no root SRP found in syncSeedPhrases',
+        }),
+        expect.objectContaining({
+          incident: 'incident_1745',
+          shape: 'no_root_srp',
+          profile_id: 'test-analytics-id-1745',
+        }),
+      );
+    });
+
+    it('force-captures first_item_not_mnemonic when root secret is a private key', async () => {
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockPrivateKeySecret, mockMnemonicSecret],
+      );
+
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'No root SRP found',
+      );
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in syncSeedPhrases',
+        }),
+        {
+          incident: 'incident_1745',
+          shape: 'first_item_not_mnemonic',
+          profile_id: 'test-analytics-id-1745',
+        },
+      );
+      expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
     });
 
     it('handle SeedlessOnboardingController.fetchAllSecretData failure', async () => {

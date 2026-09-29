@@ -38,9 +38,27 @@ const patchPage = (
   return changed ? { page: { ...page, items }, changed } : { page, changed };
 };
 
+const patchInfiniteFeedData = (
+  old: InfiniteData<FeedResponse> | undefined,
+  commentId: string,
+  engagement: CommentEngagement,
+): InfiniteData<FeedResponse> | undefined => {
+  if (!old) {
+    return old;
+  }
+  let anyChanged = false;
+  const pages = old.pages.map((page) => {
+    const { page: nextPage, changed } = patchPage(page, commentId, engagement);
+    anyChanged = anyChanged || changed;
+    return nextPage;
+  });
+  return anyChanged ? { ...old, pages } : old;
+};
+
 /**
- * Writes confirmed Call engagement into both warmed feed caches so refresh,
- * remount, and list reshuffles see the same counts the user just committed.
+ * Writes confirmed Call engagement into warmed feed caches (main feed and
+ * owner self-feed) so refresh, remount, and list reshuffles see the same
+ * counts the user just committed.
  */
 export const patchFeedCommentEngagementInCache = (
   queryClient: QueryClient,
@@ -49,21 +67,19 @@ export const patchFeedCommentEngagementInCache = (
 ): void => {
   for (const audience of PREFETCH_FEED_AUDIENCES) {
     const queryKey = buildTraderFeedQueryKey(toFeedScope(audience));
-    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) => {
-      if (!old) {
-        return old;
-      }
-      let anyChanged = false;
-      const pages = old.pages.map((page) => {
-        const { page: nextPage, changed } = patchPage(
-          page,
-          commentId,
-          engagement,
-        );
-        anyChanged = anyChanged || changed;
-        return nextPage;
-      });
-      return anyChanged ? { ...old, pages } : old;
-    });
+    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
+      patchInfiniteFeedData(old, commentId, engagement),
+    );
+  }
+
+  const selfFeedQueries = queryClient.getQueriesData<
+    InfiniteData<FeedResponse>
+  >({
+    queryKey: ['SocialService:fetchTraderFeed'],
+  });
+  for (const [queryKey] of selfFeedQueries) {
+    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
+      patchInfiniteFeedData(old, commentId, engagement),
+    );
   }
 };

@@ -489,6 +489,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
   [DeepLinkRoute.MONEY]: extractInvalidProperties,
   [DeepLinkRoute.PRIVACY]: extractInvalidProperties,
+  [DeepLinkRoute.NOTIFICATIONS_SETTINGS]: extractInvalidProperties,
 };
 
 /**
@@ -647,6 +648,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.MONEY;
     case ACTIONS.PRIVACY:
       return DeepLinkRoute.PRIVACY;
+    case ACTIONS.NOTIFICATIONS_SETTINGS:
+      return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -715,6 +718,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.MONEY;
       case 'privacy':
         return DeepLinkRoute.PRIVACY;
+      case 'notifications-settings':
+        return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

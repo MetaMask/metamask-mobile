@@ -428,9 +428,11 @@ describe('PredictMarketDetails', () => {
     it('shows volume, end date and the resolution provider for the loaded market', async () => {
       givenMarket({ ...MOCK_PREDICT_MARKET, endDate: '2026-12-31' });
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -448,9 +450,11 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows N/A as the end date when the market has none', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -465,7 +469,7 @@ describe('PredictMarketDetails', () => {
           extraRoutes: [{ name: Routes.WEBVIEW.MAIN }],
         });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
       fireEvent.press(await findByText('Polymarket'));
 
       expect(
@@ -786,6 +790,9 @@ describe('PredictMarketDetails', () => {
       const { findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await findByText('1D');
+      await findByText('MAX');
 
       fireEvent.press(await findByText('1W'));
 
