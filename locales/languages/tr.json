@@ -2049,7 +2049,7 @@
         "scale_price_above_warning": "Fiyat aralığınız mevcut fiyatın üzerindedir; bu nedenle emir anında alıcı emri olarak gerçekleşebilir ve alıcı komisyonuna tabi olabilir.",
         "scale_price_below_warning": "Fiyat aralığınız mevcut fiyatın altındadır; bu nedenle emir anında alıcı emri olarak gerçekleşebilir ve alıcı komisyonuna tabi olabilir.",
         "scale_price_above_partial_warning": "Fiyat aralığınızın bir kısmı güncel fiyatın üzerindedir ve anında alıcı emri olarak gerçekleşebilir.",
-        "scale_price_below_partial_warning": "Fiyat aralığınızın bir kısmı mevcut fiyatın altındadır ve anında alıcı emri olarak gerçekleşebilir.",
+        "scale_price_below_partial_warning": "Fiyat aralığınızın bir kısmı mevcut fiyatın altındadır; bu nedenle emir anında alıcı emri olarak gerçekleşebilir ve alıcı komisyonuna tabi olabilir.",
         "trigger_must_be_above_mid": "Tetikleme fiyatı orta fiyattan yüksek olmalıdır",
         "trigger_must_be_below_mid": "Tetikleme fiyatı orta fiyattan düşük olmalıdır",
         "trigger_orders_unavailable": "Tetiklemeli emirler geçici olarak kullanılamıyor. Bir piyasa emri seçin.",

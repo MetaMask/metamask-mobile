@@ -2049,7 +2049,7 @@
         "scale_price_above_warning": "Votre fourchette de prix est supérieure au cours actuel et l'ordre pourrait être exécuté immédiatement en tant qu'ordre « taker », ce qui entraînerait des frais d’ordre « taker ».",
         "scale_price_below_warning": "Votre fourchette de prix est inférieure au cours actuel et l'ordre pourrait être exécuté immédiatement en tant qu'ordre « taker », ce qui entraînerait des frais d’ordre « taker ».",
         "scale_price_above_partial_warning": "Une partie de votre fourchette de prix est supérieure au prix actuel et peut être exécutée immédiatement en tant qu’ordre « taker ».",
-        "scale_price_below_partial_warning": "Une partie de votre fourchette de prix est inférieure au cours actuel et peut être exécutée immédiatement en tant qu’ordre « taker ».",
+        "scale_price_below_partial_warning": "Une partie de votre fourchette de prix est inférieure au cours actuel et l'ordre pourrait être exécuté immédiatement en tant qu'ordre « taker », ce qui entraînerait des frais d’ordre « taker ».",
         "trigger_must_be_above_mid": "Le prix déclencheur doit être supérieur au prix moyen",
         "trigger_must_be_below_mid": "Le prix déclencheur doit être inférieur au prix moyen",
         "trigger_orders_unavailable": "Les ordres à prix déclencheur sont temporairement indisponibles. Sélectionnez un ordre au marché.",
