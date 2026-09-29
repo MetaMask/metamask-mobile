@@ -14,6 +14,7 @@ import {
   type DeeplinkPerfAppStartType,
 } from '../../Performance/DeeplinkPerformance';
 import {
+  cancelUnlockHomepageReadyForDeeplink,
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
@@ -122,6 +123,7 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 };
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
+  cancelUnlockHomepageReadyForDeeplink();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;

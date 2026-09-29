@@ -8,6 +8,7 @@ import {
   startDeeplinkNavigatedTrace,
 } from './DeeplinkPerformance';
 import {
+  cancelUnlockHomepageReadyForDeeplink,
   cancelUnlockTraces,
   clearUnlockAppStartType,
   getUnlockAppStartType,
@@ -313,6 +314,42 @@ describe('unlockTraces', () => {
         reason: 'unlock_failed',
         traceToken: 2,
       });
+    });
+  });
+
+  describe('cancelUnlockHomepageReadyForDeeplink', () => {
+    it('cancels the Homepage Ready of this unlock when a deeplink was pending at hand-back', () => {
+      mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
+      startUnlockTraces(keychainOptions());
+      // `handleDeeplinkSaga` consumes the live link during `dispatchLogin`.
+      mockAppState.pendingDeeplink = null;
+
+      cancelUnlockHomepageReadyForDeeplink();
+
+      expect(mockCancelHomepage).toHaveBeenCalledWith({
+        reason: 'deeplink',
+        traceToken: 1,
+      });
+    });
+
+    it('cancels the Homepage Ready of this unlock when a deeplink arrived after hand-back', () => {
+      startUnlockTraces(keychainOptions());
+      mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
+
+      cancelUnlockHomepageReadyForDeeplink();
+
+      expect(mockCancelHomepage).toHaveBeenCalledWith({
+        reason: 'deeplink',
+        traceToken: 1,
+      });
+    });
+
+    it('keeps Homepage Ready when no deeplink is pending', () => {
+      startUnlockTraces(keychainOptions());
+
+      cancelUnlockHomepageReadyForDeeplink();
+
+      expect(mockCancelHomepage).not.toHaveBeenCalled();
     });
   });
 

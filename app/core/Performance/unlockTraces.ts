@@ -68,12 +68,14 @@ let unlockAppStartType: DeeplinkPerfAppStartType | undefined;
  * and outside the login and lock screens that saga copies then clears
  * `AppStateEventProcessor.pendingDeeplink` before navigation and before
  * metrics opt-in. Keep a copy so Navigated can restart after consent without
- * measuring the opt-in dwell.
+ * measuring the opt-in dwell, and so Homepage Ready knows the launch was
+ * diverted.
  */
 let unlockPendingDeeplink: string | null = null;
 
 let hasUnlockedInProcess = false;
 let hasStartedLeg2InProcess = false;
+let unlockHomepageReadyTraceToken: HomepageReadyTraceToken | null = null;
 let unlockHandBackTimestamps: UnlockHandBackTimestamps | null = null;
 
 /** The first successful unlock in this JS runtime is cold; later ones are warm. */
@@ -112,6 +114,7 @@ export const resetUnlockTracesForTesting = () => {
   unlockPendingDeeplink = null;
   hasUnlockedInProcess = false;
   hasStartedLeg2InProcess = false;
+  unlockHomepageReadyTraceToken = null;
   unlockHandBackTimestamps = null;
 };
 
@@ -153,6 +156,7 @@ export const startUnlockTraces = ({
         tags: { 'unlock.before_navigate': beforeNavigate },
       })
     : null;
+  unlockHomepageReadyTraceToken = homepageReadyTraceToken;
   unlockHandBackTimestamps = null;
   if (homepageReadyTraceToken !== null) {
     hasStartedLeg2InProcess = true;
@@ -206,6 +210,20 @@ export const resumeUnlockDeeplinkNavigatedAfterOptIn = ({
 };
 
 /**
+ * Cancels this unlock's Homepage Ready when a deeplink will take the launch
+ * somewhere other than Home. Deeplink Navigated measures those launches.
+ */
+export const cancelUnlockHomepageReadyForDeeplink = () => {
+  if (!unlockPendingDeeplink && !AppStateEventProcessor.pendingDeeplink) {
+    return;
+  }
+  cancelHomepageReadyTrace({
+    reason: 'deeplink',
+    traceToken: unlockHomepageReadyTraceToken,
+  });
+};
+
+/**
  * Cancels whatever {@link startUnlockTraces} opened after a failed unlock,
  * so a retry starts from its own hand-back rather than inheriting time from
  * the failed attempt.
@@ -216,6 +234,7 @@ export const cancelUnlockTraces = ({
 }: UnlockTraceTokens) => {
   clearUnlockAppStartType();
   unlockPendingDeeplink = null;
+  unlockHomepageReadyTraceToken = null;
   unlockHandBackTimestamps = null;
   cancelHomepageReadyTrace({
     reason: 'unlock_failed',

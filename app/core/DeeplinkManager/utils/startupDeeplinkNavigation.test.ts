@@ -12,6 +12,7 @@ import {
 import {
   rememberUnlockAppStartType,
   resetUnlockTracesForTesting,
+  startUnlockTraces,
 } from '../../Performance/unlockTraces';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
@@ -97,6 +98,22 @@ jest.mock('../../Performance/DeeplinkPerformance', () => ({
   cancelDeeplinkProcessedTrace: (...args: unknown[]) =>
     mockCancelDeeplinkProcessedTrace(...args),
 }));
+
+const MOCK_HOMEPAGE_READY_TOKEN = 4;
+const mockCancelHomepageReadyTrace = jest.fn();
+jest.mock('../../Performance/HomepageReady', () => ({
+  startHomepageReadyTrace: () => MOCK_HOMEPAGE_READY_TOKEN,
+  cancelHomepageReadyTrace: (...args: unknown[]) =>
+    mockCancelHomepageReadyTrace(...args),
+}));
+
+const startUnlock = () =>
+  startUnlockTraces({
+    handBack: { source: 'typed', submittedAt: 0 },
+    unlockEnteredAt: 0,
+    existingUser: true,
+    beforeNavigate: false,
+  });
 
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
@@ -276,5 +293,47 @@ describe('startupDeeplinkNavigation', () => {
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('cancels the Homepage Ready of this unlock before navigating to a startup deeplink', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    startUnlock();
+
+    await navigateToPostUnlockHome();
+
+    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+      reason: 'deeplink',
+      traceToken: MOCK_HOMEPAGE_READY_TOKEN,
+    });
+    expect(
+      mockCancelHomepageReadyTrace.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockResolve.mock.invocationCallOrder[0]);
+  });
+
+  it('cancels the Homepage Ready of this unlock when the saga already consumed its deeplink', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
+    startUnlock();
+    AppStateEventProcessor.pendingDeeplink = null;
+
+    await navigateToPostUnlockHome();
+
+    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+      reason: 'deeplink',
+      traceToken: MOCK_HOMEPAGE_READY_TOKEN,
+    });
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+  });
+
+  it('keeps Homepage Ready when the unlock has no pending deeplink', async () => {
+    startUnlock();
+
+    await navigateToPostUnlockHome();
+
+    expect(mockCancelHomepageReadyTrace).not.toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   });
 });
