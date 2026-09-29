@@ -33,7 +33,8 @@ import {
   markNextParseAsUnlockSession,
   resetNextParseAppStartTypeForTesting,
 } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
-import { resetUnlockTracesForTesting } from '../../core/Performance/unlockTraces';
+import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
+import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import {
   markStartup,
   noteStartupSeedlessPrecheck,
@@ -776,7 +777,8 @@ describe('handleDeeplinkSaga', () => {
     __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
     resetNextParseAppStartTypeForTesting();
-    resetUnlockTracesForTesting();
+    resetUnlockAppStartTypeForTesting();
+    resetLoginAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);

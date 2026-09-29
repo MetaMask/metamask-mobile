@@ -1,34 +1,19 @@
-import { AppState, type NativeEventSubscription } from 'react-native';
 import {
   endTrace,
-  getPerformanceTimestamp,
   trace,
   TraceName,
   TraceOperation,
   TRACES_CLEANUP_INTERVAL,
 } from '../../util/trace';
-import {
-  discardHomepageReadyStages,
-  finishHomepageReadyStages,
-} from './homepageReadyStages';
-import { noteStartupLeg2Ended } from './startupStageSpans';
 
 export type HomepageReadyContentState = 'filled' | 'empty' | 'error';
 export type HomepageReadyStartSource = 'app_open' | 'unlock';
 export type HomepageReadyAppStartType = 'cold' | 'warm';
-export type HomepageReadyCancelReason =
-  | 'unlock_failed'
-  | 'metrics_opt_in'
-  | 'backgrounded'
-  | 'deeplink'
-  | 'navigated_away';
 
 interface StartHomepageReadyTraceOptions {
   source: HomepageReadyStartSource;
   appStartType: HomepageReadyAppStartType;
   startTime?: number;
-  /** Numbers belong in span data: `trace` turns numeric tags into measurements. */
-  tags?: Record<string, string | boolean>;
 }
 
 interface EndHomepageReadyTraceOptions {
@@ -36,17 +21,14 @@ interface EndHomepageReadyTraceOptions {
 }
 
 interface CancelHomepageReadyTraceOptions {
-  reason: HomepageReadyCancelReason;
-  /** When given, only cancels the trace started with that token. */
-  traceToken?: HomepageReadyTraceToken | null;
+  reason: 'unlock_failed';
+  traceToken: HomepageReadyTraceToken | null;
 }
 
 let startedAt: number | null = null;
-/** Start of the active trace on the clock `trace` uses. */
-let traceStartTime = 0;
 let activeTraceToken: HomepageReadyTraceToken | null = null;
 let nextTraceToken = 0;
-let appStateSubscription: NativeEventSubscription | null = null;
+let queuedColdTrace: { startTime?: number } | null = null;
 
 export type HomepageReadyTraceToken = number;
 
@@ -54,74 +36,6 @@ export type HomepageReadyTraceToken = number;
  * Returns whether an entry point has already started the Homepage Ready CUF.
  */
 export const isHomepageReadyTraceActive = () => startedAt !== null;
-
-/** Token of the in-flight trace, or null when none is running. */
-export const getActiveHomepageReadyTraceToken =
-  (): HomepageReadyTraceToken | null => activeTraceToken;
-
-const stopListeningForBackground = () => {
-  appStateSubscription?.remove();
-  appStateSubscription = null;
-};
-
-const clearActiveTrace = () => {
-  startedAt = null;
-  activeTraceToken = null;
-  stopListeningForBackground();
-  noteStartupLeg2Ended();
-};
-
-/**
- * Sentry can move the start of the first transaction after launch to the app
- * start, so the span's own duration is not reliable for this trace.
- */
-const getDurationData = (endTime: number) => ({
-  'homepage.duration_ms': Math.round(endTime - traceStartTime),
-});
-
-/**
- * Ends an in-flight Homepage Ready CUF that cannot reach the homepage without
- * including time that is not app work. The span is still sent, with
- * `success: false` and the reason.
- *
- * Also releases the guard, so a retry starts from its own hand-back rather
- * than inheriting time from the failed attempt.
- */
-export const cancelHomepageReadyTrace = ({
-  reason,
-  traceToken,
-}: CancelHomepageReadyTraceOptions) => {
-  if (startedAt === null) {
-    return;
-  }
-  if (traceToken !== undefined && traceToken !== activeTraceToken) {
-    return;
-  }
-
-  discardHomepageReadyStages();
-  endTrace({
-    name: TraceName.HomepageReady,
-    data: {
-      ...getDurationData(getPerformanceTimestamp()),
-      success: false,
-      reason,
-    },
-  });
-  clearActiveTrace();
-};
-
-/**
- * Time in the background is not app work, so going to the background ends the
- * trace. `inactive` is ignored: Face ID and system sheets pass through it.
- */
-const listenForBackground = () => {
-  stopListeningForBackground();
-  appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-    if (nextAppState === 'background') {
-      cancelHomepageReadyTrace({ reason: 'backgrounded' });
-    }
-  });
-};
 
 /**
  * Starts the app-open/unlock to usable homepage CUF.
@@ -133,7 +47,6 @@ export const startHomepageReadyTrace = ({
   source,
   appStartType,
   startTime,
-  tags,
 }: StartHomepageReadyTraceOptions): HomepageReadyTraceToken | null => {
   const now = Date.now();
   if (startedAt !== null && now - startedAt < TRACES_CLEANUP_INTERVAL) {
@@ -141,7 +54,6 @@ export const startHomepageReadyTrace = ({
   }
 
   startedAt = now;
-  traceStartTime = startTime ?? getPerformanceTimestamp();
   nextTraceToken += 1;
   activeTraceToken = nextTraceToken;
   trace({
@@ -149,19 +61,49 @@ export const startHomepageReadyTrace = ({
     op: TraceOperation.HomepagePerformance,
     ...(startTime === undefined ? {} : { startTime }),
     tags: {
-      ...tags,
       start_source: source,
       app_start_type: appStartType,
     },
   });
-  const traceToken = activeTraceToken;
-  listenForBackground();
-  // A background launch (fetch, push) can unlock with remember-me before the
-  // app is ever shown, and never emits a `background` change.
-  if (AppState.currentState === 'background') {
-    cancelHomepageReadyTrace({ reason: 'backgrounded', traceToken });
+  return activeTraceToken;
+};
+
+/**
+ * Queues an already-unlocked cold launch until navigation resolves. This keeps
+ * the native launch timestamp without recording non-home launch destinations.
+ */
+export const queueColdHomepageReadyTrace = (startTime?: number) => {
+  if (startedAt !== null || queuedColdTrace !== null) {
+    return;
   }
-  return traceToken;
+
+  queuedColdTrace = { startTime };
+};
+
+/**
+ * Resolves the queued cold launch once the homepage knows whether it is the
+ * focused destination. An unfocused homepage discards the launch.
+ */
+export const resolveColdHomepageReadyTrace = ({
+  isHomepageFocused,
+}: {
+  isHomepageFocused: boolean;
+}): HomepageReadyTraceToken | null => {
+  if (queuedColdTrace === null) {
+    return null;
+  }
+
+  const { startTime } = queuedColdTrace;
+  queuedColdTrace = null;
+  if (!isHomepageFocused) {
+    return null;
+  }
+
+  return startHomepageReadyTrace({
+    source: 'app_open',
+    appStartType: 'cold',
+    startTime,
+  });
 };
 
 /**
@@ -175,23 +117,49 @@ export const endHomepageReadyTrace = ({
     return;
   }
 
-  const stages = finishHomepageReadyStages(activeTraceToken);
-  const timestamp = stages?.timestamp ?? getPerformanceTimestamp();
   endTrace({
     name: TraceName.HomepageReady,
-    timestamp,
     data: {
-      ...stages?.data,
-      ...getDurationData(timestamp),
       success: contentState !== 'error',
       content_state: contentState,
     },
   });
-  clearActiveTrace();
+  startedAt = null;
+  activeTraceToken = null;
+};
+
+/**
+ * Ends an in-flight Homepage Ready CUF that cannot reach the homepage.
+ *
+ * Failed authentication attempts must release the guard so a retry starts from
+ * its own submit action rather than inheriting time from the failed attempt.
+ */
+export const cancelHomepageReadyTrace = ({
+  reason,
+  traceToken,
+}: CancelHomepageReadyTraceOptions) => {
+  if (
+    startedAt === null ||
+    traceToken === null ||
+    traceToken !== activeTraceToken
+  ) {
+    return;
+  }
+
+  endTrace({
+    name: TraceName.HomepageReady,
+    data: {
+      success: false,
+      reason,
+    },
+  });
+  startedAt = null;
+  activeTraceToken = null;
 };
 
 export const resetHomepageReadyTraceForTesting = () => {
-  discardHomepageReadyStages();
-  clearActiveTrace();
+  startedAt = null;
+  activeTraceToken = null;
   nextTraceToken = 0;
+  queuedColdTrace = null;
 };

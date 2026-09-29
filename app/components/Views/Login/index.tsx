@@ -102,6 +102,11 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
+import {
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
   getLoginUnlockFailureErrorType,
@@ -355,6 +360,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
 
     const handBackAt = performance.now();
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -402,6 +410,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         saveOnboardingEvent,
       });
     } catch (loginErr) {
+      cancelUnlockTraces(unlockTraceTokens);
       await handleLoginError(loginErr as Error, UNLOCK_TYPE.PASSWORD);
     }
     setLoading(false);
@@ -424,6 +433,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -446,6 +458,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         saveOnboardingEvent,
       });
     } catch (loginerror) {
+      cancelUnlockTraces(unlockTraceTokens);
       await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);

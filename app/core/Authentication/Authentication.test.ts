@@ -266,26 +266,22 @@ const mockNavigation = {
 
 const mockNavigateToPostUnlockHome = jest.fn();
 const mockCancelDeeplinkNavigatedTrace = jest.fn();
-const mockCancelHomepageReadyTrace = jest.fn();
-const MOCK_UNLOCK_TRACE_TOKENS = {
-  homepageReadyTraceToken: 11,
-  deeplinkNavigatedTraceToken: 12,
-};
-const mockStartUnlockTraces = jest
-  .fn()
-  .mockReturnValue(MOCK_UNLOCK_TRACE_TOKENS);
-const mockCancelUnlockTraces = jest.fn();
-const mockMarkUnlockCompleted = jest.fn();
 const mockClearUnlockAppStartType = jest.fn();
 const mockGetUnlockAppStartType = jest.fn(() => 'warm');
 const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
-const mockStopHomepageReadyStages: Record<string, jest.Mock> = {};
-const mockStartHomepageReadyStage = jest.fn((stage: string) => {
-  mockStopHomepageReadyStages[stage] = jest.fn();
-  return mockStopHomepageReadyStages[stage];
+const MOCK_UNLOCK_TOKEN = 11;
+const mockStartUnlockToHomepageReady = jest
+  .fn()
+  .mockReturnValue(MOCK_UNLOCK_TOKEN);
+const mockDropUnlockToHomepageReady = jest.fn();
+const mockMarkUnlockCompleted = jest.fn();
+const mockStopUnlockStages: Record<string, jest.Mock> = {};
+const mockStartUnlockStage = jest.fn((stage: string) => {
+  mockStopUnlockStages[stage] = jest.fn();
+  return mockStopUnlockStages[stage];
 });
-const mockRecordHomepageReadyStage = jest.fn();
-const mockMarkHomepageReadyNavigate = jest.fn();
+const mockRecordUnlockStage = jest.fn();
+const mockMarkUnlockNavigate = jest.fn();
 const mockNoteStartupCredentialRequest = jest.fn();
 
 jest.mock('../NavigationService', () => ({
@@ -309,27 +305,22 @@ jest.mock('../Performance/DeeplinkPerformance', () => ({
     mockCancelDeeplinkNavigatedTrace(...args),
 }));
 
-jest.mock('../Performance/HomepageReady', () => ({
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
-}));
-
 jest.mock('../Performance/unlockTraces', () => ({
-  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
   clearUnlockAppStartType: () => mockClearUnlockAppStartType(),
   getUnlockAppStartType: () => mockGetUnlockAppStartType(),
-  markUnlockCompleted: () => mockMarkUnlockCompleted(),
   resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
     mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
-  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
 }));
 
-jest.mock('../Performance/homepageReadyStages', () => ({
-  markHomepageReadyNavigate: () => mockMarkHomepageReadyNavigate(),
-  recordHomepageReadyStage: (...args: unknown[]) =>
-    mockRecordHomepageReadyStage(...args),
-  startHomepageReadyStage: (stage: string) =>
-    mockStartHomepageReadyStage(stage),
+jest.mock('../Performance/unlockToHomepageReady', () => ({
+  dropUnlockToHomepageReady: (...args: unknown[]) =>
+    mockDropUnlockToHomepageReady(...args),
+  markUnlockCompleted: () => mockMarkUnlockCompleted(),
+  markUnlockNavigate: () => mockMarkUnlockNavigate(),
+  recordUnlockStage: (...args: unknown[]) => mockRecordUnlockStage(...args),
+  startUnlockStage: (stage: string) => mockStartUnlockStage(stage),
+  startUnlockToHomepageReady: (...args: unknown[]) =>
+    mockStartUnlockToHomepageReady(...args),
 }));
 
 jest.mock('../Performance/startupStageSpans', () => ({
@@ -6653,7 +6644,7 @@ describe('Authentication', () => {
       });
     });
 
-    describe('unlock traces', () => {
+    describe('Unlock To Homepage Ready', () => {
       const credentialReadTimings = {
         requestedAt: 100,
         returnedAt: 2_100,
@@ -6669,19 +6660,18 @@ describe('Authentication', () => {
       };
 
       beforeEach(() => {
-        mockStartUnlockTraces.mockClear();
-        mockCancelUnlockTraces.mockClear();
+        mockStartUnlockToHomepageReady.mockClear();
+        mockDropUnlockToHomepageReady.mockClear();
         mockMarkUnlockCompleted.mockClear();
-        mockCancelHomepageReadyTrace.mockClear();
       });
 
-      it('starts the traces at the typed submit for an existing user', async () => {
+      it('starts at the typed submit for an existing user', async () => {
         await Authentication.unlockWallet({
           password: passwordToUse,
           handBackAt: 1_234,
         });
 
-        expect(mockStartUnlockTraces).toHaveBeenCalledWith({
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith({
           handBack: { source: 'typed', submittedAt: 1_234 },
           unlockEnteredAt: expect.any(Number),
           existingUser: true,
@@ -6689,7 +6679,7 @@ describe('Authentication', () => {
         });
       });
 
-      it('starts the traces at the keychain return when no password is given', async () => {
+      it('starts at the keychain return when no password is given', async () => {
         jest
           .spyOn(SecureKeychain, 'getGenericPassword')
           .mockImplementation(async (timings) => {
@@ -6706,7 +6696,7 @@ describe('Authentication', () => {
 
         await Authentication.unlockWallet();
 
-        expect(mockStartUnlockTraces).toHaveBeenCalledWith({
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith({
           handBack: { source: 'keychain', credentialReadTimings },
           unlockEnteredAt: expect.any(Number),
           existingUser: true,
@@ -6735,7 +6725,7 @@ describe('Authentication', () => {
           },
         });
 
-        expect(mockStartUnlockTraces).toHaveBeenCalledWith(
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith(
           expect.objectContaining({ existingUser: false }),
         );
       });
@@ -6746,36 +6736,38 @@ describe('Authentication', () => {
           onBeforeNavigate: jest.fn().mockResolvedValue(undefined),
         });
 
-        expect(mockStartUnlockTraces).toHaveBeenCalledWith(
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith(
           expect.objectContaining({ beforeNavigate: true }),
         );
       });
 
-      it('starts the traces before unlocking the vault', async () => {
+      it('starts before unlocking the vault', async () => {
         const Engine = jest.requireMock('../Engine');
 
         await Authentication.unlockWallet({ password: passwordToUse });
 
-        expect(mockStartUnlockTraces.mock.invocationCallOrder[0]).toBeLessThan(
+        expect(
+          mockStartUnlockToHomepageReady.mock.invocationCallOrder[0],
+        ).toBeLessThan(
           Engine.context.KeyringController.submitPassword.mock
             .invocationCallOrder[0],
         );
       });
 
-      it('does not start the traces when the keychain has no password', async () => {
+      it('does not start when the keychain has no password', async () => {
         jest
           .spyOn(SecureKeychain, 'getGenericPassword')
           .mockResolvedValueOnce(null);
 
         await Authentication.unlockWallet();
 
-        expect(mockStartUnlockTraces).not.toHaveBeenCalled();
+        expect(mockStartUnlockToHomepageReady).not.toHaveBeenCalled();
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.LOGIN }],
         });
       });
 
-      it('does not start or cancel the traces when the keychain read fails', async () => {
+      it('does not start, and has nothing to drop, when the keychain read fails', async () => {
         jest
           .spyOn(SecureKeychain, 'getGenericPassword')
           .mockRejectedValueOnce(new Error('Keychain read failed'));
@@ -6784,27 +6776,29 @@ describe('Authentication', () => {
           'Keychain read failed',
         );
 
-        expect(mockStartUnlockTraces).not.toHaveBeenCalled();
-        expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
+        expect(mockStartUnlockToHomepageReady).not.toHaveBeenCalled();
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'unlock_failed',
+          null,
+        );
       });
 
-      it('cancels Homepage Ready when the unlock diverts to metrics opt-in', async () => {
+      it('drops the unlock when it diverts to metrics opt-in', async () => {
         jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
         jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
 
         await Authentication.unlockWallet({ password: passwordToUse });
 
-        expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-          reason: 'metrics_opt_in',
-          traceToken: MOCK_UNLOCK_TRACE_TOKENS.homepageReadyTraceToken,
-        });
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'metrics_opt_in',
+          MOCK_UNLOCK_TOKEN,
+        );
       });
 
-      it('keeps Homepage Ready when the unlock goes straight home', async () => {
+      it('keeps the unlock when it goes straight home', async () => {
         await Authentication.unlockWallet({ password: passwordToUse });
 
-        expect(mockCancelHomepageReadyTrace).not.toHaveBeenCalled();
-        expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
+        expect(mockDropUnlockToHomepageReady).not.toHaveBeenCalled();
       });
 
       it('marks the unlock completed after navigating home', async () => {
@@ -6825,20 +6819,21 @@ describe('Authentication', () => {
         expect(mockMarkUnlockCompleted).toHaveBeenCalledTimes(1);
       });
 
-      it('cancels the traces and leaves the unlock incomplete when the unlock fails', async () => {
+      it('drops the unlock and leaves it incomplete when the unlock fails', async () => {
         rejectVaultUnlock(new Error('Incorrect password'));
 
         await expect(
           Authentication.unlockWallet({ password: passwordToUse }),
         ).rejects.toThrow('Incorrect password');
 
-        expect(mockCancelUnlockTraces).toHaveBeenCalledWith(
-          MOCK_UNLOCK_TRACE_TOKENS,
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'unlock_failed',
+          MOCK_UNLOCK_TOKEN,
         );
         expect(mockMarkUnlockCompleted).not.toHaveBeenCalled();
       });
 
-      it('cancels the traces before the biometric changed alert waits on the user', async () => {
+      it('drops the unlock before the biometric changed alert waits on the user', async () => {
         rejectVaultUnlock(new Error('User not authenticated'));
         const alertSpy = jest
           .spyOn(Alert, 'alert')
@@ -6850,20 +6845,21 @@ describe('Authentication', () => {
           Authentication.unlockWallet({ password: passwordToUse }),
         ).rejects.toThrow('User not authenticated');
 
-        expect(mockCancelUnlockTraces).toHaveBeenCalledWith(
-          MOCK_UNLOCK_TRACE_TOKENS,
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'unlock_failed',
+          MOCK_UNLOCK_TOKEN,
         );
-        expect(mockCancelUnlockTraces.mock.invocationCallOrder[0]).toBeLessThan(
-          alertSpy.mock.invocationCallOrder[0],
-        );
+        expect(
+          mockDropUnlockToHomepageReady.mock.invocationCallOrder[0],
+        ).toBeLessThan(alertSpy.mock.invocationCallOrder[0]);
       });
     });
 
-    describe('Homepage Ready stages', () => {
+    describe('Unlock To Homepage Ready stages', () => {
       beforeEach(() => {
-        mockStartHomepageReadyStage.mockClear();
-        mockRecordHomepageReadyStage.mockClear();
-        mockMarkHomepageReadyNavigate.mockClear();
+        mockStartUnlockStage.mockClear();
+        mockRecordUnlockStage.mockClear();
+        mockMarkUnlockNavigate.mockClear();
         mockNavigateToPostUnlockHome.mockClear();
       });
 
@@ -6872,7 +6868,7 @@ describe('Authentication', () => {
 
         await Authentication.unlockWallet({ password: passwordToUse });
 
-        expect(mockStartHomepageReadyStage.mock.calls).toEqual([
+        expect(mockStartUnlockStage.mock.calls).toEqual([
           ['vault_unlock'],
           ['unlock_finalize'],
         ]);
@@ -6880,17 +6876,12 @@ describe('Authentication', () => {
           Engine.context.KeyringController.submitPassword.mock
             .invocationCallOrder[0],
         ).toBeLessThan(
-          mockStopHomepageReadyStages.vault_unlock.mock.invocationCallOrder[0],
+          mockStopUnlockStages.vault_unlock.mock.invocationCallOrder[0],
         );
         expect(
-          mockStopHomepageReadyStages.unlock_finalize.mock
-            .invocationCallOrder[0],
-        ).toBeLessThan(
-          mockMarkHomepageReadyNavigate.mock.invocationCallOrder[0],
-        );
-        expect(
-          mockMarkHomepageReadyNavigate.mock.invocationCallOrder[0],
-        ).toBeLessThan(
+          mockStopUnlockStages.unlock_finalize.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockMarkUnlockNavigate.mock.invocationCallOrder[0]);
+        expect(mockMarkUnlockNavigate.mock.invocationCallOrder[0]).toBeLessThan(
           mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
         );
       });
@@ -6903,15 +6894,13 @@ describe('Authentication', () => {
           onBeforeNavigate,
         });
 
-        expect(mockStartHomepageReadyStage).toHaveBeenCalledWith(
-          'before_navigate',
-        );
-        const stopBeforeNavigate = mockStopHomepageReadyStages.before_navigate;
+        expect(mockStartUnlockStage).toHaveBeenCalledWith('before_navigate');
+        const stopBeforeNavigate = mockStopUnlockStages.before_navigate;
         expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
           stopBeforeNavigate.mock.invocationCallOrder[0],
         );
         expect(stopBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
-          mockMarkHomepageReadyNavigate.mock.invocationCallOrder[0],
+          mockMarkUnlockNavigate.mock.invocationCallOrder[0],
         );
       });
 
@@ -6928,12 +6917,9 @@ describe('Authentication', () => {
           },
         });
 
-        expect(mockStartHomepageReadyStage).toHaveBeenCalledWith(
-          'seedless_rehydrate',
-        );
+        expect(mockStartUnlockStage).toHaveBeenCalledWith('seedless_rehydrate');
         expect(rehydrateSpy.mock.invocationCallOrder[0]).toBeLessThan(
-          mockStopHomepageReadyStages.seedless_rehydrate.mock
-            .invocationCallOrder[0],
+          mockStopUnlockStages.seedless_rehydrate.mock.invocationCallOrder[0],
         );
       });
 
@@ -6950,7 +6936,7 @@ describe('Authentication', () => {
 
         await Authentication.unlockWallet({ password: passwordToUse });
 
-        expect(mockRecordHomepageReadyStage).toHaveBeenCalledWith(
+        expect(mockRecordUnlockStage).toHaveBeenCalledWith(
           'seedless_password_check',
           10,
           30,
@@ -6971,20 +6957,20 @@ describe('Authentication', () => {
 
         await Authentication.unlockWallet({ password: passwordToUse });
 
-        expect(mockStartHomepageReadyStage.mock.calls).toEqual([
+        expect(mockStartUnlockStage.mock.calls).toEqual([
           ['seedless_password_sync'],
           ['vault_unlock'],
           ['unlock_finalize'],
         ]);
-        const stopSync = mockStopHomepageReadyStages.seedless_password_sync;
-        expect(
-          mockStartHomepageReadyStage.mock.invocationCallOrder[0],
-        ).toBeLessThan(syncSpy.mock.invocationCallOrder[0]);
+        const stopSync = mockStopUnlockStages.seedless_password_sync;
+        expect(mockStartUnlockStage.mock.invocationCallOrder[0]).toBeLessThan(
+          syncSpy.mock.invocationCallOrder[0],
+        );
         expect(authTypeSpy.mock.invocationCallOrder[0]).toBeLessThan(
           stopSync.mock.invocationCallOrder[0],
         );
         expect(stopSync.mock.invocationCallOrder[0]).toBeLessThan(
-          mockStartHomepageReadyStage.mock.invocationCallOrder[1],
+          mockStartUnlockStage.mock.invocationCallOrder[1],
         );
       });
     });

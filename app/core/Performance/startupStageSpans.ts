@@ -39,7 +39,7 @@ const STARTUP_TRACE_ID = 'startup';
 const CREDENTIAL_READ_GRACE_MS = 2_000;
 /** How long after splash gone the app may take to start waiting on the user. */
 const AUTH_TIMEOUT_MS = 15_000;
-/** How long a finished startup waits for an in-flight Homepage Ready before emitting. */
+/** How long a finished startup waits for Unlock To Homepage Ready before emitting. */
 const LEG2_WAIT_CAP_MS = 15_000;
 const HOST_SETUP_SUSPECT_MS = 30_000;
 /** A reload flag older than this is left over from a reload that never happened. */
@@ -878,7 +878,7 @@ const resolveAwaitingUser = (
     : {};
 };
 
-/** Homepage Ready is running, or a returned password is about to start it. */
+/** Unlock To Homepage Ready is in flight, or a returned password will start it. */
 const isLeg2Pending = ({
   leg2InFlight,
   credentialRead,
@@ -908,8 +908,8 @@ const setDeadline = (at: number | undefined) => {
 
 /**
  * Emits once both splash gone and awaiting user are known. The emit starts a
- * root span, which would stop the profile of an in-flight Homepage Ready, so it
- * waits for that first.
+ * root span, which would stop the profile of the Homepage Ready an unlock is
+ * running, so it waits for Unlock To Homepage Ready, which ends right after it.
  *
  * @param deadlineAt - The deadline whose timer called this. It counts as
  * reached even if the clock reads slightly earlier, so the timer is not set again.
@@ -1013,7 +1013,7 @@ export const noteStartupRouteChange = (focusedRouteNames: readonly string[]) =>
 
 /**
  * @param handBackAt - `performance.now()` when the unlock had its password.
- * @param leg2 - Whether Homepage Ready started, and whether it is still running.
+ * @param leg2 - Whether Unlock To Homepage Ready started, and whether it is in flight.
  */
 export const noteStartupHandBack = (
   handBackAt: number,

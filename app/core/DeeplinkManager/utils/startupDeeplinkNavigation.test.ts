@@ -11,8 +11,7 @@ import {
 } from './startupDeeplinkNavigation';
 import {
   rememberUnlockAppStartType,
-  resetUnlockTracesForTesting,
-  startUnlockTraces,
+  resetUnlockAppStartTypeForTesting,
 } from '../../Performance/unlockTraces';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
@@ -99,21 +98,11 @@ jest.mock('../../Performance/DeeplinkPerformance', () => ({
     mockCancelDeeplinkProcessedTrace(...args),
 }));
 
-const MOCK_HOMEPAGE_READY_TOKEN = 4;
-const mockCancelHomepageReadyTrace = jest.fn();
-jest.mock('../../Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: () => MOCK_HOMEPAGE_READY_TOKEN,
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
+const mockDropUnlockToHomepageReadyForDeeplink = jest.fn();
+jest.mock('../../Performance/unlockToHomepageReady', () => ({
+  dropUnlockToHomepageReadyForDeeplink: () =>
+    mockDropUnlockToHomepageReadyForDeeplink(),
 }));
-
-const startUnlock = () =>
-  startUnlockTraces({
-    handBack: { source: 'typed', submittedAt: 0 },
-    unlockEnteredAt: 0,
-    existingUser: true,
-    beforeNavigate: false,
-  });
 
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
@@ -126,7 +115,7 @@ describe('startupDeeplinkNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetNextParseAppStartTypeForTesting();
-    resetUnlockTracesForTesting();
+    resetUnlockAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     setRequestAnimationFrame(mockRequestAnimationFrame);
@@ -270,6 +259,18 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
+  it('lets Unlock To Homepage Ready drop the unlock before resolving the pending deeplink', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+
+    await navigateToPostUnlockHome();
+
+    expect(mockDropUnlockToHomepageReadyForDeeplink).toHaveBeenCalledTimes(1);
+    const [droppedOrder] =
+      mockDropUnlockToHomepageReadyForDeeplink.mock.invocationCallOrder;
+    const [resolvedOrder] = mockResolve.mock.invocationCallOrder;
+    expect(droppedOrder).toBeLessThan(resolvedOrder);
+  });
+
   it('navigates home and retries pending deeplinks that need the legacy flow', async () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
     mockResolve.mockResolvedValueOnce(null);
@@ -293,47 +294,5 @@ describe('startupDeeplinkNavigation', () => {
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
     expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('cancels the Homepage Ready of this unlock before navigating to a startup deeplink', async () => {
-    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
-    startUnlock();
-
-    await navigateToPostUnlockHome();
-
-    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-      reason: 'deeplink',
-      traceToken: MOCK_HOMEPAGE_READY_TOKEN,
-    });
-    expect(
-      mockCancelHomepageReadyTrace.mock.invocationCallOrder[0],
-    ).toBeLessThan(mockResolve.mock.invocationCallOrder[0]);
-  });
-
-  it('cancels the Homepage Ready of this unlock when the saga already consumed its deeplink', async () => {
-    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
-    startUnlock();
-    AppStateEventProcessor.pendingDeeplink = null;
-
-    await navigateToPostUnlockHome();
-
-    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-      reason: 'deeplink',
-      traceToken: MOCK_HOMEPAGE_READY_TOKEN,
-    });
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-    });
-  });
-
-  it('keeps Homepage Ready when the unlock has no pending deeplink', async () => {
-    startUnlock();
-
-    await navigateToPostUnlockHome();
-
-    expect(mockCancelHomepageReadyTrace).not.toHaveBeenCalled();
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-    });
   });
 });

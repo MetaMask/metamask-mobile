@@ -116,22 +116,21 @@ import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
 import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
-import { cancelHomepageReadyTrace } from '../Performance/HomepageReady';
 import {
-  cancelUnlockTraces,
   clearUnlockAppStartType,
   getUnlockAppStartType,
-  markUnlockCompleted,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
-  startUnlockTraces,
-  type UnlockHandBack,
-  type UnlockTraceTokens,
 } from '../Performance/unlockTraces';
 import {
-  markHomepageReadyNavigate,
-  recordHomepageReadyStage,
-  startHomepageReadyStage,
-} from '../Performance/homepageReadyStages';
+  dropUnlockToHomepageReady,
+  markUnlockCompleted,
+  markUnlockNavigate,
+  recordUnlockStage,
+  startUnlockStage,
+  startUnlockToHomepageReady,
+  type UnlockHandBack,
+  type UnlockToHomepageReadyToken,
+} from '../Performance/unlockToHomepageReady';
 import { noteStartupCredentialRequest } from '../Performance/startupStageSpans';
 
 type Incident1745IdentifySource =
@@ -948,7 +947,7 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
-   * @param options.handBackAt - `performance.now()` when the user submitted `password`. Unlock traces start here; defaults to when `unlockWallet` was called.
+   * @param options.handBackAt - `performance.now()` when the user submitted `password`. `Unlock To Homepage Ready` starts here; defaults to when `unlockWallet` was called.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @returns - void
    */
@@ -975,7 +974,7 @@ class AuthenticationService {
   ) => {
     const unlockEnteredAt = performance.now();
     let passwordToUse: string | undefined;
-    let unlockTraceTokens: UnlockTraceTokens | null = null;
+    let unlockToHomepageReadyToken: UnlockToHomepageReadyToken | null = null;
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
@@ -1003,7 +1002,7 @@ class AuthenticationService {
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
-          unlockTraceTokens = startUnlockTraces({
+          unlockToHomepageReadyToken = startUnlockToHomepageReady({
             handBack,
             unlockEnteredAt,
             existingUser,
@@ -1015,7 +1014,7 @@ class AuthenticationService {
             // If seedless flow, rehydrate and nest OnboardingFetchSrps under
             // the onboarding journey when a parent context is supplied.
             const stopSeedlessRehydrate =
-              startHomepageReadyStage('seedless_rehydrate');
+              startUnlockStage('seedless_rehydrate');
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             stopSeedlessRehydrate();
             fallbackToPassword = true;
@@ -1026,7 +1025,7 @@ class AuthenticationService {
               timings: seedlessCheckTimings,
             })
           ) {
-            const stopSeedlessPasswordSync = startHomepageReadyStage(
+            const stopSeedlessPasswordSync = startUnlockStage(
               'seedless_password_sync',
             );
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
@@ -1039,18 +1038,18 @@ class AuthenticationService {
             stopSeedlessPasswordSync();
             fallbackToPassword = true;
           }
-          recordHomepageReadyStage(
+          recordUnlockStage(
             'seedless_password_check',
             seedlessCheckTimings.startedAt,
             seedlessCheckTimings.endedAt,
           );
 
           // Unlock keyrings.
-          const stopVaultUnlock = startHomepageReadyStage('vault_unlock');
+          const stopVaultUnlock = startUnlockStage('vault_unlock');
           await this.loginVaultCreation(passwordToUse);
           stopVaultUnlock();
 
-          const stopUnlockFinalize = startHomepageReadyStage('unlock_finalize');
+          const stopUnlockFinalize = startUnlockStage('unlock_finalize');
           // Update authentication preference.
           if (authPreference) {
             await this.updateAuthPreference({
@@ -1083,12 +1082,11 @@ class AuthenticationService {
           stopUnlockFinalize();
 
           if (onBeforeNavigate) {
-            const stopBeforeNavigate =
-              startHomepageReadyStage('before_navigate');
+            const stopBeforeNavigate = startUnlockStage('before_navigate');
             await onBeforeNavigate();
             stopBeforeNavigate();
           }
-          markHomepageReadyNavigate();
+          markUnlockNavigate();
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
@@ -1098,10 +1096,10 @@ class AuthenticationService {
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
             const deeplinkAppStartType = getUnlockAppStartType();
-            cancelHomepageReadyTrace({
-              reason: 'metrics_opt_in',
-              traceToken: unlockTraceTokens.homepageReadyTraceToken,
-            });
+            dropUnlockToHomepageReady(
+              'metrics_opt_in',
+              unlockToHomepageReadyToken,
+            );
             cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
             clearUnlockAppStartType();
 
@@ -1149,10 +1147,8 @@ class AuthenticationService {
       // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
-      // Cancel before the alert below, which waits on the user.
-      if (unlockTraceTokens) {
-        cancelUnlockTraces(unlockTraceTokens);
-      }
+      // Drop before the alert below, which waits on the user.
+      dropUnlockToHomepageReady('unlock_failed', unlockToHomepageReadyToken);
 
       let shouldResetOnLock = false;
       // Only check for specific error messages when the thrown value is an actual

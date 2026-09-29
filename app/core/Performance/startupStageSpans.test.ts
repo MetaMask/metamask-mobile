@@ -221,26 +221,26 @@ const routeAt = (route: string, time: number) =>
 const changeAppStateAt = (state: AppStateStatus, time: number) =>
   runAt(time, () => appStateListener?.(state));
 
-/** The unlock had its password at `handBackAt` and starts Homepage Ready at `time`. */
-const startHomepageReadyAt = (time: number, handBackAt: number) =>
+/** The unlock had its password at `handBackAt` and starts Unlock To Homepage Ready at `time`. */
+const startUnlockToHomepageReadyAt = (time: number, handBackAt: number) =>
   runAt(time, () =>
     noteStartupHandBack(handBackAt, { leg2Started: true, leg2InFlight: true }),
   );
 
-const endHomepageReadyAt = (time: number) =>
+const endUnlockToHomepageReadyAt = (time: number) =>
   runAt(time, () => noteStartupLeg2Ended());
 
 /**
  * The keychain read starts before the splash is gone and returns a password,
- * and the unlock's Homepage Ready ends at 4.2s.
+ * and the unlock's Unlock To Homepage Ready ends at 4.2s.
  */
 const runKeychainUnlock = () => {
   runMarks(MARKS_UP_TO_SPLASH);
   const read = requestCredentialAt(3_100);
   runAt(SPLASH_GONE_AT, () => markStartup('splashGone'));
   returnCredentialAt(read, 3_500);
-  startHomepageReadyAt(3_550, 3_500);
-  endHomepageReadyAt(4_200);
+  startUnlockToHomepageReadyAt(3_550, 3_500);
+  endUnlockToHomepageReadyAt(4_200);
 };
 
 /** The app lands on the Login screen after the splash. */
@@ -594,17 +594,17 @@ describe('startupStageSpans', () => {
     });
   });
 
-  describe('Homepage Ready', () => {
-    it('waits for Homepage Ready to end before sending the startup', () => {
+  describe('Unlock To Homepage Ready', () => {
+    it('waits for Unlock To Homepage Ready to end before sending the startup', () => {
       runMarks(MARKS_UP_TO_SPLASH);
       const read = requestCredentialAt(3_100);
       runAt(SPLASH_GONE_AT, () => markStartup('splashGone'));
       returnCredentialAt(read, 3_500);
-      startHomepageReadyAt(3_550, 3_500);
+      startUnlockToHomepageReadyAt(3_550, 3_500);
 
       advanceTo(4_199);
       expect(findRoot()).toBeUndefined();
-      endHomepageReadyAt(4_200);
+      endUnlockToHomepageReadyAt(4_200);
 
       expect(getRoot().tags).toEqual(
         expect.objectContaining({ 'startup.leg2': 'started' }),
@@ -619,8 +619,8 @@ describe('startupStageSpans', () => {
 
       advanceTo(3_400);
       expect(findRoot()).toBeUndefined();
-      startHomepageReadyAt(3_400, 3_200);
-      endHomepageReadyAt(3_900);
+      startUnlockToHomepageReadyAt(3_400, 3_200);
+      endUnlockToHomepageReadyAt(3_900);
 
       expect(getRoot().tags).toEqual(
         expect.objectContaining({ 'startup.legs_overlap': true }),
@@ -630,12 +630,12 @@ describe('startupStageSpans', () => {
       );
     });
 
-    it('stops waiting for Homepage Ready after 15 seconds', () => {
+    it('stops waiting for Unlock To Homepage Ready after 15 seconds', () => {
       runMarks(MARKS_UP_TO_SPLASH);
       const read = requestCredentialAt(3_100);
       runAt(SPLASH_GONE_AT, () => markStartup('splashGone'));
       returnCredentialAt(read, 3_500);
-      startHomepageReadyAt(3_550, 3_500);
+      startUnlockToHomepageReadyAt(3_550, 3_500);
 
       advanceTo(18_549);
       expect(findRoot()).toBeUndefined();
@@ -651,7 +651,7 @@ describe('startupStageSpans', () => {
       { keyring: 'unlocked', isUnlocked: true, leg2: 'missing' },
       { keyring: 'locked', isUnlocked: false, leg2: 'not_applicable' },
     ])(
-      'tags a startup without Homepage Ready and a $keyring keyring as $leg2',
+      'tags a startup without Unlock To Homepage Ready and a $keyring keyring as $leg2',
       ({ isUnlocked, leg2 }) => {
         setWalletState({ isUnlocked });
 

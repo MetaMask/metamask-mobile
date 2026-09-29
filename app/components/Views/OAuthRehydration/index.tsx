@@ -63,6 +63,13 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import {
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
@@ -583,11 +590,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       account_type: accountType,
       biometrics: biometryChoice,
     });
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
       const handBackAt = performance.now();
+      unlockTraceTokens = startUnlockTraces({
+        appStartType: getLoginAppStartType(),
+      });
       setLoading(true);
 
       // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
@@ -664,6 +675,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
       if (passwordLoginAttemptTraceCtxRef.current) {
         endTrace({
@@ -688,10 +702,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
+
     try {
       if (finalLoading) return;
 
       const handBackAt = performance.now();
+      unlockTraceTokens = startUnlockTraces({
+        appStartType: getLoginAppStartType(),
+      });
       setLoading(true);
 
       // biometrics/passcode preference is applied only after sync succeeds
@@ -726,6 +745,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),
       );

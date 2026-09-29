@@ -293,6 +293,19 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
+const UNLOCK_TRACE_TOKENS = {
+  homepageReadyTraceToken: 1,
+  deeplinkNavigatedTraceToken: 2,
+};
+const mockStartUnlockTraces = jest.fn(
+  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
+);
+const mockCancelUnlockTraces = jest.fn();
+jest.mock('../../../core/Performance/unlockTraces', () => ({
+  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
+}));
+
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
     isConnected: true,
@@ -2215,6 +2228,23 @@ describe('Login', () => {
       );
     });
 
+    it('starts the unlock CUF traces on password submit', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockStartUnlockTraces).toHaveBeenCalledWith({
+        appStartType: LOGIN_APP_START_TYPE.COLD,
+      });
+      expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
+    });
+
     it('passes the submit time to unlockWallet on password submit', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -2233,7 +2263,20 @@ describe('Login', () => {
       });
     });
 
-    it('leaves the hand-back to the keychain read on device authentication', async () => {
+    it('cancels the unlock CUF traces when password unlock fails', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'wrong-password');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
+    });
+
+    it('cancels the unlock CUF traces when device authentication fails', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         capabilities: defaultCapabilities,
         isLoading: false,
@@ -2242,6 +2285,7 @@ describe('Login', () => {
         currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
         availableBiometryType: 'TouchID',
       });
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
       const { getByTestId } = renderWithProvider(<Login />);
 
       await waitForDeviceAuthIcon();
@@ -2251,7 +2295,7 @@ describe('Login', () => {
         );
       });
 
-      expect(mockUnlockWallet).toHaveBeenCalledWith();
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
   });
 

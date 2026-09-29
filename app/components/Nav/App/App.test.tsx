@@ -18,6 +18,7 @@ import {
   PartialState,
 } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
+import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { View as MockView } from 'react-native';
@@ -30,6 +31,12 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
+
+const mockQueueColdHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  queueColdHomepageReadyTrace: (...args: unknown[]) =>
+    mockQueueColdHomepageReadyTrace(...args),
+}));
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -1424,6 +1431,26 @@ describe('App', () => {
   });
 
   describe('Performance tracing', () => {
+    const getHomepageReadyState = (
+      isUnlocked: boolean,
+    ): DeepPartial<RootState> => ({
+      ...initialState,
+      user: {
+        ...initialState.user,
+        existingUser: true,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine?.backgroundState,
+          KeyringController: {
+            ...backgroundState.KeyringController,
+            isUnlocked,
+          },
+        },
+      },
+    });
+
     const renderApp = (state: DeepPartial<RootState> = initialState) => {
       const mockStore = configureMockStore();
       const store = mockStore(state);
@@ -1459,6 +1486,56 @@ describe('App', () => {
       await waitFor(() => {
         expect(mockMarkStartup).toHaveBeenCalledWith('appFirstCommit');
       });
+    });
+
+    it('queues Homepage Ready at app open for an unlocked existing user', () => {
+      renderApp(getHomepageReadyState(true));
+
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not queue Homepage Ready before credentials for a locked user', () => {
+      renderApp(getHomepageReadyState(false));
+
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('queues Homepage Ready when the unlocked state becomes available after mount', () => {
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore((state: unknown | undefined, action) => {
+        if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
+          return unlockedState;
+        }
+        if (action.type === 'TEST/LOCKED') {
+          return lockedState;
+        }
+        return state ?? lockedState;
+      }, lockedState as unknown);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/LOCKED' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
     });
   });
 

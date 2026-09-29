@@ -1,37 +1,26 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import {
-  cancelHomepageReadyTrace,
   endHomepageReadyTrace,
-  getActiveHomepageReadyTraceToken,
+  resolveColdHomepageReadyTrace,
   startHomepageReadyTrace,
   type HomepageReadyContentState,
-  type HomepageReadyTraceToken,
 } from '../../../../core/Performance/HomepageReady';
-import { markHomepageReadyHomeFocused } from '../../../../core/Performance/homepageReadyStages';
+import {
+  dropUnlockToHomepageReady,
+  finishUnlockToHomepageReady,
+  markUnlockHomeFocused,
+} from '../../../../core/Performance/unlockToHomepageReady';
 
 interface UseHomepageReadyOptions {
   contentReady: boolean;
   contentState: HomepageReadyContentState;
 }
 
-const cancelTraceSeenWhileFocused = (
-  focusedTraceTokenRef: RefObject<HomepageReadyTraceToken | null>,
-) => {
-  const traceToken = focusedTraceTokenRef.current;
-  focusedTraceTokenRef.current = null;
-  if (traceToken !== null) {
-    cancelHomepageReadyTrace({ reason: 'navigated_away', traceToken });
-  }
-};
-
 /**
  * Completes the Homepage Ready CUF when the focused homepage has usable token
  * content. It also measures warm app opens that return directly to Home.
- *
- * Leaving Home before the content is usable cancels the trace, so it never
- * includes time spent on other screens.
  */
 export const useHomepageReady = ({
   contentReady,
@@ -40,24 +29,32 @@ export const useHomepageReady = ({
   const isFocused = useIsFocused();
   const lastAppStateRef = useRef<AppStateStatus>(AppState.currentState);
   const [foregroundSequence, setForegroundSequence] = useState(0);
-  // Only the trace seen while focused is cancelled on blur. An unlock can
-  // start its trace while Home sits under the lock screen, before a late blur
-  // arrives.
-  const focusedTraceTokenRef = useRef<HomepageReadyTraceToken | null>(null);
+  const hasResolvedColdTraceRef = useRef(false);
 
+  useEffect(() => {
+    if (hasResolvedColdTraceRef.current) {
+      return;
+    }
+
+    hasResolvedColdTraceRef.current = true;
+    resolveColdHomepageReadyTrace({ isHomepageFocused: isFocused });
+  }, [isFocused]);
+
+  // Before the effect below, so a homepage that is ready on mount is marked
+  // focused before the unlock is sent.
   useEffect(() => {
     if (!isFocused) {
       return undefined;
     }
-
-    focusedTraceTokenRef.current = getActiveHomepageReadyTraceToken();
-    markHomepageReadyHomeFocused();
-    return () => cancelTraceSeenWhileFocused(focusedTraceTokenRef);
+    const unlockToken = markUnlockHomeFocused();
+    return () => dropUnlockToHomepageReady('navigated_away', unlockToken);
   }, [isFocused]);
 
   useEffect(() => {
     if (isFocused && contentReady) {
       endHomepageReadyTrace({ contentState });
+      // Only after Homepage Ready ends: a new transaction would stop its profile.
+      finishUnlockToHomepageReady({ contentState });
     }
   }, [contentReady, contentState, foregroundSequence, isFocused]);
 
@@ -70,13 +67,10 @@ export const useHomepageReady = ({
         previousAppState === 'background' &&
         isFocused
       ) {
-        const traceToken = startHomepageReadyTrace({
+        startHomepageReadyTrace({
           source: 'app_open',
           appStartType: 'warm',
         });
-        if (traceToken !== null) {
-          focusedTraceTokenRef.current = traceToken;
-        }
         // Force a post-foreground commit before ending an already-ready CUF.
         setForegroundSequence((sequence) => sequence + 1);
       }

@@ -136,6 +136,9 @@ import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
 import { endTrace, TraceName } from '../../../util/trace';
 import { markStartup } from '../../../core/Performance/startupStageSpans';
 import { selectExistingUser } from '../../../reducers/user/selectors';
+import { Performance } from '../../../core/Performance';
+import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
+import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
@@ -1493,6 +1496,21 @@ const App: React.FC = () => {
     },
   );
   const existingUser = useSelector(selectExistingUser);
+  const isUnlocked = useSelector(selectIsUnlocked);
+  const hasQueuedColdHomepageReadyTrace = useRef(false);
+
+  useEffect(() => {
+    if (
+      hasQueuedColdHomepageReadyTrace.current ||
+      !existingUser ||
+      !isUnlocked
+    ) {
+      return;
+    }
+
+    hasQueuedColdHomepageReadyTrace.current = true;
+    queueColdHomepageReadyTrace(Performance.appLaunchTime);
+  }, [existingUser, isUnlocked]);
 
   useEffect(() => {
     async function startApp() {

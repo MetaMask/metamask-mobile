@@ -14,10 +14,10 @@ import {
   type DeeplinkPerfAppStartType,
 } from '../../Performance/DeeplinkPerformance';
 import {
-  cancelUnlockHomepageReadyForDeeplink,
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
+import { dropUnlockToHomepageReadyForDeeplink } from '../../Performance/unlockToHomepageReady';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
 // the unlock-session app_start_type. Cleared after one read.
@@ -65,8 +65,9 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
     AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
   const appStartType = getUnlockAppStartType();
 
-  // Covers a link that arrived after hand-back; the in-flight guard makes this
-  // a no-op when unlockWallet already started the span.
+  // Saga-driven biometric auto-unlock reaches here without passing through an
+  // unlock screen; the in-flight guard makes this a no-op when Login or OAuth
+  // rehydration already started the span at submit.
   startDeeplinkNavigatedTrace({
     url: deeplink,
     source: 'unlock',
@@ -123,7 +124,7 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 };
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
-  cancelUnlockHomepageReadyForDeeplink();
+  dropUnlockToHomepageReadyForDeeplink();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;
