@@ -1,8 +1,11 @@
+import { assetIdsMatch } from '@metamask/bridge-controller';
 import { parseCaipAssetType } from '@metamask/utils';
 import { MOCK_RECURRING_ORDERS } from './recurringOrders.mock';
 import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from './recurringSwaps.mock';
 import {
   RecurringOrderStatus,
+  type GetRecurringOrdersByAssetQuery,
+  type GetRecurringOrdersByAssetResponse,
   type GetRecurringOrdersQuery,
   type GetRecurringOrdersResponse,
   type GetRecurringSwapsQuery,
@@ -16,6 +19,14 @@ const cancelledOrderIds = new Set<string>();
 
 export function resetRecurringOrdersMockState(): void {
   cancelledOrderIds.clear();
+}
+
+function getRecurringOrdersFromMockState() {
+  return MOCK_RECURRING_ORDERS.map((order) =>
+    cancelledOrderIds.has(order.orderId)
+      ? { ...order, status: RecurringOrderStatus.Cancelled }
+      : order,
+  );
 }
 
 export async function cancelRecurringOrder(
@@ -48,11 +59,7 @@ export async function getRecurringOrders(
 ): Promise<GetRecurringOrdersResponse> {
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-  const effectiveOrders = MOCK_RECURRING_ORDERS.map((order) =>
-    cancelledOrderIds.has(order.orderId)
-      ? { ...order, status: RecurringOrderStatus.Cancelled }
-      : order,
-  );
+  const effectiveOrders = getRecurringOrdersFromMockState();
   const matchingOrders = effectiveOrders
     .filter((order) => {
       if (query.status && !query.status.includes(order.status)) {
@@ -88,6 +95,31 @@ export async function getRecurringOrders(
       ? { nextCursor: String(nextPageStart) }
       : {}),
   };
+}
+
+// TODO: Replace this mock with the real asset-specific recurring orders API.
+export async function getRecurringOrdersByAsset(
+  query: GetRecurringOrdersByAssetQuery,
+  delayMs = MOCK_API_DELAY_MS,
+): Promise<GetRecurringOrdersByAssetResponse> {
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+  return getRecurringOrdersFromMockState()
+    .filter(
+      (order) =>
+        order.status === RecurringOrderStatus.Open &&
+        (assetIdsMatch(order.src.asset.assetId, query.assetId) ||
+          assetIdsMatch(order.dest.asset.assetId, query.assetId)),
+    )
+    .sort(
+      (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
+    )
+    .slice(0, 1)
+    .map((order) => ({
+      ...order,
+      src: { ...order.src, walletAddress: query.walletAddress },
+      dest: { ...order.dest, walletAddress: query.walletAddress },
+    }));
 }
 
 // TODO: Replace this mock with the real GET /recurring/orders/:orderId/swaps API.

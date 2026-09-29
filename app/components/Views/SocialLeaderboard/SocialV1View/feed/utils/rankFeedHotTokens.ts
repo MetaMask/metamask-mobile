@@ -49,7 +49,25 @@ interface RankedAsset {
   hasPerpsAvatar: boolean;
   /** True once a human name has replaced the ticker. */
   labelIsName: boolean;
+  /** First spot contract seen for this ticker, for the token feed route. */
+  chain?: string;
+  contractAddress?: string;
 }
+
+/**
+ * Chain and contract for the token feed. Perp rows often have an empty
+ * address; those cannot call `GET /tokens/:chain/:contractAddress/feed`.
+ */
+const tokenFeedIdentity = (
+  item: SocialV1FeedItem,
+): { chain: string; contractAddress: string } | null => {
+  const chain = item.asset.avatar.chain.trim();
+  const contractAddress = item.asset.avatar.tokenAddress.trim();
+  if (!chain || !contractAddress) {
+    return null;
+  }
+  return { chain, contractAddress };
+};
 
 /**
  * Top assets in the loaded feed, most frequent first.
@@ -74,6 +92,7 @@ export const rankFeedHotTokens = (
     const { asset } = post.item;
     const isPerps = isPerpsItem(post.item);
     const name = asset.name?.trim();
+    const contract = tokenFeedIdentity(post.item);
     const existing = byId.get(id);
 
     if (!existing) {
@@ -85,11 +104,18 @@ export const rankFeedHotTokens = (
         count: 1,
         hasPerpsAvatar: isPerps,
         labelIsName: Boolean(name),
+        chain: contract?.chain,
+        contractAddress: contract?.contractAddress,
       });
       return;
     }
 
     existing.count += 1;
+
+    if (!existing.contractAddress && contract) {
+      existing.chain = contract.chain;
+      existing.contractAddress = contract.contractAddress;
+    }
 
     if (!existing.labelIsName && name) {
       existing.label = name;
@@ -108,7 +134,13 @@ export const rankFeedHotTokens = (
   return [...byId.values()]
     .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))
     .slice(0, Math.max(0, limit))
-    .map(({ id, symbol, label, avatar }) => ({ id, symbol, label, avatar }));
+    .map(({ id, symbol, label, avatar, chain, contractAddress }) => ({
+      id,
+      symbol,
+      label,
+      avatar,
+      ...(chain && contractAddress ? { chain, contractAddress } : {}),
+    }));
 };
 
 /**
