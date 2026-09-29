@@ -24,13 +24,25 @@ type DataServiceHandler = (
   data: DataServiceGranularCacheUpdatedPayload,
 ) => void;
 
+/**
+ * The UI query adapter forwards JSON args from query keys. That cannot be
+ * checked against the root messenger's action-arg union, so the call is typed
+ * to the adapter's contract instead.
+ */
+type DataServiceMessengerCall = (
+  method: ActionType,
+  ...params: Json[]
+) => Promise<Json> | Json;
+
+const callDataService = Engine.controllerMessenger
+  .call as DataServiceMessengerCall;
+
 const adapter = {
   call: async (method: string, ...params: Json[]) =>
-    // @ts-expect-error Target requires 1 element(s) but source may have fewer.
-    Engine.controllerMessenger.call(
+    callDataService(
       method as ActionType,
       ...withFreshMoneyBalanceOptions(method, params),
-    ) as Json,
+    ),
   subscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.subscribe(event as EventType, callback);
   },
