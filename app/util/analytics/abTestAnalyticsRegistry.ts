@@ -15,7 +15,7 @@ import {
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/TokenDetails/components/abTestConfig';
-import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
+import { SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
 import { LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV0View/abTestConfig';
 import { SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV1View/abTestConfig';
@@ -59,7 +59,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Quick Buy
-  SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING,
 
   // Top Traders (Social Leaderboard)
   TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING,

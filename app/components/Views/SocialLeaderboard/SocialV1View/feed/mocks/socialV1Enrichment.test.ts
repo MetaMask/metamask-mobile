@@ -1,4 +1,8 @@
-import { mockAutoClose, mockMarkPrice } from './socialV1Enrichment';
+import {
+  mockAutoClose,
+  mockCopyCount,
+  mockMarkPrice,
+} from './socialV1Enrichment';
 
 const ENTRY_PRICE = 50_000;
 
@@ -49,6 +53,30 @@ describe('socialV1Enrichment', () => {
 
     it('returns null without an entry price to bracket', () => {
       expect(mockAutoClose('profile-1', 'BTC', null, 'long')).toBeNull();
+    });
+  });
+
+  describe('mockCopyCount', () => {
+    // A count that moved on re-render would read as live activity that isn't.
+    it('returns the same count for the same post', () => {
+      expect(mockCopyCount('post-1')).toBe(mockCopyCount('post-1'));
+    });
+
+    it('returns a non-negative whole number', () => {
+      const count = mockCopyCount('post-1');
+
+      expect(Number.isInteger(count)).toBe(true);
+      expect(count).toBeGreaterThanOrEqual(0);
+    });
+
+    it('spreads counts across posts', () => {
+      const counts = new Set(
+        Array.from({ length: 40 }, (_, index) =>
+          mockCopyCount(`post-${index}`),
+        ),
+      );
+
+      expect(counts.size).toBeGreaterThan(1);
     });
   });
 });

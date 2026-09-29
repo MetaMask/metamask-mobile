@@ -1,5 +1,7 @@
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { useQueryClient } from '@tanstack/react-query';
 import type { CaipChainId } from '@metamask/utils';
+import Engine from '../../../../core/Engine';
 import type {
   GetRecurringOrdersResponse,
   RecurringOrderStatus,
@@ -22,6 +24,7 @@ export function useRecurringOrders({
   chainId,
   enabled = true,
 }: UseRecurringOrdersParams) {
+  const queryClient = useQueryClient();
   const descriptor = recurringOrdersQueries.getRecurringOrders({
     walletAddress: walletAddress ?? '',
     status,
@@ -43,6 +46,18 @@ export function useRecurringOrders({
     query.fetchNextPage({ cancelRefetch: false }).catch(() => undefined);
   }
 
+  async function refresh() {
+    await Engine.controllerMessenger.call(
+      'RecurringOrdersDataService:invalidateQueries',
+      { queryKey: descriptor.queryKey },
+    );
+
+    await queryClient.invalidateQueries({
+      queryKey: descriptor.queryKey,
+      exact: true,
+    });
+  }
+
   return {
     orders: query.data?.pages.flatMap((page) => page.orders) ?? [],
     isLoading: query.isLoading,
@@ -51,5 +66,6 @@ export function useRecurringOrders({
     isFetchingNextPage: query.isFetchingNextPage,
     fetchNextPage,
     refetch: query.refetch,
+    refresh,
   };
 }
