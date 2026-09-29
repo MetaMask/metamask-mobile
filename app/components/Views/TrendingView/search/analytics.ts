@@ -64,6 +64,11 @@ export interface ExploreSearchInteractedProperties {
   position?: number;
   /** Total number of results visible to the user at the time of the interaction. */
   result_count?: number;
+  /** Predict market identity; only set on result_clicked for the predictions feed. */
+  market_id?: string;
+  market_slug?: string;
+  market_tags?: string[];
+  market_title?: string;
 }
 
 export type ExploreTabName =
