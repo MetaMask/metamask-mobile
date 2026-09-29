@@ -35,6 +35,7 @@ import {
   getTraceContext,
 } from '../../../util/trace';
 import { captureException } from '@sentry/react-native';
+import { captureExceptionForced } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import {
@@ -107,6 +108,7 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
@@ -126,6 +128,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const dispatch = useDispatch();
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
+  const analyticsId = useSelector(selectAnalyticsId);
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
   const canvasColor =
@@ -416,17 +419,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         }
       } else if (!isComingFromOauthOnboarding) {
         // new password relogin failed
-        // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
-        // do we want to capture and report the error?
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Re-login',
-              context:
-                'seedless flow unlock wallet failed - user consented to analytics',
-            },
-          });
-        }
+        // for non oauth login (rehydration) failure, prompt user to reset and rehydrate.
+        // Force-report so opted-out users still appear in Sentry.
+        // Authentication.ts owns confirmed incident_1745 Shape 1 tagging.
+        captureExceptionForced(seedlessError, {
+          view: 'Re-login',
+          context: 'seedless flow unlock wallet failed',
+          profile_id: analyticsId ?? 'unknown',
+        }).catch(() => undefined);
         Logger.error(seedlessError, 'Error in Unlock Screen');
         promptSeedlessRelogin();
         return;
@@ -471,6 +471,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       promptSeedlessRelogin,
       isComingFromOauthOnboarding,
       accountType,
+      analyticsId,
     ],
   );
 
