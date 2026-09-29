@@ -31,7 +31,11 @@ import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
-import { parseFloatSafe, doesTokenRequireAllowanceReset } from '../../utils';
+import {
+  parseFloatSafe,
+  doesTokenRequireAllowanceReset,
+  registerLendingCounterToken,
+} from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
@@ -428,27 +432,12 @@ const EarnLendingDepositConfirmationView = () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
-          if (!outputToken) {
-            try {
-              const networkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId,
-              }).catch(console.error);
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  earnToken?.symbol || earnToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
+          if (!outputToken && selectedAccount?.id) {
+            registerLendingCounterToken(
+              selectedAccount.id,
+              tokenSnapshot,
+              earnToken?.symbol || earnToken?.ticker || '',
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -463,7 +452,14 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      earnToken,
+      tokenSnapshot,
+      selectedAccount,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(

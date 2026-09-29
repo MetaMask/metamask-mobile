@@ -4,6 +4,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
 import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 import {
   buildTronEarnTokenIfEligible,
   getLocalizedErrorMessage,
@@ -25,11 +26,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockUpdateBalance = jest.fn().mockResolvedValue(undefined);
+const mockGetAssets = jest.fn().mockResolvedValue({});
+const mockGetAccount = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    MultichainBalancesController: {
-      updateBalance: (accountId: string) => mockUpdateBalance(accountId),
+    AccountsController: {
+      getAccount: (accountId: string) => mockGetAccount(accountId),
+    },
+    AssetsController: {
+      getAssets: (...args: unknown[]) => mockGetAssets(...args),
     },
   },
 }));
@@ -341,7 +346,8 @@ describe('tron utils', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockUpdateBalance.mockClear();
+      mockGetAssets.mockClear();
+      mockGetAccount.mockClear();
     });
 
     it('navigates to success sheet for stake when result is valid and has no errors', () => {
@@ -375,10 +381,17 @@ describe('tron utils', () => {
         errors: undefined,
       };
       const accountId = 'test-tron-account-id';
+      const mockAccount = { id: accountId };
+      mockGetAccount.mockReturnValue(mockAccount);
 
       handleTronStakingNavigationResult(navigation, result, 'stake', accountId);
 
-      expect(mockUpdateBalance).toHaveBeenCalledWith(accountId);
+      expect(mockGetAccount).toHaveBeenCalledWith(accountId);
+      expect(mockGetAssets).toHaveBeenCalledWith([mockAccount], {
+        forceUpdate: true,
+        assetTypes: FUNGIBLE_ASSET_TYPES,
+        bypassServerCache: true,
+      });
       expect(navigation.goBack).toHaveBeenCalledTimes(1);
     });
 
@@ -391,7 +404,7 @@ describe('tron utils', () => {
 
       handleTronStakingNavigationResult(navigation, result, 'stake');
 
-      expect(mockUpdateBalance).not.toHaveBeenCalled();
+      expect(mockGetAssets).not.toHaveBeenCalled();
     });
 
     it('navigates to error sheet for stake when result has errors', () => {

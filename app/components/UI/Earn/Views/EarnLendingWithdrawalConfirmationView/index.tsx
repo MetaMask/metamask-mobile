@@ -13,13 +13,9 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BadgeNetwork,
-  ButtonIconSize,
-  FontWeight,
   HeaderStandard,
-  IconName,
   KeyValueRow,
   Text,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
@@ -51,6 +47,7 @@ import {
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { registerLendingCounterToken } from '../../utils';
 import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLending';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
@@ -345,33 +342,25 @@ const EarnLendingWithdrawalConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          if (!earnToken) {
-            try {
-              const tokenNetworkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId: tokenNetworkClientId,
-              }).catch(console.error);
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  outputToken?.symbol || outputToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
+          if (!earnToken && selectedAccount?.id) {
+            registerLendingCounterToken(
+              selectedAccount.id,
+              tokenSnapshot,
+              outputToken?.symbol || outputToken?.ticker || '',
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
+    [
+      emitTxMetaMetric,
+      tokenSnapshot,
+      earnToken,
+      outputToken,
+      navigation,
+      selectedAccount,
+    ],
   );
 
   // Guards
