@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Kunin ang iyong Pix Key",
-      "description": "Magpadala ng mga pondo direkta sa iyong Money account mula sa alinmang bank account.",
-      "benefit_deposit_pix": "Magdeposito gamit ang",
-      "benefit_payments": "Magpadala ng lokal at internasyonal na mga bayad",
-      "agreements_disclosures_title": "Mga kasunduan at pagpapahayag",
-      "disclaimers_error": "Hindi mai-load ang mga tuntunin at kundisyon.",
-      "disclaimers_retry": "Subukang muli",
-      "agreement_text": "Sa pagpapatuloy, sumasang-ayon ka sa mga tuntunin at kondisyon na nasa itaas.",
-      "powered_by_moonpay": "Pinapagana ng MoonPay.",
-      "button": "Sumang-ayon at magpatuloy"
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "I-verify ang pagkakakilanlan mo",

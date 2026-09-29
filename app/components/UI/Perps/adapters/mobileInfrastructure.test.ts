@@ -143,6 +143,11 @@ jest.mock('../../../../util/intl', () => ({
   })),
 }));
 
+const mockIsLighterProviderEnabled = jest.fn();
+jest.mock('../utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: () => mockIsLighterProviderEnabled(),
+}));
+
 describe('createMobileInfrastructure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -474,21 +479,44 @@ describe('createMobileInfrastructure', () => {
 });
 
 describe('createMobileClientConfig', () => {
-  it('returns default config with empty strings and arrays when no env vars are set', () => {
-    // Arrange — ensure relevant env vars are absent
-    const envVars = [
-      'MM_PERPS_BLOCKED_REGIONS',
-      'MM_PERPS_HIP3_ENABLED',
-      'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
-      'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
-      'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
-      'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
-    ];
-    const saved: Record<string, string | undefined> = {};
+  const envVars = [
+    'METAMASK_ENVIRONMENT',
+    'MM_PERPS_BLOCKED_REGIONS',
+    'MM_PERPS_HIP3_ENABLED',
+    'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
+    'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+    'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
+    'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
+    'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
+    'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+    'MM_PERPS_LIGHTER_API_KEY_INDEX',
+  ] as const;
+  const saved: Partial<Record<(typeof envVars)[number], string>> = {};
+
+  beforeEach(() => {
+    mockIsLighterProviderEnabled.mockReturnValue(false);
     for (const key of envVars) {
-      saved[key] = process.env[key];
+      if (process.env[key] !== undefined) {
+        saved[key] = process.env[key];
+      }
       delete process.env[key];
     }
+  });
+
+  afterEach(() => {
+    for (const key of envVars) {
+      const savedValue = saved[key];
+      if (savedValue === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = savedValue;
+      }
+      delete saved[key];
+    }
+  });
+
+  it('returns default config with empty strings and arrays when no env vars are set', () => {
+    // Arrange is provided by beforeEach.
 
     // Act
     const config = createMobileClientConfig();
@@ -504,15 +532,87 @@ describe('createMobileClientConfig', () => {
           builderAddressTestnet: '',
           builderAddressMainnet: '',
         },
+        lighter: {
+          enabled: false,
+          accountIndexTestnet: undefined,
+          apiKeyIndex: undefined,
+        },
       },
     });
+  });
 
-    // Restore
-    for (const key of envVars) {
-      if (saved[key] !== undefined) {
-        process.env[key] = saved[key];
-      }
-    }
+  it('enables Lighter with its signer bridge when explicitly enabled', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        signerBridge: expect.any(Object),
+      }),
+    );
+  });
+
+  it('enables Lighter with its signer bridge through a production override', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        signerBridge: expect.any(Object),
+      }),
+    );
+  });
+
+  it.each(['abc', 'NaN', 'Infinity', '-1', '1.5', '0x08', ' ', '255'])(
+    'rejects malformed signer key slot %s instead of selecting another slot',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_API_KEY_INDEX',
+      );
+    },
+  );
+
+  it.each(['invalid', '-1', '1.5', '9007199254740992'])(
+    'rejects malformed Lighter account index %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+      );
+    },
+  );
+
+  it('supplies validated explicit signer indices', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+    process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = '59';
+    process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = '254';
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({ accountIndexTestnet: 59, apiKeyIndex: 254 }),
+    );
+  });
+
+  it('keeps Lighter disabled in production without an override', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(false);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual({
+      enabled: false,
+      accountIndexTestnet: undefined,
+      apiKeyIndex: undefined,
+    });
   });
 });
 

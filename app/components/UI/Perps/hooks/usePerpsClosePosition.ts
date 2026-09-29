@@ -1,7 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
   type OrderResult,
@@ -14,6 +16,13 @@ import {
   isNoPositionFoundError,
 } from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS } from '../constants/perpsConfig';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
@@ -56,10 +65,103 @@ interface ClosePositionParams {
   };
 }
 
+// Closes in flight per account, provider, network and symbol. Module scope: the
+// close screen dismisses before the request settles, so screen state can't guard it.
+const closesInFlight = new Set<string>();
+const closeLockListeners = new Set<() => void>();
+let closeLockVersion = 0;
+
+const getCloseKey = (
+  accountAddress: string | undefined,
+  provider: string | undefined,
+  network: string,
+  symbol: string,
+) => [accountAddress, provider, network, symbol].join(':');
+
+function setCloseLock(key: string, locked: boolean) {
+  if (locked) {
+    closesInFlight.add(key);
+  } else {
+    closesInFlight.delete(key);
+  }
+  closeLockVersion += 1;
+  closeLockListeners.forEach((listener) => listener());
+}
+
+function subscribeCloseLocks(listener: () => void) {
+  closeLockListeners.add(listener);
+  return () => {
+    closeLockListeners.delete(listener);
+  };
+}
+
+const getCloseLockVersion = () => closeLockVersion;
+
+// A filled market close stays locked until the positions stream shows it, so a
+// form reopened on the stale position cannot send a second reduce-only close.
+function releaseCloseLockOnPositionChange(
+  stream: ReturnType<typeof usePerpsStream>,
+  key: string,
+  position: Position,
+) {
+  // The subscription can deliver cached data before `subscribe` returns.
+  const handles: {
+    timeout?: ReturnType<typeof setTimeout>;
+    unsubscribe?: () => void;
+  } = {};
+  let released = false;
+  const release = () => {
+    if (released) {
+      return;
+    }
+    released = true;
+    clearTimeout(handles.timeout);
+    handles.unsubscribe?.();
+    setCloseLock(key, false);
+  };
+  handles.timeout = setTimeout(release, PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS);
+  handles.unsubscribe = stream.positions.subscribe({
+    callback: (positions) => {
+      if (positions === null) {
+        return;
+      }
+      const livePosition = positions.find(
+        (item) => item.symbol === position.symbol,
+      );
+      if (livePosition?.size !== position.size) {
+        release();
+      }
+    },
+  });
+  if (released) {
+    handles.unsubscribe();
+  }
+}
+
+export const resetPerpsCloseLocksForTests = () => {
+  closesInFlight.clear();
+  closeLockVersion = 0;
+};
+
+/** True while a close for this market is in flight or awaiting its stream update. */
+export const usePerpsCloseInFlight = (symbol: string): boolean => {
+  const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const provider = useSelector(selectPerpsProvider);
+  const network = useSelector(selectPerpsNetwork);
+  useSyncExternalStore(subscribeCloseLocks, getCloseLockVersion);
+  return closesInFlight.has(
+    getCloseKey(accountAddress, provider, network, symbol),
+  );
+};
+
 export const usePerpsClosePosition = (
   options?: UsePerpsClosePositionOptions,
 ) => {
   const { closePosition } = usePerpsTrading();
+  const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const provider = useSelector(selectPerpsProvider);
+  const network = useSelector(selectPerpsNetwork);
+  const stream = usePerpsStream();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -75,6 +177,22 @@ export const usePerpsClosePosition = (
         marketPrice,
         slippage,
       } = params;
+      const closeKey = getCloseKey(
+        accountAddress,
+        provider,
+        network,
+        position.symbol,
+      );
+      if (closesInFlight.has(closeKey)) {
+        DevLogger.log('usePerpsClosePosition: Close already in flight', {
+          symbol: position.symbol,
+        });
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .closeAlreadyInProgress,
+        );
+        return undefined;
+      }
       const isFullClose = size === undefined || size === '';
 
       // Failure toast varies by order type and full/partial close. Shared so
@@ -152,6 +270,8 @@ export const usePerpsClosePosition = (
         PerpsCacheInvalidator.invalidate('accountState');
       };
 
+      setCloseLock(closeKey, true);
+      let holdUntilPositionUpdates = false;
       try {
         setIsClosing(true);
         setError(null);
@@ -241,12 +361,17 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
+        if (result.success || isNoPositionFoundError(result.error)) {
+          recordPerpsAction();
+        }
+
         if (!result.success && isNoPositionFoundError(result.error)) {
           reconcileAlreadyClosed();
           return result;
         }
 
         if (result.success) {
+          holdUntilPositionUpdates = orderType === 'market';
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
           // the request was in flight, that render instant was recorded and the
@@ -377,10 +502,24 @@ export const usePerpsClosePosition = (
 
         throw closeError;
       } finally {
+        if (holdUntilPositionUpdates) {
+          releaseCloseLockOnPositionChange(stream, closeKey, position);
+        } else {
+          setCloseLock(closeKey, false);
+        }
         setIsClosing(false);
       }
     },
-    [PerpsToastOptions.positionManagement, closePosition, options, showToast],
+    [
+      PerpsToastOptions.positionManagement,
+      accountAddress,
+      closePosition,
+      network,
+      options,
+      provider,
+      showToast,
+      stream,
+    ],
   );
 
   return {

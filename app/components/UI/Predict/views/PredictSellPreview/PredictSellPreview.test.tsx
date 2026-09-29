@@ -598,12 +598,17 @@ describe('PredictSellPreview', () => {
       expect(cashOutTexts.length).toBe(1);
     });
 
-    it('renders value section with HeadingLg variant in sheet mode', () => {
+    it('renders the cash-out amount as a large static value in sheet mode', () => {
       renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
         state: initialState,
       });
 
-      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+      const amount = screen.getAllByText('$57.30')[0];
+      expect(amount).toHaveStyle({
+        fontSize: 40,
+        lineHeight: 50,
+        fontFamily: 'Inter-Medium',
+      });
       expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 

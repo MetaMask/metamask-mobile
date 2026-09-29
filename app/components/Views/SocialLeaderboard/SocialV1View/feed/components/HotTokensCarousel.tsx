@@ -1,0 +1,393 @@
+import {
+  AvatarTokenSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { type LayoutChangeEvent, StyleSheet } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useFrameCallback,
+  useSharedValue,
+} from 'react-native-reanimated';
+import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
+import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
+import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
+import type { TokenFeedTarget } from '../hooks/tokenFeedQueries';
+import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
+import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
+import type {
+  SocialV1FeedPost,
+  SocialV1HotToken,
+  SocialV1TokenFeedState,
+} from '../types';
+import {
+  getSocialV1HotTokenCheckTestId,
+  getSocialV1HotTokenChipTestId,
+  SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
+} from './HotTokensCarousel.testIds';
+
+const EMPTY_POSTS: SocialV1FeedPost[] = [];
+
+/** Slow news-footer crawl. */
+const MARQUEE_PIXELS_PER_SECOND = 24;
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});
+
+const wrapOffset = (x: number, width: number): number => {
+  'worklet';
+  if (width <= 0) {
+    return 0;
+  }
+  const wrapped = x % width;
+  return wrapped < 0 ? wrapped + width : wrapped;
+};
+
+export interface HotTokensCarouselProps {
+  /** Loaded feed posts the ranking is counted from. */
+  posts?: readonly SocialV1FeedPost[];
+  /** True during the feed's first fetch, before any post is on screen. */
+  isLoading?: boolean;
+  /** Chip id of the asset currently filtering the feed. */
+  selectedTokenId?: string | null;
+  /** Filters the feed to this asset. Pressing the selected chip clears it. */
+  onTokenPress?: (token: SocialV1HotToken) => void;
+  /**
+   * Token-feed page for the selected chip that has a chain and contract.
+   * `null` when nothing is selected or the chip cannot call the token route.
+   */
+  onTokenFeedChange?: (state: SocialV1TokenFeedState | null) => void;
+}
+
+const HotTokenChip: React.FC<{
+  token: SocialV1HotToken;
+  onPress?: (token: SocialV1HotToken) => void;
+  testID: string;
+  checkTestID: string;
+  isSelected?: boolean;
+}> = ({ token, onPress, testID, checkTestID, isSelected = false }) => (
+  // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
+  // ticker must keep each chip at intrinsic width or the track never overflows
+  // the viewport and the marquee never starts.
+  <Box twClassName="shrink-0">
+    <ExplorePill
+      testID={testID}
+      isSelected={isSelected}
+      leading={
+        <PositionTokenAvatar
+          position={token.avatar}
+          size={AvatarTokenSize.Sm}
+        />
+      }
+      title={token.label}
+      onPress={() => onPress?.(token)}
+      trailing={
+        isSelected ? (
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+            testID={checkTestID}
+          />
+        ) : null
+      }
+    />
+  </Box>
+);
+
+const HotTokenTrack: React.FC<{
+  tokens: SocialV1HotToken[];
+  onPress?: (token: SocialV1HotToken) => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
+  testID?: string;
+  idSuffix?: string;
+  selectedTokenId?: string | null;
+}> = ({ tokens, onPress, onLayout, testID, idSuffix, selectedTokenId }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="pl-4 gap-2"
+    onLayout={onLayout}
+    testID={testID}
+  >
+    {tokens.map((token) => {
+      const chipId = idSuffix ? `${token.id}${idSuffix}` : token.id;
+      return (
+        <HotTokenChip
+          key={chipId}
+          token={token}
+          onPress={onPress}
+          isSelected={token.id === selectedTokenId}
+          testID={getSocialV1HotTokenChipTestId(chipId)}
+          checkTestID={getSocialV1HotTokenCheckTestId(chipId)}
+        />
+      );
+    })}
+  </Box>
+);
+
+/**
+ * HotTokensCarousel -- the rail of asset chips above the Social V1 feed. When
+ * the chips overflow the viewport they crawl like a news ticker, until a chip is
+ * selected: that one moves to the front, takes a check, and the rail holds still.
+ *
+ * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
+ * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
+ * scroll gesture alive on PagerView page 0 and cancels taps on the rest of
+ * Trending (reactions, overflow menu, Popular traders). A pan on this rail
+ * still wins over the pager so scrubbing the chips does not change tabs.
+ *
+ * Chips are the assets that appear most often in `posts`. Icons go through
+ * `PositionTokenAvatar`, the same resolution the position cards use.
+ */
+const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
+  posts = EMPTY_POSTS,
+  isLoading: feedIsLoading = false,
+  selectedTokenId = null,
+  onTokenPress,
+  onTokenFeedChange,
+}) => {
+  const { tokens, isLoading } = useSocialV1HotTokens(
+    posts,
+    feedIsLoading,
+    selectedTokenId,
+  );
+  const rankedToken = useMemo(
+    () => tokens.find((token) => token.id === selectedTokenId) ?? null,
+    [selectedTokenId, tokens],
+  );
+  // The rail is ranked from the unfiltered feed. Remember the selected
+  // contract chip so a refetch that drops that asset does not cancel its feed.
+  const heldContractTokenRef = useRef<SocialV1HotToken | null>(null);
+  if (!selectedTokenId) {
+    heldContractTokenRef.current = null;
+  } else if (rankedToken?.chain && rankedToken.contractAddress) {
+    heldContractTokenRef.current = rankedToken;
+  } else if (heldContractTokenRef.current?.id !== selectedTokenId) {
+    heldContractTokenRef.current = null;
+  }
+  const selectedToken =
+    rankedToken ??
+    (heldContractTokenRef.current?.id === selectedTokenId
+      ? heldContractTokenRef.current
+      : null);
+  // The selected chip leads the rail. Frequency decides the order until a
+  // filter is on, and then the asset being filtered on has to be the one the
+  // user can see -- the rail is parked at its left edge while a chip is active.
+  const railTokens = useMemo(
+    () =>
+      selectedToken
+        ? [
+            selectedToken,
+            ...tokens.filter((token) => token.id !== selectedToken.id),
+          ]
+        : tokens,
+    [selectedToken, tokens],
+  );
+  const tokenFeedTarget = useMemo((): TokenFeedTarget | null => {
+    if (!selectedToken?.chain || !selectedToken.contractAddress) {
+      return null;
+    }
+    return {
+      chain: selectedToken.chain,
+      contractAddress: selectedToken.contractAddress,
+    };
+  }, [selectedToken]);
+  const tokenFeed = useSocialV1TokenFeed(tokenFeedTarget);
+  const onTokenFeedChangeRef = useRef(onTokenFeedChange);
+  onTokenFeedChangeRef.current = onTokenFeedChange;
+
+  useEffect(() => {
+    const report = onTokenFeedChangeRef.current;
+    if (!report) {
+      return;
+    }
+    if (!tokenFeedTarget) {
+      report(null);
+      return;
+    }
+    report({
+      posts: tokenFeed.posts,
+      isLoading: tokenFeed.isLoading,
+      isFetchingNextPage: tokenFeed.isFetchingNextPage,
+      hasNextPage: tokenFeed.hasNextPage,
+      loadMore: tokenFeed.loadMore,
+      error: tokenFeed.error,
+      refresh: tokenFeed.refresh,
+    });
+  }, [
+    tokenFeed.error,
+    tokenFeed.hasNextPage,
+    tokenFeed.isFetchingNextPage,
+    tokenFeed.isLoading,
+    tokenFeed.loadMore,
+    tokenFeed.posts,
+    tokenFeed.refresh,
+    tokenFeedTarget,
+  ]);
+  const offset = useSharedValue(0);
+  const dragStartOffset = useSharedValue(0);
+  const paused = useSharedValue(false);
+  const trackWidthSv = useSharedValue(0);
+  const viewportWidthSv = useSharedValue(0);
+  const [trackWidth, setTrackWidth] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(0);
+
+  const shouldMarquee =
+    trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
+
+  // A crawling rail would carry the chip the feed is filtered on off screen, so
+  // a selection parks the track at its start. The pan is left alone: scrubbing
+  // to read the rest of the rail is the user's call, and nothing re-starts the
+  // crawl behind them.
+  const isParked = Boolean(selectedTokenId);
+  const parked = useSharedValue(isParked);
+
+  useEffect(() => {
+    parked.value = isParked;
+    if (isParked) {
+      offset.value = 0;
+    }
+  }, [isParked, offset, parked]);
+
+  const handleViewportLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      viewportWidthSv.value = width;
+      setViewportWidth(width);
+    },
+    [viewportWidthSv],
+  );
+
+  const handleTrackLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      trackWidthSv.value = width;
+      setTrackWidth(width);
+    },
+    [trackWidthSv],
+  );
+
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-10, 10])
+        .failOffsetY([-12, 12])
+        .onBegin(() => {
+          'worklet';
+          paused.value = true;
+          dragStartOffset.value = offset.value;
+        })
+        .onUpdate((event) => {
+          'worklet';
+          const width = trackWidthSv.value;
+          if (width <= 0) {
+            return;
+          }
+          offset.value = wrapOffset(
+            dragStartOffset.value - event.translationX,
+            width,
+          );
+        })
+        .onFinalize(() => {
+          'worklet';
+          paused.value = false;
+        }),
+    [dragStartOffset, offset, paused, trackWidthSv],
+  );
+
+  const tickMarquee = useCallback(
+    (frame: { timeSincePreviousFrame: number | null }) => {
+      'worklet';
+      const width = trackWidthSv.value;
+      const viewport = viewportWidthSv.value;
+      if (
+        parked.value ||
+        paused.value ||
+        width <= 0 ||
+        viewport <= 0 ||
+        width <= viewport
+      ) {
+        return;
+      }
+      const dtMs = frame.timeSincePreviousFrame ?? 0;
+      if (dtMs <= 0) {
+        return;
+      }
+      offset.value = wrapOffset(
+        offset.value + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
+        width,
+      );
+    },
+    [offset, parked, paused, trackWidthSv, viewportWidthSv],
+  );
+
+  useFrameCallback(tickMarquee);
+
+  const trackStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -offset.value }],
+  }));
+
+  const loopTokens = useMemo(
+    () => (shouldMarquee ? railTokens : []),
+    [shouldMarquee, railTokens],
+  );
+
+  // Returning null instead of an empty wrapper lets the page's gap collapse,
+  // rather than leaving a rail-shaped hole above the first post.
+  if (!isLoading && railTokens.length === 0) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <SectionPillsSkeleton rowCount={1} />;
+  }
+
+  return (
+    <Box
+      onLayout={handleViewportLayout}
+      twClassName="overflow-hidden"
+      testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
+    >
+      <GestureDetector gesture={pan}>
+        <Animated.View style={[styles.row, trackStyle]}>
+          <HotTokenTrack
+            tokens={railTokens}
+            onPress={onTokenPress}
+            onLayout={handleTrackLayout}
+            testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}
+            selectedTokenId={selectedTokenId}
+          />
+          {loopTokens.length > 0 ? (
+            <HotTokenTrack
+              tokens={loopTokens}
+              onPress={onTokenPress}
+              idSuffix="-loop"
+              selectedTokenId={selectedTokenId}
+            />
+          ) : null}
+        </Animated.View>
+      </GestureDetector>
+    </Box>
+  );
+};
+
+export default HotTokensCarousel;

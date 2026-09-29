@@ -211,7 +211,6 @@ describe('usePerpsActivityItems', () => {
         chainId: 'eip155:42161',
         status: 'success',
         timestamp: 300,
-        raw: { type: 'perpsTransaction', data: openLongTx },
         hash: 'trade-open-long',
         data: {
           token: {
@@ -325,6 +324,7 @@ describe('usePerpsActivityItems', () => {
     expect(usePerpsActivityQuery).toHaveBeenCalledWith(
       `eip155:42161:${address}`,
       true,
+      { fillDisplay: 'aggregated' },
     );
   });
 
@@ -335,6 +335,8 @@ describe('usePerpsActivityItems', () => {
 
     renderHook(() => usePerpsActivityItems());
 
-    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true);
+    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true, {
+      fillDisplay: 'aggregated',
+    });
   });
 });

@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
-      "navbar_title": "은행 계좌",
-      "title": "Pix 키 받기",
-      "description": "모든 은행 계좌에서 머니 계정으로 직접 송금할 수 있습니다.",
-      "benefit_deposit_pix": "입금 방법:",
-      "benefit_payments": "국내 및 해외로 결제 대금 보내기",
-      "agreements_disclosures_title": "약관 및 고지 사항",
-      "disclaimers_error": "이용 약관을 불러올 수 없습니다.",
-      "disclaimers_retry": "다시 시도",
-      "agreement_text": "계속하면 위의 이용 약관에 동의하는 것으로 간주됩니다.",
-      "powered_by_moonpay": "MoonPay 제공",
-      "button": "동의하고 계속하기"
+    "create_virtual_bank_account": {
+      "navbar_title": "Bank account",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "본인 인증",

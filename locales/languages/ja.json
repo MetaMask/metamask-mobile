@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
-      "navbar_title": "銀行口座",
-      "title": "Pixキーを入手しよう",
-      "description": "銀行口座から自分のMoney Accountに直接送金できます。",
-      "benefit_deposit_pix": "入金方法",
-      "benefit_payments": "国内送金も国際送金も思いのまま",
-      "agreements_disclosures_title": "同意事項および開示事項",
-      "disclaimers_error": "諸条件を読み込めませんでした。",
-      "disclaimers_retry": "もう一度お試しください",
-      "agreement_text": "続行した場合、上記の諸条件に同意したものとみなされます。",
-      "powered_by_moonpay": "MoonPayを利用して実現されています。",
-      "button": "同意して続行"
+    "create_virtual_bank_account": {
+      "navbar_title": "Bank account",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "本人確認を行う",

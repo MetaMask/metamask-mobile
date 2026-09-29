@@ -1,5 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Platform,
+  Pressable,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import { useTheme } from '../../../../../util/theme';
@@ -47,6 +54,12 @@ interface PerpsAmountDisplayProps {
   onDisplayToggle?: () => void;
   displayToggleAccessibilityLabel?: string;
   displayToggleTestID?: string;
+  /**
+   * Custom glyph for the `tradeSheet` fiat/token toggle. When omitted the
+   * toggle is the MMDS `ButtonIcon` with `IconName.SwapVertical`; callers
+   * whose design uses a glyph MMDS does not publish pass their own.
+   */
+  displayToggleIcon?: React.ReactNode;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -67,8 +80,10 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   onDisplayToggle,
   displayToggleAccessibilityLabel,
   displayToggleTestID,
+  displayToggleIcon,
 }) => {
   const { colors } = useTheme();
+  const tw = useTailwind();
   const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -116,17 +131,30 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   }, [isActive, fadeAnim]);
 
   if (variant === 'tradeSheet') {
+    const isTokenPrimary = Boolean(
+      showTokenAmount && tokenAmount && tokenSymbol,
+    );
+    // The unit is rendered separately so the input cursor sits after the
+    // number rather than after the symbol.
     const primaryDisplayValue =
-      showTokenAmount && tokenDisplayValue
-        ? tokenDisplayValue
+      isTokenPrimary && tokenAmount
+        ? formatPositionSize(tokenAmount)
         : fiatDisplayValue;
+    const primaryDisplayUnit =
+      isTokenPrimary && tokenSymbol
+        ? getPerpsDisplaySymbol(tokenSymbol)
+        : undefined;
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
+    const primaryColor = hasError
+      ? TextColor.ErrorDefault
+      : TextColor.TextDefault;
 
     const primaryAmount = (
       <Box
         accessible={false}
+        testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
@@ -136,7 +164,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           <Text
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
             variant={TextVariant.DisplayLg}
-            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+            color={primaryColor}
           >
             {primaryDisplayValue}
           </Text>
@@ -151,6 +179,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               },
             ]}
           />
+        ) : null}
+        {!isLoading && primaryDisplayUnit ? (
+          <Text
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
+            variant={TextVariant.DisplayLg}
+            color={primaryColor}
+          >
+            {` ${primaryDisplayUnit}`}
+          </Text>
         ) : null}
       </Box>
     );
@@ -192,7 +229,26 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
             >
               {secondaryDisplayValue}
             </Text>
-            {onDisplayToggle ? (
+            {onDisplayToggle && displayToggleIcon ? (
+              // Mirrors MMDS `ButtonIcon` (Sm, Filled) around a caller-supplied
+              // glyph that MMDS does not publish under IconName.
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={displayToggleAccessibilityLabel}
+                testID={displayToggleTestID}
+                onPress={onDisplayToggle}
+                hitSlop={8}
+                style={({ pressed }) =>
+                  tw.style(
+                    'h-6 w-6 items-center justify-center rounded-full',
+                    pressed ? 'bg-muted-pressed' : 'bg-muted',
+                  )
+                }
+              >
+                {displayToggleIcon}
+              </Pressable>
+            ) : null}
+            {onDisplayToggle && !displayToggleIcon ? (
               <ButtonIcon
                 iconName={IconName.SwapVertical}
                 size={ButtonIconSize.Sm}

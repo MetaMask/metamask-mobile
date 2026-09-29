@@ -61,13 +61,11 @@ const PredictMarketOutcomeResolved: React.FC<
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-1">
+        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             twClassName="font-medium"
-            numberOfLines={1}
-            ellipsizeMode="tail"
           >
             {outcome.groupItemTitle ?? outcome.title}
           </Text>
@@ -83,7 +81,7 @@ const PredictMarketOutcomeResolved: React.FC<
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          twClassName="gap-1 shrink-0"
         >
           <Text
             variant={TextVariant.BodyMd}

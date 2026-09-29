@@ -36,6 +36,7 @@ _public_envs: &public_envs # Servers (production)
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.api.cx.metamask.io'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
+  REWARDS_MONEY_API_URL: 'https://rewards-money.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
   # Build flags (production defaults)
@@ -66,6 +67,7 @@ _main_dev_env: &main_dev_env
   MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
   MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
   REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+  REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
   BAANX_API_URL: 'https://dev.api.baanx.com'
   CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -358,6 +360,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -386,6 +389,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -414,6 +418,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -427,6 +432,9 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # Ships the Lighter signer in nightly exp builds; LaunchDarkly
+      # perps-lighter-provider-enabled controls who sees the provider selector.
+      MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
@@ -501,6 +509,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -546,6 +555,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -574,6 +584,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -601,6 +612,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'

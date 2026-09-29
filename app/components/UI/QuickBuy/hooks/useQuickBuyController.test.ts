@@ -258,6 +258,7 @@ runQuickBuyControllerCases({
     onClose?: () => void,
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
+    initialTradeMode?: 'buy' | 'sell',
   ) => {
     const utils = renderHook(
       () =>
@@ -265,6 +266,7 @@ runQuickBuyControllerCases({
           target ?? defaultTarget,
           onClose ?? jest.fn(),
           analyticsContext,
+          initialTradeMode,
         ),
       { initialProps },
     );

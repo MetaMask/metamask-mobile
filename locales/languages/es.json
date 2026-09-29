@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
-      "navbar_title": "Cuenta bancaria",
-      "title": "Obtén tu Pix Key",
-      "description": "Envía fondos directamente a tu cuenta Money desde cualquier cuenta bancaria.",
-      "benefit_deposit_pix": "Deposita con",
-      "benefit_payments": "Realiza pagos locales e internacionales",
-      "agreements_disclosures_title": "Acuerdos y divulgaciones",
-      "disclaimers_error": "No se pudieron cargar los términos y condiciones.",
-      "disclaimers_retry": "Inténtalo de nuevo",
-      "agreement_text": "Al continuar, aceptas los términos y condiciones anteriores.",
-      "powered_by_moonpay": "Con tecnología de MoonPay.",
-      "button": "Aceptar y continuar"
+    "create_virtual_bank_account": {
+      "navbar_title": "Bank account",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "Verifica tu identidad",
