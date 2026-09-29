@@ -3,6 +3,7 @@ import { Box } from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
+import { PredictEventProperties } from '../../../UI/Predict/constants/eventNames';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import { TokenSearchRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
@@ -64,6 +65,25 @@ export const getTokenIdentityProperties = (
   };
 };
 
+export const getPredictMarketProperties = (
+  feedId: SearchFeedId,
+  item: unknown,
+): Pick<
+  ExploreSearchInteractedProperties,
+  'market_id' | 'market_slug' | 'market_tags' | 'market_title'
+> => {
+  if (feedId !== 'predictions') {
+    return {};
+  }
+  const { id, slug, tags, title } = item as PredictMarketType;
+  return {
+    ...(id ? { [PredictEventProperties.MARKET_ID]: id } : {}),
+    ...(slug ? { [PredictEventProperties.MARKET_SLUG]: slug } : {}),
+    ...(tags ? { [PredictEventProperties.MARKET_TAGS]: tags } : {}),
+    ...(title ? { [PredictEventProperties.MARKET_TITLE]: title } : {}),
+  };
+};
+
 /** Renders a search-result row for any feed and tracks taps with analytics. */
 const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   feedId,
@@ -89,6 +109,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       position: index,
       result_count: resultCountRef.current,
       ...getTokenIdentityProperties(feedId, item),
+      ...getPredictMarketProperties(feedId, item),
     });
   }, [feedId, tabName, item, index]);
 

@@ -51,8 +51,11 @@ export interface ExploreSearchInteractedProperties {
   search_query: string;
   /** Only set on `opened`. */
   entry_point?: SearchEntryPoint;
-  /** Only set on result_clicked when tab_name is 'all'. */
-  section_name?: SearchFeedId;
+  /**
+   * Only set on result_clicked: the feed section when tab_name is 'all', or
+   * 'search_footer' for the footer links on any tab.
+   */
+  section_name?: SearchFeedId | 'search_footer';
   tab_name?: SearchFeedPill;
   previous_tab?: SearchFeedPill;
   /** True when tab_switched came from a section header button, not the pill row. */
@@ -64,6 +67,11 @@ export interface ExploreSearchInteractedProperties {
   /** Only set on result_clicked for tokens and stocks. */
   token_name?: string;
   token_symbol?: string;
+  /** Predict market identity; only set on result_clicked for the predictions feed. */
+  market_id?: string;
+  market_slug?: string;
+  market_tags?: string[];
+  market_title?: string;
 }
 
 export type ExploreTabName =
