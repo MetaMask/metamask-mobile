@@ -70,8 +70,11 @@ export const useSendActions = () => {
           },
         );
       } else {
+        // The metrics context defaults chainIdCaip to an empty string, which
+        // never falls through `??`. Use `||` so an unresolved context value
+        // still falls back to the send's own chain id.
         const resolvedChainIdCaip =
-          chainIdCaip ?? (chainId as string | undefined);
+          chainIdCaip || (chainId as string | undefined);
         const snapId = fromAccount?.metadata?.snap?.id;
 
         try {

@@ -18,6 +18,7 @@ import * as SendExitMetrics from './metrics/useSendExitMetrics';
 import * as MultichainSnaps from '../../utils/multichain-snaps';
 // eslint-disable-next-line import-x/no-namespace
 import * as SendType from './useSendType';
+import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { NonEvmSendUnknownValue } from './metrics/useNonEvmSendMetrics';
 import { useSendActions } from './useSendActions';
 
@@ -25,11 +26,15 @@ jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
 
+const mockUseSendMetricsContext = useSendMetricsContext as jest.MockedFunction<
+  typeof useSendMetricsContext
+>;
+
 const mockTrackEvent = jest.fn();
 jest.mock('../../context/send-context/send-metrics-context', () => ({
-  useSendMetricsContext: () => ({
+  useSendMetricsContext: jest.fn(() => ({
     chainIdCaip: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  }),
+  })),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => {
@@ -284,6 +289,32 @@ describe('useSendActions', () => {
         'snap_id',
         undefined,
       );
+    });
+
+    it('falls back to the send chain id when the metrics context chain id is empty', async () => {
+      mockUseSendMetricsContext.mockReturnValueOnce({ chainIdCaip: '' });
+
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockResolvedValue({
+          valid: false,
+          errors: [{ code: 'InsufficientBalance' }],
+        });
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith('Insufficient funds');
+      });
+
+      // `''` is not nullish, so `??` would have degraded this to the sentinel.
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        chain_id_caip: SOLANA_ASSET.chainId,
+      });
     });
 
     it('shows alert with generic error when valid: false without errors array', async () => {
