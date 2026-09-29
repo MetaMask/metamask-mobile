@@ -291,7 +291,10 @@ export const createMfaFlow = ({
    * Applies the error to the state, or returns the operation that recovers
    * from it.
    */
-  const handleError = (error: unknown): (() => Promise<void>) | undefined => {
+  const handleError = (
+    error: unknown,
+    isRecovery: boolean,
+  ): (() => Promise<void>) | undefined => {
     if (settled) {
       return undefined;
     }
@@ -315,7 +318,14 @@ export const createMfaFlow = ({
         };
       }
       case 'restart':
-        if (current?.method === 'email_otp' && state.step.name === 'otp') {
+        // Only a code that was sent can expire; a send failing with these
+        // codes would otherwise resend forever.
+        if (
+          !isRecovery &&
+          current?.flowId &&
+          current.method === 'email_otp' &&
+          state.step.name === 'otp'
+        ) {
           return async () => {
             await sendEmailCode();
             setState({ codeResent: true });
@@ -360,15 +370,18 @@ export const createMfaFlow = ({
     }
   };
 
-  const run = async (operation: () => Promise<void>): Promise<void> => {
+  const run = async (
+    operation: () => Promise<void>,
+    isRecovery = false,
+  ): Promise<void> => {
     lastOperation = operation;
     setState({ busy: true, error: undefined });
     try {
       await operation();
     } catch (error) {
-      const recovery = handleError(error);
+      const recovery = handleError(error, isRecovery);
       if (recovery) {
-        await run(recovery);
+        await run(recovery, true);
       }
     }
   };

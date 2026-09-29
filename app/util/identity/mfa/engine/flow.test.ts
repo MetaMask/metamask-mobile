@@ -328,6 +328,45 @@ describe('createMfaFlow', () => {
       });
     });
 
+    it('shows the error instead of resending when sending the code fails with too_many_attempts', async () => {
+      const fake = createFakeController([activeEmail]);
+      fake.controller.beginCredentialVerification.mockRejectedValue(
+        new MfaError('too_many_attempts', 'slow down'),
+      );
+      const { flow } = await startFlow(EMAIL_ONLY, fake.controller);
+
+      expect(fake.controller.beginCredentialVerification).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'otp', codeSent: false },
+        error: 'too_many_attempts',
+        busy: false,
+      });
+    });
+
+    it('resends at most once when the code expired and the new send fails too', async () => {
+      const fake = createFakeController([]);
+      const { flow } = await startFlow(EMAIL_ONLY, fake.controller);
+      await act(flow, { type: 'continue' });
+      await act(flow, { type: 'submitEmail', email: 'new@b.co' });
+      fake.controller.completeCredentialEnrollment.mockRejectedValueOnce(
+        new MfaError('flow_expired', 'expired'),
+      );
+      fake.controller.beginCredentialEnrollment.mockRejectedValue(
+        new MfaError('flow_expired', 'expired'),
+      );
+
+      await act(flow, { type: 'submitCode', code: '111111' });
+      expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(flow.getState()).toMatchObject({
+        error: 'flow_expired',
+        busy: false,
+      });
+    });
+
     it('goes back to email entry when the address belongs to another account', async () => {
       const fake = createFakeController([]);
       fake.controller.completeCredentialEnrollment.mockRejectedValueOnce(
