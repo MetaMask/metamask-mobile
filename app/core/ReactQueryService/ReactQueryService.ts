@@ -25,14 +25,12 @@ type DataServiceHandler = (
 ) => void;
 
 const adapter = {
-  call: async (method: string, ...params: Json[]) => {
-    const nextParams = withFreshMoneyBalanceOptions(method, params);
+  call: async (method: string, ...params: Json[]) =>
     // @ts-expect-error Target requires 1 element(s) but source may have fewer.
-    return Engine.controllerMessenger.call(
+    Engine.controllerMessenger.call(
       method as ActionType,
-      ...nextParams,
-    ) as Json;
-  },
+      ...withFreshMoneyBalanceOptions(method, params),
+    ) as Json,
   subscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.subscribe(event as EventType, callback);
   },
