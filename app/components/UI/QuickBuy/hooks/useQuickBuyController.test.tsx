@@ -328,13 +328,11 @@ const Wrapper = ({
 }: {
   children: React.ReactNode;
   featureId: FeatureId;
-}) => {
-  return (
-    <BridgeSessionProvider featureId={featureId}>
-      <SwapQuotesProvider>{children}</SwapQuotesProvider>
-    </BridgeSessionProvider>
-  );
-};
+}) => (
+  <BridgeSessionProvider featureId={featureId}>
+    <SwapQuotesProvider>{children}</SwapQuotesProvider>
+  </BridgeSessionProvider>
+);
 
 const mockUseSwapQuotes = jest.mocked(useSwapQuotes);
 
