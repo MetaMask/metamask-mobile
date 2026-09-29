@@ -3,9 +3,10 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
 /**
  * Cluster that selects which backend env mobile talks to.
  *
- * `MM_API_ENV` (`dev`, `uat`, or `prod`) overrides the build flavor.
+ * CI sets `MM_API_ENV` in `builds.yml` (`dev`, `uat`, or `prod`).
  * When it is unset, the flavor selects the cluster: `dev` → dev,
- * `exp` → uat, and every other flavor → prod.
+ * `exp` → uat, and every other flavor → prod. A local `.js.env`
+ * overrides the build.
  * Services without a host for the selected env keep their own URL.
  *
  * Read synchronously at controller-init time — no Redux, no remote flag,

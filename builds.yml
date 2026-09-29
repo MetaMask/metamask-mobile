@@ -22,6 +22,9 @@
 # Shared env (non-secret): servers + build flags. Production defaults.
 # Each build merges <<: *public_envs and overrides only what differs (inline in that build).
 _public_envs: &public_envs # Servers (production)
+  # JWT and enum clients (auth, user storage, ramps, Transak) read this.
+  # Dev and UAT anchors override it. A local `.js.env` wins over this file.
+  MM_API_ENV: 'prod'
   TAP_AND_PAY_SDK_REPO_SSH: 'git@github.com:MetaMask/tap-and-pay-sdk.git'
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
@@ -63,6 +66,7 @@ _main_dev_env: &main_dev_env
   <<: *public_envs
   METAMASK_ENVIRONMENT: 'dev'
   METAMASK_BUILD_TYPE: 'main'
+  MM_API_ENV: 'dev'
   MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
   MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
   REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
@@ -85,6 +89,17 @@ _main_dev_env: &main_dev_env
   DEV_OAUTH_CONFIG: 'true'
   # Chomp has no UAT host and keeps its own URL. Baanx and IDOS stay on the
   # hosts above; they are not cx environments.
+
+# UAT cluster for experimental builds. Portfolio, digest, social, and price
+# alerts have no UAT host, so they are not in this anchor.
+_api_uat: &api_uat
+  <<: *public_envs
+  MM_API_ENV: 'uat'
+  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+  REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
+  CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
+  KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
+  MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -411,20 +426,15 @@ builds:
     github_environment: build-exp
     signing: *signing_uat
     env:
-      <<: *public_envs
+      <<: *api_uat
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
-      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
-      KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
-      MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
       IDOS_RELAY_URL: 'https://relay.staging.idos.network'
       # Portfolio, digest, social, and price alerts stay on their dev URLs
@@ -513,6 +523,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
+      MM_API_ENV: 'dev'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
@@ -522,6 +533,7 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -614,6 +626,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
+      MM_API_ENV: 'dev'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
@@ -623,6 +636,7 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
