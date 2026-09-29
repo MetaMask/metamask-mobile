@@ -1,17 +1,24 @@
-import { AuthRequest, exchangeCodeAsync } from 'expo-auth-session';
-import { connectX } from './XAuthService';
-import { setTokens } from './XTokenStorage';
+import {
+  AuthRequest,
+  exchangeCodeAsync,
+  refreshAsync,
+} from 'expo-auth-session';
+import { connectX, refreshXToken, disconnectX } from './XAuthService';
+import { setTokens, getTokens, clearTokens } from './XTokenStorage';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 
 jest.mock('expo-auth-session', () => ({
   AuthRequest: jest.fn(),
   exchangeCodeAsync: jest.fn(),
+  refreshAsync: jest.fn(),
   ResponseType: { Code: 'code' },
   CodeChallengeMethod: { S256: 'S256' },
 }));
 
 jest.mock('./XTokenStorage', () => ({
   setTokens: jest.fn(),
+  getTokens: jest.fn(),
+  clearTokens: jest.fn(),
 }));
 
 jest.mock('./XAuthConfig', () => ({
@@ -130,5 +137,86 @@ describe('connectX', () => {
     await expect(connectX()).rejects.toMatchObject({
       type: XAuthErrorType.NetworkFailure,
     });
+  });
+});
+
+describe('refreshXToken', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('refreshes using the stored refresh token and stores the rotated tokens', async () => {
+    (getTokens as jest.Mock).mockResolvedValue({
+      accessToken: 'old-access',
+      refreshToken: 'old-refresh',
+      expiresAt: 1000,
+    });
+    (refreshAsync as jest.Mock).mockResolvedValue({
+      accessToken: 'new-access',
+      refreshToken: 'new-refresh',
+      expiresIn: 7200,
+      issuedAt: 1735689600,
+    });
+
+    const result = await refreshXToken();
+
+    expect(refreshAsync).toHaveBeenCalledWith(
+      { clientId: 'test-client-id', refreshToken: 'old-refresh' },
+      { tokenEndpoint: 'https://api.x.com/2/oauth2/token' },
+    );
+    expect(setTokens).toHaveBeenCalledWith({
+      accessToken: 'new-access',
+      refreshToken: 'new-refresh',
+      expiresAt: 1735689600000 + 7200000,
+    });
+    expect(result.refreshToken).toBe('new-refresh');
+  });
+
+  it('keeps the old refresh token when the response omits a new one', async () => {
+    (getTokens as jest.Mock).mockResolvedValue({
+      accessToken: 'old-access',
+      refreshToken: 'old-refresh',
+      expiresAt: 1000,
+    });
+    (refreshAsync as jest.Mock).mockResolvedValue({
+      accessToken: 'new-access',
+      refreshToken: undefined,
+      expiresIn: 7200,
+      issuedAt: 1735689600,
+    });
+
+    const result = await refreshXToken();
+
+    expect(result.refreshToken).toBe('old-refresh');
+  });
+
+  it('throws XAuthError(NoStoredTokens) when there is nothing to refresh', async () => {
+    (getTokens as jest.Mock).mockResolvedValue(null);
+
+    await expect(refreshXToken()).rejects.toMatchObject({
+      type: XAuthErrorType.NoStoredTokens,
+    });
+    expect(refreshAsync).not.toHaveBeenCalled();
+  });
+
+  it('throws XAuthError(TokenExchangeFailed) when refreshAsync rejects', async () => {
+    (getTokens as jest.Mock).mockResolvedValue({
+      accessToken: 'old-access',
+      refreshToken: 'old-refresh',
+      expiresAt: 1000,
+    });
+    (refreshAsync as jest.Mock).mockRejectedValue(new Error('refresh failed'));
+
+    await expect(refreshXToken()).rejects.toMatchObject({
+      type: XAuthErrorType.TokenExchangeFailed,
+    });
+  });
+});
+
+describe('disconnectX', () => {
+  it('clears stored tokens', async () => {
+    await disconnectX();
+
+    expect(clearTokens).toHaveBeenCalledTimes(1);
   });
 });
