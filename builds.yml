@@ -24,7 +24,7 @@
 # A build merges one group with `<<: *anchor` and overrides only what differs.
 # Enum clients (auth, ramps, Transak) do not read these URLs. Each anchor
 # sets MM_API_ENV so those clients stay on the same cluster as the hosts.
-# A local `.js.env` wins over this file.
+# An unset MM_API_ENV is prod. A local `.js.env` wins over this file.
 _api_prod: &api_prod
   MM_API_ENV: 'prod'
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'

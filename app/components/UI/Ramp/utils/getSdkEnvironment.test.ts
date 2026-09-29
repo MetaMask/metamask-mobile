@@ -52,30 +52,14 @@ describe('getSdkEnvironment', () => {
     });
   });
 
-  describe('Staging Environment', () => {
-    it('returns Staging for dev environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Staging);
-    });
-
-    it('returns Staging for exp environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'exp';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Staging);
-    });
-
-    it('returns Production for test environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
-
-    it('returns Production for e2e environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'e2e';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
+  describe('when MM_API_ENV is unset', () => {
+    it.each(['dev', 'exp', 'test', 'e2e'])(
+      'returns Production when METAMASK_ENVIRONMENT is %s',
+      (env) => {
+        process.env.METAMASK_ENVIRONMENT = env;
+        expect(getSdkEnvironment()).toBe(SdkEnvironment.Production);
+      },
+    );
   });
 
   describe('Default/Unknown Environment', () => {

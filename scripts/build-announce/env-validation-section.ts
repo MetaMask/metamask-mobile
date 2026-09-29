@@ -24,27 +24,16 @@ function getRemoteFFEnv(env: string | undefined): string {
 }
 
 /**
- * `MM_API_ENV` overrides the build flavor. Otherwise dev → dev, exp → uat,
- * and every other flavor → prod. Matches `getApiEnv()` in the app.
+ * `MM_API_ENV` is the cluster. An unset or unrecognized value is prod.
+ * Matches `getApiEnv()` in the app.
  */
-function resolveApiEnv(
-  apiEnv: string | undefined,
-  metamaskEnvironment: string | undefined,
-): string {
+function resolveApiEnv(apiEnv: string | undefined): string {
   const override = (apiEnv ?? '').toLowerCase();
   if (override === 'dev' || override === 'uat' || override === 'prod') {
     return override;
   }
 
-  switch ((metamaskEnvironment ?? '').toLowerCase()) {
-    case 'dev':
-      return 'dev';
-    case 'exp':
-    case 'uat':
-      return 'uat';
-    default:
-      return 'prod';
-  }
+  return 'prod';
 }
 
 /**
@@ -85,10 +74,7 @@ export function buildEnvValidationSection(
   const buildType = result.extractedValues.METAMASK_BUILD_TYPE ?? '—';
   const rewardsUrl = result.extractedValues.REWARDS_API_URL ?? '—';
   const portfolioUrl = result.extractedValues.MM_PORTFOLIO_URL ?? '—';
-  const apiEnv = resolveApiEnv(
-    result.extractedValues.MM_API_ENV,
-    result.extractedValues.METAMASK_ENVIRONMENT,
-  );
+  const apiEnv = resolveApiEnv(result.extractedValues.MM_API_ENV);
 
   // Main environment info table (like About MetaMask screen)
   lines.push('| Setting | Value |');

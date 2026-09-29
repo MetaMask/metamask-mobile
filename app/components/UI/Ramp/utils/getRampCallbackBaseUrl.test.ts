@@ -5,10 +5,6 @@ import { getRampCallbackBaseUrl } from './getRampCallbackBaseUrl';
 
 const PRODUCTION_CALLBACK =
   'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
-const STAGING_CALLBACK =
-  'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback';
-const DEVELOPMENT_CALLBACK =
-  'https://on-ramp.dev-api.cx.metamask.io/regions/fake-callback';
 
 describe('getRampCallbackBaseUrl', () => {
   const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
@@ -31,8 +27,8 @@ describe('getRampCallbackBaseUrl', () => {
     ['production', PRODUCTION_CALLBACK],
     ['beta', PRODUCTION_CALLBACK],
     ['rc', PRODUCTION_CALLBACK],
-    ['dev', DEVELOPMENT_CALLBACK],
-    ['exp', STAGING_CALLBACK],
+    ['dev', PRODUCTION_CALLBACK],
+    ['exp', PRODUCTION_CALLBACK],
     ['test', PRODUCTION_CALLBACK],
     ['e2e', PRODUCTION_CALLBACK],
   ] as const)(

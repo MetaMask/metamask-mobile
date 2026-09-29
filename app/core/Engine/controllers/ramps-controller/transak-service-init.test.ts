@@ -69,29 +69,14 @@ describe('transak-service-init', () => {
       });
     });
 
-    describe('METAMASK_ENVIRONMENT path', () => {
-      it.each(['production', 'beta', 'rc', 'test', 'e2e', 'unknown'])(
-        'returns Production for %s environment',
+    describe('when MM_API_ENV is unset', () => {
+      it.each(['dev', 'exp', 'production', 'beta', 'rc', 'test', 'e2e'])(
+        'returns Production when METAMASK_ENVIRONMENT is %s',
         (env) => {
           process.env.METAMASK_ENVIRONMENT = env;
           expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
         },
       );
-
-      it('returns Development for dev environment', () => {
-        process.env.METAMASK_ENVIRONMENT = 'dev';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
-      });
-
-      it('returns Staging for exp environment', () => {
-        process.env.METAMASK_ENVIRONMENT = 'exp';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
-      });
-
-      it('returns Production for undefined environment', () => {
-        delete process.env.METAMASK_ENVIRONMENT;
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
-      });
     });
   });
 

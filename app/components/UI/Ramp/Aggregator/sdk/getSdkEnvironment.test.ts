@@ -52,26 +52,14 @@ describe('getSdkEnvironment', () => {
     });
   });
 
-  describe('Staging environments', () => {
-    it('returns Staging environment for dev', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
-    });
-
-    it('returns Staging environment for exp', () => {
-      process.env.METAMASK_ENVIRONMENT = 'exp';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
-    });
-
-    it('returns Production environment for test', () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-      expect(getSdkEnvironment()).toBe(Environment.Production);
-    });
-
-    it('returns Production environment for e2e', () => {
-      process.env.METAMASK_ENVIRONMENT = 'e2e';
-      expect(getSdkEnvironment()).toBe(Environment.Production);
-    });
+  describe('when MM_API_ENV is unset', () => {
+    it.each(['dev', 'exp', 'test', 'e2e'])(
+      'returns Production when METAMASK_ENVIRONMENT is %s',
+      (env) => {
+        process.env.METAMASK_ENVIRONMENT = env;
+        expect(getSdkEnvironment()).toBe(Environment.Production);
+      },
+    );
   });
 
   describe('Default behavior', () => {
@@ -132,16 +120,15 @@ describe('getSdkEnvironment', () => {
       expect(result1).toBe(Environment.Production);
     });
 
-    it('returns different environments for different inputs', () => {
+    it('returns Production for both flavors when MM_API_ENV is unset', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
       const productionResult = getSdkEnvironment();
 
       process.env.METAMASK_ENVIRONMENT = 'dev';
       const devResult = getSdkEnvironment();
 
-      expect(productionResult).not.toBe(devResult);
       expect(productionResult).toBe(Environment.Production);
-      expect(devResult).toBe(Environment.Staging);
+      expect(devResult).toBe(Environment.Production);
     });
   });
 
@@ -150,8 +137,8 @@ describe('getSdkEnvironment', () => {
       { env: 'production', expected: Environment.Production },
       { env: 'beta', expected: Environment.Production },
       { env: 'rc', expected: Environment.Production },
-      { env: 'dev', expected: Environment.Staging },
-      { env: 'exp', expected: Environment.Staging },
+      { env: 'dev', expected: Environment.Production },
+      { env: 'exp', expected: Environment.Production },
       { env: 'test', expected: Environment.Production },
       { env: 'e2e', expected: Environment.Production },
     ];

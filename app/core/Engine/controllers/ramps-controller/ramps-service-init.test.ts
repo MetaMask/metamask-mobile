@@ -67,47 +67,16 @@ describe('getRampsEnvironment', () => {
     });
   });
 
-  describe('Production Environment', () => {
-    it('returns Production for production environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
-    });
-
-    it('returns Production for beta environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'beta';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
-    });
-
-    it('returns Production for rc environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'rc';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
-    });
-  });
-
-  describe('Development Environment', () => {
-    it('returns Development for dev environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Development);
-    });
-  });
-
-  describe('Staging Environment', () => {
-    it('returns Staging for exp environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'exp';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
-    });
-  });
-
-  describe('Default/Unknown Environment', () => {
-    it.each(['test', 'e2e', 'unknown'])(
-      'returns Production for %s environment',
+  describe('when MM_API_ENV is unset', () => {
+    it.each(['dev', 'exp', 'production', 'rc', 'test', 'e2e', 'unknown'])(
+      'returns Production when METAMASK_ENVIRONMENT is %s',
       (env) => {
         process.env.METAMASK_ENVIRONMENT = env;
         expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
       },
     );
 
-    it('returns Production for undefined environment', () => {
+    it('returns Production when METAMASK_ENVIRONMENT is undefined', () => {
       delete process.env.METAMASK_ENVIRONMENT;
       expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
     });
@@ -236,13 +205,13 @@ describe('rampsServiceInit', () => {
       );
     });
 
-    it('passes Development environment for dev environment', () => {
+    it('passes Production when MM_API_ENV is unset even for a dev flavor', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          environment: RampsEnvironment.Development,
+          environment: RampsEnvironment.Production,
         }),
       );
     });
@@ -341,7 +310,7 @@ describe('rampsServiceInit', () => {
     });
 
     it('passes correct environment and context for Android in development', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
+      process.env.MM_API_ENV = 'dev';
       Platform.OS = 'android';
       rampsServiceInit(initRequestMock);
 

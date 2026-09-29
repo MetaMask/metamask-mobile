@@ -4,9 +4,9 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
  * Cluster that selects which backend env mobile talks to.
  *
  * Hosts are grouped in `builds.yml` (`api_prod`, `api_dev`, `api_uat`).
- * Each anchor sets `MM_API_ENV`, which enum clients read. When it is
- * unset, the flavor selects the cluster: `dev` → dev, `exp` → uat, and
- * every other flavor → prod. A local `.js.env` overrides the build.
+ * Each anchor sets `MM_API_ENV`, which enum clients read. A local
+ * `.js.env` overrides the build. An unset or unrecognized value is prod.
+ * `METAMASK_ENVIRONMENT` does not select the cluster.
  * Services without a host for the selected env keep their own URL.
  *
  * Read synchronously at controller-init time — no Redux, no remote flag,
@@ -34,23 +34,8 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
  *
  * @returns The cluster for this build.
  */
-export const getApiEnv = (): ApiEnv => {
-  const override =
-    API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()];
-  if (override) {
-    return override;
-  }
-
-  switch ((process.env.METAMASK_ENVIRONMENT ?? '').toLowerCase()) {
-    case 'dev':
-      return ApiEnv.Dev;
-    case 'exp':
-    case 'uat':
-      return ApiEnv.Uat;
-    default:
-      return ApiEnv.Prod;
-  }
-};
+export const getApiEnv = (): ApiEnv =>
+  API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()] ?? ApiEnv.Prod;
 
 const AUTH_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
   [ApiEnv.Dev]: Env.DEV,
