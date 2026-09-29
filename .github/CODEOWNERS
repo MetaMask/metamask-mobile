@@ -350,6 +350,10 @@ app/components/UI/UiSlots/                        @MetaMask/mobile-core-ux
 app/core/Engine/controllers/ui-slots-controller/  @MetaMask/mobile-core-ux
 app/core/Engine/messengers/ui-slots-controller-messenger/ @MetaMask/mobile-core-ux
 app/selectors/uiSlotsController.ts                 @MetaMask/mobile-core-ux
+# Search
+app/components/Views/TrendingView/search/                            @MetaMask/mobile-core-ux
+app/components/Views/TrendingView/Views/ExploreSearchScreen/         @MetaMask/mobile-core-ux
+app/components/UI/Sites/components/SitesSearchFooter/                @MetaMask/mobile-core-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
