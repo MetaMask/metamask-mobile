@@ -265,18 +265,57 @@ describe('TransactionController wallet instance options', () => {
       expect(await optionFn?.(mockTransactionMeta)).toBe(false);
     });
 
-    it('returns true when isExternalSign is true', async () => {
+    it.each([
+      [
+        'isGasFeeTokenIgnoredIfBalance',
+        { isGasFeeTokenIgnoredIfBalance: true },
+      ],
+      ['excludeNativeTokenForFee', { excludeNativeTokenForFee: true }],
+    ])(
+      'returns true on smart transaction bundle chains when %s is set',
+      async (_name, overrides) => {
+        selectShouldUseSmartTransactionMock.mockReturnValue(true);
+        isSendBundleSupportedMock.mockResolvedValue(true);
+
+        const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
+
+        expect(
+          await optionFn?.({
+            ...mockTransactionMeta,
+            ...overrides,
+          }),
+        ).toBe(true);
+      },
+    );
+
+    it('returns true for the gas station estimate transaction on smart transaction bundle chains', async () => {
       selectShouldUseSmartTransactionMock.mockReturnValue(true);
       isSendBundleSupportedMock.mockResolvedValue(true);
+
+      const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
+      const gasStationEstimateTransaction = {
+        chainId: CHAIN_ID_MOCK,
+        isGasFeeTokenIgnoredIfBalance: true,
+        txParams: {
+          from: '0x0000000000000000000000000000000000000000',
+          to: '0x0000000000000000000000000000000000000001',
+        },
+      } as unknown as TransactionMeta;
+
+      expect(await optionFn?.(gasStationEstimateTransaction)).toBe(true);
+    });
+
+    it('returns false for a forced gas fee token when account does not support 7702', async () => {
+      accountSupports7702Mock.mockResolvedValue(false);
 
       const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
 
       expect(
         await optionFn?.({
           ...mockTransactionMeta,
-          isExternalSign: true,
+          isGasFeeTokenIgnoredIfBalance: true,
         }),
-      ).toBe(true);
+      ).toBe(false);
     });
   });
 });

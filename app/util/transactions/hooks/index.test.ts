@@ -85,6 +85,14 @@ function buildRequest(
         return { transactionHash: undefined };
       }
 
+      if (action === 'PredictController:shouldSign') {
+        return { shouldSign: true };
+      }
+
+      if (action === 'TransactionPayController:getState') {
+        return { transactionData: {} };
+      }
+
       if (action === 'TransactionController:getState') {
         return { transactions: [MOCK_TRANSACTION_META] };
       }
@@ -108,6 +116,17 @@ function buildRequest(
     initMessenger,
     ...overrides,
   };
+}
+
+function publish(
+  hooks: ReturnType<typeof getTransactionControllerHooks>,
+  transactionMeta: TransactionMeta,
+  signedTransaction = '0xsigned',
+) {
+  return (hooks.publish as unknown as PublishHook)(
+    transactionMeta,
+    signedTransaction,
+  );
 }
 
 describe('getTransactionControllerHooks', () => {
@@ -150,7 +169,6 @@ describe('getTransactionControllerHooks', () => {
 
     expect(hooks).toStrictEqual(
       expect.objectContaining({
-        isSponsored: expect.any(Function),
         shouldSign: expect.any(Function),
         beforePublish: expect.any(Function),
         beforeSign: expect.any(Function),
@@ -160,175 +178,165 @@ describe('getTransactionControllerHooks', () => {
     );
   });
 
-  describe('approval callbacks', () => {
-    it('returns named sponsorship and signing decisions', async () => {
+  describe('shouldSign', () => {
+    const DELEGATION_TRANSACTION_META = {
+      ...MOCK_TRANSACTION_META,
+      txParams: {
+        ...MOCK_TRANSACTION_META.txParams,
+        to: '0x789',
+      },
+    } as TransactionMeta;
+
+    function enableDelegationRoute() {
       jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
       jest.mocked(isSendBundleSupported).mockResolvedValue(false);
+      jest.mocked(accountSupports7702).mockResolvedValue(true);
+      jest.mocked(isRelaySupported).mockResolvedValue(true);
+    }
 
+    it('signs locally by default', async () => {
       const hooks = getTransactionControllerHooks(buildRequest());
 
-      await expect(
-        hooks.isSponsored?.({ transactionMeta: MOCK_TRANSACTION_META }),
-      ).resolves.toStrictEqual({ isSponsored: false });
       await expect(
         hooks.shouldSign?.({ transactionMeta: MOCK_TRANSACTION_META }),
       ).resolves.toStrictEqual({ shouldSign: true });
     });
 
-    it('uses refreshed sponsorship availability', async () => {
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        isGasFeeSponsoredAvailable: true,
-      };
+    it('skips local signing when Predict publishes the transaction', async () => {
+      const request = buildRequest();
+      const call = jest.mocked(request.initMessenger.call);
+      const defaultCall = call.getMockImplementation();
+      call.mockImplementation(((action: string, ...args: never[]) =>
+        action === 'PredictController:shouldSign'
+          ? { shouldSign: false }
+          : defaultCall?.(action as never, ...args)) as never);
+      const hooks = getTransactionControllerHooks(request);
 
       await expect(
-        hooks.isSponsored?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ isSponsored: true });
-    });
-
-    it('supports legacy sponsorship metadata during migration', async () => {
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        isGasFeeSponsored: true,
-      };
-
-      await expect(
-        hooks.isSponsored?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ isSponsored: true });
-    });
-
-    it('preserves explicit sponsorship when refreshed availability is false', async () => {
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        isGasFeeSponsored: true,
-        isGasFeeSponsoredAvailable: false,
-      };
-
-      await expect(
-        hooks.isSponsored?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ isSponsored: true });
-    });
-
-    it('does not sponsor revoke delegation transactions', async () => {
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        isGasFeeSponsoredAvailable: true,
-        type: TransactionType.revokeDelegation,
-      };
-
-      await expect(
-        hooks.isSponsored?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ isSponsored: false });
-    });
-
-    it('skips local signing for an eligible gas fee token', async () => {
-      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
-      jest.mocked(isSendBundleSupported).mockResolvedValue(false);
-      jest.mocked(accountSupports7702).mockResolvedValue(true);
-      jest.mocked(isRelaySupported).mockResolvedValue(true);
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        selectedGasFeeToken: '0x456' as Hex,
-        txParams: {
-          ...MOCK_TRANSACTION_META.txParams,
-          to: '0x789',
-        },
-      };
-
-      await expect(
-        hooks.shouldSign?.({ transactionMeta }),
+        hooks.shouldSign?.({ transactionMeta: MOCK_TRANSACTION_META }),
       ).resolves.toStrictEqual({ shouldSign: false });
     });
 
-    it('skips local signing when preflight retains a balance-dependent fee token', async () => {
-      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
-      jest.mocked(isSendBundleSupported).mockResolvedValue(false);
-      jest.mocked(accountSupports7702).mockResolvedValue(true);
-      jest.mocked(isRelaySupported).mockResolvedValue(true);
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        isGasFeeTokenIgnoredIfBalance: true,
-        selectedGasFeeToken: '0x456' as Hex,
-        txParams: {
-          ...MOCK_TRANSACTION_META.txParams,
-          to: '0x789',
-        },
-      };
+    it('skips local signing when MetaMask Pay has executable quotes', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({ quotes: [{ strategy: 'relay' }] }),
+      );
 
       await expect(
-        hooks.shouldSign?.({ transactionMeta }),
+        hooks.shouldSign?.({ transactionMeta: MOCK_TRANSACTION_META }),
       ).resolves.toStrictEqual({ shouldSign: false });
     });
 
-    it('uses local signing when the keyring cannot publish with delegation', async () => {
-      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
-      jest.mocked(isSendBundleSupported).mockResolvedValue(false);
+    it('signs locally when MetaMask Pay only has a no-op quote', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({ quotes: [{ strategy: 'none' }] }),
+      );
+
+      await expect(
+        hooks.shouldSign?.({ transactionMeta: MOCK_TRANSACTION_META }),
+      ).resolves.toStrictEqual({ shouldSign: true });
+    });
+
+    it.each([
+      ['sponsorship is available', { isGasFeeSponsoredAvailable: true }],
+      ['sponsorship is forced', { forceIsGasFeeSponsored: true }],
+      ['a gas fee token is selected', { selectedGasFeeToken: '0x456' as Hex }],
+    ])(
+      'skips local signing when %s and the delegation relay is supported',
+      async (_title, overrides) => {
+        enableDelegationRoute();
+        const hooks = getTransactionControllerHooks(buildRequest());
+
+        await expect(
+          hooks.shouldSign?.({
+            transactionMeta: { ...DELEGATION_TRANSACTION_META, ...overrides },
+          }),
+        ).resolves.toStrictEqual({ shouldSign: false });
+      },
+    );
+
+    it('signs locally for sponsored smart transaction bundles, including hardware wallets', async () => {
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(true);
+      jest.mocked(isSendBundleSupported).mockResolvedValue(true);
+      const hooks = getTransactionControllerHooks(buildRequest());
+
+      await expect(
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            isGasFeeSponsoredAvailable: true,
+          },
+        }),
+      ).resolves.toStrictEqual({ shouldSign: true });
+      expect(accountSupports7702).not.toHaveBeenCalled();
+    });
+
+    it('skips local signing for a forced gas fee token on smart transaction bundle chains', async () => {
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(true);
+      jest.mocked(isSendBundleSupported).mockResolvedValue(true);
+      jest.mocked(accountSupports7702).mockResolvedValue(true);
+      jest.mocked(isRelaySupported).mockResolvedValue(true);
+      const hooks = getTransactionControllerHooks(buildRequest());
+
+      await expect(
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            isGasFeeTokenIgnoredIfBalance: true,
+            selectedGasFeeToken: '0x456' as Hex,
+          },
+        }),
+      ).resolves.toStrictEqual({ shouldSign: false });
+    });
+
+    it('signs locally when the keyring cannot use the delegation relay', async () => {
+      enableDelegationRoute();
       jest.mocked(accountSupports7702).mockResolvedValue(false);
       const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        selectedGasFeeToken: '0x456' as Hex,
-      };
 
       await expect(
-        hooks.shouldSign?.({ transactionMeta }),
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            isGasFeeSponsoredAvailable: true,
+          },
+        }),
       ).resolves.toStrictEqual({ shouldSign: true });
-    });
-
-    it('uses local signing when the relay cannot publish with delegation', async () => {
-      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
-      jest.mocked(isSendBundleSupported).mockResolvedValue(false);
-      jest.mocked(accountSupports7702).mockResolvedValue(true);
-      jest.mocked(isRelaySupported).mockResolvedValue(false);
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        selectedGasFeeToken: '0x456' as Hex,
-        txParams: {
-          ...MOCK_TRANSACTION_META.txParams,
-          to: '0x789',
-        },
-      };
-
-      await expect(
-        hooks.shouldSign?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ shouldSign: true });
-    });
-
-    it('skips local signing for a transaction prepared for external publishing', async () => {
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        isExternalSign: true,
-      };
-
-      await expect(
-        hooks.shouldSign?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ shouldSign: false });
-    });
-
-    it('uses fail-closed account capability detection for signing decisions', async () => {
-      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
-      jest.mocked(isSendBundleSupported).mockResolvedValue(false);
-      const hooks = getTransactionControllerHooks(buildRequest());
-      const transactionMeta = {
-        ...MOCK_TRANSACTION_META,
-        selectedGasFeeToken: '0x456' as Hex,
-      };
-
-      await hooks.shouldSign?.({ transactionMeta });
-
       expect(accountSupports7702).toHaveBeenCalledWith(
         MOCK_TRANSACTION_META.txParams.from,
         expect.anything(),
         false,
       );
+    });
+
+    it('signs locally when the relay does not support the chain', async () => {
+      enableDelegationRoute();
+      jest.mocked(isRelaySupported).mockResolvedValue(false);
+      const hooks = getTransactionControllerHooks(buildRequest());
+
+      await expect(
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            selectedGasFeeToken: '0x456' as Hex,
+          },
+        }),
+      ).resolves.toStrictEqual({ shouldSign: true });
+    });
+
+    it('signs locally for sponsored revoke delegation transactions', async () => {
+      enableDelegationRoute();
+      const hooks = getTransactionControllerHooks(buildRequest());
+
+      await expect(
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            isGasFeeSponsoredAvailable: true,
+            type: TransactionType.revokeDelegation,
+          },
+        }),
+      ).resolves.toStrictEqual({ shouldSign: true });
     });
   });
 
@@ -363,7 +371,7 @@ describe('getTransactionControllerHooks', () => {
     });
     const hooks = getTransactionControllerHooks(request);
 
-    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+    const result = await publish(hooks, MOCK_TRANSACTION_META);
 
     expect(result).toStrictEqual({ transactionHash: '0xpredict' });
     expect(payHookMock).not.toHaveBeenCalled();
@@ -374,7 +382,7 @@ describe('getTransactionControllerHooks', () => {
     payHookMock.mockResolvedValue({ transactionHash: '0xpay' });
 
     const hooks = getTransactionControllerHooks(buildRequest());
-    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+    const result = await publish(hooks, MOCK_TRANSACTION_META);
 
     expect(result).toStrictEqual({ transactionHash: '0xpay' });
     expect(submitSmartTransactionHook).not.toHaveBeenCalled();
@@ -386,9 +394,12 @@ describe('getTransactionControllerHooks', () => {
     });
 
     const hooks = getTransactionControllerHooks(buildRequest());
-    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+    const result = await publish(hooks, MOCK_TRANSACTION_META);
 
-    expect(result).toStrictEqual({ transactionHash: '0xstx' });
+    expect(result).toStrictEqual({
+      isGasFeeSponsored: false,
+      transactionHash: '0xstx',
+    });
     expect(updateConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         id: MOCK_TRANSACTION_META.id,
@@ -410,14 +421,15 @@ describe('getTransactionControllerHooks', () => {
       isGasFeeSponsoredAvailable: true,
     };
     const hooks = getTransactionControllerHooks(buildRequest());
-    const publish = hooks.publish as unknown as PublishHook;
-
-    await hooks.isSponsored?.({ transactionMeta });
-    await publish(transactionMeta, '0x');
+    const result = await publish(hooks, transactionMeta, '0x');
 
     expect(submitSmartTransactionHook).toHaveBeenCalledWith(
       expect.objectContaining({ signedTransactionInHex: undefined }),
     );
+    expect(result).toStrictEqual({
+      isGasFeeSponsored: true,
+      transactionHash: '0xstx',
+    });
   });
 
   it('returns undefined hash when no hook publishes the transaction', async () => {
@@ -427,7 +439,7 @@ describe('getTransactionControllerHooks', () => {
     });
 
     const hooks = getTransactionControllerHooks(buildRequest());
-    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+    const result = await publish(hooks, MOCK_TRANSACTION_META);
 
     expect(result).toStrictEqual({ transactionHash: undefined });
   });
@@ -448,9 +460,12 @@ describe('getTransactionControllerHooks', () => {
     );
 
     const hooks = getTransactionControllerHooks(buildRequest());
-    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+    const result = await publish(hooks, MOCK_TRANSACTION_META);
 
-    expect(result).toStrictEqual({ transactionHash: '0xde702' });
+    expect(result).toStrictEqual({
+      isGasFeeSponsored: false,
+      transactionHash: '0xde702',
+    });
     expect(updateConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         id: MOCK_TRANSACTION_META.id,
@@ -463,7 +478,7 @@ describe('getTransactionControllerHooks', () => {
     );
   });
 
-  it('passes the authoritative sponsorship decision to the delegation publisher', async () => {
+  it('passes the sponsorship decision to the delegation publisher and returns it', async () => {
     jest.mocked(accountSupports7702).mockResolvedValue(true);
     jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
     jest.mocked(isSendBundleSupported).mockResolvedValue(false);
@@ -488,27 +503,22 @@ describe('getTransactionControllerHooks', () => {
     };
 
     const hooks = getTransactionControllerHooks(buildRequest());
-    await hooks.publish?.(transactionMeta);
+    const result = await publish(hooks, transactionMeta, '0x');
 
     const { isSponsored } = jest.mocked(Delegation7702PublishHook).mock
       .calls[0][0];
     expect(isSponsored(transactionMeta)).toBe(true);
+    expect(result).toStrictEqual({
+      isGasFeeSponsored: true,
+      transactionHash: '0xde702',
+    });
   });
 
-  it('reuses the approval decision when publication support changes', async () => {
-    jest.mocked(accountSupports7702).mockResolvedValue(true);
+  it('does not sponsor a delegation publish for a hardware or unsupported keyring', async () => {
+    jest.mocked(accountSupports7702).mockResolvedValue(false);
     jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
     jest.mocked(isSendBundleSupported).mockResolvedValue(false);
     jest.mocked(isRelaySupported).mockResolvedValue(true);
-    const delegationHookMock: jest.MockedFn<PublishHook> = jest
-      .fn()
-      .mockResolvedValue({ transactionHash: '0xde702' });
-    jest.mocked(Delegation7702PublishHook).mockImplementation(
-      () =>
-        ({
-          getHook: () => delegationHookMock,
-        }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
-    );
     const transactionMeta = {
       ...MOCK_TRANSACTION_META,
       isGasFeeSponsoredAvailable: true,
@@ -517,16 +527,12 @@ describe('getTransactionControllerHooks', () => {
         to: '0x789',
       },
     };
+
     const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await publish(hooks, transactionMeta);
 
-    await hooks.isSponsored?.({ transactionMeta });
-    jest.mocked(accountSupports7702).mockResolvedValue(false);
-    jest.mocked(isRelaySupported).mockResolvedValue(false);
-    const result = await hooks.publish?.(transactionMeta);
-
-    expect(result).toStrictEqual({ transactionHash: '0xde702' });
-    expect(accountSupports7702).toHaveBeenCalledTimes(1);
-    expect(isRelaySupported).toHaveBeenCalledTimes(1);
+    expect(Delegation7702PublishHook).not.toHaveBeenCalled();
+    expect(result).toStrictEqual({ transactionHash: undefined });
   });
 
   it('records sentinel_stx metrics when the batch hook publishes', async () => {
@@ -600,6 +606,10 @@ describe('getTransactionControllerHooks', () => {
             return { transactionHash: undefined };
           }
 
+          if (action === 'PredictController:shouldSign') {
+            return { shouldSign: true };
+          }
+
           if (action === 'TransactionPayController:getState') {
             return {
               transactionData: payData ? { '123': payData } : {},
@@ -642,7 +652,7 @@ describe('getTransactionControllerHooks', () => {
         type: TransactionType.moneyAccountDeposit,
       };
 
-      await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
+      await expect(publish(hooks, moneyAccountTx)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -658,7 +668,7 @@ describe('getTransactionControllerHooks', () => {
         type: TransactionType.moneyAccountDeposit,
       };
 
-      const result = await hooks.publish?.(moneyAccountTx);
+      const result = await publish(hooks, moneyAccountTx);
 
       expect(result).toStrictEqual({
         transactionHash: '0xpay-with-quote',
@@ -677,7 +687,7 @@ describe('getTransactionControllerHooks', () => {
         type: TransactionType.simpleSend,
       };
 
-      const result = await hooks.publish?.(simpleSendTx);
+      const result = await publish(hooks, simpleSendTx);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -691,7 +701,7 @@ describe('getTransactionControllerHooks', () => {
         type: TransactionType.moneyAccountDeposit,
       };
 
-      await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
+      await expect(publish(hooks, moneyAccountTx)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -705,7 +715,7 @@ describe('getTransactionControllerHooks', () => {
         type: TransactionType.moneyAccountDeposit,
       };
 
-      const result = await hooks.publish?.(moneyAccountTx);
+      const result = await publish(hooks, moneyAccountTx);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -734,7 +744,7 @@ describe('getTransactionControllerHooks', () => {
         buildPayStateRequest(undefined),
       );
 
-      await expect(hooks.publish?.(PERPS_DEPOSIT_TX)).rejects.toThrow(
+      await expect(publish(hooks, PERPS_DEPOSIT_TX)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -749,7 +759,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      await expect(hooks.publish?.(PERPS_DEPOSIT_TX)).rejects.toThrow(
+      await expect(publish(hooks, PERPS_DEPOSIT_TX)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -764,7 +774,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      await expect(hooks.publish?.(PERPS_DEPOSIT_TX)).rejects.toThrow(
+      await expect(publish(hooks, PERPS_DEPOSIT_TX)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -779,7 +789,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      const result = await hooks.publish?.(PERPS_DEPOSIT_TX);
+      const result = await publish(hooks, PERPS_DEPOSIT_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -797,7 +807,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      const result = await hooks.publish?.(PERPS_DEPOSIT_TX);
+      const result = await publish(hooks, PERPS_DEPOSIT_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -829,7 +839,7 @@ describe('getTransactionControllerHooks', () => {
         buildPayStateRequest(undefined),
       );
 
-      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+      const result = await publish(hooks, PREDICT_WITHDRAW_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -839,7 +849,7 @@ describe('getTransactionControllerHooks', () => {
         buildPayStateRequest(undefined),
       );
 
-      await expect(hooks.publish?.(PREDICT_WITHDRAW_TX)).rejects.toThrow(
+      await expect(publish(hooks, PREDICT_WITHDRAW_TX)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -854,7 +864,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      await expect(hooks.publish?.(PREDICT_WITHDRAW_TX)).rejects.toThrow(
+      await expect(publish(hooks, PREDICT_WITHDRAW_TX)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
     });
@@ -869,7 +879,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+      const result = await publish(hooks, PREDICT_WITHDRAW_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -887,7 +897,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+      const result = await publish(hooks, PREDICT_WITHDRAW_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
@@ -902,7 +912,7 @@ describe('getTransactionControllerHooks', () => {
         }),
       );
 
-      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+      const result = await publish(hooks, PREDICT_WITHDRAW_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
