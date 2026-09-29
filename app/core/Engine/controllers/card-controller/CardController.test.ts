@@ -3627,7 +3627,7 @@ describe('CardController — data pass-throughs', () => {
         requireApproval: false,
         disableHook: true,
         disableSequential: true,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       });
       const batchTransactions = (batchOptions as { transactions: unknown[] })
         .transactions;
@@ -3929,7 +3929,7 @@ describe('CardController — data pass-throughs', () => {
           Record<string, unknown>,
         ];
         expect(batchOptions).toMatchObject({
-          isGasFeeSponsored: true,
+          forceIsGasFeeSponsored: true,
           requireApproval: false,
           disableHook: true,
           disableSequential: true,

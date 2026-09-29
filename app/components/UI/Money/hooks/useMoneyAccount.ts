@@ -136,7 +136,7 @@ export function useMoneyAccountDeposit() {
           provider,
           moneyAccountAddress,
           networkClientId: resolveNetworkClientId(chainIdHex),
-          isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+          forceIsGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
         };
       };
 
@@ -212,7 +212,7 @@ export function useMoneyAccountDeposit() {
           disableSequential: true,
           disableUpgrade: true,
           from: depositSetup.moneyAccountAddress as Hex,
-          isGasFeeSponsored: depositSetup.isGasFeeSponsored,
+          forceIsGasFeeSponsored: depositSetup.forceIsGasFeeSponsored,
           isInternal: true,
           networkClientId: depositSetup.networkClientId,
           origin: ORIGIN_METAMASK,
@@ -296,7 +296,7 @@ export function useMoneyAccountWithdrawal() {
     }
 
     const networkClientId = resolveNetworkClientId(chainIdHex);
-    const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
+    const forceIsGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
     // Show the confirmation skeleton while the withdrawal batch is created.
     navigateToConfirmation({
@@ -325,7 +325,7 @@ export function useMoneyAccountWithdrawal() {
         disableSequential: true,
         disableUpgrade: true,
         from: primaryMoneyAccount.address as Hex,
-        isGasFeeSponsored,
+        forceIsGasFeeSponsored,
         isInternal: true,
         networkClientId,
         origin: ORIGIN_METAMASK,

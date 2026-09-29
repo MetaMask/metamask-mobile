@@ -851,7 +851,7 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
         skipInitialGasEstimate: true,
       }),
     );
@@ -1041,7 +1041,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
   });
 
-  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
+  it('sets forceIsGasFeeSponsored to true when vault chain is Monad', async () => {
     setupSelectors({
       vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
     });
@@ -1054,13 +1054,13 @@ describe('useMoneyAccountWithdrawal', () => {
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
         skipInitialGasEstimate: true,
       }),
     );
   });
 
-  it('sets isGasFeeSponsored to false but skipInitialGasEstimate to true when vault chain is not Monad', async () => {
+  it('sets forceIsGasFeeSponsored to false but skipInitialGasEstimate to true when vault chain is not Monad', async () => {
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
     await act(async () => {
@@ -1069,7 +1069,7 @@ describe('useMoneyAccountWithdrawal', () => {
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        isGasFeeSponsored: false,
+        forceIsGasFeeSponsored: false,
         skipInitialGasEstimate: true,
       }),
     );

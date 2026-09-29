@@ -2229,7 +2229,7 @@ export class CardController extends BaseController<
    * to the active provider's delegation contract and completing the provider's
    * funding flow. The approval transaction is submitted via
    * `TransactionController:addTransactionBatch` with `requireApproval: false`
-   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
+   * and `forceIsGasFeeSponsored: true`, so it never opens the Confirmations modal
    * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
    * fee. This is the background linkage path UI hooks consume.
    *
@@ -2356,7 +2356,7 @@ export class CardController extends BaseController<
     );
 
     // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
-    // link approve is submitted with `isGasFeeSponsored: true`, so if the
+    // link approve is submitted with `forceIsGasFeeSponsored: true`, so if the
     // server-side sponsorship is disabled we must refuse before the relay
     // call — otherwise the publish hook would reject and the user would see
     // a generic link-failed toast with no actionable reason.
@@ -2405,7 +2405,7 @@ export class CardController extends BaseController<
             requireApproval: false,
             disableHook: true,
             disableSequential: true,
-            isGasFeeSponsored: true,
+            forceIsGasFeeSponsored: true,
             transactions: [
               {
                 params: {
