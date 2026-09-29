@@ -13,6 +13,10 @@ import Logger from '../../../util/Logger';
 const isSocialFeedRealtimeEnabled = (
   initMessenger: SocialRealtimeServiceInitMessenger,
 ): boolean => {
+  if (process.env.MM_BACKEND_WEBSOCKET_URL?.startsWith('ws://127.0.0.1')) {
+    return true;
+  }
+
   try {
     const remoteFeatureFlagState = initMessenger.call(
       'RemoteFeatureFlagController:getState',

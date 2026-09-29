@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   useInfiniteQuery,
@@ -9,7 +9,9 @@ import {
 import type {
   FeedItem as CoreFeedItem,
   FeedResponse,
+  SocialFeedEvent,
 } from '@metamask/social-controllers';
+import Engine from '../../../../../core/Engine';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   formatSocialQueryErrorMessage,
@@ -58,6 +60,8 @@ export interface UseTraderFeedOptions {
 export interface TraderFeedRow {
   item: FeedItem;
   core: CoreFeedItem;
+  realtimeEventId?: string;
+  realtimeFeedItemId?: string;
 }
 
 export interface UseTraderFeedResult {
@@ -81,6 +85,8 @@ export interface UseTraderFeedResult {
   error: string | null;
   /** Reset to the first page and refetch the newest activity. */
   refresh: () => Promise<void>;
+  /** Marks a realtime row's entrance animation as complete. */
+  markRealtimeEventAnimated: (eventId: string) => void;
   /**
    * Instant the loaded snapshot was fetched, or `undefined` before the first
    * success. Advances on every successful fetch — including a refetch whose
@@ -146,6 +152,8 @@ export const useTraderFeed = (
 ): UseTraderFeedResult => {
   const { audience = 'all', typeFilter = 'all', enabled = true } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
+  const realtimeService = Engine.context.SocialRealtimeService;
+  const [realtimeRows, setRealtimeRows] = useState<TraderFeedRow[]>([]);
 
   const scope = toFeedScope(audience);
 
@@ -182,14 +190,43 @@ export const useTraderFeed = (
       .sort(byTimestampDesc);
   }, [pages]);
 
-  const hasLoadedItems = loadedRows.length > 0;
+  const handleRealtimeEvent = useCallback((event: SocialFeedEvent) => {
+    const item = mapFeedItem(event.data);
+    if (!item) {
+      return;
+    }
+
+    setRealtimeRows((currentRows) => [
+      {
+        item,
+        core: event.data,
+        realtimeEventId: event.eventId,
+        realtimeFeedItemId: event.feedItemId,
+      },
+      ...currentRows.filter(
+        (row) =>
+          row.item.id !== item.id &&
+          row.realtimeFeedItemId !== event.feedItemId,
+      ),
+    ]);
+  }, []);
+
+  const allRows = useMemo(() => {
+    const rowsByItemId = new Map(loadedRows.map((row) => [row.item.id, row]));
+
+    realtimeRows.forEach((row) => rowsByItemId.set(row.item.id, row));
+
+    return [...rowsByItemId.values()].sort(byTimestampDesc);
+  }, [loadedRows, realtimeRows]);
+
+  const hasLoadedItems = allRows.length > 0;
 
   const rows = useMemo(() => {
     if (typeFilter === 'all') {
-      return loadedRows;
+      return allRows;
     }
-    return loadedRows.filter((row) => matchesTypeFilter(row.item, typeFilter));
-  }, [loadedRows, typeFilter]);
+    return allRows.filter((row) => matchesTypeFilter(row.item, typeFilter));
+  }, [allRows, typeFilter]);
 
   const items = useMemo(() => rows.map((row) => row.item), [rows]);
 
@@ -228,6 +265,52 @@ export const useTraderFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch]);
 
+  const markRealtimeEventAnimated = useCallback((eventId: string) => {
+    setRealtimeRows((currentRows) =>
+      currentRows.map((row) =>
+        row.realtimeEventId === eventId
+          ? { ...row, realtimeEventId: undefined }
+          : row,
+      ),
+    );
+  }, []);
+
+  const realtimeActive = enabled && isUnlocked && audience === 'all';
+
+  useEffect(() => {
+    const deactivate = () => {
+      void realtimeService.setActive(false).catch(() => undefined);
+    };
+
+    if (!realtimeActive) {
+      setRealtimeRows([]);
+      deactivate();
+      return undefined;
+    }
+
+    const removeFeedListener = realtimeService.addListener(handleRealtimeEvent);
+    const removeReconnectListener = realtimeService.addReconnectListener(() => {
+      void refresh().catch(() => undefined);
+    });
+
+    void realtimeService.setActive(true).catch(() => undefined);
+
+    return () => {
+      removeFeedListener();
+      removeReconnectListener();
+      setRealtimeRows([]);
+      deactivate();
+    };
+  }, [
+    audience,
+    enabled,
+    handleRealtimeEvent,
+    isUnlocked,
+    realtimeActive,
+    realtimeService,
+    refresh,
+  ]);
+
   return {
     sections,
     items,
@@ -241,6 +324,7 @@ export const useTraderFeed = (
     loadMore,
     error: formatSocialQueryErrorMessage(error),
     refresh,
+    markRealtimeEventAnimated,
     // React Query reports `0` until the first success; normalise to `undefined`
     // so consumers fall back to their own render-time clock.
     dataUpdatedAt: query.dataUpdatedAt || undefined,
