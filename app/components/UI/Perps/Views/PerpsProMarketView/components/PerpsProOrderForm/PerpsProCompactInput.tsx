@@ -22,7 +22,6 @@ import {
   type TextInput,
   type View,
 } from 'react-native';
-import DevLogger from '../../../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 
@@ -146,27 +145,16 @@ const PerpsProCompactInput = React.forwardRef<
   ) => {
     const tw = useTailwind();
     const inputRef = useRef<TextInput>(null);
-    const isCollapsedEmptyRef = useRef(true);
     const [isFocused, setIsFocused] = useState(false);
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || value.length > 0;
-    isCollapsedEmptyRef.current = !isInlineActive;
     const usesFloatingLabel =
       variant === 'inline' || variant === 'inline-labeled';
     const isInputVisible = !usesFloatingLabel || isInlineActive;
     useImperativeHandle(
       ref,
-      () => ({
-        focus: () => {
-          if (isCollapsedEmptyRef.current) {
-            DevLogger.log(
-              `[PR-TAT-4017] BUG_MARKER: keyboard navigation focused collapsed empty field ${testID}`,
-            );
-          }
-          inputRef.current?.focus();
-        },
-      }),
-      [testID],
+      () => ({ focus: () => inputRef.current?.focus() }),
+      [],
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
