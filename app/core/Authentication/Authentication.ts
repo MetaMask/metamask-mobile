@@ -235,7 +235,7 @@ export async function identifyIncident1745AffectedUser(
     }
 
     const remotePrimary = remoteSecrets[0];
-    if (!remotePrimary || remotePrimary.type !== SecretType.Mnemonic) {
+    if (remotePrimary?.type !== SecretType.Mnemonic) {
       // Defensive: controller 11+ should have thrown Shape A already.
       reportIncident1745AffectedUser({
         source: 'unlockIdentify',
