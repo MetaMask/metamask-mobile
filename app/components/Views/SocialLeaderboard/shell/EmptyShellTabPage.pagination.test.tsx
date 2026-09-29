@@ -26,6 +26,11 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => ({
   default: () => null,
 }));
 
+jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockUseSocialV1Feed = jest.mocked(useSocialV1Feed);
 
 const mockLoadMore = jest.fn();
@@ -53,9 +58,10 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
         id: 'post-1',
         authorHandle: 'aparjey',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
-        item: {} as UseSocialV1FeedResult['posts'][number]['item'],
+        reactions: [],
+        item: {
+          author: { id: 'author-1' },
+        } as UseSocialV1FeedResult['posts'][number]['item'],
       },
     ],
     ...overrides,

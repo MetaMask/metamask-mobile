@@ -1,10 +1,12 @@
 import {
   CANCEL_TYPES,
   CRYPTO_AUTH_METHODS,
+  MoneyAccountFeature,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
   SUBSCRIPTION_STATUSES,
+  type MoneyAccountEntitlements,
   type PricingCryptoPaymentMethod,
   type PricingResponse,
   type Subscription,
@@ -13,14 +15,19 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
+  selectHasAnyMoneyAccountPlusEntitlement,
+  selectHasMoneyAccountPlusEntitlement,
+  selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
+  selectMoneyAccountPlusPricing,
   selectSubscriptionByProduct,
   selectSubscriptionControllerState,
   selectSubscriptionPricing,
   selectSubscriptions,
   selectTrialedSubscriptionProducts,
 } from './subscriptionController';
+import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const SHIELD_ADDRESS = '0x1111111111111111111111111111111111111111' as Hex;
 const VAULT_TOKEN_ADDRESS = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae' as Hex;
@@ -266,6 +273,133 @@ describe('subscriptionController selectors', () => {
     });
   });
 
+  describe('selectMoneyAccountPlusPricing', () => {
+    it('returns the same view as mapMoneyAccountPlusPricing for cached pricing', () => {
+      const state = createState({
+        subscriptions: [],
+        trialedProducts: [],
+        pricing: PRICING_FIXTURE,
+      });
+
+      const result = selectMoneyAccountPlusPricing(state);
+
+      expect(result).toEqual(mapMoneyAccountPlusPricing(PRICING_FIXTURE));
+      expect(result.status).toBe('ready');
+      expect(result.monthly?.unitAmount).toBe(500);
+      expect(result.annual).toBeUndefined();
+    });
+
+    it('returns unavailable when pricing has not been fetched', () => {
+      const result = selectMoneyAccountPlusPricing(createState());
+
+      expect(result).toEqual(mapMoneyAccountPlusPricing(undefined));
+      expect(result.status).toBe('unavailable');
+    });
+  });
+
+  describe('selectIsMoneyAccountPlusSubscriber', () => {
+    it.each([
+      SUBSCRIPTION_STATUSES.active,
+      SUBSCRIPTION_STATUSES.trialing,
+      SUBSCRIPTION_STATUSES.provisional,
+    ])(
+      'treats a %s Money Account Plus subscription as subscribed',
+      (status) => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-money-account-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status,
+            }),
+          ],
+          trialedProducts: [],
+        });
+
+        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(true);
+      },
+    );
+
+    it('stays subscribed for a subscription cancelled at period end', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status: SUBSCRIPTION_STATUSES.active,
+            cancelAtPeriodEnd: true,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(true);
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.canceled,
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('does not treat a %s subscription as subscribed', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+    });
+
+    it('matches Money Account Plus within a multi-product subscription', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-multi',
+            products: [
+              createProduct(PRODUCT_TYPES.SHIELD),
+              createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
+            ],
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(true);
+    });
+
+    it('ignores an active subscription for another product', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-shield',
+            products: [createProduct(PRODUCT_TYPES.SHIELD)],
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+    });
+
+    it('returns false when there are no subscriptions', () => {
+      const state = createState({ subscriptions: [], trialedProducts: [] });
+
+      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+    });
+
+    it('returns false when the controller slice is absent', () => {
+      expect(selectIsMoneyAccountPlusSubscriber(createState())).toBe(false);
+    });
+  });
+
   describe('selectSubscriptionByProduct', () => {
     it('selects Shield and Money Account Plus independently from separate subscriptions', () => {
       const shieldSubscription = createSubscription({
@@ -448,6 +582,129 @@ describe('subscriptionController selectors', () => {
           PRODUCT_TYPES.SHIELD,
         ),
       ).toBeUndefined();
+    });
+  });
+
+  describe('Money Account Plus entitlements', () => {
+    const createPlusState = (entitlements: Partial<MoneyAccountEntitlements>) =>
+      createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          }),
+        ],
+        trialedProducts: [],
+        productEntitlements: {
+          [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
+            plan: 'premium',
+            entitlements: {
+              swapFeeWaiver: false,
+              perpsFeeWaiver: false,
+              predictFreeTx: false,
+              premiumApy: false,
+              ...entitlements,
+            },
+          },
+        },
+      });
+
+    describe('selectHasMoneyAccountPlusEntitlement', () => {
+      it('returns the flag for the requested feature', () => {
+        const state = createPlusState({
+          premiumApy: true,
+          swapFeeWaiver: false,
+        });
+
+        expect(
+          selectHasMoneyAccountPlusEntitlement(
+            state,
+            MoneyAccountFeature.PremiumApy,
+          ),
+        ).toBe(true);
+        expect(
+          selectHasMoneyAccountPlusEntitlement(
+            state,
+            MoneyAccountFeature.SwapFeeWaiver,
+          ),
+        ).toBe(false);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(
+          selectHasMoneyAccountPlusEntitlement(
+            createState(),
+            MoneyAccountFeature.PremiumApy,
+          ),
+        ).toBe(false);
+      });
+    });
+
+    describe('selectHasAnyMoneyAccountPlusEntitlement', () => {
+      it.each(Object.values(MoneyAccountFeature))(
+        'returns true when only %s is granted',
+        (feature) => {
+          const state = createPlusState({ [feature]: true });
+
+          expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(true);
+        },
+      );
+
+      it('keeps entitlements for a past_due subscription the active-subscriber selector rejects', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.pastDue,
+            }),
+          ],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
+              plan: 'premium',
+              entitlements: {
+                swapFeeWaiver: true,
+                perpsFeeWaiver: true,
+                predictFreeTx: true,
+                premiumApy: true,
+              },
+            },
+          },
+        });
+
+        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(true);
+      });
+
+      it('returns false when every feature is revoked', () => {
+        expect(
+          selectHasAnyMoneyAccountPlusEntitlement(createPlusState({})),
+        ).toBe(false);
+      });
+
+      it('ignores entitlements granted for another product', () => {
+        const state = createState({
+          subscriptions: [],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.SHIELD]: {
+              entitlements: {
+                shieldClaim: true,
+                prioritySupport: true,
+              },
+            },
+          },
+        });
+
+        expect(selectHasAnyMoneyAccountPlusEntitlement(state)).toBe(false);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
+          false,
+        );
+      });
     });
   });
 });

@@ -62,7 +62,7 @@ appiumTest.describe(SmokeWalletPlatform('Deeplink Navigation'), () => {
           // use a shorter home poll so the suite budget is not burned twice.
           await waitForWalletHomePlaywright(
             PlatformDetector.isAndroid()
-              ? resolveE2EWaitTimeoutMs(10_000)
+              ? resolveE2EWaitTimeoutMs(30_000)
               : undefined,
           );
 
