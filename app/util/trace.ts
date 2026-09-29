@@ -1400,6 +1400,18 @@ export function getPerformanceTimestamp(): number {
   return performanceMs;
 }
 
+/**
+ * Offset that converts a raw `performance.now()` mark into the clock
+ * {@link getPerformanceTimestamp} returns: `mark + offset`.
+ *
+ * Read it when the span is created and reuse the converted values for its
+ * children. The monotonic clock stops while the device sleeps, so an offset
+ * read earlier can be off by the whole sleep.
+ */
+export function getPerformanceTimestampOffset(): number {
+  return getPerformanceTimestamp() - performance.now();
+}
+
 function tryCatchMaybePromise<T>(
   tryFn: () => T,
   catchFn: (error: unknown) => void,
