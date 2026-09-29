@@ -5,8 +5,7 @@ import { useGetPredictThePitchLeaderboardPosition } from '../hooks/useGetPredict
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
-
-const PRIZE_EMAIL = 'predictcampaign@consensys.net';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PredictThePitchCampaignWinningRouteParams = {
@@ -60,7 +59,7 @@ const PredictThePitchCampaignWinningView: React.FC = () => {
     <CampaignWinningView
       testID={PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER}
       viewName="PredictThePitchCampaignWinningView"
-      prizeEmail={PRIZE_EMAIL}
+      prizeEmail={REWARDS_WINNER_CONTACT_EMAIL}
       campaignName={campaignName}
       campaignId={campaignId}
       analyticsPageType="predict_the_pitch_campaign_winning"
