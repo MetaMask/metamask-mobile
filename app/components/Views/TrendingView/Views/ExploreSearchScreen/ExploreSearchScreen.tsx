@@ -74,6 +74,10 @@ import {
   type ExploreSearchRouteParams,
 } from './ExploreSearchScreen.types';
 import { useHomepageSearchPaste } from '../../search/useHomepageSearchPaste';
+import {
+  HOME_SEARCH_TRANSITION_DURATION,
+  scheduleHomepageSearchReturnTransition,
+} from '../../search/homepageSearchTransition';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
@@ -492,7 +496,7 @@ const ExploreSearchScreen: React.FC = () => {
     homeSearchTransition.value = withTiming(
       1,
       {
-        duration: 220,
+        duration: HOME_SEARCH_TRANSITION_DURATION,
         easing: Easing.out(Easing.cubic),
       },
       (finished) => {
@@ -508,6 +512,10 @@ const ExploreSearchScreen: React.FC = () => {
     searchOrigin,
   ]);
 
+  const goBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   useEffect(() => {
     if (!routeParams?.entryPoint) {
       return;
@@ -521,8 +529,16 @@ const ExploreSearchScreen: React.FC = () => {
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
     Keyboard.dismiss();
-    navigation.goBack();
-  }, [navigation]);
+
+    if (isHomeSearchHandoff && searchOrigin) {
+      scheduleHomepageSearchReturnTransition({
+        origin: searchOrigin,
+        showPastePill,
+      });
+    }
+
+    goBack();
+  }, [goBack, isHomeSearchHandoff, searchOrigin, showPastePill]);
 
   const handleBrowserTabsPress = useCallback(() => {
     Keyboard.dismiss();

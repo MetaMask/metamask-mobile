@@ -43,6 +43,7 @@ interface ExploreSearchBarInteractiveProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCancel: () => void;
+  startAccessory?: React.ReactNode;
   placeholder?: string;
   showPastePill?: boolean;
   onPastePress?: () => void;
@@ -269,7 +270,8 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               }}
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
               startAccessory={
-                isBackVariant ? (
+                props.startAccessory ??
+                (isBackVariant ? (
                   <ButtonIcon
                     iconName={IconName.Arrow2Left}
                     size={ButtonIconSize.Md}
@@ -277,7 +279,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
                     accessibilityLabel={strings('navigation.back')}
                     testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON}
                   />
-                ) : undefined
+                ) : undefined)
               }
               inputProps={{
                 autoCapitalize: 'none',

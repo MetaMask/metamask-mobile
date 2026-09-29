@@ -4,9 +4,9 @@ import { useABTest } from '../../../../hooks/useABTest';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { trackHomepageSearchPaste } from '../../../../util/analytics/homepageSearchPasteTracking';
 import {
-  HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY,
-  HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_EXPOSURE_OPTIONS,
-  HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS,
+  HOMEPAGE_SEARCH_AB_KEY,
+  HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_SEARCH_VARIANTS,
 } from './abTestConfig';
 
 interface UseHomepageSearchPasteOptions {
@@ -37,16 +37,16 @@ export const useHomepageSearchPaste = ({
   initiallyAvailable = false,
 }: UseHomepageSearchPasteOptions) => {
   const { variant } = useABTest(
-    HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY,
-    HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS,
-    HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_EXPOSURE_OPTIONS,
+    HOMEPAGE_SEARCH_AB_KEY,
+    HOMEPAGE_SEARCH_VARIANTS,
+    HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isTreatment = variant.showPastePill;
+  const isSearchHeaderEnabled = variant.showHomepageSearchBar;
   const [clipboardContentAvailable, setClipboardContentAvailable] =
     useState(initiallyAvailable);
 
   const refreshClipboardAvailability = useCallback(async () => {
-    if (!enabled || !isTreatment) {
+    if (!enabled || !isSearchHeaderEnabled) {
       setClipboardContentAvailable(false);
       return;
     }
@@ -62,7 +62,7 @@ export const useHomepageSearchPaste = ({
     } catch {
       setClipboardContentAvailable(false);
     }
-  }, [enabled, isTreatment]);
+  }, [enabled, isSearchHeaderEnabled]);
 
   useFocusEffect(
     useCallback(() => {
@@ -115,8 +115,9 @@ export const useHomepageSearchPaste = ({
   );
 
   return {
-    isTreatment,
-    showPastePill: enabled && isTreatment && clipboardContentAvailable,
+    isSearchHeaderEnabled,
+    showPastePill:
+      enabled && isSearchHeaderEnabled && clipboardContentAvailable,
     handlePastePress,
   };
 };

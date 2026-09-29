@@ -5,7 +5,7 @@ let mockSearchPasteTreatment = false;
 
 jest.mock('../TrendingView/search/useHomepageSearchPaste', () => ({
   useHomepageSearchPaste: jest.fn(() => ({
-    isTreatment: mockSearchPasteTreatment,
+    isSearchHeaderEnabled: mockSearchPasteTreatment,
     showPastePill: false,
     handlePastePress: jest.fn(),
   })),

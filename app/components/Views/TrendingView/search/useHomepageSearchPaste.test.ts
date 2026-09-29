@@ -56,8 +56,8 @@ describe('useHomepageSearchPaste', () => {
     activeClipboardListeners.clear();
     mockClipboardRevision += 1;
     mockUseABTest.mockReturnValue({
-      variant: { showPastePill: true },
-      variantName: 'treatment',
+      variant: { showHomepageSearchBar: true },
+      variantName: 'control',
       isActive: true,
     });
     mockClipboardManager.hasString.mockResolvedValue(true);
@@ -105,6 +105,24 @@ describe('useHomepageSearchPaste', () => {
     );
 
     await waitFor(() => {
+      expect(result.current.showPastePill).toBe(false);
+    });
+    expect(mockClipboardManager.hasString).not.toHaveBeenCalled();
+  });
+
+  it('does not read or show Paste when the search header is disabled', async () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showHomepageSearchBar: false },
+      variantName: 'treatment',
+      isActive: true,
+    });
+
+    const { result } = renderHook(() =>
+      useHomepageSearchPaste({ enabled: true, onPaste: jest.fn() }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSearchHeaderEnabled).toBe(false);
       expect(result.current.showPastePill).toBe(false);
     });
     expect(mockClipboardManager.hasString).not.toHaveBeenCalled();

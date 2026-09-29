@@ -49,6 +49,7 @@ import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
+import HomepageSearchReturnTransition from './components/HomepageSearchReturnTransition/HomepageSearchReturnTransition';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   Box,
@@ -139,6 +140,11 @@ import {
   type SearchOrigin,
   useHomepageSearchPaste,
 } from '../TrendingView/search/useHomepageSearchPaste';
+import {
+  consumeHomepageSearchReturnTransition,
+  subscribeToHomepageSearchReturnTransition,
+  type HomepageSearchReturnTransition as HomepageSearchReturnTransitionState,
+} from '../TrendingView/search/homepageSearchTransition';
 /* eslint-enable import-x/no-restricted-paths */
 import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
@@ -778,6 +784,30 @@ const Wallet = ({
 
   const homepageScrollY = useSharedValue(0);
   const accountNameSectionBottom = useSharedValue(0);
+  const [homepageSearchReturnTransition, setHomepageSearchReturnTransition] =
+    useState<HomepageSearchReturnTransitionState>();
+
+  useEffect(
+    () =>
+      subscribeToHomepageSearchReturnTransition((transition) => {
+        setHomepageSearchReturnTransition(transition);
+      }),
+    [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const pendingTransition = consumeHomepageSearchReturnTransition();
+      if (pendingTransition) {
+        setHomepageSearchReturnTransition(pendingTransition);
+      }
+    }, []),
+  );
+
+  const handleHomepageSearchReturnComplete = useCallback(() => {
+    setHomepageSearchReturnTransition(undefined);
+  }, []);
+
   const handleAccountNameLayout = useCallback(
     (event: LayoutChangeEvent) => {
       accountNameSectionBottom.value =
@@ -880,21 +910,18 @@ const Wallet = ({
     navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
 
-  const {
-    isTreatment: isSearchHeaderEnabled,
-    showPastePill,
-    handlePastePress,
-  } = useHomepageSearchPaste({
-    enabled: true,
-    onPaste: (initialQuery, searchOrigin) => {
-      navigation.navigate(Routes.EXPLORE_SEARCH, {
-        entryPoint: 'home',
-        initialQuery,
-        initialQuerySource: 'clipboard',
-        ...(searchOrigin ? { searchOrigin } : {}),
-      });
-    },
-  });
+  const { isSearchHeaderEnabled, showPastePill, handlePastePress } =
+    useHomepageSearchPaste({
+      enabled: true,
+      onPaste: (initialQuery, searchOrigin) => {
+        navigation.navigate(Routes.EXPLORE_SEARCH, {
+          entryPoint: 'home',
+          initialQuery,
+          initialQuerySource: 'clipboard',
+          ...(searchOrigin ? { searchOrigin } : {}),
+        });
+      },
+    });
 
   const handleSearchPress = useCallback(
     (
@@ -1251,6 +1278,9 @@ const Wallet = ({
                     isHeaderSearchEnabled ? handleSearchPress : undefined
                   }
                   useSearchHeaderLayout={isSearchHeaderEnabled}
+                  isSearchReturnTransitionActive={Boolean(
+                    homepageSearchReturnTransition,
+                  )}
                   showSearchPastePill={showPastePill}
                   handleSearchPastePress={handlePastePress}
                   touchAreaSlop={touchAreaSlop}
@@ -1264,6 +1294,9 @@ const Wallet = ({
                   isMoneyAccountVisible={isMoneyAccountVisible}
                   handleSearchPress={handleSearchPress}
                   useSearchHeaderLayout={isSearchHeaderEnabled}
+                  isSearchReturnTransitionActive={Boolean(
+                    homepageSearchReturnTransition,
+                  )}
                   showSearchPastePill={showPastePill}
                   handleSearchPastePress={handlePastePress}
                   handleActivityPress={handleActivityPress}
@@ -1324,6 +1357,12 @@ const Wallet = ({
           ) : (
             renderLoader()
           )}
+          {homepageSearchReturnTransition && isFocused ? (
+            <HomepageSearchReturnTransition
+              transition={homepageSearchReturnTransition}
+              onComplete={handleHomepageSearchReturnComplete}
+            />
+          ) : null}
         </SafeAreaView>
       </PerpsAlwaysOnProvider>
     </ErrorBoundary>

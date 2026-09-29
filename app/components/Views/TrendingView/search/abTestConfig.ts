@@ -1,37 +1,37 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
-export const HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY = 'homeSearchPastePillABTest';
+export const HOMEPAGE_SEARCH_AB_KEY = 'homeSearchABTest';
 
-export enum HomepageSearchPastePillVariant {
+export enum HomepageSearchVariant {
   Control = 'control',
   Treatment = 'treatment',
 }
 
-export const HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS: Record<
-  HomepageSearchPastePillVariant,
-  { showPastePill: boolean }
+export const HOMEPAGE_SEARCH_VARIANTS: Record<
+  HomepageSearchVariant,
+  { showHomepageSearchBar: boolean }
 > = {
-  [HomepageSearchPastePillVariant.Control]: {
-    showPastePill: false,
+  [HomepageSearchVariant.Control]: {
+    showHomepageSearchBar: true,
   },
-  [HomepageSearchPastePillVariant.Treatment]: {
-    showPastePill: true,
+  [HomepageSearchVariant.Treatment]: {
+    showHomepageSearchBar: false,
   },
 };
 
-export const HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_EXPOSURE_OPTIONS = {
-  experimentName: 'Homepage search bar paste pill',
+export const HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage search bar',
   variationNames: {
-    control: 'Homepage search bar without paste pill',
-    treatment: 'Homepage search bar with paste pill',
+    control: 'Show homepage search bar',
+    treatment: 'Hide homepage search bar',
   },
 } as const;
 
-export const HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+export const HOMEPAGE_SEARCH_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
-    flagKey: HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY,
-    validVariants: Object.values(HomepageSearchPastePillVariant),
+    flagKey: HOMEPAGE_SEARCH_AB_KEY,
+    validVariants: Object.values(HomepageSearchVariant),
     eventNames: [EVENT_NAME.EXPLORE_SEARCH_INTERACTED],
     eventPropertyRequirements: {
       [EVENT_NAME.EXPLORE_SEARCH_INTERACTED]: {

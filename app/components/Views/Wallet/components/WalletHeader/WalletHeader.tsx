@@ -38,6 +38,7 @@ interface TouchAreaSlop {
 }
 
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
+const hiddenSearchBarStyle: ViewStyle = { opacity: 0 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
 
 export interface WalletHeaderProps {
@@ -50,6 +51,7 @@ export interface WalletHeaderProps {
     pastePillVisible?: boolean,
   ) => void;
   useSearchHeaderLayout: boolean;
+  isSearchReturnTransitionActive?: boolean;
   showSearchPastePill: boolean;
   handleSearchPastePress: (origin?: SearchOrigin) => void;
   handleActivityPress: () => void;
@@ -66,6 +68,7 @@ const WalletHeader = ({
   showSearchPastePill,
   handleSearchPastePress,
   useSearchHeaderLayout,
+  isSearchReturnTransitionActive = false,
   handleActivityPress,
   handleCardPress,
   handleHamburgerPress,
@@ -250,7 +253,7 @@ const WalletHeader = ({
           )}
         </Box>
       }
-      twClassName="pl-4 pr-3 gap-2"
+      twClassName="pl-3 pr-3 gap-2"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -261,7 +264,15 @@ const WalletHeader = ({
         <View
           ref={searchBarRef}
           collapsable={false}
-          style={searchBarWrapperStyle}
+          style={[
+            searchBarWrapperStyle,
+            isSearchReturnTransitionActive && hiddenSearchBarStyle,
+          ]}
+          pointerEvents={isSearchReturnTransitionActive ? 'none' : 'auto'}
+          accessibilityElementsHidden={isSearchReturnTransitionActive}
+          importantForAccessibility={
+            isSearchReturnTransitionActive ? 'no-hide-descendants' : 'auto'
+          }
         >
           <ExploreSearchBar
             type="button"

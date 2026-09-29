@@ -145,7 +145,7 @@ describeForPlatforms('Wallet', () => {
     });
 
     const searchButton = getByTestId(
-      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+      WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON,
     );
 
     // Icon-only button, so screen readers have nothing to announce without this.
@@ -182,6 +182,11 @@ describeForPlatforms('Wallet', () => {
               key: 'tokenFiatAmount',
               order: 'dsc',
               sortCallback: 'stringNumeric',
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              homeSearchABTest: 'treatment',
             },
           },
         },

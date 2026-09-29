@@ -51,6 +51,7 @@ export interface WalletHeaderCompactProps {
   /** Set when the NavBar's trailing button opens the trade tray instead of search. */
   handleSearchPress?: () => void;
   useSearchHeaderLayout: boolean;
+  isSearchReturnTransitionActive?: boolean;
   showSearchPastePill: boolean;
   handleSearchPastePress: () => void;
 }
@@ -70,6 +71,7 @@ const WalletHeaderCompact = ({
   titleSectionHeight,
   handleSearchPress,
   useSearchHeaderLayout,
+  isSearchReturnTransitionActive = false,
   showSearchPastePill,
   handleSearchPastePress,
 }: WalletHeaderCompactProps) => {
@@ -80,16 +82,27 @@ const WalletHeaderCompact = ({
       testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
       title={
         useSearchHeaderLayout ? (
-          <ExploreSearchBar
-            type="button"
-            onPress={handleSearchPress ?? (() => undefined)}
-            placeholder={strings('wallet.homepage_search_placeholder')}
-            showPastePill={showSearchPastePill}
-            onPastePress={handleSearchPastePress}
-            clipboardButtonTestID={
-              WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON
+          <Box
+            twClassName={
+              isSearchReturnTransitionActive ? 'flex-1 opacity-0' : 'flex-1'
             }
-          />
+            pointerEvents={isSearchReturnTransitionActive ? 'none' : 'auto'}
+            accessibilityElementsHidden={isSearchReturnTransitionActive}
+            importantForAccessibility={
+              isSearchReturnTransitionActive ? 'no-hide-descendants' : 'auto'
+            }
+          >
+            <ExploreSearchBar
+              type="button"
+              onPress={handleSearchPress ?? (() => undefined)}
+              placeholder={strings('wallet.homepage_search_placeholder')}
+              showPastePill={showSearchPastePill}
+              onPastePress={handleSearchPastePress}
+              clipboardButtonTestID={
+                WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON
+              }
+            />
+          </Box>
         ) : (
           <ButtonAnimated
             onPress={handleAccountHubPress}

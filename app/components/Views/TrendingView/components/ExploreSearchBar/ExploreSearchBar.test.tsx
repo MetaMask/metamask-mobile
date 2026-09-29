@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { View } from 'react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
@@ -310,6 +311,24 @@ describe('ExploreSearchBar', () => {
       ).toBeDefined();
       expect(
         queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders a custom start accessory in place of the back button', () => {
+      const { getByTestId, queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          dismissVariant="back"
+          startAccessory={<View testID="custom-start-accessory" />}
+        />,
+      );
+
+      expect(getByTestId('custom-start-accessory')).toBeOnTheScreen();
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
       ).toBeNull();
     });
 
