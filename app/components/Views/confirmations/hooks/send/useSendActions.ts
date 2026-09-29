@@ -18,7 +18,7 @@ import {
 import { useSendContext } from '../../context/send-context';
 import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { useSendType } from './useSendType';
-import { usePercentageAmount } from './usePercentageAmount';
+import { useMaxAmount, usePercentageAmount } from './usePercentageAmount';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
 import {
   classifyNonEvmSendError,
@@ -35,16 +35,42 @@ interface SnapConfirmSendResult {
   transactionId?: string;
 }
 
+/**
+ * Cancel and back actions for the Send flow, without any gas estimation.
+ */
+export const useSendNavigationActions = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { captureSendExit } = useSendExitMetrics();
+
+  const handleCancelPress = useCallback(() => {
+    captureSendExit();
+
+    // Exit the whole Send flow (main stack), not just the nested send screen.
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.goBack();
+      return;
+    }
+    navigation.goBack();
+  }, [captureSendExit, navigation]);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  return { handleCancelPress, handleBackPress };
+};
+
 const useSendActionsWithMax = (
-  getMaxAmount: ReturnType<typeof usePercentageAmount>['getMaxAmount'],
+  getMaxAmount: ReturnType<typeof useMaxAmount>['getMaxAmount'],
 ) => {
   const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
     useSendContext();
   const { chainIdCaip } = useSendMetricsContext();
   const navigation = useNavigation<AppNavigationProp>();
   const { isEvmNativeSendType, isEvmSendType } = useSendType();
-  const { captureSendExit } = useSendExitMetrics();
   const { captureSendFailed } = useNonEvmSendMetrics();
+  const navigationActions = useSendNavigationActions();
   const handleSubmitPress = useCallback(
     async (recipientAddress?: string) => {
       if (!chainId || !asset) {
@@ -158,27 +184,11 @@ const useSendActionsWithMax = (
     ],
   );
 
-  const handleCancelPress = useCallback(() => {
-    captureSendExit();
-
-    // Exit the whole Send flow (main stack), not just the nested send screen.
-    const parentNavigation = navigation.getParent();
-    if (parentNavigation) {
-      parentNavigation.goBack();
-      return;
-    }
-    navigation.goBack();
-  }, [captureSendExit, navigation]);
-
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  return { handleSubmitPress, handleCancelPress, handleBackPress };
+  return { ...navigationActions, handleSubmitPress };
 };
 
 export const useSendActions = () => {
-  const { getMaxAmount } = usePercentageAmount();
+  const { getMaxAmount } = useMaxAmount();
   return useSendActionsWithMax(getMaxAmount);
 };
 

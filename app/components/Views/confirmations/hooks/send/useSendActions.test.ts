@@ -20,7 +20,7 @@ import * as MultichainSnaps from '../../utils/multichain-snaps';
 import * as SendType from './useSendType';
 import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { NonEvmSendUnknownValue } from './metrics/useNonEvmSendMetrics';
-import { usePercentageAmount } from './usePercentageAmount';
+import { useMaxAmount } from './usePercentageAmount';
 import { useSendActions } from './useSendActions';
 
 jest.mock('../../context/send-context', () => ({
@@ -58,13 +58,13 @@ const trackedEventProperties = (eventName: string) =>
     .properties;
 
 jest.mock('./usePercentageAmount', () => ({
-  usePercentageAmount: jest.fn(),
+  useMaxAmount: jest.fn(),
 }));
 
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
-const mockUsePercentageAmount = jest.mocked(usePercentageAmount);
+const mockUseMaxAmount = jest.mocked(useMaxAmount);
 
 const mockGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
@@ -99,9 +99,9 @@ describe('useSendActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackEvent.mockClear();
-    mockUsePercentageAmount.mockReturnValue({
+    mockUseMaxAmount.mockReturnValue({
       getMaxAmount: jest.fn().mockResolvedValue('1'),
-    } as unknown as ReturnType<typeof usePercentageAmount>);
+    } as unknown as ReturnType<typeof useMaxAmount>);
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -138,9 +138,9 @@ describe('useSendActions', () => {
 
   it('recalculates a native max send with the selected recipient before submitting', async () => {
     const getMaxAmount = jest.fn().mockResolvedValue('8.5');
-    mockUsePercentageAmount.mockReturnValue({
+    mockUseMaxAmount.mockReturnValue({
       getMaxAmount,
-    } as unknown as ReturnType<typeof usePercentageAmount>);
+    } as unknown as ReturnType<typeof useMaxAmount>);
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -173,9 +173,9 @@ describe('useSendActions', () => {
   });
 
   it('does not submit a native max send when gas estimation is unavailable', async () => {
-    mockUsePercentageAmount.mockReturnValue({
+    mockUseMaxAmount.mockReturnValue({
       getMaxAmount: jest.fn().mockResolvedValue(undefined),
-    } as unknown as ReturnType<typeof usePercentageAmount>);
+    } as unknown as ReturnType<typeof useMaxAmount>);
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',

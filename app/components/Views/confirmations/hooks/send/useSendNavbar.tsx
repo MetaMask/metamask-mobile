@@ -5,10 +5,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useSendActions } from './useSendActions';
+import { useSendNavigationActions } from './useSendActions';
 
 export function useSendNavbar() {
-  const { handleCancelPress } = useSendActions();
+  const { handleCancelPress } = useSendNavigationActions();
   const navigation = useNavigation<AppNavigationProp>();
   const parentNavigation = navigation.getParent();
   // Back/cancel logic must read the main stack (which owns the `Send` route).

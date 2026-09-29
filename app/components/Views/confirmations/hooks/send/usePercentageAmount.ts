@@ -110,13 +110,8 @@ export const getPercentageValueFn = ({
   return fromBNWithDecimals(percentageValue, asset.decimals);
 };
 
-export const usePercentageAmount = () => {
-  const { asset, chainId, from, to } = useSendContext();
-  const { predefinedRecipient } =
-    useParams<{
-      predefinedRecipient: PredefinedRecipient;
-    }>() || {};
-  const recipient = to || predefinedRecipient?.address || from;
+const useMaxAmountEstimator = () => {
+  const { asset, chainId, from } = useSendContext();
   const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
   const { gasFeeEstimates, networkClientId } = useGasFeeEstimatesForSend();
@@ -204,6 +199,99 @@ export const usePercentageAmount = () => {
     ],
   );
 
+  const getMaxAmount = useCallback(
+    async (recipientAddress: string) => {
+      if (isNonEvmNativeSendType) {
+        return undefined;
+      }
+      if (!isEvmNativeSendType || isGasSponsored) {
+        return getPercentageValueFn({
+          asset: asset as AssetType,
+          gasFeeEstimates,
+          isEvmNativeSendType,
+          percentage: 100,
+          rawBalanceBN,
+          isGasSponsored,
+        });
+      }
+
+      const [gasLimitResult, layer1GasFeeResult] = await Promise.allSettled([
+        estimateGasLimit(recipientAddress),
+        getLayer1GasFee(recipientAddress),
+      ]);
+      if (
+        gasLimitResult.status === 'rejected' ||
+        layer1GasFeeResult.status === 'rejected'
+      ) {
+        return undefined;
+      }
+
+      return getPercentageValueFn({
+        asset: asset as AssetType,
+        gasFeeEstimates,
+        gasLimit: gasLimitResult.value,
+        isEvmNativeSendType,
+        layer1GasFee: layer1GasFeeResult.value,
+        percentage: 100,
+        rawBalanceBN,
+        isGasSponsored,
+      });
+    },
+    [
+      asset,
+      estimateGasLimit,
+      gasFeeEstimates,
+      getLayer1GasFee,
+      isEvmNativeSendType,
+      isGasSponsored,
+      isNonEvmNativeSendType,
+      rawBalanceBN,
+    ],
+  );
+
+  return {
+    estimateGasLimit,
+    gasFeeEstimates,
+    getLayer1GasFee,
+    getMaxAmount,
+    isEvmNativeSendType,
+    isGasSponsored,
+    isNonEvmNativeSendType,
+    maxTransactionValue,
+    networkClientId,
+    rawBalanceBN,
+  };
+};
+
+/**
+ * Returns a function that estimates the native Max amount for a recipient on
+ * demand, without estimating in the background.
+ */
+export const useMaxAmount = () => {
+  const { getMaxAmount } = useMaxAmountEstimator();
+  return { getMaxAmount };
+};
+
+export const usePercentageAmount = () => {
+  const { asset, chainId, from, to } = useSendContext();
+  const { predefinedRecipient } =
+    useParams<{
+      predefinedRecipient: PredefinedRecipient;
+    }>() || {};
+  const recipient = to || predefinedRecipient?.address || from;
+  const {
+    estimateGasLimit,
+    gasFeeEstimates,
+    getLayer1GasFee,
+    getMaxAmount,
+    isEvmNativeSendType,
+    isGasSponsored,
+    isNonEvmNativeSendType,
+    maxTransactionValue,
+    networkClientId,
+    rawBalanceBN,
+  } = useMaxAmountEstimator();
+
   const estimationKey = [
     asset?.address,
     asset?.chainId,
@@ -255,56 +343,6 @@ export const usePercentageAmount = () => {
       layer1GasFee,
       rawBalanceBN,
       isGasSponsored,
-    ],
-  );
-
-  const getMaxAmount = useCallback(
-    async (recipientAddress: string) => {
-      if (isNonEvmNativeSendType) {
-        return undefined;
-      }
-      if (!isEvmNativeSendType || isGasSponsored) {
-        return getPercentageValueFn({
-          asset: asset as AssetType,
-          gasFeeEstimates,
-          isEvmNativeSendType,
-          percentage: 100,
-          rawBalanceBN,
-          isGasSponsored,
-        });
-      }
-
-      const [gasLimitResult, layer1GasFeeResult] = await Promise.allSettled([
-        estimateGasLimit(recipientAddress),
-        getLayer1GasFee(recipientAddress),
-      ]);
-      if (
-        gasLimitResult.status === 'rejected' ||
-        layer1GasFeeResult.status === 'rejected'
-      ) {
-        return undefined;
-      }
-
-      return getPercentageValueFn({
-        asset: asset as AssetType,
-        gasFeeEstimates,
-        gasLimit: gasLimitResult.value,
-        isEvmNativeSendType,
-        layer1GasFee: layer1GasFeeResult.value,
-        percentage: 100,
-        rawBalanceBN,
-        isGasSponsored,
-      });
-    },
-    [
-      asset,
-      estimateGasLimit,
-      gasFeeEstimates,
-      getLayer1GasFee,
-      isEvmNativeSendType,
-      isGasSponsored,
-      isNonEvmNativeSendType,
-      rawBalanceBN,
     ],
   );
 

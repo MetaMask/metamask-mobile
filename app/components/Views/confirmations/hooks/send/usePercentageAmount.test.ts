@@ -13,7 +13,11 @@ import { AssetType } from '../../types/token';
 // eslint-disable-next-line import-x/no-namespace
 import * as SendUtils from '../../utils/send';
 import { estimateGas } from '../../../../../util/transaction-controller';
-import { GasFeeEstimates, usePercentageAmount } from './usePercentageAmount';
+import {
+  GasFeeEstimates,
+  useMaxAmount,
+  usePercentageAmount,
+} from './usePercentageAmount';
 import { useBalance } from './useBalance';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
@@ -122,21 +126,23 @@ const setBalance = (rawBalance = '1000000000000000') => {
   });
 };
 
-describe('usePercentageAmount', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockNetworkClientId = 'mainnet';
-    mockGasFeeEstimates = createFeeMarketEstimates('1.5');
-    mockUseParams.mockReturnValue(undefined);
-    mockUseIsNetworkGasSponsored.mockReturnValue(false);
-    mockIsHardwareAccount.mockReturnValue(false);
-    mockEstimateGas.mockResolvedValue({
-      gas: '0x5208',
-      simulationFails: undefined,
-    });
-    jest.spyOn(SendUtils, 'getLayer1GasFeeForSend').mockResolvedValue('0x0');
-    setBalance();
+const resetMocks = () => {
+  jest.clearAllMocks();
+  mockNetworkClientId = 'mainnet';
+  mockGasFeeEstimates = createFeeMarketEstimates('1.5');
+  mockUseParams.mockReturnValue(undefined);
+  mockUseIsNetworkGasSponsored.mockReturnValue(false);
+  mockIsHardwareAccount.mockReturnValue(false);
+  mockEstimateGas.mockResolvedValue({
+    gas: '0x5208',
+    simulationFails: undefined,
   });
+  jest.spyOn(SendUtils, 'getLayer1GasFeeForSend').mockResolvedValue('0x0');
+  setBalance();
+};
+
+describe('usePercentageAmount', () => {
+  beforeEach(resetMocks);
 
   it('reserves a legacy node estimate for native max', async () => {
     setNativeSendContext();
@@ -190,7 +196,7 @@ describe('usePercentageAmount', () => {
   it('does not re-estimate when the entered amount changes', async () => {
     const l2SendContext = {
       asset: { ...NATIVE_ASSET, chainId: '0xa' } as AssetType,
-      chainId: '0xa',
+      chainId: '0xa' as const,
     };
     setNativeSendContext({ ...l2SendContext, value: '' });
     const { result, rerender } = renderHookWithProvider(
@@ -495,5 +501,38 @@ describe('usePercentageAmount', () => {
     expect(result.current.isMaxAmountSupported).toBe(false);
     expect(result.current.getPercentageAmount(75)).toBe('0.000000000000000007');
     expect(result.current.getPercentageAmount(100)).toBeUndefined();
+  });
+});
+
+describe('useMaxAmount', () => {
+  beforeEach(resetMocks);
+
+  it('does not estimate until Max is requested', () => {
+    setNativeSendContext({
+      asset: { ...NATIVE_ASSET, chainId: '0xa' } as AssetType,
+      chainId: '0xa',
+    });
+
+    renderHookWithProvider(() => useMaxAmount(), mockState);
+
+    expect(mockEstimateGas).not.toHaveBeenCalled();
+    expect(SendUtils.getLayer1GasFeeForSend).not.toHaveBeenCalled();
+  });
+
+  it('estimates Max for the requested recipient', async () => {
+    mockEstimateGas.mockResolvedValue({
+      gas: '0x7530',
+      simulationFails: undefined,
+    });
+    setNativeSendContext();
+    const { result } = renderHookWithProvider(() => useMaxAmount(), mockState);
+
+    const maxAmount = await result.current.getMaxAmount(MOCK_RECIPIENT_2);
+
+    expect(mockEstimateGas).toHaveBeenCalledWith(
+      expect.objectContaining({ to: MOCK_RECIPIENT_2 }),
+      'mainnet',
+    );
+    expect(maxAmount).toBe('9550000000000');
   });
 });
