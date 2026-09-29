@@ -116,6 +116,59 @@ describe('useTraderFeed', () => {
     expect(result.current.rows[0]?.realtimeEventId).toBe(event.eventId);
   });
 
+  it('prefers refreshed API data after a realtime row finishes animating', async () => {
+    const realtimeItem = mockPerpFeedItem({
+      positionId: 'shared-position',
+      currentValueUSD: 100,
+    });
+    const refreshedItem = mockPerpFeedItem({
+      positionId: 'shared-position',
+      currentValueUSD: 200,
+    });
+    mockCall
+      .mockResolvedValueOnce(mockFeedResponse([]))
+      .mockResolvedValueOnce(mockFeedResponse([refreshedItem]));
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const event = {
+      version: 1,
+      kind: 'feed-item',
+      eventId: 'social.v1.feed.all.trade.shared',
+      feedItemId: 'shared-position',
+      revision: 1,
+      occurredAt: new Date().toISOString(),
+      data: realtimeItem,
+    } satisfies SocialFeedEvent;
+
+    await act(async () => {
+      realtimeListener?.(event);
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(result.current.rows[0]?.core.currentValueUSD).toBe(100),
+    );
+
+    act(() => {
+      result.current.markRealtimeEventAnimated(event.eventId);
+    });
+
+    expect(result.current.rows[0]?.realtimeEventId).toBeUndefined();
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    await waitFor(() =>
+      expect(result.current.rows[0]?.core.currentValueUSD).toBe(200),
+    );
+  });
+
   it('fetches the leaderboard scope for the "all" audience and groups items', async () => {
     mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
 
