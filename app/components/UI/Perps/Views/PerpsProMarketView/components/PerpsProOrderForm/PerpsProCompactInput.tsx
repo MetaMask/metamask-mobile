@@ -216,32 +216,37 @@ const PerpsProCompactInput = React.forwardRef<
     };
 
     const input = (
-      <Input
-        ref={inputRef}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        isDisabled={isDisabled}
-        // A tap landing here is consumed by the input, so neither the inline
-        // variant's wrapping pressable nor the stacked variant's label fires.
-        onPressIn={handleFieldPress}
-        inputAccessoryViewID={inputAccessoryViewID}
-        placeholder={isInputVisible ? placeholder : ''}
-        placeholderTextColor={tw.color(`text-${placeholderColor}`)}
-        textVariant={TextVariant.BodySm}
-        isStateStylesDisabled
-        twClassName={
-          isInputVisible
-            ? 'flex-1 border-0 bg-transparent p-0'
-            : 'absolute h-1 w-1 opacity-0'
-        }
-        testID={testID}
-        accessibilityLabel={label}
-        accessibilityElementsHidden={!isInputVisible}
-        importantForAccessibility={isInputVisible ? 'yes' : 'no'}
-      />
+      <>
+        <Input
+          ref={inputRef}
+          value={value}
+          onChangeText={onChangeText}
+          keyboardType={keyboardType}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          isDisabled={isDisabled}
+          // A tap landing here is consumed by the input, so neither the inline
+          // variant's wrapping pressable nor the stacked variant's label fires.
+          onPressIn={handleFieldPress}
+          inputAccessoryViewID={inputAccessoryViewID}
+          placeholder={isInputVisible ? placeholder : ''}
+          placeholderTextColor={tw.color(`text-${placeholderColor}`)}
+          textVariant={TextVariant.BodySm}
+          isStateStylesDisabled
+          twClassName={
+            isInputVisible
+              ? 'flex-1 border-0 bg-transparent p-0'
+              : 'absolute h-1 w-1 opacity-0'
+          }
+          testID={testID}
+          accessibilityLabel={label}
+          accessibilityElementsHidden={!isInputVisible}
+          importantForAccessibility={isInputVisible ? 'yes' : 'no'}
+        />
+        {isFocused ? (
+          <Box testID={`${testID}-keyboard-focus`} accessible={false} />
+        ) : null}
+      </>
     );
 
     if (usesFloatingLabel) {
