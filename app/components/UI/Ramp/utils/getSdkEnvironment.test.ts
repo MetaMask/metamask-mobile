@@ -2,15 +2,9 @@ import { SdkEnvironment } from '../types/legacyDeposit';
 import { getSdkEnvironment } from './getSdkEnvironment';
 
 describe('getSdkEnvironment', () => {
-  const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalApiEnv = process.env.MM_API_ENV;
 
-  beforeEach(() => {
-    delete process.env.MM_API_ENV;
-  });
-
   afterEach(() => {
-    process.env.METAMASK_ENVIRONMENT = originalEnv;
     if (originalApiEnv !== undefined) {
       process.env.MM_API_ENV = originalApiEnv;
     } else {
@@ -18,81 +12,31 @@ describe('getSdkEnvironment', () => {
     }
   });
 
-  describe('when MM_API_ENV is set', () => {
-    it('returns Staging when MM_API_ENV is dev', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.MM_API_ENV = 'dev';
-      expect(getSdkEnvironment()).toBe(SdkEnvironment.Staging);
-    });
+  it.each([
+    ['dev', SdkEnvironment.Staging],
+    ['uat', SdkEnvironment.Staging],
+    ['prod', SdkEnvironment.Production],
+  ] as const)('maps MM_API_ENV=%s to %s', (apiEnv, expected) => {
+    process.env.MM_API_ENV = apiEnv;
 
-    it('returns Production when MM_API_ENV is prod', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      process.env.MM_API_ENV = 'prod';
-      expect(getSdkEnvironment()).toBe(SdkEnvironment.Production);
-    });
+    expect(getSdkEnvironment()).toBe(expected);
   });
 
-  describe('Production Environment', () => {
-    it('returns Production for production environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
+  it('returns Production when MM_API_ENV is unset', () => {
+    delete process.env.MM_API_ENV;
 
-    it('returns Production for beta environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'beta';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
-
-    it('returns Production for rc environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'rc';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
+    expect(getSdkEnvironment()).toBe(SdkEnvironment.Production);
   });
 
-  describe('when MM_API_ENV is unset', () => {
-    it.each(['dev', 'exp', 'test', 'e2e'])(
-      'returns Production when METAMASK_ENVIRONMENT is %s',
-      (env) => {
-        process.env.METAMASK_ENVIRONMENT = env;
-        expect(getSdkEnvironment()).toBe(SdkEnvironment.Production);
-      },
-    );
+  it('returns Production for an unrecognized MM_API_ENV', () => {
+    process.env.MM_API_ENV = 'unknown-env';
+
+    expect(getSdkEnvironment()).toBe(SdkEnvironment.Production);
   });
 
-  describe('Default/Unknown Environment', () => {
-    it('returns Production for undefined environment', () => {
-      delete process.env.METAMASK_ENVIRONMENT;
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
+  it('accepts uppercase values', () => {
+    process.env.MM_API_ENV = 'DEV';
 
-    it('returns Production for unknown environment value', () => {
-      process.env.METAMASK_ENVIRONMENT = 'unknown-env';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
-
-    it('returns Production for empty string environment', () => {
-      process.env.METAMASK_ENVIRONMENT = '';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('treats PRODUCTION as prod', () => {
-      process.env.METAMASK_ENVIRONMENT = 'PRODUCTION';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
-
-    it('returns Production when the flavor value has whitespace', () => {
-      process.env.METAMASK_ENVIRONMENT = ' production ';
-      const result = getSdkEnvironment();
-      expect(result).toBe(SdkEnvironment.Production);
-    });
+    expect(getSdkEnvironment()).toBe(SdkEnvironment.Staging);
   });
 });

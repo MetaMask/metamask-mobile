@@ -31,15 +31,9 @@ jest.mock('../../../../util/version', () => ({
 }));
 
 describe('getRampsEnvironment', () => {
-  const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalApiEnv = process.env.MM_API_ENV;
 
-  beforeEach(() => {
-    delete process.env.MM_API_ENV;
-  });
-
   afterEach(() => {
-    process.env.METAMASK_ENVIRONMENT = originalEnv;
     if (originalApiEnv !== undefined) {
       process.env.MM_API_ENV = originalApiEnv;
     } else {
@@ -47,39 +41,26 @@ describe('getRampsEnvironment', () => {
     }
   });
 
-  describe('when MM_API_ENV is set', () => {
-    it('returns Development when MM_API_ENV is dev', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.MM_API_ENV = 'dev';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Development);
-    });
+  it.each([
+    ['dev', RampsEnvironment.Development],
+    ['uat', RampsEnvironment.Staging],
+    ['prod', RampsEnvironment.Production],
+  ] as const)('maps MM_API_ENV=%s to %s', (apiEnv, expected) => {
+    process.env.MM_API_ENV = apiEnv;
 
-    it('returns Staging when MM_API_ENV is uat', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.MM_API_ENV = 'uat';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Staging);
-    });
-
-    it('returns Production when MM_API_ENV is prod', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      process.env.MM_API_ENV = 'prod';
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
-    });
+    expect(getRampsEnvironment()).toBe(expected);
   });
 
-  describe('when MM_API_ENV is unset', () => {
-    it.each(['dev', 'exp', 'production', 'rc', 'test', 'e2e', 'unknown'])(
-      'returns Production when METAMASK_ENVIRONMENT is %s',
-      (env) => {
-        process.env.METAMASK_ENVIRONMENT = env;
-        expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
-      },
-    );
+  it('returns Production when MM_API_ENV is unset', () => {
+    delete process.env.MM_API_ENV;
 
-    it('returns Production when METAMASK_ENVIRONMENT is undefined', () => {
-      delete process.env.METAMASK_ENVIRONMENT;
-      expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
-    });
+    expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
+  });
+
+  it('returns Production for an unrecognized MM_API_ENV', () => {
+    process.env.MM_API_ENV = 'unknown';
+
+    expect(getRampsEnvironment()).toBe(RampsEnvironment.Production);
   });
 });
 
@@ -106,7 +87,6 @@ describe('rampsServiceInit', () => {
   let initRequestMock: jest.Mocked<
     MessengerClientInitRequest<RampsServiceMessenger>
   >;
-  const originalEnv = process.env.METAMASK_ENVIRONMENT;
   const originalOS = Platform.OS;
   const originalApiEnv = process.env.MM_API_ENV;
 
@@ -123,7 +103,6 @@ describe('rampsServiceInit', () => {
   });
 
   afterEach(() => {
-    process.env.METAMASK_ENVIRONMENT = originalEnv;
     Platform.OS = originalOS;
     if (originalApiEnv !== undefined) {
       process.env.MM_API_ENV = originalApiEnv;
@@ -172,80 +151,28 @@ describe('rampsServiceInit', () => {
   });
 
   describe('environment configuration', () => {
-    it('passes Production environment for production environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
+    it.each([
+      ['dev', RampsEnvironment.Development],
+      ['uat', RampsEnvironment.Staging],
+      ['prod', RampsEnvironment.Production],
+    ] as const)('passes %s as %s to the service', (apiEnv, expected) => {
+      process.env.MM_API_ENV = apiEnv;
+
+      rampsServiceInit(initRequestMock);
+
+      expect(rampsServiceClassMock).toHaveBeenCalledWith(
+        expect.objectContaining({ environment: expected }),
+      );
+    });
+
+    it('passes Production when MM_API_ENV is unset', () => {
+      delete process.env.MM_API_ENV;
+
       rampsServiceInit(initRequestMock);
 
       expect(rampsServiceClassMock).toHaveBeenCalledWith(
         expect.objectContaining({
           environment: RampsEnvironment.Production,
-        }),
-      );
-    });
-
-    it('passes Production environment for beta environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'beta';
-      rampsServiceInit(initRequestMock);
-
-      expect(rampsServiceClassMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          environment: RampsEnvironment.Production,
-        }),
-      );
-    });
-
-    it('passes Production environment for rc environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'rc';
-      rampsServiceInit(initRequestMock);
-
-      expect(rampsServiceClassMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          environment: RampsEnvironment.Production,
-        }),
-      );
-    });
-
-    it('passes Production when MM_API_ENV is unset even for a dev flavor', () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      rampsServiceInit(initRequestMock);
-
-      expect(rampsServiceClassMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          environment: RampsEnvironment.Production,
-        }),
-      );
-    });
-
-    it('passes Production environment for test environment', () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-      rampsServiceInit(initRequestMock);
-
-      expect(rampsServiceClassMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          environment: RampsEnvironment.Production,
-        }),
-      );
-    });
-
-    it('passes Production environment for undefined environment', () => {
-      delete process.env.METAMASK_ENVIRONMENT;
-      rampsServiceInit(initRequestMock);
-
-      expect(rampsServiceClassMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          environment: RampsEnvironment.Production,
-        }),
-      );
-    });
-
-    it('passes Staging environment when MM_API_ENV is uat', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.MM_API_ENV = 'uat';
-      rampsServiceInit(initRequestMock);
-
-      expect(rampsServiceClassMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          environment: RampsEnvironment.Staging,
         }),
       );
     });
@@ -295,7 +222,7 @@ describe('rampsServiceInit', () => {
 
   describe('integration with environment and platform', () => {
     it('passes correct environment and context for iOS in production', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
+      process.env.MM_API_ENV = 'prod';
       Platform.OS = 'ios';
       rampsServiceInit(initRequestMock);
 

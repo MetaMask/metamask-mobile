@@ -39,15 +39,9 @@ describe('transak-service-init', () => {
   });
 
   describe('getTransakEnvironment', () => {
-    const originalEnv = process.env.METAMASK_ENVIRONMENT;
     const originalApiEnv = process.env.MM_API_ENV;
 
-    beforeEach(() => {
-      delete process.env.MM_API_ENV;
-    });
-
     afterEach(() => {
-      process.env.METAMASK_ENVIRONMENT = originalEnv;
       if (originalApiEnv !== undefined) {
         process.env.MM_API_ENV = originalApiEnv;
       } else {
@@ -55,28 +49,20 @@ describe('transak-service-init', () => {
       }
     });
 
-    describe('when MM_API_ENV is set', () => {
-      it('returns Development when MM_API_ENV is dev', () => {
-        process.env.METAMASK_ENVIRONMENT = 'production';
-        process.env.MM_API_ENV = 'dev';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
-      });
+    it.each([
+      ['dev', TransakEnvironment.Development],
+      ['uat', TransakEnvironment.Staging],
+      ['prod', TransakEnvironment.Production],
+    ] as const)('maps MM_API_ENV=%s to %s', (apiEnv, expected) => {
+      process.env.MM_API_ENV = apiEnv;
 
-      it('returns Staging when MM_API_ENV is uat', () => {
-        process.env.METAMASK_ENVIRONMENT = 'production';
-        process.env.MM_API_ENV = 'uat';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
-      });
+      expect(getTransakEnvironment()).toBe(expected);
     });
 
-    describe('when MM_API_ENV is unset', () => {
-      it.each(['dev', 'exp', 'production', 'beta', 'rc', 'test', 'e2e'])(
-        'returns Production when METAMASK_ENVIRONMENT is %s',
-        (env) => {
-          process.env.METAMASK_ENVIRONMENT = env;
-          expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
-        },
-      );
+    it('returns Production when MM_API_ENV is unset', () => {
+      delete process.env.MM_API_ENV;
+
+      expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
     });
   });
 
