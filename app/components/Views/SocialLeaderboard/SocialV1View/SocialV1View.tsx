@@ -136,7 +136,10 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
 const SocialV1View: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'SocialV1View'>>();
+  const route =
+    useRoute<
+      RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
+    >();
   const { profile: myProfile } = useMyProfile();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
@@ -591,6 +594,7 @@ const SocialV1View: React.FC = () => {
                         pageRef={pageRef}
                         onOpenFilters={handleOpenLiveTradesFilters}
                         isFilterActive={hasActiveFilters('liveTrades')}
+                        appliedFilters={applied.liveTrades}
                       />
                     ) : (
                       <EmptyShellTabPage

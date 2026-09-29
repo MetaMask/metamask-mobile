@@ -1,5 +1,9 @@
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import { getLimitOrder, type GetLimitOrderParams } from '.';
+
+const MOCK_BASE_URL = 'https://limit-orders.test';
+jest.mock('../getLimitOrdersBaseUrl', () => ({
+  getLimitOrdersBaseUrl: () => 'https://limit-orders.test',
+}));
 
 const mockGetBearerToken = jest.fn();
 jest.mock('../../../../../../core/Engine', () => ({
@@ -98,7 +102,7 @@ describe('getLimitOrder', () => {
     const [requestedUrl, requestOptions] = globalFetchSpy.mock.calls[0];
     const url = new URL(requestedUrl);
     expect(`${url.origin}${url.pathname}`).toBe(
-      `${BRIDGE_API_BASE_URL}/v2/orders/limit`,
+      `${MOCK_BASE_URL}/v2/orders/limit`,
     );
     expect(Object.fromEntries(url.searchParams)).toStrictEqual({
       id: ORDER_ID,
