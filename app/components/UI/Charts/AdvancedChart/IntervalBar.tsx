@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -41,10 +41,12 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="w-full px-4"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 gap-1"
+      <ScrollView
+        testID="interval-bar-scroll"
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('grow flex-row items-center gap-1')}
       >
         {intervals.map((interval) => {
           const isSelected = normalised === interval.toLowerCase();
@@ -75,7 +77,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
             </Pressable>
           );
         })}
-      </Box>
+      </ScrollView>
 
       <ChartTypeToggle
         chartType={chartType}

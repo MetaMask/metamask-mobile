@@ -10,6 +10,7 @@ import { selectPerpsNetwork } from '../../selectors/perpsController';
 import PerpsProviderSelectorSheet from '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet';
 import type { ProviderNetworkOption } from '../../components/PerpsProviderSelector/PerpsProviderSelector.types';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 
 /**
  * PerpsSelectProviderView
@@ -19,7 +20,8 @@ import { PERPS_CONSTANTS } from '@metamask/perps-controller';
  */
 const PerpsSelectProviderView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { activeProvider, switchProvider } = usePerpsProvider();
+  const { activeProvider, switchProvider, isProviderSelectorEnabled } =
+    usePerpsProvider();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
@@ -70,6 +72,9 @@ const PerpsSelectProviderView: React.FC = () => {
 
       // Then toggle network if needed
       if (networkChanged) {
+        if (providerChanged) {
+          await PerpsConnectionManager.waitForConnection();
+        }
         const result = await toggleTestnet();
         if (!result.success) {
           Logger.error(new Error(`Failed to toggle perps testnet`), {
@@ -91,6 +96,10 @@ const PerpsSelectProviderView: React.FC = () => {
     },
     [activeProvider, isTestnet, switchProvider, toggleTestnet],
   );
+
+  if (!isProviderSelectorEnabled) {
+    return null;
+  }
 
   return (
     <PerpsProviderSelectorSheet

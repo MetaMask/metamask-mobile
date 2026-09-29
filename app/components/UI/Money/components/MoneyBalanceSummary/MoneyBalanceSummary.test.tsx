@@ -4,7 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyBalanceSummary from './MoneyBalanceSummary';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { MoneyBalanceDisplayState } from '../../types';
+import type { MoneyBalanceDisplayState } from '../../types';
 
 const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
   kind: 'balance',
@@ -18,14 +18,6 @@ const unavailableState = (
 });
 
 describe('MoneyBalanceSummary', () => {
-  it('does not render the "Your balance" heading', () => {
-    const { queryByText } = render(
-      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
-    );
-
-    expect(queryByText(strings('money.your_balance'))).toBeNull();
-  });
-
   it('renders the APY label with "• mUSD" suffix', () => {
     const { getByTestId } = render(
       <MoneyBalanceSummary apy={5.5} displayState={balanceState()} />,
@@ -46,17 +38,20 @@ describe('MoneyBalanceSummary', () => {
     );
   });
 
-  it('does not render the info button when no handler is provided', () => {
-    const { queryByTestId } = render(
+  it('renders the dotted APY label as a pressable target without a callback', () => {
+    const { getByTestId } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
     );
 
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-    ).not.toBeOnTheScreen();
+      getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE).props.onPress,
+    ).toBeUndefined();
   });
 
-  it('calls onApyInfoPress when the info button is pressed', () => {
+  it('calls onApyInfoPress when the dotted APY label is pressed', () => {
     const mockInfoPress = jest.fn();
     const { getByTestId } = render(
       <MoneyBalanceSummary
@@ -66,12 +61,12 @@ describe('MoneyBalanceSummary', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
+    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE));
 
     expect(mockInfoPress).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the APY text and tooltip button when apy is undefined', () => {
+  it('hides the APY row when apy is undefined', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary
@@ -83,11 +78,11 @@ describe('MoneyBalanceSummary', () => {
 
     expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows the APY text and tooltip button when apy is zero', () => {
+  it('shows the APY row when apy is zero', () => {
     const mockInfoPress = jest.fn();
     const { getByTestId } = render(
       <MoneyBalanceSummary
@@ -99,11 +94,11 @@ describe('MoneyBalanceSummary', () => {
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
     ).toBeOnTheScreen();
   });
 
-  it('hides the APY text and info button when apy is negative', () => {
+  it('hides the APY row when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary
@@ -115,7 +110,7 @@ describe('MoneyBalanceSummary', () => {
 
     expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
     ).not.toBeOnTheScreen();
   });
 
@@ -155,7 +150,7 @@ describe('MoneyBalanceSummary', () => {
         queryByTestId(MoneyBalanceSummaryTestIds.APY),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+        queryByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).not.toBeOnTheScreen();
     });
   });
@@ -184,6 +179,23 @@ describe('MoneyBalanceSummary', () => {
       ).toHaveTextContent('$2,384.34');
     });
 
+    it('calls onBalancePress when the unavailable balance is pressed', () => {
+      const onBalancePress = jest.fn();
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={unavailableState('$2,384.34')}
+          onBalancePress={onBalancePress}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      );
+
+      expect(onBalancePress).toHaveBeenCalledTimes(1);
+    });
+
     it('does not render the regular balance text', () => {
       const { queryByTestId } = render(
         <MoneyBalanceSummary apy={4} displayState={unavailableState()} />,
@@ -205,7 +217,7 @@ describe('MoneyBalanceSummary', () => {
 
       expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+        getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).toBeOnTheScreen();
     });
   });
@@ -327,7 +339,7 @@ describe('MoneyBalanceSummary', () => {
         '5.5% APY • mUSD',
       );
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+        getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).toBeOnTheScreen();
     });
   });

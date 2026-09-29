@@ -229,6 +229,24 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('honours autoSignup: false when provided', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', {
+        address: '0xabc',
+        autoSignup: false,
+      });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ autoSignup: false }),
+      );
+    });
+
     it.each([
       [401, CardProviderErrorCode.InvalidCredentials],
       [403, CardProviderErrorCode.Forbidden],
@@ -291,6 +309,25 @@ describe('ImmersveProvider', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
+    it('maps ACCOUNT_DOES_NOT_EXIST to NotFound without Sentry', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(
+        403,
+        '/auth/login-init',
+        JSON.stringify({ errorCode: 'ACCOUNT_DOES_NOT_EXIST' }),
+      );
+      service.post.mockRejectedValue(apiError);
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.NotFound,
+        statusCode: 403,
+        errorCode: 'ACCOUNT_DOES_NOT_EXIST',
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('maps non-API errors to Unknown', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(new Error('boom'));
@@ -301,6 +338,65 @@ describe('ImmersveProvider', () => {
         code: CardProviderErrorCode.Unknown,
         message: 'boom',
       });
+    });
+  });
+
+  describe('lookupAccount', () => {
+    it('returns found when login-init succeeds with autoSignup false', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'msg' },
+      });
+
+      await expect(provider.lookupAccount('0xabc')).resolves.toBe('found');
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({
+          address: '0xabc',
+          autoSignup: false,
+        }),
+      );
+    });
+
+    it('returns not_found for ACCOUNT_DOES_NOT_EXIST without Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/auth/login-init',
+          JSON.stringify({ errorCode: 'ACCOUNT_DOES_NOT_EXIST' }),
+        ),
+      );
+
+      await expect(provider.lookupAccount('0xabc')).resolves.toBe('not_found');
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [404, 'missing'],
+      [429, 'rate limited'],
+      [500, 'down'],
+    ])(
+      'returns unknown for status %s without a known no-account error code',
+      async (status, body) => {
+        const { provider, service } = createProvider();
+        service.post.mockRejectedValue(
+          new CardApiError(status, '/auth/login-init', body),
+        );
+
+        await expect(provider.lookupAccount('0xabc')).resolves.toBe('unknown');
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
+
+    it('returns unknown for network errors without Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(new Error('network'));
+
+      await expect(provider.lookupAccount('0xabc')).resolves.toBe('unknown');
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 

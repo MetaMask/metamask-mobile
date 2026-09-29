@@ -13,13 +13,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback } from 'react';
-import { Image, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import superheroAvatar from '../../../../images/socialV1/superhero.png';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { renderShortAddress } from '../../../../util/address';
@@ -72,14 +72,13 @@ const ManageProfileView: React.FC = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
       >
         <Box twClassName="items-center py-4">
-          <Image
-            source={
-              profile?.imageUrl ? { uri: profile.imageUrl } : superheroAvatar
-            }
+          <ProfileAvatar
+            imageUrl={profile?.imageUrl}
+            avatarPresetId={profile?.avatarPresetId}
+            size="lg"
             accessibilityLabel={strings(
               'social_leaderboard.manage_profile.avatar_accessibility_label',
             )}
-            style={tw.style('w-16 h-16 rounded-full')}
             testID={ManageProfileViewSelectorsIDs.AVATAR}
           />
         </Box>

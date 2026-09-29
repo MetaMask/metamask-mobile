@@ -334,6 +334,8 @@ describe('CardController', () => {
       cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
       redeemWithdrawal: null,
+      signInLink: null,
+      accountLookupCache: {},
     });
   });
 
@@ -455,7 +457,7 @@ describe('CardController — auth methods', () => {
 
       await controller.initiateAuth('US');
 
-      expect(provider.initiateAuth).toHaveBeenCalledWith('US', undefined);
+      expect(provider.initiateAuth).toHaveBeenCalledWith('US', {});
       expect(controller.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
@@ -1432,7 +1434,6 @@ describe('CardController — 401 retry and forced logout', () => {
       accessToken: 'newer-at',
     };
     // getValidTokens() sees the stale set; the #forceRefresh re-read sees
-    // the set another caller stored in the meantime.
     mockTokenStore.get
       .mockResolvedValueOnce(mockTokenSet)
       .mockResolvedValue(newerTokenSet);
@@ -2592,7 +2593,6 @@ describe('CardController — freezeCard', () => {
     provider.validateTokens.mockReturnValue('valid');
     provider.freezeCard.mockResolvedValue(undefined);
     // Refresh fails for a non-auth (transient) reason: session stays intact and
-    // the mutation still counts as successful.
     provider.getCardDetails.mockRejectedValue(new Error('network blip'));
 
     const { controller } = buildControllerWithMockMessenger(provider, {
@@ -2739,7 +2739,6 @@ describe('CardController — unfreezeCard', () => {
     provider.validateTokens.mockReturnValue('valid');
     provider.unfreezeCard.mockResolvedValue(undefined);
     // Refresh fails for a non-auth (transient) reason: session stays intact and
-    // the mutation still counts as successful.
     provider.getCardDetails.mockRejectedValue(new Error('network blip'));
 
     const frozenHomeData = {
@@ -4864,7 +4863,6 @@ describe('CardController — data pass-throughs', () => {
         });
         const { controller, messenger } =
           buildAuthenticatedController(provider);
-        // Hung receipt never resolves — raceWithTimeout fires.
         wireRedeemNetworkMessenger(
           messenger,
           jest.fn().mockReturnValue(new Promise(() => undefined)),
@@ -5852,6 +5850,670 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
         code: CardProviderErrorCode.Network,
         statusCode: 0,
       });
+    });
+  });
+});
+
+describe('CardController — sign-in resolution and migration', () => {
+  const IMMERSVE_FLAGS = {
+    cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+    cardImmersveCountries: ['GB'],
+    cardUkMigrationSignInRouting: { enabled: true, minimumVersion: '0.0.0' },
+  };
+
+  const ADDR_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  const ADDR_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+  const ADDR_C = '0xcccccccccccccccccccccccccccccccccccccccc';
+
+  function buildSignInController({
+    flags = IMMERSVE_FLAGS,
+    lookupAccount,
+    state = {},
+  }: {
+    flags?: Record<string, unknown>;
+    lookupAccount?: jest.Mock;
+    state?: Partial<typeof defaultCardControllerState>;
+  } = {}) {
+    const messenger = buildMockMessenger();
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: flags };
+      }
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'id-1': {
+                address: ADDR_A,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+            },
+            selectedAccount: 'id-1',
+          },
+        };
+      }
+      if (action === 'KeyringController:signPersonalMessage') {
+        return '0xsignature';
+      }
+      return undefined;
+    });
+
+    const immersve = buildMockProvider({
+      id: CardProviderIds.Immersve,
+      capabilities: { authMethod: 'siwe' } as ICardProvider['capabilities'],
+      lookupAccount: lookupAccount ?? jest.fn().mockResolvedValue('not_found'),
+      initiateAuth: jest.fn().mockResolvedValue({
+        id: 'sess-1',
+        currentStep: { type: 'siwe', message: 'Sign in' },
+        _metadata: { address: ADDR_A, country: 'GB' },
+      }),
+      submitCredentials: jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          ...mockTokenSet,
+          providerUserId: 'imv-user',
+          accountAddress: ADDR_A,
+        },
+      }),
+    });
+    const baanx = buildMockProvider({
+      id: CardProviderIds.Baanx,
+      capabilities: {
+        authMethod: 'email_password',
+      } as ICardProvider['capabilities'],
+    });
+
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger,
+      providers: {
+        [CardProviderIds.Immersve]: immersve,
+        [CardProviderIds.Baanx]: baanx,
+      },
+      state,
+    });
+
+    return { controller, immersve, baanx, messenger };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockTokenStore.get.mockResolvedValue(null);
+    mockTokenStore.set.mockResolvedValue(true);
+    mockTokenStore.remove.mockResolvedValue(true);
+  });
+
+  it('includes signInLink and accountLookupCache in default state', () => {
+    const { controller } = buildSignInController();
+    expect(controller.state.signInLink).toBeNull();
+    expect(controller.state.accountLookupCache).toStrictEqual({});
+  });
+
+  describe('getSignInOptions', () => {
+    it('returns Immersve SIWE + Baanx email for GB when Immersve claims the country', () => {
+      const { controller } = buildSignInController();
+      expect(controller.getSignInOptions('GB')).toStrictEqual([
+        { providerId: CardProviderIds.Immersve, method: 'siwe' },
+        { providerId: CardProviderIds.Baanx, method: 'email_password' },
+      ]);
+    });
+
+    it('returns a single email option for US', () => {
+      const { controller } = buildSignInController();
+      expect(controller.getSignInOptions('US')).toStrictEqual([
+        { providerId: CardProviderIds.Baanx, method: 'email_password' },
+      ]);
+    });
+  });
+
+  describe('resolveSignIn', () => {
+    it('returns wallet from a completed record when the address is on device', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'completed',
+            address: ADDR_A,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet',
+        source: 'record',
+        address: ADDR_A,
+      });
+    });
+
+    it('returns wallet_account_missing when the record address is off-device', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'linked',
+            address: ADDR_B,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet_account_missing',
+        address: ADDR_B,
+      });
+    });
+
+    it('returns resume for a started record', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'started',
+            address: ADDR_A,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'resume',
+        address: ADDR_A,
+        stage: 'identity',
+      });
+    });
+
+    it('returns wallet_account_missing when a started record address is off-device', async () => {
+      const { controller } = buildSignInController({
+        state: {
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'started',
+            address: ADDR_B,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet_account_missing',
+        address: ADDR_B,
+      });
+    });
+
+    it('returns email for a single-option country without lookups', async () => {
+      const lookupAccount = jest.fn();
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'US',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({ kind: 'email' });
+      expect(lookupAccount).not.toHaveBeenCalled();
+    });
+
+    it('skips lookups and returns unresolved when routing flag is off', async () => {
+      const lookupAccount = jest.fn();
+      const { controller } = buildSignInController({
+        lookupAccount,
+        flags: {
+          cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+          cardImmersveCountries: ['GB'],
+          cardUkMigrationSignInRouting: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B, ADDR_C],
+          deviceAddresses: [ADDR_A, ADDR_B, ADDR_C],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'no_match',
+      });
+      expect(lookupAccount).not.toHaveBeenCalled();
+    });
+
+    it('writes a linked record when a candidate is found', async () => {
+      const lookupAccount = jest
+        .fn()
+        .mockResolvedValueOnce('not_found')
+        .mockResolvedValueOnce('found')
+        .mockResolvedValueOnce('not_found');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B, ADDR_C],
+          deviceAddresses: [ADDR_A, ADDR_B, ADDR_C],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet',
+        source: 'lookup',
+        address: ADDR_B,
+      });
+      expect(controller.getSignInLink()).toMatchObject({
+        status: 'linked',
+        address: ADDR_B,
+        providerId: CardProviderIds.Immersve,
+      });
+    });
+
+    it('returns unresolved no_match when all candidates are not_found', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('not_found');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B],
+          deviceAddresses: [ADDR_A, ADDR_B],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'no_match',
+      });
+    });
+
+    it('returns unresolved check_failed when any lookup is unknown', async () => {
+      const lookupAccount = jest
+        .fn()
+        .mockResolvedValueOnce('not_found')
+        .mockResolvedValueOnce('unknown');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B],
+          deviceAddresses: [ADDR_A, ADDR_B],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'check_failed',
+      });
+    });
+
+    it('reuses a cached found result without calling lookup again', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const { controller } = buildSignInController({ lookupAccount });
+
+      await controller.resolveSignIn({
+        country: 'GB',
+        candidateAddresses: [ADDR_A],
+        deviceAddresses: [ADDR_A],
+      });
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+
+      const { controller: controller2 } = buildSignInController({
+        lookupAccount,
+        state: {
+          accountLookupCache: controller.state.accountLookupCache,
+          signInLink: null,
+        },
+      });
+
+      await controller2.resolveSignIn({
+        country: 'GB',
+        candidateAddresses: [ADDR_A],
+        deviceAddresses: [ADDR_A],
+      });
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+    });
+
+    it('reuses a cached not_found result within the 24h TTL', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const cacheKey = `${CardProviderIds.Immersve}:${ADDR_A.toLowerCase()}`;
+      const { controller } = buildSignInController({
+        lookupAccount,
+        state: {
+          accountLookupCache: {
+            [cacheKey]: { result: 'not_found', checkedAt: Date.now() },
+          },
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'unresolved',
+        reason: 'no_match',
+      });
+      expect(lookupAccount).not.toHaveBeenCalled();
+    });
+
+    it('looks up again when a cached not_found result is older than 24h', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const cacheKey = `${CardProviderIds.Immersve}:${ADDR_A.toLowerCase()}`;
+      const { controller } = buildSignInController({
+        lookupAccount,
+        state: {
+          accountLookupCache: {
+            [cacheKey]: {
+              result: 'not_found',
+              checkedAt: Date.now() - 25 * 60 * 60 * 1000,
+            },
+          },
+        },
+      });
+
+      await expect(
+        controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        }),
+      ).resolves.toMatchObject({
+        kind: 'wallet',
+        source: 'lookup',
+        address: ADDR_A,
+      });
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+    });
+
+    it('times out slow lookups after 2s as check_failed', async () => {
+      jest.useFakeTimers();
+      try {
+        const lookupAccount = jest.fn(
+          () =>
+            new Promise<'found' | 'not_found' | 'unknown'>(() => {
+              // hang
+            }),
+        );
+        const { controller } = buildSignInController({ lookupAccount });
+
+        const promise = controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A],
+          deviceAddresses: [ADDR_A],
+        });
+        await jest.advanceTimersByTimeAsync(2000);
+        await expect(promise).resolves.toMatchObject({
+          kind: 'unresolved',
+          reason: 'check_failed',
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps a found result when another candidate hangs past the timeout', async () => {
+      jest.useFakeTimers();
+      try {
+        const lookupAccount = jest.fn((address: string) => {
+          if (address === ADDR_A) {
+            return Promise.resolve('found' as const);
+          }
+          return new Promise<'found' | 'not_found' | 'unknown'>(() => {
+            // hang
+          });
+        });
+        const { controller } = buildSignInController({ lookupAccount });
+
+        const promise = controller.resolveSignIn({
+          country: 'GB',
+          candidateAddresses: [ADDR_A, ADDR_B],
+          deviceAddresses: [ADDR_A, ADDR_B],
+        });
+        await jest.advanceTimersByTimeAsync(2000);
+        await expect(promise).resolves.toMatchObject({
+          kind: 'wallet',
+          source: 'lookup',
+          address: ADDR_A,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
+  describe('verifyAccountForSignIn', () => {
+    it('returns the live lookup result and caches found/not_found', async () => {
+      const lookupAccount = jest.fn().mockResolvedValue('found');
+      const { controller } = buildSignInController({ lookupAccount });
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+
+      await expect(
+        controller.verifyAccountForSignIn(ADDR_A, option),
+      ).resolves.toBe('found');
+      await expect(
+        controller.verifyAccountForSignIn(ADDR_A, option),
+      ).resolves.toBe('found');
+      expect(lookupAccount).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('authenticateWithWallet / migration', () => {
+    it('records started only when beginMigration was called', async () => {
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+
+      const { controller } = buildSignInController();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      expect(controller.getSignInLink()?.status).toBe('linked');
+
+      const { controller: migrating } = buildSignInController();
+      migrating.beginMigration();
+      await migrating.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      expect(migrating.getSignInLink()?.status).toBe('started');
+    });
+
+    it('cancelMigration prevents writing started on the next SIWE auth', async () => {
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      const { controller } = buildSignInController();
+
+      controller.beginMigration();
+      controller.cancelMigration();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(controller.getSignInLink()?.status).toBe('linked');
+    });
+
+    it('does not write started for email_password even if migration flag is set', async () => {
+      const { controller, baanx } = buildSignInController();
+      (baanx.initiateAuth as jest.Mock).mockResolvedValue({
+        id: 'sess-1',
+        currentStep: { type: 'email_password' },
+      });
+      (baanx.submitCredentials as jest.Mock).mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+
+      controller.beginMigration();
+      controller.selectSignInOption(
+        { providerId: CardProviderIds.Baanx, method: 'email_password' },
+        'GB',
+      );
+      await controller.initiateAuth('GB');
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.getSignInLink()).toBeNull();
+    });
+
+    it('markMigrationCompleted writes completed and logs out the previous provider', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+          signInLink: {
+            providerId: CardProviderIds.Immersve,
+            status: 'started',
+            address: ADDR_A,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, Json>,
+        },
+      });
+
+      await controller.markMigrationCompleted();
+
+      expect(controller.getSignInLink()?.status).toBe('completed');
+      expect(baanx.logout).toHaveBeenCalled();
+      expect(mockTokenStore.remove).toHaveBeenCalledWith(CardProviderIds.Baanx);
+    });
+
+    it('logoutProvider clears tokens without touching the active session', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+        },
+      });
+
+      await controller.logoutProvider(CardProviderIds.Baanx);
+
+      expect(baanx.logout).toHaveBeenCalled();
+      expect(controller.state.activeProviderId).toBe(CardProviderIds.Immersve);
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
+  });
+
+  describe('requestLegacyAccountClosure', () => {
+    it('calls the Baanx provider even when Immersve is the active provider', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+        },
+      });
+      baanx.validateTokens.mockReturnValue('valid');
+      baanx.requestAccountClosure = jest.fn().mockResolvedValue(undefined);
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(mockTokenStore.get).toHaveBeenCalledWith(CardProviderIds.Baanx);
+      expect(baanx.requestAccountClosure).toHaveBeenCalledWith(mockTokenSet);
+    });
+
+    it('does nothing when there are no Baanx tokens', async () => {
+      mockTokenStore.get.mockResolvedValue(null);
+      const { controller, baanx } = buildSignInController();
+      baanx.requestAccountClosure = jest.fn();
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(baanx.requestAccountClosure).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when Baanx tokens are expired', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController();
+      baanx.validateTokens.mockReturnValue('expired');
+      baanx.requestAccountClosure = jest.fn();
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(baanx.requestAccountClosure).not.toHaveBeenCalled();
+    });
+
+    it('swallows and logs provider errors', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController();
+      baanx.validateTokens.mockReturnValue('valid');
+      const error = new Error('closure failed');
+      baanx.requestAccountClosure = jest.fn().mockRejectedValue(error);
+      jest.mocked(Logger.error).mockClear();
+
+      await expect(
+        controller.requestLegacyAccountClosure(),
+      ).resolves.toBeUndefined();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: { feature: 'card', provider: CardProviderIds.Baanx },
+          context: expect.objectContaining({
+            name: 'CardController',
+            data: { method: 'requestLegacyAccountClosure' },
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('selectSignInOption', () => {
+    it('pins activeProviderId without re-resolving from country', () => {
+      const { controller } = buildSignInController({
+        state: { activeProviderId: CardProviderIds.Immersve },
+      });
+
+      controller.selectSignInOption(
+        {
+          providerId: CardProviderIds.Baanx,
+          method: 'email_password',
+        },
+        'GB',
+      );
+
+      expect(controller.state.activeProviderId).toBe(CardProviderIds.Baanx);
+      expect(controller.state.selectedCountry).toBe('GB');
     });
   });
 });

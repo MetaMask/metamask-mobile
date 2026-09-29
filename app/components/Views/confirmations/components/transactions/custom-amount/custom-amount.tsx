@@ -59,6 +59,8 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
+    // Pressable so the user can always fall back to entering an amount, even
+    // when the prefill or quote being awaited never resolves.
     return <CustomAmountSkeleton onPress={disabled ? undefined : onPress} />;
   }
 

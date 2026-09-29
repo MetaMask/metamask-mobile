@@ -10,6 +10,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Engine from '../../../../core/Engine';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import type { ImmersveNextAction } from '../util/immersvePrerequisites';
@@ -122,12 +123,14 @@ export const useImmersveOnboardingRouter = () => {
         case 'kyc':
         case 'pending':
         case 'expected_spend':
+          Engine.context.CardController.setSignInLinkStage('identity');
           goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
             countryKey,
             kycUrl: action.type === 'kyc' ? action.url : undefined,
           });
           break;
         case 'funding':
+          Engine.context.CardController.setSignInLinkStage('spending');
           if (hasExistingCard) {
             goToCardHome();
             break;
@@ -150,6 +153,9 @@ export const useImmersveOnboardingRouter = () => {
           }
           break;
         case 'active':
+          Engine.context.CardController.markMigrationCompleted().catch(
+            () => undefined,
+          );
           if (showAccountExistsToast !== false) {
             toastRef?.current?.showToast({
               variant: ToastVariants.Icon,

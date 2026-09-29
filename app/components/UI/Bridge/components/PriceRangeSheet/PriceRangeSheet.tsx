@@ -37,6 +37,7 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  isInvertedPriceRange,
   isValidPriceRange,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
@@ -146,9 +147,9 @@ function PriceRangeAmountField({
 const PriceRangeSheet = ({
   sourceToken,
   destToken,
+  currency,
   sourceFiatRate,
   destFiatRate,
-  currentCurrency,
   initialTokenSide,
   initialMin,
   initialMax,
@@ -188,17 +189,13 @@ const PriceRangeSheet = ({
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
-  const currencySymbol = getCurrencySymbol(currentCurrency);
+  const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
+  const currencySymbol = getCurrencySymbol(currency);
   const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
-    () =>
-      formatTokenPrice(
-        selectedToken?.symbol,
-        selectedFiatRate,
-        currentCurrency,
-      ),
-    [currentCurrency, selectedFiatRate, selectedToken?.symbol],
+    () => formatTokenPrice(selectedToken?.symbol, selectedFiatRate, currency),
+    [currency, selectedToken?.symbol, selectedFiatRate],
   );
   const exchangeRateLabel = useMemo(
     () =>
@@ -296,7 +293,7 @@ const PriceRangeSheet = ({
       isValidPriceRange(pendingMin, pendingMax)
         ? {
             tokenSide: pendingTokenSide,
-            currency: currentCurrency,
+            currency,
             min: pendingMin,
             max: pendingMax,
           }
@@ -306,7 +303,7 @@ const PriceRangeSheet = ({
   }, [
     canConfirm,
     closeSheet,
-    currentCurrency,
+    currency,
     onConfirm,
     pendingMax,
     pendingMin,
@@ -499,6 +496,15 @@ const PriceRangeSheet = ({
                 testID={PriceRangeSheetSelectorsIDs.MAX_INPUT}
                 onPress={() => focusField('max')}
               />
+              {showInvertedRangeError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={PriceRangeSheetSelectorsIDs.MAX_ERROR}
+                >
+                  {strings('bridge.recurring.price_range.max_must_exceed_min')}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         </ScrollView>

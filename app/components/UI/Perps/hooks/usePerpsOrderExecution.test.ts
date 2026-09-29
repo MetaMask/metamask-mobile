@@ -154,7 +154,10 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
@@ -174,7 +177,10 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
@@ -290,7 +296,10 @@ describe('usePerpsOrderExecution', () => {
 
       // Limit orders capture a pre-submit position baseline so marketable
       // limits that fill before watcher registration are still detected.
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
       expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
       // The already-rested order ends at its stream delivery instant, not now.
       expect(mockEndTrace).toHaveBeenCalledWith(
@@ -495,7 +504,10 @@ describe('usePerpsOrderExecution', () => {
           });
         });
 
-        expect(onSuccess).toHaveBeenCalledWith();
+        expect(onSuccess).toHaveBeenCalledWith(
+          undefined,
+          result.current.lastResult,
+        );
         expect(mockEndTrace).not.toHaveBeenCalledWith(
           expect.objectContaining({
             id: expect.stringContaining(
@@ -802,7 +814,10 @@ describe('usePerpsOrderExecution', () => {
             });
           });
 
-          expect(onSuccess).toHaveBeenCalledWith();
+          expect(onSuccess).toHaveBeenCalledWith(
+            undefined,
+            result.current.lastResult,
+          );
           expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
           expect(mockEndTrace).not.toHaveBeenCalledWith(
             expect.objectContaining({
@@ -850,7 +865,10 @@ describe('usePerpsOrderExecution', () => {
       });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(mockOrderParams);
-      expect(onSuccess).toHaveBeenCalledWith(mockPosition);
+      expect(onSuccess).toHaveBeenCalledWith(
+        mockPosition,
+        result.current.lastResult,
+      );
       expect(onError).not.toHaveBeenCalled();
       expect(result.current.lastResult).toEqual({
         success: true,
@@ -987,7 +1005,10 @@ describe('usePerpsOrderExecution', () => {
         await act(async () => {
           await placeOrderPromise;
         });
-        expect(onSuccess).toHaveBeenCalledWith();
+        expect(onSuccess).toHaveBeenCalledWith(
+          undefined,
+          result.current.lastResult,
+        );
         mockEndTrace.mockClear();
 
         act(() => {
@@ -1037,7 +1058,10 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
 
       // Deliver the late render so the pending stream waiter (and its
       // timeout) resolves instead of leaking past the test.
@@ -1074,7 +1098,10 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onSuccess).toHaveBeenCalledWith(mockPosition);
+      expect(onSuccess).toHaveBeenCalledWith(
+        mockPosition,
+        result.current.lastResult,
+      );
       expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
   });

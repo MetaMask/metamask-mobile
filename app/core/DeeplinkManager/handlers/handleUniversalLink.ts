@@ -36,6 +36,10 @@ import {
   createPerpsDeeplinkIntent,
 } from './intent/handlePerpsUrl';
 import {
+  handlePerpsOutreachUrl,
+  createPerpsOutreachDeeplinkIntent,
+} from './intent/handlePerpsOutreachUrl';
+import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
 } from './intent/handleRewardsUrl';
@@ -59,6 +63,10 @@ import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
+import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from './intent/handleNotificationsSettingsUrl';
 import {
   getDeeplinkProcessedTraceContext,
   markDeeplinkInterstitialShown,
@@ -109,6 +117,7 @@ const SUPPORTED_ACTIONS = {
   PERPS: ACTIONS.PERPS,
   PERPS_MARKETS: ACTIONS.PERPS_MARKETS,
   PERPS_ASSET: ACTIONS.PERPS_ASSET,
+  PERPS_OUTREACH: ACTIONS.PERPS_OUTREACH,
   REWARDS: ACTIONS.REWARDS,
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
@@ -126,6 +135,7 @@ const SUPPORTED_ACTIONS = {
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
   PRIVACY: ACTIONS.PRIVACY,
+  NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -150,6 +160,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.PERPS_OUTREACH,
   SUPPORTED_ACTIONS.REWARDS,
   SUPPORTED_ACTIONS.PREDICT,
   SUPPORTED_ACTIONS.BUY,
@@ -166,6 +177,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
   SUPPORTED_ACTIONS.ASSET,
+  SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -176,6 +188,7 @@ const trustedInAppSources = [
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+  AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
 ] as string[];
 
 /**
@@ -280,6 +293,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
         perpsPath: getPerpsAssetPath(actionBasedRampPath),
       }),
   },
+  [SUPPORTED_ACTIONS.PERPS_OUTREACH]: {
+    execute: () => handlePerpsOutreachUrl(),
+    resolve: () => createPerpsOutreachDeeplinkIntent(),
+  },
   [SUPPORTED_ACTIONS.SWAP]: {
     execute: ({ actionBasedRampPath }) =>
       handleSwapUrl({ swapPath: actionBasedRampPath }),
@@ -300,6 +317,16 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       handleTrendingUrl({ actionPath: actionBasedRampPath }),
     resolve: ({ actionBasedRampPath }) =>
       createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleNotificationsSettingsUrl({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createNotificationsSettingsDeeplinkIntent({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
   },
 };
 
