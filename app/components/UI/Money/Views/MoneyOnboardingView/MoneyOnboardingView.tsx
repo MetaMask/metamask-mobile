@@ -51,6 +51,7 @@ import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibil
 import {
   Modal,
   PixelRatio,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -132,6 +133,14 @@ interface OnboardingTextContent {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    // Matches the Rive X button hit area; large enough to be reliably tappable
+    height: 80,
+    width: 80,
   },
   riveHidden: {
     opacity: 0,
@@ -653,6 +662,11 @@ const MoneyOnboardingView = () => {
             content={stepContent[overlayStep]}
             opacity={overlayOpacity}
             isVisible={isRiveReady}
+          />
+          <Pressable
+            onPress={handleModalRequestClose}
+            style={styles.closeButton}
+            testID={MoneyOnboardingViewTestIds.CLOSE_BUTTON}
           />
         </View>
       </ModalSafeAreaProvider>

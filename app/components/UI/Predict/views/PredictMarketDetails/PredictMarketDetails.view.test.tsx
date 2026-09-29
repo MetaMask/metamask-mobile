@@ -60,6 +60,30 @@ const givenPositions = (positions: PredictPosition[]) =>
 const givenPriceHistory = (points: PredictPriceHistoryPoint[]) =>
   controllerMock('getPriceHistory').mockResolvedValue(points);
 
+type PredictMarketDetailsQueries = ReturnType<
+  typeof renderPredictMarketDetailsView
+>;
+
+/** Market header and About tab content mount on independent async phases. */
+const awaitMarketDetailsAboutReady = async (
+  findByTestId: PredictMarketDetailsQueries['findByTestId'],
+  _findByText: PredictMarketDetailsQueries['findByText'],
+) => {
+  const screen = await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+  await waitFor(() => {
+    expect(
+      within(screen).getByText(MOCK_PREDICT_MARKET.title),
+    ).toBeOnTheScreen();
+  });
+  await waitFor(() => {
+    expect(
+      within(screen).getByTestId(
+        PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+      ),
+    ).toBeOnTheScreen();
+  });
+};
+
 /** Redux delta that makes the user eligible to trade. */
 const ELIGIBLE_USER = {
   engine: {
@@ -357,11 +381,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -373,11 +397,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -410,9 +434,11 @@ describe('PredictMarketDetails', () => {
     it('shows volume, end date and the resolution provider for the loaded market', async () => {
       givenMarket({ ...MOCK_PREDICT_MARKET, endDate: '2026-12-31' });
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -430,9 +456,11 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows N/A as the end date when the market has none', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -447,7 +475,7 @@ describe('PredictMarketDetails', () => {
           extraRoutes: [{ name: Routes.WEBVIEW.MAIN }],
         });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
       fireEvent.press(await findByText('Polymarket'));
 
       expect(
@@ -662,16 +690,14 @@ describe('PredictMarketDetails', () => {
     it('shows the resolved outcome and opens on the Outcomes tab', async () => {
       givenMarket(MOCK_PREDICT_CLOSED_MARKET);
 
-      const { findByTestId, findByText } = renderPredictMarketDetailsView({
+      const { findByTestId, getByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
-      expect(await findByText('Market resulted to Yes')).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-        ),
-      ).toBeOnTheScreen();
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
+      await waitFor(() => {
+        expect(getByText('Market resulted to Yes')).toBeOnTheScreen();
+      });
     });
 
     it('lets the user switch to the About tab on a closed market', async () => {
@@ -772,6 +798,9 @@ describe('PredictMarketDetails', () => {
       const { findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await findByText('1D');
+      await findByText('MAX');
 
       fireEvent.press(await findByText('1W'));
 

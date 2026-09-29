@@ -9,10 +9,36 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import { disableNetConnect, teardownNock } from './nockHelpers';
-import { USDC_DEST } from '../../../app/components/UI/Bridge/_mocks_/bridgeViewTestConstants';
+import {
+  USDC_DEST,
+  USDT_DEST,
+} from '../../../app/components/UI/Bridge/_mocks_/bridgeViewTestConstants';
+import { BRIDGE_API_BASE_URL } from '../../../app/constants/bridge';
 
 const TOKEN_API_ORIGIN = 'https://tokens.api.cx.metamask.io';
 const STATIC_ORIGIN = 'https://static.cx.metamask.io';
+
+/**
+ * Bridge `/getTokens/popular` payload for the embedded asset picker. Includes
+ * USDT (not held by the fixtures) so Receive can prove it lists unheld assets,
+ * and USDC so it can prove the token being sold is excluded.
+ */
+const mockQuickBuyPopularTokens = [
+  {
+    assetId: `eip155:1/erc20:${USDT_DEST.address.toLowerCase()}`,
+    symbol: USDT_DEST.symbol,
+    name: USDT_DEST.name,
+    decimals: USDT_DEST.decimals,
+    iconUrl: '',
+  },
+  {
+    assetId: `eip155:1/erc20:${USDC_DEST.address.toLowerCase()}`,
+    symbol: USDC_DEST.symbol,
+    name: USDC_DEST.name,
+    decimals: USDC_DEST.decimals,
+    iconUrl: '',
+  },
+];
 
 export const QUICK_BUY_USDC_ASSET_ID = `eip155:1/erc20:${USDC_DEST.address.toLowerCase()}`;
 
@@ -52,9 +78,25 @@ export function setupQuickBuyApiMock(): void {
     .reply(200, [mockQuickBuyUsdcMetadata]);
 
   nock(STATIC_ORIGIN).persist().get(/.*/).reply(200, '');
+
+  // The picker aborts in-flight popular requests when its inputs settle; nock
+  // throws when replying to an aborted request, so stub this endpoint at the
+  // fetch layer (same approach as BridgeView.view.test) and pass the rest on.
+  const originalFetch = globalThis.fetch;
+  jest.spyOn(globalThis, 'fetch').mockImplementation((url, init) => {
+    const urlStr = typeof url === 'string' ? url : (url as URL).toString();
+    if (urlStr === `${BRIDGE_API_BASE_URL}/getTokens/popular`) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockQuickBuyPopularTokens),
+      } as Response);
+    }
+    return originalFetch(url, init);
+  });
 }
 
 export function clearQuickBuyApiMocks(): void {
+  jest.mocked(globalThis.fetch).mockRestore?.();
   teardownNock();
 }
 
@@ -68,7 +110,11 @@ export function clearQuickBuyApiMocks(): void {
  */
 export function createQuickBuyFetchedQuote(
   srcTokenAmount: string,
-  extras?: { priceImpactAmount?: string; destAddress?: string },
+  extras?: {
+    priceImpactAmount?: string;
+    destAddress?: string;
+    gasIncluded?: boolean;
+  },
 ) {
   // v1→v2 conversion sets `src.amount` to srcTokenAmount + src-token txFee.
   // Echo the post-fee routing amount so `src.amount` still equals the request
@@ -125,7 +171,7 @@ export function createQuickBuyFetchedQuote(
       srcTokenAmount: postFeeSrcTokenAmount,
       destTokenAmount: '10000000',
       minDestTokenAmount: '9900000',
-      gasIncluded: true,
+      gasIncluded: extras?.gasIncluded ?? true,
       ...(extras?.priceImpactAmount
         ? {
             priceData: {

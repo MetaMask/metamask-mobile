@@ -23,6 +23,8 @@ export const mockOpenPerpsFeedItem = (
     address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
     avatarUri: null,
     winRatePercent: 92,
+    pnl30d: 50_000,
+    followerCount: 17_200,
   },
   timestamp: minutesAgo(40),
   comment: 'Leverage is a lifestyle.',
@@ -40,6 +42,8 @@ export const mockOpenPerpsFeedItem = (
   markPriceLabel: '$104,213',
   valueLabel: '$212,000.00',
   pnlLabel: '+128.6%',
+  pnlValueLabel: '+$256.96K',
+  costLabel: '$212,000.00',
   isPnlPositive: true,
   leverageLabel: '40X',
   autoCloseLabel: 'TP $101,214 / SL $110,905',
@@ -58,6 +62,8 @@ export const mockClosedPerpsFeedItem = (
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
     avatarUri: null,
     winRatePercent: 61,
+    pnl30d: 128_400,
+    followerCount: 4_310,
   },
   timestamp: hoursAgo(3),
   comment: 'Risk managed. Mostly.',
@@ -79,6 +85,7 @@ export const mockClosedPerpsFeedItem = (
   entryPriceLabel: '$1,890',
   exitPriceLabel: '$1,842',
   holdTimeLabel: '8h',
+  costLabel: '$252,300.00',
   ...overrides,
 });
 
@@ -92,6 +99,7 @@ export const mockOpenSpotFeedItem = (
     username: 'frogwater',
     address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     avatarUri: null,
+    // No stats at all: the header falls back to just the name.
     winRatePercent: null,
   },
   timestamp: minutesAgo(8),
@@ -111,6 +119,8 @@ export const mockOpenSpotFeedItem = (
   holdTimeLabel: '1d 20h',
   valueLabel: '$128,400.00',
   pnlLabel: '+74.2%',
+  pnlValueLabel: '+$54.6K',
+  costLabel: '$73,800.00',
   isPnlPositive: true,
   ...overrides,
 });
@@ -126,6 +136,8 @@ export const mockClosedSpotFeedItem = (
     address: '0x514910771af9ca656af840dff83e8264ecf986ca',
     avatarUri: null,
     winRatePercent: 74,
+    pnl30d: -8_200,
+    followerCount: 612,
   },
   timestamp: hoursAgo(6),
   asset: {
@@ -142,6 +154,7 @@ export const mockClosedSpotFeedItem = (
   entryPriceLabel: '$207.57',
   exitPriceLabel: '$237.88',
   holdTimeLabel: '6d',
+  costLabel: '$64,200.00',
   valueLabel: '+$9,373.20',
   pnlLabel: '+14.6%',
   isPnlPositive: true,
