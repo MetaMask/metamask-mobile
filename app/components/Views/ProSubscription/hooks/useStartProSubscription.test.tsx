@@ -1,19 +1,27 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import {
-  CRYPTO_AUTH_METHODS,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
   SubscriptionDelegationServiceErrorMessage,
-  type PricingResponse,
 } from '@metamask/subscription-controller';
 import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { useStartProSubscription } from './useStartProSubscription';
+
+const mockReplace = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    replace: mockReplace,
+  }),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -24,18 +32,8 @@ jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       SubscriptionDelegationService: {
-        prepareDelegation: jest.fn(),
-      },
-      SubscriptionController: {
-        state: {
-          pricing: undefined,
-          trialedProducts: [],
-        },
-        getSubscriptions: jest.fn(),
-        startSubscriptionWithCrypto: jest.fn(),
-      },
-      AuthenticatedUserStorageService: {
-        listDelegations: jest.fn(),
+        checkMoneyAccountBalance: jest.fn(),
+        startSubscriptionWithDelegation: jest.fn(),
       },
     },
   },
@@ -50,7 +48,6 @@ jest.mock('../../../../util/Logger', () => ({
 
 const PAYER_ADDRESS: Hex = '0x1111111111111111111111111111111111111111';
 const CHAIN_ID: Hex = '0x8f';
-const DELEGATION_HASH: Hex = `0x${'12'.repeat(32)}`;
 
 const PLAN: SelectedPlusPlan = {
   planId: 'annual',
@@ -63,46 +60,11 @@ const PLAN: SelectedPlusPlan = {
   trialPeriodDays: 14,
 };
 
-const PRICING: PricingResponse = {
-  products: [],
-  paymentMethods: [
-    {
-      type: 'crypto',
-      cryptoAuthMethod: CRYPTO_AUTH_METHODS.DELEGATION,
-      products: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
-      chains: [
-        {
-          chainId: CHAIN_ID,
-          paymentAddress: '0x2222222222222222222222222222222222222222',
-          tokens: [
-            {
-              symbol: 'mUSD',
-              address: '0x3333333333333333333333333333333333333333',
-              decimals: 6,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
-
 const mockedUseSelector = jest.mocked(useSelector);
-const mockedPrepareDelegation = Engine.context.SubscriptionDelegationService
-  .prepareDelegation as jest.Mock;
-const mockedStartSubscription = Engine.context.SubscriptionController
-  .startSubscriptionWithCrypto as jest.Mock;
-const mockedGetSubscriptions = Engine.context.SubscriptionController
-  .getSubscriptions as jest.Mock;
-const mockedListDelegations = Engine.context.AuthenticatedUserStorageService
-  .listDelegations as jest.Mock;
-const mockedSubscriptionController = Engine.context
-  .SubscriptionController as unknown as {
-  state: {
-    pricing: PricingResponse | undefined;
-    trialedProducts: string[];
-  };
-};
+const mockedCheckBalance = Engine.context.SubscriptionDelegationService
+  .checkMoneyAccountBalance as jest.Mock;
+const mockedStartSubscription = Engine.context.SubscriptionDelegationService
+  .startSubscriptionWithDelegation as jest.Mock;
 
 describe('useStartProSubscription', () => {
   beforeEach(() => {
@@ -111,24 +73,15 @@ describe('useStartProSubscription', () => {
       if (selector === selectPrimaryMoneyAccount) {
         return { address: PAYER_ADDRESS };
       }
+      if (selector === selectMoneyAccountVaultConfig) {
+        return { chainId: CHAIN_ID };
+      }
       return undefined;
     });
-    mockedSubscriptionController.state.pricing = PRICING;
-    mockedSubscriptionController.state.trialedProducts = [];
-    mockedGetSubscriptions.mockResolvedValue([]);
-    mockedListDelegations.mockResolvedValue([
-      {
-        metadata: {
-          delegationHash: DELEGATION_HASH,
-          chainIdHex: CHAIN_ID,
-          tokenSymbol: 'mUSD',
-          tokenAddress: '0x3333333333333333333333333333333333333333',
-        },
-      },
-    ]);
-    mockedPrepareDelegation.mockResolvedValue({
-      delegationHash: DELEGATION_HASH,
-      disposition: 'created',
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: true,
+      balance: '100000000',
+      requiredBalance: '49990000',
     });
     mockedStartSubscription.mockResolvedValue({
       subscriptionId: 'subscription-1',
@@ -136,39 +89,51 @@ describe('useStartProSubscription', () => {
     });
   });
 
-  it('prepares a delegation before starting the crypto subscription', async () => {
+  it('starts the subscription via startSubscriptionWithDelegation', async () => {
     const { result } = renderHook(() => useStartProSubscription());
 
     await act(async () => {
       await result.current.startSubscription(PLAN);
     });
 
-    expect(mockedPrepareDelegation).toHaveBeenCalledWith({
+    expect(mockedCheckBalance).toHaveBeenCalledWith({
       product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
       recurringInterval: RECURRING_INTERVALS.year,
       payerAddress: PAYER_ADDRESS,
-      isTrialRequested: true,
-      checkBalance: true,
-      skipChompInteractions: true,
     });
-    expect(mockedGetSubscriptions.mock.invocationCallOrder[0]).toBeLessThan(
-      mockedPrepareDelegation.mock.invocationCallOrder[0],
-    );
     expect(mockedStartSubscription).toHaveBeenCalledWith({
-      products: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
-      isTrialRequested: true,
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
       recurringInterval: RECURRING_INTERVALS.year,
-      billingCycles: 1,
       chainId: CHAIN_ID,
       payerAddress: PAYER_ADDRESS,
-      tokenSymbol: 'mUSD',
-      cryptoAuthMethod: CRYPTO_AUTH_METHODS.DELEGATION,
-      delegationHash: DELEGATION_HASH,
+      skipApproval: true,
     });
+    expect(mockedCheckBalance.mock.invocationCallOrder[0]).toBeLessThan(
+      mockedStartSubscription.mock.invocationCallOrder[0],
+    );
   });
 
-  it('stops before delegation preparation when payment context is missing', async () => {
-    mockedUseSelector.mockImplementation(() => undefined);
+  it('opens Pro Hub after the subscription starts', async () => {
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN);
+    });
+
+    expect(mockReplace).toHaveBeenCalledTimes(1);
+    expect(mockReplace).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT);
+    expect(mockedStartSubscription.mock.invocationCallOrder[0]).toBeLessThan(
+      mockReplace.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('stops when the Money Account address is missing', async () => {
+    mockedUseSelector.mockImplementation((selector) => {
+      if (selector === selectMoneyAccountVaultConfig) {
+        return { chainId: CHAIN_ID };
+      }
+      return undefined;
+    });
     const { result } = renderHook(() => useStartProSubscription());
 
     await expect(
@@ -177,81 +142,39 @@ describe('useStartProSubscription', () => {
       }),
     ).rejects.toThrow('Money Account subscription payment is unavailable');
 
-    expect(mockedPrepareDelegation).not.toHaveBeenCalled();
-  });
-
-  it('disables the trial for a product that has already been trialed', async () => {
-    mockedSubscriptionController.state.trialedProducts = [
-      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-    ];
-    const { result } = renderHook(() => useStartProSubscription());
-
-    await act(async () => {
-      await result.current.startSubscription(PLAN);
-    });
-
-    expect(mockedPrepareDelegation).toHaveBeenCalledWith(
-      expect.objectContaining({ isTrialRequested: false }),
-    );
-    expect(mockedStartSubscription).toHaveBeenCalledWith(
-      expect.objectContaining({ isTrialRequested: false }),
-    );
-  });
-
-  it('rejects pricing that changes during delegation preparation', async () => {
-    mockedPrepareDelegation.mockImplementation(async () => {
-      mockedSubscriptionController.state.pricing = {
-        ...PRICING,
-        paymentMethods: [
-          {
-            ...PRICING.paymentMethods[0],
-            type: 'crypto',
-            chains: [
-              {
-                chainId: CHAIN_ID,
-                paymentAddress: '0x2222222222222222222222222222222222222222',
-                tokens: [
-                  {
-                    symbol: 'mUSD',
-                    address: '0x8888888888888888888888888888888888888888',
-                    decimals: 6,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      };
-      return {
-        delegationHash: DELEGATION_HASH,
-        disposition: 'created',
-      };
-    });
-    const { result } = renderHook(() => useStartProSubscription());
-    let thrownError: Error | undefined;
-
-    await act(async () => {
-      try {
-        await result.current.startSubscription(PLAN);
-      } catch (error) {
-        thrownError = error as Error;
-      }
-    });
-
-    expect(thrownError?.message).toBe(
-      'Money Account subscription payment is unavailable',
-    );
+    expect(mockedCheckBalance).not.toHaveBeenCalled();
     expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('ignores overlapping subscription attempts', async () => {
-    let resolveDelegation: (() => void) | undefined;
-    mockedPrepareDelegation.mockReturnValue(
+  it('stops when the vault chain id is missing', async () => {
+    mockedUseSelector.mockImplementation((selector) => {
+      if (selector === selectPrimaryMoneyAccount) {
+        return { address: PAYER_ADDRESS };
+      }
+      return undefined;
+    });
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await expect(
+      act(async () => {
+        await result.current.startSubscription(PLAN);
+      }),
+    ).rejects.toThrow('Money Account subscription payment is unavailable');
+
+    expect(mockedCheckBalance).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('rejects overlapping subscription attempts', async () => {
+    let resolveStart: (() => void) | undefined;
+    mockedStartSubscription.mockReturnValue(
       new Promise((resolve) => {
-        resolveDelegation = () =>
+        resolveStart = () =>
           resolve({
-            delegationHash: DELEGATION_HASH,
-            disposition: 'created',
+            subscriptionId: 'subscription-1',
+            status: 'trialing',
           });
       }),
     );
@@ -266,20 +189,19 @@ describe('useStartProSubscription', () => {
       } catch (error) {
         overlappingError = error as Error;
       }
-      resolveDelegation?.();
+      resolveStart?.();
       await firstAttempt;
     });
 
     expect(overlappingError?.message).toBe(
       'Money Account subscription is already starting',
     );
-    expect(mockedPrepareDelegation).toHaveBeenCalledTimes(1);
     expect(mockedStartSubscription).toHaveBeenCalledTimes(1);
   });
 
-  it('logs delegation failures and exposes the join error', async () => {
-    const delegationError = new Error('signing rejected');
-    mockedPrepareDelegation.mockRejectedValue(delegationError);
+  it('logs failures and exposes the join error', async () => {
+    const startError = new Error('signing rejected');
+    mockedStartSubscription.mockRejectedValue(startError);
     const { result } = renderHook(() => useStartProSubscription());
     let thrownError: Error | undefined;
 
@@ -291,9 +213,9 @@ describe('useStartProSubscription', () => {
       }
     });
 
-    expect(thrownError).toBe(delegationError);
+    expect(thrownError).toBe(startError);
     expect(Logger.error).toHaveBeenCalledWith(
-      delegationError,
+      startError,
       expect.objectContaining({
         tags: { feature: 'pro-subscription' },
       }),
@@ -301,24 +223,62 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
     );
-    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('exposes the insufficient-balance message for a failed balance check', async () => {
-    const balanceError = new Error(
-      SubscriptionDelegationServiceErrorMessage.InsufficientBalance,
+  it('logs the underlying subscription request error', async () => {
+    const cause = new Error(
+      'error: invalid delegation, statusCode: 400, errorCode: INVALID_DELEGATION',
     );
-    mockedPrepareDelegation.mockRejectedValue(balanceError);
+    cause.name = 'HttpError';
+    Object.assign(cause, { httpStatus: 400 });
+    const startError = new Error(
+      'Failed to make request. Failed to start subscription with crypto (url: https://subscription.dev-api.cx.metamask.io/v1/subscriptions/crypto)',
+    );
+    startError.name = 'SubscriptionServiceError';
+    startError.cause = cause;
+    mockedStartSubscription.mockRejectedValue(startError);
     const { result } = renderHook(() => useStartProSubscription());
 
     await act(async () => {
       await expect(result.current.startSubscription(PLAN)).rejects.toBe(
-        balanceError,
+        startError,
       );
     });
 
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'SubscriptionServiceError',
+        message:
+          'Failed to make request. Failed to start subscription with crypto (url: https://subscription.dev-api.cx.metamask.io/v1/subscriptions/crypto) | cause: HttpError: error: invalid delegation, statusCode: 400, errorCode: INVALID_DELEGATION, httpStatus: 400',
+      }),
+      expect.objectContaining({
+        extras: {
+          cause:
+            'HttpError: error: invalid delegation, statusCode: 400, errorCode: INVALID_DELEGATION, httpStatus: 400',
+        },
+      }),
+    );
+  });
+
+  it('exposes the insufficient-balance message for a failed balance check', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '49990000',
+    });
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(PLAN)).rejects.toThrow(
+        SubscriptionDelegationServiceErrorMessage.InsufficientBalance,
+      );
+    });
+
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.insufficient_balance'),
     );
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });

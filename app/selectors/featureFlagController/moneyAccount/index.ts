@@ -86,17 +86,22 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
 export const getMoneyAccountVaultConfig = (
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): MoneyAccountVaultConfig | undefined => {
-  const devFallbackEnabled =
-    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
-  if (devFallbackEnabled) {
-    return DEV_VAULT_CONFIG;
-  }
   const remoteConfig =
     remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
       | MoneyAccountVaultConfig
       | undefined;
 
-  return remoteConfig ?? undefined;
+  if (remoteConfig) {
+    return remoteConfig;
+  }
+
+  const devFallbackEnabled =
+    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
+  if (!devFallbackEnabled) {
+    return undefined;
+  }
+
+  return DEV_VAULT_CONFIG;
 };
 
 export const selectMoneyAccountVaultConfig = createSelector(

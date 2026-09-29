@@ -80,6 +80,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/client-utils',
   '@metamask/claims-controller',
   '@metamask/config-registry-controller',
+  // ESM-only; pulled in via network-controller → subscription-controller.
+  '@metamask/connectivity-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
   '@metamask/delegation-controller',
@@ -89,6 +91,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
+  // 5.x ships ESM-only under dist/*.js (3.x used CJS).
+  '@metamask/money-account-upgrade-controller',
   '@metamask/money-account-utils',
   '@metamask/multichain-network-controller',
   '@metamask/network-enablement-controller',

@@ -183,7 +183,11 @@
   "previewBuilds": {
     "@metamask/subscription-controller": {
       "type": "non-breaking",
-      "previewVersion": "9.1.0-preview-d2ea3cc"
+      "previewVersion": "10.0.1-preview-82a2b9842"
+    },
+    "@metamask/wallet": {
+      "type": "non-breaking",
+      "previewVersion": "15.0.1-preview-c4f7eb130"
     }
   },
   "lint-staged": {
@@ -306,7 +310,7 @@
     "@metamask/approval-controller": "^10.0.0",
     "@metamask/assets-controller": "^16.1.0",
     "@metamask/assets-controllers": "^112.0.2",
-    "@metamask/authenticated-user-storage": "^4.0.0",
+    "@metamask/authenticated-user-storage": "^4.1.0",
     "@metamask/base-controller": "^10.0.0",
     "@metamask/base-data-service": "^2.0.0",
     "@metamask/bitcoin-wallet-snap": "^3.0.0",
@@ -314,8 +318,8 @@
     "@metamask/bridge-controller": "^81.1.0",
     "@metamask/bridge-status-controller": "^76.2.0",
     "@metamask/chain-agnostic-permission": "^1.7.0",
-    "@metamask/chomp-api-service": "^4.0.1",
-    "@metamask/claims-controller": "^1.0.1",
+    "@metamask/chomp-api-service": "^6.0.0",
+    "@metamask/claims-controller": "^1.0.2",
     "@metamask/client-controller": "^1.0.1",
     "@metamask/client-utils": "^3.0.2",
     "@metamask/compliance-controller": "2.1.0",
@@ -368,8 +372,8 @@
     "@metamask/money-account-api-data-service": "^0.4.1",
     "@metamask/money-account-balance-service": "patch:@metamask/money-account-balance-service@npm%3A3.0.0#~/.yarn/patches/@metamask-money-account-balance-service-npm-3.0.0-09f3f27fe2.patch",
     "@metamask/money-account-controller": "^1.0.0",
-    "@metamask/money-account-upgrade-controller": "^3.0.0",
-    "@metamask/money-account-utils": "^2.0.0",
+    "@metamask/money-account-upgrade-controller": "^5.1.0",
+    "@metamask/money-account-utils": "^2.1.0",
     "@metamask/multichain-account-service": "^13.0.2",
     "@metamask/multichain-api-client": "^0.11.0",
     "@metamask/multichain-api-middleware": "^4.0.1",
@@ -404,7 +408,7 @@
     "@metamask/seedless-onboarding-controller": "11.0.1",
     "@metamask/selected-network-controller": "^26.1.4",
     "@metamask/sentinel-api-service": "^1.0.1",
-    "@metamask/shield-controller": "^7.0.1",
+    "@metamask/shield-controller": "^7.0.3",
     "@metamask/signature-controller": "^39.2.0",
     "@metamask/slip44": "^4.2.0",
     "@metamask/smart-transactions-controller": "^26.0.0",
@@ -420,14 +424,14 @@
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/stellar-wallet-snap": "^1.0.0",
     "@metamask/storage-service": "^2.0.0",
-    "@metamask/subscription-controller": "9.1.0",
+    "@metamask/subscription-controller": "10.0.1",
     "@metamask/superstruct": "^3.4.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^70.1.0",
     "@metamask/transaction-pay-controller": "^29.2.1",
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.12.1",
-    "@metamask/wallet": "^14.0.1",
+    "@metamask/wallet": "15.0.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.1",
     "@noble/curves": "1.9.7",

@@ -28,6 +28,15 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   SUBSCRIPTION_STATUSES.trialing,
   SUBSCRIPTION_STATUSES.provisional,
 ]);
+/**
+ * Statuses under which the user still holds a subscription they can manage.
+ * Extends the active set with `paused`, which grants no benefits but must
+ * still reach Pro Hub so the user can fix the payment problem or cancel.
+ */
+const EXISTING_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+  ...ACTIVE_SUBSCRIPTION_STATUSES,
+  SUBSCRIPTION_STATUSES.paused,
+]);
 const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
@@ -116,6 +125,25 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
     subscriptions.some(
       (subscription) =>
         ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
+    ),
+);
+
+/**
+ * Selects whether the user holds a Money Account Plus subscription they can
+ * still manage. Covers every active status plus `paused`, so a subscriber
+ * whose payment lapsed is routed to Pro Hub rather than the upsell and can
+ * resolve the problem or cancel from Membership.
+ *
+ * @param state - The root Redux state.
+ * @returns True when a manageable Money Account Plus subscription exists.
+ */
+export const selectHasExistingMoneyAccountPlusSubscription = createSelector(
+  selectSubscriptions,
+  (subscriptions) =>
+    subscriptions.some(
+      (subscription) =>
+        EXISTING_SUBSCRIPTION_STATUSES.has(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
     ),
 );

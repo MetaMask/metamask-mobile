@@ -61,6 +61,7 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
+const CURRENT_PERIOD_END = '2027-07-20T12:00:00.000Z';
 const PLUS_SUBSCRIPTION: Subscription = {
   id: 'subscription-1',
   products: [
@@ -72,7 +73,7 @@ const PLUS_SUBSCRIPTION: Subscription = {
     },
   ],
   currentPeriodStart: '2027-06-20T12:00:00.000Z',
-  currentPeriodEnd: '2027-07-20T12:00:00.000Z',
+  currentPeriodEnd: CURRENT_PERIOD_END,
   status: SUBSCRIPTION_STATUSES.active,
   interval: RECURRING_INTERVALS.year,
   paymentMethod: {
@@ -86,13 +87,14 @@ const PLUS_SUBSCRIPTION: Subscription = {
   cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
 };
-const FORMATTED_PERIOD_END = new Date(
-  PLUS_SUBSCRIPTION.currentPeriodEnd,
-).toLocaleDateString(undefined, {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-});
+const FORMATTED_PERIOD_END = new Date(CURRENT_PERIOD_END).toLocaleDateString(
+  undefined,
+  {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  },
+);
 
 const mockProFlowState = {
   key: 'stack',
