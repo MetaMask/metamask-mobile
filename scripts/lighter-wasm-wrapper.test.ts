@@ -28,6 +28,24 @@ function installOperations(context: vm.Context) {
   }
 }
 
+// Slice instead of a unicode regex replace: one script is a 10MB wasm
+// payload, and `String.replace(/.../u, ...)` overflows the call stack in CI.
+function withStubbedWasm(script: string): string {
+  const prefix = 'const wasmBase64 = "';
+  const start = script.indexOf(prefix);
+  if (start === -1) {
+    return script;
+  }
+
+  const valueStart = start + prefix.length;
+  const end = script.indexOf('";', valueStart);
+  if (end === -1) {
+    return script;
+  }
+
+  return `${script.slice(0, valueStart)}AA==${script.slice(end)}`;
+}
+
 function createPage(
   start = (context: vm.Context): Promise<void> => {
     installOperations(context);
@@ -70,10 +88,7 @@ function createPage(
   // Use the actual producer and dispatcher; only the Go engine is substituted.
   for (const index of [0, 2, 3]) {
     vm.runInContext(
-      scripts[index].replace(
-        /const wasmBase64 = "[^"]+";/u,
-        'const wasmBase64 = "AA==";',
-      ),
+      withStubbedWasm(scripts[index]),
       context,
     );
   }

@@ -1482,6 +1482,61 @@ describe('Trace', () => {
       );
     });
 
+    it('caps a trace at its custom maximum lifetime', () => {
+      updateCachedConsent(true);
+
+      const startTime = 2_000;
+      const maxLifetimeMs = 30 * 60 * 1000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        startTime,
+        maxLifetimeMs,
+      });
+      endTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        timestamp: startTime + maxLifetimeMs + 1,
+      });
+
+      expect(spanEndMock).toHaveBeenCalledWith(startTime + maxLifetimeMs);
+    });
+
+    it('runs cleanup at a trace custom maximum lifetime', () => {
+      jest.useFakeTimers();
+      updateCachedConsent(true);
+
+      const startTime = 3_000;
+      const maxLifetimeMs = 10 * 60 * 1000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        startTime,
+        maxLifetimeMs,
+      });
+      jest.advanceTimersByTime(maxLifetimeMs - 1);
+
+      expect(spanEndMock).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1);
+
+      expect(spanEndMock).toHaveBeenCalledWith(startTime + maxLifetimeMs);
+    });
+
     it('finishes the previous span with a capped timestamp when a duplicate trace key is started', () => {
       updateCachedConsent(true);
 
