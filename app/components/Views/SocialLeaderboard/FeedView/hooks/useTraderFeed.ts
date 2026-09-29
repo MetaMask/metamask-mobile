@@ -190,6 +190,11 @@ export const useTraderFeed = (
       .sort(byTimestampDesc);
   }, [pages]);
 
+  const loadedItemIds = useMemo(
+    () => new Set(loadedRows.map((row) => row.item.id)),
+    [loadedRows],
+  );
+
   const handleRealtimeEvent = useCallback((event: SocialFeedEvent) => {
     const item = mapFeedItem(event.data);
     if (!item) {
@@ -211,10 +216,29 @@ export const useTraderFeed = (
     ]);
   }, []);
 
+  useEffect(() => {
+    setRealtimeRows((currentRows) => {
+      const nextRows = currentRows.filter(
+        (row) =>
+          row.realtimeEventId !== undefined || !loadedItemIds.has(row.item.id),
+      );
+
+      return nextRows.length === currentRows.length ? currentRows : nextRows;
+    });
+  }, [loadedItemIds]);
+
   const allRows = useMemo(() => {
     const rowsByItemId = new Map(loadedRows.map((row) => [row.item.id, row]));
 
-    realtimeRows.forEach((row) => rowsByItemId.set(row.item.id, row));
+    realtimeRows.forEach((row) => {
+      // Keep an active realtime row visible during its entrance animation.
+      // Once that animation completes, the API is authoritative for rows it
+      // has loaded, while completed realtime-only rows remain visible until
+      // the API includes them.
+      if (row.realtimeEventId !== undefined || !rowsByItemId.has(row.item.id)) {
+        rowsByItemId.set(row.item.id, row);
+      }
+    });
 
     return [...rowsByItemId.values()].sort(byTimestampDesc);
   }, [loadedRows, realtimeRows]);
@@ -265,15 +289,24 @@ export const useTraderFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch]);
 
-  const markRealtimeEventAnimated = useCallback((eventId: string) => {
-    setRealtimeRows((currentRows) =>
-      currentRows.map((row) =>
-        row.realtimeEventId === eventId
-          ? { ...row, realtimeEventId: undefined }
-          : row,
-      ),
-    );
-  }, []);
+  const markRealtimeEventAnimated = useCallback(
+    (eventId: string) => {
+      setRealtimeRows((currentRows) =>
+        currentRows
+          .filter(
+            (row) =>
+              row.realtimeEventId !== eventId ||
+              !loadedItemIds.has(row.item.id),
+          )
+          .map((row) =>
+            row.realtimeEventId === eventId
+              ? { ...row, realtimeEventId: undefined }
+              : row,
+          ),
+      );
+    },
+    [loadedItemIds],
+  );
 
   const realtimeActive = enabled && isUnlocked && audience === 'all';
 
