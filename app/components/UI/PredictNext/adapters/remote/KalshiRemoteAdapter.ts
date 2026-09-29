@@ -14,10 +14,7 @@ import {
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
-import {
-  KALSHI_VENUE_ID,
-  type FetchOrderPreviewParams,
-} from '../../types';
+import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
