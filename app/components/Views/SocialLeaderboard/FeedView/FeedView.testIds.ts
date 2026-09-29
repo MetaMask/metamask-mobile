@@ -19,6 +19,7 @@ export const FeedViewSelectorsIDs = {
 } as const;
 
 export const getFeedItemTestId = (id: string) => `feed-item-${id}`;
+export const getFeedItemEntryTestId = (id: string) => `feed-item-entry-${id}`;
 export const getFeedTradeButtonTestId = (id: string) =>
   `${FeedViewSelectorsIDs.TRADE_BUTTON}-${id}`;
 export const getFeedTradeCardTestId = (id: string) =>

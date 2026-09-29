@@ -24,6 +24,7 @@ const mockNavigate = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockLoadMore = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
+const mockMarkRealtimeEventAnimated = jest.fn();
 
 const spotItem: FeedItem = {
   id: 'feed-1',
@@ -103,6 +104,7 @@ const buildResult = (
     loadMore: mockLoadMore,
     error: null,
     refresh: mockRefresh,
+    markRealtimeEventAnimated: mockMarkRealtimeEventAnimated,
     // Undefined by default so rows fall back to their own render-time clock.
     dataUpdatedAt: undefined,
     ...overrides,

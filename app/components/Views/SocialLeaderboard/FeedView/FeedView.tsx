@@ -65,6 +65,9 @@ import FeedAudienceToggle, {
   DEFAULT_FEED_AUDIENCE_ORDER,
   type FeedAudienceOrder,
 } from './components/FeedAudienceToggle';
+import FeedItemEntryAnimation, {
+  createFeedItemEntryScheduler,
+} from './components/FeedItemEntryAnimation';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
@@ -79,7 +82,10 @@ import type {
   FeedTypeFilter,
 } from './types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import { FeedViewSelectorsIDs } from './FeedView.testIds';
+import {
+  FeedViewSelectorsIDs,
+  getFeedItemEntryTestId,
+} from './FeedView.testIds';
 
 /**
  * Mirror the filter row's own `px-4` and `gap={3}` in points. The row decides
@@ -256,6 +262,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   const {
     sections,
     items,
+    rows,
     hasLoadedItems,
     isLoading,
     isFetchingNextPage,
@@ -263,6 +270,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
     error,
     refresh,
+    markRealtimeEventAnimated,
     // Bumps the shared wall clock immediately after PTR / load more so labels
     // do not wait for the next 30s tick. Relative ages themselves come from
     // `useFeedNow`, not from this fetch instant.
@@ -270,6 +278,11 @@ const FeedView: React.FC<FeedViewProps> = ({
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
 
   const now = useFeedNow({ enabled: isActive, dataUpdatedAt });
+  const rowsByItemId = useMemo(
+    () => new Map(rows.map((row) => [row.item.id, row])),
+    [rows],
+  );
+  const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   // Report spot availability up to the parent so it can mount the Buy Action
   // orchestrator (and scope its A/B exposure) only when the loaded feed offers
@@ -435,16 +448,35 @@ const FeedView: React.FC<FeedViewProps> = ({
   );
 
   const renderItem = useCallback(
-    ({ item }: SectionListRenderItemInfo<FeedItem, FeedSection>) => (
-      <FeedItemRow
-        item={item}
-        onTradePress={handleTradePress}
-        onPositionPress={handlePositionPress}
-        onTraderPress={handleTraderPress}
-        now={now}
-      />
-    ),
-    [handleTradePress, handlePositionPress, handleTraderPress, now],
+    ({ item }: SectionListRenderItemInfo<FeedItem, FeedSection>) => {
+      const row = rowsByItemId.get(item.id);
+
+      return (
+        <FeedItemEntryAnimation
+          eventId={row?.realtimeEventId}
+          scheduleEntryDelay={scheduleEntryDelay}
+          onAnimationComplete={markRealtimeEventAnimated}
+          testID={getFeedItemEntryTestId(item.id)}
+        >
+          <FeedItemRow
+            item={item}
+            onTradePress={handleTradePress}
+            onPositionPress={handlePositionPress}
+            onTraderPress={handleTraderPress}
+            now={now}
+          />
+        </FeedItemEntryAnimation>
+      );
+    },
+    [
+      handleTradePress,
+      handlePositionPress,
+      handleTraderPress,
+      markRealtimeEventAnimated,
+      now,
+      rowsByItemId,
+      scheduleEntryDelay,
+    ],
   );
 
   const renderSectionHeader = useCallback(

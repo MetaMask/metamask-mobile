@@ -42,6 +42,7 @@ const arrangeFeed = (
     loadMore: jest.fn(),
     error: null,
     refresh: jest.fn(),
+    markRealtimeEventAnimated: jest.fn(),
     dataUpdatedAt: undefined,
     ...overrides,
   });
