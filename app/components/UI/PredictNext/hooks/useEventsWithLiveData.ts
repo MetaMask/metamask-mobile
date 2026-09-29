@@ -356,13 +356,17 @@ export const useEventsWithLiveData = (
     return uniqueIds(visibleEventIds.filter((id) => present.has(id)));
   }, [isVisible, visibleEventIds, presentEventIds]);
 
-  useLiveEventWatches(venueId, eventIdsToWatch, marketScope);
+  // Subscribe before watching. React runs these effects in call order, and
+  // `watchEvents` replays the last known Game and quotes synchronously when
+  // another surface already holds the Event. Listeners registered afterwards
+  // miss that snapshot, and the Venue sends no other until the next frame.
   const gameUpdates = useLiveTopicUpdates(GAME_TOPIC, venueId, presentEventIds);
   const quoteUpdates = useLiveTopicUpdates(
     MARKET_TOPIC,
     venueId,
     presentMarketIds,
   );
+  useLiveEventWatches(venueId, eventIdsToWatch, marketScope);
   const previousLiveRef = useRef<{
     events: readonly PredictEvent[];
     gameUpdates: ReadonlyMap<PredictEntityId, PredictGameLive>;

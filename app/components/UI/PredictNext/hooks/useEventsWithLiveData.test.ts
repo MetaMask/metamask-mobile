@@ -286,6 +286,60 @@ describe('useEventsWithLiveData', () => {
     ]);
   });
 
+  it('applies a snapshot replayed synchronously from watchEvents', () => {
+    const market = eventA.markets[0];
+    const replayedGame: PredictGameLive = {
+      venueId,
+      eventId: eventA.id,
+      type: 'football_game',
+      status: 'in_progress',
+      observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    };
+    const replayedQuote: PredictQuote = {
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: '0.61' as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
+      ],
+      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    };
+    // The service publishes the last known values inside watchEvents when
+    // another surface already holds the Event. Only listeners registered
+    // before that call can receive them.
+    mockCall.mockImplementation((action: unknown) => {
+      if (action !== WATCH) {
+        return;
+      }
+      const subscribed = listeners();
+      (
+        subscribed.get(`${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`) as
+          | ((live: PredictGameLive) => void)
+          | undefined
+      )?.(replayedGame);
+      (
+        subscribed.get(`${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`) as
+          | ((quote: PredictQuote) => void)
+          | undefined
+      )?.(replayedQuote);
+    });
+
+    try {
+      const { result } = renderHook(() =>
+        useEventsWithLiveData(venueId, [eventA]),
+      );
+
+      expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
+      expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.61');
+    } finally {
+      mockCall.mockReset();
+    }
+  });
+
   it('keeps the collected live values while hidden', () => {
     const { result, rerender } = renderHook(
       ({ isVisible }: { isVisible: boolean }) =>
