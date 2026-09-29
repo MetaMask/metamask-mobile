@@ -292,7 +292,9 @@ describe('useSendActions', () => {
     });
 
     it('falls back to the send chain id when the metrics context chain id is empty', async () => {
-      mockUseSendMetricsContext.mockReturnValueOnce({ chainIdCaip: '' });
+      mockUseSendMetricsContext.mockReturnValueOnce({
+        chainIdCaip: '',
+      } as unknown as ReturnType<typeof useSendMetricsContext>);
 
       jest
         .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
