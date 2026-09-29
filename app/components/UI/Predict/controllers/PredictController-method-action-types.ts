@@ -393,6 +393,19 @@ export type PredictControllerBeforeSignAction = {
   handler: PredictController['beforeSign'];
 };
 
+/**
+ * Whether the transaction should be signed locally by the TransactionController.
+ * Predict claims from deposit wallets are published by the provider instead.
+ *
+ * @param request - The request object.
+ * @param request.transactionMeta - The transaction metadata.
+ * @returns Whether the transaction should be signed locally.
+ */
+export type PredictControllerShouldSignAction = {
+  type: `PredictController:shouldSign`;
+  handler: PredictController['shouldSign'];
+};
+
 export type PredictControllerPublishAction = {
   type: `PredictController:publish`;
   handler: PredictController['publish'];
@@ -464,5 +477,6 @@ export type PredictControllerMethodActions =
   | PredictControllerPrepareWithdrawAction
   | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction
+  | PredictControllerShouldSignAction
   | PredictControllerPublishAction
   | PredictControllerClearWithdrawTransactionAction;

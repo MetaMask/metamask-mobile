@@ -340,6 +340,7 @@ describe('PredictController', () => {
       beforePublishDepositWalletDeposit: jest.fn(),
       beforeSignClaim: jest.fn(),
       publishClaim: jest.fn(),
+      shouldSignClaim: jest.fn(),
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
@@ -9880,6 +9881,62 @@ describe('PredictController', () => {
         ).rejects.toThrow(
           'Pending claim batch does not match transaction batch',
         );
+      });
+    });
+  });
+
+  describe('shouldSign', () => {
+    const claimTransactionMeta = {
+      id: 'tx-claim',
+      batchId: 'batch-claim',
+      txParams: {
+        from: MOCK_ADDRESS,
+      },
+      nestedTransactions: [
+        {
+          id: 'nested-claim',
+          type: TransactionType.predictClaim,
+          data: '0xclaim' as `0x${string}`,
+        },
+      ],
+    } as unknown as TransactionMeta;
+
+    it('signs locally when the transaction is not a pending claim', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.shouldSign({
+          transactionMeta: {
+            id: 'tx-1',
+            txParams: { from: MOCK_ADDRESS },
+          } as TransactionMeta,
+        });
+
+        expect(result).toEqual({ shouldSign: true });
+        expect(mockPolymarketProvider.shouldSignClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('delegates pending claims to provider.shouldSignClaim', async () => {
+      mockPolymarketProvider.shouldSignClaim?.mockResolvedValue({
+        shouldSign: false,
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims[MOCK_ADDRESS.toUpperCase()] = 'batch-claim';
+          state.claimablePositions[MOCK_ADDRESS.toUpperCase()] = [
+            createMockPosition({ claimable: true }),
+          ];
+        });
+
+        const result = await controller.shouldSign({
+          transactionMeta: claimTransactionMeta,
+        });
+
+        expect(result).toEqual({ shouldSign: false });
+        expect(mockPolymarketProvider.shouldSignClaim).toHaveBeenCalledWith({
+          transactionMeta: claimTransactionMeta,
+          signer: expect.objectContaining({ address: MOCK_ADDRESS }),
+        });
       });
     });
   });

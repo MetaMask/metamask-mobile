@@ -2105,7 +2105,7 @@ describe('PolymarketProvider', () => {
     expect(mockPlanDepositWalletPreflight).not.toHaveBeenCalled();
   });
 
-  it('marks deposit-wallet claim transactions as externally signed before signing', async () => {
+  it('prepares deposit-wallet claim transactions for external publishing before signing', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue([]),
@@ -2131,7 +2131,6 @@ describe('PolymarketProvider', () => {
     expect(result?.updateTransaction).toBeDefined();
 
     result?.updateTransaction?.(transactionMeta);
-    expect(transactionMeta.isExternalSign).toBe(true);
     expect(transactionMeta.isGasFeeTokenIgnoredIfBalance).toBe(false);
     expect(transactionMeta.selectedGasFeeToken).toBeUndefined();
     expect(transactionMeta.txParams.nonce).toBeUndefined();
@@ -2192,7 +2191,6 @@ describe('PolymarketProvider', () => {
     const result = await createProvider().publishClaim({
       transactionMeta: {
         id: 'claim-tx',
-        isExternalSign: true,
         txParams: { from: signer.address },
       } as TransactionMeta,
       signer,
@@ -2220,7 +2218,6 @@ describe('PolymarketProvider', () => {
     const result = await createProvider().publishClaim({
       transactionMeta: {
         id: 'claim-tx',
-        isExternalSign: true,
         txParams: { from: signer.address },
       } as TransactionMeta,
       signer,
@@ -2252,7 +2249,7 @@ describe('PolymarketProvider', () => {
     });
   });
 
-  it('requires external-sign metadata before publishing deposit-wallet claims', async () => {
+  it('skips local signing for deposit-wallet claims', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue([]),
@@ -2261,18 +2258,27 @@ describe('PolymarketProvider', () => {
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(true);
 
-    await expect(
-      createProvider().publishClaim({
-        transactionMeta: {
-          id: 'claim-tx',
-          txParams: { from: signer.address },
-        } as TransactionMeta,
-        signer,
-        positions: [createClaimPosition()],
-      }),
-    ).rejects.toThrow(
-      'Deposit wallet claim publish requires external-sign transaction',
-    );
+    const result = await createProvider().shouldSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+      } as TransactionMeta,
+      signer,
+    });
+
+    expect(result).toEqual({ shouldSign: false });
+  });
+
+  it('signs Safe claims locally', async () => {
+    const result = await createProvider().shouldSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+      } as TransactionMeta,
+      signer,
+    });
+
+    expect(result).toEqual({ shouldSign: true });
   });
 
   it('syncs deposit-wallet CLOB balance allowance after confirmed claims', async () => {
