@@ -405,7 +405,7 @@ describe('useInsufficientBalanceAlert', () => {
     });
   });
 
-  describe('when isGasFeeSponsored is true', () => {
+  describe('when gas fee sponsorship is available', () => {
     it('returns empty array', () => {
       useIsGaslessSupportedMock.mockReturnValue({
         isSmartTransaction: true,
@@ -417,7 +417,7 @@ describe('useInsufficientBalanceAlert', () => {
       } as unknown as ReturnType<typeof useAccountNativeBalance>);
       const txWithGasFeeSponsored = {
         ...mockTransaction,
-        isGasFeeSponsored: true,
+        isGasFeeSponsoredAvailable: true,
       };
       mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeSponsored);
 
@@ -433,7 +433,7 @@ describe('useInsufficientBalanceAlert', () => {
       });
       const txWithGasFeeSponsored = {
         ...mockTransaction,
-        isGasFeeSponsored: true,
+        isGasFeeSponsoredAvailable: true,
         type: TransactionType.revokeDelegation,
       };
       mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeSponsored);
