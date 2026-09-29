@@ -49,14 +49,20 @@ describe('VbaDetails', () => {
     mockListTransactions.mockResolvedValue([]);
   });
 
-  it('renders the details screen', () => {
+  it('renders the details screen', async () => {
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    });
   });
 
-  it('navigates to Money home when done is pressed', () => {
+  it('navigates to Money home when done is pressed', async () => {
     const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    });
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
 
