@@ -43,8 +43,8 @@ const nonZeroFeesTotals = {
 
 function runHook({
   type,
-  isGasFeeSponsored,
-}: { type?: TransactionType; isGasFeeSponsored?: boolean } = {}) {
+  forceIsGasFeeSponsored,
+}: { type?: TransactionType; forceIsGasFeeSponsored?: boolean } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -57,9 +57,8 @@ function runHook({
   ).transactions[0];
   tx.type = type ?? TransactionType.perpsDeposit;
 
-  if (isGasFeeSponsored !== undefined) {
-    (tx as { isGasFeeSponsored?: boolean }).isGasFeeSponsored =
-      isGasFeeSponsored;
+  if (forceIsGasFeeSponsored !== undefined) {
+    tx.forceIsGasFeeSponsored = forceIsGasFeeSponsored;
   }
 
   return renderHookWithProvider(useIsPaidByMetaMask, { state });
@@ -155,7 +154,7 @@ describe('useIsPaidByMetaMask', () => {
 
       const { result } = runHook({
         type: TransactionType.moneyAccountWithdraw,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       });
 
       expect(result.current).toBe(true);
@@ -169,7 +168,7 @@ describe('useIsPaidByMetaMask', () => {
 
       const { result } = runHook({
         type: TransactionType.moneyAccountWithdraw,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       });
 
       expect(result.current).toBe(false);
@@ -183,7 +182,7 @@ describe('useIsPaidByMetaMask', () => {
 
       const { result } = runHook({
         type: TransactionType.moneyAccountWithdraw,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       });
 
       expect(result.current).toBe(false);

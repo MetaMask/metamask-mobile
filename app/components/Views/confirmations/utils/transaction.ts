@@ -219,6 +219,14 @@ export function isRevokeDelegationTransaction(
   return transactionMeta?.type === TransactionType.revokeDelegation;
 }
 
+/**
+ * Whether the published transaction was recorded as gas fee sponsored.
+ * Use for submitted transactions; before approval use
+ * {@link shouldApplyGasFeeSponsorship}.
+ *
+ * @param transactionMeta - Transaction meta object
+ * @returns Whether the transaction was published as sponsored
+ */
 export function isTransactionMarkedAsGasFeeSponsored(
   transactionMeta: TransactionMeta | undefined,
 ): boolean {
@@ -228,6 +236,33 @@ export function isTransactionMarkedAsGasFeeSponsored(
   );
 }
 
+/**
+ * Whether the transaction creator or simulation asks for gas fee sponsorship.
+ * This is not the sponsorship decision; account and chain support also apply.
+ *
+ * @param transactionMeta - Transaction meta object
+ * @returns Whether sponsorship is requested for the transaction
+ */
+export function isGasFeeSponsorshipRequested(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(
+    (transactionMeta?.forceIsGasFeeSponsored ||
+      transactionMeta?.isGasFeeSponsoredAvailable) &&
+      !isRevokeDelegationTransaction(transactionMeta),
+  );
+}
+
+/**
+ * Whether gas fee sponsorship applies to an unapproved transaction.
+ * Mirrors `isGasFeeSponsored` in `util/transactions/gas-sponsorship`, with
+ * account and chain support provided by `useIsGaslessSupported`.
+ *
+ * @param request - Request object
+ * @param request.transactionMeta - Transaction meta object
+ * @param request.isGaslessSupported - Whether gasless is supported for the account and chain
+ * @returns Whether the gas fee is sponsored
+ */
 export function shouldApplyGasFeeSponsorship({
   transactionMeta,
   isGaslessSupported,
@@ -235,9 +270,7 @@ export function shouldApplyGasFeeSponsorship({
   transactionMeta: TransactionMeta | undefined;
   isGaslessSupported: boolean;
 }): boolean {
-  return (
-    isGaslessSupported && isTransactionMarkedAsGasFeeSponsored(transactionMeta)
-  );
+  return isGaslessSupported && isGasFeeSponsorshipRequested(transactionMeta);
 }
 
 export function getSeverity(status: TransactionStatus): Severity {

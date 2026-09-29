@@ -11,10 +11,16 @@ import { TransactionPayControllerInit } from './transaction-pay-controller-init'
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { isGasFeeSponsored } from '../../../../util/transactions/gas-sponsorship';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
 jest.mock('../../../../util/environment');
+jest.mock('../../../../util/transactions/gas-sponsorship');
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn() },
+}));
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -124,6 +130,20 @@ describe('Transaction Pay Controller Init', () => {
     const getBalance = testConstructorOption('getBalance');
 
     expect(getBalance).toBeInstanceOf(Function);
+  });
+
+  it('wires the shared gas sponsorship decision into the controller', async () => {
+    jest.mocked(isGasFeeSponsored).mockResolvedValue(true);
+    const transaction = { id: 'tx-1' } as TransactionMeta;
+
+    const callback = testConstructorOption('isGasFeeSponsored');
+
+    await expect(callback?.({ transaction })).resolves.toStrictEqual({
+      isGasFeeSponsored: true,
+    });
+    expect(isGasFeeSponsored).toHaveBeenCalledWith(
+      expect.objectContaining({ transaction }),
+    );
   });
 
   it('wires fiat test options through controller options', () => {

@@ -67,6 +67,23 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the TransactionController and KeyringController members the Pay strategies use', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'TransactionController:addTransaction',
+          'TransactionController:addTransactionBatch',
+        ]),
+        events: expect.arrayContaining(['KeyringController:unlock']),
+      }),
+    );
+  });
+
   it('delegates the RampsController actions the fiat pay strategy needs', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');

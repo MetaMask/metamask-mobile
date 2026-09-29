@@ -28,7 +28,7 @@ import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
+import { isGasFeeSponsorshipRequested } from '../../utils/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
 
 export function useInsufficientPayTokenBalanceAlert({
@@ -144,7 +144,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const isGaslessSourceChain =
     !isHardwarePayer &&
     (sourceChainId === CHAIN_IDS.MONAD ||
-      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
+      isGasFeeSponsorshipRequested(transactionMeta) ||
       (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
 
   // A plain ERC-20 send also yields a required token, but it is not funded

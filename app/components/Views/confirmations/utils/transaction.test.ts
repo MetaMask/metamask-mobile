@@ -16,6 +16,7 @@ import {
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
   resolveTransactionType,
+  isGasFeeSponsorshipRequested,
   shouldApplyGasFeeSponsorship,
 } from './transaction';
 import {
@@ -351,7 +352,7 @@ describe('isRevokeDelegationTransaction', () => {
 describe('shouldApplyGasFeeSponsorship', () => {
   it('returns true when gas sponsorship is supported and transaction is sponsored', () => {
     const txMeta = {
-      isGasFeeSponsored: true,
+      isGasFeeSponsoredAvailable: true,
       type: TransactionType.simpleSend,
     } as TransactionMeta;
 
@@ -365,7 +366,7 @@ describe('shouldApplyGasFeeSponsorship', () => {
 
   it('returns false when gasless is not supported', () => {
     const txMeta = {
-      isGasFeeSponsored: true,
+      isGasFeeSponsoredAvailable: true,
       type: TransactionType.simpleSend,
     } as TransactionMeta;
 
@@ -379,7 +380,7 @@ describe('shouldApplyGasFeeSponsorship', () => {
 
   it('returns false for sponsored revoke delegation transaction', () => {
     const txMeta = {
-      isGasFeeSponsored: true,
+      isGasFeeSponsoredAvailable: true,
       type: TransactionType.revokeDelegation,
     } as TransactionMeta;
 
@@ -389,6 +390,42 @@ describe('shouldApplyGasFeeSponsorship', () => {
         isGaslessSupported: true,
       }),
     ).toBe(false);
+  });
+});
+
+describe('isGasFeeSponsorshipRequested', () => {
+  it.each([
+    ['sponsorship is available', { isGasFeeSponsoredAvailable: true }],
+    ['sponsorship is forced', { forceIsGasFeeSponsored: true }],
+  ])('returns true when %s', (_title, overrides) => {
+    expect(
+      isGasFeeSponsorshipRequested({
+        ...overrides,
+        type: TransactionType.simpleSend,
+      } as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('returns false when only the published sponsorship record is set', () => {
+    expect(
+      isGasFeeSponsorshipRequested({
+        isGasFeeSponsored: true,
+        type: TransactionType.simpleSend,
+      } as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('returns false for a revoke delegation transaction', () => {
+    expect(
+      isGasFeeSponsorshipRequested({
+        forceIsGasFeeSponsored: true,
+        type: TransactionType.revokeDelegation,
+      } as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('returns false for undefined transaction', () => {
+    expect(isGasFeeSponsorshipRequested(undefined)).toBe(false);
   });
 });
 

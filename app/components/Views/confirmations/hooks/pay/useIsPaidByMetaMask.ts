@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { isGasFeeSponsorshipRequested } from '../../utils/transaction';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
@@ -19,7 +20,7 @@ export function useIsPaidByMetaMask(): boolean {
   }
 
   // Mirror the fee row's sponsored $0 display (pre-quote, gasless).
-  if (transactionMeta?.isGasFeeSponsored && !sourceAmounts?.length) {
+  if (isGasFeeSponsorshipRequested(transactionMeta) && !sourceAmounts?.length) {
     return true;
   }
 

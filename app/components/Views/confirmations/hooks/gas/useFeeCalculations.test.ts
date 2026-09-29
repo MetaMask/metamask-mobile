@@ -76,7 +76,7 @@ describe('useFeeCalculations', () => {
       () =>
         useFeeCalculations({
           ...transactionMeta,
-          isGasFeeSponsored: true,
+          isGasFeeSponsoredAvailable: true,
         }),
       {
         state: stakingDepositConfirmationState,
@@ -102,7 +102,7 @@ describe('useFeeCalculations', () => {
       () =>
         useFeeCalculations({
           ...transactionMeta,
-          isGasFeeSponsored: true,
+          isGasFeeSponsoredAvailable: true,
           type: TransactionType.revokeDelegation,
         }),
       {
@@ -129,7 +129,7 @@ describe('useFeeCalculations', () => {
       () =>
         useFeeCalculations({
           ...transactionMeta,
-          isGasFeeSponsored: true,
+          isGasFeeSponsoredAvailable: true,
         }),
       {
         state: stakingDepositConfirmationState,

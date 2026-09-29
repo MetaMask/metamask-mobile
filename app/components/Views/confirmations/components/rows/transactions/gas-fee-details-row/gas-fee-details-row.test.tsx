@@ -350,7 +350,7 @@ describe('GasFeesDetailsRow', () => {
   it(`shows 'Paid by MetaMask' when gas is sponsored`, async () => {
     const clonedStakingDepositConfirmationState =
       createStateWithSimulationData();
-    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsoredAvailable = true;
     const { getByText, queryByText } = renderWithProvider(
       <GasFeesDetailsRow />,
       {
@@ -365,7 +365,7 @@ describe('GasFeesDetailsRow', () => {
   it('shows network fee when sponsored transaction is revoke delegation', async () => {
     const clonedStakingDepositConfirmationState =
       createStateWithSimulationData();
-    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
+    clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsoredAvailable = true;
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].type =
       TransactionType.revokeDelegation;
 
@@ -462,7 +462,7 @@ describe('GasFeesDetailsRow', () => {
       });
 
       const clonedState = createStateWithSimulationData();
-      clonedState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsored = true;
+      clonedState.engine.backgroundState.TransactionController.transactions[0].isGasFeeSponsoredAvailable = true;
 
       const { queryByText, getByTestId } = renderWithProvider(
         <GasFeesDetailsRow />,

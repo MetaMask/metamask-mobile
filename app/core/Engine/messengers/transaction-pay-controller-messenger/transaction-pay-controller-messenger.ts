@@ -7,6 +7,7 @@ import {
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import {
+  KeyringControllerGetKeyringForAccountAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerSignTypedMessageAction,
@@ -37,6 +38,8 @@ export function getTransactionPayControllerMessenger(
       'RampsController:getQuoteWithFees',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
+      'TransactionController:addTransaction',
+      'TransactionController:addTransactionBatch',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
       'TransactionController:getGasFeeTokens',
@@ -47,6 +50,7 @@ export function getTransactionPayControllerMessenger(
     ],
     events: [
       'AssetsController:stateChange',
+      'KeyringController:unlock',
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
@@ -58,6 +62,7 @@ export function getTransactionPayControllerMessenger(
 
 type InitMessengerActions =
   | DelegationControllerSignDelegationAction
+  | KeyringControllerGetKeyringForAccountAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
@@ -86,6 +91,7 @@ export function getTransactionPayControllerInitMessenger(
   rootMessenger.delegate({
     actions: [
       'DelegationController:signDelegation',
+      'KeyringController:getKeyringForAccount',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
