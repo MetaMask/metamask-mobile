@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Added `link.metamask.com` to the DeeplinkManager universal-link host list so `.com` deep links route in-app (DUS-15694)
-
 ## [8.12.1]
 
 ### Added
