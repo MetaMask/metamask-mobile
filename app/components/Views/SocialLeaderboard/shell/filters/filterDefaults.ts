@@ -61,18 +61,10 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
   leaderboard: { ...DEFAULT_FILTERS },
 };
 
-export const TYPE_OPTIONS: SocialFilterType[] = [
-  'all',
-  'tokens',
-  'perps',
-  'predictions',
-];
+export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];
 
-export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = [
-  'all',
-  'tokens',
-  'perps',
-];
+/** Same asset chips on every V1 tab — Predictions is not in V1. */
+export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = TYPE_OPTIONS;
 
 export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   all: 'social_leaderboard.shell.filters.type.all',

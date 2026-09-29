@@ -42,6 +42,8 @@ export const mockOpenPerpsFeedItem = (
   markPriceLabel: '$104,213',
   valueLabel: '$212,000.00',
   pnlLabel: '+128.6%',
+  pnlValueLabel: '+$256.96K',
+  costLabel: '$212,000.00',
   isPnlPositive: true,
   leverageLabel: '40X',
   autoCloseLabel: 'TP $101,214 / SL $110,905',
@@ -83,6 +85,7 @@ export const mockClosedPerpsFeedItem = (
   entryPriceLabel: '$1,890',
   exitPriceLabel: '$1,842',
   holdTimeLabel: '8h',
+  costLabel: '$252,300.00',
   ...overrides,
 });
 
@@ -116,6 +119,8 @@ export const mockOpenSpotFeedItem = (
   holdTimeLabel: '1d 20h',
   valueLabel: '$128,400.00',
   pnlLabel: '+74.2%',
+  pnlValueLabel: '+$54.6K',
+  costLabel: '$73,800.00',
   isPnlPositive: true,
   ...overrides,
 });
@@ -149,6 +154,7 @@ export const mockClosedSpotFeedItem = (
   entryPriceLabel: '$207.57',
   exitPriceLabel: '$237.88',
   holdTimeLabel: '6d',
+  costLabel: '$64,200.00',
   valueLabel: '+$9,373.20',
   pnlLabel: '+14.6%',
   isPnlPositive: true,
