@@ -89,11 +89,10 @@ const OnboardingAnimation = ({
       </Box>
       <Box
         pointerEvents="box-none"
-        twClassName="absolute left-0 right-0 flex-col"
+        twClassName="absolute left-0 right-0 flex-col px-4"
         style={tw.style({
           top: '50%',
           rowGap: isMedium ? 12 : 16,
-          paddingHorizontal: isMedium ? 26 : 36,
         })}
       >
         {children}
