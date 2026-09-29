@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import performance from 'react-native-performance';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -291,19 +292,6 @@ jest.mock('../../../util/trace', () => {
     endTrace: jest.fn(),
   };
 });
-
-const UNLOCK_TRACE_TOKENS = {
-  homepageReadyTraceToken: 1,
-  deeplinkNavigatedTraceToken: 2,
-};
-const mockStartUnlockTraces = jest.fn(
-  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
-);
-const mockCancelUnlockTraces = jest.fn();
-jest.mock('../../../core/Performance/unlockTraces', () => ({
-  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
-  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
-}));
 
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
@@ -893,6 +881,7 @@ describe('Login', () => {
       });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
         password: 'valid-password123',
+        handBackAt: expect.any(Number),
       });
       expect(mockGetAuthType).toHaveBeenCalled();
     });
@@ -1645,6 +1634,7 @@ describe('Login', () => {
       });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
         password: 'valid-password123',
+        handBackAt: expect.any(Number),
       });
       expect(mockGetAuthType).toHaveBeenCalled();
     });
@@ -2225,37 +2215,25 @@ describe('Login', () => {
       );
     });
 
-    it('starts the unlock CUF traces on password submit', async () => {
+    it('passes the submit time to unlockWallet on password submit', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
       await act(async () => {
         fireEvent.changeText(passwordInput, 'valid-password123');
       });
+      jest.spyOn(performance, 'now').mockReturnValue(4_321);
+
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockStartUnlockTraces).toHaveBeenCalledWith({
-        appStartType: LOGIN_APP_START_TYPE.COLD,
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        password: 'valid-password123',
+        handBackAt: 4_321,
       });
-      expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
     });
 
-    it('cancels the unlock CUF traces when password unlock fails', async () => {
-      mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'wrong-password');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
-    });
-
-    it('cancels the unlock CUF traces when device authentication fails', async () => {
+    it('leaves the hand-back to the keychain read on device authentication', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         capabilities: defaultCapabilities,
         isLoading: false,
@@ -2264,7 +2242,6 @@ describe('Login', () => {
         currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
         availableBiometryType: 'TouchID',
       });
-      mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
       const { getByTestId } = renderWithProvider(<Login />);
 
       await waitForDeviceAuthIcon();
@@ -2274,7 +2251,7 @@ describe('Login', () => {
         );
       });
 
-      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
+      expect(mockUnlockWallet).toHaveBeenCalledWith();
     });
   });
 

@@ -13,6 +13,7 @@ import {
   Image,
   TextInput,
 } from 'react-native';
+import performance from 'react-native-performance';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -101,11 +102,6 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
-import {
-  cancelUnlockTraces,
-  startUnlockTraces,
-  type UnlockTraceTokens,
-} from '../../../core/Performance/unlockTraces';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
   getLoginUnlockFailureErrorType,
@@ -358,9 +354,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
-      appStartType: loginPerformanceTags.current.app_start_type,
-    });
+    const handBackAt = performance.now();
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -380,7 +374,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               skipCache: false,
               captureSentryError: true,
             });
-          await unlockWallet({ password });
+          await unlockWallet({ password, handBackAt });
           lastSubmittedPasswordRef.current = '';
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
@@ -408,7 +402,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         saveOnboardingEvent,
       });
     } catch (loginErr) {
-      cancelUnlockTraces(unlockTraceTokens);
       await handleLoginError(loginErr as Error, UNLOCK_TYPE.PASSWORD);
     }
     setLoading(false);
@@ -431,9 +424,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
-      appStartType: loginPerformanceTags.current.app_start_type,
-    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -456,7 +446,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         saveOnboardingEvent,
       });
     } catch (loginerror) {
-      cancelUnlockTraces(unlockTraceTokens);
       await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);

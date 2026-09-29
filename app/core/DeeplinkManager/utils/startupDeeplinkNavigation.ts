@@ -64,9 +64,8 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
     AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
   const appStartType = getUnlockAppStartType();
 
-  // Saga-driven biometric auto-unlock reaches here without passing through an
-  // unlock screen; the in-flight guard makes this a no-op when Login or OAuth
-  // rehydration already started the span at submit.
+  // Covers a link that arrived after hand-back; the in-flight guard makes this
+  // a no-op when unlockWallet already started the span.
   startDeeplinkNavigatedTrace({
     url: deeplink,
     source: 'unlock',

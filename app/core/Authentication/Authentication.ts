@@ -1,4 +1,5 @@
-import SecureKeychain from '../SecureKeychain';
+import performance from 'react-native-performance';
+import SecureKeychain, { type CredentialReadTimings } from '../SecureKeychain';
 import Engine from '../Engine';
 import { Engine as EngineClass } from '../Engine/Engine';
 import {
@@ -114,10 +115,16 @@ import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
 import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
+import { cancelHomepageReadyTrace } from '../Performance/HomepageReady';
 import {
+  cancelUnlockTraces,
   clearUnlockAppStartType,
   getUnlockAppStartType,
+  markUnlockCompleted,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
+  startUnlockTraces,
+  type UnlockHandBack,
+  type UnlockTraceTokens,
 } from '../Performance/unlockTraces';
 
 /**
@@ -786,12 +793,14 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
+   * @param options.handBackAt - `performance.now()` when the user submitted `password`. Unlock traces start here; defaults to when `unlockWallet` was called.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @returns - void
    */
   unlockWallet = async (
     {
       password,
+      handBackAt,
       authPreference,
       onBeforeNavigate,
       // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
@@ -800,6 +809,7 @@ class AuthenticationService {
       parentContext,
     }: {
       password?: string;
+      handBackAt?: number;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
       parentContext?: TraceContext;
@@ -808,7 +818,9 @@ class AuthenticationService {
       authPreference: undefined,
     },
   ) => {
+    const unlockEnteredAt = performance.now();
     let passwordToUse: string | undefined;
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
@@ -817,17 +829,30 @@ class AuthenticationService {
         // existing user is always false when user try to rehydrate
 
         let fallbackToPassword = false;
+        let handBack: UnlockHandBack;
         if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;
+          handBack = { source: 'typed', submittedAt: handBackAt };
         } else {
           // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
-          const credentials = await SecureKeychain.getGenericPassword();
+          const credentialReadTimings: CredentialReadTimings = {};
+          const credentials = await SecureKeychain.getGenericPassword(
+            credentialReadTimings,
+          );
           passwordToUse = credentials?.password;
+          handBack = { source: 'keychain', credentialReadTimings };
         }
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
+          unlockTraceTokens = startUnlockTraces({
+            handBack,
+            unlockEnteredAt,
+            existingUser,
+            beforeNavigate: onBeforeNavigate !== undefined,
+          });
+
           if (authPreference?.oauth2Login) {
             // If seedless flow, rehydrate and nest OnboardingFetchSrps under
             // the onboarding journey when a parent context is supplied.
@@ -881,6 +906,10 @@ class AuthenticationService {
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
             const deeplinkAppStartType = getUnlockAppStartType();
+            cancelHomepageReadyTrace({
+              reason: 'metrics_opt_in',
+              traceToken: unlockTraceTokens.homepageReadyTraceToken,
+            });
             cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
             clearUnlockAppStartType();
 
@@ -908,6 +937,7 @@ class AuthenticationService {
           } else {
             await navigateToPostUnlockHome();
           }
+          markUnlockCompleted();
         } else {
           // No password provided or derived. Navigate to login.
           NavigationService.navigation?.reset({
@@ -927,6 +957,10 @@ class AuthenticationService {
       // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
+      // Cancel before the alert below, which waits on the user.
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
 
       let shouldResetOnLock = false;
       // Only check for specific error messages when the thrown value is an actual

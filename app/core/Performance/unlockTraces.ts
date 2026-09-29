@@ -1,9 +1,9 @@
 import { AppStateEventProcessor } from '../AppStateEventListener';
-import { getLoginAppStartType } from '../../components/Views/Login/loginPerformanceTags';
+import type { CredentialReadTimings } from '../SecureKeychain';
+import { getPerformanceTimestampOffset } from '../../util/trace';
 import {
   cancelHomepageReadyTrace,
   startHomepageReadyTrace,
-  type HomepageReadyAppStartType,
   type HomepageReadyTraceToken,
 } from './HomepageReady';
 import {
@@ -13,24 +13,72 @@ import {
   type DeeplinkTraceToken,
 } from './DeeplinkPerformance';
 
+/**
+ * The moment `unlockWallet` has a password for the wallet. Time before it can
+ * be the user (typing, an OS prompt); time after it is app work.
+ */
+export type UnlockHandBack =
+  | {
+      source: 'typed';
+      /** `performance.now()` at submit. Defaults to `unlockWallet` entry. */
+      submittedAt?: number;
+    }
+  | {
+      source: 'keychain';
+      credentialReadTimings: CredentialReadTimings;
+    };
+
 export interface UnlockTraceTokens {
   homepageReadyTraceToken: HomepageReadyTraceToken | null;
   deeplinkNavigatedTraceToken: DeeplinkTraceToken | null;
 }
 
 /**
- * Captured at unlock submit — before Login flips `getLoginAppStartType()` to
- * warm — so `resolve` and leftover `parse` can stamp the real process type.
+ * Unlock marks converted to the trace clock with the offset read when Leg 2
+ * started, so child spans line up with its start.
+ */
+export interface UnlockHandBackTimestamps {
+  source: UnlockHandBack['source'];
+  handBackAt: number;
+  unlockEnteredAt: number;
+  credentialDecryptedAt?: number;
+}
+
+interface StartUnlockTracesOptions {
+  handBack: UnlockHandBack;
+  /** `performance.now()` at `unlockWallet` entry. */
+  unlockEnteredAt: number;
+  /**
+   * Rehydration restores a wallet onto a new device. That is onboarding
+   * rather than a return to Home, so it gets no Homepage Ready.
+   */
+  existingUser: boolean;
+  /** `onBeforeNavigate` can show an OS prompt; its samples are tagged so they can be excluded. */
+  beforeNavigate: boolean;
+}
+
+/**
+ * Captured at hand-back so `resolve` and leftover `parse` stamp the type of
+ * the unlock that started them.
  */
 let unlockAppStartType: DeeplinkPerfAppStartType | undefined;
 
 /**
- * Pending URL at unlock submit. `dispatchLogin` fires `SET_COMPLETED_ONBOARDING`,
- * and that saga copies then clears `AppStateEventProcessor.pendingDeeplink`
- * before metrics opt-in. Keep a copy so Navigated can restart after consent
- * without measuring the opt-in dwell.
+ * Pending URL at hand-back. `dispatchLogin` fires `SET_COMPLETED_ONBOARDING`,
+ * and outside the login and lock screens that saga copies then clears
+ * `AppStateEventProcessor.pendingDeeplink` before navigation and before
+ * metrics opt-in. Keep a copy so Navigated can restart after consent without
+ * measuring the opt-in dwell.
  */
 let unlockPendingDeeplink: string | null = null;
+
+let hasUnlockedInProcess = false;
+let hasStartedLeg2InProcess = false;
+let unlockHandBackTimestamps: UnlockHandBackTimestamps | null = null;
+
+/** The first successful unlock in this JS runtime is cold; later ones are warm. */
+const getProcessAppStartType = (): DeeplinkPerfAppStartType =>
+  hasUnlockedInProcess ? 'warm' : 'cold';
 
 export const rememberUnlockAppStartType = (
   appStartType: DeeplinkPerfAppStartType,
@@ -39,38 +87,91 @@ export const rememberUnlockAppStartType = (
 };
 
 export const getUnlockAppStartType = (): DeeplinkPerfAppStartType =>
-  unlockAppStartType ?? getLoginAppStartType();
+  unlockAppStartType ?? getProcessAppStartType();
 
 export const clearUnlockAppStartType = () => {
   unlockAppStartType = undefined;
 };
 
-export const resetUnlockAppStartTypeForTesting = () => {
-  unlockAppStartType = undefined;
-  unlockPendingDeeplink = null;
+/** Marks the end of a successful unlock, so later unlocks read as warm. */
+export const markUnlockCompleted = () => {
+  hasUnlockedInProcess = true;
 };
 
 /**
- * Starts the unlock-anchored CUFs from a single seam:
- * - **HomepageReady** — always started
- * - **DeeplinkNavigated** — only when a pending deeplink will divert the launch
+ * Whether an unlock in this JS runtime has started Homepage Ready. An
+ * unlocked keyring without it means an unlock path skipped the hand-back.
+ */
+export const wasLeg2StartedThisProcess = () => hasStartedLeg2InProcess;
+
+/** Hand-back marks of the latest unlock that started Homepage Ready. */
+export const getUnlockHandBackTimestamps = () => unlockHandBackTimestamps;
+
+export const resetUnlockTracesForTesting = () => {
+  unlockAppStartType = undefined;
+  unlockPendingDeeplink = null;
+  hasUnlockedInProcess = false;
+  hasStartedLeg2InProcess = false;
+  unlockHandBackTimestamps = null;
+};
+
+const getHandBackMark = (
+  handBack: UnlockHandBack,
+  unlockEnteredAt: number,
+): number =>
+  (handBack.source === 'keychain'
+    ? handBack.credentialReadTimings.returnedAt
+    : handBack.submittedAt) ?? unlockEnteredAt;
+
+/**
+ * Starts the unlock-anchored CUFs at hand-back, from `unlockWallet`, so every
+ * unlock path is covered:
+ * - **HomepageReady** (Leg 2): for existing users
+ * - **DeeplinkNavigated**: only when a pending deeplink will divert the launch
  *
- * Every unlock entry point (password, biometric, OAuth rehydration) calls this
- * pair instead of repeating the start/cancel blocks per trace.
+ * Both are backdated to the hand-back, so neither includes the prompt or the
+ * typing before it.
  */
 export const startUnlockTraces = ({
-  appStartType,
-}: {
-  appStartType: HomepageReadyAppStartType;
-}): UnlockTraceTokens => {
+  handBack,
+  unlockEnteredAt,
+  existingUser,
+  beforeNavigate,
+}: StartUnlockTracesOptions): UnlockTraceTokens => {
+  const offset = getPerformanceTimestampOffset();
+  const startTime = getHandBackMark(handBack, unlockEnteredAt) + offset;
+  const appStartType = getProcessAppStartType();
   rememberUnlockAppStartType(appStartType);
   const pendingDeeplink = AppStateEventProcessor.pendingDeeplink;
   unlockPendingDeeplink = pendingDeeplink;
+
+  const homepageReadyTraceToken = existingUser
+    ? startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType,
+        startTime,
+        tags: { 'unlock.before_navigate': beforeNavigate },
+      })
+    : null;
+  unlockHandBackTimestamps = null;
+  if (homepageReadyTraceToken !== null) {
+    hasStartedLeg2InProcess = true;
+    const decryptedAt =
+      handBack.source === 'keychain'
+        ? handBack.credentialReadTimings.decryptedAt
+        : undefined;
+    unlockHandBackTimestamps = {
+      source: handBack.source,
+      handBackAt: startTime,
+      unlockEnteredAt: unlockEnteredAt + offset,
+      ...(decryptedAt === undefined
+        ? {}
+        : { credentialDecryptedAt: decryptedAt + offset }),
+    };
+  }
+
   return {
-    homepageReadyTraceToken: startHomepageReadyTrace({
-      source: 'unlock',
-      appStartType,
-    }),
+    homepageReadyTraceToken,
     deeplinkNavigatedTraceToken:
       pendingDeeplink === null
         ? null
@@ -78,12 +179,13 @@ export const startUnlockTraces = ({
             url: pendingDeeplink,
             source: 'unlock',
             appStartType,
+            startTime,
           }),
   };
 };
 
 /**
- * Reopens Deeplink Navigated after metrics opt-in. Unlock submit started the
+ * Reopens Deeplink Navigated after metrics opt-in. Hand-back started the
  * span, opt-in cancelled it so consent time is excluded, and
  * `handleDeeplinkSaga` has already cleared the live pending URL.
  */
@@ -105,8 +207,8 @@ export const resumeUnlockDeeplinkNavigatedAfterOptIn = ({
 
 /**
  * Cancels whatever {@link startUnlockTraces} opened after a failed unlock,
- * so a retry starts from its own submit rather than inheriting time from the
- * failed attempt.
+ * so a retry starts from its own hand-back rather than inheriting time from
+ * the failed attempt.
  */
 export const cancelUnlockTraces = ({
   homepageReadyTraceToken,
@@ -114,6 +216,7 @@ export const cancelUnlockTraces = ({
 }: UnlockTraceTokens) => {
   clearUnlockAppStartType();
   unlockPendingDeeplink = null;
+  unlockHandBackTimestamps = null;
   cancelHomepageReadyTrace({
     reason: 'unlock_failed',
     traceToken: homepageReadyTraceToken,

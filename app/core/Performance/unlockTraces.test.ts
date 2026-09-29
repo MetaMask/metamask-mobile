@@ -11,11 +11,20 @@ import {
   cancelUnlockTraces,
   clearUnlockAppStartType,
   getUnlockAppStartType,
-  resetUnlockAppStartTypeForTesting,
+  getUnlockHandBackTimestamps,
+  markUnlockCompleted,
+  rememberUnlockAppStartType,
+  resetUnlockTracesForTesting,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
   startUnlockTraces,
+  wasLeg2StartedThisProcess,
 } from './unlockTraces';
-import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
+
+const MOCK_OFFSET = 1_700_000_000_000;
+
+jest.mock('../../util/trace', () => ({
+  getPerformanceTimestampOffset: () => MOCK_OFFSET,
+}));
 
 jest.mock('../AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -41,116 +50,309 @@ const mockStartNavigated = jest.mocked(startDeeplinkNavigatedTrace);
 const mockCancelHomepage = jest.mocked(cancelHomepageReadyTrace);
 const mockCancelNavigated = jest.mocked(cancelDeeplinkNavigatedTrace);
 
+type StartUnlockTracesOptions = Parameters<typeof startUnlockTraces>[0];
+
+const keychainOptions = (
+  overrides: Partial<StartUnlockTracesOptions> = {},
+): StartUnlockTracesOptions => ({
+  handBack: {
+    source: 'keychain',
+    credentialReadTimings: {
+      requestedAt: 100,
+      returnedAt: 2_100,
+      empty: false,
+      decryptedAt: 2_400,
+    },
+  },
+  unlockEnteredAt: 50,
+  existingUser: true,
+  beforeNavigate: false,
+  ...overrides,
+});
+
 describe('unlockTraces', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAppState.pendingDeeplink = null;
-    resetUnlockAppStartTypeForTesting();
-    resetLoginAppStartTypeForTesting();
+    resetUnlockTracesForTesting();
   });
 
-  it('starts only Homepage Ready when no deeplink is pending', () => {
-    const tokens = startUnlockTraces({ appStartType: 'cold' });
+  describe('startUnlockTraces', () => {
+    it('starts Homepage Ready when the keychain returns the password, on the trace clock', () => {
+      startUnlockTraces(keychainOptions());
 
-    expect(mockStartHomepage).toHaveBeenCalledWith({
-      source: 'unlock',
-      appStartType: 'cold',
+      expect(mockStartHomepage).toHaveBeenCalledWith({
+        source: 'unlock',
+        appStartType: 'cold',
+        startTime: MOCK_OFFSET + 2_100,
+        tags: { 'unlock.before_navigate': false },
+      });
     });
-    expect(mockStartNavigated).not.toHaveBeenCalled();
-    expect(tokens).toEqual({
-      homepageReadyTraceToken: 1,
-      deeplinkNavigatedTraceToken: null,
+
+    it('starts Homepage Ready at the typed submit', () => {
+      startUnlockTraces(
+        keychainOptions({
+          handBack: { source: 'typed', submittedAt: 500 },
+          unlockEnteredAt: 520,
+        }),
+      );
+
+      expect(mockStartHomepage).toHaveBeenCalledWith(
+        expect.objectContaining({ startTime: MOCK_OFFSET + 500 }),
+      );
+    });
+
+    it('starts Homepage Ready at unlockWallet entry when a typed password has no submit time', () => {
+      startUnlockTraces(
+        keychainOptions({
+          handBack: { source: 'typed' },
+          unlockEnteredAt: 520,
+        }),
+      );
+
+      expect(mockStartHomepage).toHaveBeenCalledWith(
+        expect.objectContaining({ startTime: MOCK_OFFSET + 520 }),
+      );
+    });
+
+    it('tags unlocks that run onBeforeNavigate', () => {
+      startUnlockTraces(keychainOptions({ beforeNavigate: true }));
+
+      expect(mockStartHomepage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: { 'unlock.before_navigate': true },
+        }),
+      );
+    });
+
+    it('does not start Homepage Ready for rehydration', () => {
+      const tokens = startUnlockTraces(
+        keychainOptions({ existingUser: false }),
+      );
+
+      expect(mockStartHomepage).not.toHaveBeenCalled();
+      expect(tokens.homepageReadyTraceToken).toBeNull();
+    });
+
+    it('starts only Homepage Ready when no deeplink is pending', () => {
+      const tokens = startUnlockTraces(keychainOptions());
+
+      expect(mockStartNavigated).not.toHaveBeenCalled();
+      expect(tokens).toEqual({
+        homepageReadyTraceToken: 1,
+        deeplinkNavigatedTraceToken: null,
+      });
+    });
+
+    it('starts Deeplink Navigated at the same hand-back when a pending deeplink will divert the launch', () => {
+      mockAppState.pendingDeeplink = 'https://link.metamask.io/trending';
+
+      const tokens = startUnlockTraces(keychainOptions());
+
+      expect(mockStartNavigated).toHaveBeenCalledWith({
+        url: 'https://link.metamask.io/trending',
+        source: 'unlock',
+        appStartType: 'cold',
+        startTime: MOCK_OFFSET + 2_100,
+      });
+      expect(tokens).toEqual({
+        homepageReadyTraceToken: 1,
+        deeplinkNavigatedTraceToken: 2,
+      });
+    });
+
+    it('still starts Deeplink Navigated for rehydration', () => {
+      mockAppState.pendingDeeplink = 'https://link.metamask.io/trending';
+
+      startUnlockTraces(keychainOptions({ existingUser: false }));
+
+      expect(mockStartNavigated).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('also starts Deeplink Navigated when a pending deeplink will divert the launch', () => {
-    mockAppState.pendingDeeplink = 'https://link.metamask.io/trending';
+  describe('app start type', () => {
+    it('stamps the first unlock in the process cold and later ones warm', () => {
+      startUnlockTraces(keychainOptions());
+      markUnlockCompleted();
+      startUnlockTraces(keychainOptions());
 
-    const tokens = startUnlockTraces({ appStartType: 'cold' });
-
-    expect(mockStartNavigated).toHaveBeenCalledWith({
-      url: 'https://link.metamask.io/trending',
-      source: 'unlock',
-      appStartType: 'cold',
-    });
-    expect(tokens).toEqual({
-      homepageReadyTraceToken: 1,
-      deeplinkNavigatedTraceToken: 2,
-    });
-  });
-
-  it('remembers the unlock-session app start type for later resolve/parse', () => {
-    startUnlockTraces({ appStartType: 'warm' });
-
-    expect(getUnlockAppStartType()).toBe('warm');
-  });
-
-  it('falls back to getLoginAppStartType when nothing was captured', () => {
-    expect(getUnlockAppStartType()).toBe('cold');
-  });
-
-  it('clears the captured type after a failed unlock', () => {
-    startUnlockTraces({ appStartType: 'warm' });
-
-    cancelUnlockTraces({
-      homepageReadyTraceToken: 1,
-      deeplinkNavigatedTraceToken: 2,
+      expect(mockStartHomepage).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ appStartType: 'cold' }),
+      );
+      expect(mockStartHomepage).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ appStartType: 'warm' }),
+      );
     });
 
-    expect(getUnlockAppStartType()).toBe('cold');
-  });
+    it('keeps the next attempt cold when an unlock fails', () => {
+      const tokens = startUnlockTraces(keychainOptions());
+      cancelUnlockTraces(tokens);
+      startUnlockTraces(keychainOptions());
 
-  it('cancels both traces with the tokens the start returned', () => {
-    cancelUnlockTraces({
-      homepageReadyTraceToken: 1,
-      deeplinkNavigatedTraceToken: 2,
+      expect(mockStartHomepage).toHaveBeenLastCalledWith(
+        expect.objectContaining({ appStartType: 'cold' }),
+      );
     });
 
-    expect(mockCancelHomepage).toHaveBeenCalledWith({
-      reason: 'unlock_failed',
-      traceToken: 1,
+    it('remembers the unlock-session app start type for later resolve/parse', () => {
+      startUnlockTraces(keychainOptions());
+      markUnlockCompleted();
+
+      expect(getUnlockAppStartType()).toBe('cold');
     });
-    expect(mockCancelNavigated).toHaveBeenCalledWith({
-      reason: 'unlock_failed',
-      traceToken: 2,
+
+    it('falls back to the process start type when nothing was captured', () => {
+      expect(getUnlockAppStartType()).toBe('cold');
+
+      markUnlockCompleted();
+
+      expect(getUnlockAppStartType()).toBe('warm');
     });
-  });
 
-  it('reopens Deeplink Navigated after opt-in using the URL captured at unlock', () => {
-    mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
-    startUnlockTraces({ appStartType: 'cold' });
-    mockStartNavigated.mockClear();
-    mockAppState.pendingDeeplink = null;
-    clearUnlockAppStartType();
+    it('clears the captured type after a failed unlock', () => {
+      rememberUnlockAppStartType('warm');
 
-    resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'cold' });
+      cancelUnlockTraces({
+        homepageReadyTraceToken: 1,
+        deeplinkNavigatedTraceToken: 2,
+      });
 
-    expect(getUnlockAppStartType()).toBe('cold');
-    expect(mockStartNavigated).toHaveBeenCalledWith({
-      url: 'https://link.metamask.io/swap',
-      source: 'unlock',
-      appStartType: 'cold',
+      expect(getUnlockAppStartType()).toBe('cold');
     });
   });
 
-  it('does not reopen Deeplink Navigated after opt-in when unlock had no pending link', () => {
-    startUnlockTraces({ appStartType: 'warm' });
-    mockStartNavigated.mockClear();
+  describe('wasLeg2StartedThisProcess', () => {
+    it('is false before any unlock', () => {
+      expect(wasLeg2StartedThisProcess()).toBe(false);
+    });
 
-    resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'warm' });
+    it('is true once an unlock starts Homepage Ready', () => {
+      startUnlockTraces(keychainOptions());
 
-    expect(mockStartNavigated).not.toHaveBeenCalled();
-    expect(getUnlockAppStartType()).toBe('warm');
+      expect(wasLeg2StartedThisProcess()).toBe(true);
+    });
+
+    it('stays true after that unlock fails', () => {
+      cancelUnlockTraces(startUnlockTraces(keychainOptions()));
+
+      expect(wasLeg2StartedThisProcess()).toBe(true);
+    });
+
+    it('stays false when another Homepage Ready trace blocks the start', () => {
+      mockStartHomepage.mockReturnValueOnce(null);
+
+      startUnlockTraces(keychainOptions());
+
+      expect(wasLeg2StartedThisProcess()).toBe(false);
+    });
+
+    it('stays false for rehydration', () => {
+      startUnlockTraces(keychainOptions({ existingUser: false }));
+
+      expect(wasLeg2StartedThisProcess()).toBe(false);
+    });
   });
 
-  it('does not reopen Deeplink Navigated after a failed unlock', () => {
-    mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
-    const tokens = startUnlockTraces({ appStartType: 'cold' });
-    cancelUnlockTraces(tokens);
-    mockStartNavigated.mockClear();
+  describe('getUnlockHandBackTimestamps', () => {
+    it('keeps the keychain marks on the trace clock', () => {
+      startUnlockTraces(keychainOptions());
 
-    resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'cold' });
+      expect(getUnlockHandBackTimestamps()).toEqual({
+        source: 'keychain',
+        handBackAt: MOCK_OFFSET + 2_100,
+        unlockEnteredAt: MOCK_OFFSET + 50,
+        credentialDecryptedAt: MOCK_OFFSET + 2_400,
+      });
+    });
 
-    expect(mockStartNavigated).not.toHaveBeenCalled();
+    it('keeps the typed marks on the trace clock', () => {
+      startUnlockTraces(
+        keychainOptions({
+          handBack: { source: 'typed', submittedAt: 500 },
+          unlockEnteredAt: 520,
+        }),
+      );
+
+      expect(getUnlockHandBackTimestamps()).toEqual({
+        source: 'typed',
+        handBackAt: MOCK_OFFSET + 500,
+        unlockEnteredAt: MOCK_OFFSET + 520,
+      });
+    });
+
+    it('has no marks when Homepage Ready did not start', () => {
+      startUnlockTraces(keychainOptions());
+      mockStartHomepage.mockReturnValueOnce(null);
+
+      startUnlockTraces(keychainOptions());
+
+      expect(getUnlockHandBackTimestamps()).toBeNull();
+    });
+
+    it('drops the marks after a failed unlock', () => {
+      cancelUnlockTraces(startUnlockTraces(keychainOptions()));
+
+      expect(getUnlockHandBackTimestamps()).toBeNull();
+    });
+  });
+
+  describe('cancelUnlockTraces', () => {
+    it('cancels both traces with the tokens the start returned', () => {
+      cancelUnlockTraces({
+        homepageReadyTraceToken: 1,
+        deeplinkNavigatedTraceToken: 2,
+      });
+
+      expect(mockCancelHomepage).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
+        traceToken: 1,
+      });
+      expect(mockCancelNavigated).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
+        traceToken: 2,
+      });
+    });
+  });
+
+  describe('resumeUnlockDeeplinkNavigatedAfterOptIn', () => {
+    it('reopens Deeplink Navigated after opt-in using the URL captured at hand-back', () => {
+      mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
+      startUnlockTraces(keychainOptions());
+      mockStartNavigated.mockClear();
+      mockAppState.pendingDeeplink = null;
+      clearUnlockAppStartType();
+
+      resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'cold' });
+
+      expect(getUnlockAppStartType()).toBe('cold');
+      expect(mockStartNavigated).toHaveBeenCalledWith({
+        url: 'https://link.metamask.io/swap',
+        source: 'unlock',
+        appStartType: 'cold',
+      });
+    });
+
+    it('does not reopen Deeplink Navigated after opt-in when unlock had no pending link', () => {
+      startUnlockTraces(keychainOptions());
+      mockStartNavigated.mockClear();
+
+      resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'warm' });
+
+      expect(mockStartNavigated).not.toHaveBeenCalled();
+      expect(getUnlockAppStartType()).toBe('warm');
+    });
+
+    it('does not reopen Deeplink Navigated after a failed unlock', () => {
+      mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
+      const tokens = startUnlockTraces(keychainOptions());
+      cancelUnlockTraces(tokens);
+      mockStartNavigated.mockClear();
+
+      resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'cold' });
+
+      expect(mockStartNavigated).not.toHaveBeenCalled();
+    });
   });
 });

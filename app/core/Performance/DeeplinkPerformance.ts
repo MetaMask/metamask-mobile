@@ -14,7 +14,7 @@ import {
  * `.resolve` entry until immediately before navigation. It fires for every
  * deeplink and needs no destination cooperation, unlike Deeplink Ready.
  *
- * Navigated measures unlock submit or link intake until the
+ * Navigated measures unlock hand-back or link intake until the
  * navigation state commits on the target route. That is "navigation
  * committed", not "pixels on screen" — the startup saga burns an explicit
  * requestAnimationFrame for exactly that gap. First paint is per-route work
@@ -27,7 +27,8 @@ import {
  * Neither span measures human wait. The interstitial modal splits Processed
  * into `before_gate` / `after_gate` segments so the user's reaction time is a
  * hole between spans rather than noise inside one, and Navigated starts at
- * unlock submit so the password dwell is excluded.
+ * unlock hand-back (typed submit or keychain return) so the password dwell and
+ * the biometric prompt are excluded.
  *
  * Abandoned flows are deliberately left open: `trace.ts` times them out after
  * `TRACES_CLEANUP_INTERVAL` and `beforeSendTransaction` drops them.
@@ -35,7 +36,7 @@ import {
 
 /** Which DeeplinkManager method opened the Processed span. */
 export type DeeplinkProcessedSource = 'parse' | 'resolve';
-/** Where the Navigated clock started: unlock submit vs link intake. */
+/** Where the Navigated clock started: unlock hand-back vs link intake. */
 export type DeeplinkNavigatedSource = 'unlock' | 'intake';
 export type DeeplinkPerfAppStartType = 'cold' | 'warm';
 export type DeeplinkProcessedSeam = 'pre_navigate' | 'handler_finished';
@@ -381,7 +382,7 @@ export const cancelDeeplinkProcessedTrace = ({
 };
 
 /**
- * Starts the Navigated span: unlock submit on cold start, link intake when
+ * Starts the Navigated span: unlock hand-back on cold start, link intake when
  * already unlocked. No-ops for links that never navigate, and the in-flight
  * guard lets the unlock entry points and the startup fallback both call this
  * without replacing each other's span.

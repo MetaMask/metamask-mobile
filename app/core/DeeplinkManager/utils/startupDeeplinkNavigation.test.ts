@@ -11,7 +11,7 @@ import {
 } from './startupDeeplinkNavigation';
 import {
   rememberUnlockAppStartType,
-  resetUnlockAppStartTypeForTesting,
+  resetUnlockTracesForTesting,
 } from '../../Performance/unlockTraces';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
@@ -109,7 +109,7 @@ describe('startupDeeplinkNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetNextParseAppStartTypeForTesting();
-    resetUnlockAppStartTypeForTesting();
+    resetUnlockTracesForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     setRequestAnimationFrame(mockRequestAnimationFrame);
