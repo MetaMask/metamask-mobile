@@ -52,6 +52,7 @@ import SearchFeedRow, {
 } from '../../search/SearchFeedRow';
 import {
   getExploreSearchResultCount,
+  trackExploreSearchAbandoned,
   trackExploreSearchEvent,
   trackExploreSearchOpened,
   useInstrumentedSearchEffect,
@@ -651,6 +652,37 @@ const ExploreSearchScreen: React.FC = () => {
   const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const browserTabsCount = useSelector(selectBrowserTabCount);
   const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+  const isCancelPressedRef = useRef(false);
+
+  useEffect(() => {
+    // beforeRemove covers closing the screen (fires before blur); blur covers
+    // leaving it mounted, e.g. switching away from the nav-bar Search tab.
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      isCancelPressedRef.current = false;
+    });
+    const unsubscribeBeforeRemove = navigation.addListener(
+      'beforeRemove',
+      () => {
+        trackExploreSearchAbandoned(
+          isCancelPressedRef.current ? 'cancel' : 'back',
+          searchQueryRef.current,
+        );
+      },
+    );
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      trackExploreSearchAbandoned(
+        isCancelPressedRef.current ? 'cancel' : 'navigate_away',
+        searchQueryRef.current,
+      );
+    });
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBeforeRemove();
+      unsubscribeBlur();
+    };
+  }, [navigation]);
 
   const goBack = useCallback(() => {
     navigation.goBack();
@@ -667,6 +699,7 @@ const ExploreSearchScreen: React.FC = () => {
   }, [routeParams]);
 
   const handleSearchCancel = useCallback(() => {
+    isCancelPressedRef.current = true;
     setSearchQuery('');
     Keyboard.dismiss();
 

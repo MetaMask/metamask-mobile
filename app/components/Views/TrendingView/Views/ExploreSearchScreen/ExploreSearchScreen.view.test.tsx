@@ -498,6 +498,85 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     }
   });
 
+  it('tracks abandoned once with navigate_away when leaving through the browser tabs button', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        {
+          headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+          initialParams: { entryPoint: 'deeplink' },
+          overrides: {
+            browser: {
+              tabs: [{ id: 1, url: 'https://app.uniswap.org' }],
+            },
+          },
+        },
+      );
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(
+        await findByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+
+      const abandonedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'abandoned',
+      );
+      expect(abandonedEvents).toHaveLength(1);
+      expect(abandonedEvents[0][0]).toEqual(
+        expect.objectContaining({
+          name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+          properties: expect.objectContaining({
+            search_query: 'eth',
+            query_length: 3,
+            abandon_reason: 'navigate_away',
+            entry_point: 'deeplink',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('does not track abandoned when the user leaves through a footer result click', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        { initialParams: { entryPoint: 'deeplink' } },
+      );
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(
+        await findByTestId('trending-search-footer-search-link'),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+
+      const abandonedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'abandoned',
+      );
+      expect(abandonedEvents).toHaveLength(0);
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
   it('"All" pill is selected by default and pill row is present on mount', async () => {
     const { getByTestId } = renderExploreSearchScreenWithRoutes();
 
