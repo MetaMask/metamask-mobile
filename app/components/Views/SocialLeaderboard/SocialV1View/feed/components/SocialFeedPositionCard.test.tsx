@@ -1,6 +1,7 @@
 import React from 'react';
 import { lightTheme } from '@metamask/design-tokens';
 import { screen, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import SocialFeedPositionCard, {
@@ -251,6 +252,21 @@ describe('SocialFeedPositionCard', () => {
 
   // One line, one colour: the result carries the green/red, not the title.
   describe('closed card header', () => {
+    // The shell is a content-sized column. `flex-1` there is a zero height
+    // basis, so the title collapses and overflow-hidden clips the avatar.
+    it('does not flex the header against the card height', () => {
+      const item = mockClosedPerpsFeedItem();
+
+      renderWithProvider(<PositionCardBody item={item} />);
+
+      const style = StyleSheet.flatten(
+        screen.getByTestId('position-card-header-closed').props.style,
+      );
+      expect(style?.flex).toBeUndefined();
+      expect(style?.flexGrow).toBeUndefined();
+      expect(style?.width).toBe('100%');
+    });
+
     it('joins the symbol, leverage and direction into one title', () => {
       const item = mockClosedPerpsFeedItem();
 

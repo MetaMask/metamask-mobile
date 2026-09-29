@@ -138,11 +138,17 @@ const PositionCardHeader: React.FC<PositionCardHeaderProps> = ({
     layout === 'closed' ? TextColor.TextAlternative : TextColor.TextDefault;
 
   const identity = (
+    // `flex-1` is only safe in the open layout, where this row shares a Row
+    // with the P&L column, so the basis resolves against the *width*. The
+    // closed layout returns this row as the shell's first child, and the shell
+    // is a column sized by its content: there `flex-1` is a zero height basis,
+    // the title collapses, and the shell's overflow clips the leftover avatar.
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
-      twClassName="flex-1 min-w-0"
+      twClassName={layout === 'closed' ? 'w-full min-w-0' : 'flex-1 min-w-0'}
+      testID={layout === 'closed' ? 'position-card-header-closed' : undefined}
     >
       <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
       <Box twClassName="flex-1 min-w-0 gap-1">
