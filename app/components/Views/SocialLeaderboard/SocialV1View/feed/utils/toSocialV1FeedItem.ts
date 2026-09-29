@@ -6,7 +6,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { TraderFeedRow } from '../../../FeedView/hooks/useTraderFeed';
 import {
   formatHoldDuration,
+  formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
+  formatUsd,
 } from '../../../utils/formatters';
 import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
@@ -220,6 +222,16 @@ export function toSocialV1FeedItem(
     comment,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
+    // Abbreviated: the open card puts this under the percent in a column capped
+    // at 45% of the row, where a full `+$280,638.23` would not fit.
+    pnlValueLabel: isPresentNumber(core.pnlValueUsd)
+      ? formatSignedAbbreviatedUsd(core.pnlValueUsd)
+      : undefined,
+    // `boughtUsd` is what the P&L percent is already measured against, so a
+    // card's Cost and its percent agree by construction.
+    costLabel: isPresentNumber(core.boughtUsd)
+      ? formatUsd(Math.abs(core.boughtUsd))
+      : undefined,
     isPnlPositive: item.isPnlPositive,
     mockedFields,
   };
@@ -239,7 +251,6 @@ export function toSocialV1FeedItem(
         exitPrice == null ? undefined : formatTradeUnitPrice(exitPrice),
       holdTimeLabel:
         holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
-      statusLabel: strings('social_leaderboard.feed.position_card.closed'),
     };
 
     return isSpot
