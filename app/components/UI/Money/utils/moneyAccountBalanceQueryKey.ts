@@ -1,3 +1,4 @@
+import type { Json } from '@metamask/utils';
 import {
   getUsableLastLocalFlowConfirmedAt,
   type PersistedLocalMoneyFlow,
@@ -21,6 +22,11 @@ export interface MoneyBalanceFreshOptions {
   minBlock?: number;
 }
 
+/**
+ * `useQuery` requires `[string, ...Json[]]`. Named option objects are not
+ * assignable to `Json` (no index signature), so the third segment is typed as
+ * `Json` at the query-key boundary.
+ */
 export type MoneyAccountBalanceQueryKey =
   | [
       typeof MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
@@ -29,8 +35,23 @@ export type MoneyAccountBalanceQueryKey =
   | [
       typeof MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
       string,
-      MoneyBalanceFreshOptions,
+      Json,
     ];
+
+/**
+ * Builds a Json-compatible options object for the Money balance query key.
+ *
+ * @param options - Fresh-read options for the post-confirm window.
+ * @returns Options as a `Json` value for the query key / messenger args.
+ */
+export function toMoneyBalanceFreshOptionsJson(
+  options: MoneyBalanceFreshOptions,
+): Json {
+  return {
+    fresh: options.fresh,
+    ...(options.minBlock !== undefined ? { minBlock: options.minBlock } : {}),
+  };
+}
 
 /**
  * Builds the UI query key for the Money balance facade.
@@ -51,7 +72,7 @@ export function getMoneyAccountBalanceQueryKey(
     return [
       MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
       address,
-      freshOptions,
+      toMoneyBalanceFreshOptionsJson(freshOptions),
     ];
   }
   return [
