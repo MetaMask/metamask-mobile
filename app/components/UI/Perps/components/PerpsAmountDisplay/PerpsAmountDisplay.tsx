@@ -241,6 +241,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         </Text>
       )}
       <AnimatedAmountDisplay
+        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
         color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
         containerStyle={styles.amountRow}
         cursor={
@@ -259,7 +260,6 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
             ? styles.amountValueTokenAndroid
             : styles.amountValueToken
         }
-        testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
         value={displayValue}
         variant={TextVariant.BodyMd}
       />

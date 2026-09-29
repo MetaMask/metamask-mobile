@@ -64,6 +64,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
 
   return (
     <AnimatedAmountDisplay
+      accessibilityLabel={`${fiatSymbol ?? ''}${formattedAmount}`}
       containerStyle={styles.container}
       cursor={
         cursorVisible

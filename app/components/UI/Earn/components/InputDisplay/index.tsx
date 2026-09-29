@@ -217,6 +217,9 @@ const InputDisplay = ({
       </View>
       <View style={styles.amountRow}>
         <AnimatedAmountDisplay
+          accessibilityLabel={`${isFiat ? amountFiatNumber : amountToken} ${
+            isFiat ? currentCurrency.toUpperCase() : ticker
+          }`}
           color={DesignTextColor.TextDefault}
           containerStyle={styles.amountRow}
           cursor={

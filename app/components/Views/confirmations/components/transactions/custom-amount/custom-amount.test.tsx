@@ -26,6 +26,14 @@ describe('CustomAmount', () => {
     expect(getByText('123.45')).toBeOnTheScreen();
   });
 
+  it('exposes the amount on the press target', () => {
+    const { getByRole } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" currency="usd" onPress={jest.fn()} />,
+    );
+
+    expect(getByRole('button', { name: '$123.45' })).toBeOnTheScreen();
+  });
+
   it('renders the amount formatted with thousand separators', () => {
     mockFormatAmountWithLocaleSeparators.mockImplementation(() => '1,000,000');
 

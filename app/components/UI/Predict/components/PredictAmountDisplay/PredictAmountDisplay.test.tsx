@@ -71,7 +71,7 @@ describe('PredictAmountDisplay', () => {
       const { getByRole } = render(
         <PredictAmountDisplay amount={amount} onPress={onPressMock} />,
       );
-      fireEvent.press(getByRole('button'));
+      fireEvent.press(getByRole('button', { name: '$1000' }));
 
       expect(onPressMock).toHaveBeenCalledTimes(1);
     });

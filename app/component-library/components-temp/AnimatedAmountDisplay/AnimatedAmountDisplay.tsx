@@ -3,7 +3,6 @@ import {
   Animated as RNAnimated,
   Pressable,
   StyleSheet,
-  Text as RNText,
   View,
   type StyleProp,
   type TextStyle,
@@ -42,6 +41,7 @@ export interface AnimatedAmountCursorProps {
 }
 
 export interface AnimatedAmountDisplayProps {
+  accessibilityLabel?: string;
   amountTestID?: string;
   animated?: boolean;
   color?: TextColor;
@@ -66,6 +66,7 @@ export interface AnimatedAmountDisplayProps {
 }
 
 const AnimatedAmountDisplay = ({
+  accessibilityLabel,
   animated = true,
   amountTestID,
   color = TextColor.TextDefault,
@@ -90,6 +91,11 @@ const AnimatedAmountDisplay = ({
   const { colors } = useTheme();
   // Some existing Jest suites provide partial Reanimated mocks.
   const reduceMotion = useReducedMotion();
+  const pressableAccessibilityLabel =
+    accessibilityLabel ??
+    `${typeof prefix === 'string' ? prefix : ''}${value}${
+      typeof suffix === 'string' ? suffix : ''
+    }`;
   const cursorVisible = cursor !== false && cursor.visible !== false;
   const cursorAnimated =
     cursor !== false && cursor.animated !== false && !reduceMotion;
@@ -129,15 +135,18 @@ const AnimatedAmountDisplay = ({
   };
 
   const amount = fitToWidth ? (
-    <RNText
+    <Text
       adjustsFontSizeToFit
+      color={color}
+      fontWeight={fontWeight}
       minimumFontScale={minimumFontScale}
       numberOfLines={1}
       style={style}
       testID={amountTestID}
+      variant={variant}
     >
       {value}
-    </RNText>
+    </Text>
   ) : (
     <AnimatedNumericText
       animated={animated}
@@ -179,6 +188,7 @@ const AnimatedAmountDisplay = ({
 
   return (
     <Pressable
+      accessibilityLabel={pressableAccessibilityLabel}
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}

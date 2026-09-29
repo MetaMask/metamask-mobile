@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor, TextVariant } from '@metamask/design-system-react-native';
 import { useReducedMotion } from 'react-native-reanimated';
+import { Laminar } from 'react-native-laminar';
 
 import AnimatedAmountDisplay from './AnimatedAmountDisplay';
 
@@ -27,7 +28,7 @@ describe('AnimatedAmountDisplay', () => {
   it('renders affixes, amount, cursor, and a single press target', () => {
     const onPress = jest.fn();
 
-    const { getByTestId, getAllByTestId } = render(
+    const { getByRole, getByTestId, getAllByTestId } = render(
       <AnimatedAmountDisplay
         amountTestID="amount-body"
         animated={false}
@@ -45,6 +46,7 @@ describe('AnimatedAmountDisplay', () => {
     expect(getByTestId('amount-body')).toHaveTextContent('10');
     expect(getByTestId('amount-cursor')).toBeOnTheScreen();
     expect(getAllByTestId('amount-display')).toHaveLength(1);
+    expect(getByRole('button', { name: '$10' })).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('amount-display'));
 
@@ -52,9 +54,10 @@ describe('AnimatedAmountDisplay', () => {
   });
 
   it('renders a static fit-to-width amount without mounting a numeric animation', () => {
-    const { getByTestId } = render(
+    const { getByTestId, UNSAFE_queryAllByType } = render(
       <AnimatedAmountDisplay
         amountTestID="amount-body"
+        color={TextColor.ErrorDefault}
         fitToWidth
         testID="amount-display"
         value="123456789.123456"
@@ -62,5 +65,7 @@ describe('AnimatedAmountDisplay', () => {
     );
 
     expect(getByTestId('amount-body')).toHaveTextContent('123456789.123456');
+    expect(getByTestId('amount-body')).toHaveProp('adjustsFontSizeToFit', true);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
   });
 });

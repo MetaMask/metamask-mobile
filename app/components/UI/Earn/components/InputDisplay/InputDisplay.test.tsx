@@ -161,6 +161,15 @@ describe('InputDisplay', () => {
     expect(getByText('USDC')).toBeTruthy();
   });
 
+  it('exposes the amount and unit on the press target', () => {
+    const { getByRole } = renderComponent({
+      ...defaultProps,
+      onPressAmount: jest.fn(),
+    });
+
+    expect(getByRole('button', { name: '50 ETH' })).toBeOnTheScreen();
+  });
+
   it('calls handleCurrencySwitch when currency toggle is pressed', () => {
     const { getByTestId } = renderComponent();
     const currencyToggle = getByTestId('currency-toggle');
