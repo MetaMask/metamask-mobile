@@ -2,7 +2,8 @@ import type { SocialV1PerpDirection } from '../types';
 
 /**
  * Deterministic stand-ins for the enrichment the social API does not expose
- * yet: an open position's mark and its take-profit / stop-loss bracket.
+ * yet: an open position's mark, its take-profit / stop-loss bracket, and how
+ * many readers copied the trade.
  *
  * Every value is keyed by trader id and market symbol through a hash, so the
  * same person and market always get the same fake numbers. Without that, a
@@ -86,3 +87,17 @@ export const mockAutoClose = (
     stopLoss: entryPrice * (1 - winningSign * stopLossDistance),
   };
 };
+
+/**
+ * Copy counts a shared position plausibly attracts. Long-tailed rather than
+ * evenly spread, because most posts get a handful of copies and a few get many.
+ */
+const COPY_COUNTS = [0, 1, 1, 2, 3, 5, 8, 14, 27] as const;
+
+/**
+ * How many readers copied this post's trade. Nothing reports this yet, so it is
+ * hashed off the post id: stable per post, so a re-render or a page append
+ * cannot reshuffle it in front of the user.
+ */
+export const mockCopyCount = (postId: string): number =>
+  pick(COPY_COUNTS, postId);

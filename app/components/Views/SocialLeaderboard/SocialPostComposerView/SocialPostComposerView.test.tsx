@@ -39,6 +39,7 @@ jest.mock('../utils/perp', () => ({
 jest.mock('../utils/formatters', () => ({
   formatPercent: () => '+0.02%',
   formatSignedUsd: () => '+$1',
+  formatSignedAbbreviatedUsd: () => '+$1',
   formatTradeUnitPrice: () => '$1,842',
   formatUsd: () => '$720.00',
   formatFeedTimestamp: () => 'Now',
