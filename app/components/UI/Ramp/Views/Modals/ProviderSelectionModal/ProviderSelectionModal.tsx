@@ -146,7 +146,9 @@ function ProviderSelectionModal() {
 
   useRampScreenPerformance({
     screenId: RAMP_V2_SCREEN_ID.PROVIDER_SELECTION_MODAL,
-    contentReady: skipQuotes || quoteFetchParams === null || !quotesLoading,
+    contentReady:
+      skipQuotes ||
+      (quoteFetchParams !== null && (quotes != null || quotesError != null)),
     contentState: quotesError
       ? RAMP_SCREEN_CONTENT_STATE.ERROR
       : displayProviders.length === 0
