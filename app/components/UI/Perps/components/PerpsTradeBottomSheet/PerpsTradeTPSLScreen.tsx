@@ -40,6 +40,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
@@ -222,6 +223,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
   onSave,
 }) => {
   const { goBack } = usePerpsTradeSheet();
+  const { playImpact } = useHaptics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [focusedInput, setFocusedInput] = useState<TPSLInput | null>(null);
   const inputRefs = useRef<Record<TPSLInput, TextInput | null>>({
@@ -541,6 +543,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       return;
     }
 
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     dismissKeypad();
     setIsUpdating(true);
     try {
@@ -557,6 +560,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     goBack,
     isUpdating,
     onSave,
+    playImpact,
     hasChanges,
     isValid,
     stopLossPrice,

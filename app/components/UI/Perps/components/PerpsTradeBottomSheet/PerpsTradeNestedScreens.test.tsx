@@ -14,11 +14,14 @@ import {
   PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import {
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
   PerpsTradeTPSLScreen,
 } from './PerpsTradeNestedScreens';
+
+jest.mock('../../../../../util/haptics');
 
 const mockGoBack = jest.fn();
 const mockClose = jest.fn();
@@ -286,6 +289,19 @@ describe('PerpsTradeNestedScreens', () => {
       expect(onSave).toHaveBeenCalledWith('110', '90');
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('does not play a haptic when Save has nothing to commit', () => {
+    mockHasChanges = false;
+    const onSave = jest.fn();
+    render(<PerpsTradeTPSLScreen {...defaultProps} onSave={onSave} />);
+
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(onSave).not.toHaveBeenCalled();
   });
 
   it('stays on the screen and disables Save while saving', async () => {

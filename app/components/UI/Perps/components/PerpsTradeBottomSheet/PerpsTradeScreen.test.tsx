@@ -7,9 +7,12 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
+
+jest.mock('../../../../../util/haptics');
 
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
@@ -204,6 +207,8 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
     );
     expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
     expect(screen.getByLabelText('Market order type')).toBeOnTheScreen();
     expect(
