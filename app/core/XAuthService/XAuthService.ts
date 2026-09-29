@@ -178,3 +178,18 @@ export async function refreshXToken(): Promise<XTokens> {
 export async function disconnectX(): Promise<void> {
   await clearTokens();
 }
+
+/**
+ * Returns whether X OAuth tokens are stored locally. Used to decide
+ * whether the UI should offer connecting X or show a connected state.
+ * A failed keychain read (e.g. corrupt stored JSON) is treated as
+ * "not connected" rather than propagating the error.
+ */
+export async function isXConnected(): Promise<boolean> {
+  try {
+    const tokens = await getTokens();
+    return tokens !== null;
+  } catch {
+    return false;
+  }
+}

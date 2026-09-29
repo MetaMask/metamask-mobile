@@ -1203,6 +1203,12 @@
     },
     "profile_create": {
       "coming_soon_title": "Profile creation coming soon",
+      "connect_x": {
+        "cta": "Connect X",
+        "connecting": "Connecting...",
+        "connected_description": "Your X account is connected.",
+        "error_toast": "Couldn't connect your X account. Try again."
+      },
       "steps": {
         "next_cta": "Next",
         "get_started_cta": "Get started",

@@ -1,5 +1,12 @@
 // Third party dependencies.
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,9 +20,20 @@ import {
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../component-library/components-temp/StepperCard';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import {
+  connectX,
+  isXConnected,
+  XAuthError,
+  XAuthErrorType,
+} from '../../../../core/XAuthService';
 
 // Internal dependencies.
 import { ProfileCreateViewSelectorsIDs } from '../ProfileDrawer.testIds';
@@ -28,19 +46,97 @@ import { useProfileDrawerStyles } from '../ProfileDrawer.styles';
 const PROFILE_CREATE_TOTAL_STEPS = 3;
 
 /**
- * ProfileCreate — placeholder screen for the future social profile creation
- * flow (see docs/profile-drawer-design.md). Shows a 3-step onboarding stepper
- * as a UI-only preview; step progress is intentionally not persisted and
- * the screen only dismisses itself.
+ * Coerces an unknown thrown value to an Error so it can be passed to
+ * Logger.error (which requires an Error) without unsafe casts.
+ */
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+/**
+ * ProfileCreate — profile creation onboarding flow (see
+ * docs/profile-drawer-design.md). Step 1 connects the user's X (Twitter)
+ * account through XAuthService's OAuth PKCE flow (skipped when X is
+ * already connected); steps 2–3 preview the remaining onboarding.
+ * Step progress is intentionally not persisted and the screen only
+ * dismisses itself.
  */
 const ProfileCreate: React.FC = () => {
   const styles = useProfileDrawerStyles();
   const navigation = useNavigation<AppNavigationProp>();
+  const { toastRef } = useContext(ToastContext);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const isConnectingRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isXConnected()
+      .then((connected) => {
+        if (isMountedRef.current) {
+          setIsConnected(connected);
+        }
+      })
+      .catch(() => {
+        // isXConnected resolves false on keychain read failures;
+        // nothing to do.
+      });
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleConnectX = useCallback(async () => {
+    // Double-press guard: the CTA is also disabled while connecting, but
+    // a rapid second tap can re-enter before the disabled state commits.
+    if (isConnectingRef.current) {
+      return;
+    }
+    isConnectingRef.current = true;
+    if (isMountedRef.current) {
+      setIsConnecting(true);
+    }
+
+    try {
+      await connectX();
+      if (isMountedRef.current) {
+        setIsConnected(true);
+        setCurrentStep((step) => step + 1);
+      }
+    } catch (error) {
+      // A user cancellation or consent denial is not an error — stay on
+      // step 1 silently.
+      if (
+        !(
+          error instanceof XAuthError &&
+          error.type === XAuthErrorType.UserCancelled
+        )
+      ) {
+        Logger.error(toError(error), 'ProfileCreate: X connect failed');
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings(
+                'profile_drawer.profile_create.connect_x.error_toast',
+              ),
+            },
+          ],
+          hasNoTimeout: false,
+        });
+      }
+    } finally {
+      isConnectingRef.current = false;
+      if (isMountedRef.current) {
+        setIsConnecting(false);
+      }
+    }
+  }, [toastRef]);
 
   const steps = useMemo((): StepperCardStep[] => {
     const goToNextStep = () => setCurrentStep((step) => step + 1);
@@ -48,20 +144,32 @@ const ProfileCreate: React.FC = () => {
     return [
       {
         title: strings('profile_drawer.profile_create.steps.step_1.title'),
-        description: strings(
-          'profile_drawer.profile_create.steps.step_1.description',
-        ),
+        description: isConnected
+          ? strings(
+              'profile_drawer.profile_create.connect_x.connected_description',
+            )
+          : strings('profile_drawer.profile_create.steps.step_1.description'),
+        /* eslint-disable-next-line @typescript-eslint/no-require-imports */
         image: require('../../../../images/branding/fox.png'),
-        primaryCta: {
-          text: strings('profile_drawer.profile_create.steps.next_cta'),
-          onPress: goToNextStep,
-        },
+        primaryCta: isConnected
+          ? {
+              text: strings('profile_drawer.profile_create.steps.next_cta'),
+              onPress: goToNextStep,
+            }
+          : {
+              text: isConnecting
+                ? strings('profile_drawer.profile_create.connect_x.connecting')
+                : strings('profile_drawer.profile_create.connect_x.cta'),
+              onPress: handleConnectX,
+              disabled: isConnecting,
+            },
       },
       {
         title: strings('profile_drawer.profile_create.steps.step_2.title'),
         description: strings(
           'profile_drawer.profile_create.steps.step_2.description',
         ),
+        /* eslint-disable-next-line @typescript-eslint/no-require-imports */
         image: require('../../../../images/branding/fox.png'),
         primaryCta: {
           text: strings('profile_drawer.profile_create.steps.next_cta'),
@@ -73,6 +181,7 @@ const ProfileCreate: React.FC = () => {
         description: strings(
           'profile_drawer.profile_create.steps.step_3.description',
         ),
+        /* eslint-disable-next-line @typescript-eslint/no-require-imports */
         image: require('../../../../images/branding/fox.png'),
         primaryCta: {
           text: strings('profile_drawer.profile_create.steps.get_started_cta'),
@@ -81,7 +190,7 @@ const ProfileCreate: React.FC = () => {
         },
       },
     ];
-  }, []);
+  }, [isConnected, isConnecting, handleConnectX]);
 
   return (
     <SafeAreaView

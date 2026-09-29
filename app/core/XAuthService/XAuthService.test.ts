@@ -3,7 +3,12 @@ import {
   exchangeCodeAsync,
   refreshAsync,
 } from 'expo-auth-session';
-import { connectX, refreshXToken, disconnectX } from './XAuthService';
+import {
+  connectX,
+  refreshXToken,
+  disconnectX,
+  isXConnected,
+} from './XAuthService';
 import { setTokens, getTokens, clearTokens } from './XTokenStorage';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 
@@ -249,5 +254,35 @@ describe('disconnectX', () => {
     await disconnectX();
 
     expect(clearTokens).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('isXConnected', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when tokens are stored', async () => {
+    (getTokens as jest.Mock).mockResolvedValue({
+      accessToken: 'access-123',
+      refreshToken: 'refresh-456',
+      expiresAt: 1735689600000,
+    });
+
+    await expect(isXConnected()).resolves.toBe(true);
+  });
+
+  it('returns false when no tokens are stored', async () => {
+    (getTokens as jest.Mock).mockResolvedValue(null);
+
+    await expect(isXConnected()).resolves.toBe(false);
+  });
+
+  it('returns false when the keychain read rejects', async () => {
+    (getTokens as jest.Mock).mockRejectedValue(
+      new SyntaxError('Unexpected token in JSON'),
+    );
+
+    await expect(isXConnected()).resolves.toBe(false);
   });
 });
