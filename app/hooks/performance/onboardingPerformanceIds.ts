@@ -29,7 +29,6 @@ export type OnboardingScreenId =
 
 export const OnboardingRiveAnimationIds = {
   FOX_LOADER: 'fox_loader',
-  ONBOARDING_WORDMARK: 'onboarding_wordmark',
   FOX_APPEAR: 'fox_appear',
 } as const;
 

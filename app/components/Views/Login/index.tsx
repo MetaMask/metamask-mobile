@@ -10,11 +10,9 @@ import {
   BackHandler,
   TouchableOpacity,
   Platform,
-  Image,
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -33,6 +31,7 @@ import {
   KeyboardController,
   AndroidSoftInputModes,
 } from 'react-native-keyboard-controller';
+import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -86,6 +85,8 @@ import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEv
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import Device from '../../../util/device';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
@@ -163,6 +164,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
+  const canvasColor =
+    themeAppearance === 'dark'
+      ? colors.background.default
+      : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   const {
     unlockWallet,
@@ -181,8 +186,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       tags: loginPerformanceTags.current,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    setStartFoxAnimation('Start');
   }, [saveOnboardingEvent]);
+
+  const handleStartFoxAnimation = useCallback(() => {
+    setStartFoxAnimation('Start');
+  }, []);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
@@ -575,132 +583,130 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
   };
 
+  const renderWordmark = (wordmark: React.ReactElement) => (
+    <TouchableOpacity
+      testID={LoginViewSelectors.DOWNLOAD_LOGS_BUTTON}
+      delayLongPress={10 * 1000}
+      onLongPress={handleDownloadStateLogs}
+      activeOpacity={1}
+    >
+      {wordmark}
+    </TouchableOpacity>
+  );
+
+  const ctaSize = Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg;
+
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView style={tw.style('flex-1')}>
-        <KeyboardAwareScrollView
-          keyboardShouldPersistTaps="handled"
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-1')}
-          extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
-          enableOnAndroid
-          enableResetScrollToCoords={false}
-        >
-          <Box
-            testID={LoginViewSelectors.CONTAINER}
-            flexDirection={BoxFlexDirection.Column}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Start}
-            paddingHorizontal={6}
-            twClassName="flex-1 w-full pt-20"
+      {/*
+        Mirrors the onboarding landing canvas: the root owns the background so
+        it extends into the Android bottom gesture inset, and only the top
+        edge is safe-area padded.
+      */}
+      <Box
+        twClassName="flex-1"
+        style={tw.style({ backgroundColor: canvasColor })}
+      >
+        <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('flex-1')}
+            extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
+            enableOnAndroid
+            enableResetScrollToCoords={false}
           >
-            <TouchableOpacity
-              testID={LoginViewSelectors.DOWNLOAD_LOGS_BUTTON}
-              delayLongPress={10 * 1000}
-              onLongPress={handleDownloadStateLogs}
-              activeOpacity={1}
-            >
-              <Image
-                source={METAMASK_NAME}
-                style={[
-                  tw.style('w-40 h-20 self-center mt-[60px] mb-[60px]'),
-                  { tintColor: colors.icon.default },
-                ]}
-                resizeMode="contain"
-                resizeMethod={'auto'}
-              />
-            </TouchableOpacity>
             <Box
-              flexDirection={BoxFlexDirection.Column}
-              justifyContent={BoxJustifyContent.Start}
-              gap={2}
-              marginBottom={2}
-              twClassName="w-full mt-[80px]"
-            >
-              <TextField
-                placeholder={strings('login.password_placeholder')}
-                inputRef={fieldRef}
-                onChangeText={handlePasswordChange}
-                value={password}
-                endAccessory={
-                  capabilities ? (
-                    <DeviceAuthenticationButton
-                      disabled={loading}
-                      onPress={unlockWithDeviceAuthentication}
-                      hidden={shouldHideDeviceAuthenticationButton}
-                      iconName={capabilities.authIcon}
-                    />
-                  ) : null
-                }
-                isError={!!error}
-                isDisabled={loading}
-                inputProps={{
-                  testID: LoginViewSelectors.PASSWORD_INPUT,
-                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
-                  returnKeyType: 'done',
-                  autoCapitalize: 'none',
-                  secureTextEntry: true,
-                  onSubmitEditing: unlockWithPassword,
-                  keyboardAppearance: themeAppearance,
-                }}
-              />
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              justifyContent={BoxJustifyContent.Start}
-              twClassName="self-start"
-            >
-              {!!error && (
-                <HelpText
-                  severity={HelpTextSeverity.Error}
-                  variant={DSTextVariant.BodyMD}
-                  testID={LoginViewSelectors.PASSWORD_ERROR}
-                >
-                  {error}
-                </HelpText>
-              )}
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Column}
               alignItems={BoxAlignItems.Center}
-              twClassName="w-full"
-              pointerEvents="box-none"
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="flex-1 py-4"
             >
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={unlockWithPassword}
-                isDisabled={password.length === 0 || loading}
-                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                isLoading={loading}
-                twClassName="mt-1"
-                isFullWidth
+              <Box
+                testID={LoginViewSelectors.CONTAINER}
+                justifyContent={BoxJustifyContent.Between}
+                alignItems={BoxAlignItems.Center}
+                twClassName="flex-1 w-full px-5"
               >
-                {strings('login.unlock_button')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonSize.Lg}
-                onPress={toggleWarningModal}
-                isDisabled={loading}
-                testID={LoginViewSelectors.RESET_WALLET}
-                isFullWidth
-                twClassName="mt-4"
-              >
-                {strings('login.forgot_password')}
-              </Button>
+                <OnboardingAnimation
+                  startOnboardingAnimation
+                  setStartFoxAnimation={handleStartFoxAnimation}
+                  renderWordmark={renderWordmark}
+                >
+                  <Box flexDirection={BoxFlexDirection.Column} gap={2}>
+                    <TextField
+                      placeholder={strings('login.password_placeholder')}
+                      inputRef={fieldRef}
+                      onChangeText={handlePasswordChange}
+                      value={password}
+                      endAccessory={
+                        capabilities ? (
+                          <DeviceAuthenticationButton
+                            disabled={loading}
+                            onPress={unlockWithDeviceAuthentication}
+                            hidden={shouldHideDeviceAuthenticationButton}
+                            iconName={capabilities.authIcon}
+                          />
+                        ) : null
+                      }
+                      isError={!!error}
+                      isDisabled={loading}
+                      inputProps={{
+                        testID: LoginViewSelectors.PASSWORD_INPUT,
+                        accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                        returnKeyType: 'done',
+                        autoCapitalize: 'none',
+                        secureTextEntry: true,
+                        onSubmitEditing: unlockWithPassword,
+                        keyboardAppearance: themeAppearance,
+                      }}
+                    />
+                    {!!error && (
+                      <HelpText
+                        severity={HelpTextSeverity.Error}
+                        variant={DSTextVariant.BodyMD}
+                        testID={LoginViewSelectors.PASSWORD_ERROR}
+                      >
+                        {error}
+                      </HelpText>
+                    )}
+                  </Box>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ctaSize}
+                    onPress={unlockWithPassword}
+                    isDisabled={password.length === 0 || loading}
+                    testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                    isLoading={loading}
+                    isFullWidth
+                  >
+                    {strings('login.unlock_button')}
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ctaSize}
+                    onPress={toggleWarningModal}
+                    isDisabled={loading}
+                    testID={LoginViewSelectors.RESET_WALLET}
+                    isFullWidth
+                  >
+                    {strings('login.forgot_password')}
+                  </Button>
+                </OnboardingAnimation>
+              </Box>
             </Box>
-          </Box>
-        </KeyboardAwareScrollView>
-        <FadeOutOverlay />
+          </KeyboardAwareScrollView>
+          <FadeOutOverlay />
+          <ScreenshotDeterrent enabled isSRP={false} />
+        </SafeAreaView>
+
         {!hasTestOverrides && (
-          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
+          <FoxAnimation
+            hasFooter={false}
+            trigger={startFoxAnimation}
+            fullBleedBottom
+          />
         )}
-        <ScreenshotDeterrent enabled isSRP={false} />
-      </SafeAreaView>
+      </Box>
     </ErrorBoundary>
   );
 };
