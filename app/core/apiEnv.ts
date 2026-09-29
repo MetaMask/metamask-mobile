@@ -4,10 +4,9 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
  * Cluster that selects which backend env mobile talks to.
  *
  * Hosts are grouped in `builds.yml` (`api_prod`, `api_dev`, `api_uat`).
- * Enum clients do not read those URLs. When `MM_API_ENV` is unset, the
- * flavor selects their cluster: `dev` → dev, `exp` → uat, and every
- * other flavor → prod. Set `MM_API_ENV` only when that flavor would
- * pick the wrong cluster. A local `.js.env` overrides the build.
+ * Each anchor sets `MM_API_ENV`, which enum clients read. When it is
+ * unset, the flavor selects the cluster: `dev` → dev, `exp` → uat, and
+ * every other flavor → prod. A local `.js.env` overrides the build.
  * Services without a host for the selected env keep their own URL.
  *
  * Read synchronously at controller-init time — no Redux, no remote flag,

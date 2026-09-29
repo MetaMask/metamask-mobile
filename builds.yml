@@ -22,10 +22,11 @@
 # Shared env (non-secret): servers + build flags. Production defaults.
 # Service hosts are grouped per cluster (`&api_prod`, `&api_dev`, `&api_uat`).
 # A build merges one group with `<<: *anchor` and overrides only what differs.
-# Enum clients (auth, ramps, Transak) do not read these URLs. They follow
-# METAMASK_ENVIRONMENT unless a build sets MM_API_ENV because the flavor
-# would pick the wrong cluster. A local `.js.env` wins over this file.
+# Enum clients (auth, ramps, Transak) do not read these URLs. Each anchor
+# sets MM_API_ENV so those clients stay on the same cluster as the hosts.
+# A local `.js.env` wins over this file.
 _api_prod: &api_prod
+  MM_API_ENV: 'prod'
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
   MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
@@ -70,6 +71,7 @@ _public_envs: &public_envs # Production hosts plus build flags
 # IDOS is not a cx host, so it stays on the build that needs it.
 _api_dev: &api_dev
   <<: *public_envs
+  MM_API_ENV: 'dev'
   MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
   MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
   REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
@@ -86,6 +88,7 @@ _api_dev: &api_dev
 # UAT host, so they stay on whatever the build sets after this merge.
 _api_uat: &api_uat
   <<: *public_envs
+  MM_API_ENV: 'uat'
   REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
   REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
   CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
@@ -466,9 +469,6 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      # Inherits production service URLs. Pin prod so the exp flavor does not
-      # select the UAT cluster.
-      MM_API_ENV: 'prod'
     secrets:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
@@ -491,9 +491,6 @@ builds:
       OAUTH_BUILD_TYPE: 'main_uat'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-      # Inherits production service URLs. Pin prod so the exp flavor does not
-      # select the UAT cluster.
-      MM_API_ENV: 'prod'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
