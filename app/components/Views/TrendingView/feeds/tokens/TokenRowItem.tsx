@@ -15,6 +15,8 @@ interface TokenRowItemProps {
   tokenDetailsSource?: TokenDetailsSource;
   /** Called synchronously before the card's press handler fires. */
   onCardPress?: () => void;
+  /** When provided, shows the Quick Trade button on the row. */
+  onQuickTrade?: (token: TrendingAsset) => void;
 }
 
 /** Token row used inside the home tabs. */
@@ -23,6 +25,7 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
   index,
   tokenDetailsSource,
   onCardPress,
+  onQuickTrade,
 }) => (
   <TrendingTokenRowItem
     token={token}
@@ -30,6 +33,9 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
     filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
     tokenDetailsSource={tokenDetailsSource}
     onCardPress={onCardPress}
+    endAction={
+      onQuickTrade ? { type: 'quick-trade', onPress: onQuickTrade } : undefined
+    }
   />
 );
 
@@ -37,11 +43,17 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
 export const TokenSearchRowItem: React.FC<TokenRowItemProps> = ({
   token,
   index,
+  tokenDetailsSource,
+  onQuickTrade,
 }) => (
   <TrendingTokenRowItem
     token={token}
     position={index}
     filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
+    tokenDetailsSource={tokenDetailsSource}
+    endAction={
+      onQuickTrade ? { type: 'quick-trade', onPress: onQuickTrade } : undefined
+    }
   />
 );
 

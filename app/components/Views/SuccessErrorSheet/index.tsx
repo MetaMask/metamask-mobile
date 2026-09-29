@@ -1,26 +1,22 @@
-import React, { useRef } from 'react';
-import { View } from 'react-native';
-import Text from '../../../component-library/components/Texts/Text';
+import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  Box,
+  ButtonsAlignment,
+  ButtonSize,
+  HeaderStandard,
+  IconAlertSeverity,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
-import { useTheme } from '../../../util/theme';
-import styles from './index.styles';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
+  TitleAlert,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { SuccessErrorSheetParams } from './interface';
+import { SuccessErrorSheetSelectorsIDs } from './SuccessErrorSheet.testIds';
 
 export interface SuccessErrorSheetProps {
   route: { params: SuccessErrorSheetParams };
@@ -33,7 +29,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     customButton,
     type = 'success',
-    icon,
     secondaryButtonLabel,
     onSecondaryButtonPress,
     primaryButtonLabel,
@@ -42,118 +37,112 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     closeOnPrimaryButtonPress = false,
     closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
-    descriptionAlign = 'left',
-    iconColor,
   } = route.params;
 
-  const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
+  const handleClose = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
+  const handleHeaderClose = useCallback(() => {
+    if (!sheetRef.current) {
+      navigation.goBack();
+      onClose?.();
+      return;
     }
-  };
+    sheetRef.current.onCloseBottomSheet();
+  }, [navigation, onClose]);
 
   const handleSecondaryButtonPress = () => {
-    closeOnSecondaryButtonPress && navigation.goBack();
-    if (onSecondaryButtonPress) {
-      onSecondaryButtonPress();
+    if (closeOnSecondaryButtonPress) {
+      navigation.goBack();
     }
+    onSecondaryButtonPress?.();
   };
 
   const handlePrimaryButtonPress = () => {
-    closeOnPrimaryButtonPress && navigation.goBack();
-    if (onPrimaryButtonPress) {
-      onPrimaryButtonPress();
+    if (closeOnPrimaryButtonPress) {
+      navigation.goBack();
     }
+    onPrimaryButtonPress?.();
   };
 
-  const getIcon =
-    icon || (type === 'success' ? IconName.Confirmation : IconName.CircleX);
+  const hasFooterButtons = Boolean(secondaryButtonLabel || primaryButtonLabel);
 
-  const getIconColor =
-    iconColor ||
-    (type === 'success' ? colors.success.default : colors.error.default);
+  const headerCloseProps = isInteractable
+    ? {
+        onClose: handleHeaderClose,
+        closeButtonProps: {
+          testID: SuccessErrorSheetSelectorsIDs.CLOSE_BUTTON,
+        },
+      }
+    : {};
 
   return (
     <BottomSheet
       ref={sheetRef}
+      goBack={navigation.goBack}
       onClose={handleClose}
       isInteractable={isInteractable}
+      keyboardAvoidingViewEnabled={false}
+      testID={SuccessErrorSheetSelectorsIDs.SHEET}
     >
-      <View style={styles.statusContainer}>
-        <Icon name={getIcon} size={IconSize.Xl} color={getIconColor} />
-
-        {typeof title === 'string' ? (
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={styles.title}
-          >
-            {title}
-          </Text>
-        ) : (
-          title
-        )}
-
+      <HeaderStandard title="" {...headerCloseProps} />
+      <Box twClassName="px-4 pb-6 gap-2">
+        <TitleAlert
+          severity={
+            type === 'success'
+              ? IconAlertSeverity.Success
+              : IconAlertSeverity.Danger
+          }
+          title={title}
+          titleProps={{
+            testID: SuccessErrorSheetSelectorsIDs.TITLE,
+          }}
+        />
         {typeof description === 'string' ? (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            style={
-              descriptionAlign === 'center'
-                ? styles.descriptionCenter
-                : styles.descriptionLeft
-            }
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-left"
+            testID={SuccessErrorSheetSelectorsIDs.DESCRIPTION}
           >
             {description}
           </Text>
         ) : (
           description
         )}
-
-        {secondaryButtonLabel || primaryButtonLabel ? (
-          <View
-            style={[
-              styles.ctaContainer,
-              reverseButtonOrder && styles.reverseCtaContainer,
-            ]}
-          >
-            {secondaryButtonLabel && (
-              <Button
-                variant={ButtonVariants.Secondary}
-                label={secondaryButtonLabel}
-                width={ButtonWidthTypes.Full}
-                style={
-                  primaryButtonLabel && secondaryButtonLabel
-                    ? styles.statusButton
-                    : styles.fullWidthButton
+      </Box>
+      {hasFooterButtons ? (
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          primaryButtonProps={
+            primaryButtonLabel
+              ? {
+                  children: primaryButtonLabel,
+                  onPress: handlePrimaryButtonPress,
+                  size: ButtonSize.Lg,
+                  testID: SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON,
                 }
-                onPress={handleSecondaryButtonPress}
-                size={ButtonSize.Lg}
-              />
-            )}
-            {primaryButtonLabel && (
-              <Button
-                variant={ButtonVariants.Primary}
-                label={primaryButtonLabel}
-                width={ButtonWidthTypes.Full}
-                style={
-                  primaryButtonLabel && secondaryButtonLabel
-                    ? styles.statusButton
-                    : styles.fullWidthButton
+              : undefined
+          }
+          secondaryButtonProps={
+            secondaryButtonLabel
+              ? {
+                  children: secondaryButtonLabel,
+                  onPress: handleSecondaryButtonPress,
+                  size: ButtonSize.Lg,
+                  testID: SuccessErrorSheetSelectorsIDs.SECONDARY_BUTTON,
                 }
-                onPress={handlePrimaryButtonPress}
-                size={ButtonSize.Lg}
-              />
-            )}
-          </View>
-        ) : (
-          customButton
-        )}
-      </View>
+              : undefined
+          }
+          twClassName={reverseButtonOrder ? 'flex-row-reverse' : undefined}
+        />
+      ) : (
+        customButton
+      )}
     </BottomSheet>
   );
 };

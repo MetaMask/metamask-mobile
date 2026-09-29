@@ -32,13 +32,13 @@ const PillRow: React.FC<PillRowProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="-mx-4 mb-2">
+    <Box>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         testID={`${testIdPrefix}-pills`}
-        contentContainerStyle={tw.style('px-4')}
+        contentContainerStyle={tw.style('px-4 py-3')}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -55,7 +55,7 @@ const PillRow: React.FC<PillRowProps> = ({
                 onPress={() => onSelect(pill.key)}
                 testID={`${testIdPrefix}-pill-${pill.key}`}
                 style={tw.style(
-                  'rounded-xl px-[12px] py-2',
+                  'rounded-full px-[12px] py-2',
                   isSelected ? 'bg-icon-default' : 'bg-muted',
                 )}
               >

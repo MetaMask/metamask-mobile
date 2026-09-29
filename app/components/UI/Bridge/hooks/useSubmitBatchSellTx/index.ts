@@ -1,17 +1,26 @@
 import { useSelector } from 'react-redux';
 import type {
   MetaMetricsSwapsEventSource,
-  QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
 
 import Engine from '../../../../../core/Engine';
-import { selectBatchSellDestToken } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBatchSellDestToken,
+  selectBatchSellSourceTokens,
+} from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../constants/bridge';
 
 export function useSubmitBatchSellTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const sourceTokens = useSelector(selectBatchSellSourceTokens);
+  const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
+  const smartTransactionsEnabled = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, batchSellChainId),
+  );
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
   const destToken = useSelector(selectBatchSellDestToken);
 
@@ -19,7 +28,7 @@ export function useSubmitBatchSellTx() {
     quoteResponses,
     location,
   }: {
-    quoteResponses: ((QuoteResponse & QuoteMetadata) | null)[];
+    quoteResponses: (QuoteResponse | null)[];
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
   }) => {
@@ -28,22 +37,15 @@ export function useSubmitBatchSellTx() {
     }
 
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
-    const normalizedQuoteResponses = quoteResponses.map((quoteResponse) =>
-      quoteResponse
-        ? {
-            ...quoteResponse,
-            approval: quoteResponse.approval ?? undefined,
-          }
-        : quoteResponse,
-    );
 
     return await Engine.context.BridgeStatusController.submitBatchSell({
-      quoteResponses: normalizedQuoteResponses,
+      quoteResponses,
       accountAddress: walletAddress,
       location,
-      isStxEnabled: stxEnabled,
+      isStxEnabled: smartTransactionsEnabled,
       quotesReceivedContext: undefined,
       tokenSecurityTypeDestination,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
   };
 

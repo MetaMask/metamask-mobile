@@ -21,10 +21,14 @@ const createOutcome = ({
   id,
   price,
   status = PredictMarketStatus.OPEN,
+  volume = 10_000,
+  sportsMarketType,
 }: {
   id: string;
   price?: number;
   status?: PredictMarketStatus;
+  volume?: number;
+  sportsMarketType?: string;
 }): PredictOutcome => ({
   id,
   providerId: 'polymarket',
@@ -40,8 +44,9 @@ const createOutcome = ({
           { id: `${id}-yes`, title: 'Yes', price },
           { id: `${id}-no`, title: 'No', price: 1 - price },
         ],
-  volume: 100,
+  volume,
   groupItemTitle: id,
+  ...(sportsMarketType && { sportsMarketType }),
 });
 
 const createMarket = ({
@@ -53,6 +58,7 @@ const createMarket = ({
   isHighlighted,
   outcomeGroups,
   game,
+  tags = [],
 }: {
   id: string;
   outcomes?: PredictOutcome[];
@@ -62,6 +68,7 @@ const createMarket = ({
   isHighlighted?: boolean;
   outcomeGroups?: PredictOutcomeGroup[];
   game?: PredictMarket['game'];
+  tags?: string[];
 }): PredictMarket => ({
   id,
   providerId: 'polymarket',
@@ -72,11 +79,11 @@ const createMarket = ({
   status,
   recurrence,
   category: 'trending',
-  tags: [],
+  tags,
   outcomes,
   ...(outcomeGroups && { outcomeGroups }),
   liquidity: 100,
-  volume: 100,
+  volume: 10_000,
   ...(endDate && { endDate }),
   ...(isHighlighted && { isHighlighted }),
   ...(game && { game }),
@@ -112,19 +119,19 @@ describe('marketStaleness', () => {
   describe('isPredictOutcomeDead', () => {
     it('treats probabilities at or beyond the dead thresholds as dead', () => {
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'high', price: 0.95 })),
+        isPredictOutcomeDead(createOutcome({ id: 'high', price: 0.99 })),
       ).toBe(true);
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'low', price: 0.05 })),
+        isPredictOutcomeDead(createOutcome({ id: 'low', price: 0.01 })),
       ).toBe(true);
     });
 
     it('keeps probabilities inside the dead thresholds live', () => {
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'high-live', price: 0.949 })),
+        isPredictOutcomeDead(createOutcome({ id: 'high-live', price: 0.989 })),
       ).toBe(false);
       expect(
-        isPredictOutcomeDead(createOutcome({ id: 'low-live', price: 0.051 })),
+        isPredictOutcomeDead(createOutcome({ id: 'low-live', price: 0.011 })),
       ).toBe(false);
     });
 
@@ -138,12 +145,24 @@ describe('marketStaleness', () => {
       const market = createMarket({
         id: 'all-dead',
         outcomes: [
-          createOutcome({ id: 'dead-high', price: 0.97 }),
-          createOutcome({ id: 'dead-low', price: 0.03 }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
+          createOutcome({ id: 'dead-low', price: 0.005 }),
         ],
       });
 
       expect(filterVisibleMarketOutcomes(market)).toBeNull();
+    });
+
+    it('keeps non-game markets regardless of displayed volume', () => {
+      const market = createMarket({
+        id: 'low-volume',
+        outcomes: [
+          createOutcome({ id: 'low-one', price: 0.5, volume: 0 }),
+          createOutcome({ id: 'low-two', price: 0.5, volume: 999 }),
+        ],
+      });
+
+      expect(filterVisibleMarketOutcomes(market)).toEqual(market);
     });
 
     it('keeps live outcomes in their original order', () => {
@@ -152,9 +171,9 @@ describe('marketStaleness', () => {
       const market = createMarket({
         id: 'partial',
         outcomes: [
-          createOutcome({ id: 'dead-high', price: 0.97 }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
           liveOne,
-          createOutcome({ id: 'dead-low', price: 0.03 }),
+          createOutcome({ id: 'dead-low', price: 0.005 }),
           liveTwo,
         ],
       });
@@ -163,6 +182,28 @@ describe('marketStaleness', () => {
         liveOne,
         liveTwo,
       ]);
+    });
+
+    it('keeps non-game markets when the moneyline volume is low', () => {
+      const market = createMarket({
+        id: 'low-volume-moneyline',
+        outcomes: [
+          createOutcome({
+            id: 'moneyline',
+            price: 0.5,
+            volume: 0,
+            sportsMarketType: 'moneyline',
+          }),
+          createOutcome({
+            id: 'total',
+            price: 0.5,
+            volume: 10_000,
+            sportsMarketType: 'totals',
+          }),
+        ],
+      });
+
+      expect(filterVisibleMarketOutcomes(market)).toEqual(market);
     });
 
     it('keeps outcome groups synchronized with visible outcomes', () => {
@@ -269,13 +310,169 @@ describe('marketStaleness', () => {
         id: 'game-market',
         game: createGame('scheduled'),
         outcomes: [
-          createOutcome({ id: 'favorite', price: 0.97 }),
-          createOutcome({ id: 'draw', price: 0.04 }),
-          createOutcome({ id: 'underdog', price: 0.03 }),
+          createOutcome({ id: 'favorite', price: 0.995 }),
+          createOutcome({ id: 'draw', price: 0.5 }),
+          createOutcome({ id: 'underdog', price: 0.005 }),
         ],
       });
 
       expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
+    });
+
+    it('hides game markets without visible outcomes when enabled', () => {
+      const market = createMarket({
+        id: 'settled-game-market',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({
+            id: 'resolved',
+            price: 0.5,
+            status: PredictMarketStatus.RESOLVED,
+          }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
+          createOutcome({ id: 'dead-low', price: 0.005 }),
+        ],
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+        }),
+      ).toBeNull();
+    });
+
+    it('keeps game markets with a visible outcome without pruning outcomes', () => {
+      const outcomes = [
+        createOutcome({ id: 'dead-high', price: 0.995 }),
+        createOutcome({ id: 'live', price: 0.5 }),
+        createOutcome({
+          id: 'resolved',
+          price: 0.5,
+          status: PredictMarketStatus.RESOLVED,
+        }),
+      ];
+      const market = createMarket({
+        id: 'partially-visible-game-market',
+        game: createGame('scheduled'),
+        outcomes,
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+        }),
+      ).toEqual(market);
+    });
+
+    it('hides game markets when the moneyline displayed volume is below the threshold', () => {
+      const market = createMarket({
+        id: 'low-volume-moneyline-game',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({
+            id: 'moneyline',
+            price: 0.5,
+            volume: 999,
+            sportsMarketType: 'moneyline',
+          }),
+          createOutcome({
+            id: 'high-volume-prop',
+            price: 0.5,
+            volume: 10_000,
+            sportsMarketType: 'totals',
+          }),
+        ],
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+          filterByVolume: 1000,
+        }),
+      ).toBeNull();
+    });
+
+    it('keeps low-volume game markets when filterByVolume is unset', () => {
+      const market = createMarket({
+        id: 'low-volume-moneyline-game-unfiltered',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({
+            id: 'moneyline',
+            price: 0.5,
+            volume: 999,
+            sportsMarketType: 'moneyline',
+          }),
+        ],
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+        }),
+      ).toEqual(market);
+    });
+
+    it('hides games-tagged markets without parsed game metadata when moneyline volume is low', () => {
+      const market = createMarket({
+        id: 'low-volume-tagged-game',
+        tags: ['games'],
+        outcomes: [
+          createOutcome({
+            id: 'moneyline',
+            price: 0.5,
+            volume: 107,
+            sportsMarketType: 'moneyline',
+          }),
+          createOutcome({
+            id: 'high-volume-prop',
+            price: 0.5,
+            volume: 10_000,
+            sportsMarketType: 'totals',
+          }),
+        ],
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+          filterByVolume: 1000,
+        }),
+      ).toBeNull();
+    });
+
+    it('checks moneyline displayed volume without filtering games for low-volume props', () => {
+      const market = createMarket({
+        id: 'high-volume-moneyline-game',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({
+            id: 'moneyline',
+            price: 0.5,
+            volume: 1000,
+            sportsMarketType: 'moneyline',
+          }),
+          createOutcome({
+            id: 'low-volume-prop',
+            price: 0.5,
+            volume: 1,
+            sportsMarketType: 'totals',
+          }),
+        ],
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+          filterByVolume: 1000,
+        }),
+      ).toEqual(market);
     });
 
     it('keeps an ongoing game market whose scheduled end date has passed', () => {
@@ -339,12 +536,12 @@ describe('marketStaleness', () => {
       const market = createMarket({
         id: 'stale-top-outcome',
         outcomes: [
-          createOutcome({ id: 'dead-high', price: 0.97 }),
+          createOutcome({ id: 'dead-high', price: 0.995 }),
           createOutcome({ id: 'live', price: 0.5 }),
         ],
       });
 
-      expect(getPredictMarketProbabilityPenalty(market)).toBeCloseTo(0.8);
+      expect(getPredictMarketProbabilityPenalty(market)).toBeCloseTo(0.75);
     });
 
     it('applies last-hour time penalty to daily markets', () => {
@@ -388,7 +585,7 @@ describe('marketStaleness', () => {
         recurrence: Recurrence.DAILY,
         endDate: '2026-03-18T12:30:00.000Z',
         outcomes: [
-          createOutcome({ id: 'stale-dead', price: 0.99 }),
+          createOutcome({ id: 'stale-dead', price: 0.999 }),
           createOutcome({ id: 'stale-live', price: 0.5 }),
         ],
       });

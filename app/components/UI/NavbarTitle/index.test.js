@@ -29,9 +29,6 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
     removeSensitiveProperties: jest.fn(function () {
       return this;
     }),
-    setSaveDataRecording: jest.fn(function () {
-      return this;
-    }),
     build: jest.fn(() => ({ builtEvent: true })),
   };
   const createEventBuilder = jest.fn(() => chainableBuilder);

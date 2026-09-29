@@ -16,10 +16,15 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string } | null,
+  []
+>(() => ({
+  address: MOCK_ADDRESS,
+}));
 jest.mock('../utils/accounts', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
-    address: MOCK_ADDRESS,
-  })),
+  getEvmAccountFromSelectedAccountGroup: () =>
+    mockGetEvmAccountFromSelectedAccountGroup(),
 }));
 
 const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
@@ -43,7 +48,7 @@ jest.mock('react-redux', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -71,6 +76,36 @@ describe('usePredictActivity', () => {
     jest.clearAllMocks();
     mockGetActivity.mockResolvedValue([]);
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: MOCK_ADDRESS,
+    });
+  });
+
+  it('does not fetch activity when no EVM account is selected', () => {
+    const { Wrapper } = createWrapper();
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
+
+    renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    expect(mockGetActivity).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch activity when enabled is false', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => usePredictActivity({ enabled: false }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    expect(mockGetActivity).not.toHaveBeenCalled();
+    expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
+    expect(result.current.data).toEqual([]);
+    expect(result.current.isFetching).toBe(false);
   });
 
   it('fetches activity automatically on mount', async () => {

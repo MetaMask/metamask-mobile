@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect } from 'react';
 import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Box } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -18,7 +19,7 @@ interface SmartAccountNetworkListProps {
 
 const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { network7702List, pending } = useEIP7702Networks(address);
 
   useEffect(() => {

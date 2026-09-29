@@ -5,6 +5,8 @@ import {
 } from '../../../util/transactions';
 import decodeTransaction from './utils';
 import { strings } from '../../../../locales/i18n';
+import { toFormattedAddress } from '../../../util/address';
+import { TX_CONFIRMED } from '../../../constants/transaction';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -370,6 +372,50 @@ describe('Transaction Element Utils', () => {
         summarySecondaryTotalAmount: undefined,
         txChainId: '0x89',
       });
+    });
+
+    it('labels a locally submitted token transfer as received for the recipient account', async () => {
+      const recipient = '0x1234567890abcdef1234567890abcdef12345678';
+      const tokenAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
+      const args = {
+        tx: {
+          txParams: {
+            to: tokenAddress,
+            from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+            data: `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'52daf0'.padStart(64, '0')}`,
+            gas: '0x12345',
+            maxFeePerGas: '0x123456789',
+            maxPriorityFeePerGas: '0x123456789',
+            estimatedBaseFee: '0xABCDEF123',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+          status: TX_CONFIRMED,
+        },
+        currentCurrency: 'usd',
+        contractExchangeRates: {},
+        totalGas: '0x64',
+        actionKey: 'key',
+        primaryCurrency: 'ETH',
+        selectedAddress: recipient,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        tokens: {
+          [tokenAddress]: {
+            symbol: 'USDC',
+            decimals: 6,
+          },
+        },
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      expect(transactionElement).toEqual(
+        expect.objectContaining({
+          actionKey: 'Received USDC',
+          renderTo: recipient,
+          transactionType: 'transaction_received_token',
+        }),
+      );
     });
 
     it.each([
@@ -762,6 +808,78 @@ describe('Transaction Element Utils', () => {
 
       expect(transactionElement.value).toContain('#0');
       expect(transactionElement.fiatValue).toBe('TNFT');
+    });
+
+    it('decodes batch sell transaction when is7702Batch is true', async () => {
+      jest
+        .spyOn(require('../../../util/transactions'), 'getActionKey')
+        .mockResolvedValue('Swap');
+
+      const selectedAddress = '0x141d32a89a1e0a5ef360034a2f60a4b917c18838';
+      const usdcAddress = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+      const args = {
+        tx: {
+          type: TransactionType.batch,
+          chainId: '0x1',
+          networkClientId: 'mainnet',
+          txParams: {
+            from: selectedAddress,
+            to: '0x9dDA6Ef3D919c9bC8885D5560999A3640431e8e6',
+            gas: '0x5208',
+            value: '0x0',
+          },
+          hash: '0xbatchsellhash',
+        },
+        bridgeTxHistoryData: {
+          bridgeTxHistoryItem: {
+            featureId: 'batch_sell',
+            quote: {
+              srcChainId: 1,
+              destChainId: 1,
+              srcAsset: {
+                symbol: 'LINK',
+                decimals: 18,
+                address: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4',
+              },
+              destAsset: {
+                symbol: 'USDC',
+                decimals: 6,
+                address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+              },
+              srcTokenAmount: '1000000000000000000',
+              destTokenAmount: '5000000',
+            },
+          },
+          is7702Batch: true,
+          batchTotalDestAmount: 7000000,
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        contractExchangeRates: {
+          [toFormattedAddress(usdcAddress)]: {
+            price: 1,
+          },
+        },
+        totalGas: '0x5208',
+        actionKey: 'Swap',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement).toEqual({
+        value: '7 USDC',
+        fiatValue: '$7.00',
+        transactionType: TRANSACTION_TYPES.BATCH_SELL_TRANSACTION,
+        actionKey: 'Batch sell',
+      });
+      expect(transactionDetails).toEqual({});
+
+      jest.restoreAllMocks();
     });
   });
 });

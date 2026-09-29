@@ -28,3 +28,19 @@ import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
 3. Spread it into `base.extend` in `index.ts`.
 
 Provider implementations belong in `tests/framework/services/providers/`.
+
+## Debugging logs
+
+Playwright framework code uses `createAppiumLogger()` from `tests/framework/appiumLogger.ts`. Log level defaults to **INFO**; set `E2E_LOG_LEVEL=debug` for verbose traces (element finds, taps, context switches).
+
+| Module                 | INFO (default)                 | DEBUG (`E2E_LOG_LEVEL=debug`)    |
+| ---------------------- | ------------------------------ | -------------------------------- |
+| `currentDeviceDetails` | Resolved device summary        | ADB serial resolution            |
+| `deviceProvider`       | Provider create/teardown       | —                                |
+| `driver`               | Session start/teardown         | —                                |
+| `performanceTracker`   | Metrics, quality gates, Sentry | Timer counts, session ID lookup  |
+| `AppiumMatchers`       | —                              | Element lookup strategy + target |
+| `AppiumGestures`       | —                              | Tap, type, swipe, app lifecycle  |
+| `AppiumContextHelpers` | —                              | Native/webview context switches  |
+
+For WebDriver HTTP command detail, set `WDIO_LOG_LEVEL=debug` when running tests.

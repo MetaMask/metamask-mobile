@@ -1,11 +1,14 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
+
 import { FULL_SCREEN_CONFIRMATIONS } from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ConfirmationParams } from '../../components/confirm/confirm-component';
 

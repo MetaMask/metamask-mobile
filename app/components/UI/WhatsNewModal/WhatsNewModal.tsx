@@ -20,16 +20,7 @@ import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
@@ -42,9 +33,19 @@ import { whatsNewList } from './';
 import { WhatsNewModalSelectorsIDs } from './WhatsNewModal.testIds';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import createStyles from './WhatsNewModal.styles';
 import Device from '../../../util/device';
 import { SlideContent, SlideContentType } from './types';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 const CAROUSEL_INTERVAL_MS = 4000;
 const SLIDE_PADDING = 48;
@@ -56,7 +57,7 @@ const WhatsNewModal = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const imageCarouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const imageProgressAnimations = useRef<Animated.Value[]>([]).current;
@@ -218,9 +219,10 @@ const WhatsNewModal = () => {
         case SlideContentType.TITLE:
           return (
             <Text
-              color={TextColor.Default}
-              variant={TextVariant.BodyLGMedium}
+              color={TextColor.TextDefault}
+              variant={TextVariant.BodyLg}
               style={styles.slideTitle}
+              fontWeight={FontWeight.Medium}
             >
               {elementInfo.title}
             </Text>
@@ -228,8 +230,8 @@ const WhatsNewModal = () => {
         case SlideContentType.DESCRIPTION:
           return (
             <Text
-              color={TextColor.Default}
-              variant={TextVariant.BodyMD}
+              color={TextColor.TextDefault}
+              variant={TextVariant.BodyMd}
               style={styles.slideDescription}
             >
               {elementInfo.description}
@@ -247,8 +249,8 @@ const WhatsNewModal = () => {
                     style={styles.featureCheckmark}
                   />
                   <Text
-                    color={TextColor.Default}
-                    variant={TextVariant.BodyMD}
+                    color={TextColor.TextDefault}
+                    variant={TextVariant.BodyMd}
                     style={styles.featureText}
                   >
                     {descriptionKey}
@@ -346,8 +348,8 @@ const WhatsNewModal = () => {
         case SlideContentType.MORE_INFORMATION:
           return (
             <Text
-              color={TextColor.Default}
-              variant={TextVariant.BodyMD}
+              color={TextColor.TextDefault}
+              variant={TextVariant.BodyMd}
               style={styles.moreInformation}
             >
               {elementInfo.moreInformation}
@@ -357,12 +359,13 @@ const WhatsNewModal = () => {
           return (
             <View style={styles.button}>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={elementInfo.buttonText}
+                isFullWidth
                 onPress={() => callButton(elementInfo.onPress)}
-              />
+              >
+                {elementInfo.buttonText}
+              </Button>
             </View>
           );
       }
@@ -419,7 +422,7 @@ const WhatsNewModal = () => {
   return (
     <BottomSheet ref={sheetRef} onClose={recordSeenModal}>
       <View style={styles.headerContainer}>
-        <Text variant={TextVariant.HeadingMD} style={styles.header}>
+        <Text variant={TextVariant.HeadingMd} style={styles.header}>
           {strings('whats_new.remove_gns_new_ui_update.title')}
         </Text>
       </View>

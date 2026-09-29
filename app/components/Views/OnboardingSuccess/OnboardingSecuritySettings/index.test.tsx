@@ -1,9 +1,11 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import OnboardingSecuritySettings from './';
 
 const mockUseAnalytics = jest.fn();
@@ -94,9 +96,40 @@ describe('OnboardingSecuritySettings', () => {
       );
       expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
     });
+
+    it('navigates back when the header back button is pressed', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectUseSafeChainsListValidation) return false;
+        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        return null;
+      });
+      const { getAllByTestId } = renderWithProvider(
+        <OnboardingSecuritySettings />,
+      );
+      fireEvent.press(getAllByTestId('button-icon')[0]);
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
   });
 
   describe('Social login detection and conditional rendering', () => {
+    it('hides consolidated child settings but keeps social-login settings', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectUseSafeChainsListValidation) return false;
+        if (selector === selectSeedlessOnboardingLoginFlow) return true;
+        if (selector === selectMobileUxBftcConsolidationFlagEnabled)
+          return true;
+        return null;
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <OnboardingSecuritySettings />,
+      );
+
+      expect(queryByTestId('use-chains-list-validation')).toBeNull();
+      expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalled();
+      expect(mockDeleteMetaMetricsData).toHaveBeenCalled();
+    });
+
     it('should render security sections when social login is enabled', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;

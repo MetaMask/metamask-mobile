@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import VipTierProgressCard, {
@@ -72,15 +73,16 @@ const renderWithTheme = (
 
 describe('VipTierProgressCard', () => {
   const baseProps = {
-    currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
+    currentTier: { id: 't3', name: 'Mock Tier Alpha 3', tier: 3 },
     progress: {
-      percent: 72,
-      remainingPointsToNextTier: 800_000,
+      percent: 42,
+      remainingPointsToNextTier: 123_456,
       status: 'on_track',
     },
-    subline: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
+    currentPoints: 250_000,
+    subline: '$123K Swaps • $456K Perps to Mock Tier Alpha 4',
     memberIdTitle: 'Member ID',
-    memberId: 'VIP-123',
+    memberId: 'MOCK-123',
   };
 
   it('renders the current tier name, member id, and the subline passed in by the parent', () => {
@@ -88,12 +90,12 @@ describe('VipTierProgressCard', () => {
       <VipTierProgressCard {...baseProps} />,
     );
 
-    expect(getByText('Gold Fox VIP 3')).toBeOnTheScreen();
+    expect(getByText('Mock Tier Alpha 3')).toBeOnTheScreen();
     expect(getByText('Member ID')).toBeOnTheScreen();
-    expect(getByText('VIP-123')).toBeOnTheScreen();
+    expect(getByText('MOCK-123')).toBeOnTheScreen();
     expect(
       getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
-    ).toHaveTextContent('$800K Swaps • $3.6M Perps to Gold Fox VIP 4');
+    ).toHaveTextContent('$123K Swaps • $456K Perps to Mock Tier Alpha 4');
   });
 
   it('renders a gold gradient and border from bottom left to top right', () => {
@@ -193,7 +195,7 @@ describe('VipTierProgressCard', () => {
     expect(getByText('Member ID')).toHaveStyle({
       color: TextColor.TextAlternative,
     });
-    expect(getByText('VIP-123')).toHaveStyle({
+    expect(getByText('MOCK-123')).toHaveStyle({
       color: TextColor.TextAlternative,
     });
   });
@@ -207,8 +209,135 @@ describe('VipTierProgressCard', () => {
     expect(getByText('Member ID')).toHaveStyle({
       color: VIP_GOLD_TEXT_MUTED,
     });
-    expect(getByText('VIP-123')).toHaveStyle({
+    expect(getByText('MOCK-123')).toHaveStyle({
       color: VIP_GOLD_TEXT_MUTED,
+    });
+  });
+
+  it('renders the maintain subline under the subline when provided', () => {
+    const { getByTestId } = renderWithTheme(
+      <VipTierProgressCard
+        {...baseProps}
+        maintainSubline="250k points to maintain this tier"
+      />,
+    );
+
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toHaveTextContent('250k points to maintain this tier');
+  });
+
+  it('omits the maintain subline when maintainSubline is not provided', () => {
+    const { queryByTestId } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} />,
+    );
+
+    expect(
+      queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toBeNull();
+  });
+
+  it('renders a compact current-points label above the progress fill endpoint', () => {
+    const { getByTestId } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} currentPoints={250_000} />,
+    );
+
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER_LABEL),
+    ).toHaveTextContent('250K');
+  });
+
+  it('positions the pointer at the exact clamped progress percent', () => {
+    const flattenLeft = (style: unknown): string | undefined =>
+      (StyleSheet.flatten(style as ViewStyle) as ViewStyle | undefined)
+        ?.left as string | undefined;
+
+    const { getByTestId, rerender } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} />,
+    );
+    expect(
+      flattenLeft(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER).props
+          .style,
+      ),
+    ).toBe('42%');
+
+    rerender(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 0 }}
+      />,
+    );
+    expect(
+      flattenLeft(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER).props
+          .style,
+      ),
+    ).toBe('0%');
+
+    rerender(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 100 }}
+      />,
+    );
+    expect(
+      flattenLeft(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER).props
+          .style,
+      ),
+    ).toBe('100%');
+  });
+
+  it('insets only the points label at the progress bar edges', () => {
+    const getLabelPlacement = (
+      getByTestId: ReturnType<typeof renderWithTheme>['getByTestId'],
+    ): { translateX?: number; textAlign?: string } => {
+      const style = StyleSheet.flatten(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER_LABEL)
+          .props.style as TextStyle,
+      ) as TextStyle | undefined;
+      const transform = style?.transform as
+        | { translateX?: number }[]
+        | undefined;
+      return {
+        translateX: transform?.find((entry) => entry.translateX !== undefined)
+          ?.translateX,
+        textAlign: style?.textAlign,
+      };
+    };
+
+    const { getByTestId, rerender } = renderWithTheme(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 20 }}
+      />,
+    );
+    fireEvent(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_BAR),
+      'layout',
+      { nativeEvent: { layout: { width: 200 } } },
+    );
+    expect(getLabelPlacement(getByTestId)).toEqual({
+      translateX: 0,
+      textAlign: 'left',
+    });
+
+    rerender(<VipTierProgressCard {...baseProps} />);
+    expect(getLabelPlacement(getByTestId)).toEqual({
+      translateX: -20,
+      textAlign: 'center',
+    });
+
+    rerender(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 80 }}
+      />,
+    );
+    expect(getLabelPlacement(getByTestId)).toEqual({
+      translateX: -40,
+      textAlign: 'right',
     });
   });
 });

@@ -70,10 +70,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../util/transaction-controller', () => ({
-  updateIncomingTransactions: jest.fn(),
-}));
-
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -1020,15 +1016,11 @@ describe('useNetworkOperations', () => {
       ).rejects.toThrow('Unable to find network');
     });
 
-    it('switches to mainnet and schedules incoming tx refresh when removing the active RPC network', async () => {
-      jest.useFakeTimers();
+    it('switches to mainnet when removing the active RPC network', async () => {
       const { compareSanitizedUrl } = jest.requireMock(
         '../../../../../util/sanitizeUrl',
       );
       (compareSanitizedUrl as jest.Mock).mockReturnValueOnce(true);
-      const { updateIncomingTransactions } = jest.requireMock(
-        '../../../../../util/transaction-controller',
-      );
 
       setupSelectors({
         providerConfig: { type: 'rpc', rpcUrl: 'https://rpc.example.com' },
@@ -1060,12 +1052,6 @@ describe('useNetworkOperations', () => {
       expect(mockSetActiveNetwork).toHaveBeenCalledWith('mainnet-client');
       expect(mockRemoveNetwork).toHaveBeenCalledWith('0x2a');
       expect(mockGoBack).toHaveBeenCalled();
-
-      expect(updateIncomingTransactions).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1000);
-      expect(updateIncomingTransactions).toHaveBeenCalled();
-
-      jest.useRealTimers();
     });
 
     it('does not switch to mainnet when provider type is not rpc', async () => {

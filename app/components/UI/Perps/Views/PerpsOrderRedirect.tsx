@@ -1,10 +1,13 @@
 import React, { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import {
   Box,
   BoxAlignItems,
@@ -13,6 +16,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { selectPerpsProvider } from '../selectors/perpsController';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
@@ -21,6 +25,11 @@ import { PERPS_CONSTANTS, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
@@ -38,14 +47,16 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
  * is ready before calling depositWithOrder().
  */
 const PerpsOrderRedirect: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteParams>();
   const { direction, asset, fromTokenDetails, transactionActiveAbTests } =
     route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
+  const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   const hasStartedRef = useRef(false);
   useEffect(() => {
@@ -55,12 +66,30 @@ const PerpsOrderRedirect: React.FC = () => {
     if (hasStartedRef.current) return;
     hasStartedRef.current = true;
 
+    if (activeProvider === 'lighter') {
+      navigation.dispatch(
+        StackActions.replace(Routes.PERPS.BALANCE_ORDER, {
+          direction,
+          asset,
+          fromTokenDetails,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          transactionActiveAbTests,
+        }),
+      );
+      return;
+    }
+
     Logger.log('[PerpsOrderRedirect] Starting depositWithOrder', {
       direction,
       asset,
     });
 
     const runDepositFlow = async (): Promise<void> => {
+      if (useBottomSheet) {
+        startPerpsTradeSheetInteractiveTrace(
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        );
+      }
       try {
         await withPendingTransactionActiveAbTests(
           transactionActiveAbTests,
@@ -78,15 +107,24 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           ),
         );
       } catch (error: unknown) {
+        if (useBottomSheet) {
+          failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
+        }
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
-          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'PerpsOrderRedirect',
+            action: 'financial_deposit',
+            operation: 'financial_operations',
+          },
           context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
         });
         showToast(
@@ -99,7 +137,12 @@ const PerpsOrderRedirect: React.FC = () => {
 
     runDepositFlow().catch((error: unknown) => {
       Logger.error(ensureError(error, 'PerpsOrderRedirect.runDepositFlow'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsOrderRedirect',
+          action: 'financial_deposit',
+          operation: 'financial_operations',
+        },
         context: { name: 'PerpsOrderRedirect.runDepositFlow', data: {} },
       });
     });
@@ -110,13 +153,15 @@ const PerpsOrderRedirect: React.FC = () => {
     asset,
     fromTokenDetails,
     transactionActiveAbTests,
+    useBottomSheet,
     depositWithOrder,
+    activeProvider,
     navigation,
     showToast,
     PerpsToastOptions,
   ]);
 
-  // Match PerpsLoadingSkeleton layout ("Connecting to Perps") so both loaders look the same: top-aligned, centered, pt-20
+  // Match PerpsLoader connecting layout so both loaders look the same: top-aligned, centered, pt-20
   return (
     <Box
       twClassName="flex-1 bg-default pt-20"

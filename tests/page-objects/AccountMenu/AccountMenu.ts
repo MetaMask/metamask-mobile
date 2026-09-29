@@ -1,47 +1,48 @@
 import { AccountsMenuSelectorsIDs } from '../../../app/components/Views/AccountsMenu/AccountsMenu.testIds';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
+import { type AppiumElement } from '../../framework';
 
 class AccountMenu {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
     );
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.BACK_BUTTON);
   }
 
-  get settingsButton(): DetoxElement {
+  get settingsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS);
   }
 
-  get contactsButton(): DetoxElement {
+  get contactsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.CONTACTS);
   }
 
-  get manageCardButton(): DetoxElement {
+  get manageCardButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.MANAGE_CARD);
   }
 
-  get permissionsButton(): DetoxElement {
+  get permissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.PERMISSIONS);
   }
 
-  get aboutMetaMaskButton(): DetoxElement {
+  get aboutMetaMaskButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
   }
 
-  get requestFeatureButton(): DetoxElement {
+  get requestFeatureButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.REQUEST_FEATURE);
   }
 
-  get supportButton(): DetoxElement {
+  get supportButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SUPPORT);
   }
 
-  get lockButton(): DetoxElement {
+  get lockButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.LOCK);
   }
 
@@ -93,7 +94,7 @@ class AccountMenu {
     });
   }
 
-  get notificationsButton(): DetoxElement {
+  get notificationsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON,
     );

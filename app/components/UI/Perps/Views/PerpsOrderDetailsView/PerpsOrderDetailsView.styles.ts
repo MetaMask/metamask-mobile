@@ -15,8 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
     },
     headerBackButton: {
       marginRight: 12,
@@ -66,17 +64,6 @@ const styleSheet = (params: { theme: Theme }) => {
     detailValue: {
       flex: 1,
       alignItems: 'flex-end',
-    },
-    statusContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    statusFilled: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 4,
-      backgroundColor: colors.success.muted,
     },
     footer: {
       position: 'absolute',

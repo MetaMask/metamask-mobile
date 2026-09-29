@@ -13,8 +13,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { captureScreen } from 'react-native-view-shot';
@@ -154,7 +154,7 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 const routeMock = {
@@ -178,7 +178,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -195,7 +195,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -224,7 +224,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -241,7 +241,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -270,7 +270,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -287,7 +287,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -316,7 +316,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -333,7 +333,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -354,6 +354,103 @@ describe('Browser - Component Rendering', () => {
       );
     });
 
+    it('passes fromMarketInsights param to BrowserTab', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+      ];
+      const BrowserTabMock = jest.mocked(BrowserTab);
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <IndependentNavigationContainer>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { fromMarketInsights: true } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </IndependentNavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      expect(BrowserTabMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromMarketInsights: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('passes Earn strategy selection return params to BrowserTab', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+      ];
+      const BrowserTabMock = jest.mocked(BrowserTab);
+      BrowserTabMock.mockClear();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <IndependentNavigationContainer>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{
+                      params: {
+                        fromEarnStrategySelection: true,
+                      },
+                    }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </IndependentNavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      expect(BrowserTabMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromEarnStrategySelection: true,
+        }),
+        undefined,
+      );
+    });
+
     it('passes linkType param to BrowserTab', () => {
       const tabs = [
         {
@@ -368,7 +465,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -385,7 +482,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -418,7 +515,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -435,7 +532,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -463,7 +560,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -480,7 +577,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -505,7 +602,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -522,7 +619,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -544,7 +641,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -561,7 +658,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -584,7 +681,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -601,7 +698,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -627,7 +724,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -644,7 +741,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -669,7 +766,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -686,7 +783,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -712,7 +809,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -729,7 +826,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {

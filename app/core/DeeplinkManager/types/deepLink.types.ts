@@ -65,6 +65,21 @@ export interface DeeplinkUrlParams {
   // Home-specific parameters
   previewToken?: string;
 
+  // Privacy-specific parameters
+  // Which privacy settings section to scroll to (e.g. 'metametrics',
+  // 'data-collection')
+  setting?: string;
+
+  // Notification settings-specific parameters
+  // Which notification preference section to open (e.g. 'wallet-activity',
+  // 'price-alerts')
+  section?: string;
+
+  // What's Happening-specific parameters
+  // Id of a market overview front-page item to render as the first, "outdated"
+  // card of the What's Happening expanded view.
+  id?: string;
+
   // Note: All properties are explicitly defined above
 }
 
@@ -123,11 +138,13 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.HOME,
   ACTIONS.ASSET,
   ACTIONS.SWAP,
+  ACTIONS.BATCH_SELL,
   ACTIONS.SEND,
   ACTIONS.CREATE_ACCOUNT,
   ACTIONS.PERPS,
   ACTIONS.PERPS_MARKETS,
   ACTIONS.PERPS_ASSET,
+  ACTIONS.PERPS_OUTREACH,
   ACTIONS.REWARDS,
   ACTIONS.WC,
   ACTIONS.ONBOARDING,
@@ -142,6 +159,18 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.NFT,
   ACTIONS.AGENTIC_CLI,
   ACTIONS.ON_RAMP,
+  ACTIONS.PRIVACY,
+  ACTIONS.NOTIFICATIONS_SETTINGS,
+  // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer, a.k.a.
+  // "SDKv1"; the `connect`/`mmsdk`/`bind` actions). Listed here so they resolve
+  // to a SupportedAction and get a DeepLinkRoute (SDK_CONNECT / SDK_MMSDK) for
+  // analytics; the connection is still handled by handleMetaMaskDeeplink.
+  // Distinct from MetaMask Connect (a.k.a. "SDKv2" / MWP → MMC_MWP), which is
+  // intercepted earlier and tracked separately.
+  ACTIONS.CONNECT,
+  ACTIONS.MMSDK,
+  ACTIONS.ANDROID_SDK,
+  ACTIONS.MONEY,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

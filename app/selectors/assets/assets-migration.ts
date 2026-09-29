@@ -1,5 +1,4 @@
 import { createDeepEqualSelector } from '../util';
-import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import {
   type AccountTrackerControllerState,
   type CurrencyRateState,
@@ -29,15 +28,36 @@ import {
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
+import { augmentTempoCurrencyRates } from '../../enablement/assets/tempo';
+
+// CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
+// vault token that should never surface as regular ERC-20 tokens in the wallet
+// token list or balance maps. Staking is only supported on Ethereum mainnet
+// (eip155:1) and the Hoodi testnet (eip155:560048), where the vault token shares
+// the same address. Scoping by CAIP-19 keeps the filter chain-aware so an
+// identically-addressed token on an unsupported chain is left untouched.
+const STAKED_TOKEN_ASSET_IDS_TO_FILTER = new Set<CaipAssetType>([
+  'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+  'eip155:560048/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+]);
+
+// AssetIds may carry the contract address in any case, so normalize the asset
+// reference to its checksummed form before matching against the filter set.
+const isStakedTokenAssetId = (assetId: string): boolean => {
+  const { chainId, assetNamespace, assetReference } = parseCaipAssetType(
+    assetId as CaipAssetType,
+  );
+  return STAKED_TOKEN_ASSET_IDS_TO_FILTER.has(
+    `${chainId}/${assetNamespace}:${toChecksumHexAddress(
+      assetReference,
+    )}` as CaipAssetType,
+  );
+};
 
 // ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
 export const getAccountTrackerControllerAccountsByChainId =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.AccountTrackerController
-          ?.accountsByChainId ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
       (state) =>
@@ -47,16 +67,10 @@ export const getAccountTrackerControllerAccountsByChainId =
           ?.accounts ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      accountsByChainId: AccountTrackerControllerState['accountsByChainId'],
       assetsBalance: AssetsControllerState['assetsBalance'],
       assetsInfo: AssetsControllerState['assetsInfo'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): AccountTrackerControllerState['accountsByChainId'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return accountsByChainId;
-      }
-
       const result: AccountTrackerControllerState['accountsByChainId'] = {};
 
       for (const [accountId, accountBalances] of Object.entries(
@@ -73,27 +87,38 @@ export const getAccountTrackerControllerAccountsByChainId =
 
         for (const [assetId, balanceData] of Object.entries(accountBalances)) {
           const metadata = assetsInfo[assetId];
-          if (metadata?.type !== 'native') {
+
+          const assetType = parseCaipAssetType(assetId as CaipAssetType);
+
+          if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
             continue;
           }
 
-          const { chain: parsedChain } = parseCaipAssetType(
-            assetId as CaipAssetType,
-          );
-
-          if (parsedChain.namespace !== KnownCaipNamespace.Eip155) {
-            continue;
-          }
-
-          const hexChainId = decimalToPrefixedHex(parsedChain.reference);
+          const hexChainId = decimalToPrefixedHex(assetType.chain.reference);
           const amount = balanceData?.amount ?? '0';
 
-          result[hexChainId] ??= {};
-          result[hexChainId][checksummedAddress] = {
-            // TODO: Use raw value from state when available
-            balance: parseBalanceWithDecimals(amount, metadata.decimals),
-            // TODO: Add staked balance when available
-          };
+          if (metadata?.type === 'native') {
+            result[hexChainId] ??= {};
+            result[hexChainId][checksummedAddress] = {
+              // Spread preserves stakedBalance if it was already set by a
+              // staked-token entry processed earlier in this loop.
+              ...result[hexChainId][checksummedAddress],
+              // TODO: Use raw value from state when available
+              balance: parseBalanceWithDecimals(amount, metadata.decimals),
+            };
+          } else if (metadata && isStakedTokenAssetId(assetId)) {
+            // Use the ERC-20 balance of the pooled-staking vault token as the
+            // stakedBalance for this chain.  The token is filtered from the
+            // regular token list (see STAKED_TOKEN_ASSET_IDS_TO_FILTER) and
+            // surfaced here so it appears in the Staked Ethereum section on
+            // Token Details instead.
+            result[hexChainId] ??= {};
+            result[hexChainId][checksummedAddress] ??= {
+              balance: '0x0' as Hex,
+            };
+            result[hexChainId][checksummedAddress].stakedBalance =
+              parseBalanceWithDecimals(amount, metadata.decimals);
+          }
         }
       }
 
@@ -104,8 +129,6 @@ export const getAccountTrackerControllerAccountsByChainId =
 // ChainId (hex) -> AccountAddress (hex lowercase) -> Array of Tokens
 export const getTokensControllerAllTokens = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) => state.engine?.backgroundState?.TokensController?.allTokens ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
@@ -117,17 +140,11 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    allTokens: TokensControllerState['allTokens'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokensControllerState['allTokens'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return allTokens;
-    }
-
     const result: TokensControllerState['allTokens'] = {};
 
     // Merge assetsBalance and customAssets: accountId -> assetId[]
@@ -170,6 +187,10 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
         ) as Hex;
         const assetAddress = toChecksumHexAddress(assetType.assetReference);
 
+        if (isStakedTokenAssetId(assetId)) {
+          continue;
+        }
+
         const token: Token = {
           address: assetAddress,
           symbol: metadata.symbol,
@@ -191,9 +212,6 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
 // ChainId (hex) -> AccountAddress (hex lowercase) -> Array of TokenAddress (hex lowercase)
 export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.TokensController?.allIgnoredTokens ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetPreferences ?? {},
     (state) =>
@@ -201,15 +219,9 @@ export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    allIgnoredTokens: TokensControllerState['allIgnoredTokens'],
     assetPreferences: AssetsControllerState['assetPreferences'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokensControllerState['allIgnoredTokens'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return allIgnoredTokens;
-    }
-
     const result: TokensControllerState['allIgnoredTokens'] = {};
 
     for (const [assetId, { hidden }] of Object.entries(assetPreferences)) {
@@ -245,10 +257,6 @@ export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
 // AcountAddress (hex lowercase) -> ChainId (hex) -> TokenAddress (hex checksummed) -> Balance (hex)
 export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.TokenBalancesController?.tokenBalances ??
-      {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
@@ -260,17 +268,11 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    tokenBalances: TokenBalancesControllerState['tokenBalances'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokenBalancesControllerState['tokenBalances'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return tokenBalances;
-    }
-
     const result: TokenBalancesControllerState['tokenBalances'] = {};
     for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
       const internalAccount = internalAccountsById[accountId];
@@ -302,9 +304,14 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
         ) as Hex;
         const assetAddress = toChecksumHexAddress(
           metadata.type === 'native'
-            ? getNativeTokenAddress(hexChainId)
+            ? // TokenBalancesController always uses zero address for native tokens
+              '0x0000000000000000000000000000000000000000'
             : assetType.assetReference,
         ) as Hex;
+
+        if (isStakedTokenAssetId(assetId)) {
+          continue;
+        }
 
         result[accountAddress][hexChainId] ??= {};
         result[accountAddress][hexChainId][assetAddress] =
@@ -349,6 +356,10 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
           assetType.assetReference,
         ) as Hex;
 
+        if (isStakedTokenAssetId(assetId)) {
+          continue;
+        }
+
         if (!result[accountAddress]?.[hexChainId]?.[assetAddress]) {
           result[accountAddress][hexChainId] ??= {};
           result[accountAddress][hexChainId][assetAddress] =
@@ -365,10 +376,6 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
 export const getMultiChainAssetsControllerAccountsAssets =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsController
-          ?.accountsAssets ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
       (state) =>
@@ -378,16 +385,10 @@ export const getMultiChainAssetsControllerAccountsAssets =
           ?.accounts ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      accountsAssets: MultichainAssetsControllerState['accountsAssets'],
       assetsBalance: AssetsControllerState['assetsBalance'],
       customAssets: AssetsControllerState['customAssets'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): MultichainAssetsControllerState['accountsAssets'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return accountsAssets;
-      }
-
       const result: MultichainAssetsControllerState['accountsAssets'] = {};
 
       // Merge assetsBalance and customAssets: accountId -> assetId[]
@@ -434,22 +435,12 @@ export const getMultiChainAssetsControllerAccountsAssets =
 export const getMultiChainAssetsControllerAssetsMetadata =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsController
-          ?.assetsMetadata ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      assetsMetadata: MultichainAssetsControllerState['assetsMetadata'],
       assetsInfo: AssetsControllerState['assetsInfo'],
     ): MultichainAssetsControllerState['assetsMetadata'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return assetsMetadata;
-      }
-
       const result: MultichainAssetsControllerState['assetsMetadata'] = {};
 
       for (const [assetId, metadata] of Object.entries(assetsInfo)) {
@@ -481,10 +472,6 @@ export const getMultiChainAssetsControllerAssetsMetadata =
 export const getMultiChainAssetsControllerAllIgnoredAssets =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsController
-          ?.allIgnoredAssets ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetPreferences ?? {},
       (state) =>
@@ -492,15 +479,9 @@ export const getMultiChainAssetsControllerAllIgnoredAssets =
           ?.accounts ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      allIgnoredAssets: MultichainAssetsControllerState['allIgnoredAssets'],
       assetPreferences: AssetsControllerState['assetPreferences'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): MultichainAssetsControllerState['allIgnoredAssets'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return allIgnoredAssets;
-      }
-
       const result: MultichainAssetsControllerState['allIgnoredAssets'] = {};
 
       for (const accountId of Object.keys(internalAccountsById)) {
@@ -532,10 +513,6 @@ export const getMultiChainAssetsControllerAllIgnoredAssets =
 // AccountId -> AssetId -> Balance (amount + unit)
 export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.MultichainBalancesController?.balances ??
-      {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
     (state) =>
@@ -545,16 +522,10 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    balances: MultichainBalancesControllerState['balances'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): MultichainBalancesControllerState['balances'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return balances;
-    }
-
     const result: MultichainBalancesControllerState['balances'] = {};
 
     for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
@@ -589,47 +560,26 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
 
 export const getCurrencyRateControllerCurrentCurrency = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.CurrencyRateController?.currentCurrency,
     (state) =>
       state.engine?.backgroundState?.AssetsController?.selectedCurrency,
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    currentCurrency: CurrencyRateState['currentCurrency'],
     selectedCurrency: AssetsControllerState['selectedCurrency'],
-  ): CurrencyRateState['currentCurrency'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return currentCurrency;
-    }
-
-    return selectedCurrency;
-  },
+  ): CurrencyRateState['currentCurrency'] => selectedCurrency,
 );
 
 // Native Symbol -> Rates (conversionRate, usdConversionRate, conversionDate)
 export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.CurrencyRateController?.currencyRates ??
-      {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    currencyRates: CurrencyRateState['currencyRates'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsPrice: AssetsControllerState['assetsPrice'],
   ): CurrencyRateState['currencyRates'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return currencyRates;
-    }
-
     const result: CurrencyRateState['currencyRates'] = {};
 
     // Sorting just to ensure that we process mainnet (eip155:1) first
@@ -664,16 +614,13 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       };
     }
 
-    return result;
+    return augmentTempoCurrencyRates(result, assetsPrice);
   },
 );
 
 // ChainId (hex) -> TokenAddress (hex checksummed) -> MarketData
 export const getTokenRatesControllerMarketData = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.TokenRatesController?.marketData ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
     (state) =>
@@ -684,17 +631,11 @@ export const getTokenRatesControllerMarketData = createDeepEqualSelector(
         ?.networkConfigurationsByChainId ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    marketData: TokenRatesControllerState['marketData'],
     assetsPrice: AssetsControllerState['assetsPrice'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     currencyRates: CurrencyRateState['currencyRates'],
     networkConfigurationsByChainId: NetworkState['networkConfigurationsByChainId'],
   ): TokenRatesControllerState['marketData'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return marketData;
-    }
-
     const result: TokenRatesControllerState['marketData'] = {};
 
     for (const [assetId, price] of Object.entries(assetsPrice) as [
@@ -766,22 +707,12 @@ export const getTokenRatesControllerMarketData = createDeepEqualSelector(
 export const getMultichainAssetsRatesControllerConversionRates =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsRatesController
-          ?.conversionRates ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      conversionRates: MultichainAssetsRatesControllerState['conversionRates'],
       assetsPrice: AssetsControllerState['assetsPrice'],
     ): MultichainAssetsRatesControllerState['conversionRates'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return conversionRates;
-      }
-
       const result: MultichainAssetsRatesControllerState['conversionRates'] =
         {};
 

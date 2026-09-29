@@ -1,35 +1,59 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  Keyboard,
-  Platform,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 import { strings } from '../../../../../../locales/i18n';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  ButtonsAlignment,
   Button,
-  ButtonVariant,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
-  TextVariant,
-  TextColor,
-  Text,
-} from '@metamask/design-system-react-native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
+  ButtonVariant,
+  FontWeight,
+  HeaderStandard,
+  HelpText,
+  HelpTextSeverity,
+  Icon,
   IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconSize,
+  KeyValueRow,
+  KeyValueRowVariant,
+  Label,
+  SectionDivider,
+  Text,
+  TextColor,
+  TextField,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Keypad from '../../../../../components/Base/Keypad';
-import { useTheme } from '../../../../../util/theme';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -38,7 +62,7 @@ import {
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePositions, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -47,17 +71,218 @@ import {
 } from '../../Perps.testIds';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
-import { createStyles } from './PerpsTPSLView.styles';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import {
+  calculateLiquidationDistance,
+  clampLiquidationDistance,
+} from '../../utils/liquidationDistance';
+import {
+  LIQUIDATION_DISTANCE_DECIMALS,
+  TP_SL_VIEW_CONFIG,
+} from '../../constants/perpsConfig';
 
-const PerpsTPSLView: React.FC = () => {
-  const navigation = useNavigation();
+/**
+ * Await a dismissal that may never call back.
+ *
+ * Resolves on the dismissal callback, or on
+ * {@link TP_SL_VIEW_CONFIG.DismissTimeoutMs}, whichever lands first, and only
+ * ever once. The timer is cleared when the dismissal wins so a confirmed edit
+ * does not leave it pending.
+ *
+ * @param dismiss - Dismissal that takes a post-dismiss callback.
+ * @returns Resolves once the route has dismissed, or the wait has expired.
+ */
+export function waitForDismissal(dismiss: (afterDismiss: () => void) => void) {
+  let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const dismissed = new Promise<void>((resolve) => {
+    dismiss(resolve);
+  });
+  const expired = new Promise<void>((resolve) => {
+    expiryTimer = setTimeout(resolve, TP_SL_VIEW_CONFIG.DismissTimeoutMs);
+  });
+
+  return Promise.race([dismissed, expired]).finally(() => {
+    clearTimeout(expiryTimer);
+  });
+}
+
+/** Button tertiary text color must resolve per press state. */
+const getClearTextClassName = () => 'text-primary-default';
+
+const SHEET_PRICE_PLACEHOLDER = '0.00';
+const SHEET_PERCENTAGE_PLACEHOLDER = '0';
+
+const priceKeyTextProps = {
+  variant: TextVariant.BodyMd,
+  color: TextColor.TextAlternative,
+} as const;
+
+const priceValueTextProps = {
+  variant: TextVariant.BodyMd,
+  color: TextColor.TextDefault,
+} as const;
+
+const sheetPriceKeyTextProps = {
+  variant: TextVariant.BodySm,
+  fontWeight: FontWeight.Medium,
+  color: TextColor.TextAlternative,
+} as const;
+
+const sheetPriceValueTextProps = {
+  variant: TextVariant.BodyMd,
+  fontWeight: FontWeight.Medium,
+  color: TextColor.TextDefault,
+} as const;
+
+/**
+ * Compact +/− control for %RoE fields. Force center so it lines up with the
+ * $ prefix, input text, and % suffix.
+ */
+const getRoeSignIconColor = (
+  sign: '+' | '-',
+  isNeutral: boolean,
+): IconColor => {
+  if (isNeutral) {
+    return IconColor.IconDefault;
+  }
+
+  return sign === '+' ? IconColor.SuccessDefault : IconColor.ErrorDefault;
+};
+
+const RoeSignBadge: React.FC<{
+  sign: '+' | '-';
+  onPress: () => void;
+  testID: string;
+  accessibilityLabel: string;
+  isDisabled: boolean;
+  isNeutral?: boolean;
+}> = ({
+  sign,
+  onPress,
+  testID,
+  accessibilityLabel,
+  isDisabled,
+  isNeutral = false,
+}) => (
+  <ButtonIcon
+    size={ButtonIconSize.Sm}
+    variant={ButtonIconVariant.Filled}
+    iconName={sign === '+' ? IconName.Add : IconName.Minus}
+    iconProps={{
+      size: IconSize.Sm,
+      color: getRoeSignIconColor(sign, isNeutral),
+    }}
+    isDisabled={isDisabled}
+    onPress={onPress}
+    testID={testID}
+    accessibilityLabel={accessibilityLabel}
+    accessibilityValue={{ text: sign }}
+    twClassName="shrink-0 self-center"
+  />
+);
+
+/**
+ * Reserves HelpText vertical space so TP/SL sections do not jump when
+ * expected PnL or validation errors appear. Uses an invisible danger+icon
+ * HelpText as the in-flow sizer (tallest common single-line layout).
+ */
+const SectionHelpText: React.FC<{
+  errorMessage?: string;
+  expectedMessage?: string;
+  errorTestID?: string;
+  /**
+   * Drops the sizer while both messages are absent, trading a shift when one
+   * appears for the vertical space the sheet does not have.
+   */
+  reserveWhenEmpty?: boolean;
+}> = ({
+  errorMessage,
+  expectedMessage,
+  errorTestID,
+  reserveWhenEmpty = true,
+}) => {
+  if (!reserveWhenEmpty && !errorMessage && !expectedMessage) {
+    return null;
+  }
+
+  return (
+    <Box>
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        showIcon
+        twClassName="opacity-0"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {errorMessage ?? '\u00A0'}
+      </HelpText>
+      {errorMessage ? (
+        <Box twClassName="absolute inset-x-0 top-0">
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            showIcon
+            testID={errorTestID}
+          >
+            {errorMessage}
+          </HelpText>
+        </Box>
+      ) : expectedMessage ? (
+        <Box twClassName="absolute inset-x-0 top-0">
+          <HelpText>{expectedMessage}</HelpText>
+        </Box>
+      ) : null}
+    </Box>
+  );
+};
+
+export interface PerpsTPSLViewProps {
+  /**
+   * `screen` is the experiment control and must stay byte-for-byte the
+   * experience that shipped.
+   */
+  variant?: 'screen' | 'sheet';
+}
+
+const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
+  variant = 'screen',
+}) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
+  const tw = useTailwind();
+  const { playImpact, playSelection } = useHaptics();
+
+  const isSheet = variant === 'sheet';
+  const sheetRef = useRef<BottomSheetRef>(null);
+  // A close already in flight makes BottomSheet drop any later close callback,
+  // so a second dismissal would never settle and would fall through to the
+  // timeout. Tracked here so Save cannot submit an edit Cancel already discarded.
+  const closingRef = useRef(false);
+
+  // The sheet plays its close animation before the route pops; the screen pops
+  // straight away. Both paths must dismiss before `onConfirm` runs — see the
+  // Android Fabric note in handleConfirm.
+  const dismiss = useCallback(
+    (afterDismiss?: () => void) => {
+      closingRef.current = true;
+      // The sheet pops the route from its close-animation callback, so work
+      // that must not race the transition has to run from there rather than
+      // beside it. With no ref attached there is no animation to wait on, so
+      // fall through to the screen path rather than dropping the callback.
+      if (isSheet && sheetRef.current) {
+        sheetRef.current.onCloseBottomSheet(afterDismiss);
+        return;
+      }
+      navigation.goBack();
+      afterDismiss?.();
+    },
+    [isSheet, navigation],
+  );
 
   // Extract params from navigation route
   const {
@@ -72,29 +297,25 @@ const PerpsTPSLView: React.FC = () => {
     limitPrice,
     amount,
     szDecimals,
+    enableHaptics = false,
     onConfirm,
   } = route.params;
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-  const { top: topInset } = useSafeAreaInsets();
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const takeProfitSectionRef = useRef<View>(null);
+  const stopLossSectionRef = useRef<View>(null);
+  const scrollOffsetRef = useRef(0);
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // Refs for TextInput components to programmatically blur them
+  // Refs for TextField inputs to programmatically blur them
   const takeProfitPriceRef = useRef<TextInput>(null);
   const takeProfitPercentageRef = useRef<TextInput>(null);
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
-
-  // Guard: when we programmatically dismiss the native keyboard on iOS,
-  // the TextInput fires onBlur. This ref prevents that blur from hiding
-  // the custom keypad.
-  const isProgrammaticDismissRef = useRef(false);
 
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
@@ -195,7 +416,14 @@ const PerpsTPSLView: React.FC = () => {
   });
 
   // Extract form state and handlers for easier access
-  const { takeProfitPrice, stopLossPrice } = tpslForm.formState;
+  const {
+    takeProfitPrice,
+    stopLossPrice,
+    takeProfitPercentage,
+    stopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
+  } = tpslForm.formState;
 
   const {
     handleTakeProfitPriceChange,
@@ -217,6 +445,8 @@ const PerpsTPSLView: React.FC = () => {
     handleStopLossPercentageButton,
     handleTakeProfitOff,
     handleStopLossOff,
+    handleTakeProfitSignToggle,
+    handleStopLossSignToggle,
   } = tpslForm.buttons;
 
   const {
@@ -235,11 +465,23 @@ const PerpsTPSLView: React.FC = () => {
 
   // Determine if this is create (new order) or edit (existing position) TP/SL
   const isEditingExistingPosition = !!position;
+
+  // The route snapshot outlives the position. Once the live stream has loaded
+  // without it, submitting would attach TP/SL to nothing and the controller
+  // would record a failed Risk Management request for a benign venue race.
+  const { positions: livePositions, isInitialLoading: isPositionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
+    });
+  const isPositionGone =
+    isEditingExistingPosition &&
+    !isPositionsLoading &&
+    !livePositions.some((p) => p.symbol === position.symbol);
   const tpslScreenType = isEditingExistingPosition
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
 
-  usePerpsEventTracking({
+  const { track } = usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
@@ -259,10 +501,85 @@ const PerpsTPSLView: React.FC = () => {
 
   // Handle back button press
   const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    if (closingRef.current) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    dismiss();
+  }, [dismiss, enableHaptics, playImpact]);
 
-  // Keypad handlers
+  const scrollFocusedSectionIntoView = useCallback((inputType: string) => {
+    const sectionRef =
+      inputType === 'takeProfitPrice' || inputType === 'takeProfitPercentage'
+        ? takeProfitSectionRef
+        : stopLossSectionRef;
+    const scrollView = scrollViewRef.current;
+    const section = sectionRef.current;
+    if (!scrollView || !section) {
+      return;
+    }
+
+    const scrollViewNative = scrollView as unknown as View;
+
+    section.measureInWindow(
+      (_sx: number, sectionY: number, _sw: number, sectionHeight: number) => {
+        scrollViewNative.measureInWindow(
+          (_vx: number, viewY: number, _vw: number, viewHeight: number) => {
+            const margin = 16;
+            const sectionBottom = sectionY + sectionHeight;
+            const visibleBottom = viewY + viewHeight - margin;
+            const sectionTop = sectionY;
+            const visibleTop = viewY + margin;
+
+            let delta = 0;
+            if (sectionBottom > visibleBottom) {
+              delta = sectionBottom - visibleBottom;
+            } else if (sectionTop < visibleTop) {
+              delta = sectionTop - visibleTop;
+            }
+
+            if (Math.abs(delta) > 1) {
+              scrollView.scrollTo({
+                y: Math.max(0, scrollOffsetRef.current + delta),
+                animated: true,
+              });
+            }
+          },
+        );
+      },
+    );
+  }, []);
+
+  // After the custom keypad mounts (and ScrollView shrinks), scroll the focused
+  // section so its inputs + HelpText sit in the remaining viewport.
+  useEffect(() => {
+    if (!focusedInput) {
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      scrollFocusedSectionIntoView(focusedInput);
+    }, 50);
+    return () => clearTimeout(timeoutId);
+  }, [focusedInput, scrollFocusedSectionIntoView]);
+
+  const handleScroll = useCallback(
+    (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollOffsetRef.current = scrollEvent.nativeEvent.contentOffset.y;
+    },
+    [],
+  );
+
+  // Footer onLayout fires after the keypad mounts and the ScrollView viewport
+  // shrinks — re-measure so the focused section stays visible.
+  const handleKeypadFooterLayout = useCallback(() => {
+    if (!focusedInput) {
+      return;
+    }
+    scrollFocusedSectionIntoView(focusedInput);
+  }, [focusedInput, scrollFocusedSectionIntoView]);
+
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
       if (focusedInput === 'takeProfitPrice') {
@@ -272,12 +589,7 @@ const PerpsTPSLView: React.FC = () => {
       } else if (focusedInput === 'stopLossPrice') {
         handleStopLossPriceChange(value);
       } else if (focusedInput === 'stopLossPercentage') {
-        const trimmedValue = value.trim();
-        const valueToUse =
-          trimmedValue.length === 1 && trimmedValue !== '0'
-            ? `-${value}`
-            : value.trim();
-        handleStopLossPercentageChange(valueToUse);
+        handleStopLossPercentageChange(value.trim());
       }
     },
     [
@@ -293,44 +605,12 @@ const PerpsTPSLView: React.FC = () => {
     (inputType: string) => {
       setFocusedInput(inputType);
 
-      // showSoftInputOnFocus is Android-only; on iOS the native keyboard
-      // still appears when a TextInput is focused. Dismiss it so that only
-      // the custom keypad is visible and content stays within the viewport.
-      //
-      // This runs inside the callback (not a useEffect) so it fires on
-      // every focus event, even when the same input is re-focused and
-      // React deduplicates the setFocusedInput call.
-      if (Platform.OS === 'ios') {
-        isProgrammaticDismissRef.current = true;
-        requestAnimationFrame(() => {
-          Keyboard.dismiss();
-          setTimeout(() => {
-            isProgrammaticDismissRef.current = false;
-          }, 150);
-        });
-      }
-
-      // Auto-scroll to keep input visible when keypad is active
-      if (scrollViewRef.current) {
-        let yOffset = 0;
-
-        // Calculate scroll position based on which input is focused
-        switch (inputType) {
-          case 'takeProfitPrice':
-          case 'takeProfitPercentage':
-            yOffset = 150; // Take Profit section
-            break;
-          case 'stopLossPrice':
-          case 'stopLossPercentage':
-            yOffset = 350; // Stop Loss section
-            break;
-        }
-
-        scrollViewRef.current.scrollTo({
-          y: yOffset,
-          animated: true,
-        });
-      }
+      // The system keyboard is suppressed via showSoftInputOnFocus={false} on
+      // each Input, which the native iOS implementation honors by swapping in
+      // an empty inputView. The custom keypad is the only keyboard shown and
+      // the native caret stays focused and blinking — no Keyboard.dismiss()
+      // workaround needed.
+      // Scroll-into-view runs in an effect after the keypad layout settles.
 
       // Call the appropriate original focus handler
       switch (inputType) {
@@ -356,30 +636,31 @@ const PerpsTPSLView: React.FC = () => {
     ],
   );
 
-  const handleInputBlur = useCallback(() => {
-    // When we programmatically dismiss the native keyboard on iOS the
-    // TextInput fires onBlur. Ignore that blur so the custom keypad
-    // stays visible.
-    if (isProgrammaticDismissRef.current) return;
+  // Only hide the keypad when the active/focused field is the one blurring
+  // (prevents hiding the keypad when the user moves focus to another field).
+  const handleInputBlur = useCallback(
+    (inputType: string) => {
+      if (inputType === 'takeProfitPrice') {
+        handleTakeProfitPriceBlur();
+      } else if (inputType === 'takeProfitPercentage') {
+        handleTakeProfitPercentageBlur();
+      } else if (inputType === 'stopLossPrice') {
+        handleStopLossPriceBlur();
+      } else if (inputType === 'stopLossPercentage') {
+        handleStopLossPercentageBlur();
+      }
 
-    if (focusedInput === 'takeProfitPrice') {
-      handleTakeProfitPriceBlur();
-    } else if (focusedInput === 'takeProfitPercentage') {
-      handleTakeProfitPercentageBlur();
-    } else if (focusedInput === 'stopLossPrice') {
-      handleStopLossPriceBlur();
-    } else if (focusedInput === 'stopLossPercentage') {
-      handleStopLossPercentageBlur();
-    }
-
-    setFocusedInput(null);
-  }, [
-    focusedInput,
-    handleTakeProfitPriceBlur,
-    handleTakeProfitPercentageBlur,
-    handleStopLossPriceBlur,
-    handleStopLossPercentageBlur,
-  ]);
+      // Only clear the keypad when the field that is blurring is still the
+      // active one (i.e. the user isn't moving to another input).
+      setFocusedInput((prev) => (prev === inputType ? null : prev));
+    },
+    [
+      handleTakeProfitPriceBlur,
+      handleTakeProfitPercentageBlur,
+      handleStopLossPriceBlur,
+      handleStopLossPercentageBlur,
+    ],
+  );
 
   const dismissKeypad = useCallback(() => {
     // Blur the currently focused input to trigger onBlur events
@@ -396,6 +677,16 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput]);
 
   const handleConfirm = useCallback(async () => {
+    if (
+      closingRef.current ||
+      !hasChanges ||
+      !isValid ||
+      isUpdating ||
+      isPositionGone
+    ) {
+      return;
+    }
+
     if (focusedInput) {
       dismissKeypad();
     }
@@ -409,593 +700,864 @@ const PerpsTPSLView: React.FC = () => {
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
-    setIsUpdating(true);
-    try {
-      // Pass tracking data to avoid duplicate position fetch in controller
-      // Use appropriate source based on context:
-      // - POSITION_SCREEN when editing TP/SL on an existing position
-      // - TRADE_SCREEN when setting TP/SL for a new order
-      const trackingData = {
-        direction: actualDirection,
-        source: isEditingExistingPosition
-          ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-          : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
-        takeProfitPercentage: formattedTakeProfitPercentage
-          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
-          : undefined,
-        stopLossPercentage: formattedStopLossPercentage
-          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
-          : undefined,
-        isEditingExistingPosition,
-        entryPrice: effectiveEntryPrice,
-      };
-      // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
-      await onConfirm(
-        position,
-        parseTakeProfitPrice,
-        parseStopLossPrice,
-        trackingData,
-      );
-      navigation.goBack();
-    } finally {
-      setIsUpdating(false);
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
+
+    setIsUpdating(true);
+
+    // Pass tracking data to avoid duplicate position fetch in controller
+    // Use appropriate source based on context:
+    // - POSITION_SCREEN when editing TP/SL on an existing position
+    // - TRADE_SCREEN when setting TP/SL for a new order
+    const riskSource = isEditingExistingPosition
+      ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+      : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
+    const trackingData = {
+      direction: actualDirection,
+      source: riskSource,
+      ...toPerpsEntryAttribution({ source: riskSource }),
+      positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+      takeProfitPercentage: takeProfitPercentage
+        ? (takeProfitSign === '-' ? -1 : 1) *
+          Math.abs(parseFloat(takeProfitPercentage.replace(/[^\d.-]/g, '')))
+        : undefined,
+      stopLossPercentage: stopLossPercentage
+        ? (stopLossSign === '-' ? -1 : 1) *
+          Math.abs(parseFloat(stopLossPercentage.replace(/[^\d.-]/g, '')))
+        : undefined,
+      isEditingExistingPosition,
+      entryPrice: effectiveEntryPrice,
+    };
+
+    // Dismiss first (same as PerpsClosePositionView). Updating while this
+    // screen is still dismissing crashes Android Fabric under nav v7 —
+    // optimistic parent re-render races react-native-screens' transition.
+    //
+    // The sheet can drop its close callback — a close already in flight returns
+    // before storing it — so this settles on a timer too. Waiting forever would
+    // strand the update behind a spinner, which is worse than confirming a beat
+    // early.
+    await waitForDismissal(dismiss);
+
+    // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
+    await onConfirm(
+      position,
+      parseTakeProfitPrice,
+      parseStopLossPrice,
+      trackingData,
+    );
   }, [
     focusedInput,
     takeProfitPrice,
     stopLossPrice,
     onConfirm,
     dismissKeypad,
-    navigation,
+    dismiss,
     actualDirection,
     position,
-    formattedTakeProfitPercentage,
-    formattedStopLossPercentage,
+    takeProfitPercentage,
+    stopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
     isEditingExistingPosition,
     effectiveEntryPrice,
+    enableHaptics,
+    playImpact,
+    hasChanges,
+    isValid,
+    isUpdating,
+    isPositionGone,
   ]);
 
-  const confirmDisabled = !hasChanges || !isValid || isUpdating;
+  const confirmDisabled =
+    !hasChanges || !isValid || isUpdating || isPositionGone;
   const inputsDisabled = isUpdating;
 
-  // Wrapper handlers to dismiss keyboard before clearing
+  const handleTakeProfitSignPress = useCallback(() => {
+    if (inputsDisabled) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    const nextSign = takeProfitSign === '+' ? '-' : '+';
+    handleTakeProfitSignToggle();
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TPSL_ROE_SIGN_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.TP,
+      [PERPS_EVENT_PROPERTY.ROE_SIGN]: nextSign,
+    });
+  }, [
+    enableHaptics,
+    handleTakeProfitSignToggle,
+    inputsDisabled,
+    playSelection,
+    takeProfitSign,
+    track,
+  ]);
+
+  const handleStopLossSignPress = useCallback(() => {
+    if (inputsDisabled) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    const nextSign = stopLossSign === '-' ? '+' : '-';
+    handleStopLossSignToggle();
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TPSL_ROE_SIGN_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.SL,
+      [PERPS_EVENT_PROPERTY.ROE_SIGN]: nextSign,
+    });
+  }, [
+    enableHaptics,
+    handleStopLossSignToggle,
+    inputsDisabled,
+    playSelection,
+    stopLossSign,
+    track,
+  ]);
+
+  const handleTakeProfitPresetPress = useCallback(
+    (percentage: number) => {
+      if (inputsDisabled) {
+        return;
+      }
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+      handleTakeProfitPercentageButton(percentage);
+    },
+    [
+      enableHaptics,
+      handleTakeProfitPercentageButton,
+      inputsDisabled,
+      playSelection,
+    ],
+  );
+
+  const handleStopLossPresetPress = useCallback(
+    (percentage: number) => {
+      if (inputsDisabled) {
+        return;
+      }
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+      handleStopLossPercentageButton(percentage);
+    },
+    [
+      enableHaptics,
+      handleStopLossPercentageButton,
+      inputsDisabled,
+      playSelection,
+    ],
+  );
+
+  // The screen's dismissal is load-bearing: its Clear went unresponsive while
+  // the keypad was up. The sheet's Clear responds on the first tap, so it
+  // keeps the keypad open and closes only via Done.
   const handleTakeProfitClear = useCallback(() => {
-    if (focusedInput) {
+    if (focusedInput && !isSheet) {
       dismissKeypad();
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
     }
     handleTakeProfitOff();
-  }, [focusedInput, dismissKeypad, handleTakeProfitOff]);
+  }, [
+    focusedInput,
+    isSheet,
+    dismissKeypad,
+    enableHaptics,
+    handleTakeProfitOff,
+    playSelection,
+  ]);
 
   const handleStopLossClear = useCallback(() => {
-    if (focusedInput) {
+    if (focusedInput && !isSheet) {
       dismissKeypad();
     }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
     handleStopLossOff();
-  }, [focusedInput, dismissKeypad, handleStopLossOff]);
+  }, [
+    focusedInput,
+    isSheet,
+    dismissKeypad,
+    enableHaptics,
+    handleStopLossOff,
+    playSelection,
+  ]);
 
-  return (
-    <SafeAreaView
-      style={styles.container}
-      edges={['bottom']}
-      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
-    >
-      {/* Simple header with back button and title */}
-      <View
-        style={[
-          styles.header,
-          topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
-        ]}
-      >
-        <View style={styles.headerBackButton}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Md}
-            onPress={handleBack}
-            testID={PerpsTPSLViewSelectorsIDs.BACK_BUTTON}
-          />
-        </View>
-        <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
-            {strings('perps.tpsl.title')}
-          </Text>
-        </View>
-        <View />
-      </View>
+  const cancelButtonProps = useMemo(
+    () => ({
+      children: strings('perps.tpsl.cancel'),
+      onPress: handleBack,
+      size: ButtonSize.Lg,
+      ...(isSheet ? { twClassName: 'rounded-xl bg-muted' } : {}),
+      testID: PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON,
+    }),
+    [handleBack, isSheet],
+  );
+
+  const setButtonProps = useMemo(
+    () => ({
+      children: isSheet
+        ? strings('perps.order.tpsl_modal.save')
+        : strings('perps.tpsl.set'),
+      onPress: handleConfirm,
+      size: ButtonSize.Lg,
+      isDisabled: confirmDisabled,
+      isLoading: isUpdating,
+      testID: PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+    }),
+    [handleConfirm, confirmDisabled, isSheet, isUpdating],
+  );
+
+  const doneButtonProps = useMemo(
+    () => ({
+      children: strings('perps.tpsl.done'),
+      onPress: dismissKeypad,
+      size: ButtonSize.Lg,
+      testID: PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
+    }),
+    [dismissKeypad],
+  );
+
+  const keypadPresets = useMemo(() => {
+    if (!focusedInput) {
+      return [];
+    }
+
+    const isTakeProfit =
+      focusedInput === 'takeProfitPrice' ||
+      focusedInput === 'takeProfitPercentage';
+
+    if (isTakeProfit) {
+      return TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => ({
+        key: `take-profit-${percentage}`,
+        // Take profit presets are stored unsigned, stop loss presets negative.
+        label: `+${percentage}%`,
+        testID: getPerpsTPSLViewSelector.takeProfitPercentageButton(percentage),
+        onPress: () => handleTakeProfitPresetPress(percentage),
+      }));
+    }
+
+    return TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => ({
+      key: `stop-loss-${percentage}`,
+      label: `${percentage}%`,
+      testID: getPerpsTPSLViewSelector.stopLossPercentageButton(percentage),
+      onPress: () => handleStopLossPresetPress(percentage),
+    }));
+  }, [focusedInput, handleStopLossPresetPress, handleTakeProfitPresetPress]);
+
+  const entryPriceDisplay =
+    position &&
+    position.entryPrice !== undefined &&
+    position.entryPrice !== null &&
+    position.entryPrice !== 'null' &&
+    position.entryPrice !== '0.00'
+      ? formatPerpsFiat(position.entryPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        })
+      : PERPS_CONSTANTS.FallbackPriceDisplay;
+
+  const currentPriceDisplay =
+    currentPrice !== undefined && currentPrice !== null
+      ? formatPerpsFiat(currentPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        })
+      : PERPS_CONSTANTS.FallbackPriceDisplay;
+
+  const hasLiquidationPrice =
+    displayLiquidationPrice !== undefined &&
+    displayLiquidationPrice !== null &&
+    displayLiquidationPrice !== 'null' &&
+    displayLiquidationPrice !== '0.00';
+
+  const liquidationPriceDisplay = hasLiquidationPrice
+    ? formatPerpsFiat(displayLiquidationPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      })
+    : PERPS_CONSTANTS.FallbackPriceDisplay;
+
+  // Sheet-only: the control arm must keep the plain liquidation price it ships
+  // with today, or the experiment measures two changes at once.
+  const liquidationDistanceDisplay = useMemo(() => {
+    if (!isSheet || !hasLiquidationPrice || !currentPrice) {
+      return undefined;
+    }
+
+    const parsedLiquidationPrice = Number.parseFloat(
+      String(displayLiquidationPrice),
+    );
+    if (!Number.isFinite(parsedLiquidationPrice)) {
+      return undefined;
+    }
+
+    const distance = clampLiquidationDistance(
+      calculateLiquidationDistance(currentPrice, parsedLiquidationPrice),
+    );
+
+    return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+  }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice, isSheet]);
+
+  const takeProfitHasError = !isValid && Boolean(takeProfitError);
+  const stopLossHasError = !isValid && Boolean(stopLossError);
+  const stopLossErrorMessage =
+    !isValid && (stopLossError || stopLossLiquidationError)
+      ? stopLossError || stopLossLiquidationError
+      : undefined;
+
+  const formatExpectedPnL = (pnl: number) =>
+    pnl >= 0
+      ? strings('perps.tpsl.expected_profit', {
+          amount: formatPerpsFiat(Math.abs(pnl), {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          }),
+        })
+      : strings('perps.tpsl.expected_loss', {
+          amount: formatPerpsFiat(Math.abs(pnl), {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          }),
+        });
+
+  // ButtonTertiary hardcodes `text-default` through `textClassName`, which
+  // beats `textProps.color`, so the blue has to come through that same prop.
+  // Only spread it for the sheet: passing `undefined` would clobber the
+  // variant's own resolver rather than fall back to it.
+  const clearColorProps = isSheet
+    ? { textClassName: getClearTextClassName }
+    : {};
+
+  // Spread rather than pass `undefined`, which would wipe out Label's own
+  // BodyMd default instead of falling back to it.
+  const sectionLabelProps = isSheet
+    ? {
+        color: TextColor.TextAlternative,
+        variant: TextVariant.BodySm,
+        fontWeight: FontWeight.Medium,
+      }
+    : { color: TextColor.TextDefault };
+
+  const keyTextProps = isSheet ? sheetPriceKeyTextProps : priceKeyTextProps;
+  const valueTextProps = isSheet
+    ? sheetPriceValueTextProps
+    : priceValueTextProps;
+
+  const pricePlaceholder = isSheet
+    ? SHEET_PRICE_PLACEHOLDER
+    : strings('perps.tpsl.trigger_price_placeholder');
+  const takeProfitPercentagePlaceholder = isSheet
+    ? SHEET_PERCENTAGE_PLACEHOLDER
+    : takeProfitSign === '-'
+      ? strings('perps.tpsl.loss_roe_placeholder')
+      : strings('perps.tpsl.profit_roe_placeholder');
+  const stopLossPercentagePlaceholder = isSheet
+    ? SHEET_PERCENTAGE_PLACEHOLDER
+    : stopLossSign === '+'
+      ? strings('perps.tpsl.gain_roe_placeholder')
+      : strings('perps.tpsl.loss_roe_placeholder');
+
+  const reviewFooter = isSheet ? (
+    <BottomSheetFooter primaryButtonProps={setButtonProps} />
+  ) : (
+    <BottomSheetFooter
+      buttonsAlignment={ButtonsAlignment.Horizontal}
+      secondaryButtonProps={cancelButtonProps}
+      primaryButtonProps={setButtonProps}
+    />
+  );
+
+  const keypad = (
+    <Box twClassName="px-4 pt-2 bg-default">
+      <Keypad
+        value={(() => {
+          if (focusedInput === 'takeProfitPrice') return takeProfitPrice;
+          if (focusedInput === 'takeProfitPercentage')
+            return formattedTakeProfitPercentage;
+          if (focusedInput === 'stopLossPrice') return stopLossPrice;
+          return formattedStopLossPercentage;
+        })()}
+        onChange={handleKeypadChange}
+        currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
+        decimals={
+          focusedInput === 'takeProfitPercentage' ||
+          focusedInput === 'stopLossPercentage'
+            ? TP_SL_VIEW_CONFIG.KeypadDecimals
+            : keypadDecimals
+        }
+      />
+    </Box>
+  );
+
+  let footerContent: React.ReactNode = reviewFooter;
+  if (focusedInput && isSheet) {
+    footerContent = (
+      <>
+        {reviewFooter}
+        <Box twClassName="flex-row gap-2 px-4 pt-3">
+          {keypadPresets.map((preset) => (
+            <Button
+              key={preset.key}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              // ButtonBase hardcodes px-4, which clips these labels once five
+              // buttons share the row. Trim the padding so the text governs.
+              twClassName="flex-1 px-2"
+              onPress={preset.onPress}
+              testID={preset.testID}
+              isDisabled={inputsDisabled}
+            >
+              {preset.label}
+            </Button>
+          ))}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            twClassName="px-3"
+            onPress={dismissKeypad}
+            testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
+          >
+            {strings('perps.tpsl.done')}
+          </Button>
+        </Box>
+        {keypad}
+      </>
+    );
+  } else if (focusedInput) {
+    footerContent = (
+      <>
+        <BottomSheetFooter primaryButtonProps={doneButtonProps} />
+        {keypad}
+      </>
+    );
+  }
+
+  const body = (
+    <>
+      {/* The screen fills a bounded SafeAreaView, so the scroller claims the
+          leftover height. A bottom sheet sizes to its content instead, and
+          `flex-1` against an unbounded parent collapses the body to zero, so
+          the sheet lets the same content set the height. */}
       <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        onScrollBeginDrag={Keyboard.dismiss}
+        style={isSheet ? undefined : tw.style('flex-1')}
+        contentContainerStyle={isSheet ? undefined : tw.style('grow')}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.scrollContent} testID="scroll-content">
+        <Box
+          twClassName={isSheet ? undefined : 'flex-1'}
+          testID="scroll-content"
+        >
           {/* Current price and liquidation price info */}
-          <View
-            style={
-              focusedInput
-                ? styles.priceInfoContainerCondensed
-                : styles.priceInfoContainer
-            }
-          >
+          <Box twClassName={isSheet ? undefined : 'mb-6 gap-2'}>
             {position && (
-              <View style={styles.priceInfoRow}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('perps.tpsl.entry_price')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {position.entryPrice !== undefined &&
-                  position.entryPrice !== null &&
-                  position.entryPrice !== 'null' &&
-                  position.entryPrice !== '0.00'
-                    ? formatPerpsFiat(position.entryPrice, {
-                        ranges: PRICE_RANGES_UNIVERSAL,
-                      })
-                    : PERPS_CONSTANTS.FallbackPriceDisplay}
-                </Text>
-              </View>
+              <KeyValueRow
+                variant={KeyValueRowVariant.Summary}
+                twClassName={isSheet ? 'h-8' : undefined}
+                keyLabel={strings('perps.tpsl.entry_price')}
+                value={entryPriceDisplay}
+                keyTextProps={keyTextProps}
+                valueTextProps={valueTextProps}
+              />
             )}
-            <View style={styles.priceInfoRow}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {orderType === 'limit' &&
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              twClassName={isSheet ? 'h-8' : undefined}
+              keyLabel={
+                orderType === 'limit' &&
                 limitPrice &&
                 parseFloat(limitPrice) > 0
                   ? strings('perps.order.limit_price')
-                  : strings('perps.tpsl.current_price')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {currentPrice !== undefined && currentPrice !== null
-                  ? formatPerpsFiat(currentPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  : PERPS_CONSTANTS.FallbackPriceDisplay}
-              </Text>
-            </View>
-            <View style={styles.priceInfoRow}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.tpsl.liquidation_price')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {displayLiquidationPrice !== undefined &&
-                displayLiquidationPrice !== null &&
-                displayLiquidationPrice !== 'null' &&
-                displayLiquidationPrice !== '0.00'
-                  ? formatPerpsFiat(displayLiquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  : PERPS_CONSTANTS.FallbackPriceDisplay}
-              </Text>
-            </View>
-          </View>
+                  : strings('perps.tpsl.current_price')
+              }
+              value={currentPriceDisplay}
+              keyTextProps={keyTextProps}
+              valueTextProps={valueTextProps}
+            />
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              twClassName={isSheet ? 'h-8' : undefined}
+              keyLabel={strings('perps.tpsl.liquidation_price')}
+              value={
+                liquidationDistanceDisplay ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
+                    accessible={false}
+                    testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE}
+                  >
+                    <Text {...valueTextProps}>{liquidationPriceDisplay}</Text>
+                    <Icon
+                      name={
+                        actualDirection === 'long'
+                          ? IconName.TrendDown
+                          : IconName.TrendUp
+                      }
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                    >
+                      {liquidationDistanceDisplay}
+                    </Text>
+                  </Box>
+                ) : (
+                  liquidationPriceDisplay
+                )
+              }
+              keyTextProps={keyTextProps}
+              valueTextProps={valueTextProps}
+            />
+          </Box>
+
+          {/* Spacing lives on the divider so it sits equidistant from the
+              rows either side of it. */}
+          {isSheet ? <SectionDivider twClassName="my-4" /> : null}
 
           {/* Take Profit Section */}
-          <View style={focusedInput ? styles.sectionCondensed : styles.section}>
-            {/* Section title row with Clear button */}
-            <View style={styles.sectionTitleRow}>
-              <Text
-                variant={TextVariant.HeadingSm}
-                color={TextColor.TextDefault}
+          <View ref={takeProfitSectionRef} collapsable={false}>
+            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="mb-2 -mr-3 min-h-8"
               >
-                {actualDirection === 'short'
-                  ? strings('perps.tpsl.take_profit_short')
-                  : strings('perps.tpsl.take_profit_long')}
-              </Text>
-              {Boolean(takeProfitPrice) && (
-                <TouchableOpacity
-                  onPress={handleTakeProfitClear}
-                  disabled={inputsDisabled}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
+                <Label {...sectionLabelProps}>
+                  {actualDirection === 'short'
+                    ? strings('perps.tpsl.take_profit_short')
+                    : strings('perps.tpsl.take_profit_long')}
+                </Label>
+                {(isSheet || Boolean(takeProfitPrice)) && (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleTakeProfitClear}
+                    isDisabled={inputsDisabled}
+                    {...clearColorProps}
+                    testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON}
                   >
                     {strings('perps.tpsl.clear')}
-                  </Text>
-                </TouchableOpacity>
+                  </Button>
+                )}
+              </Box>
+
+              {isSheet ? null : (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="mb-3 gap-2"
+                >
+                  {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
+                    <Button
+                      key={percentage}
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Md}
+                      twClassName="flex-1"
+                      onPress={() => handleTakeProfitPresetPress(percentage)}
+                      testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
+                        percentage,
+                      )}
+                      isDisabled={inputsDisabled}
+                    >
+                      {`+${percentage}%`}
+                    </Button>
+                  ))}
+                </Box>
               )}
-            </View>
 
-            {/* Percentage buttons */}
-            <View style={styles.percentageButtonsContainer}>
-              {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
-                <TouchableOpacity
-                  key={percentage}
-                  style={styles.percentageButton}
-                  onPress={() => handleTakeProfitPercentageButton(percentage)}
-                  testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
-                    percentage,
-                  )}
-                  disabled={inputsDisabled}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    +{percentage}%
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Input row */}
-            <View style={styles.inputRow}>
-              {/* Price Input */}
-              <View
-                style={[
-                  styles.inputContainer,
-                  !isValid && takeProfitError && styles.inputError,
-                ]}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-2 gap-2"
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('perps.tpsl.usd_label')}
-                </Text>
-                <TextInput
-                  ref={takeProfitPriceRef}
-                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
-                  style={styles.input}
+                <TextField
+                  twClassName="flex-1"
+                  inputRef={takeProfitPriceRef}
+                  isError={takeProfitHasError}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPriceChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
-                  placeholderTextColor={colors.text.muted}
-                  showSoftInputOnFocus={false}
-                  editable={!inputsDisabled}
+                  placeholder={pricePlaceholder}
+                  isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPrice');
                   }}
-                  onBlur={() => {
-                    if (!isProgrammaticDismissRef.current) {
-                      handleTakeProfitPriceBlur();
-                    }
-                    handleInputBlur();
+                  onBlur={() => handleInputBlur('takeProfitPrice')}
+                  startAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('perps.tpsl.usd_label')}
+                    </Text>
+                  }
+                  inputProps={{
+                    testID: PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+                    showSoftInputOnFocus: false,
                   }}
-                  selectionColor={colors.primary.default}
-                  cursorColor={colors.primary.default}
                 />
-              </View>
-
-              {/* RoE Percentage Input */}
-              <View
-                style={[
-                  styles.inputContainer,
-                  !isValid && takeProfitError && styles.inputError,
-                ]}
-              >
-                <TextInput
-                  ref={takeProfitPercentageRef}
-                  style={styles.input}
+                <TextField
+                  twClassName="flex-1"
+                  inputRef={takeProfitPercentageRef}
+                  isError={takeProfitHasError}
                   value={formattedTakeProfitPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPercentageChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.profit_roe_placeholder')}
-                  placeholderTextColor={colors.text.muted}
-                  showSoftInputOnFocus={false}
-                  editable={!inputsDisabled}
+                  placeholder={takeProfitPercentagePlaceholder}
+                  isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
                   }}
-                  onBlur={() => {
-                    if (!isProgrammaticDismissRef.current) {
-                      handleTakeProfitPercentageBlur();
-                    }
-                    handleInputBlur();
+                  onBlur={() => handleInputBlur('takeProfitPercentage')}
+                  startAccessory={
+                    <RoeSignBadge
+                      sign={takeProfitSign}
+                      onPress={handleTakeProfitSignPress}
+                      testID={
+                        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
+                      }
+                      accessibilityLabel={strings(
+                        'perps.tpsl.toggle_take_profit_sign',
+                      )}
+                      isDisabled={inputsDisabled}
+                      isNeutral={isSheet}
+                    />
+                  }
+                  endAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      %
+                    </Text>
+                  }
+                  inputProps={{
+                    testID:
+                      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
+                    showSoftInputOnFocus: false,
                   }}
-                  selectionColor={colors.primary.default}
-                  cursorColor={colors.primary.default}
                 />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  %
-                </Text>
-              </View>
-            </View>
+              </Box>
 
-            {/* Expected Profit/Loss for Take Profit */}
-            {Boolean(takeProfitPrice) &&
-              expectedTakeProfitPnL !== undefined && (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  style={styles.expectedPnLText}
-                >
-                  {expectedTakeProfitPnL >= 0
-                    ? strings('perps.tpsl.expected_profit', {
-                        amount: formatPerpsFiat(
-                          Math.abs(expectedTakeProfitPnL),
-                          {
-                            ranges: PRICE_RANGES_MINIMAL_VIEW,
-                          },
-                        ),
-                      })
-                    : strings('perps.tpsl.expected_loss', {
-                        amount: formatPerpsFiat(
-                          Math.abs(expectedTakeProfitPnL),
-                          {
-                            ranges: PRICE_RANGES_MINIMAL_VIEW,
-                          },
-                        ),
-                      })}
-                </Text>
-              )}
-            {Boolean(takeProfitPrice) &&
-              expectedTakeProfitPnL === undefined && (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  style={styles.expectedPnLText}
-                >
-                  {PERPS_CONSTANTS.FallbackDataDisplay}
-                </Text>
-              )}
-
-            {/* Error message */}
-            {!isValid && Boolean(takeProfitError) && (
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {takeProfitError}
-              </Text>
-            )}
+              <SectionHelpText
+                reserveWhenEmpty={!isSheet}
+                errorTestID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR}
+                errorMessage={
+                  takeProfitHasError ? takeProfitError || undefined : undefined
+                }
+                expectedMessage={
+                  takeProfitPrice
+                    ? expectedTakeProfitPnL !== undefined
+                      ? formatExpectedPnL(expectedTakeProfitPnL)
+                      : PERPS_CONSTANTS.FallbackDataDisplay
+                    : undefined
+                }
+              />
+            </Box>
           </View>
 
           {/* Stop Loss Section */}
-          <View style={focusedInput ? styles.sectionCondensed : styles.section}>
-            {/* Section title row with Clear button */}
-            <View style={styles.sectionTitleRow}>
-              <Text
-                variant={TextVariant.HeadingSm}
-                color={TextColor.TextDefault}
+          <View ref={stopLossSectionRef} collapsable={false}>
+            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="mb-2 -mr-3 min-h-8"
               >
-                {actualDirection === 'short'
-                  ? strings('perps.tpsl.stop_loss_short')
-                  : strings('perps.tpsl.stop_loss_long')}
-              </Text>
-              {Boolean(stopLossPrice) && (
-                <TouchableOpacity
-                  onPress={handleStopLossClear}
-                  disabled={inputsDisabled}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
+                <Label {...sectionLabelProps}>
+                  {actualDirection === 'short'
+                    ? strings('perps.tpsl.stop_loss_short')
+                    : strings('perps.tpsl.stop_loss_long')}
+                </Label>
+                {(isSheet || Boolean(stopLossPrice)) && (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleStopLossClear}
+                    isDisabled={inputsDisabled}
+                    {...clearColorProps}
+                    testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON}
                   >
                     {strings('perps.tpsl.clear')}
-                  </Text>
-                </TouchableOpacity>
+                  </Button>
+                )}
+              </Box>
+
+              {isSheet ? null : (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="mb-3 gap-2"
+                >
+                  {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
+                    <Button
+                      key={percentage}
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Md}
+                      twClassName="flex-1"
+                      onPress={() => handleStopLossPresetPress(percentage)}
+                      testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
+                        percentage,
+                      )}
+                      isDisabled={inputsDisabled}
+                    >
+                      {`${percentage}%`}
+                    </Button>
+                  ))}
+                </Box>
               )}
-            </View>
 
-            {/* Percentage buttons */}
-            <View style={styles.percentageButtonsContainer}>
-              {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
-                <TouchableOpacity
-                  key={percentage}
-                  style={styles.percentageButton}
-                  onPress={() => handleStopLossPercentageButton(percentage)}
-                  testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
-                    percentage,
-                  )}
-                  disabled={inputsDisabled}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    {percentage}%
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Input row */}
-            <View style={styles.inputRow}>
-              {/* Price Input */}
-              <View
-                style={[
-                  styles.inputContainer,
-                  !isValid && stopLossError && styles.inputError,
-                ]}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="mb-2 gap-2"
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('perps.tpsl.usd_label')}
-                </Text>
-                <TextInput
-                  ref={stopLossPriceRef}
-                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
-                  style={styles.input}
+                <TextField
+                  twClassName="flex-1"
+                  inputRef={stopLossPriceRef}
+                  isError={stopLossHasError}
                   value={stopLossPrice}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPriceChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
-                  placeholderTextColor={colors.text.muted}
-                  showSoftInputOnFocus={false}
-                  editable={!inputsDisabled}
+                  placeholder={pricePlaceholder}
+                  isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPrice');
                   }}
-                  onBlur={() => {
-                    if (!isProgrammaticDismissRef.current) {
-                      handleStopLossPriceBlur();
-                    }
-                    handleInputBlur();
+                  onBlur={() => handleInputBlur('stopLossPrice')}
+                  startAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('perps.tpsl.usd_label')}
+                    </Text>
+                  }
+                  inputProps={{
+                    testID: PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+                    showSoftInputOnFocus: false,
                   }}
-                  selectionColor={colors.primary.default}
-                  cursorColor={colors.primary.default}
                 />
-              </View>
-
-              {/* Percentage Input */}
-              <View
-                style={[
-                  styles.inputContainer,
-                  !isValid && stopLossError && styles.inputError,
-                ]}
-              >
-                <TextInput
-                  ref={stopLossPercentageRef}
-                  style={styles.input}
+                <TextField
+                  twClassName="flex-1"
+                  inputRef={stopLossPercentageRef}
+                  isError={stopLossHasError}
                   value={formattedStopLossPercentage}
                   onChangeText={(text) => {
                     const digitCount = (text.match(/\d/g) || []).length;
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPercentageChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.loss_roe_placeholder')}
-                  placeholderTextColor={colors.text.muted}
-                  showSoftInputOnFocus={false}
-                  editable={!inputsDisabled}
+                  placeholder={stopLossPercentagePlaceholder}
+                  isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
                   }}
-                  onBlur={() => {
-                    if (!isProgrammaticDismissRef.current) {
-                      handleStopLossPercentageBlur();
-                    }
-                    handleInputBlur();
+                  onBlur={() => handleInputBlur('stopLossPercentage')}
+                  startAccessory={
+                    <RoeSignBadge
+                      sign={stopLossSign}
+                      onPress={handleStopLossSignPress}
+                      testID={
+                        PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
+                      }
+                      accessibilityLabel={strings(
+                        'perps.tpsl.toggle_stop_loss_sign',
+                      )}
+                      isDisabled={inputsDisabled}
+                      isNeutral={isSheet}
+                    />
+                  }
+                  endAccessory={
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      %
+                    </Text>
+                  }
+                  inputProps={{
+                    testID:
+                      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
+                    showSoftInputOnFocus: false,
                   }}
-                  selectionColor={colors.primary.default}
-                  cursorColor={colors.primary.default}
                 />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  %
-                </Text>
-              </View>
-            </View>
+              </Box>
 
-            {/* Expected Profit/Loss for Stop Loss */}
-            {Boolean(stopLossPrice) && expectedStopLossPnL !== undefined && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                style={styles.expectedPnLText}
-              >
-                {expectedStopLossPnL >= 0
-                  ? strings('perps.tpsl.expected_profit', {
-                      amount: formatPerpsFiat(Math.abs(expectedStopLossPnL), {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    })
-                  : strings('perps.tpsl.expected_loss', {
-                      amount: formatPerpsFiat(Math.abs(expectedStopLossPnL), {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      }),
-                    })}
-              </Text>
-            )}
-            {Boolean(stopLossPrice) && expectedStopLossPnL === undefined && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                style={styles.expectedPnLText}
-              >
-                {PERPS_CONSTANTS.FallbackDataDisplay}
-              </Text>
-            )}
-
-            {/* Error message */}
-            {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {stopLossError || stopLossLiquidationError}
-              </Text>
-            )}
-          </View>
-        </View>
-      </ScrollView>
-
-      <View style={styles.keypadFooter}>
-        {focusedInput ? (
-          <>
-            <Button
-              style={styles.doneButton}
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={dismissKeypad}
-            >
-              {strings('perps.tpsl.done')}
-            </Button>
-            <View style={styles.keypadContainer}>
-              <Keypad
-                value={(() => {
-                  if (focusedInput === 'takeProfitPrice')
-                    return takeProfitPrice;
-                  if (focusedInput === 'takeProfitPercentage')
-                    return formattedTakeProfitPercentage;
-                  if (focusedInput === 'stopLossPrice') return stopLossPrice;
-                  return formattedStopLossPercentage;
-                })()}
-                onChange={handleKeypadChange}
-                currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={
-                  focusedInput === 'takeProfitPercentage' ||
-                  focusedInput === 'stopLossPercentage'
-                    ? TP_SL_VIEW_CONFIG.KeypadDecimals
-                    : keypadDecimals
+              <SectionHelpText
+                reserveWhenEmpty={!isSheet}
+                errorTestID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR}
+                errorMessage={stopLossErrorMessage || undefined}
+                expectedMessage={
+                  stopLossPrice
+                    ? expectedStopLossPnL !== undefined
+                      ? formatExpectedPnL(expectedStopLossPnL)
+                      : PERPS_CONSTANTS.FallbackDataDisplay
+                    : undefined
                 }
               />
-            </View>
-          </>
-        ) : (
-          <View style={styles.footer}>
-            <View style={styles.footerButtonsRow}>
-              <Button
-                style={styles.footerButton}
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
-                onPress={handleBack}
-              >
-                {strings('perps.tpsl.cancel')}
-              </Button>
-              <Button
-                style={styles.footerButton}
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleConfirm}
-                isDisabled={confirmDisabled}
-                isLoading={isUpdating}
-                testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
-              >
-                {strings('perps.tpsl.set')}
-              </Button>
-            </View>
+            </Box>
           </View>
-        )}
-      </View>
+        </Box>
+      </ScrollView>
+
+      <Box twClassName="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
+        {footerContent}
+      </Box>
+    </>
+  );
+
+  if (isSheet) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={navigation.goBack}
+        // The dialog surface defaults to `bg-elevated1`; this sheet sits on
+        // `background.default`.
+        twClassName="bg-default"
+        testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+      >
+        <BottomSheetHeader>{strings('perps.tpsl.title')}</BottomSheetHeader>
+        {body}
+      </BottomSheet>
+    );
+  }
+
+  return (
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      edges={['bottom']}
+      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+    >
+      <HeaderStandard
+        includesTopInset
+        title={strings('perps.tpsl.title')}
+        onBack={handleBack}
+        backButtonProps={{ testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON }}
+      />
+      {body}
     </SafeAreaView>
   );
 };

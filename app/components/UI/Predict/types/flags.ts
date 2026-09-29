@@ -1,8 +1,56 @@
 import { Infer } from '@metamask/superstruct';
 import { PredictFeeCollectionSchema } from '../schemas';
+import type { PredictMarketListOrder } from '../constants/flags';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import type {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
 
 export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
+
+export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
+  id: string;
+  title: string;
+  description: string;
+  position: PredictFeedBannerPosition;
+  severity: PredictFeedBannerSeverity;
+  dismissible: boolean;
+}
+
+export interface PredictFeedCarouselPrioritySlot {
+  seriesId: string;
+  /** 0-based index in the composed rail. */
+  index: number;
+}
+
+export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
+  mode: 'live' | 'custom';
+  title?: string;
+  deeplink?: string;
+  /**
+   * Series IDs pinned to the front of the Live Now carousel, first = highest
+   * priority. Unknown IDs are ignored. Empty keeps the default composition
+   * order (sports interleaved with crypto).
+   */
+  priorityOrder: string[];
+  /**
+   * Series IDs inserted at a specific 0-based index in the Live Now rail.
+   * The occupant and everything after it shift right; nothing is replaced.
+   * Slots win over `priorityOrder` for the same series. First entry wins for
+   * a duplicate series or index. Unknown IDs are ignored (no hole). Indexes
+   * past the rail length append. Empty keeps `priorityOrder` / default order.
+   */
+  prioritySlots: PredictFeedCarouselPrioritySlot[];
+  contentSource: {
+    /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
+    composition: 'query-results' | 'live-now';
+    /** Raw Polymarket query params, without a leading `?`. */
+    queryParams: string;
+    /** IDs matching `PredictMarket.id` that are removed from custom results. */
+    excludedMarketIds: string[];
+  };
+}
 
 export interface PredictLiveSportsFlag {
   enabled: boolean;
@@ -11,53 +59,131 @@ export interface PredictLiveSportsFlag {
 
 export interface PredictMarketHighlight {
   category: string;
-  markets: string[];
+  markets?: string[];
+  series?: string[];
 }
 
 export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 
+export interface PredictHiddenMarketsEntry {
+  category: string;
+  /** IDs matching `PredictMarket.id` (Polymarket event ids) to hide. */
+  marketIds: string[];
+  /** Slugs matching `PredictMarket.slug` (Polymarket event slugs) to hide. */
+  slugs: string[];
+}
+
+export interface PredictHiddenMarketsFlag extends VersionGatedFeatureFlag {
+  hidden: PredictHiddenMarketsEntry[];
+}
+
 export interface PredictExtendedSportsMarketsFlag
   extends VersionGatedFeatureFlag {
   leagues: string[];
+  enabledSportsMarketTypes: string[];
+  nonRegTimeSportsMarketTypes?: string[];
 }
 
-export interface PredictWorldCupStageConfig {
-  key: string;
-  labelKey?: string;
+export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
+export type PredictSportsFeedChipOrder = PredictMarketListOrder;
+
+export interface PredictSportsFeedChipConfig {
+  id: string;
+  kind: PredictSportsFeedChipKind;
+  titleKey?: string;
   label?: string;
-  eventIds: string[];
+  tagSlug?: string;
+  /**
+   * Optional raw `/events/keyset` query string without a leading `?`. When
+   * present, this replaces the generated chip params, with explicit chip-level
+   * order and start-time overrides still applied on top.
+   */
+  queryParams?: string;
+  /**
+   * Optional ordering override. When absent, each chip keeps its generated default.
+   */
+  order?: PredictSportsFeedChipOrder;
+  /**
+   * Optional start-time lower bound in minutes relative to request time. Applies
+   * on top of generated params or `queryParams` and overrides any default
+   * start-time lower bound for this chip. Use `null` to disable the lower bound.
+   */
+  startTimeMinMinutesAgo?: number | null;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
 }
 
-export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
-  showMainFeedBanner: boolean;
-  showMainFeedTab: boolean;
-  showWorldCupScreen: boolean;
+export interface PredictSportsFeedTabConfig {
+  id: string;
+  titleKey?: string;
+  label?: string;
+  tagSlug?: string;
+  defaultFilterId?: string;
+  chips: PredictSportsFeedChipConfig[];
+}
+
+export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
+  tabs: PredictSportsFeedTabConfig[];
+}
+
+/**
+ * A single Predict home "Categories" tile, remotely configurable (PRED-1226).
+ *
+ * `id` is the stable analytics identifier and the feed id used to navigate to
+ * `PredictFeedView`. Every non-`sports` id resolves to a generic tag-filtered
+ * category feed (Politics/Crypto pattern) built from `tagSlug`; `sports` keeps
+ * the dedicated sports feed.
+ */
+export interface PredictHomeCategoryConfig {
+  id: string;
+  /** Polymarket Gamma `tag_slug` used to filter the category feed. */
   tagSlug: string;
-  gamesTagId: string;
-  bannerImage?: {
-    url: string;
-    width: number;
-    height: number;
-  };
-  stages: PredictWorldCupStageConfig[];
+  /** i18n key for the tile / feed title. Optional; omitted copy falls back to `predict.category.<id>`. */
+  titleKey?: string;
+  /** Literal label; preferred over `titleKey` so new tiles need no i18n release. */
+  label?: string;
+  /**
+   * Component-library `IconName`. Unknown names fall back to a default icon
+   * on the client rather than crashing.
+   */
+  iconName?: string;
+  /** Defaults to `true`. Disabled tiles are removed from the rail. */
+  enabled?: boolean;
+}
+
+export interface PredictHomeCategoriesConfig extends VersionGatedFeatureFlag {
+  /** Array order is display order. */
+  categories: PredictHomeCategoryConfig[];
 }
 
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
   extendedSportsMarketsLeagues: string[];
+  enabledSportsMarketTypes: string[];
+  nonRegTimeSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
+  hiddenMarketsFlag: PredictHiddenMarketsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
-  predictHomepageDiscoveryNbaChampionEnabled: boolean;
-  predictWorldCup: PredictWorldCupConfig;
+  predictSportsFeed: PredictSportsFeedConfig;
+  predictHomeCategories: PredictHomeCategoriesConfig;
+  predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
+  predictSportCardLivePricesEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=149&tag_id=100995&order=volume24hr"
+}
+
+export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
+  queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
 }

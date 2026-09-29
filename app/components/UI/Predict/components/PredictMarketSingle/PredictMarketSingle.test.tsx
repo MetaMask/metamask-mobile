@@ -1,6 +1,7 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
+import Button from '../../../../../component-library/components/Buttons/Button';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -12,9 +13,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSingle from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock Alert
 const mockAlert = jest.fn();
-jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -124,6 +123,7 @@ const initialState = {
 describe('PredictMarketSingle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
     // Default mock implementation - user is eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: true,
@@ -136,7 +136,7 @@ describe('PredictMarketSingle', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockAlert.mockClear();
     mockPlaceBuyOrder.mockClear();
     mockNavigate.mockClear();
@@ -181,6 +181,26 @@ describe('PredictMarketSingle', () => {
       outcomeToken: mockOutcome.tokens[1],
       entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
+  });
+
+  it('opens the buy sheet after calling the buy handler', () => {
+    const onBuyButtonPress = jest.fn();
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketSingle
+        market={mockMarket}
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(UNSAFE_getAllByType(Button)[0]);
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+    });
+    expect(mockOpenBuySheet).toHaveBeenCalled();
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -297,6 +317,8 @@ describe('PredictMarketSingle', () => {
     // Mock user as not eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
     });
 
     const { getByText } = renderWithProvider(
@@ -347,8 +369,8 @@ describe('PredictMarketSingle', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle
         market={mockMarket}
-        predictFeedTab="world-cup"
-        predictScreen="world_cup"
+        predictFeedTab="sports"
+        predictScreen="predict_positions_screen"
       />,
       { state: initialState },
     );
@@ -360,8 +382,8 @@ describe('PredictMarketSingle', () => {
       params: {
         marketId: mockMarket.id,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        predictFeedTab: 'world-cup',
-        predictScreen: 'world_cup',
+        predictFeedTab: 'sports',
+        predictScreen: 'predict_positions_screen',
         title: mockMarket.title,
         image: mockMarket.image,
       },
@@ -401,6 +423,8 @@ describe('PredictMarketSingle', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
@@ -429,6 +453,8 @@ describe('PredictMarketSingle', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({

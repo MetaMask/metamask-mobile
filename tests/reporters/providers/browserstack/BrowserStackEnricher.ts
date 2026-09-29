@@ -182,6 +182,9 @@ export class BrowserStackEnricher extends BaseSessionDataEnricher {
         criticalIssues:
           appData.detected_issues?.filter((issue) => issue.type === 'error')
             .length ?? 0,
+        ...(metrics.app_size !== undefined && {
+          appSizeMb: metrics.app_size,
+        }),
         cpu: {
           avg: metrics.cpu?.avg ?? 0,
           max: metrics.cpu?.max ?? 0,

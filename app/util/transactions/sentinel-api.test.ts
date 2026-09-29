@@ -155,10 +155,10 @@ describe('sentinel-api', () => {
       expect(result).toBeUndefined();
     });
 
-    it('throws if getNetworkData throws', async () => {
+    it('prefixes errors if getNetworkData throws', async () => {
       fetchMock.mockRejectedValueOnce(new Error('API connection error'));
       await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
-        'API connection error',
+        'Sentinel: API connection error',
       );
     });
   });
@@ -282,7 +282,7 @@ describe('sentinel-api', () => {
 
       // First call throws error
       await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
-        'Failed to fetch sentinel network flags: 503 - Service Unavailable',
+        'Sentinel: Failed to fetch network flags: 503',
       );
 
       // Second call retries and succeeds (error was not cached)
@@ -308,21 +308,15 @@ describe('sentinel-api', () => {
 
       expect(results[0]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
       expect(results[1]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
       expect(results[2]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
 
       // Only one fetch was made (concurrent deduplication worked)

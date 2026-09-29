@@ -3,16 +3,16 @@
 
 'use strict';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
+import { Alert, DeviceEventEmitter, Image, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import {
   Camera,
   useCameraDevice,
-  useCameraPermission,
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
@@ -26,6 +26,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/intent/handleBrowserUrl';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -51,6 +52,34 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
+import {
+  ADD_DEVICE_QR_DETECTED_DELAY_MS,
+  AddDeviceScannerUiState,
+  classifyAddDeviceScanContent,
+} from './addDeviceScannerUtils';
+import { useQrScannerCameraPermission } from './useQrScannerCameraPermission';
+import AddDeviceScannerRecovery, {
+  AddDeviceScannerPermissionDenied,
+} from './AddDeviceScannerRecovery';
+import { EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT } from '../../../core/ExtensionAccountSync/types';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
+import { QrSyncErrorCodes } from '../../../core/QrSync/types';
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const ADD_DEVICE_ERROR_STATES = new Set<AddDeviceScannerUiState>([
+  AddDeviceScannerUiState.InvalidQr,
+  AddDeviceScannerUiState.ExpiredQr,
+  AddDeviceScannerUiState.ConnectionFailed,
+]);
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
@@ -62,22 +91,36 @@ const QRScanner = ({
   onScanError,
   onStartScan,
   origin,
+  shouldDismissOnScan = true,
 }: {
   onScanSuccess: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
   origin?: string;
+  shouldDismissOnScan?: boolean;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
-  const [permissionCheckCompleted, setPermissionCheckCompleted] =
-    useState(false);
+  const [isMounted, setIsMounted] = useState(true);
   const [isCameraActive, setIsCameraActive] = useState(true);
+  const [addDeviceScannerUiState, setAddDeviceScannerUiState] =
+    useState<AddDeviceScannerUiState>(AddDeviceScannerUiState.Searching);
+
+  const isAddDeviceScanner = origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET;
+
+  const setMounted = useCallback((mounted: boolean) => {
+    mountedRef.current = mounted;
+    setIsMounted(mounted);
+  }, []);
+  const markUnmounted = useCallback(() => setMounted(false), [setMounted]);
 
   const cameraDevice = useCameraDevice('back');
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const { hasPermission, permissionCheckCompleted } =
+    useQrScannerCameraPermission({
+      isActive: isCameraActive,
+    });
 
   const { navigateToSendPage } = useSendNavigation();
 
@@ -87,23 +130,42 @@ const QRScanner = ({
 
   const hasTrackedScannerOpened = useRef(false);
 
+  const resetAddDeviceScanning = useCallback(() => {
+    setAddDeviceScannerUiState(AddDeviceScannerUiState.Searching);
+    shouldReadBarCodeRef.current = true;
+    setIsCameraActive(true);
+  }, []);
+
   useEffect(() => {
-    const checkPermission = async () => {
-      if (!hasPermission && !permissionCheckCompleted) {
-        try {
-          await requestPermission();
-        } finally {
-          setPermissionCheckCompleted(true);
-        }
-      } else {
-        setPermissionCheckCompleted(true);
-      }
-    };
+    if (!isAddDeviceScanner) {
+      return undefined;
+    }
 
-    checkPermission();
-  }, [hasPermission, requestPermission, permissionCheckCompleted]);
+    const subscription = DeviceEventEmitter.addListener(
+      EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT,
+      () => {
+        setAddDeviceScannerUiState(AddDeviceScannerUiState.ConnectionFailed);
+        shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
+      },
+    );
 
-  // Track QR Scanner Opened when permission is granted and camera is available
+    return () => subscription.remove();
+  }, [isAddDeviceScanner]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setMounted(true);
+      shouldReadBarCodeRef.current = true;
+      setIsCameraActive(true);
+
+      return () => {
+        markUnmounted();
+        shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
+      };
+    }, [setMounted, markUnmounted]),
+  );
   useEffect(() => {
     if (
       permissionCheckCompleted &&
@@ -124,25 +186,14 @@ const QRScanner = ({
     createEventBuilder,
   ]);
 
-  // Reset camera state when screen is focused (e.g., when navigating back from send screen)
-  useFocusEffect(
-    useCallback(() => {
-      mountedRef.current = true;
-      shouldReadBarCodeRef.current = true;
-      setIsCameraActive(true);
-
-      return () => {
-        mountedRef.current = false;
-        shouldReadBarCodeRef.current = false;
-        setIsCameraActive(false);
-      };
-    }, []),
-  );
-
   const end = useCallback(() => {
-    mountedRef.current = false;
-    navigation.goBack();
-  }, [mountedRef, navigation]);
+    markUnmounted();
+    shouldReadBarCodeRef.current = false;
+    setIsCameraActive(false);
+    if (shouldDismissOnScan) {
+      navigation.goBack();
+    }
+  }, [navigation, shouldDismissOnScan, markUnmounted]);
 
   const showAlertForInvalidAddress = () => {
     Alert.alert(
@@ -161,7 +212,7 @@ const QRScanner = ({
   const showAlertForURLRedirection = useCallback(
     (url: string): Promise<boolean> =>
       new Promise((resolve) => {
-        mountedRef.current = false;
+        markUnmounted();
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.MODAL.MODAL_CONFIRMATION,
           params: {
@@ -177,7 +228,7 @@ const QRScanner = ({
           },
         });
       }),
-    [navigation],
+    [navigation, markUnmounted],
   );
 
   const onBarCodeRead = useCallback(
@@ -198,6 +249,66 @@ const QRScanner = ({
       let content = response.data;
 
       if (!content) {
+        return;
+      }
+
+      const addDeviceDeeplink = content;
+
+      if (isAddDeviceScanner) {
+        const classification = classifyAddDeviceScanContent(content);
+
+        if (classification !== 'valid') {
+          shouldReadBarCodeRef.current = false;
+          setIsCameraActive(false);
+          if (classification === 'invalid') {
+            reportQrSyncFailure(
+              new Error('Add-device QR scan classified as invalid'),
+              {
+                surface: QrSyncSurfaces.SCANNER,
+                operation: QrSyncOperations.CLASSIFY_SCAN_CONTENT,
+                errorCode: QrSyncErrorCodes.INVALID_PAYLOAD,
+                source: QrSyncTelemetrySources.QR_SCANNER_ADD_DEVICE,
+              },
+            );
+          }
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.UNRECOGNIZED_QR_CODE,
+              })
+              .build(),
+          );
+          setAddDeviceScannerUiState(
+            classification === 'expired'
+              ? AddDeviceScannerUiState.ExpiredQr
+              : AddDeviceScannerUiState.InvalidQr,
+          );
+          return;
+        }
+
+        shouldReadBarCodeRef.current = false;
+        setAddDeviceScannerUiState(AddDeviceScannerUiState.Detected);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: true,
+              [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+            })
+            .build(),
+        );
+
+        await sleep(ADD_DEVICE_QR_DETECTED_DELAY_MS);
+
+        if (!mountedRef.current) {
+          return;
+        }
+
+        end();
+        onScanSuccess({ content: addDeviceDeeplink }, addDeviceDeeplink);
         return;
       }
 
@@ -278,7 +389,7 @@ const QRScanner = ({
               })
               .build(),
           );
-          mountedRef.current = false;
+          markUnmounted();
           return;
         }
 
@@ -336,8 +447,10 @@ const QRScanner = ({
             })
             .build(),
         );
-        // Open the URL and end the scanner
-        await Linking.openURL(content);
+        // Open generic HTTP(S) URLs in the in-app browser. Linking.openURL
+        // re-enters DeeplinkManager, which treats non-MetaMask hosts as
+        // INVALID and shows "This page doesn't exist".
+        handleBrowserUrl({ url: content });
         end();
         return;
       }
@@ -361,7 +474,7 @@ const QRScanner = ({
           onStartScan(data).then(() => {
             onScanSuccess(data);
           });
-          mountedRef.current = false;
+          markUnmounted();
         } else {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -377,9 +490,26 @@ const QRScanner = ({
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_sync_from_wallet_error'),
           );
-          mountedRef.current = false;
+          markUnmounted();
         }
       } else {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          data = { content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess(data, content);
+          return;
+        }
+
         if (
           !failedSeedPhraseRequirements(content) &&
           isValidMnemonic(content)
@@ -415,12 +545,11 @@ const QRScanner = ({
               })
               .build(),
           );
-          navigation.goBack();
+          end();
           Alert.alert(
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_to_scan_with_wallet_locked'),
           );
-          mountedRef.current = false;
           return;
         }
 
@@ -484,12 +613,12 @@ const QRScanner = ({
                 .build(),
             );
             end();
-            InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
                 predefinedRecipient,
               });
-            });
+            }, 0);
             return;
           }
           ///: END:ONLY_INCLUDE_IF
@@ -531,12 +660,12 @@ const QRScanner = ({
 
             end();
 
-            InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
               navigateToSendPage({
                 location: InitSendLocation.QRScanner,
                 predefinedRecipient,
               });
-            });
+            }, 0);
 
             return;
           }
@@ -578,7 +707,7 @@ const QRScanner = ({
               })
               .build(),
           );
-          mountedRef.current = false;
+          markUnmounted();
           return;
         }
 
@@ -590,7 +719,7 @@ const QRScanner = ({
         ) {
           shouldReadBarCodeRef.current = false;
           data = {
-            private_key: content.length === 64 ? content : content.substr(2),
+            private_key: content.length === 64 ? content : content.substring(2),
           };
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -647,7 +776,9 @@ const QRScanner = ({
     },
     [
       origin,
+      isAddDeviceScanner,
       end,
+      markUnmounted,
       showAlertForURLRedirection,
       navigation,
       onStartScan,
@@ -680,23 +811,56 @@ const QRScanner = ({
     );
   }, []);
 
+  useEffect(() => {
+    if (isAddDeviceScanner || !permissionCheckCompleted || hasPermission) {
+      return;
+    }
+
+    navigation.goBack();
+    setTimeout(() => {
+      showCameraNotAuthorizedAlert();
+    }, 0);
+  }, [
+    hasPermission,
+    isAddDeviceScanner,
+    navigation,
+    permissionCheckCompleted,
+    showCameraNotAuthorizedAlert,
+  ]);
+
+  const getScannerOverlayLabel = useCallback(() => {
+    if (isAddDeviceScanner) {
+      if (addDeviceScannerUiState === AddDeviceScannerUiState.Detected) {
+        return strings('app_settings.add_device.scanner.detected_label');
+      }
+
+      return strings('app_settings.add_device.scanner.searching_label');
+    }
+
+    return strings('qr_scanner.label');
+  }, [addDeviceScannerUiState, isAddDeviceScanner]);
+
   const onError = useCallback(
     (error: Error) => {
       navigation.goBack();
-      InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
         if (onScanError && error) {
           onScanError(error.message);
         }
-      });
+      }, 0);
     },
     [onScanError, navigation],
   );
 
-  // Only show the camera permission alert if:
-  // 1. Permission check has been completed
-  // 2. Permission is not granted
+  if (isAddDeviceScanner && permissionCheckCompleted && !hasPermission) {
+    return (
+      <View style={styles.container}>
+        <AddDeviceScannerPermissionDenied />
+      </View>
+    );
+  }
+
   if (permissionCheckCompleted && !hasPermission) {
-    showCameraNotAuthorizedAlert();
     return null;
   }
 
@@ -715,12 +879,26 @@ const QRScanner = ({
     );
   }
 
+  if (
+    isAddDeviceScanner &&
+    ADD_DEVICE_ERROR_STATES.has(addDeviceScannerUiState)
+  ) {
+    return (
+      <View style={styles.container}>
+        <AddDeviceScannerRecovery
+          state={addDeviceScannerUiState}
+          onTryAgain={resetAddDeviceScanning}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Camera
         style={styles.preview}
         device={cameraDevice}
-        isActive={mountedRef.current && isCameraActive}
+        isActive={isMounted && isCameraActive}
         codeScanner={codeScanner}
         torch="off"
         onError={onError}
@@ -730,7 +908,7 @@ const QRScanner = ({
 
         <View style={styles.overlayContainerRow}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
-            {strings('qr_scanner.label')}
+            {getScannerOverlayLabel()}
           </Text>
           <View style={styles.overlay} />
           <Image source={frameImage} style={styles.frame} />

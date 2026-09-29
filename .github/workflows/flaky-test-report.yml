@@ -2,22 +2,33 @@ name: Flaky test report
 
 on:
   schedule:
-    # Once every day from Monday-Friday at 08:00 UTC
-    - cron: 0 8 * * 1-5
+    # 10:00 UTC (Europe morning), Monday–Friday — Playwright test health report
+    - cron: '0 10 * * 1-5'
+    # 15:00 UTC (US morning), Monday–Friday — Playwright test health report
+    - cron: '0 15 * * 1-5'
   workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Number of days of main CI runs to scan
+        type: string
+        default: '1'
 
 permissions:
   contents: read
   actions: read
 
 jobs:
-  flaky-test-report:
+  playwright-test-health-report:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate flaky test report
-        uses: MetaMask/github-tools/.github/actions/flaky-test-report@v1
+      - name: Generate Playwright test health report
+        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@a4a179a9ad2d02f6acb3c781e1b22a38bbc8dbca
         with:
           repository: ${{ github.event.repository.name }}
-          workflow-id: ci.yml
+          workflow-ids: ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          slack-webhook-flaky-tests: ${{ secrets.SLACK_WEBHOOK_FLAKY_TESTS }}
+          slack-webhook: ${{ secrets.SLACK_WEBHOOK_PLAYWRIGHT_HEALTH_REPORT }}
+          lookback-days: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
+          top-n: '10'
+          report-title: Playwright Test Health Report (Mobile Appium)
+          test-source-prefix: tests/smoke-appium

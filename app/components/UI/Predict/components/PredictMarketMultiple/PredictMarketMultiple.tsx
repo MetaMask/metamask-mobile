@@ -3,14 +3,17 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -34,11 +37,9 @@ import {
   Recurrence,
   PredictOutcome,
   PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -54,7 +55,7 @@ interface PredictMarketMultipleProps {
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -73,8 +74,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 }) => {
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
@@ -138,7 +138,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     outcome: PredictOutcome,
     outcomeToken: PredictOutcomeToken,
   ) => {
-    onBuyButtonPress?.(market.id);
+    onBuyButtonPress?.({ market, outcome, outcomeToken });
+
     executeGuardedAction(
       () => {
         openBuySheet({
@@ -200,7 +201,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Image
                     source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    recyclingKey={market.image}
                   />
                 </Box>
               )}
@@ -211,10 +213,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   isCarousel ? TextVariant.BodyMd : TextVariant.HeadingSm
                 }
                 color={TextColor.TextDefault}
+                fontWeight={FontWeight.Medium}
                 style={tw.style(
-                  isCarousel
-                    ? 'font-medium leading-[20px]'
-                    : 'font-medium leading-[24px]',
+                  isCarousel ? 'leading-[20px]' : 'leading-[24px]',
                 )}
                 numberOfLines={isCarousel ? 2 : undefined}
               >
@@ -235,9 +236,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
                     numberOfLines={1}
                     style={tw.style(
-                      'font-medium',
                       isCarousel ? 'leading-[16px]' : 'leading-[18px]',
                     )}
                   >
@@ -249,7 +250,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="font-medium"
+                    fontWeight={FontWeight.Medium}
                   >
                     {getOutcomePercentage(
                       outcome.tokens.map((token) => token.price),
@@ -269,7 +270,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         variant={
                           isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }
-                        style={tw.style('font-medium')}
+                        fontWeight={FontWeight.Medium}
                         color={TextColor.SuccessDefault}
                         numberOfLines={1}
                         ellipsizeMode="clip"
@@ -289,7 +290,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         variant={
                           isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }
-                        style={tw.style('font-medium')}
+                        fontWeight={FontWeight.Medium}
                         color={TextColor.ErrorDefault}
                         numberOfLines={1}
                         ellipsizeMode="clip"
@@ -315,6 +316,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
             numberOfLines={1}
             style={tw.style('flex-shrink min-w-0')}
           >
@@ -334,6 +336,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
               numberOfLines={1}
               style={tw.style('flex-shrink min-w-0')}
             >
@@ -347,13 +350,14 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               >
                 <Icon
                   name={IconName.Refresh}
-                  size={IconSize.Md}
+                  size={IconSize.Sm}
                   color={IconColor.Alternative}
                   style={tw.style('mr-1 flex-shrink-0')}
                 />
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
                   numberOfLines={1}
                   style={tw.style('flex-shrink min-w-0')}
                 >

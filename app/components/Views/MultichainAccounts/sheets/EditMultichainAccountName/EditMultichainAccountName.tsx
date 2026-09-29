@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,16 +9,14 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  HeaderBase,
-  IconName,
+  HeaderStandard,
   Text,
   TextColor,
   TextField,
@@ -27,6 +25,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomSafeAreaInset } from '../../../../hooks/useBottomSafeAreaInset';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
@@ -49,7 +48,8 @@ export const EditMultichainAccountName = () => {
   const { themeAppearance } = useTheme();
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   const accountGroupFromSelector = useSelector((state: RootState) =>
     initialAccountGroup
@@ -64,11 +64,23 @@ export const EditMultichainAccountName = () => {
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
 
-  const safeAreaStyle = tw.style(
-    'flex-1 bg-default',
-    Platform.OS === 'android' && StatusBar.currentHeight
-      ? { paddingTop: StatusBar.currentHeight }
-      : undefined,
+  const containerStyle = useMemo(
+    () =>
+      tw.style(
+        'flex-1 bg-default',
+        Platform.OS === 'android' && StatusBar.currentHeight
+          ? { paddingTop: StatusBar.currentHeight }
+          : undefined,
+        {
+          // Android draws edge-to-edge, so the confirm button has to clear the
+          // system navigation bar. 10dp stays the minimum visual gap.
+          paddingBottom:
+            Platform.OS === 'android'
+              ? Math.max(bottomSafeAreaInset, 10)
+              : bottomSafeAreaInset,
+        },
+      ),
+    [bottomSafeAreaInset, tw],
   );
 
   const handleAccountNameChange = useCallback(() => {
@@ -99,22 +111,17 @@ export const EditMultichainAccountName = () => {
   }, [accountName, accountGroup, navigation]);
 
   return (
-    <SafeAreaView style={safeAreaStyle}>
-      <HeaderBase
-        twClassName="m-4 flex-row items-center justify-center"
-        startAccessory={
-          <ButtonIcon
-            testID={EditAccountNameIds.BACK_BUTTON}
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={() => navigation.goBack()}
-          />
-        }
-      >
-        {accountGroup?.metadata?.name || 'Account Group'}
-      </HeaderBase>
+    <SafeAreaView edges={['left', 'right']} style={containerStyle}>
+      <HeaderStandard
+        includesTopInset
+        title={accountGroup?.metadata?.name || 'Account Group'}
+        onBack={() => navigation.goBack()}
+        backButtonProps={{
+          testID: EditAccountNameIds.BACK_BUTTON,
+        }}
+      />
       <KeyboardAvoidingView
-        style={tw.style('flex-1 justify-between')}
+        style={tw.style('flex-1  justify-between')}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Box

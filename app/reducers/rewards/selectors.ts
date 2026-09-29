@@ -3,40 +3,165 @@ import type { RootState } from '..';
 import { initialState } from '.';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
+import { selectRewardsSubscriptionId } from '../../selectors/rewards';
+import {
+  buildSeasonSubscriptionCompositeKey,
+  buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
+  buildCampaignOutcomeToastCompositeKey,
+  type CampaignOutcomeToastVariant,
+} from './compositeKeys';
+import type {
+  CampaignLeaderboardDto,
+  OndoGmCampaignDepositsDto,
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignPrizePoolDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
+  MoneyAccountSweepstakesDrawProofDto,
+  SubscriptionBenefitDto,
+  VipTransactionType,
+} from '../../core/Engine/controllers/rewards-controller/types';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
 
-export const selectReferralCode = (state: RootState) =>
-  state.rewards.referralCode;
-
-export const selectBalanceTotal = (state: RootState) =>
-  state.rewards.balanceTotal;
-
-export const selectReferralCount = (state: RootState) =>
-  state.rewards.refereeCount;
-
-export const selectReferredByCode = (state: RootState) =>
-  state.rewards.referredByCode;
-
-export const selectCurrentTier = (state: RootState) =>
-  state.rewards.currentTier;
-
-export const selectNextTier = (state: RootState) => state.rewards.nextTier;
-
-export const selectNextTierPointsNeeded = (state: RootState) =>
-  state.rewards.nextTierPointsNeeded;
-
-export const selectBalanceUpdatedAt = (state: RootState) =>
-  state.rewards.balanceUpdatedAt;
-
-export const selectSeasonStatusLoading = (state: RootState) =>
-  state.rewards.seasonStatusLoading;
-
-export const selectSeasonStatusError = (state: RootState) =>
-  state.rewards.seasonStatusError;
-
 export const selectSeasonId = (state: RootState) => state.rewards.seasonId;
+
+const selectSeasonUserStatuses = (state: RootState) =>
+  state.rewards.seasonUserStatuses;
+
+const selectReferralDetailsMap = (state: RootState) =>
+  state.rewards.referralDetails;
+
+const selectActiveBoostsMap = (state: RootState) => state.rewards.activeBoosts;
+
+const selectUnlockedRewardsMap = (state: RootState) =>
+  state.rewards.unlockedRewards;
+
+const selectPointsEventsMap = (state: RootState) => state.rewards.pointsEvents;
+
+const selectBenefitsMap = (state: RootState) => state.rewards.benefits;
+
+const selectCurrentSeasonUserStatus = createSelector(
+  [selectSeasonUserStatuses, selectSeasonId, selectRewardsSubscriptionId],
+  (statuses, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return undefined;
+    }
+    return statuses[
+      buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+    ];
+  },
+);
+
+const selectCurrentReferralDetails = createSelector(
+  [selectReferralDetailsMap, selectRewardsSubscriptionId],
+  (detailsMap, subscriptionId) => {
+    if (!subscriptionId) {
+      return undefined;
+    }
+    return detailsMap[subscriptionId];
+  },
+);
+
+const selectCurrentActiveBoostsEntry = createSelector(
+  [selectActiveBoostsMap, selectSeasonId, selectRewardsSubscriptionId],
+  (boostsMap, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return undefined;
+    }
+    return boostsMap[
+      buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+    ];
+  },
+);
+
+const selectCurrentUnlockedRewardsEntry = createSelector(
+  [selectUnlockedRewardsMap, selectSeasonId, selectRewardsSubscriptionId],
+  (unlockedMap, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return undefined;
+    }
+    return unlockedMap[
+      buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+    ];
+  },
+);
+
+const selectCurrentBenefitsEntry = createSelector(
+  [selectBenefitsMap, selectRewardsSubscriptionId],
+  (benefitsMap, subscriptionId) => {
+    if (!subscriptionId) {
+      return undefined;
+    }
+    return benefitsMap[subscriptionId];
+  },
+);
+
+export const selectReferralCode = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.referralCode ?? null,
+);
+
+export const selectBalanceTotal = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.balanceTotal ?? null,
+);
+
+export const selectReferralCount = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.refereeCount ?? 0,
+);
+
+export const selectReferredByCode = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.referredByCode ?? null,
+);
+
+export const selectIsVipReferee = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.isVipReferee ?? false,
+);
+
+export const selectReferredByVipCode = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.referredByVipCode ?? null,
+);
+
+export const selectCurrentTier = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.currentTier ?? null,
+);
+
+export const selectNextTier = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.nextTier ?? null,
+);
+
+export const selectNextTierPointsNeeded = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.nextTierPointsNeeded ?? null,
+);
+
+export const selectBalanceUpdatedAt = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.balanceUpdatedAt ?? null,
+);
+
+export const selectSeasonStatusLoading = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.loading ?? false,
+);
+
+export const selectSeasonStatusError = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.error ?? null,
+);
 
 export const selectSeasonName = (state: RootState) => state.rewards.seasonName;
 
@@ -79,11 +204,15 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 export const selectOptinAllowedForGeoError = (state: RootState) =>
   state.rewards.optinAllowedForGeoError;
 
-export const selectReferralDetailsLoading = (state: RootState) =>
-  state.rewards.referralDetailsLoading;
+export const selectReferralDetailsLoading = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.loading ?? false,
+);
 
-export const selectReferralDetailsError = (state: RootState) =>
-  state.rewards.referralDetailsError;
+export const selectReferralDetailsError = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.error ?? false,
+);
 
 export const selectCandidateSubscriptionId = (state: RootState) =>
   state.rewards.candidateSubscriptionId;
@@ -97,23 +226,35 @@ export const selectHideCurrentAccountNotOptedInBannerArray = (
   state.rewards.hideCurrentAccountNotOptedInBanner ??
   initialState.hideCurrentAccountNotOptedInBanner;
 
-export const selectActiveBoosts = (state: RootState) =>
-  state.rewards.activeBoosts;
+export const selectActiveBoosts = createSelector(
+  [selectCurrentActiveBoostsEntry],
+  (entry) => entry?.boosts ?? null,
+);
 
-export const selectActiveBoostsLoading = (state: RootState) =>
-  state.rewards.activeBoostsLoading;
+export const selectActiveBoostsLoading = createSelector(
+  [selectCurrentActiveBoostsEntry],
+  (entry) => entry?.loading ?? false,
+);
 
-export const selectActiveBoostsError = (state: RootState) =>
-  state.rewards.activeBoostsError;
+export const selectActiveBoostsError = createSelector(
+  [selectCurrentActiveBoostsEntry],
+  (entry) => entry?.error ?? false,
+);
 
-export const selectUnlockedRewards = (state: RootState) =>
-  state.rewards.unlockedRewards;
+export const selectUnlockedRewards = createSelector(
+  [selectCurrentUnlockedRewardsEntry],
+  (entry) => entry?.rewards ?? null,
+);
 
-export const selectUnlockedRewardLoading = (state: RootState) =>
-  state.rewards.unlockedRewardLoading;
+export const selectUnlockedRewardLoading = createSelector(
+  [selectCurrentUnlockedRewardsEntry],
+  (entry) => entry?.loading ?? false,
+);
 
-export const selectUnlockedRewardError = (state: RootState) =>
-  state.rewards.unlockedRewardError;
+export const selectUnlockedRewardError = createSelector(
+  [selectCurrentUnlockedRewardsEntry],
+  (entry) => entry?.error ?? false,
+);
 
 export const selectSeasonRewardById =
   (rewardId: string) => (state: RootState) =>
@@ -121,8 +262,19 @@ export const selectSeasonRewardById =
       .flatMap((tier) => tier.rewards)
       ?.find((reward) => reward.id === rewardId);
 
-export const selectPointsEvents = (state: RootState) =>
-  state.rewards.pointsEvents;
+export const selectPointsEvents = createSelector(
+  [selectPointsEventsMap, selectSeasonId, selectRewardsSubscriptionId],
+  (pointsMap, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return null;
+    }
+    return (
+      pointsMap[
+        buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+      ] ?? null
+    );
+  },
+);
 
 // Bulk link selectors
 export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
@@ -156,33 +308,87 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
-// Benefits selectors
-export const selectBenefits = (
-  state: RootState,
-): RootState['rewards']['benefits'] =>
-  state.rewards.benefits ?? initialState.benefits;
+export const selectPendingMasSeriesOptIn = (state: RootState) =>
+  state.rewards.pendingMasSeriesOptIn;
 
-export const selectBenefitsLoading = (state: RootState): boolean =>
-  state.rewards.benefitsLoading;
+const EMPTY_BENEFITS: SubscriptionBenefitDto[] = [];
+
+// Benefits selectors
+export const selectBenefits = createSelector(
+  [selectCurrentBenefitsEntry],
+  (entry) => entry?.benefits ?? EMPTY_BENEFITS,
+);
+
+export const selectBenefitsLoading = createSelector(
+  [selectCurrentBenefitsEntry],
+  (entry) => entry?.loading ?? false,
+);
 
 // VIP dashboard selectors
 export const selectVipDashboard =
   (subscriptionId: string | null | undefined) => (state: RootState) =>
     subscriptionId
-      ? (state.rewards.vipDashboard?.[subscriptionId] ?? null)
+      ? (state.rewards.vipDashboard?.[subscriptionId]?.data ?? null)
       : null;
 
-export const selectVipDashboardLoading = (state: RootState): boolean =>
-  state.rewards.vipDashboardLoading;
+export const selectVipDashboardLoading = createSelector(
+  [
+    (state: RootState) => state.rewards.vipDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipDashboard, subscriptionId) =>
+    subscriptionId ? (vipDashboard[subscriptionId]?.loading ?? false) : false,
+);
 
-export const selectVipDashboardError = (state: RootState): boolean =>
-  state.rewards.vipDashboardError;
+export const selectVipDashboardError = createSelector(
+  [
+    (state: RootState) => state.rewards.vipDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipDashboard, subscriptionId) =>
+    subscriptionId ? (vipDashboard[subscriptionId]?.error ?? false) : false,
+);
+
+export const selectVipRefereeDashboard =
+  (subscriptionId: string | null | undefined) => (state: RootState) =>
+    subscriptionId
+      ? (state.rewards.vipRefereeDashboard?.[subscriptionId]?.data ?? null)
+      : null;
+
+export const selectVipRefereeDashboardLoading = createSelector(
+  [
+    (state: RootState) => state.rewards.vipRefereeDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipRefereeDashboard, subscriptionId) =>
+    subscriptionId
+      ? (vipRefereeDashboard[subscriptionId]?.loading ?? false)
+      : false,
+);
+
+export const selectVipRefereeDashboardError = createSelector(
+  [
+    (state: RootState) => state.rewards.vipRefereeDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipRefereeDashboard, subscriptionId) =>
+    subscriptionId
+      ? (vipRefereeDashboard[subscriptionId]?.error ?? false)
+      : false,
+);
 
 export const selectHasAcceptedVipInvite =
   (subscriptionId: string | null | undefined) =>
   (state: RootState): boolean =>
     subscriptionId
       ? state.rewards.vipSplashAccepted?.[subscriptionId] === true
+      : false;
+
+export const selectHasAcceptedVipRefereeInvite =
+  (subscriptionId: string | null | undefined) =>
+  (state: RootState): boolean =>
+    subscriptionId
+      ? state.rewards.vipRefereeSplashAccepted?.[subscriptionId] === true
       : false;
 
 // Campaigns selectors
@@ -203,6 +409,9 @@ export const selectCampaignsError = (state: RootState) =>
 export const selectCampaignsHasLoaded = (state: RootState) =>
   state.rewards.campaignsHasLoaded;
 
+export const selectCampaignsFetching = (state: RootState) =>
+  state.rewards.campaignsFetching ?? false;
+
 // Campaign participant status selectors
 export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
@@ -214,7 +423,10 @@ export const selectCampaignParticipantStatus =
   ) =>
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     return state.rewards.campaignParticipantStatuses?.[key] ?? null;
   };
 
@@ -231,7 +443,10 @@ export const selectCampaignParticipantCount =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     return (
       state.rewards.campaignParticipantStatuses?.[key]?.participantCount ?? null
     );
@@ -260,44 +475,82 @@ export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
 };
 
 // Campaign leaderboard selectors
-export const selectOndoCampaignLeaderboard = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard;
+export const selectOndoCampaignLeaderboardByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): CampaignLeaderboardDto | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.data ?? null)
+      : null;
 
-export const selectOndoCampaignLeaderboardLoading = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardLoading;
+export const selectOndoCampaignLeaderboardLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.loading ?? false)
+      : false;
 
-export const selectOndoCampaignLeaderboardError = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardError;
+export const selectOndoCampaignLeaderboardErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.error ?? false)
+      : false;
 
-export const selectOndoCampaignLeaderboardSelectedTier = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardSelectedTier;
+export const selectOndoCampaignLeaderboardSelectedTierByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): string | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.selectedTier ??
+        null)
+      : null;
 
 // Stable fallbacks to avoid returning new references from input selectors
 const EMPTY_TIERS: Record<string, never> = {};
 const EMPTY_ENTRIES: never[] = [];
 
-export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard?.tiers ?? EMPTY_TIERS;
+export const selectOndoCampaignLeaderboardTiersByCampaignId =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.tiers ??
+        EMPTY_TIERS)
+      : EMPTY_TIERS;
 
-export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard?.computedAt ?? null;
+export const selectOndoCampaignLeaderboardComputedAtByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): string | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.computedAt ??
+        null)
+      : null;
 
-export const selectOndoCampaignLeaderboardTierNames = createSelector(
-  selectOndoCampaignLeaderboardTiers,
-  (tiers) => Object.keys(tiers),
-);
+export const selectOndoCampaignLeaderboardTierNamesByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): string[] =>
+    Object.keys(
+      selectOndoCampaignLeaderboardTiersByCampaignId(campaignId)(state),
+    );
 
 export const selectOndoCampaignLeaderboardEntriesByTier =
-  (tierName: string | null) => (state: RootState) =>
-    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
-      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].entries
-      : EMPTY_ENTRIES;
+  (campaignId: string | undefined, tierName: string | null) =>
+  (state: RootState) => {
+    if (!campaignId || !tierName) {
+      return EMPTY_ENTRIES;
+    }
+    const tiers =
+      state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.tiers;
+    return tiers?.[tierName]?.entries ?? EMPTY_ENTRIES;
+  };
 
 export const selectOndoCampaignLeaderboardTotalParticipantsByTier =
-  (tierName: string | null) => (state: RootState) =>
-    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
-      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].totalParticipants
-      : 0;
+  (campaignId: string | undefined, tierName: string | null) =>
+  (state: RootState): number => {
+    if (!campaignId || !tierName) {
+      return 0;
+    }
+    const tiers =
+      state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.tiers;
+    return tiers?.[tierName]?.totalParticipants ?? 0;
+  };
 
 // Campaign leaderboard position selectors
 export const selectOndoCampaignLeaderboardPositions = (state: RootState) =>
@@ -310,7 +563,7 @@ export const selectOndoCampaignLeaderboardPositionById =
     campaignId &&
     state.rewards.ondoCampaignLeaderboardPositions
       ? (state.rewards.ondoCampaignLeaderboardPositions[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -322,7 +575,7 @@ export const selectOndoCampaignPortfolioById =
   (state: RootState) =>
     subscriptionId && campaignId && state.rewards.ondoCampaignPortfolio
       ? (state.rewards.ondoCampaignPortfolio[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -331,19 +584,40 @@ export const selectOndoCampaignActivityById =
   (state: RootState) =>
     subscriptionId && campaignId && state.rewards.ondoCampaignActivity
       ? (state.rewards.ondoCampaignActivity[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
+        ] ?? null)
+      : null;
+
+export const selectVipTransactionsById =
+  (subscriptionId: string | undefined, type: VipTransactionType | undefined) =>
+  (state: RootState) =>
+    subscriptionId && type && state.rewards.vipTransactions
+      ? (state.rewards.vipTransactions[
+          buildSubscriptionVipTransactionCompositeKey(subscriptionId, type)
         ] ?? null)
       : null;
 
 // Campaign deposits selectors
-export const selectOndoCampaignDeposits = (state: RootState) =>
-  state.rewards.ondoCampaignDeposits;
+export const selectOndoCampaignDepositsByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): OndoGmCampaignDepositsDto | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignDeposits[campaignId]?.data ?? null)
+      : null;
 
-export const selectOndoCampaignDepositsLoading = (state: RootState) =>
-  state.rewards.ondoCampaignDepositsLoading;
+export const selectOndoCampaignDepositsLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignDeposits[campaignId]?.loading ?? false)
+      : false;
 
-export const selectOndoCampaignDepositsError = (state: RootState) =>
-  state.rewards.ondoCampaignDepositsError;
+export const selectOndoCampaignDepositsErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignDeposits[campaignId]?.error ?? false)
+      : false;
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;
@@ -354,16 +628,54 @@ export const selectDismissedCampaignOutcomeToasts = (
   state.rewards.dismissedCampaignOutcomeToasts ??
   initialState.dismissedCampaignOutcomeToasts;
 
-// Perps Trading Campaign leaderboard selectors
-export const selectPerpsTradingCampaignLeaderboard = (state: RootState) =>
-  state.rewards.perpsTradingCampaignLeaderboard;
-
-export const selectPerpsTradingCampaignLeaderboardLoading = (
+export const selectSubscribedCampaignReminders = (
   state: RootState,
-) => state.rewards.perpsTradingCampaignLeaderboardLoading;
+): RootState['rewards']['subscribedCampaignReminders'] =>
+  state.rewards.subscribedCampaignReminders ??
+  initialState.subscribedCampaignReminders;
 
-export const selectPerpsTradingCampaignLeaderboardError = (state: RootState) =>
-  state.rewards.perpsTradingCampaignLeaderboardError;
+export const selectIsCampaignOutcomeToastDismissed =
+  (
+    subscriptionId: string | undefined,
+    campaignId: string | undefined,
+    variant: CampaignOutcomeToastVariant,
+  ) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) {
+      return true;
+    }
+    const key = buildCampaignOutcomeToastCompositeKey(
+      campaignId,
+      subscriptionId,
+      variant,
+    );
+    return selectDismissedCampaignOutcomeToasts(state)[key] === true;
+  };
+
+// Perps Trading Campaign leaderboard selectors
+export const selectPerpsTradingCampaignLeaderboardByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PerpsTradingCampaignLeaderboardDto | null =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboards[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectPerpsTradingCampaignLeaderboardLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboards[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectPerpsTradingCampaignLeaderboardErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboards[campaignId]?.error ??
+        false)
+      : false;
 
 // Perps Trading Campaign leaderboard position selectors
 export const selectPerpsTradingCampaignLeaderboardPositionById =
@@ -371,16 +683,231 @@ export const selectPerpsTradingCampaignLeaderboardPositionById =
   (state: RootState) =>
     subscriptionId && campaignId
       ? (state.rewards.perpsTradingCampaignLeaderboardPositions[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
+        ] ?? null)
+      : null;
+
+// Perps Trading Campaign volume selectors
+export const selectPerpsTradingCampaignVolumeByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PerpsTradingCampaignVolumeDto | null =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignVolumes[campaignId]?.data ?? null)
+      : null;
+
+export const selectPerpsTradingCampaignVolumeLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignVolumes[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectPerpsTradingCampaignVolumeErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignVolumes[campaignId]?.error ?? false)
+      : false;
+
+// Predict The Pitch leaderboard selectors
+export const selectPredictThePitchLeaderboardByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PredictThePitchLeaderboardDto | null =>
+    campaignId
+      ? (state.rewards.predictThePitchLeaderboards[campaignId]?.data ?? null)
+      : null;
+
+export const selectPredictThePitchLeaderboardLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchLeaderboards[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectPredictThePitchLeaderboardErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchLeaderboards[campaignId]?.error ?? false)
+      : false;
+
+export const selectPredictThePitchLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.predictThePitchLeaderboardPositions[
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
+        ] ?? null)
+      : null;
+
+export const selectPredictThePitchPositionsById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.predictThePitchPositions[
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
 // Perps Trading Campaign prize pool selectors
-export const selectPerpsTradingCampaignVolume = (state: RootState) =>
-  state.rewards.perpsTradingCampaignVolume;
+export const selectPerpsTradingCampaignPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PerpsTradingCampaignPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignPrizePools[campaignId]?.data ?? null)
+      : null;
 
-export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
-  state.rewards.perpsTradingCampaignVolumeLoading;
+export const selectPerpsTradingCampaignPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignPrizePools[campaignId]?.loading ??
+        false)
+      : false;
 
-export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
-  state.rewards.perpsTradingCampaignVolumeError;
+export const selectPerpsTradingCampaignPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignPrizePools[campaignId]?.error ??
+        false)
+      : false;
+
+// Predict The Pitch prize pool selectors
+export const selectPredictThePitchPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PredictThePitchPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.predictThePitchPrizePools[campaignId]?.data ?? null)
+      : null;
+
+export const selectPredictThePitchPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchPrizePools[campaignId]?.loading ?? false)
+      : false;
+
+export const selectPredictThePitchPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchPrizePools[campaignId]?.error ?? false)
+      : false;
+
+// Money Account Sweepstakes stats selectors
+export const selectMoneyAccountSweepstakesStatsByCampaignId =
+  (subscriptionId: string | undefined | null, campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesStatsMeDto | null => {
+    if (!subscriptionId || !campaignId) {
+      return null;
+    }
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return state.rewards.moneyAccountSweepstakesStats[key]?.data ?? null;
+  };
+
+export const selectMoneyAccountSweepstakesStatsLoadingByCampaignId =
+  (subscriptionId: string | undefined | null, campaignId: string | undefined) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) {
+      return false;
+    }
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return state.rewards.moneyAccountSweepstakesStats[key]?.loading ?? false;
+  };
+
+export const selectMoneyAccountSweepstakesStatsErrorByCampaignId =
+  (subscriptionId: string | undefined | null, campaignId: string | undefined) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) {
+      return false;
+    }
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return state.rewards.moneyAccountSweepstakesStats[key]?.error ?? false;
+  };
+
+// Money Account Sweepstakes prize pool selectors
+export const selectMoneyAccountSweepstakesPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.error ??
+        false)
+      : false;
+
+// Money Account Sweepstakes volume stats selectors
+export const selectMoneyAccountSweepstakesVolumeStatsByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesVolumeStatsDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesVolumeStats[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesVolumeStatsLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesVolumeStats[campaignId]
+          ?.loading ?? false)
+      : false;
+
+export const selectMoneyAccountSweepstakesVolumeStatsErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesVolumeStats[campaignId]?.error ??
+        false)
+      : false;
+
+// Money Account Sweepstakes draw proof selectors
+export const selectMoneyAccountSweepstakesDrawProofByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesDrawProofDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesDrawProofLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectMoneyAccountSweepstakesDrawProofErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesDrawProofs[campaignId]?.error ??
+        false)
+      : false;

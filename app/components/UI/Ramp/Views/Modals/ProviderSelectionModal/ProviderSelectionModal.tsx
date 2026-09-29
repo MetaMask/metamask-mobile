@@ -8,12 +8,15 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import ProviderSelection from './ProviderSelection';
+import { createNestedTokenSelectionNavDetails } from '../../TokenSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
@@ -28,7 +31,6 @@ import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -49,7 +51,7 @@ function ProviderSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     amount: routeAmount,
     assetId: paramAssetId,
@@ -136,14 +138,11 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
-  const surfaceClass = useElevatedSurface();
 
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
-        });
+        navigateWithDetails(navigation, createNestedTokenSelectionNavDetails());
       }
     },
     [navigation, skipQuotes],
@@ -182,7 +181,6 @@ function ProviderSelectionModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       onClose={handleDismiss}
-      twClassName={surfaceClass}
     >
       <View style={styles.container}>
         <ProviderSelection

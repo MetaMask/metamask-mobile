@@ -130,6 +130,7 @@ const TransactionsFooter = ({
       {blockExplorerText && rpcBlockExplorer && (
         <View style={styles.viewMoreWrapper}>
           <Button
+            testID="transactions-footer-view-explorer"
             variant={ButtonVariants.Link}
             size={ButtonSize.Lg}
             label={blockExplorerText}

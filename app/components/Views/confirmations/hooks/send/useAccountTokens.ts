@@ -1,25 +1,23 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
-import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { EthAccountType } from '@metamask/keyring-api';
-import {
-  selectAssetsBySelectedAccountGroup,
-  selectAssetsByAccountGroupId,
-} from '../../../../../selectors/assets/assets-list';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { isTestNet } from '../../../../../util/networks';
-import Logger from '../../../../../util/Logger';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import I18n from '../../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
+import type { AccountGroupId } from '@metamask/account-api';
 import { getNetworkBadgeSource } from '../../utils/network';
+import { formatFiat } from '../../utils/fiat';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import type { RootState } from '../../../../../reducers';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
+import {
+  type ConfirmationAsset,
+  selectConfirmationAssetsByAccountGroupId,
+  selectConfirmationAssetsWithBalanceByAccountGroupId,
+} from '../../selectors/assets';
+import { useAccountOverrideGroupId } from './useAccountOverrideGroupId';
+import { useEnsureAccountGroupAssets } from './useEnsureAccountGroupAssets';
 
 export interface EnrichTokenRequest {
   chainId: Hex;
@@ -27,30 +25,6 @@ export interface EnrichTokenRequest {
 }
 
 const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
-
-function useAccountGroupAssets(accountAddress?: string | null) {
-  const internalAccountsById = useSelector(selectInternalAccountsById);
-  const accountToGroupMap = useSelector(selectAccountToGroupMap);
-
-  const accountGroupId = useMemo(() => {
-    if (!accountAddress) return undefined;
-    const internalAccountId = Object.keys(internalAccountsById).find(
-      (id) =>
-        internalAccountsById[id].address.toLowerCase() ===
-        accountAddress.toLowerCase(),
-    );
-    if (!internalAccountId) return undefined;
-    return accountToGroupMap[internalAccountId]?.id;
-  }, [accountAddress, internalAccountsById, accountToGroupMap]);
-
-  const selectOverrideAssets = useCallback(
-    (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
-    [accountGroupId],
-  );
-
-  const overrideAssets = useSelector(selectOverrideAssets);
-  return accountGroupId ? overrideAssets : undefined;
-}
 
 export function useAccountTokens({
   includeNoBalance = false,
@@ -61,11 +35,98 @@ export function useAccountTokens({
   tokenFilter?: (chainId: string, address: string) => boolean;
   enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
-  const accountOverride = useTransactionAccountOverride();
-  const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
-  const accountAssets = useAccountGroupAssets(accountOverride);
-  const assets = accountAssets ?? globalAssets;
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+  const accountGroupId = useAccountOverrideGroupId();
+
+  // Assets are only fetched automatically for the selected account group, so an
+  // override account the user has never activated has no entry in assets state.
+  // Request it on demand, otherwise the token list stays permanently empty.
+  useEnsureAccountGroupAssets(accountGroupId);
+
+  // Pay-flow confirmations price everything in USD. Resolved here and passed
+  // down so the selector stays unaware of transaction types.
+  const currencyOverride = useTransactionPayCurrency();
+
+  const decoratedAssets = useDecoratedAssets(
+    accountGroupId,
+    currencyOverride,
+    includeNoBalance,
+    tokenFilter,
+  );
+
+  const remoteTokens = useRemoteTokens(
+    decoratedAssets,
+    currencyOverride,
+    enrichTokenRequests,
+  );
+
+  const sortedAssets = useMemo(
+    () =>
+      [...decoratedAssets, ...remoteTokens].sort(
+        (a, b) => b.sortKey - a.sortKey,
+      ),
+    [decoratedAssets, remoteTokens],
+  );
+
+  return sortedAssets;
+}
+
+/**
+ * Decoration and fiat formatting happen in
+ * `selectConfirmationAssetsByAccountGroupId`, which memoises per store state
+ * rather than per hook instance, so every consumer shares one computation.
+ * Only the consumer-specific token filter remains here, since it depends on a
+ * callback the selector cannot see.
+ */
+function useDecoratedAssets(
+  accountGroupId: AccountGroupId | undefined,
+  currencyOverride: string | undefined,
+  includeNoBalance: boolean,
+  tokenFilter: ((chainId: string, address: string) => boolean) | undefined,
+): ConfirmationAsset[] {
+  const selectAssets = useCallback(
+    (state: RootState) =>
+      includeNoBalance
+        ? selectConfirmationAssetsByAccountGroupId(
+            state,
+            accountGroupId,
+            currencyOverride,
+          )
+        : selectConfirmationAssetsWithBalanceByAccountGroupId(
+            state,
+            accountGroupId,
+            currencyOverride,
+          ),
+    [accountGroupId, currencyOverride, includeNoBalance],
+  );
+
+  const assets = useSelector(selectAssets);
+
+  // Returns the selector's array untouched when no filter is supplied, so the
+  // reference stays stable and downstream memos are not invalidated.
+  return useMemo(() => {
+    if (!tokenFilter) {
+      return assets;
+    }
+
+    return assets.filter((asset) => {
+      const { assetId, chainId } = asset;
+
+      if (!chainId || !assetId) {
+        return false;
+      }
+
+      return tokenFilter(chainId, assetId);
+    });
+  }, [assets, tokenFilter]);
+}
+
+function useRemoteTokens(
+  assets: ConfirmationAsset[],
+  currencyOverride: string | undefined,
+  enrichTokenRequests: EnrichTokenRequest[],
+): ConfirmationAsset[] {
+  const selectedCurrency = useSelector(getSelectedCurrency);
+  const currency = currencyOverride ?? selectedCurrency;
 
   const assetIds = useMemo(
     () =>
@@ -77,122 +138,53 @@ export function useAccountTokens({
 
   const tokensByAssetId = useTokensData(assetIds);
 
-  return useMemo(() => {
-    const flatAssets = Object.values(assets).flat();
+  const existingKeys = useMemo(
+    () => new Set(assets.map((t) => t.key)),
+    [assets],
+  );
 
-    const assetsWithBalance = flatAssets.filter((asset) => {
-      if (tokenFilter) {
-        const address = asset.assetId;
-        if (
-          !asset.chainId ||
-          !address ||
-          !tokenFilter(asset.chainId, address)
-        ) {
-          return false;
-        }
-      }
+  // Only format when there is at least one enrichment placeholder to build,
+  // so the formatter is never invoked for accounts with no remote tokens.
+  const zeroFiat = useMemo(
+    () =>
+      enrichTokenRequests.length > 0 ? (formatFiat(0, currency) ?? '') : '',
+    [currency, enrichTokenRequests.length],
+  );
 
-      if (includeNoBalance) {
-        return true;
-      }
+  return useMemo(
+    () =>
+      enrichTokenRequests
+        .map((req, i) => {
+          const key = `${req.chainId.toLowerCase()}:${req.address.toLowerCase()}`;
 
-      const haveBalance =
-        (asset.fiat?.balance &&
-          new BigNumber(asset.fiat.balance).isGreaterThan(0)) ||
-        (asset.rawBalance && asset.rawBalance !== '0x0');
+          if (existingKeys.has(key)) return undefined;
 
-      const isTestNetAsset =
-        isTestNet(asset.chainId) &&
-        asset.rawBalance &&
-        asset.rawBalance !== '0x0';
+          const caipId = assetIds[i];
+          const data = tokensByAssetId[caipId];
 
-      return haveBalance || isTestNetAsset;
-    });
+          if (!data?.name && !data?.symbol) return undefined;
 
-    const processedAssets = assetsWithBalance.map((asset) => {
-      const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
-      const hasDecimals = !fiatAmount.isInteger();
-
-      let balanceInSelectedCurrency: string;
-      try {
-        balanceInSelectedCurrency = getIntlNumberFormatter(I18n.locale, {
-          style: 'currency',
-          currency: fiatCurrency,
-          minimumFractionDigits: hasDecimals ? 2 : 0,
-        }).format(fiatAmount.toFixed() as unknown as number);
-      } catch (error) {
-        Logger.error(error as Error);
-        balanceInSelectedCurrency = `${fiatAmount.toFixed()} ${fiatCurrency}`;
-      }
-
-      return {
-        ...asset,
-        networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
-        balanceInSelectedCurrency,
-        standard: TokenStandard.ERC20 as const,
-      } as AssetType;
-    });
-
-    if (enrichTokenRequests.length > 0) {
-      let zeroFiat: string;
-      try {
-        zeroFiat = getIntlNumberFormatter(I18n.locale, {
-          style: 'currency',
-          currency: fiatCurrency,
-          minimumFractionDigits: 0,
-        }).format(0);
-      } catch {
-        zeroFiat = `0 ${fiatCurrency}`;
-      }
-
-      const existingKeys = new Set(
-        processedAssets.map(
-          (t) =>
-            `${t.chainId?.toLowerCase()}:${(t.address ?? '').toLowerCase()}`,
-        ),
-      );
-
-      for (let i = 0; i < enrichTokenRequests.length; i++) {
-        const req = enrichTokenRequests[i];
-        const key = `${req.chainId.toLowerCase()}:${req.address.toLowerCase()}`;
-        if (existingKeys.has(key)) continue;
-
-        const caipId = assetIds[i];
-        const data = tokensByAssetId[caipId];
-        if (!data?.name && !data?.symbol) continue;
-
-        processedAssets.push({
-          address: req.address.toLowerCase(),
-          chainId: req.chainId,
-          accountType: EthAccountType.Eoa,
-          name: data.name ?? '',
-          symbol: data.symbol ?? '',
-          decimals: data.decimals ?? 18,
-          image: data.iconUrl ?? '',
-          logo: data.iconUrl ?? undefined,
-          balance: '0',
-          balanceInSelectedCurrency: zeroFiat,
-          isETH: false,
-          isNative: false,
-          networkBadgeSource: getNetworkBadgeSource(req.chainId),
-          standard: TokenStandard.ERC20,
-        } as AssetType);
-      }
-    }
-
-    return processedAssets.sort(
-      (a, b) =>
-        new BigNumber(b.fiat?.balance || 0).comparedTo(
-          new BigNumber(a.fiat?.balance || 0),
-        ) || 0,
-    );
-  }, [
-    assets,
-    includeNoBalance,
-    fiatCurrency,
-    tokenFilter,
-    enrichTokenRequests,
-    assetIds,
-    tokensByAssetId,
-  ]) as unknown as AssetType[];
+          return {
+            accountType: EthAccountType.Eoa,
+            address: req.address.toLowerCase(),
+            balance: '0',
+            balanceInSelectedCurrency: zeroFiat,
+            chainId: req.chainId,
+            decimals: data.decimals ?? 18,
+            image: data.iconUrl ?? '',
+            isETH: false,
+            isNative: false,
+            key,
+            logo: data.iconUrl ?? undefined,
+            name: data.name ?? '',
+            networkBadgeSource: getNetworkBadgeSource(req.chainId),
+            // Placeholders have no fiat balance, so they sort last.
+            sortKey: 0,
+            standard: TokenStandard.ERC20,
+            symbol: data.symbol ?? '',
+          } as ConfirmationAsset;
+        })
+        .filter((token) => token !== undefined) as ConfirmationAsset[],
+    [enrichTokenRequests, existingKeys, assetIds, tokensByAssetId, zeroFiat],
+  );
 }

@@ -99,11 +99,11 @@ export const getResultTypeConfig = (
         subtitle: strings('security_trust.subtitle_malicious'),
         icon: IconName.Error,
         iconColor: IconColor.ErrorDefault,
-        iconAlertSeverity: IconAlertSeverity.Error,
+        iconAlertSeverity: IconAlertSeverity.Danger,
         badge: {
           icon: IconName.Danger,
           iconColor: IconColor.ErrorDefault,
-          iconAlertSeverity: IconAlertSeverity.Error,
+          iconAlertSeverity: IconAlertSeverity.Danger,
           label: strings('security_trust.malicious'),
           bg: 'bg-error-muted',
           textColor: TextColor.ErrorDefault,
@@ -320,8 +320,8 @@ export const getNegativeFeatureLabels = (): Record<
     label: strings(
       'security_trust.features.negative.impersonator_low_confidence',
     ),
-    type: 'Warning',
-  }, // used to be Info, but now it's Warning
+    type: 'Info',
+  },
   IS_MINTABLE: {
     label: strings('security_trust.features.negative.is_mintable'),
     type: 'Info',

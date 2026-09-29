@@ -2,10 +2,6 @@ import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { CaipAssetType, Hex } from '@metamask/utils';
 import {
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../featureFlagController/assetsUnifyState';
-import {
   getAccountTrackerControllerAccountsByChainId,
   getTokensControllerAllTokens,
   getTokensControllerAllIgnoredTokens,
@@ -44,17 +40,19 @@ const mockAccountId3 = 'mock-account-id-3';
 const mockAccountAddressLowercase2: Hex =
   '0x1234567890abcdef1234567890abcdef12345678';
 
-const enabledFeatureFlagControllerState = {
-  RemoteFeatureFlagController: {
-    remoteFeatureFlags: {
-      [ASSETS_UNIFY_STATE_FLAG]: {
-        enabled: true,
-        featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-      },
-    },
-  },
-};
+// Pooled-staking vault token that should be filtered from token lists and
+// surfaced as stakedBalance instead.
+const stakedVaultAddress = '0x4fef9d741011476750a243ac70b9789a63dd47df';
+const stakedVaultAddressChecksummed = toChecksumHexAddress(stakedVaultAddress);
+const stakedVaultAssetId = `eip155:1/erc20:${stakedVaultAddress}`;
 
+const tempoChainId = '0x1079';
+const tempoPathUsdAddressLowercase: Hex =
+  '0x20c0000000000000000000000000000000000000';
+const tempoPathUsdAssetId = `eip155:4217/erc20:${tempoPathUsdAddressLowercase}`;
+const tempoBridgedUsdcAddressLowercase: Hex =
+  '0x20c0000000000000000000000000000000000001';
+const tempoBridgedUsdcAssetId = `eip155:4217/erc20:${tempoBridgedUsdcAddressLowercase}`;
 function makeMockPrice(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     assetPriceType: 'fungible',
@@ -83,37 +81,11 @@ function makeMockPrice(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 describe('getAccountTrackerControllerAccountsByChainId', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns accountsByChainId from state unchanged', () => {
-      const legacyAccountsByChainId = {
-        '0x1': {
-          [mockAccountAddressChecksummed]: {
-            balance: '0xde0b6b3a7640000' as const,
-          },
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            AccountTrackerController: {
-              accountsByChainId: legacyAccountsByChainId,
-            },
-          },
-        },
-      };
-      const result = getAccountTrackerControllerAccountsByChainId(state);
-
-      expect(result).toBe(legacyAccountsByChainId);
-      expect(result).toStrictEqual(legacyAccountsByChainId);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives accountsByChainId from new state structure', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             AccountTrackerController: { accountsByChainId: {} },
             AssetsController: {
               assetsInfo: {
@@ -162,7 +134,6 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             AccountTrackerController: { accountsByChainId: {} },
             AssetsController: {
               assetsInfo: {
@@ -202,7 +173,6 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             AccountTrackerController: { accountsByChainId: {} },
             AssetsController: {
               assetsInfo: {
@@ -241,7 +211,6 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             AccountTrackerController: { accountsByChainId: {} },
             AssetsController: {
               assetsInfo: {
@@ -277,7 +246,6 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             AccountTrackerController: { accountsByChainId: {} },
             AssetsController: {
               assetsInfo: {
@@ -312,11 +280,134 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       ]);
     });
 
+    it('populates stakedBalance from pooled-staking vault ERC-20 balance', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [stakedVaultAssetId]: { type: 'erc20', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '5' },
+                  [stakedVaultAssetId]: { amount: '1' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      expect(
+        result['0x1'][mockAccountAddressChecksummed].balance,
+      ).toBeDefined();
+      // 1 ETH with 18 decimals → 0xde0b6b3a7640000
+      expect(result['0x1'][mockAccountAddressChecksummed].stakedBalance).toBe(
+        '0xde0b6b3a7640000',
+      );
+    });
+
+    it('preserves stakedBalance when vault token entry is processed before the native entry', () => {
+      // Object.entries preserves insertion order, so listing the vault asset
+      // first ensures we test the spread-guard on the native branch.
+      const state = {
+        engine: {
+          backgroundState: {
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: { type: 'erc20', decimals: 18 },
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  // vault first in iteration order
+                  [stakedVaultAssetId]: { amount: '2' },
+                  [nativeEthAssetId]: { amount: '3' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      const account = result['0x1'][mockAccountAddressChecksummed];
+      // Both fields must survive regardless of iteration order
+      expect(account.balance).toBeDefined();
+      expect(account.stakedBalance).toBeDefined();
+      // 2 ETH with 18 decimals
+      expect(account.stakedBalance).toBe('0x1bc16d674ec80000');
+    });
+
+    it('does not set stakedBalance for regular ERC-20 addresses not in the filter list', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [erc20AssetId]: { amount: '500' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      expect(
+        result['0x1'][mockAccountAddressChecksummed].stakedBalance,
+      ).toBeUndefined();
+    });
+
     it('truncates fractional digits exceeding decimals in parseBalanceWithDecimals', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             AccountTrackerController: { accountsByChainId: {} },
             AssetsController: {
               assetsInfo: {
@@ -351,43 +442,11 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
 });
 
 describe('getTokensControllerAllTokens', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns allTokens from state unchanged', () => {
-      const legacyAllTokens = {
-        '0x1': {
-          [mockAccountAddressLowercase]: [
-            {
-              address: erc20AssetAddressLowercase,
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-          ],
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            TokensController: {
-              allTokens: legacyAllTokens,
-              allIgnoredTokens: {},
-            },
-          },
-        },
-      };
-      const result = getTokensControllerAllTokens(state);
-
-      expect(result).toBe(legacyAllTokens);
-      expect(result).toStrictEqual(legacyAllTokens);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives allTokens from new state structure', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allTokens: {}, allIgnoredTokens: {} },
             AssetsController: {
               assetsInfo: {
@@ -448,7 +507,6 @@ describe('getTokensControllerAllTokens', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allTokens: {}, allIgnoredTokens: {} },
             AssetsController: {
               assetsInfo: {
@@ -496,7 +554,6 @@ describe('getTokensControllerAllTokens', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allTokens: {}, allIgnoredTokens: {} },
             AssetsController: {
               assetsInfo: {
@@ -541,7 +598,6 @@ describe('getTokensControllerAllTokens', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allTokens: {}, allIgnoredTokens: {} },
             AssetsController: {
               assetsInfo: {},
@@ -571,11 +627,89 @@ describe('getTokensControllerAllTokens', () => {
       expect(result).toStrictEqual({});
     });
 
+    it('excludes the pooled-staking vault token from allTokens', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'MM-Staked-ETH',
+                  name: 'MetaMask Staked ETH',
+                },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [stakedVaultAssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getTokensControllerAllTokens(state);
+
+      // The vault token must not appear in the regular token list
+      expect(result).toStrictEqual({});
+    });
+
+    it('excludes the pooled-staking vault token from customAssets path in allTokens', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'MM-Staked-ETH',
+                  name: 'MetaMask Staked ETH',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [stakedVaultAssetId as CaipAssetType],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getTokensControllerAllTokens(state);
+
+      expect(result).toStrictEqual({});
+    });
+
     it('skips native assets from allTokens (only ERC-20s)', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allTokens: {}, allIgnoredTokens: {} },
             AssetsController: {
               assetsInfo: {
@@ -615,36 +749,11 @@ describe('getTokensControllerAllTokens', () => {
 });
 
 describe('getTokensControllerAllIgnoredTokens', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns allIgnoredTokens from state unchanged', () => {
-      const legacyAllIgnoredTokens = {
-        '0x1': {
-          [mockAccountAddressLowercase]: [erc20AssetAddressLowercase],
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            TokensController: {
-              allIgnoredTokens: legacyAllIgnoredTokens,
-              allTokens: {},
-            },
-          },
-        },
-      };
-      const result = getTokensControllerAllIgnoredTokens(state);
-
-      expect(result).toBe(legacyAllIgnoredTokens);
-      expect(result).toStrictEqual(legacyAllIgnoredTokens);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives allIgnoredTokens from new state structure', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allIgnoredTokens: {}, allTokens: {} },
             AssetsController: {
               assetPreferences: {
@@ -685,7 +794,6 @@ describe('getTokensControllerAllIgnoredTokens', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allIgnoredTokens: {}, allTokens: {} },
             AssetsController: {
               assetPreferences: {
@@ -715,7 +823,6 @@ describe('getTokensControllerAllIgnoredTokens', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokensController: { allIgnoredTokens: {}, allTokens: {} },
             AssetsController: {
               assetPreferences: {
@@ -772,37 +879,11 @@ describe('getTokenBalancesControllerTokenBalances', () => {
     },
   };
 
-  describe('when assets unify state feature is disabled', () => {
-    it('returns tokenBalances from state unchanged', () => {
-      const legacyTokenBalances = {
-        [mockAccountAddressLowercase]: {
-          '0x1': {
-            [erc20AssetAddressChecksummed]: '0xf4240' as const,
-          },
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            TokenBalancesController: {
-              tokenBalances: legacyTokenBalances,
-            },
-          },
-        },
-      };
-      const result = getTokenBalancesControllerTokenBalances(state);
-
-      expect(result).toBe(legacyTokenBalances);
-      expect(result).toStrictEqual(legacyTokenBalances);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives tokenBalances from new state structure', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenBalancesController: { tokenBalances: {} },
             AssetsController: {
               assetsInfo: {
@@ -845,7 +926,6 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenBalancesController: { tokenBalances: {} },
             AssetsController: {
               assetsInfo: {
@@ -880,7 +960,6 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenBalancesController: { tokenBalances: {} },
             AssetsController: {
               assetsInfo: {
@@ -910,7 +989,6 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenBalancesController: { tokenBalances: {} },
             AssetsController: {
               assetsInfo: {
@@ -942,7 +1020,6 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenBalancesController: { tokenBalances: {} },
             AssetsController: {
               assetsInfo: {
@@ -981,7 +1058,6 @@ describe('getTokenBalancesControllerTokenBalances', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenBalancesController: { tokenBalances: {} },
             AssetsController: {
               assetsInfo: {
@@ -1030,37 +1106,112 @@ describe('getTokenBalancesControllerTokenBalances', () => {
         ],
       ).toBe('0x1312d00'); // 20 * 10^6
     });
+
+    it('excludes the pooled-staking vault token from tokenBalances', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [stakedVaultAssetId]: { type: 'erc20', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [stakedVaultAssetId]: { amount: '0.5' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      // Vault address must not appear as a token balance key
+      expect(
+        result[mockAccountAddressLowercase]['0x1'][
+          stakedVaultAddressChecksummed as Hex
+        ],
+      ).toBeUndefined();
+    });
+
+    it('excludes the pooled-staking vault token from the customAssets zero-balance placeholder', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'MM-Staked-ETH',
+                  name: 'MetaMask Staked ETH',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [stakedVaultAssetId],
+              },
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      // The vault address must not appear as a token balance key in any chain
+      for (const chainMap of Object.values(result)) {
+        for (const tokenMap of Object.values(chainMap)) {
+          expect(
+            (tokenMap as Record<string, unknown>)[
+              stakedVaultAddressChecksummed
+            ],
+          ).toBeUndefined();
+        }
+      }
+    });
+
+    it('maps non-mainnet native assets to zero address to match TokenBalancesController behavior', () => {
+      const zeroAddress: Hex = '0x0000000000000000000000000000000000000000';
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativePolygonAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativePolygonAssetId]: { amount: '2' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      expect(result[mockAccountAddressLowercase]['0x89']).toStrictEqual({
+        [zeroAddress]: '0x1bc16d674ec80000', // 2 MATIC (18 decimals)
+      });
+    });
   });
 });
 
 describe('getMultiChainAssetsControllerAccountsAssets', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns accountsAssets from state unchanged', () => {
-      const legacyAccountsAssets = {
-        [mockAccountId2]: [solanaTokenAssetId] as CaipAssetType[],
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            MultichainAssetsController: {
-              accountsAssets: legacyAccountsAssets,
-            },
-          },
-        },
-      };
-      const result = getMultiChainAssetsControllerAccountsAssets(state);
-
-      expect(result).toBe(legacyAccountsAssets);
-      expect(result).toStrictEqual(legacyAccountsAssets);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives accountsAssets from new state structure for non-EVM accounts only', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { accountsAssets: {} },
             AssetsController: {
               assetsBalance: {
@@ -1107,7 +1258,6 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { accountsAssets: {} },
             AssetsController: {
               assetsBalance: {
@@ -1146,7 +1296,6 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { accountsAssets: {} },
             AssetsController: {
               assetsBalance: {
@@ -1179,7 +1328,6 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { accountsAssets: {} },
             AssetsController: {
               assetsBalance: {
@@ -1210,39 +1358,11 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
 });
 
 describe('getMultiChainAssetsControllerAssetsMetadata', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns assetsMetadata from state unchanged', () => {
-      const legacyAssetsMetadata = {
-        [solanaTokenAssetId]: {
-          fungible: true as const,
-          iconUrl: 'https://example.com/sol.png',
-          units: [{ decimals: 6, symbol: 'USDC', name: 'USD Coin' }],
-          symbol: 'USDC',
-          name: 'USD Coin',
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            MultichainAssetsController: {
-              assetsMetadata: legacyAssetsMetadata,
-            },
-          },
-        },
-      };
-      const result = getMultiChainAssetsControllerAssetsMetadata(state);
-
-      expect(result).toBe(legacyAssetsMetadata);
-      expect(result).toStrictEqual(legacyAssetsMetadata);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives assetsMetadata from assetsInfo for non-EIP155 assets only', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { assetsMetadata: {} },
             AssetsController: {
               assetsInfo: {
@@ -1290,7 +1410,6 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { assetsMetadata: {} },
             AssetsController: {
               assetsInfo: {
@@ -1314,7 +1433,6 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { assetsMetadata: {} },
             AssetsController: {
               assetsInfo: {
@@ -1343,33 +1461,11 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
 });
 
 describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns allIgnoredAssets from state unchanged', () => {
-      const legacyAllIgnoredAssets = {
-        [mockAccountId2]: [solanaTokenAssetId] as CaipAssetType[],
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            MultichainAssetsController: {
-              allIgnoredAssets: legacyAllIgnoredAssets,
-            },
-          },
-        },
-      };
-      const result = getMultiChainAssetsControllerAllIgnoredAssets(state);
-
-      expect(result).toBe(legacyAllIgnoredAssets);
-      expect(result).toStrictEqual(legacyAllIgnoredAssets);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives allIgnoredAssets from assetPreferences for non-EVM accounts only', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { allIgnoredAssets: {} },
             AssetsController: {
               assetPreferences: {
@@ -1408,7 +1504,6 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { allIgnoredAssets: {} },
             AssetsController: {
               assetPreferences: {
@@ -1437,7 +1532,6 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { allIgnoredAssets: {} },
             AssetsController: {
               assetPreferences: {
@@ -1466,7 +1560,6 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsController: { allIgnoredAssets: {} },
             AssetsController: {
               assetPreferences: {
@@ -1495,33 +1588,11 @@ describe('getMultiChainAssetsControllerAllIgnoredAssets', () => {
 });
 
 describe('getMultiChainBalancesControllerBalances', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns balances from state unchanged', () => {
-      const legacyBalances = {
-        [mockAccountId2]: {
-          [solanaTokenAssetId]: { amount: '100', unit: 'USDC' },
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            MultichainBalancesController: { balances: legacyBalances },
-          },
-        },
-      };
-      const result = getMultiChainBalancesControllerBalances(state);
-
-      expect(result).toBe(legacyBalances);
-      expect(result).toStrictEqual(legacyBalances);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives balances from new state structure for non-EVM accounts only', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainBalancesController: { balances: {} },
             AssetsController: {
               assetsInfo: {
@@ -1573,28 +1644,11 @@ describe('getMultiChainBalancesControllerBalances', () => {
 });
 
 describe('getCurrencyRateControllerCurrentCurrency', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns currentCurrency from state unchanged', () => {
-      const legacyCurrentCurrency = 'eur';
-      const state = {
-        engine: {
-          backgroundState: {
-            CurrencyRateController: { currentCurrency: legacyCurrentCurrency },
-          },
-        },
-      };
-      const result = getCurrencyRateControllerCurrentCurrency(state);
-
-      expect(result).toBe(legacyCurrentCurrency);
-    });
-  });
-
   describe('when assets unify state feature is enabled', () => {
     it('returns selectedCurrency from new state', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             CurrencyRateController: { currentCurrency: 'eur' },
             AssetsController: { selectedCurrency: 'usd' },
           },
@@ -1608,29 +1662,6 @@ describe('getCurrencyRateControllerCurrentCurrency', () => {
 });
 
 describe('getCurrencyRateControllerCurrencyRates', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns currencyRates from state unchanged', () => {
-      const legacyCurrencyRates = {
-        ETH: {
-          conversionDate: 1000,
-          conversionRate: 2000,
-          usdConversionRate: 2000,
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            CurrencyRateController: { currencyRates: legacyCurrencyRates },
-          },
-        },
-      };
-      const result = getCurrencyRateControllerCurrencyRates(state);
-
-      expect(result).toBe(legacyCurrencyRates);
-      expect(result).toStrictEqual(legacyCurrencyRates);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives currencyRates from assetsInfo and assetsPrice for native EVM assets', () => {
       const lastUpdated = 1700000000000; // ms
@@ -1638,13 +1669,10 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             CurrencyRateController: {
-              currentCurrency: 'eur',
               currencyRates: {},
             },
             AssetsController: {
-              selectedCurrency: 'eur',
               assetsInfo: {
                 [nativeEthAssetId]: {
                   type: 'native',
@@ -1707,52 +1735,128 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
         },
       });
     });
+
+    it('derives the USD rate from the most recently updated price on a USD-native chain', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates: {},
+            },
+            AssetsController: {
+              assetsInfo: {
+                [tempoPathUsdAssetId]: {
+                  type: 'erc20',
+                  symbol: 'pathUSD',
+                  decimals: 6,
+                },
+                [tempoBridgedUsdcAssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC.e',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [tempoPathUsdAssetId]: makeMockPrice({
+                  id: 'pathusd',
+                  price: 0.9,
+                  usdPrice: 1,
+                  lastUpdated: 1700000000000,
+                }),
+                [tempoBridgedUsdcAssetId]: makeMockPrice({
+                  id: 'bridged-usdc',
+                  price: 0.9108,
+                  usdPrice: 0.99,
+                  lastUpdated: 1700000001000,
+                }),
+              },
+            },
+          },
+        },
+      };
+
+      const result = getCurrencyRateControllerCurrencyRates(state);
+
+      expect(result.USD?.conversionRate).toBeCloseTo(0.92);
+      expect(result.USD?.usdConversionRate).toBe(1);
+      expect(result.USD?.conversionDate).toBe(1700000001);
+    });
+
+    it.each([
+      { price: 0, usdPrice: 1 },
+      { price: -1, usdPrice: 1 },
+      { price: 1, usdPrice: 0 },
+      { price: 1, usdPrice: -1 },
+    ])(
+      'does not derive a USD rate from an invalid price (price $price, usdPrice $usdPrice)',
+      ({ price, usdPrice }) => {
+        const state = {
+          engine: {
+            backgroundState: {
+              CurrencyRateController: {
+                currencyRates: {},
+              },
+              AssetsController: {
+                assetsInfo: {
+                  [tempoPathUsdAssetId]: {
+                    type: 'erc20',
+                    symbol: 'pathUSD',
+                    decimals: 6,
+                  },
+                },
+                assetsPrice: {
+                  [tempoPathUsdAssetId]: makeMockPrice({
+                    id: 'pathusd',
+                    price,
+                    usdPrice,
+                  }),
+                },
+              },
+            },
+          },
+        };
+
+        const result = getCurrencyRateControllerCurrencyRates(state);
+
+        expect(result.USD).toBeUndefined();
+      },
+    );
+
+    it('does not derive a USD rate from a token price on another chain', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates: {},
+            },
+            AssetsController: {
+              assetsInfo: {
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [erc20AssetId]: makeMockPrice({
+                  id: 'usdc-price',
+                  price: 0.9,
+                  usdPrice: 1,
+                }),
+              },
+            },
+          },
+        },
+      };
+
+      const result = getCurrencyRateControllerCurrencyRates(state);
+
+      expect(result.USD).toBeUndefined();
+    });
   });
 });
 
 describe('getTokenRatesControllerMarketData', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns marketData from state unchanged', () => {
-      const legacyMarketData = {
-        '0x1': {
-          [erc20AssetAddressChecksummed]: {
-            tokenAddress: erc20AssetAddressChecksummed,
-            currency: 'ETH',
-            price: 1,
-            marketCap: 0,
-            allTimeHigh: 0,
-            allTimeLow: 0,
-            totalVolume: 0,
-            high1d: 0,
-            low1d: 0,
-            circulatingSupply: 0,
-            dilutedMarketCap: 0,
-            marketCapPercentChange1d: 0,
-            priceChange1d: 0,
-            pricePercentChange1h: 0,
-            pricePercentChange1d: 0,
-            pricePercentChange7d: 0,
-            pricePercentChange14d: 0,
-            pricePercentChange30d: 0,
-            pricePercentChange200d: 0,
-            pricePercentChange1y: 0,
-          },
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            TokenRatesController: { marketData: legacyMarketData },
-          },
-        },
-      };
-      const result = getTokenRatesControllerMarketData(state);
-
-      expect(result).toBe(legacyMarketData);
-      expect(result).toStrictEqual(legacyMarketData);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives marketData from assetsPrice with prices converted to native currency', () => {
       const lastUpdated = 1700000000000;
@@ -1761,7 +1865,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -1848,6 +1951,72 @@ describe('getTokenRatesControllerMarketData', () => {
       expect(marketData.currency).toBe('ETH');
       expect(marketData.tokenAddress).toBe(erc20AssetAddressChecksummed);
     });
+
+    it('prices tokens on a USD-native chain with no native asset in USD', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'eur',
+              currencyRates: {},
+            },
+            AssetsController: {
+              selectedCurrency: 'eur',
+              assetsInfo: {
+                [tempoPathUsdAssetId]: {
+                  type: 'erc20',
+                  symbol: 'pathUSD',
+                  decimals: 6,
+                },
+                [tempoBridgedUsdcAssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC.e',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [tempoPathUsdAssetId]: makeMockPrice({
+                  id: 'pathusd',
+                  price: 0.9,
+                  usdPrice: 1,
+                  lastUpdated: 1700000000000,
+                }),
+                [tempoBridgedUsdcAssetId]: makeMockPrice({
+                  id: 'bridged-usdc',
+                  price: 0.9108,
+                  usdPrice: 0.99,
+                  lastUpdated: 1700000001000,
+                }),
+              },
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [tempoChainId]: { nativeCurrency: 'USD' },
+              },
+            },
+          },
+        },
+      };
+
+      const result = getTokenRatesControllerMarketData(state);
+
+      const pathUsdMarketData =
+        result[tempoChainId][
+          toChecksumHexAddress(tempoPathUsdAddressLowercase) as Hex
+        ];
+      const bridgedUsdcMarketData =
+        result[tempoChainId][
+          toChecksumHexAddress(tempoBridgedUsdcAddressLowercase) as Hex
+        ];
+      expect(pathUsdMarketData.price).toBeCloseTo(0.9 / 0.92);
+      expect(pathUsdMarketData.currency).toBe('USD');
+      expect(bridgedUsdcMarketData.price).toBeCloseTo(0.99);
+      expect(bridgedUsdcMarketData.currency).toBe('USD');
+      expect(
+        getCurrencyRateControllerCurrencyRates(state).USD?.conversionRate,
+      ).toBeCloseTo(0.9108 / 0.99);
+    });
   });
 
   describe('edge cases when enabled', () => {
@@ -1855,7 +2024,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -1905,7 +2073,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -1948,7 +2115,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -1985,7 +2151,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -2026,7 +2191,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -2096,7 +2260,6 @@ describe('getTokenRatesControllerMarketData', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             TokenRatesController: { marketData: {} },
             CurrencyRateController: {
               currentCurrency: 'usd',
@@ -2144,55 +2307,12 @@ describe('getTokenRatesControllerMarketData', () => {
 });
 
 describe('getMultichainAssetsRatesControllerConversionRates', () => {
-  describe('when assets unify state feature is disabled', () => {
-    it('returns conversionRates from state unchanged', () => {
-      const legacyConversionRates = {
-        [solanaTokenAssetId]: {
-          rate: '1',
-          conversionTime: 1700000000000,
-          expirationTime: undefined,
-          marketData: {
-            fungible: true as const,
-            allTimeHigh: '1.1',
-            allTimeLow: '0.9',
-            circulatingSupply: '1000000',
-            marketCap: '1000000',
-            totalVolume: '500000',
-            pricePercentChange: {
-              PT1H: 0,
-              P1D: 0,
-              P7D: 0,
-              P14D: 0,
-              P30D: 0,
-              P200D: 0,
-              P1Y: 0,
-            },
-          },
-        },
-      };
-      const state = {
-        engine: {
-          backgroundState: {
-            MultichainAssetsRatesController: {
-              conversionRates: legacyConversionRates,
-            },
-          },
-        },
-      };
-      const result = getMultichainAssetsRatesControllerConversionRates(state);
-
-      expect(result).toBe(legacyConversionRates);
-      expect(result).toStrictEqual(legacyConversionRates);
-    });
-  });
-
   describe('when assets unify state feature is enabled (happy path)', () => {
     it('derives conversionRates from assetsPrice for non-EVM assets only', () => {
       const lastUpdated = 1700000000000;
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsRatesController: { conversionRates: {} },
             AssetsController: {
               assetsPrice: {
@@ -2282,7 +2402,6 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsRatesController: { conversionRates: {} },
             AssetsController: {
               assetsPrice: {
@@ -2303,7 +2422,6 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsRatesController: { conversionRates: {} },
             AssetsController: {
               assetsPrice: {
@@ -2339,7 +2457,6 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
       const state = {
         engine: {
           backgroundState: {
-            ...enabledFeatureFlagControllerState,
             MultichainAssetsRatesController: { conversionRates: {} },
             AssetsController: {
               assetsPrice: {},

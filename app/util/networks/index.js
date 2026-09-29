@@ -22,7 +22,7 @@ import {
   toHex,
 } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
-import { fastSplit } from '../number';
+import { fastSplit } from '../number/bigint';
 import { regex } from '../../../app/util/regex';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 import {
@@ -193,23 +193,6 @@ export const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
-  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
-  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
-  [NETWORKS_CHAIN_ID.BASE]: 'Base',
-  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
-  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
-  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
-  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
-  [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
-  [NETWORKS_CHAIN_ID.OPBNB]: 'opBNB',
-  [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: 'zkSync Era Mainnet',
-  [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
-  [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain',
-  [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
-  [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
-};
-
 export default NetworkList;
 
 export const getAllNetworks = () =>
@@ -243,6 +226,11 @@ export const isMainNet = (chainId) => chainId === '0x1';
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 export const isLineaMainnetChainId = (chainId) =>
   chainId === CHAIN_IDS.LINEA_MAINNET;
+
+export const isPolygonMainnetChainId = (chainId) =>
+  chainId === NETWORKS_CHAIN_ID.POLYGON;
+
+export const isMonadMainnetChainId = (chainId) => chainId === CHAIN_IDS.MONAD;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
@@ -346,7 +334,7 @@ export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
 /**
  * Returns whether the network can be deleted by the user.
- * Aligns with NetworkSelector: mainnet, Linea mainnet, and testnets cannot be removed.
+ * Aligns with NetworkSelector: default networks and testnets cannot be removed.
  *
  * @param {string} chainId - The chain ID to check (e.g. '0x1', '0x89').
  * @returns {boolean} True if the network can be deleted, false otherwise.
@@ -356,7 +344,9 @@ export const canDeleteNetwork = (chainId) =>
     chainId &&
       !isTestNet(chainId) &&
       !isMainNet(chainId) &&
-      !isLineaMainnetChainId(chainId),
+      !isLineaMainnetChainId(chainId) &&
+      !isPolygonMainnetChainId(chainId) &&
+      !isMonadMainnetChainId(chainId),
   );
 
 export function getNetworkTypeById(id) {

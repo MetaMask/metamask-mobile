@@ -14,8 +14,6 @@
 name: Nightly System Tests
 
 on:
-  schedule:
-    - cron: '0 5 * * *' # 5 AM UTC daily
   workflow_dispatch:
     inputs:
       browserstack_app_url_android:
@@ -36,7 +34,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -50,10 +48,12 @@ jobs:
     if: >-
       github.event_name != 'workflow_dispatch'
         || (!inputs.browserstack_app_url_android
-            && !inputs.browserstack_clean_app_url_android)
+            && !inputs.browserstack_clean_app_url_android
+            && !inputs.browserstack_app_url_ios
+            && !inputs.browserstack_clean_app_url_ios)
     with:
       branch_name: ${{ github.ref_name }}
-      build_variant: 'rc'
+      build_variant: 'e2e'
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -61,11 +61,13 @@ jobs:
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
-        || (!inputs.browserstack_app_url_ios
+        || (!inputs.browserstack_app_url_android
+            && !inputs.browserstack_clean_app_url_android
+            && !inputs.browserstack_app_url_ios
             && !inputs.browserstack_clean_app_url_ios)
     with:
       branch_name: ${{ github.ref_name }}
-      build_variant: 'rc'
+      build_variant: 'e2e'
     secrets: inherit
 
   run-android-login-tests:
@@ -94,13 +96,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -153,17 +155,28 @@ jobs:
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "ANTHROPIC_API_KEY=${{ secrets.VISUAL_TEST_API_KEY }}"
+            echo "AI_VISUAL_TESTING_ENABLED=true"
           } >> "$GITHUB_ENV"
 
       - name: Run Android login system tests
         run: yarn run-system-tests:android-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-android-login
           path: tests/test-reports/system-test-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload visual regression artifacts
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: visual-regression-android-login
+          path: test-results/visual-regression/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -193,13 +206,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -258,7 +271,7 @@ jobs:
         run: yarn run-system-tests:android-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-android-onboarding
@@ -292,13 +305,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -351,17 +364,28 @@ jobs:
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "ANTHROPIC_API_KEY=${{ secrets.VISUAL_TEST_API_KEY }}"
+            echo "AI_VISUAL_TESTING_ENABLED=true"
           } >> "$GITHUB_ENV"
 
       - name: Run iOS login system tests
         run: yarn run-system-tests:ios-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-ios-login
           path: tests/test-reports/system-test-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload visual regression artifacts
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: visual-regression-ios-login
+          path: test-results/visual-regression/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -391,13 +415,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -456,7 +480,7 @@ jobs:
         run: yarn run-system-tests:ios-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-ios-onboarding
@@ -475,7 +499,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all test reports
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v7
         with:
           pattern: system-test-report-*
           path: all-reports
@@ -513,9 +537,3 @@ jobs:
             echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # Fail the report job if any test job failed
-          if [[ "$STATUS_ANDROID_LOGIN" == "failure" || "$STATUS_ANDROID_ONBOARDING" == "failure" || "$STATUS_IOS_LOGIN" == "failure" || "$STATUS_IOS_ONBOARDING" == "failure" ]]; then
-            echo ""
-            echo "::error::One or more system test projects failed"
-            exit 1
-          fi

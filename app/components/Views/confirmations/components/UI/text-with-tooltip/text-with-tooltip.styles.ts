@@ -7,24 +7,8 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    backIcon: {
-      left: 10,
-      top: 10,
-      position: 'absolute',
-    },
-    container: {
-      backgroundColor: theme.colors.background.default,
-      paddingHorizontal: 8,
-      paddingVertical: 8,
-    },
     text: {
       ...fontStyles.normal,
-    },
-    tooltipHeader: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      paddingHorizontal: 8,
-      paddingVertical: 8,
     },
     tooltipContext: {
       paddingHorizontal: 40,

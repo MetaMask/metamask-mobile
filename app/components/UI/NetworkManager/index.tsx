@@ -1,9 +1,10 @@
 // third party dependencies
 import { View } from 'react-native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { HeaderStandard, Text } from '@metamask/design-system-react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from '@tommasini/react-native-scrollable-tab-view';
@@ -30,7 +31,6 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text from '../../../component-library/components/Texts/Text';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
@@ -80,7 +80,7 @@ const NetworkManager = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
   const initialTabIndexRef = useRef<number | null>(null);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder, identify } = useAnalytics();

@@ -20,5 +20,6 @@ export const defaultBridgeControllerState = {
   quotesLoadingStatus: null,
   quoteFetchError: null,
   quotesRefreshCount: 0,
+  inputPrimaryDenomination: 'token_amount' as const,
   tokenWarnings: [],
 };

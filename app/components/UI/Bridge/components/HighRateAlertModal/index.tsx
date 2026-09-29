@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -19,7 +20,6 @@ import {
   useSwapBridgeNavigation,
 } from '../../hooks/useSwapBridgeNavigation';
 import { HighRateAlertModalSelectorsIDs } from './HighRateAlertModal.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export interface HighRateAlertModalParams {
   sourceToken: BridgeToken;
@@ -28,14 +28,12 @@ export interface HighRateAlertModalParams {
 
 export function HighRateAlertModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { goBack } = useNavigation();
+  const { goBack } = useNavigation<AppNavigationProp>();
   const { sourceToken, destToken } = useParams<HighRateAlertModalParams>();
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'BatchSell',
   });
-  const surfaceClass = useElevatedSurface();
-
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -51,7 +49,6 @@ export function HighRateAlertModal() {
       ref={sheetRef}
       goBack={goBack}
       testID={HighRateAlertModalSelectorsIDs.SHEET}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

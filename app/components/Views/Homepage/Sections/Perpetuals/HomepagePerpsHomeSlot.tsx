@@ -19,9 +19,6 @@ const HomepagePerpsHomeSlot = forwardRef<
   SectionRefreshHandle,
   PerpsSectionProps
 >((props, ref) => {
-  const { mode = 'default' } = props;
-  const isPositionsOnly = mode === 'positions-only';
-
   const { variant: perpsPillsEmptyAbVariant } = useABTest(
     HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
     HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
@@ -29,7 +26,7 @@ const HomepagePerpsHomeSlot = forwardRef<
   );
 
   const emptyStateUsesExplorePills =
-    !isPositionsOnly && perpsPillsEmptyAbVariant.showExplorePillsWhenEmpty;
+    perpsPillsEmptyAbVariant.showExplorePillsWhenEmpty;
 
   if (!emptyStateUsesExplorePills) {
     return <PerpsSection ref={ref} {...props} />;

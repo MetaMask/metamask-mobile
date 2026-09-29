@@ -1,400 +1,478 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import MoneyMetaMaskCard from './MoneyMetaMaskCard';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
+import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { mockTheme } from '../../../../../util/theme';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+} from '../../../Card/util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'baanx'),
+}));
+
+jest.mock('../MoneyCardTiltAnimation', () => 'MoneyCardTiltAnimation');
+
+const analyticsProps = {
+  analyticsScreen: CardScreens.MONEY_HOME,
+  analyticsEntryPoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+  analyticsFlow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+  analyticsCardState: 'unlinked_card',
+};
 
 describe('MoneyMetaMaskCard', () => {
-  it('renders the section title and subtitle', () => {
-    const { getByText } = render(
-      <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    ['upsell', 'money.metamask_card.upsell_title'],
+    ['link', 'money.metamask_card.link_title'],
+    ['manage', 'money.metamask_card.title'],
+    ['verifying', 'money.metamask_card.title'],
+    ['loading', 'money.metamask_card.title'],
+  ] as const)('renders the %s mode title', (mode, titleKey) => {
+    render(
+      <MoneyMetaMaskCard
+        mode={mode}
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+      />,
     );
 
-    expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
     expect(
-      getByText(strings('money.metamask_card.subtitle')),
+      screen.getByTestId(MoneySectionHeaderTestIds.TITLE),
+    ).toHaveTextContent(strings(titleKey));
+  });
+
+  it('renders upsell content with the virtual card row', () => {
+    render(<MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard />);
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('money.metamask_card.subtitle')),
     ).toBeOnTheScreen();
   });
 
-  it('renders virtual card row', () => {
-    const { getByText, getByTestId } = render(
-      <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+  it('renders virtual-card cashback when showMetalCard is false in link mode', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="link"
+        onGetNowPress={jest.fn()}
+        showMetalCard={false}
+      />,
     );
 
     expect(
-      getByText(strings('money.metamask_card.virtual_card')),
+      screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
+    ).toHaveTextContent(
+      strings('money.metamask_card.link_bullet_cashback', {
+        percentage: '1',
+      }),
+    );
+  });
+
+  it('dispatches an upsell content press to onGetNowPress', () => {
+    const onGetNowPress = jest.fn();
+    render(<MoneyMetaMaskCard onGetNowPress={onGetNowPress} />);
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+    expect(onGetNowPress).toHaveBeenCalledTimes(1);
+    expect(onGetNowPress).toHaveBeenCalledWith();
+  });
+
+  it('dispatches an upsell header press to both header and mode handlers', () => {
+    const onGetNowPress = jest.fn();
+    const onHeaderPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        onGetNowPress={onGetNowPress}
+        onHeaderPress={onHeaderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledWith('upsell');
+    expect(onGetNowPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders link content with live APY values', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="link"
+        onGetNowPress={jest.fn()}
+        apy={4}
+        showMetalCard
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('money.metamask_card.cashback', { percentage: '1' })),
+      screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+    ).toHaveTextContent(
+      strings('money.metamask_card.link_subtitle', { apy: 4 }),
+    );
+    expect(
+      screen.getByText(
+        strings('money.metamask_card.link_bullet_cashback', {
+          percentage: '3',
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('money.metamask_card.link_bullet_apy', { apy: 4 }),
+      ),
     ).toBeOnTheScreen();
   });
 
-  it('renders metal card row when showMetalCard is true', () => {
-    const { getByText, getByTestId } = render(
-      <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard />,
+  it('renders APY-free link content when APY is unavailable', () => {
+    render(
+      <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} hideCardImage />,
     );
 
     expect(
-      getByText(strings('money.metamask_card.metal_card')),
-    ).toBeOnTheScreen();
+      screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+    ).toHaveTextContent(strings('money.metamask_card.link_subtitle_no_apy'));
     expect(
-      getByText(strings('money.metamask_card.cashback', { percentage: '3' })),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides metal card row by default (showMetalCard not provided)', () => {
-    const { queryByTestId, queryByText } = render(
-      <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
-    );
-
-    expect(
-      queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
     ).not.toBeOnTheScreen();
     expect(
-      queryByText(strings('money.metamask_card.metal_card')),
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
     ).not.toBeOnTheScreen();
   });
 
-  it('hides metal card row when showMetalCard is false', () => {
-    const { queryByTestId } = render(
-      <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard={false} />,
+  it('dispatches a link content press to onLinkPress', () => {
+    const onLinkPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="link"
+        onGetNowPress={jest.fn()}
+        onLinkPress={onLinkPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+    expect(onLinkPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispatches a link header press to both header and mode handlers', () => {
+    const onHeaderPress = jest.fn();
+    const onLinkPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="link"
+        onGetNowPress={jest.fn()}
+        onHeaderPress={onHeaderPress}
+        onLinkPress={onLinkPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledWith('link');
+    expect(onLinkPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables link header and content interactions', () => {
+    const onHeaderPress = jest.fn();
+    const onLinkPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="link"
+        onGetNowPress={jest.fn()}
+        onHeaderPress={onHeaderPress}
+        onLinkPress={onLinkPress}
+        isLinkDisabled
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(onHeaderPress).not.toHaveBeenCalled();
+    expect(onLinkPress).not.toHaveBeenCalled();
+  });
+
+  it('renders manage balance and cashback', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+        showMetalCard
+      />,
     );
 
     expect(
-      queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      screen.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+    ).toHaveTextContent('$2,342.86');
+    expect(
+      screen.getByText(
+        strings('money.metamask_card.cashback', { percentage: '3' }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('masks the manage balance in privacy mode', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+        privacyMode
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+    ).toHaveTextContent('•'.repeat(9));
+  });
+
+  it('renders virtual-card cashback when showMetalCard is false in manage mode', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        showMetalCard={false}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        strings('money.metamask_card.cashback', { percentage: '1' }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the stale manage balance with alternative text color', () => {
+    const { getByTestId, rerender } = render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+      />,
+    );
+    const freshColor = StyleSheet.flatten(
+      getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.style,
+    ).color;
+
+    rerender(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+        isBalanceStale
+      />,
+    );
+    const staleColor = StyleSheet.flatten(
+      getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.style,
+    ).color;
+
+    expect(staleColor).toBe(mockTheme.colors.text.alternative);
+    expect(staleColor).not.toBe(freshColor);
+  });
+
+  it('dispatches a manage content press to onManagePress', () => {
+    const onManagePress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        onManagePress={onManagePress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+    expect(onManagePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispatches a manage header press to both header and mode handlers', () => {
+    const onHeaderPress = jest.fn();
+    const onManagePress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        onHeaderPress={onHeaderPress}
+        onManagePress={onManagePress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledWith('manage');
+    expect(onManagePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders verification state without interactive targets', () => {
+    const onHeaderPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="verifying"
+        onGetNowPress={jest.fn()}
+        onHeaderPress={onHeaderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('money.metamask_card.verification_pending')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.HEADER),
     ).not.toBeOnTheScreen();
+    expect(onHeaderPress).not.toHaveBeenCalled();
   });
 
-  it('calls onGetNowPress when virtual card Get now is pressed', () => {
-    const mockGetNow = jest.fn();
-    const { getByText } = render(
-      <MoneyMetaMaskCard onGetNowPress={mockGetNow} />,
+  it('renders loading state without interactive targets', () => {
+    const onHeaderPress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="loading"
+        onGetNowPress={jest.fn()}
+        onHeaderPress={onHeaderPress}
+      />,
     );
 
-    fireEvent.press(getByText(strings('money.metamask_card.get_now')));
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
-    expect(mockGetNow).toHaveBeenCalledTimes(1);
-    expect(mockGetNow.mock.calls[0]).toEqual([]);
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(onHeaderPress).not.toHaveBeenCalled();
   });
 
-  it('calls onGetNowPress when metal card Get now is pressed', () => {
-    const mockGetNow = jest.fn();
-    const { getAllByText } = render(
-      <MoneyMetaMaskCard onGetNowPress={mockGetNow} showMetalCard />,
+  it('omits analytics when location properties are absent', () => {
+    render(<MoneyMetaMaskCard onGetNowPress={jest.fn()} />);
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('tracks one settled card view when analytics becomes ready', () => {
+    const { rerender } = render(
+      <MoneyMetaMaskCard
+        mode="link"
+        onGetNowPress={jest.fn()}
+        {...analyticsProps}
+        analyticsReady={false}
+      />,
     );
-    const getNowButtons = getAllByText(strings('money.metamask_card.get_now'));
 
-    fireEvent.press(getNowButtons[1]);
+    rerender(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        {...analyticsProps}
+        analyticsCardState="linked_card"
+        analyticsReady
+      />,
+    );
 
-    expect(mockGetNow).toHaveBeenCalledTimes(1);
-    expect(mockGetNow.mock.calls[0]).toEqual([]);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      screen: CardScreens.MONEY_HOME,
+      entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+      mode: 'manage',
+      card_type: 'virtual',
+      flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+      card_state: 'linked_card',
+      action: undefined,
+    });
+    expect(mockBuild).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'built-event' });
   });
 
-  describe('link mode', () => {
-    it('renders link subtitle instead of upsell subtitle', () => {
-      const { getByText, queryByText } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} apy={4} />,
-      );
-
-      expect(
-        getByText(strings('money.metamask_card.link_subtitle', { apy: 4 })),
-      ).toBeOnTheScreen();
-      expect(
-        queryByText(strings('money.metamask_card.subtitle')),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders card image in link mode', () => {
-      const { getByTestId } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
-      );
-
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders 1% cashback and APY bullets for non-metal regions', () => {
-      const { getByTestId, getByText, queryByText } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} apy={4} />,
-      );
-
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
-      ).toBeOnTheScreen();
-      expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-      expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
-      expect(queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
-    });
-
-    it('renders 3% cashback and APY bullets when showMetalCard is true', () => {
-      const { getByTestId, getByText, queryByText } = render(
+  it.each([
+    ['upsell', CardActions.MONEY_ACCOUNT_METAMASK_CARD_GET_NOW_BUTTON],
+    ['link', CardActions.MONEY_ACCOUNT_METAMASK_CARD_LINK_BUTTON],
+    ['manage', CardActions.MONEY_ACCOUNT_METAMASK_CARD_MANAGE_BUTTON],
+  ] as const)(
+    'tracks %s content presses with the mode action',
+    (mode, action) => {
+      render(
         <MoneyMetaMaskCard
-          mode="link"
+          mode={mode}
           onGetNowPress={jest.fn()}
-          showMetalCard
-          apy={4}
+          onLinkPress={jest.fn()}
+          onManagePress={jest.fn()}
+          {...analyticsProps}
         />,
       );
+      jest.clearAllMocks();
 
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
-      ).toBeOnTheScreen();
-      expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
-      expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
-      expect(queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
-    });
+      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
-    it('renders "Link card" button', () => {
-      const { getByTestId } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
-
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('hides virtual and metal card rows in link mode', () => {
-      const { queryByTestId } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
-      );
-
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('calls onLinkPress when "Link card" button is pressed', () => {
-      const mockLink = jest.fn();
-      const { getByTestId } = render(
-        <MoneyMetaMaskCard
-          mode="link"
-          onGetNowPress={jest.fn()}
-          onLinkPress={mockLink}
-        />,
-      );
-
-      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
-      expect(mockLink).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders link-specific section title', () => {
-      const { getByText } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
-      );
-
-      expect(
-        getByText(strings('money.metamask_card.link_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onHeaderPress when section header is tapped in link mode', () => {
-      const mockHeader = jest.fn();
-      const { getByText } = render(
-        <MoneyMetaMaskCard
-          mode="link"
-          onGetNowPress={jest.fn()}
-          onHeaderPress={mockHeader}
-        />,
-      );
-
-      fireEvent.press(getByText(strings('money.metamask_card.link_title')));
-      expect(mockHeader).toHaveBeenCalled();
-    });
-
-    describe('hideCardImage', () => {
-      it('does not render the card image when hideCardImage is true', () => {
-        const { queryByTestId } = render(
-          <MoneyMetaMaskCard
-            mode="link"
-            onGetNowPress={jest.fn()}
-            apy={4}
-            hideCardImage
-          />,
-        );
-
-        expect(
-          queryByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
-        ).not.toBeOnTheScreen();
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        mode,
+        card_type: 'virtual',
+        flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+        card_state: 'unlinked_card',
+        action,
       });
-
-      it('still renders cashback / APY bullets and the Link card button when hideCardImage is true', () => {
-        const { getByTestId, getByText } = render(
-          <MoneyMetaMaskCard
-            mode="link"
-            onGetNowPress={jest.fn()}
-            apy={4}
-            hideCardImage
-          />,
-        );
-
-        expect(
-          getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
-        ).toBeOnTheScreen();
-        expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-        expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
-        expect(
-          getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
-        ).toBeOnTheScreen();
-      });
-    });
-
-    describe('apy undefined (no-APY copy)', () => {
-      it('renders link_subtitle_no_apy when apy is undefined', () => {
-        const { getByText } = render(
-          <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
-        );
-
-        expect(
-          getByText(strings('money.metamask_card.link_subtitle_no_apy')),
-        ).toBeOnTheScreen();
-        // link_subtitle and link_subtitle_no_apy share the same copy, so no
-        // absence check is needed here.
-      });
-
-      it('omits the APY bullet when apy is undefined', () => {
-        const { queryByTestId, getByTestId } = render(
-          <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
-        );
-
-        expect(
-          queryByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
-        ).not.toBeOnTheScreen();
-        expect(
-          getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
-        ).toBeOnTheScreen();
-      });
-
-      it('combines hideCardImage and apy undefined into the Card Home variant', () => {
-        const { getByText, queryByTestId } = render(
-          <MoneyMetaMaskCard
-            mode="link"
-            onGetNowPress={jest.fn()}
-            hideCardImage
-          />,
-        );
-
-        expect(
-          queryByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
-        ).not.toBeOnTheScreen();
-        expect(
-          queryByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
-        ).not.toBeOnTheScreen();
-        expect(
-          getByText(strings('money.metamask_card.link_subtitle_no_apy')),
-        ).toBeOnTheScreen();
-        expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-      });
-    });
-  });
-
-  describe('mode="manage"', () => {
-    const props = {
-      mode: 'manage' as const,
-      onGetNowPress: jest.fn(),
-      onManagePress: jest.fn(),
-      cardBalance: '$2,342.86',
-    };
-
-    beforeEach(() => {
-      props.onGetNowPress.mockClear();
-      props.onManagePress.mockClear();
-    });
-
-    it('renders both balance and metal rows', () => {
-      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_METAL_ROW),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders the available balance', () => {
-      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
-      ).toHaveTextContent('$2,342.86');
-    });
-
-    it('calls onManagePress when Manage is tapped', () => {
-      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
-      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
-      expect(props.onManagePress).toHaveBeenCalled();
-    });
-
-    it('calls onGetNowPress when metal Get now is tapped', () => {
-      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
-      fireEvent.press(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_METAL_GET_NOW),
-      );
-      expect(props.onGetNowPress).toHaveBeenCalled();
-    });
-
-    it('does not render upsell or link content', () => {
-      const { queryByTestId } = render(<MoneyMetaMaskCard {...props} />);
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
-      ).toBeNull();
-      expect(queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER)).toBeNull();
-    });
-  });
-
-  describe('upsell mode (default)', () => {
-    it('renders virtual and metal card rows when showMetalCard is true', () => {
-      const { getByTestId } = render(
-        <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard />,
-      );
-
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders only the virtual card row when showMetalCard is false', () => {
-      const { getByTestId, queryByTestId } = render(
-        <MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard={false} />,
-      );
-
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not render link mode elements', () => {
-      const { queryByTestId } = render(
-        <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
-      );
-
-      expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-  });
+      expect(mockBuild).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'built-event' });
+    },
+  );
 });

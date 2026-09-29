@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStore } from 'react-redux';
-import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
+import { Hex, CaipAssetType, CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { selectEvmChainId } from '../../../../selectors/networkController';
@@ -19,7 +20,6 @@ import {
 } from '../../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { areAddressesEqual } from '../../../../util/address';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
 import {
@@ -30,21 +30,21 @@ import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../../Views/confirmations/hooks/useSendNavigation';
-import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
+import resolveBuyAssetId from '../../Ramp/utils/resolveBuyAssetId';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
+import { computeBuySourceToken } from '../../Bridge/utils/computeBuySourceToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import {
   isExploreTokenDetailsSource,
@@ -54,108 +54,10 @@ import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export type TokenActionInput = TokenI & {
+  /** Preferred CAIP-19 when already resolved (e.g. Asset route params). */
+  caipAssetId?: CaipAssetType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   source?: TokenDetailsSource;
-};
-
-interface BuySourceAsset {
-  chainId: string;
-  assetId: string;
-  isNative?: boolean;
-  decimals: number;
-  symbol: string;
-  name: string;
-  image?: string;
-  fiat?: { balance?: number };
-}
-
-/**
- * Smart picker for the swap "source" token when the current token has no
- * balance: pick the user's best available asset (highest fiat) to spend.
- *
- * Pure function so it can be invoked lazily at click time (avoiding the
- * full sort/rank pass on every redux update). Mirrors the priority order
- * used by the legacy `buySourceToken` memo:
- * 1. Highest USD-value token on the same chain (excluding current token)
- * 2. Native token with highest USD value across other chains
- * 3. Fallback: highest USD-value token across any chain
- */
-export const computeBuySourceToken = (
-  userAssetsMap: Record<string, BuySourceAsset[]> | undefined,
-  tokenChainId: string | undefined,
-  tokenAddress: string,
-): BridgeToken | null => {
-  const userAssets = Object.values(userAssetsMap || {}).flat();
-
-  // Check if asset has positive fiat balance
-  const hasPositiveFiat = (a: { fiat?: { balance?: number } }) =>
-    (a.fiat?.balance ?? 0) > 0;
-
-  // Priority 1: Find highest USD value token on same chain (with positive balance)
-  // Note: assetId contains the token address for EVM assets
-  const sameChainAssets = userAssets
-    .filter(
-      (a) =>
-        a.chainId === tokenChainId &&
-        !areAddressesEqual(a.assetId, tokenAddress) &&
-        hasPositiveFiat(a),
-    )
-    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-  if (sameChainAssets.length > 0) {
-    const asset = sameChainAssets[0];
-    return {
-      address: asset.assetId,
-      chainId: asset.chainId as Hex | CaipChainId,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    };
-  }
-
-  // Eligible cross-chain assets: exclude exact same token (address + chain match)
-  // This allows cross-chain bridging of native tokens that share the zero address
-  const crossChainAssets = userAssets
-    .filter(
-      (a) =>
-        !(
-          areAddressesEqual(a.assetId, tokenAddress) &&
-          a.chainId === tokenChainId
-        ) && hasPositiveFiat(a),
-    )
-    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-  // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
-  const nativeAsset = crossChainAssets.find((a) => a.isNative);
-  if (nativeAsset) {
-    return {
-      address: nativeAsset.assetId,
-      chainId: nativeAsset.chainId as Hex | CaipChainId,
-      decimals: nativeAsset.decimals,
-      symbol: nativeAsset.symbol,
-      name: nativeAsset.name,
-      image: nativeAsset.image,
-    };
-  }
-
-  // Priority 3 – Last swapped token (needs selector/data source)
-  // Priority 4 – Most used token (needs selector/data source)
-
-  // Fallback: highest USD value token on any chain
-  if (crossChainAssets.length > 0) {
-    const asset = crossChainAssets[0];
-    return {
-      address: asset.assetId,
-      chainId: asset.chainId as Hex | CaipChainId,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    };
-  }
-  // No eligible tokens found - return null to trigger on-ramp flow
-  return null;
 };
 
 const toCurrentTokenAsBridgeToken = (token: TokenI): BridgeToken => ({
@@ -221,10 +123,9 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isAuthenticated = useIsRampAuthenticated();
 
-  return useCallback(() => {
+  return useCallback(async () => {
     const tokenChainIdHex = token.chainId as Hex;
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -234,25 +135,12 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    let assetId: string | undefined;
-    try {
-      if (isCaipAssetType(token.address)) {
-        assetId = token.address;
-      } else {
-        assetId = parseRampIntent({
-          chainId: getDecimalChainId(tokenChainIdHex),
-          address: token.address,
-        })?.assetId;
-      }
-    } catch {
-      assetId = undefined;
-    }
+    const assetId = await resolveBuyAssetId(token);
 
     const state = store.getState();
     const rampGeodetectedRegion = getDetectedGeolocation(state);
     const orders = getOrders(state);
     const controllerOrders = selectRampsOrdersForSelectedAccountGroup(state);
-    const rampRoutingDecision = getRampRoutingDecision(state);
 
     const completedOrders = [
       ...completedOrdersFromFiatOrders(orders),
@@ -272,9 +160,8 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(tokenChainIdHex),
-          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
-          ramp_routing: rampRoutingDecision ?? undefined,
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
           order_count: orders.length + controllerOrders.length,
@@ -284,15 +171,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [
-    store,
-    token,
-    trackEvent,
-    createEventBuilder,
-    rampUnifiedV1Enabled,
-    isAuthenticated,
-    goToBuy,
-  ]);
+  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
 };
 
 /**
@@ -333,8 +212,12 @@ export const useHandleOnSwap = ({
     const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
     const balanceForCheck = currentTokenBalance ?? token.balance;
 
+    const destTokenOverride = token.chainId
+      ? getSwapDestToken(token.chainId, token.address)
+      : undefined;
+
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
       return;
     }
 
@@ -347,11 +230,15 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      goToSwaps(
+        buySourceToken,
+        destTokenOverride ?? currentTokenAsBridgeToken,
+        undefined,
+        true,
+      );
       return;
     }
-
-    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 
@@ -362,7 +249,7 @@ export const useHandleOnSwap = ({
  * non-EVM send flow first; falls through to the EVM send page otherwise.
  */
 export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigateToSendPage } = useSendNavigation();
@@ -442,7 +329,7 @@ export const useHandleOnReceive = ({
   /** Optional network name displayed in the share-address QR sheet. */
   networkName?: string;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -477,6 +364,8 @@ export const useHandleOnReceive = ({
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
+          location: 'asset-details',
+          account: accountForChain,
         },
       });
     } else {

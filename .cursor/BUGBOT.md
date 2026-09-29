@@ -25,7 +25,7 @@ Use the rules in the [unit testing guidelines](../docs/testing/unit-testing.md) 
 ### 2. Initial Setup - E2E Tests
 
 - **ALWAYS** load and reference [e2e testing guidelines](../docs/testing/e2e-testing.md)
-- Verify test file naming pattern: `tests/(smoke|regression)/**/*.spec.{js,ts}`
+- Verify test file naming pattern: `tests/(smoke|smoke-appium|performance)/**/*.spec.{js,ts}`
 - Check for proper imports and framework utilities from `tests/framework/index.ts`
 
 Use the rules in the [e2e testing guidelines](../docs/testing/e2e-testing.md) to enforce the test quality and bug detection.

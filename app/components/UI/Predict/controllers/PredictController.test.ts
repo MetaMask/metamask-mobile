@@ -15,8 +15,10 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Interface } from 'ethers/lib/utils';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { analytics } from '../../../../util/analytics/analytics';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
@@ -24,6 +26,7 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { PolymarketRequestTimeoutError } from '../providers/polymarket/fetchWithTimeout';
 import {
   ActiveOrderState,
   type OrderPreview,
@@ -40,6 +43,7 @@ import {
 } from '../types';
 import {
   getDefaultPredictControllerState,
+  OPTIMISTIC_BALANCE_MAX_AGE_MS,
   PredictController,
   PredictControllerMessenger,
   type PredictControllerState,
@@ -47,6 +51,7 @@ import {
 import type { PredictFeatureFlags } from '../types/flags';
 
 import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { PredictEventValues } from '../constants/eventNames';
 import {
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -98,16 +103,6 @@ const REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN = {
   ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
   remoteFeatureFlags: {
     ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
-    predictWithAnyToken: {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    },
-  },
-};
-
-const REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN_OVERRIDE = {
-  ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
-  localOverrides: {
     predictWithAnyToken: {
       enabled: true,
       minimumVersion: '0.0.0',
@@ -185,6 +180,8 @@ function getRootMessenger(): RootMessenger {
 }
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+const HASH_ZERO_BYTES32 =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 function setActiveOrderForTest(
   controller: PredictController,
@@ -246,7 +243,9 @@ describe('PredictController', () => {
     };
   }
 
-  function createMockMarket(overrides?: Partial<PredictMarket>): PredictMarket {
+  function createPredictMarket(
+    overrides?: Partial<PredictMarket>,
+  ): PredictMarket {
     return {
       id: 'market-1',
       providerId: POLYMARKET_PROVIDER_ID,
@@ -314,6 +313,7 @@ describe('PredictController', () => {
       searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
+      getMarketSeries: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
@@ -330,6 +330,7 @@ describe('PredictController', () => {
       chainId: 137,
       getUnrealizedPnL: jest.fn(),
       previewOrder: jest.fn(),
+      previewMaxBuyOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
       createOptimisticPositionFromPreview: jest.fn(),
@@ -357,7 +358,7 @@ describe('PredictController', () => {
       transactionHash: undefined,
     });
     mockPolymarketProvider.getMarketDetails.mockResolvedValue(
-      createMockMarket(),
+      createPredictMarket(),
     );
 
     // Default safe mocks for async fire-and-forget methods
@@ -409,6 +410,7 @@ describe('PredictController', () => {
         getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
         getNetworkState?: jest.MockedFunction<() => NetworkState>;
         getRemoteFeatureFlagState?: jest.MockedFunction<() => any>;
+        getAccountsFromSelectedAccountGroup?: jest.MockedFunction<() => any[]>;
         estimateGas?: jest.MockedFunction<
           (
             txParams: TransactionMeta['txParams'],
@@ -439,15 +441,16 @@ describe('PredictController', () => {
 
     rootMessenger.registerActionHandler(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      jest.fn().mockReturnValue([
-        {
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: { lastSelected: 0 },
-        },
-      ]),
+      mocks.getAccountsFromSelectedAccountGroup ??
+        jest.fn().mockReturnValue([
+          {
+            id: 'mock-account-id',
+            address: '0x1234567890123456789012345678901234567890',
+            type: 'eip155:eoa',
+            name: 'Test Account',
+            metadata: { lastSelected: 0 },
+          },
+        ]),
     );
 
     rootMessenger.registerActionHandler(
@@ -536,26 +539,60 @@ describe('PredictController', () => {
     return fn({ controller, messenger: rootMessenger });
   }
 
+  function installOneTimeUpdateFailure({
+    controller,
+    shouldFail,
+    errorMessage,
+  }: {
+    controller: PredictController;
+    shouldFail: () => boolean;
+    errorMessage: string;
+  }): { didFail: () => boolean; restore: () => void } {
+    type UpdateFn = (
+      updater: (state: PredictControllerState) => void,
+    ) => unknown;
+
+    const controllerWithUpdate = controller as unknown as { update: UpdateFn };
+    const originalUpdate = controllerWithUpdate.update;
+    let updateFailed = false;
+
+    controllerWithUpdate.update = (updater) => {
+      if (shouldFail() && !updateFailed) {
+        updateFailed = true;
+        throw new Error(errorMessage);
+      }
+
+      return originalUpdate.call(controller, updater);
+    };
+
+    return {
+      didFail: () => updateFailed,
+      restore: () => {
+        controllerWithUpdate.update = originalUpdate;
+      },
+    };
+  }
+
   describe('constructor', () => {
     it('initializes with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.eligibility).toEqual({ eligible: false });
+        expect(controller.state.eligibility).toEqual({
+          status: 'checking',
+          eligible: false,
+        });
         expect(controller.state.accountMeta).toEqual({});
       });
     });
 
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        eligibility: { eligible: false, country: undefined },
+        lastError: 'custom-error',
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.eligibility).toEqual({
-            eligible: false,
-            country: undefined,
-          });
+          expect(controller.state.lastError).toBe('custom-error');
         },
         { state: customState },
       );
@@ -612,7 +649,7 @@ describe('PredictController', () => {
   });
 
   describe('feature flag resolution', () => {
-    it('uses local overrides for predictWithAnyToken', () => {
+    it('resolves predictWithAnyToken from the effective feature flags', () => {
       withController(
         ({ controller }) => {
           expect(
@@ -627,9 +664,7 @@ describe('PredictController', () => {
           mocks: {
             getRemoteFeatureFlagState: jest
               .fn()
-              .mockReturnValue(
-                REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN_OVERRIDE,
-              ),
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
           },
         },
       );
@@ -1574,6 +1609,465 @@ describe('PredictController', () => {
       });
     });
 
+    it('retries a post-deposit order once after the first attempt fails', async () => {
+      await withController(
+        async ({ controller }) => {
+          const preview = createMockOrderPreview({ side: Side.BUY });
+          const mockResult = {
+            success: true as const,
+            response: {
+              id: 'order-123',
+              spentAmount: '100',
+              receivedAmount: '200',
+            },
+          };
+          mockPolymarketProvider.placeOrder
+            .mockRejectedValueOnce(new Error('Relay unavailable'))
+            .mockResolvedValueOnce(mockResult);
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-1',
+          });
+          (
+            controller as unknown as {
+              pendingOrderPreviews: Record<
+                string,
+                {
+                  preview: OrderPreview;
+                  signerAddress: string;
+                }
+              >;
+            }
+          ).pendingOrderPreviews['tx-1'] = {
+            preview,
+            signerAddress: MOCK_ADDRESS,
+          };
+
+          const result = await controller.placeOrder({
+            preview,
+            transactionId: 'tx-1',
+          });
+
+          expect(result).toEqual(mockResult);
+          expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledTimes(2);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('stops retrying a post-deposit order after the second failure', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            maxAmountSpent: 25,
+          });
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error('Relay unavailable'),
+          );
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-1',
+          });
+          const pendingOrderPreviews = (
+            controller as unknown as {
+              pendingOrderPreviews: Record<
+                string,
+                {
+                  preview: OrderPreview;
+                  signerAddress: string;
+                  depositedAmount?: number;
+                }
+              >;
+            }
+          ).pendingOrderPreviews;
+          pendingOrderPreviews['tx-1'] = {
+            preview,
+            signerAddress: MOCK_ADDRESS,
+            depositedAmount: 25,
+          };
+
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-1',
+            }),
+          ).rejects.toThrow('Relay unavailable');
+
+          expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledTimes(2);
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'failed',
+              amount: 25,
+              isPostDepositOrderFailure: true,
+            }),
+          );
+          expect(pendingOrderPreviews['tx-1']).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('publishes a post-deposit balance failure when market validation fails after deposit', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            maxAmountSpent: 25,
+          });
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+          mockPolymarketProvider.getMarketDetails.mockRejectedValue(
+            new Error('Network error'),
+          );
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-1',
+          });
+          controller.setSelectedPaymentToken({
+            address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+            chainId: '0x89',
+            symbol: 'USDC',
+          });
+          const pendingOrderPreviews = (
+            controller as unknown as {
+              pendingOrderPreviews: Record<
+                string,
+                {
+                  preview: OrderPreview;
+                  signerAddress: string;
+                  depositedAmount?: number;
+                }
+              >;
+            }
+          ).pendingOrderPreviews;
+          pendingOrderPreviews['tx-1'] = {
+            preview,
+            signerAddress: MOCK_ADDRESS,
+            depositedAmount: 25,
+          };
+          jest
+            .spyOn(controller, 'initPayWithAnyToken')
+            .mockResolvedValue(undefined as never);
+
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-1',
+              analyticsProperties: { marketId: 'market-1' },
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
+            state: ActiveOrderState.PREVIEW,
+          });
+          expect(controller.state.selectedPaymentToken).toBeNull();
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'failed',
+              amount: 25,
+              isPostDepositOrderFailure: true,
+              marketId: 'market-1',
+            }),
+          );
+          expect(pendingOrderPreviews['tx-1']).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('emits the attempt lifecycle for a Predict balance buy', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-123',
+            spentAmount: '20',
+            receivedAmount: '50',
+          },
+        });
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+          sharePrice: preview.sharePrice,
+          orderType: preview.orderType,
+        });
+
+        await controller.placeOrder({
+          preview,
+          analyticsProperties,
+          attempt,
+        });
+
+        const trackedEvents = (
+          analytics.trackEvent as jest.Mock
+        ).mock.calls.map(([event]) => event);
+        const attemptEvents = trackedEvents.filter(
+          (event) =>
+            event.name === 'Predict Trade Transaction' &&
+            event.properties?.attempt_id === attempt.attemptId,
+        );
+
+        expect(attemptEvents.map((event) => event.properties.status)).toEqual([
+          'attempt_started',
+          'submitted',
+          'succeeded',
+        ]);
+        expect(
+          attemptEvents.every(
+            (event) => event.sensitiveProperties?.amount_usd === 25,
+          ),
+        ).toBe(true);
+        expect(
+          trackedEvents.find((event) => event.name === 'Trade Completed')
+            ?.sensitiveProperties?.usd_trade_value,
+        ).toBe(20);
+      });
+    });
+
+    it.each([
+      {
+        error: PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED,
+        expectedStatus: 'order_failed',
+      },
+      {
+        error: 'Network request failed',
+        expectedStatus: 'failed',
+      },
+    ])(
+      'classifies an order error as $expectedStatus',
+      async ({ error, expectedStatus }) => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(new Error(error));
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(
+            controller.placeOrder({
+              preview,
+              analyticsProperties: {
+                marketId: 'market-1',
+                transactionType: 'mm_predict_buy',
+              },
+              attempt: {
+                attemptId: 'failed-attempt',
+                amountUsd: 25,
+                paymentMethod: 'predict_balance',
+              },
+            }),
+          ).rejects.toThrow(error);
+
+          const attemptEvents = (analytics.trackEvent as jest.Mock).mock.calls
+            .map(([event]) => event)
+            .filter(
+              (event) => event.properties?.attempt_id === 'failed-attempt',
+            );
+
+          expect(attemptEvents.map((event) => event.properties.status)).toEqual(
+            ['submitted', expectedStatus],
+          );
+        });
+      },
+    );
+
+    it('preserves one attempt through a retryable failure and retry', async () => {
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+        });
+        mockPolymarketProvider.placeOrder
+          .mockRejectedValueOnce(
+            new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+          )
+          .mockResolvedValueOnce({
+            success: true,
+            response: {
+              id: 'order-123',
+              spentAmount: '25',
+              receivedAmount: '50',
+            },
+          });
+
+        await expect(
+          controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+        expect(controller.getRetryablePredictBuyAttempt()).toEqual(attempt);
+
+        await controller.placeOrder({
+          preview,
+          analyticsProperties,
+          attempt: controller.getRetryablePredictBuyAttempt(),
+        });
+
+        const attemptEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .filter(
+            (event) =>
+              event.name === 'Predict Trade Transaction' &&
+              event.properties?.attempt_id === attempt.attemptId,
+          );
+
+        expect(attemptEvents.map((event) => event.properties.status)).toEqual([
+          'attempt_started',
+          'submitted',
+          'order_failed',
+          'submitted',
+          'succeeded',
+        ]);
+        expect(controller.getRetryablePredictBuyAttempt()).toBeUndefined();
+      });
+    });
+
+    it('cancels one retryable attempt once', async () => {
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+        });
+        mockPolymarketProvider.placeOrder.mockRejectedValue(
+          new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+        );
+
+        await expect(
+          controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+        expect(controller.cancelRetryablePredictBuyAttempt()).toBe(true);
+        expect(controller.cancelRetryablePredictBuyAttempt()).toBe(false);
+
+        const terminalEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .filter(
+            (event) =>
+              event.properties?.attempt_id === attempt.attemptId &&
+              event.properties?.status === 'cancelled',
+          );
+
+        expect(terminalEvents).toHaveLength(1);
+      });
+    });
+
+    it('keeps retryable attempts isolated by account', async () => {
+      let accountAddress = MOCK_ADDRESS;
+      const secondAddress = '0x2222222222222222222222222222222222222222';
+      const getAccountsFromSelectedAccountGroup = jest.fn(() => [
+        {
+          id: `account-${accountAddress}`,
+          address: accountAddress,
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: { lastSelected: 0 },
+        },
+      ]);
+
+      await withController(
+        async ({ controller }) => {
+          const preview = createMockOrderPreview({ side: Side.BUY });
+          const analyticsProperties = {
+            marketId: 'market-1',
+            transactionType: 'mm_predict_buy' as const,
+          };
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+          );
+
+          const firstAttempt = controller.startPredictBuyAttempt({
+            amountUsd: 25,
+            paymentMethod: 'predict_balance',
+            analyticsProperties,
+          });
+          await expect(
+            controller.placeOrder({
+              address: accountAddress,
+              preview,
+              analyticsProperties,
+              attempt: firstAttempt,
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+          accountAddress = secondAddress;
+          const secondAttempt = controller.startPredictBuyAttempt({
+            amountUsd: 30,
+            paymentMethod: 'pay_with_any_token',
+            analyticsProperties,
+          });
+          await expect(
+            controller.placeOrder({
+              address: accountAddress,
+              preview,
+              analyticsProperties,
+              attempt: secondAttempt,
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+          expect(controller.getRetryablePredictBuyAttempt()).toEqual(
+            secondAttempt,
+          );
+          accountAddress = MOCK_ADDRESS;
+          expect(controller.getRetryablePredictBuyAttempt()).toEqual(
+            firstAttempt,
+          );
+        },
+        { mocks: { getAccountsFromSelectedAccountGroup } },
+      );
+    });
+
     it.each([
       ['proposed_resolution', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
       ['in_dispute', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
@@ -1583,7 +2077,7 @@ describe('PredictController', () => {
       'blocks orders before provider submission when live outcome status is %s',
       async (resolutionStatus, errorCode) => {
         await withController(async ({ controller }) => {
-          const market = createMockMarket();
+          const market = createPredictMarket();
           mockPolymarketProvider.getMarketDetails.mockResolvedValue({
             ...market,
             outcomes: [
@@ -1609,7 +2103,7 @@ describe('PredictController', () => {
 
     it('blocks sell orders when the live outcome is not accepting orders', async () => {
       await withController(async ({ controller }) => {
-        const market = createMockMarket();
+        const market = createPredictMarket();
         mockPolymarketProvider.getMarketDetails.mockResolvedValue({
           ...market,
           outcomes: [
@@ -1636,7 +2130,7 @@ describe('PredictController', () => {
     it('blocks orders when the live market is inactive', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getMarketDetails.mockResolvedValue(
-          createMockMarket({
+          createPredictMarket({
             active: false,
           }),
         );
@@ -1654,7 +2148,7 @@ describe('PredictController', () => {
     it('fails closed when the live market does not include the preview outcome', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getMarketDetails.mockResolvedValue({
-          ...createMockMarket(),
+          ...createPredictMarket(),
           outcomes: [],
         });
 
@@ -1720,6 +2214,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+            errorStage: 'order',
           });
           expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
         },
@@ -1739,7 +2234,7 @@ describe('PredictController', () => {
           setActiveOrderForTest(controller, {
             state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
           });
-          const market = createMockMarket();
+          const market = createPredictMarket();
           mockPolymarketProvider.getMarketDetails.mockResolvedValue({
             ...market,
             outcomes: [
@@ -1767,6 +2262,7 @@ describe('PredictController', () => {
           expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+            errorStage: 'order',
           });
         },
         {
@@ -2267,6 +2763,8 @@ describe('PredictController', () => {
   describe('refreshEligibility', () => {
     it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         mockPolymarketProvider.isEligible.mockResolvedValue({
           isEligible: true,
           country: 'PT',
@@ -2275,8 +2773,9 @@ describe('PredictController', () => {
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility).toEqual({
-          eligible: true,
+          status: 'eligible',
           country: 'PT',
+          eligible: true,
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
@@ -2284,6 +2783,8 @@ describe('PredictController', () => {
 
     it('handle provider.isEligible() throwing error', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         const errorMessage = 'Eligibility check failed';
         mockPolymarketProvider.isEligible.mockRejectedValue(
           new Error(errorMessage),
@@ -2292,22 +2793,25 @@ describe('PredictController', () => {
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
           eligible: false,
-          country: undefined,
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
 
-    it('default to false when provider eligibility check fails', async () => {
+    it('returns unavailable when provider eligibility check fails', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         mockPolymarketProvider.isEligible.mockRejectedValue('Non-error object');
 
-        await controller.refreshEligibility();
+        const result = await controller.refreshEligibility();
 
+        expect(result).toEqual({ status: 'unavailable', eligible: false });
         expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
           eligible: false,
-          country: undefined,
         });
       });
     });
@@ -2315,6 +2819,8 @@ describe('PredictController', () => {
     describe('local geoblocking', () => {
       it('sets eligibility to false when provider returns eligible but country is DE', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'DE',
@@ -2323,8 +2829,9 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'DE',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2332,6 +2839,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to false when provider returns eligible but country is RO', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'RO',
@@ -2340,8 +2849,9 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'RO',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2349,6 +2859,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to true when provider returns eligible and country is US', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'US',
@@ -2357,8 +2869,9 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
+            status: 'eligible',
             country: 'US',
+            eligible: true,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2366,6 +2879,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to false when provider returns ineligible regardless of country', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: false,
             country: 'US',
@@ -2374,32 +2889,37 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'US',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible without country', async () => {
+      it('treats a missing country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: undefined,
-          });
+          } as never);
 
-          await controller.refreshEligibility();
+          const result = await controller.refreshEligibility();
 
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: undefined,
+            status: 'unavailable',
+            eligible: false,
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible with null country', async () => {
+      it('treats a null country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: null as any,
@@ -2408,15 +2928,16 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: null,
+            status: 'unavailable',
+            eligible: false,
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible with empty string country', async () => {
+      it('treats an empty country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: '',
@@ -2425,12 +2946,280 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: '',
+            status: 'unavailable',
+            eligible: false,
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
+    });
+
+    it('does not preserve a previous eligible result after a failed refresh', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'US',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error('Eligibility check failed'),
+        );
+
+        const result = await controller.refreshEligibility();
+
+        expect(result).toEqual({ status: 'unavailable', eligible: false });
+        expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
+          eligible: false,
+        });
+      });
+    });
+
+    it('keeps a confirmed eligible result while a re-check is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'US',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        // A slow re-check must not drop the user into `checking`, which the
+        // action guard treats as a connectivity failure.
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'PT' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+      });
+    });
+
+    it('keeps a confirmed ineligible result while a re-check is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: false,
+          country: 'DE',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'ineligible',
+          country: 'DE',
+          eligible: false,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        expect(controller.state.eligibility).toEqual({
+          status: 'ineligible',
+          country: 'DE',
+          eligible: false,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'US' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+      });
+    });
+
+    it('reports checking while a retry after an unavailable result is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error('Eligibility check failed'),
+        );
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
+          eligible: false,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        expect(controller.state.eligibility).toEqual({
+          status: 'checking',
+          eligible: false,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'US' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+      });
+    });
+
+    it('shares one provider request across concurrent refreshes', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const first = controller.refreshEligibility();
+        const second = controller.refreshEligibility();
+
+        expect(mockPolymarketProvider.isEligible).toHaveBeenCalledTimes(1);
+
+        resolveEligible?.({ isEligible: true, country: 'PT' });
+        await expect(first).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+        await expect(second).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+      });
+    });
+
+    it('returns the resulting eligibility status', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: false,
+          country: 'FR',
+        });
+
+        await expect(controller.refreshEligibility()).resolves.toEqual({
+          status: 'ineligible',
+          country: 'FR',
+          eligible: false,
+        });
+      });
+    });
+
+    it('logs expected geoblock timeouts without reporting them as Sentry errors', async () => {
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      mockPolymarketProvider.isEligible.mockRejectedValue(timeoutError);
+
+      const logSpy = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(() => undefined);
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(logSpy).toHaveBeenCalledWith(
+            'Predict geoblock request ended by expected timeout/cancellation:',
+            timeoutError.message,
+            expect.any(Object),
+          );
+          expect(errorSpy).not.toHaveBeenCalled();
+        });
+      } finally {
+        logSpy.mockRestore();
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('resolves eligible via geoblock bypass even when the endpoint fails', async () => {
+      const previous = process.env.MM_PREDICT_SKIP_GEOBLOCK;
+      process.env.MM_PREDICT_SKIP_GEOBLOCK = 'true';
+      try {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockRejectedValue(
+            new Error('Eligibility check failed'),
+          );
+
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({
+            status: 'eligible',
+            country: 'N/A',
+            eligible: true,
+          });
+          expect(controller.state.eligibility).toEqual({
+            status: 'eligible',
+            country: 'N/A',
+            eligible: true,
+          });
+          expect(mockPolymarketProvider.isEligible).not.toHaveBeenCalled();
+        });
+      } finally {
+        if (previous === undefined) {
+          delete process.env.MM_PREDICT_SKIP_GEOBLOCK;
+        } else {
+          process.env.MM_PREDICT_SKIP_GEOBLOCK = previous;
+        }
+      }
     });
   });
 
@@ -2506,6 +3295,212 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getMarkets with hidden markets', () => {
+    const createMockMarket = (
+      id: string,
+      slug = `slug-${id}`,
+      category = 'ending-soon',
+    ) => ({
+      id,
+      slug,
+      title: `Market ${id}`,
+      category,
+      outcomes: ['YES', 'NO'],
+      status: 'open',
+    });
+
+    const createHiddenFlagState = (flag: {
+      enabled: boolean;
+      minimumVersion?: string;
+      hidden: {
+        category: string;
+        marketIds?: string[];
+        slugs?: string[];
+      }[];
+    }) => ({
+      remoteFeatureFlags: {
+        predictHiddenMarkets: {
+          ...flag,
+          minimumVersion: flag.minimumVersion ?? '0.0.0',
+        },
+      },
+      cacheTimestamp: Date.now(),
+    });
+
+    it('removes markets hidden by id for the matching category', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('market-1'),
+              createMockMarket('hidden-market'),
+              createMockMarket('market-2'),
+            ] as any,
+            nextCursor: 'next-cursor',
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'market-1',
+            'market-2',
+          ]);
+          expect(result.nextCursor).toBe('next-cursor');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('removes markets hidden by slug for the matching category', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('market-1'),
+              createMockMarket('market-2', 'guinea-bissau-election'),
+            ] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'market-1',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  {
+                    category: 'ending-soon',
+                    slugs: ['guinea-bissau-election'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('applies hiding on paginated pages with afterCursor', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('hidden-market'),
+              createMockMarket('market-1'),
+            ] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+            afterCursor: 'cursor-1',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'market-1',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('does not hide markets in other categories', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [
+              createMockMarket('hidden-market', 'slug-hidden', 'trending'),
+            ] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'trending',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'hidden-market',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: true,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('does not hide markets when the flag is disabled', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('hidden-market')] as any,
+            nextCursor: null,
+          });
+
+          const result = await controller.getMarkets({
+            category: 'ending-soon',
+          });
+
+          expect(result.markets.map((market) => market.id)).toEqual([
+            'hidden-market',
+          ]);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createHiddenFlagState({
+                enabled: false,
+                hidden: [
+                  { category: 'ending-soon', marketIds: ['hidden-market'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+  });
+
   describe('getMarkets with market highlights', () => {
     const createMockMarket = (id: string, category = 'trending') => ({
       id,
@@ -2520,7 +3515,8 @@ describe('PredictController', () => {
       minimumVersion?: string;
       highlights: {
         category: string;
-        markets: string[];
+        markets?: string[];
+        series?: string[];
       }[];
     }) => ({
       remoteFeatureFlags: {
@@ -2800,7 +3796,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('handles getMarketsByIds failure gracefully', async () => {
+    it('handles an empty getMarketsByIds result gracefully', async () => {
       const regularMarkets = [createMockMarket('regular-1')];
 
       await withController(
@@ -2817,6 +3813,38 @@ describe('PredictController', () => {
 
           expect(result.markets).toHaveLength(1);
           expect(result.markets[0].id).toBe('regular-1');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('propagates getMarketsByIds rejections so the caller sees the failure', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketsByIds.mockRejectedValue(
+            new Error('market-ids provider failed'),
+          );
+
+          await expect(
+            controller.getMarkets({ category: 'trending' }),
+          ).rejects.toBeDefined();
         },
         {
           mocks: {
@@ -3171,6 +4199,387 @@ describe('PredictController', () => {
         },
       );
     });
+
+    it('resolves a series highlight to its currently live market and prepends it', async () => {
+      const expiredMarket = {
+        ...createMockMarket('series-expired'),
+        endDate: new Date(Date.now() - 60_000).toISOString(),
+      };
+      const liveMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            expiredMarket,
+            liveMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('series-live');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets[1].isHighlighted).toBeUndefined();
+          expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+            expect.objectContaining({
+              seriesId: 'series-abc',
+              endDateMin: expect.any(String),
+              endDateMax: expect.any(String),
+              limit: 50,
+            }),
+          );
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('prepends market-id highlights before series-resolved highlights when both are configured', async () => {
+      const directMarket = createMockMarket('direct-1');
+      const liveSeriesMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
+            directMarket,
+          ] as any);
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            liveSeriesMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(3);
+          expect(result.markets.map((m) => m.id)).toEqual([
+            'direct-1',
+            'series-live',
+            'regular-1',
+          ]);
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].isHighlighted).toBe(true);
+          expect(result.markets[2].isHighlighted).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'crypto',
+                    markets: ['direct-1'],
+                    series: ['series-abc'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('falls back to the nearest market when no future market exists in the series window', async () => {
+      const expiredMarket = {
+        ...createMockMarket('series-expired'),
+        endDate: new Date(Date.now() - 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [],
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            expiredMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('series-expired');
+          expect(result.markets[0].isHighlighted).toBe(true);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('skips a series highlight when the series returns no markets', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([]);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-empty'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('filters out series-resolved markets that are not open', async () => {
+      const closedSeriesMarket = {
+        ...createMockMarket('series-closed'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+        status: 'closed',
+      };
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            closedSeriesMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
+          expect(
+            result.markets.find((m) => m.id === 'series-closed'),
+          ).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('silently skips a series highlight when getMarketSeries throws', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockRejectedValue(
+            new Error('series provider failed'),
+          );
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('still resolves remaining series highlights when one entry in the batch throws', async () => {
+      const liveMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('regular-1')] as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries
+            .mockImplementationOnce(() =>
+              Promise.reject(new Error('first series failed')),
+            )
+            .mockImplementationOnce(() => Promise.resolve([liveMarket] as any));
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('series-live');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledTimes(
+            2,
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'crypto',
+                    series: ['series-failing', 'series-healthy'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('picks the live market even when the series returns many earlier-ending events first', async () => {
+      // Regression guard for the endDate-ASC + limit interaction.
+      // For a 5m series, the provider's default pagination places ~12 past
+      // events ahead of the live slot. The fetch limit must be high enough
+      // (SERIES_MAX_EVENTS) that the live market is included in the response.
+      const now = Date.now();
+      const pastMarkets = Array.from({ length: 12 }, (_, i) => ({
+        ...createMockMarket(`series-past-${i}`),
+        endDate: new Date(now - (12 - i) * 5 * 60_000).toISOString(),
+      }));
+      const liveMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(now + 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('regular-1')] as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            ...pastMarkets,
+            liveMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets[0].id).toBe('series-live');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+            expect.objectContaining({ limit: 50 }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('deduplicates when the same market is referenced both as a market id and via a series', async () => {
+      const sharedMarket = {
+        ...createMockMarket('shared'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('regular-1')] as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
+            sharedMarket,
+          ] as any);
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            sharedMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('shared');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets.filter((m) => m.id === 'shared')).toHaveLength(
+            1,
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'crypto',
+                    markets: ['shared'],
+                    series: ['series-abc'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
   });
 
   describe('updateStateForTesting', () => {
@@ -3178,14 +4587,12 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.eligibility = {
-            eligible: false,
-            country: undefined,
+            status: 'unavailable',
           };
           state.lastError = 'Test error';
         });
         expect(controller.state.eligibility).toEqual({
-          eligible: false,
-          country: undefined,
+          status: 'unavailable',
         });
         expect(controller.state.lastError).toBe('Test error');
       });
@@ -3259,6 +4666,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3286,7 +4694,41 @@ describe('PredictController', () => {
             disableHook: true,
             disableSequential: true,
             gasFeeToken: MATIC_CONTRACTS_V2.collateral,
-            skipInitialGasEstimate: true,
+            overwriteUpgrade: true,
+          }),
+        );
+      });
+    });
+
+    it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
+      const mockBatchId = 'claim-batch-deposit-wallet';
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getAccountState.mockResolvedValue({
+          address: '0xDepositWalletAddress' as `0x${string}`,
+          isDeployed: true,
+          walletType: 'deposit-wallet' as const,
+        });
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+
+        await controller.claimWithConfirmation({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: undefined,
           }),
         );
       });
@@ -3301,6 +4743,7 @@ describe('PredictController', () => {
             marketId: 'test-market-1',
             outcomeId: 'test-outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
           {
             marketId: 'test-market-2',
@@ -3353,6 +4796,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3377,6 +4821,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -3408,6 +4853,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -3455,6 +4901,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         const errorMessage = 'Claim preparation failed';
@@ -3473,6 +4920,210 @@ describe('PredictController', () => {
       });
     });
 
+    it('refreshes claimable positions before failing when state is empty', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-refresh';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        expect(controller.state.claimablePositions).toEqual({});
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith(
+          expect.objectContaining({ claimable: true }),
+        );
+        expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions: [expect.objectContaining(wonPosition)],
+          }),
+        );
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
+    it('throws when refreshed positions contain no won or redeemable position', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.LOST,
+          },
+        ]);
+        await controller.getPositions({ claimable: true });
+        mockPolymarketProvider.prepareClaim = jest.fn();
+
+        // Act & Assert
+        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+          'No claimable positions found',
+        );
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledTimes(2);
+        expect(mockPolymarketProvider.prepareClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not overwrite claimable positions while a claim is pending', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-frozen';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+        await controller.claimWithConfirmation({});
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[signerAddress]).toBe(mockBatchId);
+
+        // Act: a concurrent refetch returns an empty page mid-confirmation.
+        mockPolymarketProvider.getPositions.mockResolvedValue([]);
+        await controller.getPositions({ address: signerAddress });
+        await controller.getPositions({
+          address: signerAddress.toUpperCase(),
+          claimable: true,
+        });
+
+        // Assert
+        expect(controller.state.claimablePositions[signerAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[signerAddress.toUpperCase()],
+        ).toBeUndefined();
+      });
+    });
+
+    it('collapses address casings into a single claimable positions entry', async () => {
+      // Arrange: a confirmed-claim refetch keys by lowercased txParams.from,
+      // later fetches key by the checksummed signer address. The address must
+      // contain hex letters so the two casings are actually different strings.
+      await withController(async ({ controller }) => {
+        const checksumAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+        const lowercaseAddress = checksumAddress.toLowerCase();
+        expect(lowercaseAddress).not.toBe(checksumAddress);
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({
+          address: lowercaseAddress,
+          claimable: true,
+        });
+
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+
+        // Act
+        await controller.getPositions({
+          address: checksumAddress,
+          claimable: true,
+        });
+
+        // Assert: one key, holding the latest positions.
+        expect(Object.keys(controller.state.claimablePositions)).toEqual([
+          lowercaseAddress,
+        ]);
+        expect(controller.state.claimablePositions[lowercaseAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[checksumAddress],
+        ).toBeUndefined();
+      });
+    });
+
+    it('claims positions stored under a different casing of the signer address', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-casing';
+      const checksumAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+      const lowercaseAddress = checksumAddress.toLowerCase();
+      expect(lowercaseAddress).not.toBe(checksumAddress);
+      await withController(
+        async ({ controller }) => {
+          const wonPosition = {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          };
+          mockPolymarketProvider.getPositions = jest
+            .fn()
+            .mockResolvedValue([wonPosition]);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue(mockClaim);
+          (addTransactionBatch as jest.Mock).mockResolvedValue({
+            batchId: mockBatchId,
+          });
+          // Stored under the lowercased txParams.from key; the signer is
+          // checksummed, which is the PRED-1321 mismatch.
+          await controller.getPositions({
+            address: lowercaseAddress,
+            claimable: true,
+          });
+          mockPolymarketProvider.getPositions.mockClear();
+
+          // Act
+          const result = await controller.claimWithConfirmation({});
+
+          // Assert: no refetch was needed, the existing entry was found.
+          expect(mockPolymarketProvider.getPositions).not.toHaveBeenCalled();
+          expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+            expect.objectContaining({
+              positions: [expect.objectContaining(wonPosition)],
+            }),
+          );
+          expect(result.batchId).toBe(mockBatchId);
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+              {
+                id: 'mock-account-id',
+                address: checksumAddress,
+                type: 'eip155:eoa',
+                name: 'Test Account',
+                metadata: { lastSelected: 0 },
+              },
+            ]),
+          },
+        },
+      );
+    });
+
     it('throws error when network client not found', async () => {
       // Arrange
       await withController(
@@ -3482,6 +5133,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
 
@@ -3512,6 +5164,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -3542,6 +5195,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -3564,6 +5218,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3585,6 +5240,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -3620,6 +5276,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -3658,6 +5315,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3698,6 +5356,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3752,6 +5411,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3768,6 +5428,41 @@ describe('PredictController', () => {
       });
     });
 
+    it('tracks a cancelled mm_predict_claim transaction when signing is cancelled', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockRejectedValue(new Error('User denied transaction signature'));
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({
+          analyticsProperties: {
+            entryPoint: 'predict_market_details',
+          },
+        });
+
+        // Assert
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find((arg) => arg?.properties?.status === 'cancelled');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBeUndefined();
+        expect(event.properties.entry_point).toBe('predict_market_details');
+      });
+    });
+
     it('clears pendingClaims on claim error', async () => {
       // Arrange
       const signerAddress = '0x1234567890123456789012345678901234567890';
@@ -3778,6 +5473,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -3795,6 +5491,100 @@ describe('PredictController', () => {
 
         // Assert
         expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
+      });
+    });
+
+    it('treats an error with EIP-1193 code 4001 as user cancellation regardless of message', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest.fn().mockRejectedValue(
+          Object.assign(new Error('Some upstream wording change'), {
+            code: 4001,
+          }),
+        );
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find((arg) => arg?.properties?.status === 'cancelled');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+      });
+    });
+
+    it('does not record a failed claim when local bookkeeping fails after submission', async () => {
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+      const mockBatchId = 'claim-batch-post-submit';
+      let batchSubmitted = false;
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+          batchSubmitted = true;
+          return { batchId: mockBatchId };
+        });
+        await controller.getPositions({ claimable: true });
+
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after claim submission',
+          shouldFail: () => batchSubmitted,
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          // Act — should resolve with the pending claim rather than throwing,
+          // so the calling hook does not record a false claim failure.
+          const result = await controller.claimWithConfirmation({});
+
+          // Assert
+          expect(result).toEqual({
+            batchId: mockBatchId,
+            chainId: mockClaim.chainId,
+            status: PredictClaimStatus.PENDING,
+          });
+          expect(updateFailure.didFail()).toBe(true);
+          // The pending-claim lock is preserved while the claim is in flight.
+          expect(controller.state.pendingClaims[signerAddress]).toBe('pending');
+
+          const failedOrCancelledEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_claim' &&
+                (arg?.properties?.status === 'failed' ||
+                  arg?.properties?.status === 'cancelled'),
+            );
+          expect(failedOrCancelledEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
       });
     });
   });
@@ -4094,9 +5884,19 @@ describe('PredictController', () => {
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
-          skipInitialGasEstimate: true,
+          overwriteUpgrade: true,
           transactions: mockTransactions,
         });
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.entry_point).toBe('background');
       });
     });
 
@@ -4113,6 +5913,15 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           errorMessage,
         );
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe(errorMessage);
       });
     });
 
@@ -4141,6 +5950,25 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           errorMessage,
         );
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        const depositEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent).toBeDefined();
+        expect(submissionEvent.properties.failure_reason).toBe(errorMessage);
+        expect(depositEvent).toBeDefined();
+        expect(depositEvent.properties.failure_reason).toBe(errorMessage);
       });
     });
 
@@ -4246,6 +6074,23 @@ describe('PredictController', () => {
         // Then it should return success with NA batchId instead of throwing
         expect(result.success).toBe(true);
         expect(result.response?.batchId).toBe('NA');
+        const cancelledEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'cancelled');
+        expect(cancelledEvents).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_transaction_submission',
+              }),
+            }),
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_deposit',
+              }),
+            }),
+          ]),
+        );
       });
     });
 
@@ -4420,6 +6265,94 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           'Value must be a hexadecimal string.',
         );
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+              'mm_predict_transaction_submission',
+          );
+        expect(submissionEvent).toBeUndefined();
+      });
+    });
+
+    it('does not track deposit failure when local bookkeeping fails after submission', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-123',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.depositWithConfirmation({})).resolves.toEqual(
+            {
+              success: true,
+              response: { batchId: 'batch-123' },
+            },
+          );
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const depositFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(depositFailureEvent).toBeUndefined();
+          expect(controller.state.pendingDeposits[signerAddress]).toBe(
+            'pending',
+          );
+        } finally {
+          updateFailure.restore();
+        }
       });
     });
 
@@ -4787,6 +6720,45 @@ describe('PredictController', () => {
         ...overrides,
       }) as any;
 
+    it('cancels a retryable attempt when payment changes', async () => {
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+        });
+        mockPolymarketProvider.placeOrder.mockRejectedValue(
+          new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+        );
+        await expect(
+          controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+        controller.selectPaymentToken(createAssetToken({}));
+
+        const cancellationEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .find(
+            (event) =>
+              event.properties?.attempt_id === attempt.attemptId &&
+              event.properties?.status === 'cancelled',
+          );
+        expect(cancellationEvent?.properties.failure_reason).toBe(
+          'User changed payment method after a retryable order failure',
+        );
+        expect(controller.getRetryablePredictBuyAttempt()).toBeUndefined();
+      });
+    });
+
     it('treats null as balance token and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const existingToken = {
@@ -4967,12 +6939,16 @@ describe('PredictController', () => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.PREVIEW,
           error: 'some error',
+          errorStage: 'payment',
         });
 
         controller.clearOrderError();
 
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
         ).toBeUndefined();
       });
     });
@@ -5221,6 +7197,46 @@ describe('PredictController', () => {
       });
     });
 
+    it('preserves payment-stage error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Deposit reverted',
+          errorStage: 'payment',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+      });
+    });
+
+    it('clears non-payment error after successful re-init', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Order placement failed',
+          errorStage: 'order',
+        });
+
+        const result = await controller.initPayWithAnyToken();
+
+        expect(result.success).toBe(true);
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage,
+        ).toBeUndefined();
+      });
+    });
+
     it('uses predict deposit transaction when setup transactions are present', async () => {
       const setupTransaction = {
         params: {
@@ -5331,6 +7347,74 @@ describe('PredictController', () => {
         ).toBeUndefined();
       });
     });
+
+    it('does not track deposit failure when local bookkeeping fails after pay-with-any-token submission', async () => {
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-pay-with-any-token',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeBuyOrders[MOCK_ADDRESS] = {
+            state: ActiveOrderState.PREVIEW,
+            error: 'previous-error',
+          };
+        });
+
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage:
+            'state update failed after pay-with-any-token submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.initPayWithAnyToken()).resolves.toEqual({
+            success: true,
+            response: { batchId: 'batch-pay-with-any-token' },
+          });
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const depositFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(depositFailureEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
+      });
+    });
   });
 
   describe('transactionStatusChanged event', () => {
@@ -5363,6 +7447,67 @@ describe('PredictController', () => {
           },
         ],
       }) as any;
+
+    const payoutRedemptionInterface = new Interface([
+      'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+    ]);
+
+    const createPayoutRedemptionLog = (payoutRaw: bigint) => {
+      const payoutRedemptionEvent =
+        payoutRedemptionInterface.getEvent('PayoutRedemption');
+      const encodedLog = payoutRedemptionInterface.encodeEventLog(
+        payoutRedemptionEvent,
+        [
+          accountAddress,
+          MATIC_CONTRACTS_V2.collateral,
+          HASH_ZERO_BYTES32,
+          HASH_ZERO_BYTES32,
+          [1],
+          payoutRaw,
+        ],
+      );
+
+      return {
+        address: MATIC_CONTRACTS_V2.conditionalTokens,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
+    it('does not publish transaction status when no sender address can be resolved', () => {
+      withController(
+        ({ messenger }) => {
+          const transactionStatusChangedHandler = jest.fn();
+          const transactionMeta = {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictClaim,
+              status: TransactionStatus.confirmed,
+            }),
+            txParams: {
+              to: '0x0000000000000000000000000000000000000001',
+              value: '0x0',
+              data: '0x',
+            },
+          } as any;
+
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            transactionStatusChangedHandler,
+          );
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          } as any);
+
+          expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
 
     it('publishes event for predict deposit transaction with approved status', () => {
       withController(({ controller, messenger }) => {
@@ -5435,7 +7580,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('publishes event for predict claim transaction with confirmed status', () => {
+    it('does not use stale claimable positions as confirmed claim amount without actual payout data', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
         const claimablePositions = [
@@ -5471,7 +7616,7 @@ describe('PredictController', () => {
 
         messenger.publish('TransactionController:transactionStatusUpdated', {
           transactionMeta,
-        } as any);
+        });
 
         expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -5479,9 +7624,302 @@ describe('PredictController', () => {
             status: 'confirmed',
             senderAddress: accountAddress,
             transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('uses claimable positions for approved claims when simulation has no token balance changes', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.approved,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
             amount: 100,
           }),
         );
+      });
+    });
+
+    it('logs malformed claim simulation differences and falls back for approved claims', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.approved,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '45.5',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        (DevLogger.log as jest.Mock).mockClear();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Failed to parse claim simulation difference',
+          expect.objectContaining({
+            difference: '45.5',
+          }),
+        );
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 100,
+          }),
+        );
+      });
+    });
+
+    it('publishes zero amount for confirmed claim when payout redemption is zero', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 534,
+            cashPnl: 200,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createPayoutRedemptionLog(0n)],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('uses claim simulation balance changes before claimable position totals', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 534,
+            cashPnl: 200,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '0x2b64660',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 45.5,
+          }),
+        );
+      });
+    });
+
+    it('publishes zero amount when claim simulation has no token balance changes', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 534,
+            cashPnl: 200,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('clears cached balance and invalidates account state after confirmed withdrawals', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.confirmed,
+          from: accountAddress,
+        });
+
+        // Cache entries can be keyed by checksummed addresses — seed one to
+        // verify the case-insensitive cleanup.
+        const checksummedAddress =
+          accountAddress.slice(0, 2) + accountAddress.slice(2).toUpperCase();
+        controller.updateStateForTesting((state) => {
+          state.balances[checksummedAddress] = {
+            balance: 250,
+            validUntil: Date.now() + 60_000,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        await Promise.resolve();
+
+        expect(
+          mockPolymarketProvider.invalidateAccountState,
+        ).toHaveBeenCalledWith(accountAddress);
+        expect(controller.state.balances[checksummedAddress]).toBeUndefined();
       });
     });
 
@@ -5596,6 +8034,273 @@ describe('PredictController', () => {
       });
     });
 
+    const findPredictTradeEvent = (status: string) =>
+      (analytics.trackEvent as jest.Mock).mock.calls
+        .map((call) => call[0])
+        .find((arg) => arg?.properties?.status === status);
+
+    it('tracks a succeeded mm_predict_claim transaction with stashed attribution when the claim confirms', () => {
+      withController(({ controller, messenger }) => {
+        const claimablePositions = [
+          createMockPosition({
+            id: 'won-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 75,
+            marketId: 'market-xyz',
+            title: 'Will it rain?',
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createPayoutRedemptionLog(75_000_000n)],
+          },
+        };
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        // Seed the stash the same way claimWithConfirmation does, so we can
+        // verify the terminal handler emits the stashed attribution.
+        (
+          controller as unknown as {
+            pendingClaimAnalytics: Record<string, unknown>;
+          }
+        ).pendingClaimAnalytics = {
+          [accountAddress.toLowerCase()]: {
+            entryPoint: 'predict_market_details',
+            transactionType: 'mm_predict_claim',
+            marketId: 'market-xyz',
+            marketTitle: 'Will it rain?',
+            claimablePositionsCount: 1,
+          },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        const event = findPredictTradeEvent('succeeded');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.entry_point).toBe('predict_market_details');
+        expect(event.properties.market_id).toBe('market-xyz');
+        expect(event.properties.market_title).toBe('Will it rain?');
+        expect(event.sensitiveProperties.amount_usd).toBe(75);
+      });
+    });
+
+    it('tracks a failed mm_predict_claim transaction with a mapped failure_reason', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.failed,
+          }),
+          error: { message: 'insufficient funds for gas' },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const event = findPredictTradeEvent('failed');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBe('insufficient_gas');
+      });
+    });
+
+    it('tracks a cancelled mm_predict_claim transaction when rejected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.rejected,
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const event = findPredictTradeEvent('cancelled');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBeUndefined();
+      });
+    });
+
+    it('emits the terminal claim event only once when confirmed fires repeatedly', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const succeededEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'succeeded');
+        expect(succeededEvents).toHaveLength(1);
+      });
+    });
+
+    it('does not emit a duplicate terminal event after the resolution-lag guard fired', () => {
+      withController(({ controller, messenger }) => {
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Footer 5JA7 guard fires first, keyed by the claim transaction id.
+        controller.trackClaimResolutionLagFailure({
+          transactionId: 'tx-1',
+          address: accountAddress,
+        });
+
+        // The confirmation rejection arrives afterwards for the same tx id.
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.rejected,
+        });
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const failedEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'failed');
+        expect(failedEvents).toHaveLength(1);
+        expect(failedEvents[0].properties.failure_reason).toBe(
+          'pending_resolution',
+        );
+        expect(findPredictTradeEvent('succeeded')).toBeUndefined();
+      });
+    });
+
+    it('does not let a stale terminal update for an old claim suppress or misattribute a newer claim', () => {
+      withController(({ controller, messenger }) => {
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: [
+              createMockPosition({
+                status: PredictPositionStatus.WON,
+                currentValue: 10,
+              }),
+            ],
+          };
+        });
+
+        // An earlier claim's transaction already emitted its terminal event.
+        const oldClaimMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          id: 'tx-old',
+        };
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: oldClaimMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        // A newer claim is initiated for the same address.
+        (
+          controller as unknown as {
+            pendingClaimAnalytics: Record<string, unknown>;
+          }
+        ).pendingClaimAnalytics = {
+          [accountAddress.toLowerCase()]: {
+            entryPoint: 'predict_market_details',
+            transactionType: 'mm_predict_claim',
+          },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // A delayed/duplicate terminal update for the OLD transaction arrives.
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: oldClaimMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        // It must not emit anything (already emitted for tx-old) and must leave
+        // the newer claim's stash intact.
+        expect((analytics.trackEvent as jest.Mock).mock.calls).toHaveLength(0);
+
+        // The newer claim's own terminal update still emits with its attribution.
+        const newClaimMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          id: 'tx-new',
+        };
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: newClaimMeta,
+        } as unknown as { transactionMeta: TransactionMeta });
+
+        const succeeded = findPredictTradeEvent('succeeded');
+        expect(succeeded).toBeDefined();
+        expect(succeeded.properties.entry_point).toBe('predict_market_details');
+      });
+    });
+
     it('publishes event for predict withdraw transaction with failed status', () => {
       withController(({ messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
@@ -5621,6 +8326,33 @@ describe('PredictController', () => {
             transactionId: 'tx-1',
           }),
         );
+      });
+    });
+
+    it('tracks failed mm_predict_withdraw when withdraw transaction fails', () => {
+      withController(({ messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictWithdraw,
+            status: TransactionStatus.failed,
+          }),
+          error: { message: 'Withdraw reverted' },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('Withdraw reverted');
       });
     });
 
@@ -5796,6 +8528,45 @@ describe('PredictController', () => {
       });
     });
 
+    it('tracks succeeded mm_predict_deposit when pending deposit confirms', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictDeposit,
+            status: TransactionStatus.confirmed,
+            batchId: 'batch-1',
+          }),
+          metamaskPay: {
+            totalFiat: '105',
+            bridgeFeeFiat: '3',
+            networkFeeFiat: '2',
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            [accountAddress]: 'batch-1',
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.entry_point).toBe('background');
+        expect(event.sensitiveProperties.amount_usd).toBe(100);
+      });
+    });
+
     it('clears pending deposit when deposit transaction is rejected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -5919,6 +8690,36 @@ describe('PredictController', () => {
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
         ).toBeUndefined();
+      });
+    });
+
+    it('tracks cancelled mm_predict_deposit when deposit-and-order is rejected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDepositAndOrder,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        setActiveOrderForTest(controller, {
+          transactionId: 'tx-1',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'cancelled',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBeUndefined();
       });
     });
 
@@ -6531,6 +9332,34 @@ describe('PredictController', () => {
     });
   });
 
+  describe('previewMaxBuyOrder', () => {
+    it('previews the maximum buy with the current signer', async () => {
+      const mockOrderPreview = createMockOrderPreview({ side: Side.BUY });
+      mockPolymarketProvider.previewMaxBuyOrder.mockResolvedValue(
+        mockOrderPreview,
+      );
+
+      await withController(async ({ controller }) => {
+        const result = await controller.previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          availableBalance: 100,
+        });
+
+        expect(result).toEqual(mockOrderPreview);
+        expect(mockPolymarketProvider.previewMaxBuyOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            availableBalance: 100,
+            signer: expect.objectContaining({
+              address: '0x1234567890123456789012345678901234567890',
+            }),
+          }),
+        );
+      });
+    });
+  });
+
   describe('prepareWithdraw', () => {
     const mockWithdrawResponse = {
       chainId: '0x89' as `0x${string}`,
@@ -6566,6 +9395,15 @@ describe('PredictController', () => {
           transactionId: mockBatchId,
           amount: 0,
         });
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
       });
     });
 
@@ -6582,6 +9420,15 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBe('Provider error');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(controller.state.withdrawTransaction).toBeNull();
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('Provider error');
       });
     });
 
@@ -6644,6 +9491,7 @@ describe('PredictController', () => {
             networkClientId: expect.any(String),
             disableHook: true,
             disableSequential: true,
+            overwriteUpgrade: true,
             requireApproval: true,
             transactions: [mockWithdrawResponse.transaction],
           }),
@@ -6718,6 +9566,69 @@ describe('PredictController', () => {
       });
     });
 
+    it('does not track withdraw failure when local bookkeeping fails after submission', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-withdraw',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after withdraw submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.prepareWithdraw({})).resolves.toEqual({
+            success: true,
+            response: 'batch-withdraw',
+          });
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const withdrawFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(withdrawFailureEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
+      });
+    });
+
     it('returns error when addTransactionBatch fails', async () => {
       mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
         mockWithdrawResponse,
@@ -6734,6 +9645,23 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBe(
           'Transaction batch submission failed',
         );
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        const withdrawEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent).toBeDefined();
+        expect(withdrawEvent).toBeDefined();
       });
     });
 
@@ -6785,6 +9713,15 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(result.response).toBe('User cancelled transaction');
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'cancelled',
+          );
+        expect(event).toBeDefined();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
       });
     });
 
@@ -6803,6 +9740,23 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(result.response).toBe('User cancelled transaction');
+        const cancelledEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'cancelled');
+        expect(cancelledEvents).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_transaction_submission',
+              }),
+            }),
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_withdraw',
+              }),
+            }),
+          ]),
+        );
       });
     });
 
@@ -7081,6 +10035,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -7114,6 +10069,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 250.5,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -7143,6 +10099,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xmodifieddata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(async ({ controller }) => {
@@ -7181,6 +10138,8 @@ describe('PredictController', () => {
             from: '0xFrom',
             to: '0xOldTarget',
             data: '0xolddata',
+            gas: '0x1111',
+            gasLimit: '0x2222',
           },
         };
 
@@ -7188,10 +10147,66 @@ describe('PredictController', () => {
 
         expect(testTransaction.txParams.data).toBe('0xmodifieddata');
         expect(testTransaction.txParams.to).toBe('0xPredictAddress');
+        expect(testTransaction.txParams.gas).toBe('0x5208');
+        expect(testTransaction.txParams.gasLimit).toBe('0x5208');
         expect(testTransaction.assetsFiatValues).toEqual({
           receiving: '100',
         });
       });
+    });
+
+    it('leaves deposit-wallet transaction data unchanged for external signing', async () => {
+      const estimateGas = jest.fn().mockResolvedValue({
+        gas: '0x5208',
+        simulationFails: undefined,
+      });
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: ERC20_TRANSFER_CALL_DATA,
+        amount: 0.07,
+        walletType: 'deposit-wallet',
+      });
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0x2222222222222222222222222222222222222222' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+
+      await withController(
+        async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              chainId: 137,
+              status: PredictWithdrawStatus.IDLE,
+              providerId: POLYMARKET_PROVIDER_ID,
+              predictAddress:
+                '0x2222222222222222222222222222222222222222' as `0x${string}`,
+              transactionId: 'tx-1',
+              amount: 0,
+            };
+          });
+          const transaction = {
+            ...mockTransactionMeta,
+            txParams: { ...mockTransactionMeta.txParams },
+          } as unknown as TransactionMeta;
+
+          const result = await controller.beforeSign({
+            transactionMeta: transaction,
+          });
+          result?.updateTransaction?.(transaction);
+
+          expect(transaction.txParams).toEqual(mockTransactionMeta.txParams);
+          expect(transaction.assetsFiatValues).toEqual({ receiving: '0.07' });
+          expect(controller.state.withdrawTransaction).toEqual(
+            expect.objectContaining({
+              amount: 0.07,
+              status: PredictWithdrawStatus.PENDING,
+            }),
+          );
+          expect(mockInvalidateQueries).not.toHaveBeenCalled();
+          expect(estimateGas).not.toHaveBeenCalled();
+        },
+        { mocks: { estimateGas } },
+      );
     });
 
     it('throw error when prepareWithdrawConfirmation fails', async () => {
@@ -7223,6 +10238,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
+        walletType: 'safe',
       });
 
       await withController(
@@ -7445,7 +10461,11 @@ describe('PredictController', () => {
             transactionId: 'tx-789',
             amount: 200,
           };
-          state.eligibility = { eligible: true, country: 'PT' };
+          state.eligibility = {
+            status: 'eligible',
+            country: 'PT',
+            eligible: true,
+          };
           state.lastError = 'Some error';
         });
 
@@ -7882,7 +10902,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for BUY orders', async () => {
+    it('holds optimistic balance for the settlement safety window for BUY orders', async () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const mockResult = {
         success: true as const,
@@ -7908,7 +10928,9 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
@@ -7921,8 +10943,18 @@ describe('PredictController', () => {
       );
     });
 
-    it('increases balance by received amount for SELL orders', async () => {
-      const preview = createMockOrderPreview({ side: Side.SELL });
+    it('increases balance by net proceeds for SELL orders', async () => {
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: {
+          metamaskFee: 2.865,
+          providerFee: 0.955,
+          marketFee: 1.2,
+          totalFee: 3.82,
+          totalFeePercentage: 4,
+          collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+        },
+      });
       const mockResult = {
         success: true as const,
         response: {
@@ -7945,7 +10977,7 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.balance).toBe(500 + 95.5);
+          expect(updatedBalance.balance).toBeCloseTo(590.48);
         },
         {
           state: {
@@ -7958,7 +10990,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for SELL orders', async () => {
+    it('holds optimistic balance for the settlement safety window for SELL orders', async () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const mockResult = {
         success: true as const,
@@ -7984,13 +11016,80 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
             balances: {
               '0x1234567890123456789012345678901234567890':
                 createMockPredictBalance(),
+            },
+          },
+        },
+      );
+    });
+
+    it('skips optimistic balance update when there is no cached balance baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(async ({ controller }) => {
+        // Act
+        await controller.placeOrder({
+          preview,
+        });
+
+        // Assert — no baseline means no optimistic entry; the next
+        // getBalance call must fetch the real value from chain.
+        expect(
+          controller.state.balances[
+            '0x1234567890123456789012345678901234567890'
+          ],
+        ).toBeUndefined();
+      });
+    });
+
+    it('clamps optimistic BUY balance at zero when spend exceeds the cached baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(0);
+        },
+        {
+          state: {
+            balances: {
+              '0x1234567890123456789012345678901234567890':
+                createMockPredictBalance({ balance: 40 }),
             },
           },
         },
@@ -8236,6 +11335,32 @@ describe('PredictController', () => {
                   validUntil: now - 100,
                 }),
             },
+          },
+        },
+      );
+    });
+
+    it('fetches explicit address balance when no selected EVM account exists', async () => {
+      const explicitAddress = '0x2222222222222222222222222222222222222222';
+      mockPolymarketProvider.getBalance.mockResolvedValue(1000);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          const result = await controller.getBalance({
+            address: explicitAddress,
+          });
+
+          // Assert
+          expect(result).toBe(1000);
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+            address: explicitAddress,
+          });
+          expect(controller.state.balances[explicitAddress].balance).toBe(1000);
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
           },
         },
       );
@@ -8595,6 +11720,76 @@ describe('PredictController', () => {
       });
     });
 
+    it('reconciles one start and one terminal event per attempt', async () => {
+      await withController(async ({ controller }) => {
+        const commonProperties = {
+          amountUsd: 25,
+          analyticsProperties: {
+            marketId: 'market-1',
+            transactionType: 'mm_predict_buy' as const,
+          },
+          attemptId: 'attempt-1',
+          paymentMethod: 'predict_balance' as const,
+        };
+
+        await controller.trackPredictOrderEvent({
+          ...commonProperties,
+          status: 'attempt_started',
+        });
+        controller.trackPredictBuyTerminalEvent({
+          ...commonProperties,
+          status: 'succeeded',
+        });
+        controller.trackPredictBuyTerminalEvent({
+          ...commonProperties,
+          status: 'failed',
+          failureStage: 'order',
+          failureCategory: 'other',
+        });
+
+        const attemptEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .filter(
+            (event) =>
+              event.name === 'Predict Trade Transaction' &&
+              event.properties?.attempt_id === commonProperties.attemptId,
+          );
+        const startEvents = attemptEvents.filter(
+          (event) => event.properties.status === 'attempt_started',
+        );
+        const terminalEvents = attemptEvents.filter((event) =>
+          ['succeeded', 'failed', 'cancelled'].includes(
+            event.properties.status,
+          ),
+        );
+
+        expect(startEvents).toHaveLength(1);
+        expect(terminalEvents).toHaveLength(1);
+        expect(attemptEvents).toHaveLength(2);
+      });
+    });
+
+    it('bounds retained terminal attempt IDs', async () => {
+      await withController(async ({ controller }) => {
+        const analyticsProperties = { marketId: 'market-1' };
+
+        for (let index = 0; index <= 500; index += 1) {
+          controller.trackPredictBuyTerminalEvent({
+            status: 'failed',
+            analyticsProperties,
+            attemptId: `attempt-${index}`,
+          });
+        }
+        controller.trackPredictBuyTerminalEvent({
+          status: 'failed',
+          analyticsProperties,
+          attemptId: 'attempt-0',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(502);
+      });
+    });
+
     it('does not call analytics.trackEvent when analyticsProperties is missing for trackPredictOrderEvent', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
@@ -8779,6 +11974,50 @@ describe('PredictController', () => {
       });
     });
 
+    it('calls analytics.trackEvent for trackPortfolioPositionsButtonTapped', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioPositionsButtonTapped({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPortfolioTransactionInitiated', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioTransactionInitiated({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionsScreenViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionsScreenViewed({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPositionsTabViewed', () => {
+      withController(({ controller }) => {
+        controller.trackPositionsTabViewed({
+          predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('calls analytics.trackEvent for trackGeoBlockTriggered', () => {
       withController(({ controller }) => {
         controller.trackGeoBlockTriggered({
@@ -8793,7 +12032,7 @@ describe('PredictController', () => {
         controller.trackFeedViewed({
           sessionId: 'test',
           feedTab: 'test',
-          predictScreen: 'world_cup',
+          predictScreen: 'predict_positions_screen',
           numPagesViewed: 1,
           sessionTime: 1000,
         });
@@ -8805,7 +12044,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.trackBannerAction({
           actionType: 'viewed',
-          bannerType: 'world_cup',
+          bannerType: 'predict_the_pitch',
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
@@ -8817,9 +12056,67 @@ describe('PredictController', () => {
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
     });
+
+    it('calls analytics.trackEvent for trackHomeViewed', () => {
+      withController(({ controller }) => {
+        controller.trackHomeViewed({ entryPoint: 'home_section' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackHomeSectionInteraction', () => {
+      withController(({ controller }) => {
+        controller.trackHomeSectionInteraction({
+          sectionId: 'trending',
+          actionType: 'viewed',
+          entryPoint: 'home_section',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedTabChanged', () => {
+      withController(({ controller }) => {
+        controller.trackFeedTabChanged({
+          feedId: 'sports',
+          tabId: 'tennis',
+          entryPoint: 'home_section',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedFilterChanged', () => {
+      withController(({ controller }) => {
+        controller.trackFeedFilterChanged({
+          feedId: 'sports',
+          tabId: 'tennis',
+          filterId: 'live',
+          isDynamicFilter: false,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   describe('onPlaceOrderSuccess', () => {
+    it('does not write activeBuyOrders under undefined when no EVM account is selected', () => {
+      withController(
+        ({ controller }) => {
+          controller.onPlaceOrderSuccess();
+
+          expect(controller.state.activeBuyOrders).not.toHaveProperty(
+            'undefined',
+          );
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('resets activeBuyOrder to PREVIEW and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {
@@ -8982,6 +12279,52 @@ describe('PredictController', () => {
                 status: 'swap_initiated',
                 payment_token_address: '0xtoken',
                 payment_token_symbol: 'MATIC',
+              }),
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('emits swap_initiated with the PWAT attempt context', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            transactionId: 'tx-200',
+          });
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: {
+              marketId: 'market-1',
+              transactionType: 'mm_predict_buy',
+            },
+            preview,
+            transactionId: 'tx-200',
+            attempt: {
+              attemptId: 'pwat-attempt',
+              amountUsd: 30,
+              paymentMethod: 'pay_with_any_token',
+            },
+          });
+
+          expect(analytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                status: 'swap_initiated',
+                attempt_id: 'pwat-attempt',
+                payment_method: 'pay_with_any_token',
+              }),
+              sensitiveProperties: expect.objectContaining({
+                amount_usd: 30,
               }),
             }),
           );
@@ -10244,7 +13587,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('fires swap_failed analytics event when depositAndOrder transaction is rejected', () => {
+    it('fires cancelled analytics event when depositAndOrder transaction is rejected', () => {
       withController(({ controller, messenger }) => {
         const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
 
@@ -10286,8 +13629,7 @@ describe('PredictController', () => {
 
         expect(trackSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            status: 'swap_failed',
-            failureReason: 'user_rejected',
+            status: 'cancelled',
           }),
         );
       });
@@ -10621,6 +13963,12 @@ describe('PredictController', () => {
         ).toMatchObject({
           payment_token_address: '0xpaytoken',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit reverted',
+        );
       });
     });
 
@@ -10925,6 +14273,12 @@ describe('PredictController', () => {
           success: false,
           error: 'Deposit preparation returned undefined',
         });
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Deposit preparation returned undefined',
+        );
       });
     });
 

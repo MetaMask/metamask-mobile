@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useTokenPrice } from './useTokenPrice';
 import { TokenI } from '../../Tokens/types';
@@ -10,6 +10,8 @@ import {
 import { isAssetFromSearch } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import useTokenHistoricalPrices from '../../../hooks/useTokenHistoricalPrices';
+import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
+import { type MarketDataDetails } from '@metamask/assets-controllers';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -43,6 +45,7 @@ jest.mock('../../Bridge/utils/exchange-rates', () => ({
 const mockUseSelector = jest.mocked(useSelector);
 const mockIsAssetFromSearch = jest.mocked(isAssetFromSearch);
 const mockUseTokenHistoricalPrices = jest.mocked(useTokenHistoricalPrices);
+const mockGetTokenExchangeRate = jest.mocked(getTokenExchangeRate);
 
 describe('useTokenPrice', () => {
   const defaultCurrencyRates = {
@@ -79,12 +82,18 @@ describe('useTokenPrice', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // testSetup mocks Date.now to a constant, and resetAllMocks() below wipes
+    // that implementation — re-assert an incrementing one for real duration math.
+    let mockNow = 0;
+    jest.spyOn(Date, 'now').mockImplementation(() => mockNow++);
 
     mockIsAssetFromSearch.mockReturnValue(false);
     mockUseTokenHistoricalPrices.mockReturnValue({
       data: [],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
     setupDefaultMocks();
   });
@@ -103,6 +112,8 @@ describe('useTokenPrice', () => {
       isLoading: true,
       data: undefined,
       error: undefined,
+      hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -135,6 +146,8 @@ describe('useTokenPrice', () => {
       ],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -209,6 +222,8 @@ describe('useTokenPrice', () => {
       data: [['1700000000', 145.0]],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() =>
@@ -220,5 +235,166 @@ describe('useTokenPrice', () => {
     });
     expect(result.current.comparePrice).toBe(145.0);
     expect(result.current.priceDiff).toBe(5.5);
+  });
+
+  it('forwards hasInsufficientCoverage from the historical prices hook', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [['1700000000', 1.0]],
+      isLoading: false,
+      error: undefined,
+      hasInsufficientCoverage: true,
+      apiDurationMs: undefined,
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.hasInsufficientCoverage).toBe(true);
+    });
+  });
+
+  it('clears stale fetchedMarketData when token changes', async () => {
+    const tokenA = {
+      address: '0xaaaa',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    } as TokenI;
+    const tokenB = {
+      address: '0xbbbb',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    } as TokenI;
+
+    setupDefaultMocks();
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: undefined,
+      hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
+    });
+
+    let resolveA!: (v: unknown) => void;
+    let resolveB!: (v: unknown) => void;
+
+    mockGetTokenExchangeRate
+      .mockImplementationOnce(
+        () =>
+          new Promise((r) => {
+            resolveA = r as (v: unknown) => void;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((r) => {
+            resolveB = r as (v: unknown) => void;
+          }),
+      );
+
+    const { rerender, result } = renderHook(
+      ({ token }: { token: TokenI }) => useTokenPrice({ token }),
+      { initialProps: { token: tokenA } },
+    );
+
+    rerender({ token: tokenB });
+
+    await act(async () => {
+      resolveA({ price: 999, pricePercentChange1d: 50 });
+    });
+
+    expect(result.current.currentPrice).toBe(0);
+
+    await act(async () => {
+      resolveB({ price: 42, pricePercentChange1d: 5 });
+    });
+
+    await waitFor(() => {
+      expect(result.current.currentPrice).toBe(42);
+    });
+  });
+
+  it('forwards historicalPricesApiMs from the historical prices hook', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [['1700000000', 1.0]],
+      isLoading: false,
+      error: undefined,
+      hasInsufficientCoverage: false,
+      apiDurationMs: 42,
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.historicalPricesApiMs).toBe(42);
+    });
+  });
+
+  it('sets exchangeRateApiMs once the exchange-rate fetch resolves for a non-imported token', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    // No market data in Redux -> the exchange-rate fetch is not skipped.
+    setupDefaultMocks({ tokenMarketData: {} });
+    mockGetTokenExchangeRate.mockResolvedValue({
+      price: 1,
+      pricePercentChange1d: 0,
+    } as unknown as MarketDataDetails);
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.exchangeRateApiMs).not.toBeUndefined();
+    });
+    expect(result.current.exchangeRateApiMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('leaves exchangeRateApiMs undefined when the exchange-rate fetch is skipped (market data already in Redux)', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    setupDefaultMocks({
+      tokenMarketData: {
+        '0x1': {
+          '0x6B175474E89094C44Da98b954EedeAC495271d0F': { price: 0.0005 },
+        },
+      },
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.exchangeRateApiMs).toBeUndefined();
+    expect(mockGetTokenExchangeRate).not.toHaveBeenCalled();
+  });
+
+  it('sets exchangeRateApiMs even when the exchange-rate fetch fails', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    setupDefaultMocks({ tokenMarketData: {} });
+    mockGetTokenExchangeRate.mockRejectedValue(new Error('network error'));
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.exchangeRateApiMs).not.toBeUndefined();
+    });
+    expect(result.current.exchangeRateApiMs).toBeGreaterThanOrEqual(0);
   });
 });

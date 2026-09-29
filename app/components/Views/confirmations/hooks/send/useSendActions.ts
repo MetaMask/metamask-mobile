@@ -2,6 +2,7 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { errorCodes } from '@metamask/rpc-errors';
 
@@ -30,7 +31,7 @@ interface SnapConfirmSendResult {
 export const useSendActions = () => {
   const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
     useSendContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
   const handleSubmitPress = useCallback(

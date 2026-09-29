@@ -1,50 +1,26 @@
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../app/components/Views/ExperienceEnhancerModal/ExperienceEnhancerModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import Utilities from '../../framework/Utilities';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class ExperienceEnhancerBottomSheet {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
     );
   }
 
-  get noThanksButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
-          { exact: true },
-        ),
-    });
+  get noThanksButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
+    );
   }
 
-  get iAgreeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
-          { exact: true },
-        ),
-    });
+  get iAgreeButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
+    );
   }
 
   /**
@@ -52,76 +28,39 @@ class ExperienceEnhancerBottomSheet {
    * No-op when the modal is not visible.
    */
   async dismissIfPresent(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        try {
-          await Assertions.expectElementToBeVisible(this.container, {
-            description: 'experience enhancer modal',
-            timeout: 5_000,
-          });
-          await Gestures.waitAndTap(asDetoxElement(this.noThanksButton), {
-            elemDescription:
-              'No Thanks Button in Experience Enhancer Bottom Sheet',
-          });
-        } catch {
-          // Modal not shown
-        }
-      },
-      appium: async () => {
-        try {
-          const noThanks = await asPlaywrightElement(this.noThanksButton);
-          if (await noThanks.unwrap().isDisplayed()) {
-            await PlaywrightGestures.waitAndTap(noThanks, {
-              checkForDisplayed: true,
-              checkForEnabled: true,
-              timeout: 5_000,
-            });
-          }
-        } catch {
-          // Modal not shown
-        }
-      },
-    });
+    // Short probe: often a no-op after login. Rely on fast poll (timeout ≤ 2s
+    // uses the full budget — see AppiumAssertions.pollUntilVisible).
+    if (!(await Utilities.isElementVisible(this.noThanksButton, 500))) {
+      return;
+    }
+
+    try {
+      await Gestures.waitAndTap(this.noThanksButton, {
+        elemDescription: 'No Thanks Button in Experience Enhancer Bottom Sheet',
+        checkForDisplayed: true,
+        checkEnabled: true,
+        timeout: 5_000,
+      });
+    } catch {
+      // Modal shown but dismiss failed — leave for caller / next attempt.
+    }
   }
 
   async tapNoThanks(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.noThanksButton), {
-          elemDescription:
-            'No Thanks Button in Experience Enhancer Bottom Sheet',
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.noThanksButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            timeout: 5_000,
-          },
-        );
-      },
+    await Gestures.waitAndTap(this.noThanksButton, {
+      elemDescription: 'No Thanks Button in Experience Enhancer Bottom Sheet',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      timeout: 5_000,
     });
   }
 
   async tapIAgree(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.iAgreeButton), {
-          elemDescription: 'I Agree Button in Experience Enhancer Bottom Sheet',
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.iAgreeButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            timeout: 5_000,
-          },
-        );
-      },
+    await Gestures.waitAndTap(this.iAgreeButton, {
+      elemDescription: 'I Agree Button in Experience Enhancer Bottom Sheet',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      timeout: 5_000,
     });
   }
 }

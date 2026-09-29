@@ -1,16 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { useWindowDimensions } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
@@ -48,63 +37,12 @@ const FeaturedCarouselSkeleton: React.FC = () => {
   );
 };
 
-interface PaginationDotsProps {
-  count: number;
-  activeIndex: number;
-}
-
-export const PaginationDots: React.FC<PaginationDotsProps> = ({
-  count,
-  activeIndex,
-}) => {
-  const tw = useTailwind();
-
-  if (count <= 1) return null;
-
-  return (
-    <Box
-      testID={FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS}
-      twClassName="flex-row justify-center items-center gap-2 mt-3"
-    >
-      {Array.from({ length: count }).map((_, dotPosition) => (
-        <View
-          key={`pagination-dot-${dotPosition}`}
-          style={tw.style(
-            'h-2 rounded-full',
-            dotPosition === activeIndex
-              ? 'bg-icon-alternative'
-              : 'bg-icon-muted w-2',
-            dotPosition === activeIndex && { width: 35 },
-          )}
-        />
-      ))}
-    </Box>
-  );
-};
-
 const FeaturedCarousel: React.FC = () => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<PredictMarket>>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
   const { cardWidth, snapInterval } = useCarouselLayout();
 
   const { markets, isLoading, error } = useFeaturedCarouselData();
-
-  useEffect(() => {
-    setActiveIndex((prev) => (prev >= markets.length ? 0 : prev));
-  }, [markets.length]);
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const newIndex = Math.min(
-        Math.max(0, Math.round(offsetX / snapInterval)),
-        markets.length - 1,
-      );
-      setActiveIndex(newIndex);
-    },
-    [markets.length, snapInterval],
-  );
 
   const renderItem = useCallback(
     ({ item: market, index: idx }: { item: PredictMarket; index: number }) => (
@@ -150,11 +88,8 @@ const FeaturedCarousel: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         snapToInterval={snapInterval}
         decelerationRate="fast"
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
         contentContainerStyle={tw.style(`px-[${HORIZONTAL_PADDING}px]`)}
       />
-      <PaginationDots count={markets.length} activeIndex={activeIndex} />
     </Box>
   );
 };

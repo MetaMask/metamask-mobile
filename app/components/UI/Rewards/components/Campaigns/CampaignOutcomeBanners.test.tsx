@@ -12,18 +12,28 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../RewardsInfoBanner', () => {
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return {
+    ...Reanimated,
+    default: {
+      ...Reanimated.default,
+    },
+  };
+});
+
+jest.mock('react-native-svg', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
+  const MockSvg = (props: Record<string, unknown>) =>
+    ReactActual.createElement(View, props);
   return {
     __esModule: true,
-    default: ({ title, description }: { title: string; description: string }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'rewards-info-banner' },
-        ReactActual.createElement(Text, null, title),
-        ReactActual.createElement(Text, null, description),
-      ),
+    default: MockSvg,
+    Defs: View,
+    LinearGradient: View,
+    Stop: View,
+    Path: View,
   };
 });
 
@@ -57,6 +67,20 @@ describe('WinnerPendingBanner', () => {
     );
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it('renders the animated gradient border', () => {
+    const { getByTestId } = render(<WinnerPendingBanner onPress={jest.fn()} />);
+    fireEvent(
+      getByTestId('campaign-outcome-banner-border-container'),
+      'layout',
+      {
+        nativeEvent: { layout: { width: 300, height: 80, x: 0, y: 0 } },
+      },
+    );
+    expect(
+      getByTestId('campaign-outcome-banner-gradient-border'),
+    ).toBeDefined();
+  });
 });
 
 describe('WinnerFinalizedBanner', () => {
@@ -67,6 +91,20 @@ describe('WinnerFinalizedBanner', () => {
     ).toBeDefined();
     expect(
       getByText('rewards.campaign_outcome_banner.winner_finalized.description'),
+    ).toBeDefined();
+  });
+
+  it('renders the animated gradient border', () => {
+    const { getByTestId } = render(<WinnerFinalizedBanner />);
+    fireEvent(
+      getByTestId('campaign-outcome-banner-border-container'),
+      'layout',
+      {
+        nativeEvent: { layout: { width: 300, height: 80, x: 0, y: 0 } },
+      },
+    );
+    expect(
+      getByTestId('campaign-outcome-banner-gradient-border'),
     ).toBeDefined();
   });
 });
@@ -83,6 +121,14 @@ describe('ParticipantFinalizedBanner', () => {
       ),
     ).toBeDefined();
   });
+
+  it('does not render the animated gradient border', () => {
+    const { queryByTestId } = render(<ParticipantFinalizedBanner />);
+    expect(
+      queryByTestId('campaign-outcome-banner-border-container'),
+    ).toBeNull();
+    expect(queryByTestId('campaign-outcome-banner-gradient-border')).toBeNull();
+  });
 });
 
 describe('ParticipantPendingBanner', () => {
@@ -96,6 +142,14 @@ describe('ParticipantPendingBanner', () => {
         'rewards.campaign_outcome_banner.participant_pending.description',
       ),
     ).toBeDefined();
+  });
+
+  it('does not render the animated gradient border', () => {
+    const { queryByTestId } = render(<ParticipantPendingBanner />);
+    expect(
+      queryByTestId('campaign-outcome-banner-border-container'),
+    ).toBeNull();
+    expect(queryByTestId('campaign-outcome-banner-gradient-border')).toBeNull();
   });
 });
 

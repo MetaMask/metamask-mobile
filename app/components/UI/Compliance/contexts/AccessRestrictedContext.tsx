@@ -8,9 +8,11 @@ import React, {
 } from 'react';
 import { playWarningNotification } from '../../../../util/haptics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { useSupportConsent } from '../../../hooks/useSupportConsent';
 import AccessRestrictedModal from '../AccessRestrictedModal';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -36,8 +38,9 @@ export const AccessRestrictedProvider = ({
   children,
 }: AccessRestrictedProviderProps) => {
   const [isVisible, setIsVisible] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const showAccessRestrictedModal = useCallback(() => {
     playWarningNotification();
@@ -54,14 +57,18 @@ export const AccessRestrictedProvider = ({
 
   const handleContactSupport = useCallback(() => {
     hideAccessRestrictedModal();
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: METAMASK_SUPPORT_URL,
-        title: strings('access_restricted.contact_support'),
-      },
-    });
-  }, [hideAccessRestrictedModal, navigation]);
+    openSupportWithConsent(
+      (url) =>
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings('access_restricted.contact_support'),
+          },
+        }),
+      METAMASK_SUPPORT_URL,
+    );
+  }, [hideAccessRestrictedModal, navigation, openSupportWithConsent]);
 
   const value = useMemo(
     () => ({

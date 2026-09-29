@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { MockApiEndpoint, RampsRegion } from '../../../framework/types.ts';
-import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers.ts';
 import { RAMPS_NETWORKS_RESPONSE } from './responses/ramps-networks-response.ts';
 import { getCountryResponseForUrl } from './responses/countries-contracts.ts';
 import {
@@ -230,6 +230,20 @@ export const RAMPS_TOKEN_ICON_MOCKS = async (mockServer: Mockttp) => {
       responseCode: 200,
     }),
   ]);
+};
+
+/**
+ * Ramps order persistence mock.
+ * The ramps controller writes orders to authenticated user storage after
+ * creating or refreshing them.
+ */
+export const RAMPS_ORDER_STORAGE_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'PUT',
+    url: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage/rampsOrders',
+    response: 'OK',
+    responseCode: 200,
+  });
 };
 
 /**
@@ -467,6 +481,7 @@ export const setupDepositOnRampMocks = async (
   selectedRegion: RampsRegion,
 ) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+  await RAMPS_ORDER_STORAGE_MOCKS(mockServer);
   await RAMPS_QUOTE_MOCKS(mockServer, 'native');
   await RAMPS_CHECKOUT_MOCKS(mockServer);
   await TRANSAK_NATIVE_FLOW_MOCKS(mockServer);
@@ -482,6 +497,7 @@ export const setupBuyOnRampMocks = async (
   selectedRegion: RampsRegion,
 ) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+  await RAMPS_ORDER_STORAGE_MOCKS(mockServer);
   await RAMPS_QUOTE_MOCKS(mockServer);
   await RAMPS_CHECKOUT_MOCKS(mockServer);
   await BUY_ORDER_STATUS_MOCKS(mockServer);

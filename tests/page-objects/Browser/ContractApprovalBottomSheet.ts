@@ -3,12 +3,10 @@
 // This e2e page object needs to be updated to use redesigned confirmation testIds
 // or deleted if the functionality is no longer tested.
 
-// import {
-//   ContractApprovalBottomSheetSelectorsIDs,
-//   ContractApprovalBottomSheetSelectorsText,
-// } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
+// import { //   ContractApprovalBottomSheetSelectorsIDs, //   ContractApprovalBottomSheetSelectorsText, // } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { type AppiumElement } from '../../framework';
 
 // Temporary placeholders to prevent TypeScript errors
 const ContractApprovalBottomSheetSelectorsIDs = {
@@ -27,55 +25,55 @@ const ContractApprovalBottomSheetSelectorsText = {
 };
 
 class ContractApprovalBottomSheet {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
-  get addNickName(): DetoxElement {
+  get addNickName(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
     );
   }
 
-  get editNickName(): DetoxElement {
+  get editNickName(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
     );
   }
 
-  get rejectButton(): DetoxElement {
+  get rejectButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.REJECT,
     );
   }
 
-  get approveButton(): DetoxElement {
+  get approveButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.APPROVE,
     );
   }
 
-  get contractAddress(): DetoxElement {
+  get contractAddress(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
     );
   }
 
-  get nextButton(): DetoxElement {
+  get nextButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.NEXT,
     );
   }
 
-  get approveTokenAmount(): DetoxElement {
+  get approveTokenAmount(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.CONFIRM,
     );

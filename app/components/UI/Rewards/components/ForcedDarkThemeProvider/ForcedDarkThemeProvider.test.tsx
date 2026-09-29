@@ -7,15 +7,17 @@ import { darkTheme } from '@metamask/design-tokens';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
 import ForcedDarkThemeProvider from './ForcedDarkThemeProvider';
+import { Theme as DesignSystemTheme } from '@metamask/design-system-twrnc-preset';
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    ThemeProvider: ({ children }: { children: React.ReactNode }) =>
-      ReactActual.createElement(ReactActual.Fragment, null, children),
-    Theme: { Light: 'light', Dark: 'dark' },
-  };
-});
+const mockDesignSystemThemeProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => children,
+);
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ThemeProvider: (props: { children: React.ReactNode; theme?: string }) =>
+    mockDesignSystemThemeProvider(props),
+  Theme: { Light: 'light', Dark: 'dark' },
+}));
 
 const mockStore = configureMockStore();
 const renderWithStore = (
@@ -44,6 +46,7 @@ describe('ForcedDarkThemeProvider', () => {
   let setBackgroundColorSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     setBarStyleSpy = jest.spyOn(StatusBar, 'setBarStyle').mockImplementation();
     setTranslucentSpy = jest
       .spyOn(StatusBar, 'setTranslucent')
@@ -77,6 +80,20 @@ describe('ForcedDarkThemeProvider', () => {
     expect(getByTestId('appearance')).toHaveTextContent(AppThemeKey.dark);
     expect(getByTestId('background')).toHaveTextContent(
       darkTheme.colors.background.default,
+    );
+  });
+
+  it('passes DesignSystem Theme.Dark to DesignSystemThemeProvider', () => {
+    renderWithStore(
+      <ForcedDarkThemeProvider>
+        <Text>child</Text>
+      </ForcedDarkThemeProvider>,
+    );
+
+    expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
+      expect.objectContaining({
+        theme: DesignSystemTheme.Dark,
+      }),
     );
   });
 

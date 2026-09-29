@@ -3,14 +3,11 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
 import { useBatchAuthorizationRequests } from '../../../../hooks/7702/useBatchAuthorizationRequests';
@@ -23,6 +20,12 @@ import {
 } from '../../../../../../UI/Box/box.types';
 import { Box } from '../../../../../../UI/Box/Box';
 import { useTheme } from '../../../../../../../util/theme';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const AccountNetworkRow = ({
   address,
@@ -31,7 +34,7 @@ const AccountNetworkRow = ({
   address: Hex;
   network: EIP7702NetworkConfiguration;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { downgradeAccount, upgradeAccount } = useEIP7702Accounts(
     network as unknown as NetworkConfiguration,
   );
@@ -86,7 +89,11 @@ const AccountNetworkRow = ({
       alignItems={AlignItems.center}
       style={styles.multichain_accounts_row_wrapper}
     >
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {name}
       </Text>
       <Switch

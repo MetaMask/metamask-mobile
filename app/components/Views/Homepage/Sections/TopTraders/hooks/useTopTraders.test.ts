@@ -5,6 +5,7 @@ import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../../hooks/useFollowToggle';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('react-redux', () => ({
@@ -13,6 +14,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/socialController', () => ({
@@ -36,31 +41,34 @@ const mockTraders = [
     rank: 1,
     profileId: 'trader-1',
     addresses: ['0x0000000000000000000000000000000000000001'],
-    name: 'sniperliquid.hl',
+    name: 'alpha.eth',
     imageUrl: 'https://example.com/avatar1.png',
-    pnl30d: 963146.8,
-    roiPercent30d: 0.43,
+    pnl7d: 963146.8,
+    roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
+    followerCount: 48707,
   },
   {
     rank: 2,
     profileId: 'trader-2',
     addresses: ['0x0000000000000000000000000000000000000002'],
-    name: 'nervousdegen',
+    name: 'beta.eth',
     imageUrl: 'https://example.com/avatar2.png',
-    pnl30d: 474751.45,
-    roiPercent30d: 3.59,
+    pnl7d: 474751.45,
+    roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
+    followerCount: 21999,
   },
   {
     rank: 3,
     profileId: 'trader-3',
     addresses: ['0x0000000000000000000000000000000000000003'],
-    name: 'baznocap',
+    name: 'gamma.eth',
     imageUrl: 'https://example.com/avatar3.png',
-    pnl30d: 374735.16,
-    roiPercent30d: 6.17,
+    pnl7d: 374735.16,
+    roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
   },
 ];
 
@@ -85,6 +93,7 @@ const makeQueryResult = (
     data: undefined,
     isLoading: false,
     isFetching: false,
+    isFetched: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -93,6 +102,7 @@ const makeQueryResult = (
 describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {
@@ -135,15 +145,26 @@ describe('useTopTraders', () => {
         overallRank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
-        percentageChange: first.roiPercent30d * 100,
-        pnlValue: first.pnl30d,
+        percentageChange: first.roiPercent7d,
+        pnlValue: first.pnl7d,
+        winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
+        followerCount: first.followerCount,
         isFollowing: false,
       });
     });
 
-    it('defaults percentageChange to 0 when roiPercent30d is null', () => {
-      const entry = { ...mockTraders[0], roiPercent30d: null };
+    it('converts the API win-rate fraction to a whole percent', () => {
+      const entry = { ...mockTraders[0], winRate7d: 0.92 };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].winRatePercent).toBe(92);
+    });
+
+    it('defaults percentageChange to 0 when roiPercent7d is null', () => {
+      const entry = { ...mockTraders[0], roiPercent7d: null };
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: { traders: [entry] } as never }),
       );
@@ -177,6 +198,53 @@ describe('useTopTraders', () => {
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].pnlPerChain).toEqual({});
     });
+
+    it('reports the 30-day window when that timeframe is requested', () => {
+      const entry = {
+        ...mockTraders[0],
+        pnl30d: 1000,
+        roiPercent30d: 12,
+        winRate30d: 0.5,
+      };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+
+      const { result } = renderHook(() => useTopTraders({ timeframe: '30d' }));
+
+      expect(result.current.traders[0].pnlValue).toBe(1000);
+      expect(result.current.traders[0].percentageChange).toBe(12);
+      expect(result.current.traders[0].winRatePercent).toBe(50);
+    });
+  });
+
+  describe('query options', () => {
+    it('forwards the ranking metric to the leaderboard query key', () => {
+      renderHook(() => useTopTraders({ limit: 50, sort: 'winRate' }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, sort: 'winRate' },
+          ],
+        }),
+      );
+    });
+
+    it('leaves the query key untouched when the timeframe changes', () => {
+      const { rerender } = renderHook(
+        ({ timeframe }: { timeframe: '7d' | '30d' }) =>
+          useTopTraders({ limit: 50, timeframe }),
+        { initialProps: { timeframe: '7d' as '7d' | '30d' } },
+      );
+
+      const initialKey = mockUseQuery.mock.calls.at(-1)?.[0].queryKey;
+
+      rerender({ timeframe: '30d' });
+
+      expect(mockUseQuery.mock.calls.at(-1)?.[0].queryKey).toEqual(initialKey);
+    });
   });
 
   describe('loading and error states', () => {
@@ -184,6 +252,12 @@ describe('useTopTraders', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.isLoading).toBe(true);
+    });
+
+    it('exposes whether the query has fetched', () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ isFetched: true }));
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.hasFetched).toBe(true);
     });
 
     it('returns the error message for an Error object', () => {
@@ -432,7 +506,7 @@ describe('useTopTraders', () => {
       );
     });
 
-    it('passes null fetch options in the query key when no limit is given', () => {
+    it('passes null fetch options in the query key when neither limit nor chains are given', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
@@ -442,11 +516,54 @@ describe('useTopTraders', () => {
       );
     });
 
+    it('includes chains in the query key when provided', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['base'] },
+          ],
+        }),
+      );
+    });
+
+    it('builds distinct query keys per chain so each tab caches independently', () => {
+      renderHook(() => useTopTraders({ limit: 50, chains: ['solana'] }));
+      renderHook(() => useTopTraders({ limit: 50, chains: ['ethereum'] }));
+
+      const keys = mockUseQuery.mock.calls.map((c) => c[0].queryKey);
+      expect(keys).toEqual(
+        expect.arrayContaining([
+          ['SocialService:fetchLeaderboard', { limit: 50, chains: ['solana'] }],
+          [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, chains: ['ethereum'] },
+          ],
+        ]),
+      );
+    });
+
+    it('includes chains alone in the query key when no limit is given', () => {
+      renderHook(() => useTopTraders({ chains: ['base'] }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['SocialService:fetchLeaderboard', { chains: ['base'] }],
+        }),
+      );
+    });
+
     it('defaults enabled to true when the option is not provided and wallet is unlocked', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
 
@@ -458,7 +575,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
+        expect.objectContaining({
+          enabled: false,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
 
@@ -474,7 +595,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
   });

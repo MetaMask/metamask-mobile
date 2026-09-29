@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useABTest } from '../../../../../../hooks';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
   PREDICT_POSITIONS_EMPTY_STATE_AB_KEY,
@@ -19,12 +18,11 @@ const DISCOVERY_AB_METADATA = {
 export type PredictHomepageDiscoveryLayout = 'carousel' | 'list';
 
 /**
- * Homepage predict discovery AB (carousel vs sports list) + trending transaction AB test payload.
+ * Homepage predict discovery experiment (carousel vs sports list).
  */
 export function usePredictHomepageDiscoveryExperiment(): {
   discoveryLayout: PredictHomepageDiscoveryLayout;
   isTreatmentDiscovery: boolean;
-  trendingTransactionActiveAbTests: TransactionActiveAbTestEntry[] | undefined;
   predictEmptyStateActiveAbTests: TransactionActiveAbTestEntry[] | undefined;
   predictEmptyStateVariantName: string;
   isPredictEmptyStateAssignmentActive: boolean;
@@ -35,8 +33,6 @@ export function usePredictHomepageDiscoveryExperiment(): {
     DISCOVERY_AB_METADATA,
   );
   const discoveryLayout = variant.layout as PredictHomepageDiscoveryLayout;
-  const trendingTransactionActiveAbTests =
-    useHomepageTrendingTransactionActiveAbTests();
   const predictEmptyStateActiveAbTests = useMemo(
     () => getPredictPositionsEmptyStateActiveAbTests(isActive, variantName),
     [isActive, variantName],
@@ -45,7 +41,6 @@ export function usePredictHomepageDiscoveryExperiment(): {
   return {
     discoveryLayout,
     isTreatmentDiscovery: discoveryLayout === 'list',
-    trendingTransactionActiveAbTests,
     predictEmptyStateActiveAbTests,
     predictEmptyStateVariantName: variantName,
     isPredictEmptyStateAssignmentActive: isActive,

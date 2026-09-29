@@ -17,6 +17,7 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import SearchApi from '@metamask/react-native-search-api';
 import Logger from '../../../util/Logger';
@@ -99,7 +100,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
   const tabCount = useSelector(selectBrowserTabCount);
 
@@ -135,45 +136,42 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
    */
   const navigateToAddBookmark = useCallback(() => {
     navigation.navigate('AddBookmarkView', {
-      screen: 'AddBookmark',
-      params: {
-        title: title || '',
-        url: maskedActiveUrl,
-        onAddBookmark: async ({
-          name,
-          url: urlToAdd,
-        }: {
-          name: string;
-          url: string;
-        }) => {
-          dispatch(addBookmark({ name, url: urlToAdd }));
-          // iOS Spotlight integration
-          if (Device.isIos()) {
-            const thumbnailUri =
-              (icon as { uri?: string })?.uri ||
-              (favicon as { uri?: string })?.uri ||
-              '';
-            const item = {
-              uniqueIdentifier: activeUrl,
-              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
-              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [
-                ...(name ? name.split(' ').filter(Boolean) : []),
-                urlToAdd,
-                'dapp',
-              ],
-              thumbnail: {
-                uri: thumbnailUri,
-              },
-            };
-            try {
-              SearchApi.indexSpotlightItem(item);
-            } catch (e: unknown) {
-              const searchApiError = e as Error;
-              Logger.error(searchApiError, 'Error adding to spotlight');
-            }
+      title: title || '',
+      url: maskedActiveUrl,
+      onAddBookmark: async ({
+        name,
+        url: urlToAdd,
+      }: {
+        name: string;
+        url: string;
+      }) => {
+        dispatch(addBookmark({ name, url: urlToAdd }));
+        // iOS Spotlight integration
+        if (Device.isIos()) {
+          const thumbnailUri =
+            (icon as { uri?: string })?.uri ||
+            (favicon as { uri?: string })?.uri ||
+            '';
+          const item = {
+            uniqueIdentifier: activeUrl,
+            title: name || getMaskedUrl(urlToAdd, sessionENSNames),
+            contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+            keywords: [
+              ...(name ? name.split(' ').filter(Boolean) : []),
+              urlToAdd,
+              'dapp',
+            ],
+            thumbnail: {
+              uri: thumbnailUri,
+            },
+          };
+          try {
+            SearchApi.indexSpotlightItem(item);
+          } catch (e: unknown) {
+            const searchApiError = e as Error;
+            Logger.error(searchApiError, 'Error adding to spotlight');
           }
-        },
+        }
       },
     });
 

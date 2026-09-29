@@ -98,6 +98,46 @@ export const isPermitDaiRevoke = (
 };
 
 /**
+ * Returns true when `fieldName` is declared in `primaryType`'s EIP-712 type
+ * schema. Only declared fields are included in the signed digest.
+ */
+const isSignedTypedDataField = (
+  types: Record<string, BaseType[]> | undefined,
+  primaryType: string | undefined,
+  fieldName: string,
+) =>
+  Boolean(
+    primaryType &&
+      types?.[primaryType]?.some((field: BaseType) => field.name === fieldName),
+  );
+
+/**
+ * Determines whether a recognized Permit signature is a revoke request, used to
+ * switch the confirmation UI to "Remove permission" / "Revoke" labels.
+ *
+ * The zero-`value` branch is only honored when `value` is a declared field of
+ * the message's primary type. Permit2 batch/single types have no top-level
+ * `value` field; a malicious dapp can inject a `value: "0"` sibling that
+ * survives JSON parsing but is stripped from the signed EIP-712 digest.
+ * Trusting it would spoof a protective "Remove permission" screen while the
+ * user actually grants a max-allowance, so undeclared siblings are ignored.
+ */
+export const isPermitRevoke = (
+  verifyingContract: string,
+  allowed?: number | string | boolean | null,
+  value?: number | string | BigNumber | null,
+  types?: Record<string, BaseType[]>,
+  primaryType?: string,
+) => {
+  const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+  const isZeroValueRevoke =
+    isSignedTypedDataField(types, primaryType, 'value') &&
+    coerceNumberishToBigInt(value) === BigInt(0);
+
+  return isDaiRevoke || isZeroValueRevoke;
+};
+
+/**
  * Returns true if the request is Typed Sign V3 or V4 request
  *
  * @param signatureRequest - The signature request to check

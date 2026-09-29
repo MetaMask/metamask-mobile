@@ -38,11 +38,20 @@ describe('PerpsOrderContext', () => {
     setTakeProfitPrice: jest.fn(),
     setStopLossPrice: jest.fn(),
     setLimitPrice: jest.fn(),
+    commitLimitPrice: jest.fn(),
+    commitTriggerPrice: jest.fn(),
+    hasBlurredLimitPrice: false,
+    hasBlurredTriggerPrice: false,
+    triggerPrice: undefined,
+    setTriggerPrice: jest.fn(),
+    resetPriceInputInteraction: jest.fn(),
     setOrderType: jest.fn(),
+    pendingReduceOnly: undefined,
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setMaxPossibleAmountOverride: jest.fn(),
     balanceForValidation: 1000,
   };
 
@@ -137,6 +146,8 @@ describe('PerpsOrderContext', () => {
       expect(result.current.setTakeProfitPrice).toBeDefined();
       expect(result.current.setStopLossPrice).toBeDefined();
       expect(result.current.setLimitPrice).toBeDefined();
+      expect(result.current.triggerPrice).toBeUndefined();
+      expect(result.current.setTriggerPrice).toBeDefined();
       expect(result.current.setOrderType).toBeDefined();
       expect(result.current.handlePercentageAmount).toBeDefined();
       expect(result.current.handleMaxAmount).toBeDefined();
@@ -240,6 +251,42 @@ describe('PerpsOrderContext', () => {
       expect(result.current.setLeverage).toBe(initialSetLeverage);
     });
 
+    it('memoizes the whole provider value object across re-renders with unchanged form state', () => {
+      // This asserts the Provider value is memoized, not just that individual
+      // callbacks happen to be stable. The inline spread previously produced a
+      // brand-new value object on every render, re-rendering all consumers.
+      const { result, rerender } = renderHookWithProvider(() =>
+        usePerpsOrderContext(),
+      );
+
+      const firstValue = result.current;
+
+      rerender(() => usePerpsOrderContext());
+
+      expect(result.current).toBe(firstValue);
+    });
+
+    it('returns a new provider value object when the underlying form state changes', () => {
+      const { result, rerender } = renderHookWithProvider(() =>
+        usePerpsOrderContext(),
+      );
+
+      const firstValue = result.current;
+
+      mockUsePerpsOrderForm.mockReturnValue({
+        ...mockOrderFormReturn,
+        orderForm: {
+          ...mockOrderFormReturn.orderForm,
+          amount: '200',
+        },
+      });
+
+      rerender(() => usePerpsOrderContext());
+
+      expect(result.current).not.toBe(firstValue);
+      expect(result.current.orderForm.amount).toBe('200');
+    });
+
     it('works with different initial configurations', () => {
       const configs = [
         { initialAsset: 'BTC', initialDirection: 'long' as const },
@@ -277,6 +324,7 @@ describe('PerpsOrderContext', () => {
       expect(contextResult).toHaveProperty('setStopLossPrice');
       expect(contextResult).toHaveProperty('setLimitPrice');
       expect(contextResult).toHaveProperty('setOrderType');
+      expect(contextResult).toHaveProperty('pendingReduceOnly');
       expect(contextResult).toHaveProperty('handlePercentageAmount');
       expect(contextResult).toHaveProperty('handleMaxAmount');
       expect(contextResult).toHaveProperty('handleMinAmount');

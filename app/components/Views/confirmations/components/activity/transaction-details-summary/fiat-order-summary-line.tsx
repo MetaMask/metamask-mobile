@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
@@ -14,7 +16,7 @@ export function FiatOrderSummaryLine({
 }: {
   parentTransaction: TransactionMeta;
 }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { fiat } = parentTransaction.metamaskPay ?? {};
   const fiatOrderId = fiat?.orderId;
   const fiatProvider = fiat?.provider;
@@ -42,10 +44,21 @@ export function FiatOrderSummaryLine({
   const subtitle = formatSubtitle(parentTransaction.time, statusText);
 
   const handleOrderDetailsPress = useCallback(() => {
-    navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-      orderId: fiatOrderId,
-      showCloseButton: true,
-    });
+    // FiatOrderSummaryLine renders inside MoneyModalStack (a transparent modal
+    // nested navigator). useNavigation<AppNavigationProp>() returns the ModalStack navigator, which
+    // doesn't know about RAMPS_ORDER_DETAILS. We must escape to the root Stack
+    // navigator via getParent() to reach it.
+    const rootNav = navigation.getParent() ?? navigation;
+    // Escaping to the root Stack to reach the Ramp-owned RampsOrderDetails
+    // screen nested under TransactionsView; that param list is typed by the
+    // Ramp feature, so we can't validate the nested payload here.
+    navigateWithDetails(rootNav, [
+      Routes.TRANSACTIONS_VIEW,
+      {
+        screen: Routes.RAMP.RAMPS_ORDER_DETAILS,
+        params: { orderId: fiatOrderId, showCloseButton: true },
+      },
+    ]);
   }, [navigation, fiatOrderId]);
 
   return (

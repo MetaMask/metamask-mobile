@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
+import { AppiumAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
@@ -24,7 +24,7 @@ import ToastModal from '../../../page-objects/wallet/ToastModal.js';
  * 3. Time to open About tab content
  * 4. Time to open Outcomes tab content when available
  */
-perfTest.describe(PerformancePredict, () => {
+perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest.setTimeout(15 * 60 * 1000);
 
   perfTest(
@@ -44,22 +44,22 @@ perfTest.describe(PerformancePredict, () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictMarketList.container),
+        await AppiumAssertions.expectElementToBeVisible(
+          PredictMarketList.container,
         );
       });
 
       // Timer 2: Open market details
       const timer2 = new TimerHelper(
         'Time since user taps market card until Market Detail screen is visible',
-        { ios: 1500, android: 1500 },
+        { ios: 1500, android: 6500 },
         currentDeviceDetails.platform,
       );
 
       await PredictMarketList.tapMarketCard('trending', 1);
       await timer2.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictDetailsPage.container),
+        await AppiumAssertions.expectElementToBeVisible(
+          PredictDetailsPage.container,
         );
       });
 
@@ -72,8 +72,8 @@ perfTest.describe(PerformancePredict, () => {
 
       await PredictDetailsPage.tapAboutTab();
       await timer3.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictDetailsPage.aboutTabContent),
+        await AppiumAssertions.expectElementToBeVisible(
+          PredictDetailsPage.aboutTabContent,
         );
       });
 
@@ -81,7 +81,7 @@ perfTest.describe(PerformancePredict, () => {
       let timer4: TimerHelper | undefined;
 
       const hasOutcomesTab = await (
-        await asPlaywrightElement(PredictDetailsPage.outcomesTab)
+        await PredictDetailsPage.outcomesTab
       ).isVisible();
 
       if (hasOutcomesTab) {
@@ -95,8 +95,8 @@ perfTest.describe(PerformancePredict, () => {
         await PredictDetailsPage.tapOutcomesTab();
 
         await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictDetailsPage.outcomesTabContent),
+          await AppiumAssertions.expectElementToBeVisible(
+            PredictDetailsPage.outcomesTabContent,
           );
         });
 

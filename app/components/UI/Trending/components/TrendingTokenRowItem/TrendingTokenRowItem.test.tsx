@@ -1,8 +1,13 @@
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import TrendingTokenRowItem from './TrendingTokenRowItem';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
+import renderWithProviderBase from '../../../../../util/test/renderWithProvider';
+import TrendingTokenRowItem, {
+  getAssetNavigationParams,
+} from './TrendingTokenRowItem';
+import { getTrendingTokenRowAddButtonTestId } from './TrendingTokenRowItem.testIds';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -12,6 +17,21 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 jest.mock('../../utils/trendingNetworksList', () => ({
   TRENDING_NETWORKS_LIST: [],
 }));
+
+const renderWithProvider: typeof renderWithProviderBase = (
+  component,
+  ...rest
+) =>
+  renderWithProviderBase(
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+      }
+    >
+      {component}
+    </QueryClientProvider>,
+    ...rest,
+  );
 
 const mockTrackTokenClick = jest.fn();
 
@@ -71,62 +91,34 @@ jest.mock('../TrendingTokenLogo', () => {
   };
 });
 
-jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
-  () => {
-    const { View: RNView } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: function MockBadgeWrapper({
-        children,
-        badgeElement,
-        badgePosition,
-      }: {
-        children: unknown;
-        badgeElement: unknown;
-        badgePosition: string;
-      }) {
-        return (
-          <RNView testID="badge-wrapper" data-position={badgePosition}>
-            {children}
-            {badgeElement}
-          </RNView>
-        );
-      },
-      BadgePosition: {
-        BottomRight: 'BottomRight',
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Badges/Badge', () => {
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View: RNView } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: function MockBadge({
-      size,
-      variant,
-      imageSource,
-      isScaled,
+    ...actual,
+    BadgeWrapper: function MockBadgeWrapper({
+      children,
+      badge,
+      position,
     }: {
-      size: string;
-      variant: string;
-      imageSource?: string;
-      isScaled?: boolean;
+      children: React.ReactNode;
+      badge: React.ReactNode;
+      position: string;
     }) {
       return (
-        <RNView
-          testID="network-badge"
-          data-size={size}
-          data-variant={variant}
-          data-image-source={imageSource}
-          data-scaled={isScaled}
-        />
+        <RNView testID="badge-wrapper" data-position={position}>
+          {children}
+          {badge}
+        </RNView>
       );
     },
-    BadgeVariant: {
-      Network: 'Network',
+    BadgeNetwork: function MockBadgeNetwork({
+      src,
+    }: {
+      src?: string | { uri?: string };
+    }) {
+      const imageSource = typeof src === 'string' ? src : src?.uri;
+      return <RNView testID="network-badge" data-image-source={imageSource} />;
     },
   };
 });
@@ -752,7 +744,7 @@ describe('TrendingTokenRowItem', () => {
       mockIsCaipChainId.mockReturnValue(true);
     });
 
-    it('navigates to Asset page with token data when network is already added', () => {
+    it('navigates to Asset page with token data when network is already added', async () => {
       const token = createMockToken({
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
@@ -797,27 +789,18 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x1',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-          pricePercentChange1d: 3.44,
-          isNative: false,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
+        ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates with tokenDetailsSource TrendingSwaps for Swaps trending analytics', () => {
+    it('navigates with tokenDetailsSource TrendingSwaps for Swaps trending analytics', async () => {
       const token = createMockToken({
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         symbol: 'USDC',
@@ -863,26 +846,17 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x1',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-          pricePercentChange1d: 3.44,
-          isNative: false,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending-swaps',
-        }),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.TrendingSwaps),
+          ),
+        ),
       );
     });
 
-    it('navigates to Asset page with isETH true for native ETH on Ethereum mainnet', () => {
+    it('navigates to Asset page with isETH true for native ETH on Ethereum mainnet', async () => {
       const token = createMockToken({
         assetId: 'eip155:1/slip44:60',
         symbol: 'ETH',
@@ -925,27 +899,18 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x1',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'ETH',
-          name: 'Ethereum',
-          decimals: 18,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-          pricePercentChange1d: 3.44,
-          isNative: true,
-          isETH: true,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
+        ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to Asset page with isNative true and isETH false for native token on non-Ethereum chain', () => {
+    it('navigates to Asset page with isNative true and isETH false for native token on non-Ethereum chain', async () => {
       const token = createMockToken({
         assetId: 'eip155:137/slip44:966',
         symbol: 'MATIC',
@@ -988,24 +953,15 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x89',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'MATIC',
-          name: 'Polygon',
-          decimals: 18,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/slip44/966.png',
-          pricePercentChange1d: 3.44,
-          isNative: true,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
+        ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('adds network directly when network is not added and navigates to asset', async () => {
@@ -1070,7 +1026,10 @@ describe('TrendingTokenRowItem', () => {
       await waitFor(() => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(
-          StackActions.push('Asset', expect.any(Object)),
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         );
       });
     });
@@ -1135,7 +1094,7 @@ describe('TrendingTokenRowItem', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('does not navigate when assetParams is null', () => {
+    it('does not navigate when assetParams is undefined', () => {
       mockIsCaipChainId.mockReturnValue(false);
 
       const token = createMockToken({
@@ -1156,7 +1115,7 @@ describe('TrendingTokenRowItem', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('navigates with assetId as address for non-EVM chains', () => {
+    it('navigates with assetId as address for non-EVM chains', async () => {
       const token = createMockToken({
         assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
         symbol: 'BTC',
@@ -1204,27 +1163,18 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: 'bip122:000000000019d6689c085ae165831e93',
-          address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-          symbol: 'BTC',
-          name: 'Bitcoin',
-          decimals: 8,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
-          pricePercentChange1d: 3.44,
-          isNative: true,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
+        ),
       );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates directly when network is not popular but is added', () => {
+    it('navigates directly when network is not popular but is added', async () => {
       const token = createMockToken({
         assetId: 'eip155:999/erc20:0x123',
         symbol: 'TEST',
@@ -1272,25 +1222,16 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
+        ),
+      );
       expect(queryByTestId('network-modal')).toBeNull();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x3e7',
-          address: '0x123',
-          symbol: 'TEST',
-          name: 'Test Token',
-          decimals: 18,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/999/erc20/0x123.png',
-          pricePercentChange1d: 3.44,
-          isNative: false,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
-      );
     });
   });
 
@@ -1813,6 +1754,171 @@ describe('TrendingTokenRowItem', () => {
       expect(queryByTestId('security-badge-icon')).toBeNull();
       expect(queryByText('Risky')).toBeNull();
       expect(queryByText('Malicious')).toBeNull();
+    });
+  });
+
+  describe('Quick Trade button (endAction: quick-trade)', () => {
+    it('does not render the quick trade button when no endAction is provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
+    });
+
+    it('renders the quick trade button when provided', () => {
+      const token = createMockToken();
+      const onPress = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('quick-trade-button')).toBeOnTheScreen();
+    });
+
+    it('calls onPress with the token when the button is pressed', () => {
+      const token = createMockToken();
+      const onPress = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(getByTestId('quick-trade-button'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(token);
+    });
+
+    it('does not trigger row navigation when the quick trade button is pressed', async () => {
+      const token = createMockToken();
+      const onPress = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(getByTestId('quick-trade-button'));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Add to watchlist button (endAction: watchlist)', () => {
+    const renderWatchlistRow = () => {
+      const onPress = jest.fn();
+      const token = createMockToken();
+      const renderResult = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'watchlist', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+      return {
+        onPress,
+        token,
+        addButtonId: getTrendingTokenRowAddButtonTestId(
+          token.assetId as string,
+        ),
+        ...renderResult,
+      };
+    };
+
+    it('does not render the add button when no endAction is provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(
+        queryByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the add button when provided', () => {
+      const { getByTestId, addButtonId } = renderWatchlistRow();
+
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
+    });
+
+    it('calls onPress with the token when the button is pressed', () => {
+      const { getByTestId, onPress, token, addButtonId } = renderWatchlistRow();
+
+      fireEvent.press(getByTestId(addButtonId));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(token);
+    });
+
+    it('renders an outline star button matching the perps suggested add affordance (PR 36358)', () => {
+      const { UNSAFE_getByType } = renderWatchlistRow();
+
+      const button = UNSAFE_getByType(ButtonIcon);
+
+      expect(button.props.iconName).toStrictEqual(IconName.Star);
+      // No variant → outline style, mirroring PerpsMarketRowItem.
+      expect(button.props.variant).toBeUndefined();
+      // The star is vertically centered against the row's text columns.
+      expect(button.props.twClassName).toBe('self-center');
+    });
+
+    it('does not trigger row navigation when the add button is pressed', async () => {
+      const { getByTestId, addButtonId } = renderWatchlistRow();
+
+      fireEvent.press(getByTestId(addButtonId));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('renders only the watchlist action when both variants could apply', () => {
+      const { getByTestId, queryByTestId, addButtonId } = renderWatchlistRow();
+
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
+      expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('memoization', () => {
+    it('is wrapped in React.memo to avoid re-renders in hot lists', () => {
+      // React.memo components expose the `react.memo` symbol on `$$typeof`.
+      // This guards against accidentally dropping the memo wrapper, which
+      // would re-render every row on each parent (price feed) update.
+      expect(
+        (TrendingTokenRowItem as unknown as { $$typeof?: symbol }).$$typeof,
+      ).toBe(Symbol.for('react.memo'));
     });
   });
 });

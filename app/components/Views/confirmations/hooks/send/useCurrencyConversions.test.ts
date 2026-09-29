@@ -1,5 +1,7 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
+import { AssetType } from '../../types/token';
+import { useSendContext } from '../../context/send-context';
 import {
   getFiatDisplayValueFn,
   getFiatValueFn,
@@ -12,6 +14,12 @@ jest.mock('../gas/useGasFeeEstimates', () => ({
     gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
   }),
 }));
+
+jest.mock('../../context/send-context', () => ({
+  useSendContext: jest.fn().mockReturnValue({}),
+}));
+
+const mockUseSendContext = jest.mocked(useSendContext);
 
 const mockState = {
   state: evmSendStateMock,
@@ -121,5 +129,72 @@ describe('useCurrencyConversions', () => {
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();
     expect(result.current.getNativeValue).toBeDefined();
+  });
+
+  describe('show fiat on testnets setting', () => {
+    const sepoliaAsset = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0xaa36a7',
+      decimals: 18,
+      fiat: { conversionRate: 3000 },
+      symbol: 'SepoliaETH',
+    } as unknown as AssetType;
+
+    afterEach(() => {
+      mockUseSendContext.mockReturnValue(
+        {} as ReturnType<typeof useSendContext>,
+      );
+    });
+
+    it('does not support conversion for testnet assets when the setting is disabled', () => {
+      mockUseSendContext.mockReturnValue({
+        asset: sepoliaAsset,
+        chainId: '0xaa36a7',
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      const { result } = renderHookWithProvider(
+        () => useCurrencyConversions(),
+        mockState,
+      );
+
+      expect(result.current.conversionSupportedForAsset).toBe(false);
+    });
+
+    it('supports conversion for testnet assets when the setting is enabled', () => {
+      mockUseSendContext.mockReturnValue({
+        asset: sepoliaAsset,
+        chainId: '0xaa36a7',
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      const { result } = renderHookWithProvider(
+        () => useCurrencyConversions(),
+        {
+          state: {
+            ...evmSendStateMock,
+            settings: { showFiatOnTestnets: true },
+          },
+        },
+      );
+
+      expect(result.current.conversionSupportedForAsset).toBe(true);
+    });
+
+    it('supports conversion for mainnet assets regardless of the setting', () => {
+      mockUseSendContext.mockReturnValue({
+        asset: {
+          ...sepoliaAsset,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+        chainId: '0x1',
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      const { result } = renderHookWithProvider(
+        () => useCurrencyConversions(),
+        mockState,
+      );
+
+      expect(result.current.conversionSupportedForAsset).toBe(true);
+    });
   });
 });

@@ -3,9 +3,13 @@ import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ShowWarningBanner from './showWarningBanner';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
+  trackExternalLinkClicked: jest.fn(),
+}));
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -37,10 +41,14 @@ describe('ShowWarningBanner', () => {
 
     fireEvent.press(getByText('Learn more'));
 
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-      }),
+    expect(jest.mocked(trackExternalLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      {
+        location: 'dapp_connection_request',
+        text: 'Learn More',
+        url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+      },
     );
   });
 

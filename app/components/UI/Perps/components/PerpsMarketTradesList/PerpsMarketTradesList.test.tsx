@@ -5,7 +5,7 @@ import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { type OrderFill } from '@metamask/perps-controller';
-import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const mockTrackEvent = jest.fn();
@@ -14,6 +14,11 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
@@ -24,6 +29,7 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   usePerpsMarketFills: jest.fn(() => ({
     fills: [],
     isInitialLoading: false,
+    restHistoryStatus: 'ready',
     refresh: jest.fn(),
     isRefreshing: false,
   })),
@@ -93,17 +99,29 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: (symbol: string) => symbol,
-  PERPS_CONSTANTS: {
-    RecentActivityLimit: 3,
-  },
-  PERPS_EVENT_VALUE: {
-    SCREEN_NAME: {
-      PERPS_MARKET_DETAILS: 'perps_market_details',
+jest.mock('@metamask/perps-controller', () => {
+  const actualConstants = jest.requireActual(
+    '@metamask/perps-controller/constants',
+  );
+
+  return {
+    getPerpsDisplaySymbol: (symbol: string) => symbol,
+    PERPS_CONSTANTS: {
+      RecentActivityLimit: 3,
     },
-  },
-}));
+    PERPS_EVENT_VALUE: {
+      SCREEN_NAME: {
+        PERPS_MARKET_DETAILS: 'perps_market_details',
+      },
+    },
+    HYPERLIQUID_TWAP_LIMITS: {
+      MinDurationMinutes: 5,
+      MaxDurationMinutes: 1440,
+      MinNotionalUsd: 100,
+    },
+    CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
+  };
+});
 
 describe('PerpsMarketTradesList', () => {
   const mockNavigate = jest.fn();
@@ -173,6 +191,7 @@ describe('PerpsMarketTradesList', () => {
   ) => ({
     fills,
     isInitialLoading,
+    restHistoryStatus: 'ready' as const,
     refresh: jest.fn(),
     isRefreshing: false,
   });
@@ -199,6 +218,9 @@ describe('PerpsMarketTradesList', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
+
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -324,7 +346,7 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const iconSizes = screen.getAllByTestId('logo-size');
-      expect(iconSizes[0]).toHaveTextContent('36');
+      expect(iconSizes[0]).toHaveTextContent('40');
     });
 
     it('uses custom icon size when provided', () => {
@@ -336,6 +358,42 @@ describe('PerpsMarketTradesList', () => {
 
       const iconSizes = screen.getAllByTestId('logo-size');
       expect(iconSizes[0]).toHaveTextContent('48');
+    });
+  });
+
+  describe('Aggregated fills', () => {
+    it.each([
+      ['loading', true],
+      ['loaded', false],
+    ])('omits the Aggregated checkbox when %s', (_state, isLoading) => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills, isLoading),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      expect(
+        screen.queryByTestId('perps-market-trades-aggregated-checkbox'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the fills of one order as a single aggregated row', () => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn([
+          { ...mockOrderFills[0], orderId: 'order-1', size: '1.0' },
+          {
+            ...mockOrderFills[0],
+            orderId: 'order-1',
+            size: '0.5',
+            timestamp: mockOrderFills[0].timestamp - 1000,
+          },
+        ]),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      expect(screen.getAllByText('Opened long')).toHaveLength(1);
+      expect(screen.getByText('1.5 ETH')).toBeOnTheScreen();
     });
   });
 
@@ -357,7 +415,7 @@ describe('PerpsMarketTradesList', () => {
       });
     });
 
-    it('navigates to position transaction detail when trade item is pressed', () => {
+    it('navigates to Activity details when trade item is pressed', () => {
       mockUsePerpsMarketFills.mockReturnValue(
         createMockFillsReturn(mockOrderFills),
       );
@@ -368,18 +426,11 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(tradeItem.parent?.parent || tradeItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      // Verify navigation to correct route with transaction param
-      // ID format: {orderId}-{timestamp}-{index}
+      // An open is seeded on its order, so the id names that order.
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
+        Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          transaction: expect.objectContaining({
-            id: expect.stringContaining('fill-1'),
-            type: 'trade',
-            category: 'position_open',
-            title: 'Opened long',
-            asset: 'ETH',
-          }),
+          txIdentifier: 'trade-ETH-OpenLong-order-fill-1',
         }),
       );
     });
@@ -394,18 +445,12 @@ describe('PerpsMarketTradesList', () => {
       const ethTrade = screen.getByText('Closed long');
       fireEvent.press(ethTrade.parent?.parent || ethTrade);
 
-      // Verify navigation with correct transformed transaction data
-      // ID format: {orderId}-{timestamp}-{index}
+      // A close is seeded on the second it landed in, not on an order: HyperLiquid can split one
+      // close across several child orders, so no single order id identifies the row.
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
+        Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          transaction: expect.objectContaining({
-            id: expect.stringContaining('fill-2'),
-            type: 'trade',
-            category: 'position_close',
-            title: 'Closed long',
-            asset: 'ETH',
-          }),
+          txIdentifier: 'trade-ETH-CloseLong-second-1698690000',
         }),
       );
     });
@@ -507,10 +552,16 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const logoKeys = screen.getAllByTestId('logo-key');
-      // ID format: {asset}-{orderId}-{timestamp}-{index}
-      expect(logoKeys[0]).toHaveTextContent('ETH-fill-1-1698700000000-0');
-      expect(logoKeys[1]).toHaveTextContent('ETH-fill-2-1698690000000-1');
-      expect(logoKeys[2]).toHaveTextContent('ETH-fill-3-1698680000000-2');
+      // Recycling key is `{asset}-{transaction id}`; opens name their order, closes their second.
+      expect(logoKeys[0]).toHaveTextContent(
+        'ETH-trade-ETH-OpenLong-order-fill-1',
+      );
+      expect(logoKeys[1]).toHaveTextContent(
+        'ETH-trade-ETH-CloseLong-second-1698690000',
+      );
+      expect(logoKeys[2]).toHaveTextContent(
+        'ETH-trade-ETH-OpenShort-order-fill-3',
+      );
     });
   });
 
@@ -581,7 +632,7 @@ describe('PerpsMarketTradesList', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+    it('tracks Activity Details Opened when a trade is pressed', () => {
       mockUsePerpsMarketFills.mockReturnValue(
         createMockFillsReturn(mockOrderFills),
       );
@@ -592,7 +643,7 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(tradeItem.parent?.parent || tradeItem);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

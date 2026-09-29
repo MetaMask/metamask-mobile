@@ -4,6 +4,14 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyBalanceInfoSheet from './MoneyBalanceInfoSheet';
 import { MoneyBalanceInfoSheetTestIds } from './MoneyBalanceInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+
+const mockTrackBottomSheetViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
@@ -84,6 +92,9 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyBalanceInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+    });
   });
 
   it('renders the container', () => {
@@ -124,5 +135,21 @@ describe('MoneyBalanceInfoSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-go-back'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_BALANCE_INFO_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyBalanceInfoSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_BALANCE_INFO_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyBalanceInfoSheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });

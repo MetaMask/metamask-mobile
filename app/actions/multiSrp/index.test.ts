@@ -6,8 +6,8 @@ import { createMockInternalAccount } from '../../util/test/accountsControllerTes
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
-import { EntropySourceId } from '@metamask/keyring-api';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
+import { EntropySourceId, EthAccountType } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
@@ -41,6 +41,7 @@ const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
 const mockAddNewSecretData = jest.fn();
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
+const mockRunSeedlessOnboardingMigrations = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -63,6 +64,13 @@ const hdKeyringV2 = {
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: (state: unknown) =>
     mockSelectSeedlessOnboardingLoginFlow(state),
+}));
+
+jest.mock('../../core', () => ({
+  Authentication: {
+    runSeedlessOnboardingMigrations: () =>
+      mockRunSeedlessOnboardingMigrations(),
+  },
 }));
 
 jest.mock('../../util/trace', () => ({
@@ -95,10 +103,7 @@ jest.mock('../../multichain-accounts/discovery', () => ({
     mockDiscoverAccounts(entropySource),
 }));
 
-const mockGetSnapKeyring = jest.fn().mockResolvedValue(true);
-
 jest.mock('../../core/Engine', () => ({
-  getSnapKeyring: () => mockGetSnapKeyring(),
   context: {
     KeyringController: {
       addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
@@ -116,9 +121,9 @@ jest.mock('../../core/Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: (
         seed: Uint8Array,
-        type: SecretType,
-        keyringId: string,
-      ) => mockAddNewSecretData(seed, type, keyringId),
+        dataType: EncAccountDataType,
+        options: { keyringId: string },
+      ) => mockAddNewSecretData(seed, dataType, options),
     },
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
@@ -138,25 +143,27 @@ jest.mock('../../core/Engine', () => ({
 
 jest.mocked(Engine);
 
+const mockEvmAccount = {
+  address: mockAddress,
+  type: EthAccountType.Eoa,
+};
+
 const mockMultichainAccountGroup = {
-  getAccounts: jest.fn().mockReturnValue([
-    {
-      address: mockAddress,
-    },
-  ]),
+  getAccounts: jest.fn().mockReturnValue([mockEvmAccount]),
+  get: jest.fn().mockReturnValue(mockEvmAccount),
 };
 
 const mockMultichainAccountWallet = {
   id: toMultichainAccountWalletId(mockEntropySource),
   entropySource: mockEntropySource,
-  getAccountGroup: () => mockMultichainAccountGroup,
+  getMultichainAccountGroup: () => mockMultichainAccountGroup,
 };
 
 describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
-    mockGetSnapKeyring.mockResolvedValue(true);
+    mockRunSeedlessOnboardingMigrations.mockReset();
     mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
     mockCreateMultichainAccountWallet.mockResolvedValue(
       mockMultichainAccountWallet,
@@ -186,16 +193,17 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Assert async operations and callback receive the actual discovered accounts count
       await waitFor(() => {
-        expect(mockGetSnapKeyring).toHaveBeenCalled();
         expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
         expect(mockDiscoverAccounts).toHaveBeenCalledWith(mockEntropySource);
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 5,
+          entropySource: mockEntropySource,
         });
       });
     });
@@ -217,16 +225,17 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Assert async operations and callback receives 0 when discovery fails
       await waitFor(() => {
-        expect(mockGetSnapKeyring).toHaveBeenCalled();
         expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
         expect(mockDiscoverAccounts).toHaveBeenCalledWith(mockEntropySource);
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
+          entropySource: mockEntropySource,
           error: expect.any(Error),
         });
       });
@@ -257,12 +266,42 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0,
+        entropySource: mockEntropySource,
       });
+    });
+
+    it('skips background discovery when skipDiscovery is true', async () => {
+      // Arrange
+      mockDiscoverAccounts.mockResolvedValue(5);
+      const mockCallback = jest.fn();
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(
+        mockSeed,
+        { shouldSelectAccount: true, skipDiscovery: true },
+        mockCallback,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        address: mockAddress,
+        discoveredAccountsCount: 0,
+        entropySource: mockEntropySource,
+      });
+      expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
+        type: 'import',
+        mnemonic: mnemonicPhraseToBytes(mockSeed),
+      });
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
+      expect(mockSyncAccountTreeWithUserStorage).not.toHaveBeenCalled();
+      expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+      expect(mockCallback).not.toHaveBeenCalled();
     });
 
     describe('seedless onboarding login flow', () => {
       beforeEach(() => {
         mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+        mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       });
 
       it('successfully adds seed phrase backup when seedless onboarding is enabled', async () => {
@@ -282,9 +321,10 @@ describe('MultiSRP Actions', () => {
           name: TraceName.OnboardingAddSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
+        expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -316,7 +356,7 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -345,14 +385,13 @@ describe('MultiSRP Actions', () => {
 
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
         );
         expect(mockRemoveMultichainAccountWallet).toHaveBeenCalledWith(
           mockEntropySource,
-          mockAddress,
         );
       });
     });
@@ -360,6 +399,7 @@ describe('MultiSRP Actions', () => {
     it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       mockAddNewSecretData.mockResolvedValue(undefined);
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockDiscoverAccounts.mockResolvedValue(3);
 
       const mockCallback = jest.fn();
@@ -371,9 +411,10 @@ describe('MultiSRP Actions', () => {
         mockCallback,
       );
 
+      expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
-        SecretType.Mnemonic,
+        EncAccountDataType.ImportedSrp,
         {
           keyringId: mockEntropySource,
         },
@@ -381,6 +422,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Verify callback receives the actual discovered count
@@ -388,6 +430,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 3,
+          entropySource: mockEntropySource,
         });
       });
     });
@@ -396,6 +439,7 @@ describe('MultiSRP Actions', () => {
       // Arrange
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       const syncError = new Error('Sync failed');
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockAddNewSecretData.mockRejectedValue(syncError);
 
       // Act & Assert
@@ -404,7 +448,6 @@ describe('MultiSRP Actions', () => {
       );
       expect(mockRemoveMultichainAccountWallet).toHaveBeenCalledWith(
         mockEntropySource,
-        mockAddress,
       );
     });
 
@@ -435,6 +478,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Verify callback receives the actual discovered count
@@ -442,6 +486,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 2,
+          entropySource: mockEntropySource,
         });
       });
     });
@@ -467,6 +512,7 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: mockAddress,
         discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+        entropySource: mockEntropySource,
       });
 
       // Verify callback receives the actual discovered count
@@ -474,6 +520,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: mockAddress,
           discoveredAccountsCount: 3,
+          entropySource: mockEntropySource,
         });
       });
     });

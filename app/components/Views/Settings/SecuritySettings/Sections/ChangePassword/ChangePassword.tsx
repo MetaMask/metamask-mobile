@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { createStyles } from './styles';
 import {
   Button,
@@ -17,7 +18,7 @@ import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testI
 
 const ChangePassword = () => {
   const styles = createStyles();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const resetPassword = (): void => {
     navigation.navigate(Routes.SETTINGS.CHANGE_PASSWORD);

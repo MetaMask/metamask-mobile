@@ -10,6 +10,7 @@ export enum PROTOCOLS {
   ETHEREUM = 'ethereum',
   DAPP = 'dapp',
   METAMASK = 'metamask',
+  SOLANA = 'solana',
 }
 
 export enum ACTIONS {
@@ -35,15 +36,19 @@ export enum ACTIONS {
   HOME = 'home',
   ASSET = 'asset',
   SWAP = 'swap',
+  BATCH_SELL = 'batch-sell',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
   CREATE_ACCOUNT = 'create-account',
   PERPS = 'perps',
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
+  PERPS_OUTREACH = 'perps-outreach',
   REWARDS = 'rewards',
   SHIELD = 'shield',
   PREDICT = 'predict',
+  PRIVACY = 'privacy',
+  NOTIFICATIONS_SETTINGS = 'notifications-settings',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
@@ -53,6 +58,7 @@ export enum ACTIONS {
   NFT = 'nft',
   AGENTIC_CLI = 'agentic-cli',
   ON_RAMP = 'on-ramp',
+  MONEY = 'money',
 }
 
 export const PREFIXES = {
@@ -73,10 +79,12 @@ export const PREFIXES = {
   [ACTIONS.HOME]: '',
   [ACTIONS.ASSET]: '',
   [ACTIONS.SWAP]: '',
+  [ACTIONS.BATCH_SELL]: '',
   [ACTIONS.CREATE_ACCOUNT]: '',
   [ACTIONS.PERPS]: '',
   [ACTIONS.PERPS_MARKETS]: '',
   [ACTIONS.PERPS_ASSET]: '',
+  [ACTIONS.PERPS_OUTREACH]: '',
   [ACTIONS.REWARDS]: '',
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
@@ -92,5 +100,7 @@ export const PREFIXES = {
   [ACTIONS.NFT]: '',
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
+  [ACTIONS.MONEY]: '',
+  [ACTIONS.NOTIFICATIONS_SETTINGS]: '',
   METAMASK: 'metamask://',
 };

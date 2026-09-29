@@ -25,7 +25,9 @@ import NftGridItem from './NftGridItem';
 import NftGridItemBottomSheet from './NftGridItemBottomSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
+import NftSkeletonCell from './NftSkeletonCell';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
@@ -34,7 +36,10 @@ import {
   Box,
   Button,
   ButtonVariant,
+  IconName as DSIconName,
 } from '@metamask/design-system-react-native';
+import BasicFunctionalityEmptyState from '../BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import BaseControlBar from '../shared/BaseControlBar';
@@ -49,6 +54,12 @@ import { useNftDetection } from '../../hooks/useNftDetection';
 interface NftGridProps {
   isFullView?: boolean;
 }
+
+interface SkeletonSentinel {
+  skeleton: true;
+  key: string;
+}
+type GridItem = Nft | SkeletonSentinel;
 
 const NftGridContent = ({
   allFilteredCollectibles,
@@ -88,7 +99,7 @@ const NftGridContent = ({
 
 const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
   ({ isFullView = false }, ref) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
     const [longPressedCollectible, setLongPressedCollectible] =
@@ -105,6 +116,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     const selectedGroupAccounts = useSelector(
       selectSelectedAccountGroupInternalAccounts,
+    );
+    const isBasicFunctionalityEnabled = useSelector(
+      selectBasicFunctionalityEnabled,
     );
 
     const addressesOverride = useMemo(
@@ -246,21 +260,47 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
     }, [navigation, trackEvent, createEventBuilder]);
 
+    // Append skeleton sentinels after real NFTs so empty slots shimmer while detecting.
+    // Count = slots needed to complete the current row + 6 full extra slots.
+    // e.g. 5 NFTs → 1 to complete row + 6 = 7 skeletons; 4 NFTs → 2 + 6 = 8.
+    const gridData: GridItem[] = useMemo(() => {
+      if (!isNftFetchingProgress) return collectiblesToRender;
+      const rowRemainder = (3 - (collectiblesToRender.length % 3)) % 3;
+      const skeletonCount = rowRemainder + 6;
+      const skeletonItems: SkeletonSentinel[] = Array.from(
+        { length: skeletonCount },
+        (_, i) => ({ skeleton: true as const, key: `skeleton-${i}` }),
+      );
+      return [...collectiblesToRender, ...skeletonItems];
+    }, [collectiblesToRender, isNftFetchingProgress]);
+
     const nftRowList = useMemo(
       () => (
         <FlashList
-          data={collectiblesToRender}
-          renderItem={({ item, index }) => (
-            <Box twClassName={['pr-2', 'px-1', 'pl-2'][index % 3]}>
-              <NftGridItem
-                item={item}
-                onLongPress={handleLongPress}
-                source={nftSource}
-              />
-            </Box>
-          )}
-          keyExtractor={(item) =>
-            `${item.chainId}-${item.address}-${item.tokenId}`
+          data={gridData}
+          renderItem={({ item, index }: { item: GridItem; index: number }) => {
+            const padding = ['pr-2', 'px-1', 'pl-2'][index % 3];
+            if ('skeleton' in item) {
+              return (
+                <Box twClassName={padding}>
+                  <NftSkeletonCell />
+                </Box>
+              );
+            }
+            return (
+              <Box twClassName={padding}>
+                <NftGridItem
+                  item={item}
+                  onLongPress={handleLongPress}
+                  source={nftSource}
+                />
+              </Box>
+            );
+          }}
+          keyExtractor={(item: GridItem) =>
+            'skeleton' in item
+              ? item.key
+              : `${item.chainId}-${item.address}-${item.tokenId}`
           }
           testID={RefreshTestId}
           refreshControl={
@@ -277,7 +317,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
         />
       ),
       [
-        collectiblesToRender,
+        gridData,
         isFullView,
         handleLongPress,
         nftSource,
@@ -288,6 +328,17 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       ],
     );
 
+    // NFT media, metadata, and detection all come from external services, so
+    // the whole surface is unavailable rather than partially usable.
+    if (!isBasicFunctionalityEnabled) {
+      return (
+        <BasicFunctionalityEmptyState
+          title={strings('wallet.nfts_unavailable_title')}
+          iconName={DSIconName.Warning}
+        />
+      );
+    }
+
     return (
       <>
         <BaseControlBar
@@ -296,7 +347,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           additionalButtons={
             <ButtonIcon
               testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSizes.Md}
               onPress={goToAddCollectible}
               iconName={IconName.Add}
             />

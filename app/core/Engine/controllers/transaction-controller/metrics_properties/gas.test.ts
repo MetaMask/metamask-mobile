@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  UserFeeLevel,
+} from '@metamask/transaction-controller';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 import { getGasMetricsProperties } from './gas';
@@ -15,6 +18,14 @@ const mockGetNativeTokenAddress = getNativeTokenAddress as jest.MockedFunction<
 >;
 
 const MOCK_CHECKSUMMED_ADDRESS = '0x44934055428d2eF7E3F97D98187f2459007fa49F';
+const MOCK_ACCOUNT_ID = 'gas-metrics-account';
+
+const hexBalanceToDecimalAmount = (balance: string): string => {
+  const wei = BigInt(balance);
+  const whole = wei / 10n ** 18n;
+  const fraction = (wei % 10n ** 18n).toString().padStart(18, '0');
+  return `${whole}.${fraction}`;
+};
 
 const createMockState = (
   balance: string = '0x100000000000000000',
@@ -28,6 +39,35 @@ const createMockState = (
           accountsByChainId: {
             [chainId]: {
               [address]: { balance },
+            },
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: MOCK_ACCOUNT_ID,
+            accounts: {
+              [MOCK_ACCOUNT_ID]: {
+                id: MOCK_ACCOUNT_ID,
+                address,
+                type: 'eip155:eoa',
+              },
+            },
+          },
+        },
+        AssetsController: {
+          assetsInfo: {
+            'eip155:1/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ether',
+              decimals: 18,
+            },
+          },
+          assetsBalance: {
+            [MOCK_ACCOUNT_ID]: {
+              'eip155:1/slip44:60': {
+                amount: hexBalanceToDecimalAmount(balance),
+              },
             },
           },
         },
@@ -111,6 +151,16 @@ describe('getGasMetricsProperties', () => {
     const result = getGasMetricsProperties(request);
 
     expect(result.properties.gas_fee_selected).toBe('medium');
+  });
+
+  it('returns dapp_proposed as gas_fee_selected when the dapp suggested fee is selected', () => {
+    const request = createMockRequest({
+      userFeeLevel: UserFeeLevel.DAPP_SUGGESTED,
+    });
+
+    const result = getGasMetricsProperties(request);
+
+    expect(result.properties.gas_fee_selected).toBe('dapp_proposed');
   });
 
   it('returns gas_payment_tokens_available from gasFeeTokens', () => {

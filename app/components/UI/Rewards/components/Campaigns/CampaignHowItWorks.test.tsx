@@ -4,7 +4,7 @@ import type { Json } from '@metamask/utils';
 import CampaignHowItWorks, {
   CAMPAIGN_HOW_IT_WORKS_TEST_IDS,
 } from './CampaignHowItWorks';
-import type { OndoCampaignHowItWorks } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignHowItWorks as CampaignHowItWorksData } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -38,8 +38,8 @@ const makeRichText = (text: string): Json => ({
 });
 
 const createHowItWorks = (
-  overrides: Partial<OndoCampaignHowItWorks> = {},
-): OndoCampaignHowItWorks => ({
+  overrides: Partial<CampaignHowItWorksData> = {},
+): CampaignHowItWorksData => ({
   title: 'How it works',
   description: 'Hold tokens to earn rewards',
   steps: [

@@ -132,7 +132,7 @@
     "reset_wallet": "Đặt lại ví",
     "cant_proceed": "Bạn không thể tiếp tục cho đến khi nhập từ “Xóa”. Bằng hành động này, bạn đang chọn xóa ví hiện tại của mình.",
     "invalid_password": "Mật khẩu không hợp lệ",
-    "type_delete": "Hãy nhập “%{delete}” để xóa vĩnh viễn ví hiện tại",
+    "type_delete": "Hãy nhập “{{delete}}” để xóa vĩnh viễn ví hiện tại",
     "delete_my": "Xóa ví của tôi",
     "are_you_sure": "Bạn có chắc chắn muốn xóa ví của mình không?",
     "your_current_wallet": "Ví, các tài khoản và tài sản hiện tại của bạn sẽ ",
@@ -501,13 +501,13 @@
     "security_heading": "Bảo mật",
     "privacy_heading": "Quyền riêng tư",
     "failed_to_fetch_chain_id": "Không thể tìm nạp mã chuỗi. URL RPC của bạn có chính xác không?",
-    "endpoint_returned_different_chain_id": "Điểm cuối đã trả về một mã chuỗi khác: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Điểm cuối đã trả về một mã chuỗi khác: {{chainIdReturned}}",
     "chain_id_required": "Bạn cần nhập mã chuỗi. Giá trị này phải khớp với mã chuỗi do mạng trả về. Bạn có thể nhập một số thập phân hoặc số thập lục phân bắt đầu bằng “0x”.",
     "invalid_hex_number": "Số thập lục phân không hợp lệ.",
     "invalid_hex_number_leading_zeros": "Số thập lục phân không hợp lệ. Xóa mọi chữ số 0 ở đầu.",
     "invalid_number": "Số không hợp lệ. Hãy nhập một số thập phân hoặc số thập lục phân bắt đầu bằng “0x”.",
     "invalid_number_leading_zeros": "Số không hợp lệ. Xóa mọi chữ số 0 ở đầu.",
-    "invalid_number_range": "Số không hợp lệ. Nhập một số trong khoảng từ 1 đến %{maxSafeChainId}",
+    "invalid_number_range": "Số không hợp lệ. Nhập một số trong khoảng từ 1 đến {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Ẩn các token không có số dư",
     "hide_zero_balance_tokens_desc": "Chặn các token không có số dư hiển thị trong danh sách token của bạn."
   },
@@ -1532,7 +1532,7 @@
     "title": "Xem những tính năng mới"
   },
   "invalid_network": {
-    "title": "Bạn phải nhập lại mã chuỗi \n cho mạng tùy chỉnh \n %{network}.",
+    "title": "Bạn phải nhập lại mã chuỗi \n cho mạng tùy chỉnh \n {{network}}.",
     "message": "Để bảo vệ bạn khỏi các nhà cung cấp mạng độc hại hoặc bị lỗi, mã chuỗi giờ đây là yêu cầu bắt buộc đối với tất cả các mạng tùy chỉnh.",
     "hint": "Bạn có thể tìm được mã chuỗi của hầu hết các mạng phổ biến trên ",
     "edit_network_button": "Chỉnh sửa mạng",
@@ -1561,7 +1561,7 @@
     "cancel": "Hủy",
     "approve": "Phê duyệt",
     "unrecognized_chain": "Không nhận ra mạng tùy chỉnh này",
-    "invalid_chain": "%{rpcUrl} cho mã chuỗi này không khớp với danh sách chainid.network",
+    "invalid_chain": "{{rpcUrl}} cho mã chuỗi này không khớp với danh sách chainid.network",
     "alert_recommend": "Bạn nên",
     "alert_verify": "xác minh mã chuỗi"
   },

@@ -2,13 +2,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-///: END:ONLY_INCLUDE_IF
 import {
   CodefiTokenPricesServiceV2,
   TokenListService,
@@ -17,15 +15,9 @@ import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import {
-  TransactionController,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { AcceptOptions } from '@metamask/approval-controller';
 import {
@@ -36,15 +28,14 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import {
-  QrKeyring,
-  QrKeyringDeferredPromiseBridge,
-} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { setHasLinkedSocialLoginProfile } from '../../actions/settings';
+import { registerLinkedSocialLoginProfileSync } from '../../util/basicFunctionality/linkedSocialLoginProfile';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -74,13 +65,7 @@ import {
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import {
-  CaipAssetType,
-  Hex,
-  Json,
-  KnownCaipNamespace,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { CaipAssetType, Hex, Json, parseCaipAssetType } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 import { captureException } from '@sentry/react-native';
 
@@ -102,6 +87,7 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
+import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -132,27 +118,32 @@ import {
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
-import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
-import { ApprovalControllerInit } from './controllers/approval-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
+import { defiPositionsControllerV2Init } from './controllers/defi-positions-controller-v2/defi-positions-controller-v2-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
-import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
-import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import {
+  predictLiveDataServiceInit,
+  predictMarketDataServiceInit,
+  predictOrderServiceInit,
+  predictPortfolioServiceInit,
+} from './controllers/predict-service-init';
+import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
+import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
+import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
@@ -163,7 +154,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
@@ -180,18 +170,22 @@ import { authenticationControllerInit } from './controllers/identity/authenticat
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
+import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
+import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
-import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
+import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
-import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
+import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
+import { proofOfOwnershipServiceInit } from './controllers/proof-of-ownership-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
@@ -199,15 +193,22 @@ import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
+import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
+import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { kycServiceInit } from './controllers/kyc/kyc-service-init';
+import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
+import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -243,13 +244,14 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   /**
    * The app state event listener.
-   * This is used to handle app state changes in snaps lifecycle hooks.
+   * Keeps ClientController's isUiOpen in sync and handles app state changes in
+   * snaps lifecycle hooks.
    */
   appStateListener: NativeEventSubscription;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
@@ -321,9 +323,6 @@ export class Engine {
       initFunctions: {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
-        RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
-        NetworkController: networkControllerInit,
-        AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -333,18 +332,17 @@ export class Engine {
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
-        ApprovalController: ApprovalControllerInit,
-        GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
-        TransactionController: TransactionControllerInit,
         TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
+        MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
         GeolocationApiService: geolocationApiServiceInit,
+        SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
@@ -357,6 +355,7 @@ export class Engine {
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
+        DeFiPositionsControllerV2: defiPositionsControllerV2Init,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
@@ -378,6 +377,7 @@ export class Engine {
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        SnapAccountService: snapAccountServiceInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
@@ -385,7 +385,6 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
-        SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -394,28 +393,41 @@ export class Engine {
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         ClientController: clientControllerInit,
-        // PhishingController hydrates known recipients from AddressBookController
-        // during construction for address poisoning checks.
-        AddressBookController: addressBookControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        PredictMarketDataService: predictMarketDataServiceInit,
+        PredictLiveDataService: predictLiveDataServiceInit,
+        PredictPortfolioService: predictPortfolioServiceInit,
+        PredictOrderService: predictOrderServiceInit,
+        RecurringOrdersDataService: recurringOrdersDataServiceInit,
+        LimitOrdersDataService: limitOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
+        RewardsMoneyController: rewardsMoneyControllerInit,
+        RewardsMoneyDataService: rewardsMoneyDataServiceInit,
         DelegationController: DelegationControllerInit,
-        ConnectivityController: connectivityControllerInit,
+        NetworkConnectionBannerController:
+          networkConnectionBannerControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
+        ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
+        NeoBankService: neoBankServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
+        UiSlotsController: uiSlotsControllerInit,
+        QrSyncController: qrSyncControllerInit,
+        QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        KycService: kycServiceInit,
+        KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
@@ -426,41 +438,70 @@ export class Engine {
 
     const analyticsController = messengerClientsByName.AnalyticsController;
     const loggingController = messengerClientsByName.LoggingController;
-    const remoteFeatureFlagController =
-      messengerClientsByName.RemoteFeatureFlagController;
-    const accountsController = messengerClientsByName.AccountsController;
+    const remoteFeatureFlagController = this.#wallet.getInstance(
+      'RemoteFeatureFlagController',
+    );
+    const accountsController = this.#wallet.getInstance('AccountsController');
     const accountTreeController = messengerClientsByName.AccountTreeController;
-    const approvalController = messengerClientsByName.ApprovalController;
+    const approvalController = this.#wallet.getInstance('ApprovalController');
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
     const accountTrackerController =
       messengerClientsByName.AccountTrackerController;
-    const gasFeeController = messengerClientsByName.GasFeeController;
+    const gasFeeController = this.#wallet.getInstance('GasFeeController');
     const signatureController = messengerClientsByName.SignatureController;
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;
-    const transactionController = messengerClientsByName.TransactionController;
-    const seedlessOnboardingController =
-      messengerClientsByName.SeedlessOnboardingController;
+    const transactionController = this.#wallet.getInstance(
+      'TransactionController',
+    );
+    const seedlessOnboardingController = this.#wallet.getInstance(
+      'SeedlessOnboardingController',
+    );
     const geolocationController = messengerClientsByName.GeolocationController;
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
     const rewardsController = messengerClientsByName.RewardsController;
+    const rewardsMoneyController =
+      messengerClientsByName.RewardsMoneyController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
     const selectedNetworkController =
       messengerClientsByName.SelectedNetworkController;
     const preferencesController = messengerClientsByName.PreferencesController;
     const delegationController = messengerClientsByName.DelegationController;
-    const addressBookController = messengerClientsByName.AddressBookController;
-    const connectivityController =
-      messengerClientsByName.ConnectivityController;
+    const addressBookController = this.#wallet.getInstance(
+      'AddressBookController',
+    );
+    const connectivityController = this.#wallet.getInstance(
+      'ConnectivityController',
+    );
+    const networkConnectionBannerController =
+      messengerClientsByName.NetworkConnectionBannerController;
+    const subscriptionController = this.#wallet.getInstance(
+      'SubscriptionController',
+    );
+    const subscriptionDelegationService = this.#wallet.getInstance(
+      'SubscriptionDelegationService',
+    );
+    const subscriptionService = this.#wallet.getInstance('SubscriptionService');
+    const shieldController = this.#wallet.getInstance('ShieldController');
+    const claimsController = this.#wallet.getInstance('ClaimsController');
+    const configRegistryController = this.#wallet.getInstance(
+      'ConfigRegistryController',
+    );
+    const configRegistryApiService = this.#wallet.getInstance(
+      'ConfigRegistryApiService',
+    );
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
+    const proofOfOwnershipService =
+      messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
+    const neoBankService = messengerClientsByName.NeoBankService;
     const rampsController = messengerClientsByName.RampsController;
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
@@ -468,9 +509,14 @@ export class Engine {
     const authenticatedUserStorageService =
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
+    const uiSlotsController = messengerClientsByName.UiSlotsController;
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
+    const kycService = messengerClientsByName.KycService;
+    const kycController = messengerClientsByName.KycController;
+    const qrSyncProvisioningService =
+      messengerClientsByName.QrSyncProvisioningService;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -501,7 +547,7 @@ export class Engine {
     const nftController = messengerClientsByName.NftController;
     const nftDetectionController =
       messengerClientsByName.NftDetectionController;
-    const networkController = messengerClientsByName.NetworkController;
+    const networkController = this.#wallet.getInstance('NetworkController');
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
@@ -544,11 +590,22 @@ export class Engine {
       messengerClientsByName.MultichainTransactionsController;
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
+    const snapAccountService = messengerClientsByName.SnapAccountService;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
       messengerClientsByName.NetworkEnablementController;
     networkEnablementController.init();
+
+    // The wallet constructs AccountsController; emit the startup breadcrumb
+    // (account counts) that the deleted local init used to log.
+    Logger.log('AccountsController initialized', {
+      hasSelectedAccount:
+        !!accountsController.state.internalAccounts.selectedAccount,
+      accountsCount: Object.keys(
+        accountsController.state.internalAccounts.accounts,
+      ).length,
+    });
 
     // Initialize RPC domain validation cache for analytics
     // This runs asynchronously and doesn't block Engine initialization
@@ -571,6 +628,10 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
+      NetworkConnectionBannerController: networkConnectionBannerController,
+      ConfigRegistryController: configRegistryController,
+      ConfigRegistryApiService: configRegistryApiService,
+      SentinelApiService: messengerClientsByName.SentinelApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
@@ -586,6 +647,11 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
+      SubscriptionController: subscriptionController,
+      SubscriptionDelegationService: subscriptionDelegationService,
+      SubscriptionService: subscriptionService,
+      ShieldController: shieldController,
+      ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -617,6 +683,7 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
+      SnapAccountService: snapAccountService,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -626,8 +693,12 @@ export class Engine {
       MoneyAccountController: moneyAccountController,
       MoneyAccountBalanceService:
         messengerClientsByName.MoneyAccountBalanceService,
+      MoneyAccountApiDataService:
+        messengerClientsByName.MoneyAccountApiDataService,
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
+      DeFiPositionsControllerV2:
+        messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
@@ -635,21 +706,36 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
+      PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      PredictOrderService: messengerClientsByName.PredictOrderService,
+      RecurringOrdersDataService:
+        messengerClientsByName.RecurringOrdersDataService,
+      LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
       RewardsController: rewardsController,
+      RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
+      ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
+      NeoBankService: neoBankService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
+      UiSlotsController: uiSlotsController,
+      QrSyncController: messengerClientsByName.QrSyncController,
+      QrSyncProvisioningService: qrSyncProvisioningService,
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      KycService: kycService,
+      KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
@@ -661,13 +747,6 @@ export class Engine {
         delete childControllers[name];
       }
     });
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionsReceived',
-      (incomingTransactions: TransactionMeta[]) => {
-        NotificationManager.gotIncomingTransaction(incomingTransactions);
-      },
-    );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -758,8 +837,6 @@ export class Engine {
             } catch {
               // Chain may not be configured locally — skip balance refresh
             }
-
-            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(
@@ -821,6 +898,15 @@ export class Engine {
       },
     );
 
+    ///: END:ONLY_INCLUDE_IF
+
+    // Seed ClientController with the current foreground state; the listener
+    // below only fires on changes and the app launches already active.
+    this.controllerMessenger.call(
+      'ClientController:setUiOpen',
+      AppState.currentState === 'active',
+    );
+
     this.appStateListener = AppState.addEventListener(
       'change',
       (state: AppStateStatus) => {
@@ -828,6 +914,16 @@ export class Engine {
           return;
         }
 
+        // Keep ClientController's isUiOpen in sync with the app being in the
+        // foreground, so controllers gating on it (e.g.
+        // NetworkConnectionBannerController) only run while a user is
+        // looking at the wallet.
+        this.controllerMessenger.call(
+          'ClientController:setUiOpen',
+          state === 'active',
+        );
+
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
@@ -835,23 +931,138 @@ export class Engine {
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
         if (isUnlocked) {
-          return this.controllerMessenger.call(
+          this.controllerMessenger.call(
             'SnapController:setClientActive',
             state === 'active',
           );
+
+          if (state === 'active' && isOnboardingComplete()) {
+            // If the client is active and unlocked, request a periodic update
+            // of the Snaps registry.
+            this.controllerMessenger
+              .call('SnapRegistryController:requestPeriodicUpdate')
+              .catch((error) => {
+                captureException(error);
+              });
+          }
         }
+        ///: END:ONLY_INCLUDE_IF
       },
     );
-    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
-    this.startPolling();
     this.handleVaultBackup();
+
+    const clearRemoteFeatureFlags = () => {
+      // @ts-expect-error TS2589 - BaseController.update causes deep type recursion.
+      remoteFeatureFlagController.update(
+        (state: RemoteFeatureFlagControllerState) => ({
+          ...state,
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
+      );
+    };
+
+    const syncWithBasicFunctionality = (enabled: boolean) => {
+      if (enabled) {
+        remoteFeatureFlagController.enable();
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags()
+          .catch((error) => Logger.log('Feature flags update failed: ', error));
+      } else {
+        remoteFeatureFlagController.disable();
+        clearRemoteFeatureFlags();
+      }
+    };
+
+    // The wallet constructs RemoteFeatureFlagController but does not trigger the
+    // initial fetch; that stays client-side.
+    const isBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
+      store.getState(),
+    );
+    if (!isBasicFunctionalityEnabled) {
+      clearRemoteFeatureFlags();
+      Logger.log('Feature flag controller disabled.');
+    } else if (isRemoteFeatureFlagOverrideActivated) {
+      Logger.log('Remote feature flags override activated.');
+    } else {
+      remoteFeatureFlagController
+        .updateRemoteFeatureFlags()
+        .then(() => {
+          Logger.log('Feature flags updated');
+        })
+        .catch((error) => Logger.log('Feature flags update failed: ', error));
+    }
+
+    let previousBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+    store.subscribe(() => {
+      const currentBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
+        store.getState(),
+      );
+
+      if (
+        currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
+      ) {
+        return;
+      }
+
+      previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
+      syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
+    });
+
+    // Force-refresh flags when a canonical profile id first becomes available
+    let previousCanonicalProfileId =
+      Object.entries(
+        this.controllerMessenger.call('AuthenticationController:getState')
+          .srpSessionData ?? {},
+      )?.[0]?.[1]?.profile?.canonicalProfileId ?? '';
+
+    this.controllerMessenger.subscribe(
+      'AuthenticationController:stateChange',
+      ({ srpSessionData }) => {
+        const canonicalProfileId =
+          Object.entries(srpSessionData ?? {})?.[0]?.[1]?.profile
+            ?.canonicalProfileId ?? '';
+        if (canonicalProfileId === previousCanonicalProfileId) {
+          return;
+        }
+
+        previousCanonicalProfileId = canonicalProfileId;
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags(true)
+          .catch((error) => Logger.log('Feature flags update failed: ', error));
+      },
+    );
+
+    // Only persist the signal here. Consolidation itself stays with
+    // useBasicFunctionalityConsolidation, which already waits for an unlocked
+    // wallet past onboarding, so a sign-in mid-onboarding cannot migrate a new
+    // wallet as an existing one.
+    registerLinkedSocialLoginProfileSync(this.controllerMessenger, () => {
+      if (store.getState().settings?.hasLinkedSocialLoginProfile !== true) {
+        store.dispatch(setHasLinkedSocialLoginProfile(true));
+      }
+    });
 
     Engine.instance = this;
   }
 
   handleVaultBackup() {
+    // Coalesces the burst of identical-vault stateChange events
+    // KeyringController fires during a single unlock into one backup
+    // attempt. Reset on lock so the *next* unlock still performs a fresh
+    // keychain check (needed to self-heal an Android Keystore-invalidated
+    // backup), and reset on a failed attempt so a later stateChange for the
+    // same vault can retry instead of waiting for the next lock/unlock
+    // — see Engine.test.ts for the regression tests.
+    let lastVault: string | undefined;
+
+    this.controllerMessenger.subscribe('KeyringController:lock', () => {
+      lastVault = undefined;
+    });
+
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
@@ -864,25 +1075,37 @@ export class Engine {
           return;
         }
 
-        // Back up vault if it exists
+        if (state.vault === lastVault) {
+          return;
+        }
+
+        const vaultBeingBackedUp = state.vault;
+        lastVault = vaultBeingBackedUp;
         backupVault(state)
-          .then(() => {
-            Logger.log('Engine', 'Vault back up successful');
+          .then((result) => {
+            if (!result.success) {
+              throw new Error(result.error ?? 'Vault backup failed');
+            }
+            Logger.log(
+              'Engine',
+              result.skipped
+                ? `Vault back up skipped (${result.skipReason})`
+                : 'Vault back up successful',
+            );
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
+            // Don't let a failed attempt block retries until the next
+            // lock/unlock — allow the next stateChange for this vault to
+            // try again. Guarded so we don't clobber a newer attempt that
+            // may have already claimed lastVault while this one was
+            // in flight.
+            if (lastVault === vaultBeingBackedUp) {
+              lastVault = undefined;
+            }
           });
       },
     );
-  }
-
-  startPolling() {
-    const { TransactionController } = this.context;
-
-    TransactionController.stopIncomingTransactionPolling();
-
-    // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling();
   }
 
   configureControllersOnNetworkChange() {
@@ -1149,21 +1372,6 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async (): Promise<SnapKeyring> => {
-    // TODO: Replace `getKeyringsByType` with `withKeyring`
-    let [snapKeyring] = this.keyringController.getKeyringsByType(
-      KeyringTypes.snap,
-    );
-    if (!snapKeyring) {
-      await this.keyringController.addNewKeyring(KeyringTypes.snap);
-      // TODO: Replace `getKeyringsByType` with `withKeyring`
-      [snapKeyring] = this.keyringController.getKeyringsByType(
-        KeyringTypes.snap,
-      );
-    }
-    return snapKeyring as SnapKeyring;
-  };
-
   /**
    * Removes an account from state / storage.
    *
@@ -1233,6 +1441,10 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
+      SubscriptionController,
+      ShieldController,
+      ClaimsController,
+      KycController,
     } = this.context;
 
     // Remove all permissions.
@@ -1257,6 +1469,7 @@ export class Engine {
       methodData: {},
       transactions: [],
       transactionBatches: [],
+      batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
@@ -1266,14 +1479,25 @@ export class Engine {
 
     // Accounts:
     MoneyAccountController.clearState();
+
+    // Subscriptions:
+    SubscriptionController.stopAllPolling();
+    SubscriptionController.clearState();
+
+    // Shield:
+    ShieldController.clearState();
+
+    // Claims:
+    ClaimsController.clearState();
+
+    // KYC:
+    KycController.clearState();
   };
 
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.appStateListener?.remove();
-    ///: END:ONLY_INCLUDE_IF
 
     // Cleanup AppStateWebSocketManager
     this.appStateWebSocketManager.cleanup();
@@ -1372,30 +1596,6 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
   }
-
-  /**
-   * Gathers metadata (primarily connectivity status) about the enabled networks and persists it to state.
-   */
-  async lookupEnabledNetworks(): Promise<void> {
-    const { NetworkController, NetworkEnablementController } = this.context;
-
-    const chainIds = Object.entries(
-      NetworkEnablementController.state?.enabledNetworkMap?.[
-        KnownCaipNamespace.Eip155
-      ] ?? {},
-    )
-      .filter(([, isEnabled]) => isEnabled)
-      .map(([networkChainId]) => networkChainId as Hex);
-
-    await Promise.allSettled(
-      chainIds
-        .map((chainId) =>
-          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
-        )
-        .filter((id): id is string => !!id)
-        .map((id) => NetworkController.lookupNetwork(id)),
-    );
-  }
 }
 
 /**
@@ -1440,9 +1640,13 @@ export default {
       BridgeController,
       BridgeStatusController,
       CardController,
+      UiSlotsController,
+      ConfigRegistryController,
       ConnectivityController,
+      NetworkConnectionBannerController,
       CurrencyRateController,
       DeFiPositionsController,
+      DeFiPositionsControllerV2,
       DelegationController,
       EarnController,
       GasFeeController,
@@ -1461,10 +1665,14 @@ export default {
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
+      RewardsMoneyController,
       SeedlessOnboardingController,
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
+      SubscriptionController,
+      ShieldController,
+      ClaimsController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
@@ -1476,6 +1684,7 @@ export default {
       ClientController,
       SocialController,
       ComplianceController,
+      KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
@@ -1496,6 +1705,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      QrSyncController,
     } = instance.context;
 
     return {
@@ -1512,9 +1722,13 @@ export default {
       AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
+      ConfigRegistryController: ConfigRegistryController.state,
       ConnectivityController: ConnectivityController.state,
+      NetworkConnectionBannerController:
+        NetworkConnectionBannerController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
+      DeFiPositionsControllerV2: DeFiPositionsControllerV2.state,
       DelegationController: DelegationController.state,
       EarnController: EarnController.state,
       GasFeeController: GasFeeController.state,
@@ -1533,10 +1747,14 @@ export default {
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,
+      RewardsMoneyController: RewardsMoneyController.state,
       SeedlessOnboardingController: SeedlessOnboardingController.state,
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
+      SubscriptionController: SubscriptionController.state,
+      ShieldController: ShieldController.state,
+      ClaimsController: ClaimsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
@@ -1548,8 +1766,10 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       CardController: CardController.state,
+      UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
+      KycController: KycController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
@@ -1571,6 +1791,7 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      QrSyncController: QrSyncController.state,
     };
   },
 
@@ -1632,16 +1853,7 @@ export default {
   // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
   getQrKeyringScanner: () => qrKeyringBridge,
 
-  lookupEnabledNetworks: () => {
-    assertEngineExists(instance);
-    instance.lookupEnabledNetworks();
-  },
-
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring: () => {
-    assertEngineExists(instance);
-    return instance.getSnapKeyring();
-  },
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);

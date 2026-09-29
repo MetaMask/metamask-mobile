@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,15 +8,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   Box,
   Label,
   TextColor,
   Text,
   TextVariant,
-  FontWeight,
   TextField,
   Button,
   ButtonVariant,
@@ -30,17 +26,22 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
+  TitleStandard,
+  TextButton,
+  BottomSheetFooter,
 } from '@metamask/design-system-react-native';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import Engine from '../../../core/Engine';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import SecureContentView from '../../UI/SecureContentView';
 import {
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
+  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
@@ -63,7 +64,7 @@ import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
  * the backup seed phrase flow
  */
 const ManualBackupStep1 = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -90,6 +91,13 @@ const ManualBackupStep1 = () => {
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
 
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.MANUAL_BACKUP_STEP1,
+    contentReady: true,
+    isEmpty: false,
+    fullyDisplayed: ready,
+  });
+
   const steps = MANUAL_BACKUP_STEPS;
 
   const seedPhrase = route?.params?.seedPhrase;
@@ -101,11 +109,16 @@ const ManualBackupStep1 = () => {
     [saveOnboardingEvent],
   );
 
-  const tryExportSeedPhrase = async (pwd: string): Promise<string[]> => {
-    const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(pwd);
-    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
-  };
+  const tryExportSeedPhrase = useCallback(
+    async (pwd: string): Promise<string[]> => {
+      const { KeyringController } = Engine.context;
+      const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase({
+        password: pwd,
+      });
+      return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+    },
+    [],
+  );
 
   const showWhatIsSeedphrase = useCallback(() => {
     showSeedphraseDefinition({
@@ -127,39 +140,50 @@ const ManualBackupStep1 = () => {
         return;
       }
 
-      const wordsFromParams = route.params?.words;
-      if (wordsFromParams && wordsFromParams.length > 0) {
-        if (!cancelled) {
-          setWords(wordsFromParams);
-          setReady(true);
+      let credentials: Awaited<ReturnType<typeof Authentication.getPassword>> =
+        null;
+      let exportError: unknown;
+      let exportedWords: string[] | undefined;
+
+      try {
+        credentials = await Authentication.getPassword();
+      } catch (e) {
+        exportError = e;
+      }
+
+      if (cancelled) return;
+
+      if (
+        !exportError &&
+        credentials &&
+        typeof credentials.password === 'string'
+      ) {
+        try {
+          exportedWords = await tryExportSeedPhrase(credentials.password);
+        } catch (e) {
+          exportError = e;
         }
+      }
+
+      if (cancelled) return;
+
+      if (exportedWords) {
+        setWords(exportedWords);
+        setReady(true);
         return;
       }
 
-      try {
-        const credentials = await Authentication.getPassword();
-        if (cancelled) return;
-
-        if (credentials && !cancelled) {
-          const exportedWords = await tryExportSeedPhrase(credentials.password);
-          if (!cancelled) {
-            setWords(exportedWords);
-            setReady(true);
-          }
-        } else if (!cancelled) {
-          setView(CONFIRM_PASSWORD);
-          setReady(true);
-        }
-      } catch (e) {
-        const srpRecoveryError = new Error(
-          'Error trying to recover SRP from keyring-controller',
+      if (exportError) {
+        trackErrorAsAnalytics(
+          'ManualBackupStep1: SRP recovery failed',
+          exportError instanceof Error
+            ? exportError.message
+            : JSON.stringify(exportError),
         );
-        Logger.error(srpRecoveryError);
-        if (!cancelled) {
-          setView(CONFIRM_PASSWORD);
-          setReady(true);
-        }
       }
+
+      setView(CONFIRM_PASSWORD);
+      setReady(true);
     };
 
     initializeSeedPhrase();
@@ -167,8 +191,7 @@ const ManualBackupStep1 = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [seedPhrase, tryExportSeedPhrase]);
 
   useEffect(() => {
     // Check if user has funds
@@ -194,6 +217,7 @@ const ManualBackupStep1 = () => {
       routeParams: route.params,
       isMetricsEnabled,
       track,
+      successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
     });
   }, [navigation, route.params, isMetricsEnabled, track]);
 
@@ -211,39 +235,41 @@ const ManualBackupStep1 = () => {
     track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
-  const isMountedRef = useRef(true);
+  const tryUnlockWithPassword = useCallback(
+    async (pwd: string) => {
+      setReady(false);
+      let unlockError: unknown;
+      let exportedSeedPhrase: string[] | undefined;
 
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
+      try {
+        exportedSeedPhrase = await tryExportSeedPhrase(pwd);
+      } catch (e) {
+        unlockError = e;
+      }
+
+      if (exportedSeedPhrase) {
+        setWords(exportedSeedPhrase);
+        setView(SEED_PHRASE);
+      } else if (unlockError) {
+        let msg = strings('reveal_credential.warning_incorrect_password');
+        if (
+          String(unlockError).toLowerCase() !==
+          WRONG_PASSWORD_ERROR.toLowerCase()
+        ) {
+          msg = strings('reveal_credential.unknown_error');
+        }
+        setWarningIncorrectPassword(msg);
+      }
+      setReady(true);
     },
-    [],
+    [tryExportSeedPhrase],
   );
 
-  const tryUnlockWithPassword = async (pwd: string) => {
-    setReady(false);
-    try {
-      const exportedSeedPhrase = await tryExportSeedPhrase(pwd);
-      if (!isMountedRef.current) return;
-      setWords(exportedSeedPhrase);
-      setView(SEED_PHRASE);
-      setReady(true);
-    } catch (e) {
-      if (!isMountedRef.current) return;
-      let msg = strings('reveal_credential.warning_incorrect_password');
-      if (String(e).toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
-        msg = strings('reveal_credential.unknown_error');
-      }
-      setWarningIncorrectPassword(msg);
-      setReady(true);
-    }
-  };
-
-  const tryUnlock = () => {
+  const tryUnlock = useCallback(() => {
     if (password) {
       tryUnlockWithPassword(password);
     }
-  };
+  }, [password, tryUnlockWithPassword]);
 
   const renderSeedPhraseConcealer = () => (
     <SeedPhraseConcealer
@@ -264,11 +290,7 @@ const ManualBackupStep1 = () => {
             marginBottom={5}
             twClassName="flex-1"
           >
-            <Box
-              marginBottom={2}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="flex-1"
-            >
+            <Box marginBottom={2}>
               <Label color={TextColor.TextDefault}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
@@ -299,11 +321,7 @@ const ManualBackupStep1 = () => {
               )}
             </Box>
           </Box>
-          <Box
-            marginTop={0}
-            justifyContent={BoxJustifyContent.End}
-            twClassName="flex-1"
-          >
+          <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
             <Button
               variant={ButtonVariant.Primary}
               onPress={tryUnlock}
@@ -320,92 +338,83 @@ const ManualBackupStep1 = () => {
     </KeyboardAvoidingView>
   );
 
+  const showRemindLaterButton = !hasFunds && !backupFlow && !settingsBackup;
+
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
-      <Box twClassName="flex-1">
-        <Box
-          twClassName="flex-1 flex-col gap-4"
-          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
-        >
-          <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-            {strings('manual_backup_step_1.action')}
-          </Text>
-          <Box justifyContent={BoxJustifyContent.Start}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('manual_backup_step_1.info-1')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryDefault}
-                onPress={showWhatIsSeedphrase}
-              >
-                {strings('manual_backup_step_1.info-2')}{' '}
-              </Text>
-              {strings('manual_backup_step_1.info-3')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('manual_backup_step_1.info-4')}
-              </Text>
-            </Text>
+      <Box
+        twClassName="flex-1 flex-col gap-4"
+        testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
+      >
+        <Box gap={1}>
+          <TitleStandard
+            title={strings('manual_backup_step_1.action')}
+            bottomLabel={strings('manual_backup_step_1.description')}
+          />
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={showWhatIsSeedphrase}
+            testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
+          >
+            {strings('manual_backup_step_1.what_is_srp')}
+          </TextButton>
+        </Box>
+        {seedPhraseHidden ? (
+          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+            {renderSeedPhraseConcealer()}
           </Box>
-          {seedPhraseHidden ? (
-            <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
-              {renderSeedPhraseConcealer()}
-            </Box>
-          ) : (
-            <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
-              <FlatList
-                data={words}
-                numColumns={3}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
+        ) : (
+          <SecureContentView style={tw.style('w-full')}>
+            <FlatList
+              data={words}
+              numColumns={3}
+              keyExtractor={(_, index) => index.toString()}
+              columnWrapperStyle={tw.style('gap-2')}
+              contentContainerStyle={tw.style('gap-2')}
+              renderItem={({ item, index }) => (
+                <TextField
+                  value={item}
+                  isReadOnly
+                  twClassName="flex-1"
+                  startAccessory={
                     <Text
-                      variant={TextVariant.BodyMd}
+                      variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                       maxFontSizeMultiplier={1}
                     >
                       {index + 1}.
                     </Text>
+                  }
+                  inputElement={
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                      key={index}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                       minimumFontScale={0.7}
-                      style={tw.style('flex-1')}
-                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}
+                      twClassName="flex-1"
+                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                     >
                       {item}
                     </Text>
-                  </Box>
-                )}
-              />
-            </Box>
-          )}
-        </Box>
+                  }
+                />
+              )}
+            />
+          </SecureContentView>
+        )}
       </Box>
-      <Box
-        twClassName={`px-0 gap-4 flex justify-center items-center ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={goNext}
-          isFullWidth
-          size={ButtonSize.Lg}
-          isDisabled={seedPhraseHidden}
-          testID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-        >
-          {strings('manual_backup_step_1.continue')}
-        </Button>
-        {!hasFunds && !backupFlow && !settingsBackup && (
+      <Box twClassName={`gap-4 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}>
+        <BottomSheetFooter
+          twClassName="px-0"
+          primaryButtonProps={{
+            children: strings('manual_backup_step_1.continue'),
+            onPress: goNext,
+            size: ButtonSize.Lg,
+            isDisabled: seedPhraseHidden,
+            testID: ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+          }}
+        />
+        {showRemindLaterButton ? (
           <Button
             variant={ButtonVariant.Tertiary}
             onPress={showRemindLater}
@@ -415,25 +424,27 @@ const ManualBackupStep1 = () => {
           >
             {strings('account_backup_step_1.remind_me_later')}
           </Button>
-        )}
+        ) : null}
       </Box>
     </Box>
   );
 
   return (
     <SafeAreaView
-      edges={showHeader ? { bottom: 'additive' } : ['top', 'bottom']}
+      edges={{ bottom: 'additive' }}
       style={tw.style('bg-default flex-1')}
     >
-      {showHeader ? (
-        <HeaderStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-          backButtonProps={{
-            testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
-          }}
-        />
-      ) : null}
+      <HeaderStandard
+        includesTopInset
+        onBack={showHeader ? () => navigation.goBack() : undefined}
+        backButtonProps={
+          showHeader
+            ? {
+                testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+              }
+            : undefined
+        }
+      />
       {ready ? (
         <>
           <Box twClassName="flex-1 px-4">

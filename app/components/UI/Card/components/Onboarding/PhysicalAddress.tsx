@@ -6,6 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../../util/navigation/navUtils';
 import {
   Box,
   Label,
@@ -14,8 +19,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Checkbox,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -41,26 +47,22 @@ import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import Logger from '../../../../../util/Logger';
 import { Linking } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Checkbox from '../../../../../component-library/components/Checkbox';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
-import {
-  COINME_TERMS_URL,
-  CRB_ACCOUNT_OPENING_URL,
-  CRB_PRIVACY_NOTICE_URL,
-  CRB_PRIVACY_POLICY_URL,
-  CRB_TERMS_URL,
-} from '../../constants';
+import { COINME_TERMS_URL, CRB_PRIVACY_POLICY_URL } from '../../constants';
+import { getCardUsDisclosureUrls } from '../../util/registrationSettings';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
+const VERIFICATION_POLLING_TIMEOUT_MS = 6000;
 
 export const AddressFields = ({
   addressLine1,
@@ -87,7 +89,7 @@ export const AddressFields = ({
   handleZipCodeChange: (text: string) => void;
   selectedCountry: Region | null;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { data: registrationSettings } = useRegistrationSettings();
 
   const regions: Region[] = useMemo(() => {
@@ -109,8 +111,9 @@ export const AddressFields = ({
     setOnValueChange((region) => {
       handleStateChange(region.key);
     });
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions,
       }),
     );
@@ -126,17 +129,19 @@ export const AddressFields = ({
           )}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleAddressLine1Change}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={addressLine1}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.address_line_1_label',
-          )}
-          testID="address-line-1-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.address_line_1_label',
+            ),
+            testID: 'address-line-1-input',
+          }}
         />
       </Box>
       {/* Address Line 2 */}
@@ -147,17 +152,19 @@ export const AddressFields = ({
           )}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleAddressLine2Change}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={addressLine2}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.address_line_2_label',
-          )}
-          testID="address-line-2-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.address_line_2_label',
+            ),
+            testID: 'address-line-2-input',
+          }}
         />
       </Box>
       {/* City */}
@@ -166,17 +173,19 @@ export const AddressFields = ({
           {strings('card.card_onboarding.physical_address.city_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleCityChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={city}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.city_label',
-          )}
-          testID="city-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.city_label',
+            ),
+            testID: 'city-input',
+          }}
         />
       </Box>
       {/* State */}
@@ -198,17 +207,19 @@ export const AddressFields = ({
           {strings('card.card_onboarding.physical_address.zip_code_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleZipCodeChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={zipCode}
-          keyboardType="default"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.physical_address.zip_code_label',
-          )}
-          testID="zip-code-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.physical_address.zip_code_label',
+            ),
+            testID: 'zip-code-input',
+          }}
         />
       </Box>
       {/* Country (read-only) */}
@@ -223,7 +234,7 @@ export const AddressFields = ({
 };
 
 const PhysicalAddress = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const dispatch = useDispatch();
   const { user, setUser, sdk } = useCardSDK();
@@ -246,14 +257,21 @@ const PhysicalAddress = () => {
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
+  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
   const { data: registrationSettings } = useRegistrationSettings();
 
-  // Cleanup polling interval on unmount
+  // Cleanup polling timers on unmount
   useEffect(
     () => () => {
+      isMountedRef.current = false;
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
+      }
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
       }
     },
     [],
@@ -270,9 +288,14 @@ const PhysicalAddress = () => {
     }
   }, [user]);
 
-  const eSignConsentDisclosureUSUrl = useMemo(
-    () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
-    [registrationSettings?.links?.us?.eSignConsentDisclosure],
+  const {
+    eSignConsentDisclosureUSUrl,
+    crbTermsUrl,
+    crbAccountOpeningUrl,
+    crbNoticeOfPrivacyUrl,
+  } = useMemo(
+    () => getCardUsDisclosureUrls(registrationSettings),
+    [registrationSettings],
   );
 
   const {
@@ -306,22 +329,22 @@ const PhysicalAddress = () => {
   }, []);
 
   const openCrbTerms = useCallback(() => {
-    if (CRB_TERMS_URL) {
-      Linking.openURL(CRB_TERMS_URL);
+    if (crbTermsUrl) {
+      Linking.openURL(crbTermsUrl);
     }
-  }, []);
+  }, [crbTermsUrl]);
 
   const openCrbAccountOpening = useCallback(() => {
-    if (CRB_ACCOUNT_OPENING_URL) {
-      Linking.openURL(CRB_ACCOUNT_OPENING_URL);
+    if (crbAccountOpeningUrl) {
+      Linking.openURL(crbAccountOpeningUrl);
     }
-  }, []);
+  }, [crbAccountOpeningUrl]);
 
   const openCrbPrivacyNotice = useCallback(() => {
-    if (CRB_PRIVACY_NOTICE_URL) {
-      Linking.openURL(CRB_PRIVACY_NOTICE_URL);
+    if (crbNoticeOfPrivacyUrl) {
+      Linking.openURL(crbNoticeOfPrivacyUrl);
     }
-  }, []);
+  }, [crbNoticeOfPrivacyUrl]);
 
   const openCrbPrivacyPolicy = useCallback(() => {
     if (CRB_PRIVACY_POLICY_URL) {
@@ -445,9 +468,11 @@ const PhysicalAddress = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
+            }),
+          )
           .build(),
       );
 
@@ -507,9 +532,7 @@ const PhysicalAddress = () => {
         });
 
         if (storeResult.success) {
-          // Sync controller state: sets CardController.isAuthenticated = true
-          // and providerData.baanx.location so route guards read the correct state.
-          await Engine.context.CardController.validateAndRefreshSession().catch(
+          await Engine.context.CardController.syncSessionAfterExternalAuth().catch(
             () => undefined,
           );
         }
@@ -536,9 +559,16 @@ const PhysicalAddress = () => {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
+          if (pollingTimeoutRef.current) {
+            clearTimeout(pollingTimeoutRef.current);
+            pollingTimeoutRef.current = null;
+          }
+          if (!isMountedRef.current) {
+            return;
+          }
           setIsPollingVerification(false);
           dispatch(resetOnboardingState());
-          navigation.reset({
+          resetWithRoutes(navigation, {
             index: 0,
             routes: [route],
           });
@@ -604,13 +634,11 @@ const PhysicalAddress = () => {
             pollVerificationState();
           }, VERIFICATION_POLLING_INTERVAL_MS);
 
-          // Set a timeout to stop polling after a reasonable time and redirect to Card Home
-          // This prevents infinite polling if the status never changes
-          setTimeout(() => {
+          pollingTimeoutRef.current = setTimeout(() => {
             if (pollingIntervalRef.current) {
               stopPollingAndNavigate({ name: Routes.CARD.HOME });
             }
-          }, VERIFICATION_POLLING_INTERVAL_MS * 2); // Poll 2 times max (6 seconds total)
+          }, VERIFICATION_POLLING_TIMEOUT_MS);
         }
 
         return;
@@ -633,9 +661,11 @@ const PhysicalAddress = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.RESIDENTIAL_ADDRESS,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.RESIDENTIAL_ADDRESS,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -658,8 +688,8 @@ const PhysicalAddress = () => {
       {/* Electronic Consent (US only) */}
       {selectedCountry?.key === 'US' && (
         <Checkbox
-          isChecked={electronicConsent}
-          onPress={handleElectronicConsentToggle}
+          isSelected={electronicConsent}
+          onChange={handleElectronicConsentToggle}
           label={
             <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
@@ -684,15 +714,15 @@ const PhysicalAddress = () => {
               </Text>
             </Box>
           }
-          style={tw.style('h-auto flex flex-row items-start')}
+          twClassName="h-auto flex-row items-start"
           testID="physical-address-electronic-consent-checkbox"
         />
       )}
       {/* Coinme Terms Consent (US only) */}
       {selectedCountry?.key === 'US' && (
         <Checkbox
-          isChecked={coinmeConsent}
-          onPress={handleCoinmeConsentToggle}
+          isSelected={coinmeConsent}
+          onChange={handleCoinmeConsentToggle}
           label={
             <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
@@ -717,15 +747,15 @@ const PhysicalAddress = () => {
               </Text>
             </Box>
           }
-          style={tw.style('h-auto flex flex-row items-start')}
+          twClassName="h-auto flex-row items-start"
           testID="physical-address-coinme-terms-checkbox"
         />
       )}
       {/* CRB Consent (US only) */}
       {selectedCountry?.key === 'US' && (
         <Checkbox
-          isChecked={crbConsent}
-          onPress={handleCrbConsentToggle}
+          isSelected={crbConsent}
+          onChange={handleCrbConsentToggle}
           label={
             <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
               <Text
@@ -776,7 +806,7 @@ const PhysicalAddress = () => {
               </Text>
             </Box>
           }
-          style={tw.style('h-auto flex flex-row items-start')}
+          twClassName="h-auto flex-row items-start"
           testID="physical-address-crb-consent-checkbox"
         />
       )}

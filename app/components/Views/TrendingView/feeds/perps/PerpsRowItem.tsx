@@ -12,10 +12,19 @@ interface PerpsRowItemProps {
   market: PerpsMarketData;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
+  /**
+   * `params.source_section` for market-details navigation.
+   * Identifies which Explore section the tap originated from.
+   */
+  sourceSection?: string;
 }
 
 /** Compact list row for perps — used by pill-toggled lists and search. */
-const PerpsRowItem: React.FC<PerpsRowItemProps> = ({ market, onCardPress }) => {
+const PerpsRowItem: React.FC<PerpsRowItemProps> = ({
+  market,
+  onCardPress,
+  sourceSection,
+}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   return (
     <PerpsMarketRowItem
@@ -24,7 +33,11 @@ const PerpsRowItem: React.FC<PerpsRowItemProps> = ({ market, onCardPress }) => {
         onCardPress?.();
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
-          params: { market, source: PERPS_EVENT_VALUE.SOURCE.EXPLORE },
+          params: {
+            market,
+            source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+            ...(sourceSection && { source_section: sourceSection }),
+          },
         });
       }}
       showBadge={false}

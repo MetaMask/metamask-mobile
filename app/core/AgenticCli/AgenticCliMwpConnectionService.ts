@@ -12,11 +12,8 @@ import { Connection } from '../SDKConnectV2/services/connection';
 import logger, { redactUrl } from '../SDKConnectV2/services/logger';
 import { ConnectionInfo } from '../SDKConnectV2/types/connection-info';
 import { IHostApplicationAdapter } from '../SDKConnectV2/types/host-application-adapter';
+import { AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS } from '../SDKConnectV2/adapters/host-application-adapter';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
-import {
-  hideAgenticCliConnectionLoading,
-  showAgenticCliConnectionLoading,
-} from './agenticCliLoading';
 import {
   hideAgenticCliOtpCode,
   showAgenticCliOtpCode,
@@ -29,6 +26,8 @@ import {
   handleAgenticCliQrLogin,
   waitForKeyringUnlock,
 } from './AgenticCliQrLoginService';
+
+const AGENTIC_CLI_DISPLAY_NAME = 'Agent wallet';
 
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
@@ -126,7 +125,15 @@ export async function handleAgenticCliConnectDeeplink(
 
     connInfo = {
       id: connReq.sessionRequest.id,
-      metadata: connReq.metadata,
+      metadata: {
+        ...connReq.metadata,
+        dapp: {
+          ...connReq.metadata.dapp,
+          // The Agent wallet is a known first-party flow, so do not surface the
+          // self-reported "MM CLI" name in product UI.
+          name: AGENTIC_CLI_DISPLAY_NAME,
+        },
+      },
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
 
@@ -139,7 +146,9 @@ export async function handleAgenticCliConnectDeeplink(
     }
 
     // --- Create MWP connection and connect (untrusted) ---
-    showAgenticCliConnectionLoading(connInfo);
+    deps.hostapp.showConnectionLoading(connInfo, {
+      autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS,
+    });
     agenticCliStage = 'create-mwp-connection';
     conn = await Connection.create(
       connInfo,
@@ -221,7 +230,7 @@ export async function handleAgenticCliConnectDeeplink(
     }
   } finally {
     if (connInfo) {
-      hideAgenticCliConnectionLoading(connInfo);
+      deps.hostapp.hideConnectionLoading(connInfo);
       hideAgenticCliOtpCode(connInfo);
     }
   }

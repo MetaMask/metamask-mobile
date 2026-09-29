@@ -8,6 +8,9 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from './';
+import PredictMarketSingle from '../PredictMarketSingle';
+import PredictMarketMultiple from '../PredictMarketMultiple';
+import PredictMarketSportCard from '../PredictMarketSportCard';
 import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -259,6 +262,14 @@ function setupPredictMarketTest(
 }
 
 describe('PredictMarket', () => {
+  it('does not re-render the market card when props are unchanged', () => {
+    const { rerender } = setupPredictMarketTest(mockSingleMarket);
+
+    rerender(<PredictMarket market={mockSingleMarket} />);
+
+    expect(PredictMarketSingle).toHaveBeenCalledTimes(1);
+  });
+
   it('renders PredictMarketSingle for markets with one outcome', () => {
     const { getByTestId } = setupPredictMarketTest(mockSingleMarket);
 
@@ -342,5 +353,56 @@ describe('PredictMarket', () => {
 
     expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
     expect(queryByTestId('predict-market-sport-card')).toBeNull();
+  });
+
+  it('passes buy handler props to the selected child card', () => {
+    const onBuyButtonPress = jest.fn();
+
+    setupPredictMarketTest(mockSingleMarket, {
+      onBuyButtonPress,
+    });
+
+    expect(PredictMarketSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+  });
+
+  it('passes buy handler props to multi-outcome and sport cards', () => {
+    const onBuyButtonPress = jest.fn();
+
+    setupPredictMarketTest(mockMultipleMarket, {
+      onBuyButtonPress,
+    });
+    expect(PredictMarketMultiple).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+
+    setupPredictMarketTest(mockNflMarket, {
+      onBuyButtonPress,
+    });
+
+    expect(PredictMarketSportCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+
+    setupPredictMarketTest(mockCryptoUpDownMarket, {
+      onBuyButtonPress,
+    });
+
+    expect(PredictCryptoUpDownMarketCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
   });
 });

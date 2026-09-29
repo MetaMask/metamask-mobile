@@ -47,7 +47,9 @@ export const ThemeContext = React.createContext<any>(undefined);
  */
 export const getAssetFromTheme = (
   appTheme: AppThemeKey,
-  osColorScheme: ColorSchemeName,
+  // `Appearance.getColorScheme()` (and therefore `useColorScheme`) can resolve
+  // to `null`/`undefined`, which RN 0.83 no longer includes in `ColorSchemeName`.
+  osColorScheme: ColorSchemeName | null | undefined,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   light: any,

@@ -24,6 +24,7 @@ const TestComponent = ({
   image,
   isFullscreen,
   renderHeader,
+  renderRightComponent,
   onDismiss,
 }: {
   shouldOpen?: boolean;
@@ -32,6 +33,7 @@ const TestComponent = ({
   image?: string;
   isFullscreen?: boolean;
   renderHeader?: () => React.ReactNode;
+  renderRightComponent?: () => React.ReactNode;
   onDismiss?: () => void;
 }) => {
   const ref = useRef<PredictPreviewSheetRef>(null);
@@ -56,6 +58,7 @@ const TestComponent = ({
         image={image}
         isFullscreen={isFullscreen}
         renderHeader={renderHeader}
+        renderRightComponent={renderRightComponent}
         onDismiss={onDismiss}
         testID="preview-sheet"
       >
@@ -144,6 +147,39 @@ describe('PredictPreviewSheet', () => {
     });
   });
 
+  it('insets the header content to 16px from the screen edge when there is no image', async () => {
+    render(<TestComponent shouldOpen title="Yes · 25 bps decrease" />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('preview-sheet-header-content'),
+      ).toBeOnTheScreen();
+    });
+    // The header itself contributes 8px, so the content adds the remaining 8px.
+    expect(screen.getByTestId('preview-sheet-header-content')).toHaveStyle({
+      paddingLeft: 8,
+    });
+  });
+
+  it('does not inset the header content when an image is rendered', async () => {
+    render(
+      <TestComponent
+        shouldOpen
+        title="Yes · 25 bps decrease"
+        image="https://img.example.com/a.png"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('preview-sheet-header-content'),
+      ).toBeOnTheScreen();
+    });
+    expect(screen.getByTestId('preview-sheet-header-content')).not.toHaveStyle({
+      paddingLeft: 8,
+    });
+  });
+
   it('renders custom header via renderHeader prop', async () => {
     const customHeader = () => (
       <Text testID="custom-header">Custom Header</Text>
@@ -168,5 +204,27 @@ describe('PredictPreviewSheet', () => {
     expect(screen.getByTestId('preview-sheet-title')).toHaveTextContent(
       'Default Title',
     );
+  });
+
+  it('renders the right component next to the default title', async () => {
+    render(
+      <TestComponent
+        shouldOpen
+        title="Default Title"
+        renderRightComponent={() => (
+          <Text testID="preview-sheet-right-component">Right</Text>
+        )}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-sheet-title')).toBeOnTheScreen();
+    });
+    expect(screen.getByTestId('preview-sheet-title')).toHaveTextContent(
+      'Default Title',
+    );
+    expect(
+      screen.getByTestId('preview-sheet-right-component'),
+    ).toHaveTextContent('Right');
   });
 });

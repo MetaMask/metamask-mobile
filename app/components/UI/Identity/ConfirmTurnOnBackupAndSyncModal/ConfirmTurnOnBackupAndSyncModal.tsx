@@ -13,17 +13,17 @@ import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncToggle/BackupAndSyncToggle';
 import { InteractionManager } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
-
-import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation<AppNavigationProp>();
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
 
   const dispatch = useThunkDispatch();
-  const surfaceClass = useElevatedSurface();
 
   const enableBasicFunctionality = async () => {
     await dispatch(toggleBasicFunctionality(true));
@@ -54,7 +54,7 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef} twClassName={surfaceClass}>
+    <BottomSheet ref={bottomSheetRef} goBack={navigation.goBack}>
       <ModalContent
         title={turnContent.bottomSheetTitle}
         message={turnContent.bottomSheetMessage}

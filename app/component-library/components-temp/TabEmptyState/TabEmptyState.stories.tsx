@@ -37,7 +37,7 @@ export const Default = {
   args: {
     icon: <ThemedPerpsIcon />,
     description: 'No perpetual positions found',
-    actionButtonText: 'Start Trading',
+    actionButtonText: 'Start trading',
     onAction: () => {
       // eslint-disable-next-line no-console
       console.log('onAction');

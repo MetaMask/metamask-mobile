@@ -26,8 +26,7 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_transfer_money': 'Transfer funds' })[key] ??
-    key,
+    ({ 'confirm.title.money_account_send': 'Send' })[key] ?? key,
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
@@ -40,7 +39,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    totalFiatFormatted: '$42.00',
+    withdrawableFiatFormatted: '$42.00',
   })),
 }));
 
@@ -63,7 +62,7 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     render(<MoneyAccountWithdrawInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith('Transfer funds');
+    expect(useNavbar).toHaveBeenCalledWith('Send');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -127,12 +126,12 @@ describe('MoneyAccountWithdrawInfo', () => {
     expect(lastCall.hasMax).toBe(true);
   });
 
-  it('renders empty balance when totalFiatFormatted is undefined', () => {
+  it('renders empty balance when withdrawableFiatFormatted is undefined', () => {
     const useMoneyAccountBalance = jest.requireMock(
       '../../../../../UI/Money/hooks/useMoneyAccountBalance',
     ).default;
     useMoneyAccountBalance.mockReturnValueOnce({
-      totalFiatFormatted: undefined,
+      withdrawableFiatFormatted: undefined,
     });
 
     const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);

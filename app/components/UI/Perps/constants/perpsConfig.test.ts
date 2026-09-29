@@ -1,4 +1,7 @@
+import { CHASE_ORDER_STATUS } from '@metamask/perps-controller';
 import {
+  CHASE_HISTORY_STATUSES,
+  CHASE_RETAINED_STATUSES,
   PERPS_MIN_AGGREGATORS_FOR_TRUST,
   isTokenTrustworthyForPerps,
 } from './perpsConfig';
@@ -111,5 +114,52 @@ describe('PERPS_MIN_AGGREGATORS_FOR_TRUST', () => {
 
   it('equals 2', () => {
     expect(PERPS_MIN_AGGREGATORS_FOR_TRUST).toBe(2);
+  });
+});
+
+describe('CHASE_RETAINED_STATUSES', () => {
+  it.each(['active', 'termination_pending'] as const)(
+    'contains %s',
+    (status) => {
+      expect(CHASE_RETAINED_STATUSES.has(status)).toBe(true);
+    },
+  );
+
+  it.each([
+    'backgrounded',
+    'canceled',
+    'duration_reached',
+    'failed',
+    'filled',
+    'max_distance_reached',
+    'repricing_limit_reached',
+  ] as const)('excludes %s', (status) => {
+    expect(CHASE_RETAINED_STATUSES.has(status)).toBe(false);
+  });
+});
+
+describe('CHASE_HISTORY_STATUSES', () => {
+  it('contains backgrounded', () => {
+    expect(CHASE_HISTORY_STATUSES.has('backgrounded')).toBe(true);
+  });
+});
+
+describe('Chase status groups', () => {
+  it('partition every controller Chase status without overlap', () => {
+    const retainedStatuses = [...CHASE_RETAINED_STATUSES];
+    const historyStatuses = [...CHASE_HISTORY_STATUSES];
+    const overlap = retainedStatuses.filter((status) =>
+      CHASE_HISTORY_STATUSES.has(status),
+    );
+
+    const partitionedStatuses = new Set([
+      ...retainedStatuses,
+      ...historyStatuses,
+    ]);
+
+    expect(overlap).toEqual([]);
+    expect([...partitionedStatuses].sort()).toEqual(
+      Object.values(CHASE_ORDER_STATUS).sort(),
+    );
   });
 });

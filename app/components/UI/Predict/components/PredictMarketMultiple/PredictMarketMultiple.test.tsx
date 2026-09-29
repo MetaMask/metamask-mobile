@@ -117,6 +117,7 @@ describe('PredictMarketMultiple', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockNavigate.mockClear();
   });
 
@@ -125,11 +126,9 @@ describe('PredictMarketMultiple', () => {
       jest.requireActual<typeof import('../../utils/format')>(
         '../../utils/format',
       );
-    const spy = jest
-      .spyOn(formatModule, 'formatPercentage')
-      .mockImplementation(() => {
-        throw new Error('format failure');
-      });
+    jest.spyOn(formatModule, 'formatPercentage').mockImplementation(() => {
+      throw new Error('format failure');
+    });
 
     const { getByText } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
@@ -137,7 +136,6 @@ describe('PredictMarketMultiple', () => {
     );
 
     expect(getByText('0')).toBeOnTheScreen();
-    spy.mockRestore();
   });
 
   it('render market information correctly', () => {
@@ -178,6 +176,27 @@ describe('PredictMarketMultiple', () => {
       outcomeToken: mockMarket.outcomes[0].tokens[1],
       entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
+  });
+
+  it('opens the buy sheet after calling the buy handler', () => {
+    const onBuyButtonPress = jest.fn();
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictMarketMultiple
+        market={mockMarket}
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    const buttons = UNSAFE_getAllByType(Button);
+    fireEvent.press(buttons[0]);
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
+    expect(mockOpenBuySheet).toHaveBeenCalled();
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -321,6 +340,8 @@ describe('PredictMarketMultiple', () => {
     // Mock user as not eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
     });
     // Mock user has balance
     mockUsePredictBalance.mockReturnValue({
@@ -375,6 +396,8 @@ describe('PredictMarketMultiple', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
@@ -403,6 +426,8 @@ describe('PredictMarketMultiple', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({

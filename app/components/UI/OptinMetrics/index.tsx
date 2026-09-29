@@ -3,10 +3,7 @@ import {
   ScrollView,
   BackHandler,
   Alert,
-  Pressable,
   Platform,
-  Image,
-  StatusBar,
   NativeScrollEvent,
   NativeSyntheticEvent,
   LayoutChangeEvent,
@@ -15,28 +12,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  Button,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonVariant,
+  BottomSheetFooter,
   ButtonSize,
+  ContentVariant,
+  FontWeight,
+  HeaderStandard,
+  ListItemMultiSelect,
+  Text,
+  TextButton,
+  TextColor,
+  TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
-import Checkbox from '../../../component-library/components/Checkbox';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -49,8 +48,6 @@ import {
   discardBufferedTraces,
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
-import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import Device from '../../../util/device';
 import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
@@ -59,16 +56,25 @@ import {
   type RouteProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { RootState } from '../../../reducers';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
-import Logger from '../../../util/Logger';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
+import {
+  discardPendingAppInstall,
+  replayPendingAppInstall,
+} from '../../../util/analytics/appInstallEvent';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 /**
  * View that is displayed in the flow to agree to metrics
  */
 const OptinMetrics = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -79,9 +85,22 @@ const OptinMetrics = () => {
   const tw = useTailwind();
   const metrics = useAnalytics();
 
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.OPTIN_METRICS,
+    contentReady: true,
+    isEmpty: false,
+  });
+
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -94,16 +113,7 @@ const OptinMetrics = () => {
   const [isMarketingChecked, setIsMarketingChecked] = useState(false);
   const [isBasicUsageChecked, setIsBasicUsageChecked] = useState(true);
 
-  const isMediumDevice = useMemo(() => Device.isMediumDevice(), []);
-  const illustrationSize = useMemo(
-    () =>
-      isMediumDevice
-        ? { width: 160, height: 120 }
-        : { width: 200, height: 180 },
-    [isMediumDevice],
-  );
-
-  const getShouldShowQuestionnaire =
+  const { shouldShowQuestionnaire } =
     useOnboardingInterestQuestionnaireEligibility();
 
   /**
@@ -151,6 +161,17 @@ const OptinMetrics = () => {
   const continueNavigation = useCallback(async () => {
     await markMetricsOptInUISeen();
 
+    const successFlow = route?.params?.successFlow;
+    finalizeOnboardingCompletion({
+      successFlow,
+      accountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'OptinMetrics',
+      needsQrProvisioning,
+    });
+
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {
       return onContinue();
@@ -159,7 +180,15 @@ const OptinMetrics = () => {
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  }, [navigation, route?.params]);
+  }, [
+    dispatch,
+    navigation,
+    route?.params,
+    accountType,
+    isBasicFunctionalityEnabled,
+    walletSetupAttributionProps,
+    needsQrProvisioning,
+  ]);
 
   /**
    * Callback on press confirm
@@ -215,57 +244,44 @@ const OptinMetrics = () => {
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
-    if (events?.length) {
-      let delay = 0; // Initialize delay
-      const eventTrackingDelay = 200; // ms delay between each event
-      events.forEach((eventArgs) => {
-        // delay each event to prevent them from
-        // being tracked with the same timestamp
-        // which would cause them to be grouped together
-        // by sentAt time in the Segment dashboard
-        // as precision is only to the milisecond
-        // and loop seems to runs faster than that
-        setTimeout(() => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
-            eventArgs[0],
-          ).build();
-          metrics.trackEvent(event);
-        }, delay);
-        delay += eventTrackingDelay;
+    if (events?.length && isBasicUsageChecked) {
+      const attributionProps =
+        getWalletSetupAttributionPropsFromStore(isMarketingChecked);
+      scheduleBufferedOnboardingEventReplay({
+        events,
+        attributionProps,
+        trackEvent: (event) => metrics.trackEvent(event),
       });
     }
-    dispatch(clearOnboardingEvents());
 
-    let shouldShowInterestQuestionnaire = false;
+    // Emit App Installed for an install captured before consent existed, or
+    // drop it when the user declines, same as the buffers handled above.
     if (isBasicUsageChecked) {
-      try {
-        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-      } catch (error) {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      }
+      await replayPendingAppInstall();
+    } else {
+      discardPendingAppInstall();
     }
 
-    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+    dispatch(clearOnboardingEvents());
+
+    if (isBasicUsageChecked && shouldShowQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
       });
     } else {
-      continueNavigation();
+      await continueNavigation();
     }
   }, [
-    isBasicUsageChecked,
-    isMarketingChecked,
-    events,
     metrics,
+    isBasicUsageChecked,
+    shouldShowQuestionnaire,
     dispatch,
-    continueNavigation,
+    isMarketingChecked,
     accountType,
-    getShouldShowQuestionnaire,
+    events,
     navigation,
+    continueNavigation,
   ]);
 
   /**
@@ -311,23 +327,6 @@ const OptinMetrics = () => {
   }, [isBasicUsageChecked]);
 
   const isMarketingDisabled = !isBasicUsageChecked;
-
-  const renderActionButtons = useCallback(
-    () => (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={onConfirm}
-          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID}
-          style={tw.style('flex-1')}
-          size={ButtonSize.Lg}
-        >
-          {strings('privacy_policy.continue')}
-        </Button>
-      </Box>
-    ),
-    [onConfirm, tw],
-  );
 
   /**
    * Content size change event for the ScrollView.
@@ -375,17 +374,17 @@ const OptinMetrics = () => {
     [isEndReached],
   );
 
-  const rootStyle = useMemo(
-    () =>
-      tw.style('flex-1 bg-default', {
-        paddingTop:
-          Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
-      }),
-    [tw],
-  );
+  const rootStyle = useMemo(() => tw.style('flex-1 bg-default'), [tw]);
+
+  const goToDefaultSettings = () => {
+    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
+    });
+  };
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
+      <HeaderStandard includesTopInset title="" />
       <ScrollView
         style={tw.style('flex-1')}
         scrollEventThrottle={150}
@@ -394,81 +393,30 @@ const OptinMetrics = () => {
         onScroll={onScroll}
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
-        <Box twClassName="mx-5 flex-1 gap-y-4 pb-20">
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName={isMediumDevice ? 'my-2' : 'my-3'}
-          >
-            <Image
-              source={PrivacyIllustration}
-              style={tw.style('self-center', {
-                width: illustrationSize.width,
-                height: illustrationSize.height,
-              })}
-              resizeMode="contain"
-            />
-          </Box>
-          <Text
-            variant={TextVariant.DisplayMd}
-            color={TextColor.TextDefault}
-            fontWeight={FontWeight.Bold}
-            twClassName="mt-2"
+        <Box twClassName="flex-1 gap-4 px-4 pb-6">
+          <TitleStandard
+            title={strings('privacy_policy.description_title')}
+            bottomLabel={strings('privacy_policy.description_content_1')}
             testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
-          >
-            {strings('privacy_policy.description_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={
-              MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
-            }
-          >
-            {strings('privacy_policy.description_content_1')}
-          </Text>
-          <Box>
-            <Pressable
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-background-alternative rounded-xl p-4 mb-4',
-                  pressed && 'opacity-70',
-                )
-              }
-              onPress={handleBasicUsageToggle}
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
-              }
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Between}
-                gap={4}
-              >
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                  >
-                    {strings('privacy_policy.gather_basic_usage_title')}
-                  </Text>
-                </Box>
-                <Checkbox
-                  onPress={handleBasicUsageToggle}
-                  isChecked={isBasicUsageChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                />
-              </Box>
+            bottomLabelProps={{
+              testID:
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
+            }}
+          />
+          <ListItemMultiSelect
+            variant={ContentVariant.MultiLine}
+            isSelected={isBasicUsageChecked}
+            onPress={handleBasicUsageToggle}
+            twClassName="rounded-xl border border-muted"
+            title={strings('privacy_policy.gather_basic_usage_title')}
+            description={
               <Text
                 variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="mt-1"
               >
                 {strings('privacy_policy.gather_basic_usage_description') + ' '}
-                <Text
-                  color={TextColor.PrimaryDefault}
+                <TextButton
                   variant={TextVariant.BodySm}
                   onPress={(e) => {
                     e?.stopPropagation?.();
@@ -476,63 +424,54 @@ const OptinMetrics = () => {
                   }}
                 >
                   {strings('privacy_policy.gather_basic_usage_learn_more')}
-                </Text>
+                </TextButton>
               </Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-background-alternative rounded-xl p-4 mb-4',
-                  isMarketingDisabled && 'opacity-50',
-                  pressed && !isMarketingDisabled && 'opacity-70',
-                )
-              }
+            }
+            testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX}
+          />
+          <Box twClassName="gap-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {strings('privacy_policy.stay_informed')}
+            </Text>
+            <ListItemMultiSelect
+              variant={ContentVariant.MultiLine}
+              isSelected={isMarketingChecked}
               onPress={handleMarketingToggle}
               disabled={isMarketingDisabled}
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Between}
-                gap={4}
-              >
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={
-                      isMarketingDisabled
-                        ? TextColor.TextMuted
-                        : TextColor.TextDefault
-                    }
-                  >
-                    {strings('privacy_policy.checkbox_marketing')}
-                  </Text>
-                </Box>
-                <Checkbox
-                  onPress={handleMarketingToggle}
-                  isChecked={isMarketingChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  disabled={isMarketingDisabled}
-                />
-              </Box>
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isMarketingDisabled
-                    ? TextColor.TextMuted
-                    : TextColor.TextAlternative
-                }
-                twClassName="mt-1"
-              >
-                {strings('privacy_policy.checkbox')}
-              </Text>
-            </Pressable>
+              twClassName={`rounded-xl border border-muted ${
+                isMarketingDisabled ? 'opacity-50' : ''
+              }`}
+              title={strings('privacy_policy.checkbox_marketing')}
+              description={strings('privacy_policy.checkbox')}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
+              }
+            />
           </Box>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('privacy_policy.settings')}{' '}
+            <TextButton
+              variant={TextVariant.BodySm}
+              onPress={goToDefaultSettings}
+            >
+              {strings('privacy_policy.settings_link')}
+            </TextButton>
+          </Text>
         </Box>
       </ScrollView>
-      {renderActionButtons()}
+      <BottomSheetFooter
+        twClassName="py-2"
+        primaryButtonProps={{
+          children: strings('privacy_policy.continue'),
+          onPress: onConfirm,
+          size: ButtonSize.Lg,
+          testID: MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
+        }}
+      />
     </SafeAreaView>
   );
 };

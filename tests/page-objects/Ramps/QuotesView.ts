@@ -1,29 +1,30 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { QuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes.testIds';
+import { type AppiumElement } from '../../framework';
 
 class QuotesView {
-  get selectAQuoteLabel(): DetoxElement {
+  get selectAQuoteLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE);
   }
 
-  get quoteAmountLabel(): DetoxElement {
+  get quoteAmountLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteSelectors.QUOTE_AMOUNT_LABEL);
   }
 
-  get quotes(): DetoxElement {
+  get quotes(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteSelectors.QUOTES);
   }
 
-  get exploreMoreOptions(): DetoxElement {
+  get exploreMoreOptions(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteSelectors.EXPLORE_MORE_OPTIONS);
   }
 
-  get expandedQuotesSection(): DetoxElement {
+  get expandedQuotesSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteSelectors.EXPANDED_QUOTES_SECTION);
   }
 
-  get continueWithProvider(): DetoxElement {
+  get continueWithProvider(): Promise<AppiumElement> {
     const providerLocator = QuoteSelectors.CONTINUE_WITH_PROVIDER.replace(
       '{{provider}}',
       '.*',

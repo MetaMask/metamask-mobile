@@ -21,7 +21,7 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
-import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -222,7 +222,6 @@ describe('EarnMusdConversionEducationView', () => {
       goToBuy: jest.fn(),
       goToAggregator: mockGoToAggregator,
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
 
@@ -505,7 +504,6 @@ describe('EarnMusdConversionEducationView', () => {
         goToBuy: mockGoToBuy,
         goToAggregator: mockGoToAggregator,
         goToSell: jest.fn(),
-        goToDeposit: jest.fn(),
       });
 
       mockUseMusdConversionFlowData.mockReturnValue({
@@ -1205,7 +1203,7 @@ describe('EarnMusdConversionEducationView', () => {
           MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
         button_type: 'secondary',
         button_text: strings('earn.musd_conversion.education.secondary_button'),
-        redirects_to: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+        redirects_to: MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
       });
     });
 
@@ -1272,7 +1270,7 @@ describe('EarnMusdConversionEducationView', () => {
             MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           button_type: 'primary',
           button_text: strings('earn.musd_conversion.education.primary_button'),
-          redirects_to: MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+          redirects_to: MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
         });
       });
     });

@@ -1,5 +1,4 @@
 import { NavigationProp } from '@react-navigation/native';
-import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { useSelector } from 'react-redux';
@@ -9,6 +8,7 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import Logger from '../../../../util/Logger';
+import { mockTheme } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -22,12 +22,22 @@ const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockClaimWinnings = jest.fn();
 const mockShowToast = jest.fn();
+const mockTrackPredictOrderEvent = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: (...args: unknown[]) =>
+        mockTrackPredictOrderEvent(...args),
+    },
   },
 }));
 
@@ -58,22 +68,23 @@ jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(),
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      error: {
-        default: mockTestHexColors.ERROR_DARK,
-      },
-      accent04: {
-        normal: mockTestHexColors.ACCENT_BLUE,
-      },
-    },
-  })),
-}));
-
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
 }));
+
+// Mock the heavy confirm-component module to avoid loading the Perps import
+// chain (which relies on the real Engine module's load-order side effects).
+jest.mock(
+  '../../../Views/confirmations/components/confirm/confirm-component',
+  () => ({
+    ConfirmationLoader: {
+      Default: 'default',
+      CustomAmount: 'customAmount',
+      PredictClaim: 'predictClaim',
+      Transfer: 'transfer',
+    },
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -117,9 +128,6 @@ const mockToastRef = {
 };
 
 let pendingClaimValue: string | undefined;
-const pendingClaimSelectorMock = ((_) => pendingClaimValue) as ReturnType<
-  typeof selectPredictPendingClaimByAddress
->;
 
 const setUseSelectorState = ({
   selectedAccountGroupId = 'test-account-group-id',
@@ -135,11 +143,7 @@ const setUseSelectorState = ({
       return selectedAccountGroupId;
     }
 
-    if (selector === pendingClaimSelectorMock) {
-      return pendingClaim;
-    }
-
-    return undefined;
+    return selector({});
   });
 };
 
@@ -171,8 +175,8 @@ describe('usePredictClaim', () => {
       address: '0xTestAddress',
     } as ReturnType<typeof getEvmAccountFromSelectedAccountGroup>);
 
-    mockSelectPredictPendingClaimByAddress.mockReturnValue(
-      pendingClaimSelectorMock,
+    mockSelectPredictPendingClaimByAddress.mockImplementation(
+      () => pendingClaimValue,
     );
 
     setUseSelectorState({ pendingClaim: undefined });
@@ -225,7 +229,9 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({});
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -241,7 +247,55 @@ describe('usePredictClaim', () => {
       });
 
       // Assert
-      expect(mockClaimWinnings).toHaveBeenCalledWith({});
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+      });
+    });
+
+    it('fires the initiated event once with the provided entry-point context', async () => {
+      // Arrange
+      mockClaimWinnings.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim({ entryPoint: 'predict_market_details' });
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
+        status: 'initiated',
+        analyticsProperties: {
+          entryPoint: 'predict_market_details',
+          transactionType: 'mm_predict_claim',
+        },
+      });
+    });
+
+    it('merges entry-point context into the claim analytics properties', async () => {
+      // Arrange
+      mockClaimWinnings.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim({
+          entryPoint: 'homepage_positions',
+          claimablePositionsCount: 3,
+        });
+      });
+
+      // Assert
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: {
+          entryPoint: 'homepage_positions',
+          claimablePositionsCount: 3,
+          transactionType: 'mm_predict_claim',
+        },
+      });
     });
 
     it('sets isClaimPending from pending claim selector', () => {
@@ -279,21 +333,23 @@ describe('usePredictClaim', () => {
       renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
-      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
-        address: '0xTestAddress',
-      });
+      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith(
+        expect.any(Object),
+        '0xTestAddress',
+      );
     });
 
-    it('falls back to 0x0 when no EVM account is selected', () => {
+    it('uses an empty selector key when no EVM account is selected', () => {
       // Arrange
       mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
 
       renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
-      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
-        address: '0x0',
-      });
+      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith(
+        expect.any(Object),
+        '',
+      );
     });
   });
 
@@ -340,8 +396,8 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        iconColor: mockTestHexColors.ERROR_DARK,
-        backgroundColor: mockTestHexColors.ACCENT_BLUE,
+        iconColor: mockTheme.colors.error.default,
+        backgroundColor: mockTheme.colors.accent04.normal,
         hasNoTimeout: false,
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),
@@ -406,10 +462,36 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({});
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+      });
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('fires a failed event with a mapped failure_reason when claim throws', async () => {
+      // Arrange
+      mockClaimWinnings.mockRejectedValue(
+        new Error('No claimable positions found'),
+      );
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim({ entryPoint: 'predict_market_details' });
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
+        status: 'failed',
+        analyticsProperties: {
+          entryPoint: 'predict_market_details',
+          transactionType: 'mm_predict_claim',
+        },
+        failureReason: 'pending_resolution',
+      });
     });
 
     it('captures exception to Sentry when claim fails', async () => {

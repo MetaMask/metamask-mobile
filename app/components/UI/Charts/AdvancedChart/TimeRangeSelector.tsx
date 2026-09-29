@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
+import ChartTypeToggle from './ChartTypeToggle';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
@@ -41,9 +42,9 @@ export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
-/** padding 4px 16px, gap spacing/1, rounded 8 — filter control spec */
+/** Padding 4px 16px with fully rounded pill corners. */
 const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
+  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
 
 /** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
 const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
@@ -59,8 +60,10 @@ interface TimeRangeSelectorProps {
   ranges?: TimeRange[];
   /** Current chart type -- drives the toggle icon appearance. */
   chartType?: ChartType;
-  /** Called when the user taps the chart type toggle icon. */
+  /** Called when the user taps the single chart-type toggle button (main branch style). */
   onChartTypeToggle?: () => void;
+  /** Called when the user selects a chart type from the segmented toggle. */
+  onChartTypeSelect?: (type: ChartType) => void;
   /** Override background color for the selected pill (A/B test). */
   selectedColor?: string;
 }
@@ -72,6 +75,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   ranges = TIME_RANGES,
   chartType,
   onChartTypeToggle,
+  onChartTypeSelect,
   selectedColor,
 }) => {
   const tw = useTailwind();
@@ -94,7 +98,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
       {showChartLoadingSkeleton ? (
         <Box
           style={{ height: TIME_RANGE_SKELETON_HEIGHT }}
-          twClassName="w-full flex-1 overflow-hidden rounded-lg"
+          twClassName="w-full flex-1 overflow-hidden rounded-full"
         >
           <SkeletonPlaceholder
             backgroundColor={colors.background.section}
@@ -111,7 +115,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="w-full flex-1 rounded-lg"
+          twClassName="w-full flex-1 rounded-full"
         >
           {ranges.map((range) => {
             const isSelected = selected === range;
@@ -188,6 +192,11 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                 />
               )}
             </Pressable>
+          ) : onChartTypeSelect ? (
+            <ChartTypeToggle
+              chartType={chartType}
+              onChartTypeSelect={onChartTypeSelect}
+            />
           ) : null}
         </Box>
       )}

@@ -8,6 +8,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Hex } from '@metamask/utils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import {
@@ -43,7 +44,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   const { styles } = useStyles(styleSheet, undefined);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const networkIconAvatar = useMemo(
     () => NetworkBadgeSource(chainId),

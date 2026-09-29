@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (_params: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     container: {
       display: 'flex',
       flexDirection: 'row',
@@ -12,11 +13,11 @@ const styleSheet = (_params: { theme: Theme }) =>
       paddingBottom: 8,
       gap: 16,
     },
-    badge: {
-      borderRadius: 16,
-    },
     leftContainer: {
       flex: 1,
+      minWidth: 0,
+      alignSelf: 'stretch',
+      justifyContent: 'space-between',
     },
     tokenHeaderRow: {
       display: 'flex',
@@ -24,9 +25,15 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignItems: 'center',
       gap: 4,
       flexShrink: 1,
+      minWidth: 0,
     },
     tokenName: {
       flexShrink: 1,
+      minWidth: 0,
+    },
+    marketStats: {
+      flexShrink: 1,
+      minWidth: 0,
     },
     rightContainer: {
       display: 'flex',
@@ -38,6 +45,16 @@ const styleSheet = (_params: { theme: Theme }) =>
     stockBadgeWrapper: {
       marginTop: 4,
     },
+    quickTradeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: theme.colors.background.muted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'center',
+    },
   });
+};
 
 export default styleSheet;

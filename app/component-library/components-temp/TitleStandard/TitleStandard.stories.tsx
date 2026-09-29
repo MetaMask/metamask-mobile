@@ -44,7 +44,7 @@ export const TitleOnly = {
 };
 
 export const WithTopLabel = {
-  render: () => <TitleStandard topLabel="Total Balance" title="$5,432.10" />,
+  render: () => <TitleStandard topLabel="Total balance" title="$5,432.10" />,
 };
 
 export const WithBottomLabel = {
@@ -126,7 +126,7 @@ export const FullExample = {
 export const NoEndAccessory = {
   render: () => (
     <TitleStandard
-      topLabel="Account Balance"
+      topLabel="Account balance"
       title="$12,345.67"
       bottomLabel="+$123.45 (1.2%)"
     />

@@ -10,16 +10,11 @@ jest.mock('../../../../../util/networks');
 jest.mock('../../../../../util/networks/customNetworks');
 jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
-import {
-  isTestNet,
-  getTestNetImageByChainId,
-} from '../../../../../util/networks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 
-const mockIsTestNet = isTestNet as jest.MockedFunction<typeof isTestNet>;
-const mockGetTestNetImageByChainId =
-  getTestNetImageByChainId as jest.MockedFunction<
-    typeof getTestNetImageByChainId
-  >;
+const mockGetNetworkImageSource = getNetworkImageSource as jest.MockedFunction<
+  typeof getNetworkImageSource
+>;
 
 function renderWithProvider(
   component: React.ComponentType | (() => React.ReactElement | null),
@@ -58,7 +53,6 @@ describe('CardAssetItem Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsTestNet.mockReturnValue(false);
   });
 
   it('renders with required props', () => {
@@ -102,17 +96,39 @@ describe('CardAssetItem Component', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('handles test network correctly', () => {
-    mockIsTestNet.mockReturnValue(true);
-    mockGetTestNetImageByChainId.mockReturnValue({
-      uri: 'https://example.com/testnet.png',
+  it('renders the money account icon when isMoneyAccountEntry prop is true', () => {
+    const { getByTestId } = render(
+      <CardAssetItem asset={mockAsset} isMoneyAccountEntry />,
+    );
+
+    expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
+  });
+
+  it('renders the money account icon when asset.isMoneyAccountEntry is true', () => {
+    const { getByTestId } = render(
+      <CardAssetItem asset={{ ...mockAsset, isMoneyAccountEntry: true }} />,
+    );
+
+    expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
+  });
+
+  it('renders the money account icon from the prop even when the asset omits the flag', () => {
+    const { getByTestId } = render(
+      <CardAssetItem asset={undefined} isMoneyAccountEntry />,
+    );
+
+    expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
+  });
+
+  it('resolves the network image from the asset chainId', () => {
+    mockGetNetworkImageSource.mockReturnValue({
+      uri: 'https://example.com/network.png',
     });
 
     renderWithProvider(() => <CardAssetItem asset={mockAsset} />);
 
-    expect(mockIsTestNet).toHaveBeenCalledWith(mockAsset.chainId);
-    expect(mockGetTestNetImageByChainId).toHaveBeenCalledWith(
-      mockAsset.chainId,
-    );
+    expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+      chainId: mockAsset.chainId,
+    });
   });
 });

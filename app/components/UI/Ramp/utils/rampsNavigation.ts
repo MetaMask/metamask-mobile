@@ -6,10 +6,12 @@ export interface RampsOrderDetailsParams {
   callbackUrl?: string;
   providerCode?: string;
   walletAddress?: string;
+  /** Fallback for toast copy when the order has no crypto symbol yet. */
+  cryptocurrency?: string;
 }
 
 export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {
-  name: string;
+  name: typeof Routes.RAMP.RAMPS_ORDER_DETAILS;
   params: RampsOrderDetailsParams;
 } {
   return {
@@ -19,7 +21,7 @@ export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {
 }
 
 export function createBuildQuoteRoute(): {
-  name: string;
+  name: typeof Routes.RAMP.BUILD_QUOTE;
   params: Record<string, never>;
 } {
   return { name: Routes.RAMP.BUILD_QUOTE, params: {} };

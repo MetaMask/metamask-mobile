@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
@@ -53,7 +54,7 @@ export const BaseWalletDetails = ({
   wallet,
   children,
 }: BaseWalletDetailsProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
   const accountGroupsFlashListRef =
@@ -170,6 +171,7 @@ export const BaseWalletDetails = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
+        testID={WalletDetailsIds.HEADER}
         style={styles.header}
         startButtonIconProps={{
           testID: WalletDetailsIds.BACK_BUTTON,

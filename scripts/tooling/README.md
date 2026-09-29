@@ -7,8 +7,10 @@ Automatically records how AI agent tooling (Yarn scripts, Claude Code skills, Cu
 Every collection path appends one CSV row to a project-scoped log file:
 
 - `start` when a skill or Yarn script begins
+- `end` when a Yarn script finishes normally (skills only ever log `start`)
+- `interrupted` when a Yarn script is stopped by a signal (e.g. Ctrl+C) instead of finishing normally
 
-The log accumulates locally. The [dev-tooling-explorer](https://github.com/MetaMask/dev-tooling-explorer) and a nightly cron job drain the log into SQLite for reporting and summarisation.
+The log accumulates locally. The [dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) and a nightly cron job drain the log into SQLite for reporting and summarisation.
 
 ## Skip conditions
 
@@ -43,7 +45,7 @@ skill:pr-create,skill,start,cursor,abc-123,,,2026-05-12T10:00:00Z
 yarn:test:unit,yarn_script,start,,,true,8423,2026-05-12T10:01:00Z
 ```
 
-Appends are done with `printf … >> file` (Yarn plugin) or `fs.appendFileSync` (Yarn Berry plugin), both of which are atomic for single-line writes on macOS/Linux.
+Appends are done with `printf … >> file` (shell hooks) or `fs.appendFileSync` (Yarn Berry plugin), both of which are atomic for single-line writes on macOS/Linux.
 
 ## Architecture
 
@@ -85,6 +87,15 @@ flowchart LR
 
 `.yarn/plugins/plugin-usage-tracking.cjs` wraps every `yarn <script>` via `wrapScriptExecution`. On `start` it appends a CSV row; on `finish` it updates `success` and `duration_ms` in a second row.
 
+Only the outermost, directly user-invoked script is recorded. As soon as the plugin module is first loaded (before Yarn computes the env for any script it's about to run), it checks whether `MM_TOOL_USAGE_PARENT` is already present on `process.env`: if absent, this is the root process the user typed themselves, and the plugin sets it. A nested `yarn <script>` spawned as a dependency (e.g. `yarn build` shelling out to `yarn build:ios`) runs as its own `yarn` CLI process, inherits the marker from its parent's env, and skips logging. The marker check runs once at module-evaluation time rather than inside `factory()` or the script-execution hook, because Yarn calls `factory()` more than once per process while resolving configuration, and computes the env passed to a script's spawned child process before the hook ever runs.
+
+The `preinstall`/`install`/`postinstall` lifecycle scripts are unconditionally excluded regardless of root/nested status: Yarn invokes them automatically as part of `yarn install` through this same hook, but a user never types `yarn postinstall` directly.
+
+An `end` row's `event_type` is `interrupted` (rather than `end`) when either of two signals fires:
+
+- The script's resolved exit code is a common termination-signal code (SIGHUP/SIGINT/SIGQUIT/SIGKILL/SIGTERM, i.e. `128 + signal number`) — reliable for a single directly-spawned command.
+- The plugin directly observes a SIGINT/SIGHUP/SIGTERM delivered to the current process while the script was running — needed for a chained script (`cmd1 && cmd2`) or one shelling out to a nested `yarn <script>`, where the interrupted sub-step's own signal-death can race with, and resolve before, Yarn's own interrupt handling, leaving the whole script to resolve with an ordinary-looking failure code (e.g. `1`) that's indistinguishable from a genuine failure by exit code alone. This listener is additive only (it never calls `process.exit()`), so it doesn't change Yarn's own signal handling.
+
 ### Path 2 — Claude Code skills
 
 `.claude/settings.json` registers a project-level `PreToolUse` hook for the `Skill` tool pointing to `hook-claude-dispatch.sh`. That script sources `hook-common.sh` which extracts the skill name from the `"skill"` field in the tool input, appends one CSV row, and exits.
@@ -113,4 +124,12 @@ To see events in the SQLite database populated by the explorer or cron:
 sqlite3 ~/.tool-usage-collection/events.db \
   "SELECT tool_name, tool_type, event_type, agent_vendor, created_at FROM events ORDER BY created_at DESC LIMIT 20;"
 ```
+
+## Using dev-tooling-explorer
+
+[dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) is a local web UI for browsing the SQLite database written by the collection hooks. See its repo for installation and usage instructions.
+
+## Daily Anonymizer (MCWP-644)
+
+The daily anonymizer runs automatically once per 24h: the first non-CI `yarn` script run after the window opens spawns it detached (non-blocking) via the usage-tracking Yarn plugin. It is published as [`@metamask/tooling-insight`](https://github.com/MetaMask/experimental-tooling-insight) and consumed here as a `devDependency`. See that repo for full documentation, configuration, and ops escape hatches.
 

@@ -3,8 +3,10 @@ import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictGameDetailsFooter from './PredictGameDetailsFooter';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   PredictMarket,
+  PredictMarketGame,
   PredictOutcome,
   PredictMarketStatus,
   Recurrence,
@@ -21,6 +23,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'predict.game_details_footer.pick_a_winner') {
       return 'Pick a winner';
+    }
+    if (key === 'predict.game_details_footer.make_your_prediction') {
+      return 'Make your prediction';
     }
     if (key === 'predict.tabs.about') {
       return 'About';
@@ -43,6 +48,12 @@ jest.mock('../../hooks/useLiveMarketPrices', () => ({
     lastUpdateTime: null,
   }),
 }));
+jest.mock('../../hooks/usePredictGame');
+
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
+const FIXED_LAST_UPDATE_TIME = new Date('2024-12-15T13:00:00Z').getTime();
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
@@ -107,6 +118,56 @@ const createMockGameMarket = (): PredictMarket =>
     },
   });
 
+const createMockEsportsDrawMarket = (): PredictMarket =>
+  createMockMarket({
+    outcomes: [
+      createMockOutcome({
+        id: 'outcome-away',
+        sportsMarketType: 'moneyline',
+        groupItemTitle: '1win',
+        negRisk: true,
+        tokens: [{ id: 'token-away', title: 'Yes', price: 0.34 }],
+      }),
+      createMockOutcome({
+        id: 'outcome-draw',
+        sportsMarketType: 'moneyline',
+        groupItemTitle: 'Draw',
+        negRisk: true,
+        tokens: [{ id: 'token-draw', title: 'Yes', price: 0.22 }],
+      }),
+      createMockOutcome({
+        id: 'outcome-home',
+        sportsMarketType: 'moneyline',
+        groupItemTitle: 'Nigma',
+        negRisk: true,
+        tokens: [{ id: 'token-home', title: 'Yes', price: 0.44 }],
+      }),
+    ],
+    game: {
+      id: 'game-dota2-1',
+      startTime: '2024-12-15T13:00:00Z',
+      status: 'ongoing',
+      league: 'dota2',
+      elapsed: null,
+      period: '0/2',
+      score: { away: 0, home: 0, raw: '000-000|0-0|Bo2' },
+      awayTeam: {
+        id: '1win',
+        name: '1win',
+        logo: 'https://example.com/1win.png',
+        abbreviation: '1WIN',
+        color: TEST_HEX_COLORS.TEAM_SEA,
+      },
+      homeTeam: {
+        id: 'nigma',
+        name: 'Nigma',
+        logo: 'https://example.com/nigma.png',
+        abbreviation: 'NIGMA',
+        color: TEST_HEX_COLORS.TEAM_DEN,
+      },
+    },
+  });
+
 const createDefaultProps = (overrides = {}) => ({
   market: createMockMarket(),
   outcome: createMockOutcome(),
@@ -119,6 +180,11 @@ const createDefaultProps = (overrides = {}) => ({
 describe('PredictGameDetailsFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   describe('info row', () => {
@@ -128,6 +194,17 @@ describe('PredictGameDetailsFooter', () => {
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
       expect(screen.getByText('Pick a winner')).toBeOnTheScreen();
+    });
+
+    it('renders prediction label for explicit esports draw markets', () => {
+      const props = createDefaultProps({
+        market: createMockEsportsDrawMarket(),
+      });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.getByText('Make your prediction')).toBeOnTheScreen();
+      expect(screen.queryByText('Pick a winner')).not.toBeOnTheScreen();
     });
 
     it('renders info button', () => {
@@ -343,6 +420,26 @@ describe('PredictGameDetailsFooter', () => {
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
       expect(screen.getByTestId('game-details-footer')).toBeOnTheScreen();
+    });
+
+    it('returns null when the cached live game has ended', () => {
+      const market = createMockGameMarket();
+      const cachedEndedGame: PredictMarketGame = {
+        ...(market.game as PredictMarketGame),
+        status: 'ended',
+        period: 'FT',
+        elapsed: null,
+      };
+      mockUsePredictGame.mockReturnValue({
+        game: cachedEndedGame,
+        isConnected: false,
+        lastUpdateTime: FIXED_LAST_UPDATE_TIME,
+      });
+      const props = createDefaultProps({ market });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.queryByTestId('game-details-footer')).toBeNull();
     });
   });
 

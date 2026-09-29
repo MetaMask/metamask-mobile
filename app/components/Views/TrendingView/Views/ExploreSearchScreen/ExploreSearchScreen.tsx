@@ -6,12 +6,28 @@ import React, {
   useState,
 } from 'react';
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
+import { useSelector } from 'react-redux';
+import type { TrendingAsset } from '@metamask/assets-controllers';
+import TrendingQuickBuy from '../../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../../search/abTestConfig';
+import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
+import BrowserTabsButton from '../../components/BrowserTabsButton/BrowserTabsButton';
 import PillRow, { type PillOption } from '../../components/PillRow';
 import ExploreSearchResults from '../../search/ExploreSearchResults';
 import SearchFeedRow, {
@@ -19,7 +35,10 @@ import SearchFeedRow, {
   getItemId,
 } from '../../search/SearchFeedRow';
 import {
+  getExploreSearchResultCount,
   trackExploreSearchEvent,
+  trackExploreSearchOpened,
+  useInstrumentedSearchEffect,
   useScrollTracking,
   type SearchFeedPill,
 } from '../../search/analytics';
@@ -30,7 +49,13 @@ import {
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
+import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors';
+import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
+import Routes from '../../../../../constants/navigation/Routes';
+import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
+import type { ExploreSearchRouteParams } from './ExploreSearchScreen.types';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
@@ -45,6 +70,7 @@ interface FullFeedListProps {
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
+  resultCount?: number;
 }
 
 const FullFeedList: React.FC<FullFeedListProps> = ({
@@ -57,17 +83,48 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   fetchMore,
   isFetchingMore,
   hasMore,
+  resultCount,
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
+  useQuickBuySearchKeyboard(quickTradeToken, closeQuickBuy);
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
 
-  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
-    tab_name: tabName,
-  });
+  const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
+    'scrolled',
+    searchQuery,
+    {
+      tab_name: tabName,
+      result_count: resultCount,
+    },
+  );
+
+  useEffect(() => {
+    resetScrollTracking();
+  }, [searchQuery, resetScrollTracking]);
+
+  const handleQuickTrade =
+    (feedId === 'tokens' || feedId === 'stocks') &&
+    quickBuyVariant.showQuickTradeButton
+      ? setQuickTradeToken
+      : undefined;
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
@@ -77,9 +134,11 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         index={index}
         searchQuery={searchQuery}
         tabName={tabName}
+        resultCount={resultCount}
+        onQuickTrade={handleQuickTrade}
       />
     ),
-    [feedId, searchQuery, tabName],
+    [feedId, searchQuery, tabName, resultCount, handleQuickTrade],
   );
 
   const keyExtractor = useCallback(
@@ -120,20 +179,23 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   }
 
   return (
-    <FlashList
-      ref={flashListRef}
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      contentContainerStyle={tw.style('px-4')}
-      showsVerticalScrollIndicator={false}
-      keyboardDismissMode="on-drag"
-      keyboardShouldPersistTaps="handled"
-      onScrollBeginDrag={onScrollBeginDrag}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.3}
-      ListFooterComponent={footer}
-    />
+    <>
+      <FlashList
+        ref={flashListRef}
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={tw.style('px-4')}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onScrollBeginDrag={onScrollBeginDrag}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={footer}
+      />
+      <TrendingQuickBuy token={quickTradeToken} onClose={closeQuickBuy} />
+    </>
   );
 };
 
@@ -161,6 +223,10 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const { sections } = useExploreSearch(searchQuery, {
     exposePagination: true,
   });
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
+
+  const isLoading = sections.some((s) => s.isLoading);
 
   const pills = useMemo<PillOption[]>(
     () => [
@@ -178,12 +244,28 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     [sections, activePill],
   );
 
+  const getActivePill = useCallback(() => activePillRef.current, []);
+  const getSections = useCallback(() => sectionsRef.current, []);
+
+  useInstrumentedSearchEffect({
+    searchQuery,
+    isLoading,
+    getPill: getActivePill,
+    getSections,
+  });
+
   const handlePillSelect = useCallback((key: string) => {
+    const targetSections = sectionsRef.current;
+    const resultCount = getExploreSearchResultCount(
+      key as SearchFeedPill,
+      targetSections,
+    );
     trackExploreSearchEvent({
       interaction_type: 'tab_switched',
       search_query: searchQueryRef.current,
       tab_name: key as SearchFeedPill,
       previous_tab: activePillRef.current,
+      result_count: resultCount,
     });
     setActivePill(key as ActivePill);
   }, []);
@@ -205,14 +287,12 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box twClassName="px-4">
-        <PillRow
-          pills={pills}
-          activeKey={activePill}
-          onSelect={handlePillSelect}
-          testIdPrefix="explore-search"
-        />
-      </Box>
+      <PillRow
+        pills={pills}
+        activeKey={activePill}
+        onSelect={handlePillSelect}
+        testIdPrefix="explore-search"
+      />
       {showFeedList ? (
         <FullFeedList
           key={activePill}
@@ -225,6 +305,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
           hasMore={activeSection?.hasMore}
+          resultCount={activeSection?.total ?? activeSection?.items.length}
         />
       ) : (
         <ExploreSearchResults
@@ -241,8 +322,28 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
+  const [searchQuery, setSearchQuery] = useState(
+    () => route.params?.initialQuery?.trim() ?? '',
+  );
+  const routeParams = route.params;
+  // Gates the keyboard, which iOS paints dark grey mid-push, and the results
+  // subtree, whose mount blocks the JS thread while the screen slides in.
+  const isTransitionComplete = useScreenTransitionComplete();
+  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
+  const browserTabsCount = useSelector(selectBrowserTabCount);
+  const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
+
+  useEffect(() => {
+    if (!routeParams?.entryPoint) {
+      return;
+    }
+
+    setSearchQuery(routeParams.initialQuery?.trim() ?? '');
+    trackExploreSearchOpened(routeParams.entryPoint);
+  }, [routeParams]);
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
@@ -250,23 +351,53 @@ const ExploreSearchScreen: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleBrowserTabsPress = useCallback(() => {
+    Keyboard.dismiss();
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        showTabsView: true,
+        timestamp: Date.now(),
+        fromExploreSearch: true,
+      },
+    });
+  }, [navigation]);
+
   return (
     <Box
       style={{ paddingTop: insets.top + (Platform.OS === 'android' ? 16 : 0) }}
       twClassName="flex-1 bg-default"
     >
-      <Box twClassName="px-4 pb-3">
-        <ExploreSearchBar
-          type="interactive"
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onCancel={handleSearchCancel}
-        />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2 px-4 pb-3"
+      >
+        <Box twClassName="flex-1">
+          <ExploreSearchBar
+            type="interactive"
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onCancel={handleSearchCancel}
+            autoFocus={isTransitionComplete}
+            dismissVariant={isHeaderRefreshEnabled ? 'back' : 'cancel'}
+          />
+        </Box>
+
+        {showBrowserTabsButton ? (
+          <BrowserTabsButton
+            tabCount={browserTabsCount}
+            onPress={handleBrowserTabsPress}
+            testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
+          />
+        ) : null}
       </Box>
 
-      <PerpsSectionProvider>
-        <ExploreSearchContent searchQuery={searchQuery} />
-      </PerpsSectionProvider>
+      {isTransitionComplete ? (
+        <PerpsSectionProvider>
+          <ExploreSearchContent searchQuery={searchQuery} />
+        </PerpsSectionProvider>
+      ) : null}
     </Box>
   );
 };

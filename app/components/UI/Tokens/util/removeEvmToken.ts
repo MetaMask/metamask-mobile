@@ -1,9 +1,7 @@
-import { Hex } from '@metamask/utils';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
 } from '../../../../util/analytics/AnalyticsEventBuilder';
-import Engine from '../../../../core/Engine';
 import { TokenI } from '../types';
 import NotificationManager from '../../../../core/NotificationManager';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -12,15 +10,17 @@ import Logger from '../../../../util/Logger';
 interface RemoveEvmTokenProps {
   tokenToRemove: TokenI;
   currentChainId: string;
-  trackEvent: (
-    event: AnalyticsTrackingEvent,
-    saveDataRecording?: boolean,
-  ) => void;
+  trackEvent: (event: AnalyticsTrackingEvent) => void;
   strings: (key: string, args?: Record<string, unknown>) => string;
   getDecimalChainId: (chainId: string) => number;
   createEventBuilder: typeof AnalyticsEventBuilder.createEventBuilder;
 }
 
+/**
+ * Fires the "token hidden" notification and analytics event for an EVM
+ * token removal. Actually hiding the asset is handled separately by
+ * `useAssetVisibility().handleHideToken`, which calls `AssetsController`.
+ */
 export const removeEvmToken = async ({
   tokenToRemove,
   currentChainId,
@@ -29,17 +29,10 @@ export const removeEvmToken = async ({
   getDecimalChainId,
   createEventBuilder,
 }: RemoveEvmTokenProps) => {
-  const { TokensController, NetworkController } = Engine.context;
-  const chainId = tokenToRemove?.chainId;
-  const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    chainId as Hex,
-  );
   const tokenAddress = tokenToRemove?.address || '';
   const symbol = tokenToRemove?.symbol || '';
 
   try {
-    await TokensController.ignoreTokens([tokenAddress], networkClientId);
-
     NotificationManager.showSimpleNotification({
       status: `simple_notification`,
       duration: 5000,

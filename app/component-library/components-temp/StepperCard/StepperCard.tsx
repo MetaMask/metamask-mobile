@@ -51,17 +51,19 @@ const StepperCard = ({
 
   return (
     <Box
-      twClassName="rounded-2xl bg-muted overflow-hidden"
+      twClassName="rounded-3xl bg-muted overflow-hidden"
       testID={getTestId('container')}
     >
       {/* Image */}
       <Box twClassName="p-4">
         <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
-          <Image
-            source={step.image}
-            style={tw.style('w-full h-full')}
-            resizeMode="contain"
-          />
+          {step.media ?? (
+            <Image
+              source={step.image}
+              style={tw.style('w-full h-full')}
+              resizeMode="contain"
+            />
+          )}
         </Box>
       </Box>
 
@@ -109,6 +111,7 @@ const StepperCard = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
               onPress={step.secondaryCta.onPress}
+              isDisabled={step.secondaryCta.disabled}
               twClassName="flex-1"
             >
               {step.secondaryCta.text}
@@ -118,6 +121,7 @@ const StepperCard = ({
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={step.primaryCta.onPress}
+            isDisabled={step.primaryCta.disabled}
             twClassName="flex-1"
             testID={getTestId('cta-button')}
           >

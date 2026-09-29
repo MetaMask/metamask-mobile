@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -8,6 +9,10 @@ import OnboardingAssetSettings from '.';
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '8.10.0'),
 }));
 
 describe('OnboardingAssetSettings', () => {
@@ -49,10 +54,52 @@ describe('OnboardingAssetSettings', () => {
     ).toBeOnTheScreen();
   });
 
-  it('sets navigation options', () => {
-    renderWithProvider(<OnboardingAssetSettings />, {
+  it('renders the header with the assets title', () => {
+    const { getByText } = renderWithProvider(<OnboardingAssetSettings />, {
       state: initialState,
     });
-    expect(mockNavigation.setOptions).toHaveBeenCalled();
+    expect(
+      getByText(strings('default_settings.drawer_assets_title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates back when the header back button is pressed', () => {
+    const { getAllByTestId } = renderWithProvider(<OnboardingAssetSettings />, {
+      state: initialState,
+    });
+    fireEvent.press(getAllByTestId('button-icon')[0]);
+    expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('hides consolidated child settings but keeps IPFS available', () => {
+    const consolidatedState = {
+      ...initialState,
+      settings: {
+        basicFunctionalityEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              mobileUxBftcOnsolidation: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <OnboardingAssetSettings />,
+      { state: consolidatedState },
+    );
+
+    expect(
+      queryByText(strings('app_settings.token_detection_title')),
+    ).toBeNull();
+    expect(getByText(strings('app_settings.ipfs_gateway'))).toBeOnTheScreen();
   });
 });

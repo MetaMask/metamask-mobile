@@ -6,15 +6,16 @@ import AppConstants from '../../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import usePrevious from '../../../../hooks/usePrevious';
 
-// USDC and USDT for now
-const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
+export const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [CHAIN_IDS.MAINNET]: new Set([
     '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
     '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
+    '0xaca92e438df0b2401ff60da7e4337b687a2435da', // mUSD
   ]),
   [CHAIN_IDS.LINEA_MAINNET]: new Set([
     '0x176211869cA2b568f2A7D4EE941E073a821EE1ff', // USDC
     '0xA219439258ca9da29E9Cc4cE5596924745e12B93', // USDT
+    '0xaca92e438df0b2401ff60da7e4337b687a2435da', // mUSD
   ]),
   [CHAIN_IDS.POLYGON]: new Set([
     '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // USDC
@@ -61,6 +62,20 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: new Set([
     '0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb', // USDT0
   ]),
+  [NETWORKS_CHAIN_ID.ARC]: new Set([
+    '0x3600000000000000000000000000000000000000', // USDC
+  ]),
+};
+
+export const getIsStablecoin = (tokenAddress: string, chainId: Hex) => {
+  const stablecoins = StablecoinsByChainId[chainId];
+
+  if (!stablecoins) return false;
+
+  return (
+    stablecoins.has(tokenAddress.toLowerCase()) ||
+    stablecoins.has(toChecksumHexAddress(tokenAddress))
+  );
 };
 
 /**
@@ -74,18 +89,9 @@ export const getIsStablecoinPair = (
   sourceTokenAddress: string,
   destTokenAddress: string,
   chainId: Hex,
-) => {
-  const stablecoins = StablecoinsByChainId[chainId];
-
-  if (!stablecoins) return false;
-
-  return (
-    (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
-      stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
-    (stablecoins.has(destTokenAddress.toLowerCase()) ||
-      stablecoins.has(toChecksumHexAddress(destTokenAddress)))
-  );
-};
+) =>
+  getIsStablecoin(sourceTokenAddress, chainId) &&
+  getIsStablecoin(destTokenAddress, chainId);
 
 /**
  * This function handles the slippage for stablecoins swaps.

@@ -3,6 +3,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { BigNumber } from 'bignumber.js';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -14,6 +15,7 @@ import {
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
+import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -71,6 +73,10 @@ export const usePerpsDepositStatus = () => {
         transactionMeta.type === TransactionType.perpsDeposit &&
         transactionMeta.status === TransactionStatus.approved
       ) {
+        if (isPerpsPredictMoneyDeposit(transactionMeta)) {
+          return;
+        }
+
         expectingDepositRef.current = true;
         prevSpendableBalanceRef.current =
           liveAccountRef.current?.spendableBalance || '0';
@@ -114,8 +120,15 @@ export const usePerpsDepositStatus = () => {
     const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
 
     if (currentBalance > previousBalance) {
+      // The toast reports what the deposit credited, so it has to be the
+      // balance delta. Passing the resulting spendable balance made the toast
+      // claim the whole account balance had just been added.
+      const amountAdded = new BigNumber(liveSpendable)
+        .minus(prevSpendableBalanceRef.current)
+        .toFixed();
+
       showToast(
-        PerpsToastOptions.accountManagement.deposit.success(liveSpendable),
+        PerpsToastOptions.accountManagement.deposit.success(amountAdded),
       );
 
       expectingDepositRef.current = false;

@@ -1,12 +1,13 @@
 /**
- * Slack RC Build Notification Script
+ * Slack RC / Production Build Notification Script
  *
- * Posts a Slack message after an RC build with download links
- * and a link to the cherry-picks section in the release PR comment.
+ * Posts a Slack message after an RC or production build with download links.
+ * RC also links to the cherry-picks section in the release PR comment.
  *
  * Required env: SEMVER, SLACK_BOT_TOKEN
  * Optional env: IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER, ANDROID_PUBLIC_URL,
  *               IOS_PUBLIC_URL, BUILD_PIPELINE_URL, PR_NUMBER, GITHUB_REPOSITORY,
+ *               BUILD_KIND (rc | production; default rc),
  *               SLACK_RC_NOTIFICATION_DRY_RUN,
  *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
  */
@@ -60,9 +61,16 @@ function isValidUrl(url) {
   }
 }
 
+function resolveBuildKind(buildKind) {
+  return String(buildKind || 'rc').toLowerCase() === 'production'
+    ? 'production'
+    : 'rc';
+}
+
 /**
  * Build the Slack message payload
  * @param {Object} options - Message options
+ * @param {string} [options.buildKind] - rc (default) or production
  * @param {string|null} [options.playStoreCheckMrkdwn] - Optional mrkdwn from Android Play Store check
  * @returns {Object} Slack message payload
  */
@@ -76,14 +84,27 @@ function buildSlackMessage(options) {
     pipelineUrl,
     prNumber,
     playStoreCheckMrkdwn,
+    buildKind: buildKindInput,
   } = options;
+
+  const buildKind = resolveBuildKind(buildKindInput);
+  const isProduction = buildKind === 'production';
+  const label = isProduction ? 'Production' : 'RC';
+
+  const androidLink = isProduction
+    ? isValidUrl(pipelineUrl)
+      ? `*Android APK:*\n<${pipelineUrl}|Download from CI>`
+      : '*Android APK:*\n_Not available_'
+    : isValidUrl(androidUrl)
+      ? `*Android APK:*\n<${androidUrl}|Download>`
+      : '*Android APK:*\n_Not available_';
 
   const blocks = [
     {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `🚀 Mobile RC Build v${version} (${buildNumber})`,
+        text: `🚀 Mobile ${label} Build v${version} (${buildNumber})`,
         emoji: true,
       },
     },
@@ -112,9 +133,7 @@ function buildSlackMessage(options) {
       fields: [
         {
           type: 'mrkdwn',
-          text: isValidUrl(androidUrl)
-            ? `*Android APK:*\n<${androidUrl}|Download>`
-            : '*Android APK:*\n_Not available_',
+          text: androidLink,
         },
         {
           type: 'mrkdwn',
@@ -126,33 +145,34 @@ function buildSlackMessage(options) {
     },
   ];
 
-  // Add link to cherry-picks section in PR comment
+  // Cherry-picks are RC-only (linked to the release PR comment).
   // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
   // We use build number in anchor to link to the correct comment (not older builds)
-  if (prNumber) {
-    const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
-    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
-    blocks.push(
-      {
-        type: 'divider',
-      },
-      {
+  if (!isProduction) {
+    if (prNumber) {
+      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+      const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
+      blocks.push(
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*🍒 Cherry-picks:* ${cherryPicksLink}`,
+          },
+        },
+      );
+    } else {
+      blocks.push({
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*🍒 Cherry-picks:* ${cherryPicksLink}`,
+          text: `_Cherry-picks available in the release PR._`,
         },
-      },
-    );
-  } else {
-    const releaseNotesMrkdwn = `<${REPO_URL}/tree/release/${version}|View release notes>`;
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: `_Cherry-picks available in the release PR. ${releaseNotesMrkdwn}_`,
-      },
-    });
+      });
+    }
   }
 
   if (playStoreCheckMrkdwn) {
@@ -174,27 +194,37 @@ function buildSlackMessage(options) {
     );
   }
 
-  // Add pipeline link
-  if (pipelineUrl) {
-    blocks.push(
-      {
-        type: 'divider',
-      },
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/tree/release/${version}|View full release notes>`,
-          },
-        ],
-      },
-    );
+  // Add pipeline and RC notes links
+  if (pipelineUrl || (!isProduction && prNumber)) {
+    const links = [];
+    if (pipelineUrl) {
+      links.push(`<${pipelineUrl}|View Build Pipeline>`);
+    }
+    if (!isProduction && prNumber) {
+      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+      links.push(`<${REPO_URL}/pull/${prNumber}#user-content-whats-in-this-rc${anchorSuffix}|View full RC notes>`);
+    }
+    if (links.length > 0) {
+      blocks.push(
+        {
+          type: 'divider',
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: links.join(' | '),
+            },
+          ],
+        },
+      );
+    }
   }
 
   return {
     blocks,
-    text: `🚀 Mobile RC Build v${version} (${buildNumber}) is ready!`, // Fallback text
+    text: `🚀 Mobile ${label} Build v${version} (${buildNumber}) is ready!`, // Fallback text
   };
 }
 
@@ -277,12 +307,14 @@ async function main() {
   const iosUrl = process.env.IOS_PUBLIC_URL;
   const pipelineUrl = process.env.BUILD_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
+  const buildKind = resolveBuildKind(process.env.BUILD_KIND);
+  const label = buildKind === 'production' ? 'Production' : 'RC';
 
   const prNumber = process.env.PR_NUMBER || '';
   const playStoreCheckMrkdwn = loadPlayStoreCheckMrkdwn();
   const expectedChannelName = getSlackChannel(version);
 
-  console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
+  console.log(`\n📣 Preparing Slack notification for ${label} v${version} (${buildNumber})`);
   if (prNumber) {
     console.log(`📍 Release PR: #${prNumber}`);
   }
@@ -304,6 +336,7 @@ async function main() {
     pipelineUrl,
     prNumber,
     playStoreCheckMrkdwn,
+    buildKind,
   });
 
   if (isDryRun) {
@@ -321,7 +354,7 @@ async function main() {
   const result = await postToSlack(botToken, expectedChannelName, payload);
 
   if (result.success) {
-    console.log(`\n✅ RC notification sent to ${expectedChannelName}`);
+    console.log(`\n✅ ${label} notification sent to ${expectedChannelName}`);
   } else if (result.channelNotFound) {
     console.warn(`\n⚠️ Channel ${expectedChannelName} not found in Slack workspace`);
     console.warn('   This could mean:');
@@ -331,7 +364,7 @@ async function main() {
     console.warn('Skipping Slack notification (non-critical)');
   } else {
     // Fail open - log the error but don't exit with error code
-    console.log('\n⚠️ RC notification failed but continuing (non-critical)');
+    console.log(`\n⚠️ ${label} notification failed but continuing (non-critical)`);
   }
 }
 

@@ -1,4 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { useNavigation } from '@react-navigation/native';
+import { providerErrors } from '@metamask/rpc-errors';
+import { TransactionType } from '@metamask/transaction-controller';
+import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { useSelector } from 'react-redux';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -7,14 +11,19 @@ import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  type ConfirmationLaunchSource,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
+  getMoneyAccountDepositAssetAddress,
 } from '../utils/moneyAccountTransactions';
 import {
   getMoneyAccountDepositIntent,
@@ -23,9 +32,22 @@ import {
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
+import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 
 jest.mock('react-redux');
-jest.mock('../../../../util/transaction-controller');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
+jest.mock('../../../../util/errorHandling/isUserRejectedError', () => ({
+  __esModule: true,
+  isUserRejectedError: jest.fn(),
+}));
+jest.mock('../../../../util/transaction-controller', () => ({
+  __esModule: true,
+  addTransactionBatch: jest.fn(),
+}));
 jest.mock('../../../../util/notifications/methods/common');
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -37,6 +59,19 @@ jest.mock('../../../../util/Logger', () => ({
 
 jest.mock('../utils/devErrorAlert', () => ({
   showDevErrorAlert: jest.fn(),
+}));
+jest.mock('./useMoneyToasts', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      getCurrentRoute: jest.fn(),
+      goBack: jest.fn(),
+    },
+  },
 }));
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -52,7 +87,11 @@ jest.mock('../utils/moneyAccountTransactions');
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
-    ConfirmationLoader: { CustomAmount: 'customAmount' },
+    ConfirmationLoader: {
+      CustomAmount: 'customAmount',
+      AdvancedCustomAmount: 'advancedCustomAmount',
+      PrefillCustomAmount: 'prefillCustomAmount',
+    },
   }),
 );
 
@@ -61,6 +100,13 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
     navigateToConfirmation: jest.fn(),
   }),
 }));
+
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled',
+  () => ({
+    useMoneyAccountDepositPrefillEnabled: jest.fn(),
+  }),
+);
 
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
@@ -71,6 +117,19 @@ const getNavigateToConfirmation = () =>
     .navigateToConfirmation as jest.Mock;
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+const mockIsUserRejectedError = isUserRejectedError as jest.MockedFunction<
+  typeof isUserRejectedError
+>;
+const mockUseMoneyToasts = useMoneyToasts as jest.MockedFunction<
+  typeof useMoneyToasts
+>;
+const mockGetCurrentRoute = NavigationService.navigation
+  .getCurrentRoute as jest.MockedFunction<
+  typeof NavigationService.navigation.getCurrentRoute
+>;
 const mockGetProviderByChainId = getProviderByChainId as jest.MockedFunction<
   typeof getProviderByChainId
 >;
@@ -85,10 +144,34 @@ const mockBuildWithdrawBatch =
   buildMoneyAccountWithdrawBatch as jest.MockedFunction<
     typeof buildMoneyAccountWithdrawBatch
   >;
+const mockGetMoneyAccountDepositAssetAddress =
+  getMoneyAccountDepositAssetAddress as jest.MockedFunction<
+    typeof getMoneyAccountDepositAssetAddress
+  >;
 const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.MockedFunction<
   typeof Engine.context.NetworkController.findNetworkClientIdByChainId
 >;
+const mockUseMoneyAccountDepositPrefillEnabled = jest.mocked(
+  useMoneyAccountDepositPrefillEnabled,
+);
+const mockIsDepositPrefillEnabled = jest.fn(
+  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
+);
+
+function mockDepositPrefillEnabled(
+  isEnabled: boolean | ((intent?: 'convert' | 'addMusd' | 'card') => boolean),
+) {
+  mockIsDepositPrefillEnabled.mockImplementation(
+    typeof isEnabled === 'function'
+      ? isEnabled
+      : (intent?: 'convert' | 'addMusd' | 'card') =>
+          intent === 'addMusd' ? true : isEnabled,
+  );
+  mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
+    mockIsDepositPrefillEnabled,
+  );
+}
 
 const MOCK_VAULT_CONFIG = {
   chainId: '0xa4b1',
@@ -105,6 +188,14 @@ const MOCK_MONEY_ACCOUNT = {
 const MOCK_RECIPIENT = '0xrecipient';
 
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
+const mockGoBack = jest.fn();
+const mockShowToast = jest.fn();
+const mockDepositFailed = jest.fn();
+const mockWithdrawFailed = jest.fn();
+const MOCK_DEPOSIT_FAILED_TOAST = { type: 'deposit-failed' };
+const MOCK_WITHDRAW_FAILED_TOAST = { type: 'withdraw-failed' };
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  TransactionType.membershipSubscription;
 
 // 'key' in options is used instead of destructuring defaults so that
 // an explicit { vaultConfig: undefined } is treated as "use undefined",
@@ -127,6 +218,8 @@ function setupSelectors(options: SelectorOptions = {}) {
     if (selector === selectMoneyAccountVaultConfig) return vaultConfig;
     if (selector === selectPrimaryMoneyAccount) return primaryMoneyAccount;
     if (selector === selectEvmAddress) return recipient;
+    // Invoke inline selectors so module-level mocks resolve correctly.
+    if (typeof selector === 'function') return selector(undefined);
     return undefined;
   });
 }
@@ -134,9 +227,43 @@ function setupSelectors(options: SelectorOptions = {}) {
 describe('useMoneyAccountDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDepositPrefillEnabled(false);
+    mockIsUserRejectedError.mockReturnValue(false);
+    mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    } as never);
+    mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
+    mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
+    mockUseMoneyToasts.mockReturnValue({
+      showToast: mockShowToast,
+      closeToast: jest.fn(),
+      MoneyToastOptions: {
+        deposit: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockDepositFailed,
+        },
+        withdraw: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockWithdrawFailed,
+        },
+        send: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
+      },
+    });
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
+    mockGetMoneyAccountDepositAssetAddress.mockReturnValue('0xmusd' as Hex);
     mockBuildDepositBatch.mockResolvedValue({
       approveTx: {
         params: {
@@ -160,17 +287,47 @@ describe('useMoneyAccountDeposit', () => {
 
   it('throws when vault config is missing', async () => {
     setupSelectors({ vaultConfig: undefined });
+    const onDepositSetupFailure = jest.fn();
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit();
+        await result.current.initiateDeposit({ onDepositSetupFailure });
       }),
     ).rejects.toThrow('Missing vault config');
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(onDepositSetupFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: '[Money Account] Missing vault config',
+      }),
+    );
+  });
+
+  it('throws when the primary money account is missing', async () => {
+    setupSelectors({ primaryMoneyAccount: undefined });
+    const onDepositSetupFailure = jest.fn();
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit({ onDepositSetupFailure });
+      }),
+    ).rejects.toThrow('Missing money account address');
+
+    expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(onDepositSetupFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: '[Money Account] Missing money account address',
+      }),
+    );
   });
 
   it('throws when provider is unavailable', async () => {
@@ -199,15 +356,24 @@ describe('useMoneyAccountDeposit', () => {
         amount: BigInt(0),
         chainId: MOCK_VAULT_CONFIG.chainId,
         boringVault: MOCK_VAULT_CONFIG.boringVault,
+        initialiseWithoutData: true,
       }),
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      preferredPaymentToken: undefined,
+      amount: undefined,
       autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
+    expect(
+      getNavigateToConfirmation().mock.invocationCallOrder[0],
+    ).toBeLessThan(mockBuildDepositBatch.mock.invocationCallOrder[0]);
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -216,6 +382,71 @@ describe('useMoneyAccountDeposit', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
+        skipInitialGasEstimate: true,
+      }),
+    );
+  });
+
+  it('forwards explicit amount and uses prefill loader without balance prefill enabled', async () => {
+    mockDepositPrefillEnabled(false);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ amount: '5' });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: '5',
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.PrefillCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+    expect(mockBuildDepositBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: BigInt(0) }),
+    );
+  });
+
+  it('passes launchedFrom to navigateToConfirmation so it can pick the landing screen', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        launchedFrom: 'rewards' as ConfirmationLaunchSource,
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: 'rewards',
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('keeps a zero initial amount on the editable amount loader', async () => {
+    mockDepositPrefillEnabled(true);
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ amount: '0' });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: '0',
+        loader: ConfirmationLoader.AdvancedCustomAmount,
       }),
     );
   });
@@ -228,10 +459,15 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      preferredPaymentToken: undefined,
+      amount: undefined,
       autoSelectFiatPayment: true,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
   });
 
@@ -259,17 +495,116 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      preferredPaymentToken,
+      amount: undefined,
       autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.PrefillCustomAmount,
+      preferredPaymentToken,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
-  it('defaults intent to "convert" when omitted', async () => {
+  it('uses PrefillCustomAmount loader when deposit prefill is enabled', async () => {
+    mockDepositPrefillEnabled(true);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.PrefillCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])(
+    'forwards %s through the explicit transactionType option',
+    async (transactionType) => {
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await act(async () => {
+        await result.current.initiateDeposit({
+          transactionType,
+        });
+      });
+
+      expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactions: [
+            expect.objectContaining({ type: 'tokenMethodApprove' }),
+            expect.objectContaining({ type: transactionType }),
+          ],
+        }),
+      );
+    },
+  );
+
+  it('uses AdvancedCustomAmount loader when deposit prefill is disabled', async () => {
+    mockDepositPrefillEnabled(false);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('uses AdvancedCustomAmount loader for card intent even when prefill is enabled', async () => {
+    mockDepositPrefillEnabled((intent) => intent !== 'card');
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        autoSelectFiatPayment: true,
+        intent: 'card',
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: true,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
     let observedBatchId: string | undefined;
     mockAddTransactionBatch.mockImplementationOnce(async (args) => {
       observedBatchId = (args as { batchId: string }).batchId;
@@ -282,7 +617,7 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(getMoneyAccountDepositIntent(observedBatchId)).toBe('convert');
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
@@ -302,8 +637,54 @@ describe('useMoneyAccountDeposit', () => {
         .catch(() => undefined);
     });
 
-    expect(observedBatchId).toBeDefined();
+    expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
+  });
+
+  it.each(['build', 'add'] as const)(
+    'targets the root modal on %s failure without going back in the caller stack',
+    async (failureStage) => {
+      const error = new Error('deposit setup failed');
+      if (failureStage === 'build') {
+        mockBuildDepositBatch.mockRejectedValueOnce(error);
+      } else {
+        mockAddTransactionBatch.mockRejectedValueOnce(error);
+      }
+      mockGetCurrentRoute.mockReturnValue({
+        key: 'confirmation-modal',
+        name: Routes.CONFIRMATION_REQUEST_MODAL,
+      });
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateDeposit({ forceBottomSheet: true }),
+        ).rejects.toBe(error);
+      });
+
+      expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+    },
+  );
+
+  it('does not dismiss another route when forced-sheet setup fails', async () => {
+    const error = new Error('deposit setup failed');
+    mockBuildDepositBatch.mockRejectedValueOnce(error);
+    mockGetCurrentRoute.mockReturnValue({
+      key: 'settings',
+      name: Routes.SETTINGS_VIEW,
+    });
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await expect(
+        result.current.initiateDeposit({ forceBottomSheet: true }),
+      ).rejects.toBe(error);
+    });
+
+    expect(NavigationService.navigation.goBack).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {
@@ -324,11 +705,155 @@ describe('useMoneyAccountDeposit', () => {
     expect(caught).toBe(txError);
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
-      '[Money Account] Deposit transaction failed',
+      '[Money Account] Deposit setup failed',
     );
     expect(showDevErrorAlert).toHaveBeenCalledWith(
-      '[Money Account] Deposit transaction failed',
+      '[Money Account] Deposit setup failed',
       txError,
+    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockDepositFailed).toHaveBeenCalledWith({ intent: undefined });
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+  });
+
+  it('backs out and shows a failure toast when deposit batch building fails', async () => {
+    const buildError = new Error('deposit batch build failed');
+    const onDepositSetupFailure = jest.fn();
+    mockBuildDepositBatch.mockRejectedValue(buildError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({
+          intent: 'convert',
+          onDepositSetupFailure,
+        });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(mockBuildDepositBatch).toHaveBeenCalledTimes(1);
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockDepositFailed).toHaveBeenCalledWith({ intent: 'convert' });
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+    expect(onDepositSetupFailure).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate back when deposit confirmation is rejected', async () => {
+    const rejectionError = providerErrors.userRejectedRequest();
+    mockIsUserRejectedError.mockReturnValueOnce(true);
+    mockAddTransactionBatch.mockRejectedValue(rejectionError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(rejectionError);
+    expect(mockIsUserRejectedError).toHaveBeenCalledWith(
+      rejectionError,
+      'User rejected the request.',
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDepositFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('forwards replaceConfirmation to confirmation navigation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ replaceConfirmation: true });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: true,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('forwards forced bottom sheet options to confirmation navigation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        forceBottomSheet: true,
+        bottomSheetHeightPercentage: 84,
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: 84,
+      forceBottomSheet: true,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('backs out forced bottom sheet when deposit setup fails on the modal route', async () => {
+    const buildError = new Error('deposit batch build failed');
+    mockBuildDepositBatch.mockRejectedValue(buildError);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.CONFIRMATION_REQUEST_MODAL,
+    } as never);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({ forceBottomSheet: true });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDepositFailed).toHaveBeenCalledWith({ intent: undefined });
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+  });
+
+  it('always sets skipInitialGasEstimate to true regardless of chain', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
+      }),
     );
   });
 
@@ -353,6 +878,38 @@ describe('useMoneyAccountDeposit', () => {
 describe('useMoneyAccountWithdrawal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsUserRejectedError.mockReturnValue(false);
+    mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    } as never);
+    mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
+    mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
+    mockUseMoneyToasts.mockReturnValue({
+      showToast: mockShowToast,
+      closeToast: jest.fn(),
+      MoneyToastOptions: {
+        deposit: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockDepositFailed,
+        },
+        withdraw: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockWithdrawFailed,
+        },
+        send: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
+      },
+    });
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
@@ -390,6 +947,24 @@ describe('useMoneyAccountWithdrawal', () => {
 
     expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+  });
+
+  it('throws when the primary money account is missing', async () => {
+    setupSelectors({ primaryMoneyAccount: undefined });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal();
+      }),
+    ).rejects.toThrow('Missing money account address');
+
+    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('throws when recipient EVM address is missing', async () => {
@@ -443,9 +1018,12 @@ describe('useMoneyAccountWithdrawal', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
+    expect(
+      getNavigateToConfirmation().mock.invocationCallOrder[0],
+    ).toBeLessThan(mockBuildWithdrawBatch.mock.invocationCallOrder[0]);
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -454,10 +1032,45 @@ describe('useMoneyAccountWithdrawal', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
         transactions: [
           expect.objectContaining({ type: 'moneyAccountWithdraw' }),
           expect.objectContaining({ type: 'tokenMethodTransfer' }),
         ],
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to false but skipInitialGasEstimate to true when vault chain is not Monad', async () => {
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: false,
+        skipInitialGasEstimate: true,
       }),
     );
   });
@@ -486,6 +1099,56 @@ describe('useMoneyAccountWithdrawal', () => {
       '[Money Account] Withdrawal transaction failed',
       txError,
     );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockWithdrawFailed).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_WITHDRAW_FAILED_TOAST);
+  });
+
+  it('backs out and shows a failure toast when withdrawal batch building fails', async () => {
+    const buildError = new Error('withdrawal batch build failed');
+    mockBuildWithdrawBatch.mockRejectedValue(buildError);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateWithdrawal();
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockWithdrawFailed).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_WITHDRAW_FAILED_TOAST);
+  });
+
+  it('does not navigate back when withdrawal confirmation is rejected', async () => {
+    const rejectionError = providerErrors.userRejectedRequest();
+    mockIsUserRejectedError.mockReturnValueOnce(true);
+    mockAddTransactionBatch.mockRejectedValue(rejectionError);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.initiateWithdrawal();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(rejectionError);
+    expect(mockIsUserRejectedError).toHaveBeenCalledWith(
+      rejectionError,
+      'User rejected the request.',
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockWithdrawFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('throws when networkClientId cannot be resolved', async () => {

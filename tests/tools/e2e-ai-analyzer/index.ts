@@ -70,7 +70,7 @@ function validateProvidedFiles(
 function parseArgs(args: string[]): ParsedArgs {
   const options: ParsedArgs = {
     baseBranch: APP_CONFIG.defaultBaseBranch,
-    mode: 'select-tags',
+    mode: 'generate-test-plan',
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -195,7 +195,7 @@ AI AGENTIC FLOW:
 Usage: node -r esbuild-register tests/tools/e2e-ai-analyzer [options]
 
 Options:
-  -m, --mode <mode>             Analysis mode (default: select-tags)
+  -m, --mode <mode>             Analysis mode (default: generate-test-plan)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
@@ -384,8 +384,6 @@ async function main() {
     console.log(`🔗 PR #${options.prNumber} - using gh CLI for diffs`);
   }
 
-  // Check hard rules before provider availability — hard rules are deterministic
-  // and require no AI, so we can skip all API calls if one fires.
   const { checkHardRules } = MODES[mode];
   if (checkHardRules) {
     const hardRuleResult = checkHardRules(allChangedFiles, analysisContext);
@@ -394,6 +392,10 @@ async function main() {
       return;
     }
   }
+
+  const outputAnalysis = (analysis: unknown): void => {
+    (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
+  };
 
   // Get provider order (forced provider or priority from config)
   const providerOrder = getProviderOrder(forcedProvider);
@@ -438,7 +440,7 @@ async function main() {
     console.error(`   ${LLM_CONFIG.providers.openai.envKey}`);
     console.error(`   ${LLM_CONFIG.providers.google.envKey}`);
     const fallbackAnalysis = MODES[mode].createConservativeResult();
-    (MODES[mode].outputAnalysis as (a: unknown) => void)(fallbackAnalysis);
+    outputAnalysis(fallbackAnalysis);
     return;
   }
 
@@ -771,7 +773,7 @@ async function main() {
       );
 
       // Success - output results and exit
-      (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
+      outputAnalysis(analysis);
       return;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -790,7 +792,7 @@ async function main() {
   }
 
   const fallbackAnalysis = MODES[mode].createConservativeResult();
-  (MODES[mode].outputAnalysis as (a: unknown) => void)(fallbackAnalysis);
+  outputAnalysis(fallbackAnalysis);
 }
 
 main().catch((error) => {

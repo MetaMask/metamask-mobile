@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseMarketInsights = jest.fn();
+const mockEndTrace = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
 const mockFeedbackBottomSheet = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -32,6 +33,7 @@ let mockRouteParams: {
   token?: Record<string, unknown>;
   isPerps?: boolean;
   hasPerpsPosition?: boolean;
+  isAtOICap?: boolean;
   source?: 'token_details' | 'perps' | 'unknown';
 } = {
   assetSymbol: 'ETH',
@@ -66,14 +68,23 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../hooks/useMarketInsights', () => ({
-  useMarketInsights: (assetIdentifier: string) => {
-    const result = mockUseMarketInsights(assetIdentifier);
+  useMarketInsights: (
+    assetIdentifier: string,
+    _isEnabled: boolean,
+    telemetryContext: unknown,
+  ) => {
+    const result = mockUseMarketInsights(assetIdentifier, telemetryContext);
     return {
       ...result,
       reportAssetId:
         result?.reportAssetId ?? (result?.report ? assetIdentifier : null),
     };
   },
+}));
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
 jest.mock(
@@ -274,12 +285,13 @@ jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
 }));
 
 let mockIsQuickBuyEnabled = false;
-jest.mock(
-  '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy',
-  () => ({
-    selectSocialAiAssetDetailsQuickBuyEnabled: () => mockIsQuickBuyEnabled,
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showQuickBuy: mockIsQuickBuyEnabled },
+    variantName: mockIsQuickBuyEnabled ? 'treatment' : 'control',
+    isActive: true,
   }),
-);
+}));
 
 const mockPlayImpact = jest.fn();
 jest.mock('../../../../../util/haptics', () => ({
@@ -411,6 +423,102 @@ describe('MarketInsightsView', () => {
 
     const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
+  });
+
+  it('ends full-view time to content when the report is committed', () => {
+    mockRouteParams.source = 'token_details';
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      reportAssetId: 'eip155:1/erc20:0x123',
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    renderWithProvider(<MarketInsightsView />);
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Market Insights View Load',
+      id: 'token_details:full_view:eip155:1/erc20:0x123',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
+    expect(mockUseMarketInsights).toHaveBeenCalledWith('eip155:1/erc20:0x123', {
+      source: 'token_details',
+      stage: 'full_view',
+      assetType: 'token',
+    });
+  });
+
+  it('does not end full-view time to content as empty while loading', () => {
+    mockRouteParams.source = 'token_details';
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      reportAssetId: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+
+    renderWithProvider(<MarketInsightsView />);
+
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ result: 'empty' }),
+      }),
+    );
+  });
+
+  it('ends full-view time to content with an error result', () => {
+    mockRouteParams.source = 'perps';
+    mockRouteParams.assetIdentifier = 'ETH';
+    mockRouteParams.isPerps = true;
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      reportAssetId: null,
+      isLoading: false,
+      error: 'request failed',
+      timeAgo: '',
+    });
+
+    renderWithProvider(<MarketInsightsView />);
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Market Insights View Load',
+      id: 'perps:full_view:ETH',
+      data: {
+        result: 'error',
+        success: false,
+        content_state: 'error',
+      },
+    });
+  });
+
+  it('ends full-view time to content as cancelled on unmount', () => {
+    mockRouteParams.source = 'token_details';
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      reportAssetId: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+    const { unmount } = renderWithProvider(<MarketInsightsView />);
+
+    unmount();
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Market Insights View Load',
+      id: 'token_details:full_view:eip155:1/erc20:0x123',
+      data: {
+        result: 'cancelled',
+        success: false,
+        reason: 'owner_cancelled',
+      },
+    });
   });
 
   it('configures background video to mix with other audio', () => {
@@ -610,6 +718,7 @@ describe('MarketInsightsView', () => {
       params: expect.objectContaining({
         newTabUrl: 'https://www.coindesk.com/article',
         fromTrending: true,
+        fromMarketInsights: true,
       }),
     });
   });
@@ -805,6 +914,64 @@ describe('MarketInsightsView', () => {
       getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
     ).toBeOnTheScreen();
     expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+  });
+
+  it('hides Long and Short buttons when the perps market is at its open interest cap', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+      isAtOICap: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest at cap',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
+  });
+
+  it('shows Long and Short buttons when the perps market is below its open interest cap', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+      isAtOICap: false,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest below cap',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', async () => {

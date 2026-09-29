@@ -7,7 +7,7 @@ import { selectLastSelectedEvmAccount } from '../../../../../selectors/accountsC
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from '../useTokensWithBalance';
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 
 export const useSortedSourceNetworks = () => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
@@ -77,6 +77,15 @@ export const useSortedSourceNetworks = () => {
     0,
   );
 
+  // Calculate total fiat value for Stellar (native + tokens)
+  const xlmTokensWithBalance = useTokensWithBalance({
+    chainIds: [XlmScope.Pubnet],
+  });
+  const xlmFiatTotal = xlmTokensWithBalance.reduce(
+    (sum, token) => sum + (token.tokenFiatAmount ?? 0),
+    0,
+  );
+
   // Sort networks by total fiat value in descending order
   const sortedSourceNetworks = useMemo(
     () =>
@@ -90,6 +99,8 @@ export const useSortedSourceNetworks = () => {
             totalFiatValue = btcFiatTotal;
           } else if (chain.chainId === TrxScope.Mainnet) {
             totalFiatValue = trxFiatTotal;
+          } else if (chain.chainId === XlmScope.Pubnet) {
+            totalFiatValue = xlmFiatTotal;
           } else {
             totalFiatValue = getEvmChainTotalFiatValue(chain.chainId);
           }
@@ -106,6 +117,7 @@ export const useSortedSourceNetworks = () => {
       solFiatTotal,
       btcFiatTotal,
       trxFiatTotal,
+      xlmFiatTotal,
     ],
   );
 

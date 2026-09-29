@@ -12,6 +12,9 @@ import { useStyles } from '../../../hooks';
 import styleSheet from './Tag.styles';
 import { TagProps } from './Tag.types';
 
+/**
+ * @deprecated Please update your code to use `Tag` from `@metamask/design-system-react-native`.
+ */
 const Tag = ({ label, style, ...props }: TagProps) => {
   const { styles } = useStyles(styleSheet, { style });
 

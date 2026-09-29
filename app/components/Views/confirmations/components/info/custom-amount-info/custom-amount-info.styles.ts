@@ -1,7 +1,9 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const EXTRA_ANDROID_BOTTOM_PADDING = 56;
+const ACCOUNT_SELECTOR_VERTICAL_PADDING = 12;
+const BOTTOM_BLOCK_GAP = 16;
+const BOTTOM_BLOCK_PADDING = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -19,9 +21,10 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 14,
     },
 
-    extraBottomPadding: {
-      paddingBottom:
-        Platform.OS === 'android' ? EXTRA_ANDROID_BOTTOM_PADDING : 0,
+    // Sits on top of the safe-area inset, so the confirm button and the keypad
+    // keep clear of the home indicator / navigation bar on both platforms.
+    bottomBlock: {
+      paddingBottom: BOTTOM_BLOCK_PADDING,
     },
 
     disabledButton: {
@@ -35,6 +38,34 @@ const styleSheet = (params: { theme: Theme }) => {
     separator: {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
+      marginBottom: ACCOUNT_SELECTOR_VERTICAL_PADDING - BOTTOM_BLOCK_GAP,
+    },
+
+    buttonSkeleton: {
+      borderRadius: 999,
+      marginTop: 16,
+    },
+
+    skeletonRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+    },
+
+    skeletonInfoRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      paddingBottom: 10,
+      paddingHorizontal: 8,
+    },
+
+    skeletonRowRight: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 8,
     },
   });
 };

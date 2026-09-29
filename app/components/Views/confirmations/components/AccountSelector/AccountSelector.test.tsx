@@ -35,63 +35,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReactActual = require('react');
-  const { Text: RNText, View: RNView } = jest.requireActual('react-native');
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    style?: unknown;
-    variant?: string;
-    color?: string;
-    testID?: string;
-    twClassName?: string;
-  }) => <RNText {...props}>{children}</RNText>;
-  const MockSkeleton = (props: {
-    height?: number;
-    width?: number;
-    twClassName?: string;
-  }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        onClose,
-        testID,
-      }: {
-        children: React.ReactNode;
-        onClose?: (hasPendingAction?: boolean) => void;
-        testID?: string;
-      },
-      ref: React.Ref<{
-        onCloseBottomSheet: (cb?: () => void) => void;
-        onOpenBottomSheet: (cb?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: (cb?: () => void) => {
-          onClose?.(false);
-          cb?.();
-        },
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return <RNView testID={testID}>{children}</RNView>;
-    },
-  );
-  return {
-    ...actual,
-    BottomSheet: MockBottomSheet,
-    Text: MockText,
-    Skeleton: MockSkeleton,
-    TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
-    TextColor: { TextAlternative: 'TextAlternative' },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -150,6 +93,14 @@ const mockInternalAccountsById = {
     scopes: ['eip155:0'],
     metadata: { name: 'Account 2' },
   },
+  'account-3': {
+    address: '0xAccount3Address',
+    scopes: ['eip155:0'],
+    metadata: {
+      name: 'Ledger Account',
+      keyring: { type: 'Ledger Hardware' },
+    },
+  },
 };
 
 const mockAccountGroupsByWallet = [
@@ -186,6 +137,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../selectors/multichainAccounts/manageAccounts', () => ({
+  selectVisibleAccountGroupsByWallet: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/settings', () => ({
   selectAvatarAccountType: jest.fn(),
 }));
@@ -199,12 +154,17 @@ jest.mock('react-redux', () => ({
       jest.requireMock(
         '../../../../../selectors/multichainAccounts/accountTreeController',
       );
+    const { selectVisibleAccountGroupsByWallet } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/manageAccounts',
+    );
     const { selectAvatarAccountType } = jest.requireMock(
       '../../../../../selectors/settings',
     );
     if (selector === selectInternalAccountsById)
       return mockInternalAccountsById;
     if (selector === selectAccountGroupsByWallet)
+      return mockAccountGroupsByWallet;
+    if (selector === selectVisibleAccountGroupsByWallet)
       return mockAccountGroupsByWallet;
     if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
     if (selector === selectAvatarAccountType) return 'HD Key Tree';
@@ -278,6 +238,18 @@ describe('AccountSelector', () => {
     expect(getByText('Account 1')).toBeOnTheScreen();
   });
 
+  it('keeps a gap between the label and the account name', () => {
+    const { getByTestId } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL)).toHaveStyle({ gap: 8 });
+  });
+
   it('opens modal when pill is pressed', () => {
     const { getByTestId } = render(
       <AccountSelector onAccountSelected={mockOnAccountSelected} />,
@@ -325,6 +297,124 @@ describe('AccountSelector', () => {
     expect(queryByText('confirm.label.to')).toBeNull();
   });
 
+  it('includes wallet name in label when multiple wallets exist', () => {
+    const multiWalletSections = [
+      {
+        title: 'Wallet 1',
+        wallet: { id: 'wallet-1' },
+        data: [
+          {
+            id: 'group-1',
+            accounts: ['account-1'],
+            metadata: { name: 'Account 1' },
+          },
+        ],
+      },
+      {
+        title: 'Wallet 2',
+        wallet: { id: 'wallet-2' },
+        data: [
+          {
+            id: 'group-2',
+            accounts: ['account-2'],
+            metadata: { name: 'Account 2' },
+          },
+        ],
+      },
+    ];
+
+    const multiWalletAccountToGroupMap = {
+      ...mockAccountToGroupMap,
+      'account-2': {
+        id: 'group-2',
+        accounts: ['account-2'],
+        metadata: { name: 'Account 2' },
+      },
+    };
+
+    const { useSelector } = jest.requireMock('react-redux');
+    const { selectAccountGroupsByWallet, selectAccountToGroupMap } =
+      jest.requireMock(
+        '../../../../../selectors/multichainAccounts/accountTreeController',
+      );
+    const { selectInternalAccountsById } = jest.requireMock(
+      '../../../../../selectors/accountsController',
+    );
+    const { selectAvatarAccountType } = jest.requireMock(
+      '../../../../../selectors/settings',
+    );
+    const { selectVisibleAccountGroupsByWallet } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/manageAccounts',
+    );
+
+    useSelector.mockImplementation(
+      (selector: (...args: unknown[]) => unknown) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectAccountGroupsByWallet)
+          return multiWalletSections;
+        if (selector === selectVisibleAccountGroupsByWallet)
+          return multiWalletSections;
+        if (selector === selectAccountToGroupMap)
+          return multiWalletAccountToGroupMap;
+        if (selector === selectAvatarAccountType) return 'HD Key Tree';
+        return undefined;
+      },
+    );
+
+    const { getByText } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByText('From Wallet 1')).toBeOnTheScreen();
+  });
+
+  it('does not include wallet name in label with a single wallet', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const { selectAccountGroupsByWallet, selectAccountToGroupMap } =
+      jest.requireMock(
+        '../../../../../selectors/multichainAccounts/accountTreeController',
+      );
+    const { selectInternalAccountsById } = jest.requireMock(
+      '../../../../../selectors/accountsController',
+    );
+    const { selectAvatarAccountType } = jest.requireMock(
+      '../../../../../selectors/settings',
+    );
+    const { selectVisibleAccountGroupsByWallet } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/manageAccounts',
+    );
+
+    useSelector.mockImplementation(
+      (selector: (...args: unknown[]) => unknown) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectAccountGroupsByWallet)
+          return mockAccountGroupsByWallet;
+        if (selector === selectVisibleAccountGroupsByWallet)
+          return mockAccountGroupsByWallet;
+        if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
+        if (selector === selectAvatarAccountType) return 'HD Key Tree';
+        return undefined;
+      },
+    );
+
+    const { getByText, queryByText } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(queryByText('From Wallet 1')).toBeNull();
+  });
+
   it('uses custom selector title in the sheet header when provided', () => {
     const { getByTestId, getByText } = render(
       <AccountSelector
@@ -336,6 +426,62 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
 
     expect(getByText('Custom sheet title')).toBeOnTheScreen();
+  });
+
+  it('filters account groups using isAccountAllowed', () => {
+    const accountGroupsWithLedger = [
+      ...mockAccountGroupsByWallet,
+      {
+        title: 'Ledger',
+        wallet: { id: 'wallet-ledger' },
+        data: [
+          {
+            id: 'group-3',
+            accounts: ['account-3'],
+            metadata: { name: 'Ledger Account' },
+          },
+        ],
+      },
+    ];
+    const { useSelector } = jest.requireMock('react-redux');
+    const { selectAccountToGroupMap } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    const { selectInternalAccountsById } = jest.requireMock(
+      '../../../../../selectors/accountsController',
+    );
+    const { selectVisibleAccountGroupsByWallet } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/manageAccounts',
+    );
+    const { selectAvatarAccountType } = jest.requireMock(
+      '../../../../../selectors/settings',
+    );
+
+    useSelector.mockImplementation(
+      (selector: (...args: unknown[]) => unknown) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectVisibleAccountGroupsByWallet)
+          return accountGroupsWithLedger;
+        if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
+        if (selector === selectAvatarAccountType) return 'HD Key Tree';
+        return undefined;
+      },
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <AccountSelector
+        onAccountSelected={mockOnAccountSelected}
+        isAccountAllowed={(account) =>
+          account.metadata.keyring?.type !== 'Ledger Hardware'
+        }
+      />,
+    );
+
+    fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
+
+    expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
+    expect(queryByTestId('account-group-group-3')).toBeNull();
   });
 });
 

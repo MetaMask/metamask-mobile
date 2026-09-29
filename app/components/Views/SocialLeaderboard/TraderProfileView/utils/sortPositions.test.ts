@@ -37,8 +37,8 @@ const makeClosed = (overrides: Partial<Position> = {}): Position =>
 
 describe('sortPositions', () => {
   describe('cycles', () => {
-    it('exposes the Open tab cycle as [value, pnl]', () => {
-      expect(OPEN_SORT_CYCLE).toEqual(['value', 'pnl']);
+    it('exposes the Open tab cycle as [value, pnl, recent]', () => {
+      expect(OPEN_SORT_CYCLE).toEqual(['value', 'pnl', 'recent']);
     });
 
     it('exposes the Closed tab cycle as [value, pnl, recent]', () => {
@@ -51,16 +51,19 @@ describe('sortPositions', () => {
       positionId: 'a',
       currentValueUSD: 100,
       pnlPercent: 5,
+      lastTradeAt: 1_000,
     });
     const b = makeOpen({
       positionId: 'b',
       currentValueUSD: 300,
       pnlPercent: 1,
+      lastTradeAt: 3_000,
     });
     const c = makeOpen({
       positionId: 'c',
       currentValueUSD: 200,
       pnlPercent: 10,
+      lastTradeAt: 2_000,
     });
 
     it('sorts by currentValueUSD descending when sortKey is value', () => {
@@ -73,6 +76,12 @@ describe('sortPositions', () => {
       const result = sortPositions([a, b, c], 'pnl', 'open');
 
       expect(result.map((p) => p.positionId)).toEqual(['c', 'a', 'b']);
+    });
+
+    it('sorts by lastTradeAt descending when sortKey is recent', () => {
+      const result = sortPositions([a, b, c], 'recent', 'open');
+
+      expect(result.map((p) => p.positionId)).toEqual(['b', 'c', 'a']);
     });
 
     it('treats null currentValueUSD as 0 for value sort', () => {
@@ -123,10 +132,11 @@ describe('sortPositions', () => {
       lastTradeAt: 2_000,
     });
 
-    it('sorts by soldUsd descending when sortKey is value', () => {
+    it('sorts by realized $ P&L descending when sortKey is value', () => {
+      // realizedPnl: a=100, b=30, c=500 → c, a, b
       const result = sortPositions([a, b, c], 'value', 'closed');
 
-      expect(result.map((p) => p.positionId)).toEqual(['b', 'c', 'a']);
+      expect(result.map((p) => p.positionId)).toEqual(['c', 'a', 'b']);
     });
 
     it('sorts by realized P&L percent descending when sortKey is pnl', () => {

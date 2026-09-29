@@ -48,9 +48,7 @@ describe('useReferralDetails', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
@@ -62,6 +60,8 @@ describe('useReferralDetails', () => {
     referralCode: 'ABC123',
     totalReferees: 5,
     referredByCode: 'REFERRER100',
+    isVipReferee: true,
+    referredByVipCode: 'VIPCODE',
   };
 
   beforeEach(() => {
@@ -92,8 +92,7 @@ describe('useReferralDetails', () => {
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
     focusCallback();
 
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsError(false));
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
+    expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -107,20 +106,38 @@ describe('useReferralDetails', () => {
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
     await focusCallback();
 
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsError({
+        subscriptionId: 'test-subscription-id',
+        error: false,
+      }),
+    );
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getReferralDetails',
       'test-subscription-id',
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setReferralDetails({
+        subscriptionId: 'test-subscription-id',
         referralCode: mockReferralDetails.referralCode,
         refereeCount: mockReferralDetails.totalReferees,
         referredByCode: mockReferralDetails.referredByCode,
+        isVipReferee: mockReferralDetails.isVipReferee,
+        referredByVipCode: mockReferralDetails.referredByVipCode,
       }),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: false,
+      }),
+    );
   });
 
   it('handles fetch error and dispatch error state', async () => {
@@ -134,14 +151,34 @@ describe('useReferralDetails', () => {
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
     await focusCallback();
 
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsError({
+        subscriptionId: 'test-subscription-id',
+        error: false,
+      }),
+    );
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getReferralDetails',
       'test-subscription-id',
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsError(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsError({
+        subscriptionId: 'test-subscription-id',
+        error: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: false,
+      }),
+    );
   });
 
   it('registers focus effect callback', () => {
@@ -205,8 +242,18 @@ describe('useReferralDetails', () => {
     await focusCallback();
 
     // Verify loading states are managed correctly
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: false,
+      }),
+    );
   });
 
   it('sets loading to false even when error occurs', async () => {
@@ -221,7 +268,12 @@ describe('useReferralDetails', () => {
     await focusCallback();
 
     // Verify loading is set to false after error
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: false,
+      }),
+    );
   });
 
   it('should handle null response from controller', async () => {
@@ -234,14 +286,27 @@ describe('useReferralDetails', () => {
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
     await focusCallback();
 
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: true,
+      }),
+    );
     expect(mockDispatch).toHaveBeenCalledWith(
       setReferralDetails({
+        subscriptionId: 'test-subscription-id',
         referralCode: undefined,
         refereeCount: undefined,
         referredByCode: undefined,
+        isVipReferee: false,
+        referredByVipCode: null,
       }),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralDetailsLoading({
+        subscriptionId: 'test-subscription-id',
+        loading: false,
+      }),
+    );
   });
 });

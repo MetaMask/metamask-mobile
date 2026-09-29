@@ -7,11 +7,13 @@ import { UnlockWalletErrorType } from './types';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import {
+  classifyUnlockError,
   handlePasswordSubmissionError,
   checkPasswordRequirement,
   getAuthLabel,
   getAuthType,
   getAuthIcon,
+  isAndroidKeychainBiometricLockout,
   isAndroidKeychainBiometricUserCancellation,
   isIosUserCancelledBiometricUnlock,
   isBiometricUnlockCancelledByUser,
@@ -91,6 +93,18 @@ describe('handlePasswordSubmissionError', () => {
     );
   });
 
+  it('throws error if user not authenticated error is detected', () => {
+    const error = new Error(
+      UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+    );
+    const expectedThrownError = new Error(
+      `${UnlockWalletErrorType.USER_NOT_AUTHENTICATED}: ${error.message}`,
+    );
+    expect(() => handlePasswordSubmissionError(error)).toThrow(
+      expectedThrownError,
+    );
+  });
+
   it('throws error if other password submission errors are detected', () => {
     const error = new Error('Unrecognized error!');
     const expectedThrownError = new Error(
@@ -98,6 +112,56 @@ describe('handlePasswordSubmissionError', () => {
     );
     expect(() => handlePasswordSubmissionError(error)).toThrow(
       expectedThrownError,
+    );
+  });
+});
+
+describe('classifyUnlockError', () => {
+  it('returns INVALID_PASSWORD for a wrong-password error', () => {
+    const error = new Error(UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD);
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.INVALID_PASSWORD,
+    );
+  });
+
+  it('returns VAULT_CORRUPTION for a missing previous vault error', () => {
+    const error = new Error(
+      UNLOCK_WALLET_ERROR_MESSAGES.PREVIOUS_VAULT_NOT_FOUND,
+    );
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.VAULT_CORRUPTION,
+    );
+  });
+
+  it('returns USER_NOT_AUTHENTICATED for a user-not-authenticated error', () => {
+    const error = new Error(
+      UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+    );
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.USER_NOT_AUTHENTICATED,
+    );
+  });
+
+  it('returns UNRECOGNIZED_ERROR for an unclassified error', () => {
+    const error = new Error('Unrecognized error!');
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.UNRECOGNIZED_ERROR,
+    );
+  });
+});
+
+describe('isAndroidKeychainBiometricLockout', () => {
+  it.each([
+    ['code: 7, msg: Too many attempts. Try again later.', true],
+    ['code:7, msg: lockout', true],
+    ['code: 10, msg: Fingerprint operation canceled by user', false],
+  ])('returns %s -> %s', (message, expected) => {
+    expect(isAndroidKeychainBiometricLockout(new Error(message))).toBe(
+      expected,
     );
   });
 });
@@ -288,65 +352,69 @@ describe('getAuthLabel', () => {
     passcodeAvailable: false,
   };
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('iOS', () => {
     beforeEach(() => {
       jest.replaceProperty(Platform, 'OS', 'ios');
     });
 
-    it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
+    it('returns remember_me label key when allowLoginWithRememberMe is true', () => {
       const result = getAuthLabel({
         ...baseParams,
         allowLoginWithRememberMe: true,
       });
-      expect(result).toBe('Remember Me');
+      expect(result).toBe('authentication.labels.remember_me');
     });
 
-    it('returns "Face ID" when legacyUserChoseBiometrics and Face ID supported', () => {
+    it('returns face_id label key when legacyUserChoseBiometrics and Face ID supported', () => {
       const result = getAuthLabel({
         ...baseParams,
         legacyUserChoseBiometrics: true,
         supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
       });
-      expect(result).toBe('Face ID');
+      expect(result).toBe('authentication.labels.face_id');
     });
 
-    it('returns "Touch ID" when legacyUserChoseBiometrics and Touch ID supported', () => {
+    it('returns touch_id label key when legacyUserChoseBiometrics and Touch ID supported', () => {
       const result = getAuthLabel({
         ...baseParams,
         legacyUserChoseBiometrics: true,
         supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
       });
-      expect(result).toBe('Touch ID');
+      expect(result).toBe('authentication.labels.touch_id');
     });
 
-    it('returns "Device Passcode" when legacyUserChosePasscode is true', () => {
+    it('returns device_passcode label key when legacyUserChosePasscode is true', () => {
       const result = getAuthLabel({
         ...baseParams,
         legacyUserChosePasscode: true,
       });
-      expect(result).toBe('Device Passcode');
+      expect(result).toBe('authentication.labels.device_passcode');
     });
 
-    it('returns "Device Authentication" when isBiometricsAvailable (modern path)', () => {
+    it('returns device_authentication label key when isBiometricsAvailable (modern path)', () => {
       const result = getAuthLabel({
         ...baseParams,
         isBiometricsAvailable: true,
         supportedBiometricTypes: [AuthenticationType.FACIAL_RECOGNITION],
       });
-      expect(result).toBe('Device Authentication');
+      expect(result).toBe('authentication.labels.device_authentication');
     });
 
-    it('returns "Device Authentication" when passcodeAvailable (modern path)', () => {
+    it('returns device_authentication label key when passcodeAvailable (modern path)', () => {
       const result = getAuthLabel({
         ...baseParams,
         passcodeAvailable: true,
       });
-      expect(result).toBe('Device Authentication');
+      expect(result).toBe('authentication.labels.device_authentication');
     });
 
-    it('returns "Password" when nothing is available', () => {
+    it('returns password label key when nothing is available', () => {
       const result = getAuthLabel(baseParams);
-      expect(result).toBe('Password');
+      expect(result).toBe('login.password');
     });
   });
 
@@ -355,51 +423,51 @@ describe('getAuthLabel', () => {
       jest.replaceProperty(Platform, 'OS', 'android');
     });
 
-    it('returns "Remember Me" when allowLoginWithRememberMe is true', () => {
+    it('returns remember_me label key when allowLoginWithRememberMe is true', () => {
       const result = getAuthLabel({
         ...baseParams,
         allowLoginWithRememberMe: true,
       });
-      expect(result).toBe('Remember Me');
+      expect(result).toBe('authentication.labels.remember_me');
     });
 
-    it('returns "Device Authentication" when legacyUserChoseBiometrics (Android)', () => {
+    it('returns device_authentication label key when legacyUserChoseBiometrics (Android)', () => {
       const result = getAuthLabel({
         ...baseParams,
         legacyUserChoseBiometrics: true,
         supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
       });
-      expect(result).toBe('Device Authentication');
+      expect(result).toBe('authentication.labels.device_authentication');
     });
 
-    it('returns "Device Authentication" when legacyUserChosePasscode (Android)', () => {
+    it('returns device_authentication label key when legacyUserChosePasscode (Android)', () => {
       const result = getAuthLabel({
         ...baseParams,
         legacyUserChosePasscode: true,
       });
-      expect(result).toBe('Device Authentication');
+      expect(result).toBe('authentication.labels.device_authentication');
     });
 
-    it('returns "Device Authentication" when isBiometricsAvailable (Android)', () => {
+    it('returns device_authentication label key when isBiometricsAvailable (Android)', () => {
       const result = getAuthLabel({
         ...baseParams,
         isBiometricsAvailable: true,
         supportedBiometricTypes: [AuthenticationType.FINGERPRINT],
       });
-      expect(result).toBe('Device Authentication');
+      expect(result).toBe('authentication.labels.device_authentication');
     });
 
-    it('returns "Device Authentication" when passcodeAvailable (Android)', () => {
+    it('returns device_authentication label key when passcodeAvailable (Android)', () => {
       const result = getAuthLabel({
         ...baseParams,
         passcodeAvailable: true,
       });
-      expect(result).toBe('Device Authentication');
+      expect(result).toBe('authentication.labels.device_authentication');
     });
 
-    it('returns "Password" when nothing is available', () => {
+    it('returns password label key when nothing is available', () => {
       const result = getAuthLabel(baseParams);
-      expect(result).toBe('Password');
+      expect(result).toBe('login.password');
     });
   });
 });
@@ -412,6 +480,10 @@ describe('getAuthIcon', () => {
     isBiometricsAvailable: false,
     passcodeAvailable: false,
   };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   describe('ios', () => {
     beforeEach(() => {

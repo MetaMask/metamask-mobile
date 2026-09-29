@@ -1,5 +1,7 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Text,
@@ -7,8 +9,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -23,17 +26,20 @@ import {
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import useRegions from '../../hooks/useRegions';
+import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 const CODE_LENGTH = 6;
 
 const ConfirmEmail = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
+  const codeInputRef = useRef<TextInput>(null);
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
   const { getRegionByCode } = useRegions();
@@ -80,9 +86,11 @@ const ConfirmEmail = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.CONFIRM_EMAIL,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.CONFIRM_EMAIL,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -92,9 +100,11 @@ const ConfirmEmail = () => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON,
+          }),
+        )
         .build(),
     );
     try {
@@ -127,9 +137,11 @@ const ConfirmEmail = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.CONFIRM_EMAIL_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.CONFIRM_EMAIL_BUTTON,
+            }),
+          )
           .build(),
       );
       const { onboardingId, hasAccount } = await verifyEmailVerification({
@@ -234,6 +246,13 @@ const ConfirmEmail = () => {
     selectedCountry,
   ]);
 
+  useEffect(() => {
+    if (!isScreenTransitionComplete) {
+      return;
+    }
+    codeInputRef.current?.focus();
+  }, [isScreenTransitionComplete]);
+
   const isDisabled =
     verifyLoading ||
     verifyIsError ||
@@ -247,19 +266,22 @@ const ConfirmEmail = () => {
     <>
       <Box>
         <TextField
-          autoCapitalize={'none'}
+          inputRef={codeInputRef}
           onChangeText={handleConfirmCodeChange}
-          numberOfLines={1}
           value={confirmCode}
-          keyboardType="number-pad"
-          autoComplete="one-time-code"
-          maxLength={CODE_LENGTH}
-          accessibilityLabel={strings(
-            'card.card_onboarding.confirm_email.code_label',
-          )}
           isError={verifyIsError}
-          testID="confirm-email-code-field"
-          autoFocus
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            keyboardType: 'number-pad',
+            textContentType: 'oneTimeCode',
+            autoComplete: 'one-time-code',
+            maxLength: CODE_LENGTH,
+            accessibilityLabel: strings(
+              'card.card_onboarding.confirm_email.code_label',
+            ),
+            testID: 'confirm-email-code-field',
+          }}
         />
         {verifyIsError && (
           <Text

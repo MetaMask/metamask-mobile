@@ -24,6 +24,7 @@ import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSele
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { strings } from '../../../../locales/i18n';
 
 const mockedGoBack = jest.fn();
 const mockedNavDispatch = jest.fn();
@@ -37,6 +38,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
 const mockSetTargetWalletType = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
+const mockCancelConnectionFlow = jest.fn();
 
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
@@ -111,8 +113,12 @@ jest.mock('../../../core/Engine', () => ({
       getAccountByAddress: jest.fn(),
       setAccountName: jest.fn(),
     },
-    AccountTrackerController: {
-      syncBalanceWithAddresses: jest.fn().mockResolvedValue({}),
+    NetworkController: {
+      state: { selectedNetworkClientId: 'mainnet' },
+      getNetworkClientById: jest.fn(() => ({ provider: {} })),
+      getSelectedNetworkClient: jest.fn(() => ({
+        provider: { request: jest.fn().mockResolvedValue('0x0') },
+      })),
     },
   },
 }));
@@ -161,6 +167,7 @@ const defaultHardwareWalletValues = {
   setTargetWalletType: mockSetTargetWalletType,
   setPendingOperationAddress: jest.fn(),
   showHardwareWalletError: mockShowHardwareWalletError,
+  cancelConnectionFlow: mockCancelConnectionFlow,
   showAwaitingConfirmation: mockShowAwaitingConfirmation,
   hideAwaitingConfirmation: mockHideAwaitingConfirmation,
   qr: {
@@ -215,7 +222,9 @@ describe('LedgerSelectAccount', () => {
       mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
-      expect(queryByText('Looking for device')).toBeOnTheScreen();
+      expect(
+        queryByText(strings('ledger.looking_for_device')),
+      ).toBeOnTheScreen();
     });
 
     it('sets target wallet type to Ledger on mount', async () => {
@@ -256,6 +265,50 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(mockedGoBack).toHaveBeenCalled();
       });
+    });
+
+    it('calls cancelConnectionFlow exactly once on unmount', async () => {
+      const { unmount } = renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(mockCancelConnectionFlow).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockCancelConnectionFlow).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate back when unmount cancels the pending readiness flow', async () => {
+      // Mirrors production wiring: on unmount, cancelConnectionFlow
+      // (closeFlow) settles the pending ensureDeviceReady promise with
+      // `false`. The stale init continuation must not treat that as a
+      // user cancel and pop an extra screen.
+      let resolveReady: ((value: boolean) => void) | undefined;
+      mockEnsureDeviceReady.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveReady = resolve;
+        }),
+      );
+      mockCancelConnectionFlow.mockImplementation(() => {
+        resolveReady?.(false);
+      });
+
+      const { unmount } = renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      unmount();
+
+      await act(async () => {
+        resolveReady?.(false);
+      });
+
+      expect(mockedGoBack).not.toHaveBeenCalled();
     });
   });
 
@@ -660,6 +713,44 @@ describe('LedgerSelectAccount', () => {
       });
 
       expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('HD Path Defaulting', () => {
+    it.each([LEDGER_BIP44_PATH, LEDGER_LEGACY_PATH])(
+      'always sets HD path to Ledger Live on mount regardless of previously stored path (%s)',
+      async (previousPath) => {
+        mockGetHDPath.mockResolvedValue(previousPath);
+        mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+        renderWithProvider(<LedgerSelectAccount />);
+
+        await waitFor(() => {
+          expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LIVE_PATH);
+        });
+      },
+    );
+
+    it('sets HD path to Ledger Live before fetching accounts', async () => {
+      const callOrder: string[] = [];
+      mockSetHDPath.mockImplementation(async () => {
+        callOrder.push('setHDPath');
+      });
+      mockGetLedgerAccountsByOperation.mockImplementation(async () => {
+        callOrder.push('getLedgerAccountsByOperation');
+        return mockAccounts;
+      });
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(callOrder).toContain('setHDPath');
+        expect(callOrder).toContain('getLedgerAccountsByOperation');
+      });
+
+      expect(callOrder.indexOf('setHDPath')).toBeLessThan(
+        callOrder.indexOf('getLedgerAccountsByOperation'),
+      );
     });
   });
 

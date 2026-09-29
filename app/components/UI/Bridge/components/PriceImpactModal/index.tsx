@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { PriceImpactModalRouterParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PriceImpactHeader } from './PriceImpactHeader';
 import { PriceImpactDescription } from './PriceImpactDescription';
 import { PriceImpactFooter } from './PriceImpactFooter';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import {
@@ -19,36 +19,26 @@ import {
   BottomSheet,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const PriceImpactModal = () => {
-  const { goBack } = useNavigation();
+  const { goBack } = useNavigation<AppNavigationProp>();
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
-  const { type, token, location } = useParams<PriceImpactModalRouterParams>();
+  const { type, location } = useParams<PriceImpactModalRouterParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const tokenBalance = useLatestBalance({
-    address: token?.address,
-    decimals: token?.decimals,
-    chainId: token?.chainId,
-  });
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteDataContext();
   const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
   });
   const priceImpactViewData = usePriceImpactViewData(
-    activeQuote?.quote.priceData?.priceImpact,
+    activeQuote?.quote.priceData?.priceImpact?.amount,
   );
-  const surfaceClass = useElevatedSurface();
-
   const isDangerousPriceImpact = useMemo(
     () =>
       exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact),
+        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount),
         bridgeFeatureFlags?.priceImpactThreshold?.error,
       ),
     [activeQuote, bridgeFeatureFlags],
@@ -60,11 +50,15 @@ export const PriceImpactModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={goBack} twClassName={surfaceClass}>
+    <BottomSheet ref={sheetRef} goBack={goBack}>
       <PriceImpactHeader
         onClose={handleClose}
         iconName={priceImpactViewData.icon?.name}

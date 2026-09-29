@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Box,
   Label,
@@ -8,13 +10,13 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import SelectField from './SelectField';
-import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
+import DepositDateField from '../../../Ramp/components/DepositDateField';
 import {
   resetOnboardingState,
   selectOnboardingId,
@@ -30,7 +32,8 @@ import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -38,7 +41,7 @@ import {
 } from './RegionSelectorModal';
 
 const PersonalDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
@@ -132,8 +135,9 @@ const PersonalDetails = () => {
     setOnValueChange((region) => {
       setNationalityKey(region.key);
     });
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: allRegions,
         selectedRegionKey: nationalityKey || null,
       }),
@@ -240,10 +244,12 @@ const PersonalDetails = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.PERSONAL_DETAILS_BUTTON,
-            country_of_residence: selectedCountry?.key,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.PERSONAL_DETAILS_BUTTON,
+              country_of_residence: selectedCountry?.key,
+            }),
+          )
           .build(),
       );
       const { user } = await registerPersonalDetails({
@@ -279,9 +285,11 @@ const PersonalDetails = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.PERSONAL_DETAILS,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.PERSONAL_DETAILS,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -326,18 +334,20 @@ const PersonalDetails = () => {
           {strings('card.card_onboarding.personal_details.first_name_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleFirstNameChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={firstName}
-          keyboardType="default"
-          maxLength={255}
           isError={!!nameError}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.first_name_label',
-          )}
-          testID="personal-details-first-name-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.personal_details.first_name_label',
+            ),
+            testID: 'personal-details-first-name-input',
+          }}
         />
       </Box>
 
@@ -347,18 +357,20 @@ const PersonalDetails = () => {
           {strings('card.card_onboarding.personal_details.last_name_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleLastNameChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={lastName}
-          keyboardType="default"
-          maxLength={255}
           isError={!!nameError}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.last_name_label',
-          )}
-          testID="personal-details-last-name-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.personal_details.last_name_label',
+            ),
+            testID: 'personal-details-last-name-input',
+          }}
         />
         {!!nameError && (
           <Text
@@ -398,20 +410,22 @@ const PersonalDetails = () => {
             {strings('card.card_onboarding.personal_details.ssn_label')}
           </Label>
           <TextField
-            autoCapitalize={'none'}
             onChangeText={handleSSNChange}
             onBlur={handleSSNBlur}
-            numberOfLines={1}
             value={SSN}
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            secureTextEntry
-            maxLength={9}
-            accessibilityLabel={strings(
-              'card.card_onboarding.personal_details.ssn_label',
-            )}
             isError={isSSNTouched && isSSNError}
-            testID="personal-details-ssn-input"
+            inputProps={{
+              autoCapitalize: 'none',
+              numberOfLines: 1,
+              keyboardType: 'number-pad',
+              autoComplete: 'one-time-code',
+              secureTextEntry: true,
+              maxLength: 9,
+              accessibilityLabel: strings(
+                'card.card_onboarding.personal_details.ssn_label',
+              ),
+              testID: 'personal-details-ssn-input',
+            }}
           />
           {isSSNTouched && isSSNError ? (
             <Text

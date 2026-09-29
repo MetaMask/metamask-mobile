@@ -23,6 +23,10 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
@@ -32,6 +36,10 @@ const MOCK_NOTIFICATION_PREFERENCES = {
   marketing: {
     inAppNotificationsEnabled: false,
     pushNotificationsEnabled: false,
+  },
+  priceAlerts: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
   },
 };
 
@@ -46,10 +54,12 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences';
 
 const SECTION_TITLES = {
-  walletActivity: 'Wallet Activity',
-  perps: 'Trading Activity',
-  socialAI: 'Trading Signals',
-  marketing: 'Updates and Rewards',
+  walletActivity: 'Wallet activity',
+  perps: 'Trading activity',
+  agenticCli: 'Agent wallet',
+  socialAI: 'Trading signals',
+  marketing: 'Updates and rewards',
+  priceAlerts: 'Price alerts',
 };
 
 const hasFetchedNotificationPreferences = () =>
@@ -64,19 +74,20 @@ function renderSettings(
     NotificationsSettings as unknown as React.ComponentType,
     { name: 'NotificationsSettings' },
     { state: buildNotificationsState(stateOverrides) },
-    { isFullScreenModal: false },
+    {},
   );
 }
 
 function renderSettingsWithSectionRoute(
   stateOverrides?: Parameters<typeof buildNotificationsState>[0],
+  initialParams?: Record<string, unknown>,
 ) {
   return renderScreenWithRoutes(
     NotificationsSettings as unknown as React.ComponentType,
     { name: 'NotificationsSettings' },
     [{ name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION }],
     { state: buildNotificationsState(stateOverrides) },
-    { isFullScreenModal: false },
+    initialParams,
   );
 }
 
@@ -108,7 +119,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('renders notification sections when notifications are enabled', async () => {
     const { getByTestId, getByText, findAllByText, findByText } =
-      renderSettings({ socialLeaderboardEnabled: true });
+      renderSettings({
+        socialLeaderboardEnabled: true,
+      });
 
     expect(
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
@@ -116,9 +129,12 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
+    // Wallet activity shows no channel summary; its settings are per-account.
+    expect(await findAllByText('Push, In app')).toHaveLength(4);
     expect(getByText('Off')).toBeOnTheScreen();
   });
 
@@ -128,9 +144,21 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(2);
+    // Wallet activity shows no channel summary; its settings are per-account.
+    expect(await findAllByText('Push, In app')).toHaveLength(3);
+  });
+
+  it('renders price alerts section when notifications are enabled', async () => {
+    const { getByText, findByText } = renderSettings();
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
   });
 
   it('hides notification sections when main toggle is off', async () => {
@@ -147,8 +175,10 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
       expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
     });
     expect(queryByText(SECTION_TITLES.perps)).toBeNull();
+    expect(queryByText(SECTION_TITLES.agenticCli)).toBeNull();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
+    expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
   });
 
   it('invokes the disable controller path when the main toggle is pressed (on -> off)', async () => {
@@ -188,5 +218,70 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
         `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('navigates to the agentic CLI notification section when its row is pressed', async () => {
+    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
+
+    fireEvent.press(getByText(SECTION_TITLES.agenticCli));
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the wallet activity section when rendered with a wallet-activity deeplink section', async () => {
+    const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
+      section: 'wallet-activity',
+    });
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the price alerts section when rendered with a price-alerts deeplink section', async () => {
+    const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
+      section: 'price-alerts',
+    });
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('stays on notification settings when the section deeplink value is unknown', async () => {
+    const { findByText, queryByTestId } = renderSettingsWithSectionRoute(
+      undefined,
+      { section: 'not-a-section' },
+    );
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(
+      queryByTestId(`route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`),
+    ).toBeNull();
+  });
+
+  it('stays on notification settings when a section deeplink is opened while notifications are off', async () => {
+    const { getByTestId, queryByTestId } = renderSettingsWithSectionRoute(
+      { notificationsEnabled: false },
+      { section: 'wallet-activity' },
+    );
+
+    expect(
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+    ).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(`route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`),
+      ).toBeNull();
+    });
   });
 });

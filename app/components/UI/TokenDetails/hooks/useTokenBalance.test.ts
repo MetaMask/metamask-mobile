@@ -115,6 +115,7 @@ describe('useTokenBalance', () => {
     expect(result.current.balance).toBe('100');
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('100 DAI');
+    expect(mockSelectTronResources).not.toHaveBeenCalled();
   });
 
   it('passes through isStaked when token is staked', () => {

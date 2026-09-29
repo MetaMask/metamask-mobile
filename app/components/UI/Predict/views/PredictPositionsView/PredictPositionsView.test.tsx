@@ -1,10 +1,15 @@
+/**
+ * Unit tests for PredictPositionsView.
+ *
+ * Run with: yarn jest PredictPositionsView.test --runInBand --silent --coverage=false
+ */
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import {
-  PredictPositionsEmptySelectorsIDs,
   PredictPositionsHistoryListSelectorsIDs,
   PredictPositionsViewSelectorsIDs,
 } from '../../Predict.testIds';
@@ -119,6 +124,8 @@ const mockNavigation = {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseRoute = useRoute as jest.Mock;
 const mockClaim = jest.fn();
+const mockTrackPositionsScreenViewed = jest.fn();
+const mockTrackPositionsTabViewed = jest.fn();
 
 const createClaimablePosition = (
   overrides: Partial<PredictPosition> = {},
@@ -186,19 +193,36 @@ const createPortfolio = (
   ...overrides,
 });
 
-const renderScreen = (initialTab?: 'positions' | 'history') => {
+const expectedPositionsAnalyticsContext = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+  openPositionsCount: 0,
+  claimablePositionsCount: 0,
+  hasClaimableWinnings: false,
+  predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+  ...overrides,
+});
+
+interface PredictPositionsRouteParams {
+  entryPoint?: string;
+  initialTab?: 'positions' | 'history';
+}
+
+const renderScreen = (
+  paramsOrInitialTab?: PredictPositionsRouteParams | 'positions' | 'history',
+) => {
+  const params =
+    typeof paramsOrInitialTab === 'string'
+      ? { initialTab: paramsOrInitialTab }
+      : paramsOrInitialTab;
+
   mockUseRoute.mockReturnValue({
-    params: initialTab ? { initialTab } : undefined,
+    params,
   });
 
   return render(<PredictPositionsView />);
 };
-
-const getMountedByTestId = (testID: string) =>
-  screen.UNSAFE_getByProps({ testID });
-
-const getMountedHistoryVisibilityText = (isVisible: boolean) =>
-  screen.UNSAFE_getByProps({ children: `history-visible:${isVisible}` });
 
 describe('PredictPositionsView', () => {
   beforeEach(() => {
@@ -208,174 +232,239 @@ describe('PredictPositionsView', () => {
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
+    const predictController = {
+      trackPositionsScreenViewed: mockTrackPositionsScreenViewed,
+      trackPositionsTabViewed: mockTrackPositionsTabViewed,
+    };
+    (
+      Engine.context as unknown as {
+        PredictController: typeof predictController;
+      }
+    ).PredictController = predictController;
   });
 
-  it('renders the fixed header, summary placeholder, tabs, and positions tab by default', () => {
-    renderScreen();
+  describe('analytics timing', () => {
+    it('tracks Positions screen viewed without duplicating the default tab', () => {
+      mockUsePredictPortfolio.mockReturnValue(
+        createPortfolio({
+          claimableAmount: 46.35,
+          claimablePositionCount: 1,
+          hasClaimableWinnings: true,
+          openPositionCount: 2,
+          portfolioValue: 4000,
+          totalUnrealizedPnlAmount: -18.47,
+        }),
+      );
 
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.HEADER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.SUMMARY),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('$0.00')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.TABS),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.POSITIONS_TAB),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Active positions')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(
-        PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      getMountedByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
-    ).toBeTruthy();
-    expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
-  });
+      renderScreen();
 
-  it('uses the initial history tab from route params', () => {
-    renderScreen('history');
+      expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext({
+          openPositionsCount: 2,
+          claimablePositionsCount: 1,
+          hasClaimableWinnings: true,
+        }),
+      );
+      expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
 
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsHistoryListSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('history-visible:true')).toBeOnTheScreen();
-    expect(
-      getMountedByTestId(
-        PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
-      ),
-    ).toBeTruthy();
-  });
-
-  it('switches between Positions and History tabs', () => {
-    renderScreen();
-
-    fireEvent.press(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB),
-    );
-
-    expect(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PredictPositionsHistoryListSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('history-visible:true')).toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.POSITIONS_TAB),
-    );
-
-    expect(
-      screen.getByTestId(
-        PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
-      ),
-    ).toBeOnTheScreen();
-    expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
-  });
-
-  it('passes only actionable claimable positions and privacy mode to History', () => {
-    mockPrivacyMode = true;
-    const wonPosition = createClaimablePosition({ id: 'won-position' });
-    const lostPosition = createClaimablePosition({
-      currentValue: 0,
-      id: 'lost-position',
-      status: PredictPositionStatus.LOST,
+      const payload = mockTrackPositionsScreenViewed.mock.calls[0][0];
+      expect(payload).not.toHaveProperty('claimableAmount');
+      expect(payload).not.toHaveProperty('portfolioValue');
+      expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
     });
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        actionableClaimablePositions: [wonPosition],
-        claimablePositions: [wonPosition, lostPosition],
-      }),
-    );
 
-    renderScreen('history');
-
-    expect(
-      screen.getByText('history-claim-pending-present:true'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
-    expect(screen.getByText('history-refresh-present:true')).toBeOnTheScreen();
-    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
-  });
-
-  it('passes no claim pending positions to History when only lost positions exist', () => {
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        claimablePositions: [
-          createClaimablePosition({
-            currentValue: 0,
-            id: 'lost-position',
-            status: PredictPositionStatus.LOST,
+    it('waits for portfolio data before tracking Positions screen viewed', () => {
+      mockUsePredictPortfolio
+        .mockReturnValueOnce(
+          createPortfolio({
+            isLoading: true,
           }),
-        ],
-      }),
-    );
+        )
+        .mockReturnValue(
+          createPortfolio({
+            claimablePositionCount: 3,
+            hasClaimableWinnings: true,
+            isLoading: false,
+            openPositionCount: 6,
+          }),
+        );
 
-    renderScreen('history');
+      const { rerender } = renderScreen();
 
-    expect(
-      screen.getByText('history-claim-pending-present:true'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
+      expect(mockTrackPositionsScreenViewed).not.toHaveBeenCalled();
+
+      rerender(<PredictPositionsView />);
+
+      expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext({
+          claimablePositionsCount: 3,
+          hasClaimableWinnings: true,
+          openPositionsCount: 6,
+        }),
+      );
+    });
+
+    it('does not duplicate History tab tracking when data loads after the tab press', () => {
+      let portfolio = createPortfolio({
+        isLoading: true,
+      });
+      mockUsePredictPortfolio.mockImplementation(() => portfolio);
+
+      const { rerender } = renderScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB),
+      );
+
+      expect(mockTrackPositionsScreenViewed).not.toHaveBeenCalled();
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext({
+          predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        }),
+      );
+
+      portfolio = createPortfolio({
+        claimablePositionCount: 3,
+        hasClaimableWinnings: true,
+        isLoading: false,
+        openPositionCount: 6,
+      });
+
+      rerender(<PredictPositionsView />);
+
+      expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext({
+          claimablePositionsCount: 3,
+          hasClaimableWinnings: true,
+          openPositionsCount: 6,
+        }),
+      );
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks Active positions tab when the selected tab is pressed again', () => {
+      renderScreen();
+
+      expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
+
+      fireEvent.press(
+        screen.getByTestId(PredictPositionsViewSelectorsIDs.POSITIONS_TAB),
+      );
+
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext({
+          predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+        }),
+      );
+    });
+
+    it('tracks History tab from initialTab route params without duplicating screen fields', () => {
+      renderScreen({ initialTab: 'history' });
+
+      expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext(),
+      );
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+        expectedPositionsAnalyticsContext({
+          predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        }),
+      );
+    });
   });
 
-  it('does not pass claim pending positions to History when portfolio flag is disabled', () => {
-    mockPredictPortfolioEnabled = false;
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        claimablePositions: [createClaimablePosition()],
-      }),
-    );
+  describe('claim-pending History wiring', () => {
+    it('passes only actionable claimable positions and privacy mode to History', () => {
+      mockPrivacyMode = true;
+      const wonPosition = createClaimablePosition({ id: 'won-position' });
+      const lostPosition = createClaimablePosition({
+        currentValue: 0,
+        id: 'lost-position',
+        status: PredictPositionStatus.LOST,
+      });
+      mockUsePredictPortfolio.mockReturnValue(
+        createPortfolio({
+          actionableClaimablePositions: [wonPosition],
+          claimablePositions: [wonPosition, lostPosition],
+        }),
+      );
 
-    renderScreen('history');
+      renderScreen('history');
 
-    expect(
-      screen.getByText('history-claim-pending-present:false'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
-    expect(screen.getByText('history-refresh-present:false')).toBeOnTheScreen();
+      expect(
+        screen.getByText('history-claim-pending-present:true'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('history-claim-pending-count:1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('history-refresh-present:true'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictPositionsHistoryListSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('passes no claim pending positions to History when only lost positions exist', () => {
+      mockUsePredictPortfolio.mockReturnValue(
+        createPortfolio({
+          claimablePositions: [
+            createClaimablePosition({
+              currentValue: 0,
+              id: 'lost-position',
+              status: PredictPositionStatus.LOST,
+            }),
+          ],
+        }),
+      );
+
+      renderScreen('history');
+
+      expect(
+        screen.getByText('history-claim-pending-present:true'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('history-claim-pending-count:0'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not pass claim pending positions to History when portfolio flag is disabled', () => {
+      mockPredictPortfolioEnabled = false;
+      mockUsePredictPortfolio.mockReturnValue(
+        createPortfolio({
+          claimablePositions: [createClaimablePosition()],
+        }),
+      );
+
+      renderScreen('history');
+
+      expect(
+        screen.getByText('history-claim-pending-present:false'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('history-claim-pending-count:0'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('history-refresh-present:false'),
+      ).toBeOnTheScreen();
+    });
   });
 
-  it('navigates back when the back button is pressed and the stack can go back', () => {
-    renderScreen();
+  describe('stack goBack', () => {
+    it('navigates back when the back button is pressed and the stack can go back', () => {
+      renderScreen();
 
-    fireEvent.press(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
-    );
+      fireEvent.press(
+        screen.getByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
+      );
 
-    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigation.navigate).not.toHaveBeenCalled();
-  });
-
-  it('returns to the Predict market list when the stack cannot go back', () => {
-    mockNavigation.canGoBack.mockReturnValue(false);
-    renderScreen();
-
-    fireEvent.press(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
-    );
-
-    expect(mockNavigation.goBack).not.toHaveBeenCalled();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MARKET_LIST,
-    );
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
   });
 });

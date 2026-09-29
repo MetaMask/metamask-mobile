@@ -4,6 +4,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import PredictAddFundsSheet, {
   PredictAddFundsSheetRef,
 } from '../../components/PredictAddFundsSheet/PredictAddFundsSheet';
@@ -16,7 +17,7 @@ type PredictAddFundsModalRoute = RouteProp<
 >;
 
 const PredictAddFundsModal: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<PredictAddFundsModalRoute>();
   const autoDeposit = route.params?.autoDeposit ?? false;
   const predictUnavailableRef = useRef<PredictAddFundsSheetRef>(null);
@@ -56,7 +57,7 @@ const PredictAddFundsModal: React.FC = () => {
 
   useEffect(() => {
     if (autoDeposit) {
-      depositRef.current();
+      depositRef.current({ sheetPresentation: true });
     } else {
       predictUnavailableRef.current?.onOpenBottomSheet();
     }

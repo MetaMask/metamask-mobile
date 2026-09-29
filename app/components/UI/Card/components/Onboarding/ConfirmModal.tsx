@@ -5,6 +5,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  BottomSheet,
+  BottomSheetRef,
   ButtonIcon,
   Icon,
   IconColor,
@@ -14,15 +16,13 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useRef } from 'react';
 import { ModalAction } from '../../../Rewards/components/RewardsBottomSheetModal';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 
-interface ConfirmModalParams {
+export interface ConfirmModalParams {
   title: string;
   description: string;
   icon: IconName;
@@ -33,6 +33,7 @@ interface ConfirmModalParams {
 const ConfirmModal = () => {
   const { title, description, icon, confirmAction, onClose } =
     useParams<ConfirmModalParams>();
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleCancel = useCallback(() => {
@@ -86,7 +87,12 @@ const ConfirmModal = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose} testID="confirm-modal">
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      onClose={onClose}
+      testID="confirm-modal"
+    >
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

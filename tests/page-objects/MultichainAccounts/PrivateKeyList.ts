@@ -4,27 +4,28 @@ import {
   PrivateKeyListIds,
   PrivateKeyListSelectorsText,
 } from '../../../app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.testIds';
+import { type AppiumElement } from '../../framework';
 
 class PrivateKeyList {
-  get passwordInput(): DetoxElement {
+  get passwordInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(PrivateKeyListIds.PASSWORD_INPUT);
   }
 
-  get continueButton(): DetoxElement {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PrivateKeyListIds.CONTINUE_BUTTON);
   }
 
-  get copyToClipboard(): DetoxElement {
+  get copyToClipboard(): Promise<AppiumElement> {
     return Matchers.getElementByID(PrivateKeyListIds.COPY_TO_CLIPBOARD_BUTTON);
   }
 
-  get privateKeyCopiedLabel(): DetoxElement {
+  get privateKeyCopiedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PrivateKeyListSelectorsText.PRIVATE_KEY_COPIED,
     );
   }
 
-  get wrongPasswordLabel(): DetoxElement {
+  get wrongPasswordLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PrivateKeyListSelectorsText.WRONG_PASSWORD_ERROR,
     );

@@ -5,6 +5,10 @@ import {
   MessengerActions,
 } from '@metamask/messenger';
 import type { AccountsControllerChangeEvent } from '@metamask/accounts-controller';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../types';
 
 /**
@@ -14,48 +18,49 @@ import { RootMessenger } from '../types';
  * @returns The AnalyticsControllerMessenger.
  */
 export function getAnalyticsControllerMessenger(
-  rootMessenger: RootMessenger,
-): AnalyticsControllerMessenger {
-  const messenger = new Messenger<
-    'AnalyticsController',
+  rootMessenger: RootMessenger<
     MessengerActions<AnalyticsControllerMessenger>,
-    MessengerEvents<AnalyticsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AnalyticsControllerMessenger>
+  >,
+): AnalyticsControllerMessenger {
+  const messenger: AnalyticsControllerMessenger = new Messenger({
     namespace: 'AnalyticsController',
     parent: rootMessenger,
   });
   return messenger;
 }
 
-export type AnalyticsControllerInitMessenger = ReturnType<
-  typeof getAnalyticsControllerInitMessenger
+export type AnalyticsControllerInitMessenger = Messenger<
+  'AnalyticsControllerInit',
+  RemoteFeatureFlagControllerGetStateAction,
+  AccountsControllerChangeEvent | RemoteFeatureFlagControllerStateChangeEvent
 >;
 
 /**
  * Get the init messenger for the AnalyticsController.
- * Scoped to analytics-init dependencies like accounts state changes for
- * account composition trait updates.
+ * Scoped to analytics-init dependencies: accounts state changes for account
+ * composition traits, and remote feature flags for the Braze event blocklist.
  *
  * @param rootMessenger - The root messenger.
  * @returns The AnalyticsControllerInitMessenger.
  */
 export function getAnalyticsControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'AnalyticsControllerInit',
-    never,
-    AccountsControllerChangeEvent,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<AnalyticsControllerInitMessenger>,
+    MessengerEvents<AnalyticsControllerInitMessenger>
+  >,
+): AnalyticsControllerInitMessenger {
+  const messenger: AnalyticsControllerInitMessenger = new Messenger({
     namespace: 'AnalyticsControllerInit',
     parent: rootMessenger,
   });
 
   rootMessenger.delegate({
-    actions: [],
-    events: ['AccountsController:stateChange'],
+    actions: ['RemoteFeatureFlagController:getState'],
+    events: [
+      'AccountsController:stateChange',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger,
   });
 

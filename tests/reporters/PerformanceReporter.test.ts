@@ -217,6 +217,46 @@ describe('PerformanceReporter', () => {
       // Failure is tracked — verified via onEnd generating failed-tests report
     });
 
+    it('marks interrupted tests with metrics as failed', () => {
+      const result = makeResult({
+        status: 'interrupted',
+        duration: 7 * 60 * 1000,
+        attachments: [makeMetricsAttachment()],
+      });
+
+      reporter.onTestEnd(makeTest() as never, result as never);
+
+      interface ReporterInternals {
+        metrics: { testFailed?: boolean; failureReason?: string }[];
+      }
+      const { metrics } = reporter as unknown as ReporterInternals;
+
+      expect(metrics[0]?.testFailed).toBe(true);
+      expect(metrics[0]?.failureReason).toBe('interrupted');
+    });
+
+    it('marks tests with empty performance metrics as failed', () => {
+      const result = makeResult({
+        status: 'passed',
+        attachments: [
+          makeMetricsAttachment({
+            steps: [],
+            total: 0,
+          }),
+        ],
+      });
+
+      reporter.onTestEnd(makeTest() as never, result as never);
+
+      interface ReporterInternals {
+        metrics: { testFailed?: boolean; failureReason?: string }[];
+      }
+      const { metrics } = reporter as unknown as ReporterInternals;
+
+      expect(metrics[0]?.testFailed).toBe(true);
+      expect(metrics[0]?.failureReason).toBe('no_performance_metrics');
+    });
+
     it('creates basic entry for failed tests without metrics', () => {
       const result = makeResult({
         status: 'failed',
@@ -332,14 +372,14 @@ describe('PerformanceReporter', () => {
       const result = makeResult({
         attachments: [
           makeSessionAttachment({
-            projectName: 'mm-connect-android-browserstack',
+            projectName: 'browserstack-android',
           }),
           makeMetricsAttachment(),
         ],
       });
       reporter.onTestEnd(
         makeTest({
-          parent: { project: { name: 'mm-connect-android-browserstack' } },
+          parent: { project: { name: 'browserstack-android' } },
         }) as never,
         result as never,
       );

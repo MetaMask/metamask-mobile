@@ -4,6 +4,23 @@ import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
 
 export const MIN_PASSWORD_LENGTH = 8;
 
+/**
+ * Whether to show the inline "passwords don't match" error.
+ * Requires the confirm field to reach {@link MIN_PASSWORD_LENGTH} first so
+ * early typing does not flash a mismatch error.
+ *
+ * @param password - New password value.
+ * @param confirmPassword - Confirm password value.
+ * @returns True when the mismatch error should be shown.
+ */
+export const shouldShowPasswordMismatchError = (
+  password: string,
+  confirmPassword: string,
+): boolean =>
+  password !== '' &&
+  confirmPassword.length >= MIN_PASSWORD_LENGTH &&
+  password !== confirmPassword;
+
 export const getPasswordStrengthWord = (strength: number) => {
   if (strength < 0) {
     throw new Error(UNRECOGNIZED_PASSWORD_STRENGTH);
@@ -36,7 +53,9 @@ export const doesPasswordMatch = async (
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { KeyringController } = Engine.context as any;
-        await KeyringController.exportSeedPhrase(credentials.password);
+        await KeyringController.exportSeedPhrase({
+          password: credentials.password,
+        });
         // now that we are confident that the user is logged in, we can test that the input matches
         if (input === credentials.password) {
           return {

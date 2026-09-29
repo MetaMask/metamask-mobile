@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -20,11 +22,17 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
- * Enrich positions with recalculated unrealizedPnl and returnOnEquity
- * based on current mark price from live price feed
+ * Enrich positions with recalculated unrealizedPnl, returnOnEquity, and
+ * positionValue based on current mark price from the live price feed.
+ *
+ * `positionValue` must be refreshed alongside PnL — consumers derive mark /
+ * notional from it (e.g. PerpsProPositionCard). Leaving it stale would show
+ * live PnL next to an outdated mark price.
  */
 export function enrichPositionsWithLivePnL(
   positions: Position[],
@@ -81,6 +89,7 @@ export function enrichPositionsWithLivePnL(
       ...position,
       unrealizedPnl: calculatedUnrealizedPnl.toString(),
       returnOnEquity: calculatedRoe.toString(),
+      positionValue: (Math.abs(size) * currentPrice).toString(),
     };
   });
 }
@@ -99,6 +108,7 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelPositions = stream.positions.getSnapshot();
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
     if (
@@ -111,6 +121,8 @@ export function usePerpsLivePositions(
     return !hasCached;
   });
   const hasReceivedFirstUpdate = useRef(false);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   // Store raw positions and price data in state
   const [rawPositions, setRawPositions] = useState<Position[]>(() => {
@@ -120,26 +132,33 @@ export function usePerpsLivePositions(
       EMPTY_POSITIONS;
     return cached;
   });
+  const [rawPositionsAddress, setRawPositionsAddress] =
+    useState(selectedAddress);
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
   // Derive enriched positions synchronously to avoid one-frame flash
   // where isInitialLoading is false but positions haven't been enriched yet
   const positions = useMemo(() => {
+    if (rawPositionsAddress !== selectedAddress) {
+      return EMPTY_POSITIONS;
+    }
     if (rawPositions.length === 0) {
       return EMPTY_POSITIONS;
     }
     return enrichPositionsWithLivePnL(rawPositions, priceData);
-  }, [rawPositions, priceData]);
+  }, [rawPositions, priceData, rawPositionsAddress, selectedAddress]);
 
   // Subscribe to position updates
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
+        acceptedDeliveryRef.current = false;
         if (newPositions === null) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
           setIsInitialLoading(true);
           setRawPositions(EMPTY_POSITIONS);
+          setRawPositionsAddress(selectedAddress);
           return;
         }
 
@@ -153,6 +172,14 @@ export function usePerpsLivePositions(
         }
 
         setRawPositions(newPositions);
+        setRawPositionsAddress(selectedAddress);
+        acceptedDeliveryRef.current = true;
+      },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
       },
       throttleMs,
     });
@@ -160,17 +187,44 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs]);
+  }, [selectedAddress, stream, throttleMs]);
+
+  // Derive the unique set of symbols from the current positions so we only
+  // subscribe to the prices we actually need (instead of the full price channel).
+  // Sorted + memoized so the subscription effect only re-runs when the set of
+  // symbols actually changes, not on every positions tick (which creates a new array).
+  const symbols = useMemo(
+    () =>
+      Array.from(new Set(rawPositions.map((p) => p.symbol))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [rawPositions],
+  );
+  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
 
   // Subscribe to price updates for real-time PnL recalculation (only if useLivePnl is true)
   useEffect(() => {
-    if (!useLivePnl) {
+    if (!useLivePnl || symbols.length === 0) {
       return undefined;
     }
 
-    const unsubscribe = stream.prices.subscribe({
+    const unsubscribe = stream.prices.subscribeToSymbols({
+      symbols,
       callback: (newPriceData) => {
-        setPriceData(newPriceData);
+        if (!newPriceData) {
+          return;
+        }
+        // An empty payload signals a cache clear emitted by PriceStreamChannel
+        // on reconnect, provider change, or account switch. Treat it as a full
+        // reset so stale mark prices are not used for PnL until fresh ticks arrive.
+        if (Object.keys(newPriceData).length === 0) {
+          setPriceData({});
+          return;
+        }
+        // Merge incoming price batches into existing state instead of replacing.
+        // Live WebSocket ticks deliver only the symbols that changed, so replacing
+        // would wipe other positions' prices when a partial batch arrives.
+        setPriceData((prev) => ({ ...prev, ...newPriceData }));
       },
       throttleMs,
     });
@@ -178,10 +232,16 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs, useLivePnl]);
+    // symbolsKey captures symbols content changes via memoization, so symbols is
+    // intentionally omitted to avoid re-subscribing when the array reference
+    // changes but its contents are the same.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream, symbolsKey, throttleMs, useLivePnl]);
 
   return {
     positions,
-    isInitialLoading,
+    isInitialLoading:
+      rawPositionsAddress !== selectedAddress || isInitialLoading,
+    deliveryRevision,
   };
 }

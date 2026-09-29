@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Fuse from 'fuse.js';
 
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
@@ -82,7 +83,7 @@ function isRegionSupported(supported: unknown): boolean {
 }
 
 function RegionSelector() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
 
@@ -653,6 +654,7 @@ function RegionSelector() {
             iconName: ComponentLibraryIconName.Close,
             testID: REGION_SELECTOR_TEST_IDS.CLEAR_BUTTON,
           }}
+          testID={REGION_SELECTOR_TEST_IDS.SEARCH_INPUT}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
           placeholder={strings(

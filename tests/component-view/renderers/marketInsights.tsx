@@ -1,7 +1,8 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
@@ -15,10 +16,10 @@ import {
   fiatOrdersRampRoutingSupported,
 } from '../presets/marketInsightsView';
 
-const RootStack = createStackNavigator();
-const BridgeInnerStack = createStackNavigator();
-const RampMainStack = createStackNavigator();
-const RampOuterStack = createStackNavigator();
+const RootStack = createNativeStackNavigator();
+const BridgeInnerStack = createNativeStackNavigator();
+const RampMainStack = createNativeStackNavigator();
+const RampOuterStack = createNativeStackNavigator();
 
 const BridgeViewProbe = (): React.ReactElement => (
   <Text testID="route-BridgeView">BridgeView</Text>
@@ -64,11 +65,11 @@ function RampMainRoutes(): React.ReactElement {
 function RampNavigator(): React.ReactElement {
   return (
     <RampOuterStack.Navigator
-      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
       screenOptions={{ headerShown: false }}
     >
       <RampOuterStack.Screen
-        name={Routes.RAMP.TOKEN_SELECTION}
+        name={Routes.RAMP.TOKEN_SELECTION_ROOT}
         component={RampMainRoutes}
       />
     </RampOuterStack.Navigator>
@@ -94,28 +95,33 @@ export function renderMarketInsightsViewWithNavigation(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
 
   const stackTree = (
-    <AccessRestrictedProvider>
-      <RootStack.Navigator
-        initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
-        screenOptions={{ headerShown: false }}
-      >
-        <RootStack.Screen
-          name={Routes.MARKET_INSIGHTS.VIEW}
-          component={MarketInsightsView as unknown as React.ComponentType}
-          initialParams={initialParams}
-        />
-        <RootStack.Screen
-          name={Routes.BRIDGE.ROOT}
-          component={BridgeNavigator}
-        />
-        <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION}
-          component={RampNavigator}
-        />
-      </RootStack.Navigator>
-    </AccessRestrictedProvider>
+    <QueryClientProvider client={queryClient}>
+      <AccessRestrictedProvider>
+        <RootStack.Navigator
+          initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
+          screenOptions={{ headerShown: false }}
+        >
+          <RootStack.Screen
+            name={Routes.MARKET_INSIGHTS.VIEW}
+            component={MarketInsightsView as unknown as React.ComponentType}
+            initialParams={initialParams}
+          />
+          <RootStack.Screen
+            name={Routes.BRIDGE.ROOT}
+            component={BridgeNavigator}
+          />
+          <RootStack.Screen
+            name={Routes.RAMP.TOKEN_SELECTION}
+            component={RampNavigator}
+          />
+        </RootStack.Navigator>
+      </AccessRestrictedProvider>
+    </QueryClientProvider>
   );
 
   return renderWithProvider(stackTree, { state });

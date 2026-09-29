@@ -26,7 +26,6 @@ const pbkdf2 = async (
   );
 
   const derivedBits = await Crypto.subtle.deriveBits(
-    // @ts-expect-error - Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'string'.
     { name: KDF_ALGORITHM, salt, iterations, hash: 'SHA-512' },
     key,
     bytesLengthToBitsLength(keyLength),

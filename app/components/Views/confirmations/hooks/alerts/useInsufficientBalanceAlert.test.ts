@@ -10,7 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
@@ -49,7 +49,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../selectors/preferencesController');
 jest.mock('../useHasInsufficientBalance');
-jest.mock('../useConfirmActions');
+jest.mock('../useConfirmReject');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
@@ -67,7 +67,7 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionMetadataRequest,
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
-  const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockSelectUseTransactionSimulations = jest.mocked(
     selectUseTransactionSimulations,
   );
@@ -125,9 +125,8 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
-    mockUseConfirmActions.mockReturnValue({
+    mockUseConfirmReject.mockReturnValue({
       onReject: jest.fn(),
-      onConfirm: jest.fn(),
     });
     mockUseConfirmationContext.mockReturnValue({
       isTransactionValueUpdating: false,
@@ -136,7 +135,6 @@ describe('useInsufficientBalanceAlert', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
@@ -228,9 +226,8 @@ describe('useInsufficientBalanceAlert', () => {
 
   it('onReject is called when callback is called', () => {
     const onRejectMock = jest.fn();
-    mockUseConfirmActions.mockReturnValue({
+    mockUseConfirmReject.mockReturnValue({
       onReject: onRejectMock,
-      onConfirm: jest.fn(),
     });
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
@@ -284,6 +281,52 @@ describe('useInsufficientBalanceAlert', () => {
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns empty array for predict withdraw without a selected gas fee token', () => {
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: true,
+      isSupported: true,
+      pending: false,
+    });
+    mockSelectUseTransactionSimulations.mockReturnValue(true);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.predictWithdraw,
+      selectedGasFeeToken: undefined,
+      gasFeeTokens: [
+        {
+          tokenAddress: '0xabc' as Hex,
+          symbol: 'GFT',
+          decimals: 18,
+        },
+      ],
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for predict withdraw when the selected gas fee token is unavailable', () => {
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: true,
+      isSupported: true,
+      pending: false,
+    });
+    mockSelectUseTransactionSimulations.mockReturnValue(true);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.predictWithdraw,
+      selectedGasFeeToken: '0xabc' as Hex,
+      isGasFeeTokenIgnoredIfBalance: true,
+      gasFeeTokens: [],
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
 
   it('returns empty array if transaction type is perpsWithdraw', () => {

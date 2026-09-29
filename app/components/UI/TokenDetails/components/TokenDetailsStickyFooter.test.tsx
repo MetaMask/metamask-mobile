@@ -1,15 +1,13 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-  StickyFooterSwapLabelVariant,
-} from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -26,11 +24,11 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
   default: () => ({ isBuyable: mockIsBuyable(), isLoading: false }),
 }));
 
-const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsTokenTradable = jest.fn(() => true);
 const mockIsStockToken = jest.fn(() => false);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: mockIsStockToken,
   }),
 }));
@@ -38,6 +36,17 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
+  useTokenChartPreferences: () => ({
+    chartType: 'line',
+    chartInterval: '15m',
+    indicators: [],
+    setChartType: jest.fn(),
+    setChartInterval: jest.fn(),
+    setIndicators: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
@@ -86,8 +95,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('./assets/flash-filled.svg', () => 'FlashFilledIcon');
-
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
 let mockHasEligibleSwapTokens = true;
@@ -98,11 +105,6 @@ jest.mock('../hooks/useStickyTokenActions', () => ({
     hasEligibleSwapTokens: mockHasEligibleSwapTokens,
     networkModal: null,
   }),
-}));
-
-const mockUseABTest = jest.fn();
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: (...args: unknown[]) => mockUseABTest(...args),
 }));
 
 const mockTrackStickyFooterTapped = jest.fn();
@@ -127,18 +129,23 @@ const defaultProps = {
   balanceFiatUsd: 50,
 };
 
+const setupSelectorMock = (geolocation?: string) => {
+  (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+    if (selector === getDetectedGeolocation) {
+      return geolocation;
+    }
+    return undefined;
+  });
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
+    mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
-    mockUseABTest.mockReturnValue({
-      variant:
-        STICKY_FOOTER_SWAP_LABEL_VARIANTS[StickyFooterSwapLabelVariant.Control],
-      variantName: StickyFooterSwapLabelVariant.Control,
-      isActive: false,
-    });
+    setupSelectorMock();
   });
 
   describe('button visibility', () => {
@@ -178,8 +185,8 @@ describe('TokenDetailsStickyFooter', () => {
       expect(queryByText('Swap')).toBeNull();
     });
 
-    it('renders nothing when isTokenTradingOpen returns false', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('renders nothing when isTokenTradable returns false', () => {
+      mockIsTokenTradable.mockReturnValue(false);
       const { queryByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
@@ -224,8 +231,45 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onStickyButtonsResolved).toHaveBeenCalledWith('buy');
     });
 
-    it('reports null when trading is not open', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('reports "money_swap" when Money Deposit and Swap CTAs are shown', () => {
+      const onStickyButtonsResolved = jest.fn();
+
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress: jest.fn(),
+          }}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('money_swap');
+    });
+
+    it('reports "money" when Money Deposit CTA is shown without Swap', () => {
+      mockHasEligibleSwapTokens = false;
+      const onStickyButtonsResolved = jest.fn();
+
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress: jest.fn(),
+          }}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('money');
+    });
+
+    it('reports null when token is not tradable', () => {
+      mockIsTokenTradable.mockReturnValue(false);
       const onStickyButtonsResolved = jest.fn();
       render(
         <TokenDetailsStickyFooter
@@ -234,6 +278,254 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
       expect(onStickyButtonsResolved).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('Money Deposit CTA', () => {
+    const moneyDepositCta = {
+      isLoading: false,
+      label: 'Earn 6% APY',
+      onPress: jest.fn(),
+    };
+
+    it('does not render Money Deposit CTA when no CTA is provided', () => {
+      const { queryByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} hasTokenBalance />,
+      );
+
+      expect(queryByTestId('money-asset-overview-footer-cta')).toBeNull();
+      expect(queryByText('Earn 6% APY')).toBeNull();
+    });
+
+    it('shows Money Deposit CTA when provided', () => {
+      const { getByTestId, getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+    });
+
+    it('renders Swap and primary Money actions for a held token', () => {
+      const { getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders Swap before Money Deposit and Quick Buy in treatment', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          swapTestID="swap-button"
+          moneyDepositCta={moneyDepositCta}
+          onQuickBuyPress={jest.fn()}
+          quickBuyTestID="quick-buy-button"
+        />,
+      );
+
+      const footerChildren = getByTestId('bottomsheetfooter').props
+        .children as (
+        | React.ReactElement<{ testID?: string }>
+        | null
+        | undefined
+      )[];
+
+      expect(
+        footerChildren
+          .filter((child): child is React.ReactElement<{ testID?: string }> =>
+            Boolean(child),
+          )
+          .map((child) => child.props.testID),
+      ).toEqual([
+        'swap-button',
+        'money-asset-overview-footer-cta',
+        'quick-buy-button',
+      ]);
+    });
+
+    it('uses primary variant for Money CTA and secondary variant for Swap in treatment', () => {
+      const { getByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          swapTestID="swap-button"
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta').props.variant).toBe(
+        ButtonVariant.Primary,
+      );
+      expect(getByTestId('swap-button').props.variant).toBe(
+        ButtonVariant.Secondary,
+      );
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Money button alongside Swap for a held token', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByTestId('money-asset-overview-footer-cta')).toHaveProp(
+        'isLoading',
+        true,
+      );
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Money button alongside Swap when provided', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance={false}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toHaveProp(
+        'isLoading',
+        true,
+      );
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders disclaimer after the APY resolves', () => {
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(
+        getByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides disclaimer while the APY is loading', () => {
+      const { queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(
+        queryByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not start Money deposit before APY label resolves', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={{ isLoading: true, onPress }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).not.toHaveBeenCalled();
+      expect(mockTrackStickyFooterTapped).not.toHaveBeenCalled();
+    });
+
+    it('tracks Money deposit CTA type on press', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        ctaType: 'money_deposit',
+        balanceFiatUsd: 50,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        indicatorsActive: [],
+      });
+    });
+
+    it('invokes Money deposit CTA when token is verified', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('defers Money deposit CTA until onProceed for security warning modal', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).not.toHaveBeenCalled();
+
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -292,64 +584,8 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('A/B test variants - swap button label', () => {
-    it('control variant shows "Swap" label', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-    });
-
-    it('convert variant shows "Convert" label on swap button', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Treatment
-          ],
-        variantName: StickyFooterSwapLabelVariant.Treatment,
-        isActive: true,
-      });
-      const { getByText, queryByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Convert')).toBeTruthy();
-      expect(queryByText('Swap')).toBeNull();
-    });
-
-    it('falls back to "Swap" label when flag is not active', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: false,
-      });
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-    });
-  });
-
   describe('Sticky Footer Button Tapped tracking', () => {
     it('tracks swap button tap with usd_amount_range when balance < $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
@@ -361,18 +597,11 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('tracks buy button tap with usd_amount_range when balance < $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
@@ -384,42 +613,28 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('tracks swap tap with usd_amount_range when balance >= $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Treatment
-          ],
-        variantName: StickyFooterSwapLabelVariant.Treatment,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
 
-      fireEvent.press(getByText('Convert'));
+      fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
         balanceFiatUsd: 150,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('tracks single swap button with usd_amount_range when balance is undefined', () => {
       mockIsBuyable.mockReturnValue(false);
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
@@ -434,86 +649,101 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: undefined,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
   });
 
-  describe('ambient price color A/B test', () => {
-    const ambientProps = {
+  describe('geo-based button colors', () => {
+    const geoProps = {
       ...defaultProps,
       swapTestID: 'swap-btn',
       buyTestID: 'buy-btn',
     };
 
     const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
-    const defaultSuccessBorder = `border-[${LIGHT_MODE_SUCCESS_GREEN}]`;
 
-    it('uses default success styles when useAmbientColor is false', () => {
+    it('uses success (green) styles for non-Asia users', () => {
+      setupSelectorMock('US');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor={false}
-          isPricePositive={false}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses error accent on success button when useAmbientColor + negative price', () => {
+    it('uses error-default (red) styles for Asian users when useAmbientColor is true (JP)', () => {
+      setupSelectorMock('JP');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={false}
+          {...geoProps}
           balanceFiatUsd={50}
+          useAmbientColor
         />,
       );
 
       const buyBtn = getByTestId('buy-btn');
-      expect(buyBtn.props.twClassName).toBe(`bg-[${AMBIENT_NEGATIVE_COLOR}]`);
+      expect(buyBtn.props.twClassName).toBe('bg-error-default');
     });
 
-    it('uses error accent on secondary button border when useAmbientColor + negative price', () => {
+    it('uses error-default border on secondary button for Asian users when useAmbientColor is true (KR)', () => {
+      setupSelectorMock('KR');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={false}
+          {...geoProps}
           balanceFiatUsd={50}
+          useAmbientColor
         />,
       );
 
       const swapBtn = getByTestId('swap-btn');
       expect(swapBtn.props.twClassName).toBe(
-        `bg-transparent border-[${AMBIENT_NEGATIVE_COLOR}]`,
+        'bg-transparent border-error-default',
       );
     });
 
-    it('uses default success styles when useAmbientColor + positive price', () => {
+    it.each(['TW', 'CN', 'HK'])(
+      'uses error-default for %s country code when useAmbientColor is true',
+      (code) => {
+        setupSelectorMock(code);
+        const { getByTestId } = render(
+          <TokenDetailsStickyFooter
+            {...geoProps}
+            balanceFiatUsd={50}
+            useAmbientColor
+          />,
+        );
+
+        const buyBtn = getByTestId('buy-btn');
+        expect(buyBtn.props.twClassName).toBe('bg-error-default');
+      },
+    );
+
+    it('uses success (green) for Asian users when useAmbientColor is false (control)', () => {
+      setupSelectorMock('JP');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses default success styles when isPricePositive is null (not yet resolved)', () => {
+    it('uses success (green) styles when geolocation is undefined', () => {
+      setupSelectorMock(undefined);
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={null}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+
+    it('uses success (green) styles for non-Asia country (GB)', () => {
+      setupSelectorMock('GB');
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
@@ -585,7 +815,7 @@ describe('TokenDetailsStickyFooter', () => {
   describe('RWA geo-restriction', () => {
     it('blocks the buy action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -598,7 +828,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('blocks the swap action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('GB');
+      setupSelectorMock('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -611,7 +841,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a stock token in a non-restricted country', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('AR');
+      setupSelectorMock('AR');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -624,7 +854,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a non-stock token even if in a restricted country', () => {
       mockIsStockToken.mockReturnValue(false);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -657,7 +887,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onSwapPress when geo-restricted', () => {
       const onSwapPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter
@@ -689,7 +919,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onBuyPress when geo-restricted', () => {
       const onBuyPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('GB');
+      setupSelectorMock('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
@@ -824,12 +1054,13 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('blocks quick buy when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
       const onQuickBuyPress = jest.fn();
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
@@ -844,10 +1075,10 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onQuickBuyPress).not.toHaveBeenCalled();
     });
 
-    it('hides the quick buy button when the account has no eligible swap source', () => {
+    it('renders the quick buy button when the account has no eligible swap source', () => {
       mockHasEligibleSwapTokens = false;
       const onQuickBuyPress = jest.fn();
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           onQuickBuyPress={onQuickBuyPress}
@@ -855,7 +1086,9 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      expect(queryByTestId(quickBuyTestID)).toBeNull();
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,4 +1,8 @@
-import { AppState, AppStateStatus } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
 import {
   IKeyManager,
   DEFAULT_SESSION_TTL,
@@ -56,6 +60,7 @@ export class ConnectionRegistry {
   private readonly ready: Promise<void>;
   private connections = new Map<string, Connection>();
   private deeplinks = new Set<string>();
+  private appStateSubscription: NativeEventSubscription | null = null;
 
   constructor(
     relayURL: string,
@@ -487,7 +492,7 @@ export class ConnectionRegistry {
   private setupAppStateListener(): void {
     let isColdStart = true;
 
-    AppState.addEventListener(
+    this.appStateSubscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus): void => {
         if (nextAppState !== 'active') {
@@ -505,6 +510,25 @@ export class ConnectionRegistry {
         this.ready.then(() => this.reconnectAll());
       },
     );
+  }
+
+  /**
+   * Tears down the registry's process-level resources.
+   *
+   * Currently this removes the AppState listener registered in
+   * {@link setupAppStateListener}. Without this, the discarded subscription
+   * would retain the registry (and its `this`-capturing closure) for the
+   * lifetime of the process and keep firing `reconnectAll()` on every
+   * foreground event.
+   *
+   * NOTE: the registry is instantiated as a process-lifetime singleton in
+   * `app/core/SDKConnectV2/index.ts`, so there is no teardown caller today.
+   * If a real re-init/logout lifecycle is introduced, this is where active
+   * connection disposal should also be wired in.
+   */
+  public destroy(): void {
+    this.appStateSubscription?.remove();
+    this.appStateSubscription = null;
   }
 
   /**

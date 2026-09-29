@@ -93,16 +93,23 @@ describe('OndoLeaderboard.utils', () => {
     });
 
     it('returns empty array when tiers is undefined', () => {
-      expect(getCampaignTierNames({ details: {} })).toEqual([]);
+      expect(getCampaignTierNames({ details: {} as never })).toEqual([]);
     });
 
     it('returns empty array for empty tiers', () => {
-      expect(getCampaignTierNames({ details: { tiers: [] } })).toEqual([]);
+      expect(getCampaignTierNames({ details: { tiers: [] } as never })).toEqual(
+        [],
+      );
     });
 
     it('returns tier names for a campaign with tiers', () => {
       const campaign = {
         details: {
+          howItWorks: {
+            title: 'How it works',
+            description: 'Hold assets to qualify.',
+            steps: [],
+          },
           tiers: [
             { name: 'STARTER', minNetDeposit: 500 },
             { name: 'MID', minNetDeposit: 1000 },

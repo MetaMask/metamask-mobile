@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import {
   useInfiniteQuery,
+  type InfiniteData,
   type UseInfiniteQueryResult,
 } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
@@ -16,16 +17,26 @@ import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UsePredictActivityOptions {
   limit?: number;
+  /**
+   * When false, skip the activity fetch. Used to keep hidden history tabs
+   * from hitting `getActivity` on mount (PredictPositionsView keeps both
+   * tab contents mounted).
+   */
+  enabled?: boolean;
 }
 
 export interface UsePredictActivityResult
-  extends Omit<UseInfiniteQueryResult<PredictActivity[], Error>, 'data'> {
+  extends Omit<
+    UseInfiniteQueryResult<InfiniteData<PredictActivity[]>, Error>,
+    'data'
+  > {
   activity: PredictActivity[];
   data: PredictActivity[];
 }
 
 export function usePredictActivity({
   limit = PREDICT_ACTIVITY_PAGE_SIZE,
+  enabled = true,
 }: UsePredictActivityOptions = {}): UsePredictActivityResult {
   type PredictActivityQueryKey = ReturnType<
     typeof predictQueries.activity.keys.byAddress
@@ -35,18 +46,19 @@ export function usePredictActivity({
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const address = evmAccount?.address ?? '0x0';
+  const address = evmAccount?.address;
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     ensurePolygonNetworkExists().catch(() => undefined);
-  }, [ensurePolygonNetworkExists]);
+  }, [enabled, ensurePolygonNetworkExists]);
 
-  const queryResult = useInfiniteQuery<
-    PredictActivity[],
-    Error,
-    PredictActivity[],
-    PredictActivityQueryKey
-  >(predictQueries.activity.options({ address, limit }));
+  const queryResult = useInfiniteQuery({
+    ...predictQueries.activity.options({ address: address ?? '', limit }),
+    enabled: enabled && Boolean(address),
+  });
 
   const activity = useMemo(() => {
     const seenActivityIds = new Set<string>();

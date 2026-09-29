@@ -24,8 +24,6 @@ export const useReferralDetails = ({
 
   const fetchReferralDetails = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
-      dispatch(setReferralDetailsError(false));
-      dispatch(setReferralDetailsLoading(false));
       return;
     }
     if (isLoadingRef.current) {
@@ -34,8 +32,8 @@ export const useReferralDetails = ({
     isLoadingRef.current = true;
 
     try {
-      dispatch(setReferralDetailsLoading(true));
-      dispatch(setReferralDetailsError(false));
+      dispatch(setReferralDetailsLoading({ subscriptionId, loading: true }));
+      dispatch(setReferralDetailsError({ subscriptionId, error: false }));
 
       const referralDetails: SubscriptionReferralDetailState | null =
         await Engine.controllerMessenger.call(
@@ -45,16 +43,19 @@ export const useReferralDetails = ({
 
       dispatch(
         setReferralDetails({
+          subscriptionId,
           referralCode: referralDetails?.referralCode,
           refereeCount: referralDetails?.totalReferees,
           referredByCode: referralDetails?.referredByCode,
+          isVipReferee: referralDetails?.isVipReferee ?? false,
+          referredByVipCode: referralDetails?.referredByVipCode ?? null,
         }),
       );
     } catch (error) {
-      dispatch(setReferralDetailsError(true));
+      dispatch(setReferralDetailsError({ subscriptionId, error: true }));
     } finally {
       isLoadingRef.current = false;
-      dispatch(setReferralDetailsLoading(false));
+      dispatch(setReferralDetailsLoading({ subscriptionId, loading: false }));
     }
   }, [dispatch, subscriptionId]);
 

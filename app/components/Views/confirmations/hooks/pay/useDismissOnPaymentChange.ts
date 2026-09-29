@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { isMatchingPayToken } from '../../utils/transaction-pay';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
@@ -22,7 +23,7 @@ interface UseDismissOnPaymentChangeOptions {
 export function useDismissOnPaymentChange({
   dismissOnPayTokenChange = true,
 }: UseDismissOnPaymentChangeOptions = {}): void {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;

@@ -1,13 +1,23 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import {
+  act,
+  render,
+  fireEvent,
+  renderHook,
+  waitFor,
+} from '@testing-library/react-native';
+import type { LayoutChangeEvent, ScrollView } from 'react-native';
 import PredictChipList from './PredictChipList';
 import { calculateChipScrollX } from './calculateChipScrollX';
+import { useChipScrollList } from './useChipScrollList';
 import {
   PREDICT_CHIP_LIST_TEST_IDS,
   getPredictChipTestId,
   getPredictChipLabelTestId,
 } from './PredictChipList.testIds';
 import type { PredictChipItem } from './PredictChipList.types';
+
+const mockScrollTo = jest.fn();
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -207,6 +217,68 @@ describe('PredictChipList', () => {
       expect(getByTestId(getPredictChipTestId('only'))).toBeOnTheScreen();
       expect(getByText('Only Chip')).toBeOnTheScreen();
     });
+  });
+});
+
+describe('useChipScrollList', () => {
+  const layoutEvent = (x: number, width: number): LayoutChangeEvent =>
+    ({
+      nativeEvent: { layout: { x, y: 0, width, height: 40 } },
+    }) as LayoutChangeEvent;
+
+  beforeEach(() => {
+    mockScrollTo.mockClear();
+  });
+
+  it('scrolls the active chip into view when activeChipIndex changes', async () => {
+    const { result, rerender } = renderHook(
+      ({ activeChipIndex }: { activeChipIndex: number }) =>
+        useChipScrollList(3, { activeChipIndex }),
+      { initialProps: { activeChipIndex: 0 } },
+    );
+
+    act(() => {
+      result.current.scrollViewRef.current = {
+        scrollTo: mockScrollTo,
+      } as unknown as ScrollView;
+      result.current.handleScrollViewLayout(layoutEvent(0, 200));
+      result.current.handleChipLayout(0, layoutEvent(16, 100));
+      result.current.handleChipLayout(1, layoutEvent(124, 100));
+      result.current.handleChipLayout(2, layoutEvent(232, 100));
+    });
+    mockScrollTo.mockClear();
+
+    rerender({ activeChipIndex: 2 });
+
+    await waitFor(() => {
+      expect(mockScrollTo).toHaveBeenCalledWith({ x: 182, animated: true });
+    });
+  });
+
+  it('does not re-scroll on incidental relayouts once the active chip is positioned', () => {
+    const { result } = renderHook(() =>
+      useChipScrollList(3, { activeChipIndex: 2 }),
+    );
+
+    act(() => {
+      result.current.scrollViewRef.current = {
+        scrollTo: mockScrollTo,
+      } as unknown as ScrollView;
+      result.current.handleScrollViewLayout(layoutEvent(0, 200));
+      result.current.handleChipLayout(0, layoutEvent(16, 100));
+      result.current.handleChipLayout(1, layoutEvent(124, 100));
+      result.current.handleChipLayout(2, layoutEvent(232, 100));
+    });
+
+    expect(mockScrollTo).toHaveBeenCalledTimes(1);
+    mockScrollTo.mockClear();
+
+    act(() => {
+      result.current.handleChipLayout(2, layoutEvent(240, 110));
+      result.current.handleScrollViewLayout(layoutEvent(0, 200));
+    });
+
+    expect(mockScrollTo).not.toHaveBeenCalled();
   });
 });
 

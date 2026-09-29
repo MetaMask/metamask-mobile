@@ -1,7 +1,9 @@
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { parseCaipAssetType, type Hex } from '@metamask/utils';
 import { zeroAddress } from 'ethereumjs-util';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { TokenI } from '../../Tokens/types';
 import { TokenDetails } from '../TokenDetails/TokenDetails';
-import { parseCaipAssetType } from '@metamask/utils';
 
 export const getTokenDetails = (
   asset: TokenI,
@@ -42,4 +44,15 @@ export const getTokenDetails = (
       ? asset.aggregators.join(', ')
       : null,
   };
+};
+
+export const resolveTokenContractAddress = (asset: TokenI): string | null => {
+  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
+  const isNonEvmAsset = resultChainId === asset.chainId;
+  const tokenContractAddress = !isNonEvmAsset
+    ? safeToChecksumAddress(asset.address)
+    : asset.address;
+
+  return getTokenDetails(asset, isNonEvmAsset, tokenContractAddress)
+    .contractAddress;
 };

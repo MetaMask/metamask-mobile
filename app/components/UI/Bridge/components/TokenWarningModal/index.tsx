@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 // Must use this to make sure scroll works inside a bottom sheet on Android
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import BottomSheet, {
   BottomSheetRef,
@@ -11,11 +11,9 @@ import BottomSheet, {
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
-  selectSourceToken,
   selectDestToken,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
@@ -90,8 +88,7 @@ export const getTokenWarningContent = (
 };
 
 export const TokenWarningModal = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
 
@@ -102,18 +99,10 @@ export const TokenWarningModal = () => {
     location,
   } = useParams<TokenWarningModalParams>();
 
-  const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
-  const tokenBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-  const { activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
+  const { activeQuote } = useBridgeQuoteDataContext();
 
   const confirmBridge = useBridgeConfirm({
     activeQuote,
@@ -133,7 +122,7 @@ export const TokenWarningModal = () => {
     }
 
     const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact,
+      activeQuote?.quote.priceData?.priceImpact?.amount,
     );
 
     if (
@@ -144,22 +133,18 @@ export const TokenWarningModal = () => {
     ) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
-        token: sourceToken,
         location,
       });
       return;
     }
 
     setLoading(true);
-    await confirmBridge();
-  }, [
-    activeQuote,
-    bridgeFeatureFlags,
-    confirmBridge,
-    navigation,
-    sourceToken,
-    location,
-  ]);
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
+  }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, location]);
 
   const {
     isMalicious,

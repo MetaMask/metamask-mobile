@@ -10,11 +10,25 @@ import { WebDriverConfig } from '../types';
 import {
   DEFAULT_ACTION_TIMEOUT_MS,
   DEFAULT_IMPLICIT_WAIT_MS,
+  resolveE2EWaitTimeoutMs,
 } from '../Constants';
 
 const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
 
 const isCI = process.env.CI === 'true';
+
+export function resolveE2EWorkers(
+  env: Record<string, string | undefined> = process.env,
+): number {
+  const raw = env.E2E_WORKERS?.trim() || '1';
+  const workers = Number(raw);
+  if (!Number.isInteger(workers) || workers < 1) {
+    throw new Error(
+      `Invalid E2E_WORKERS "${raw}". Expected a positive integer.`,
+    );
+  }
+  return workers;
+}
 
 const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   globalSetup: resolveGlobalSetup(),
@@ -24,9 +38,9 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   fullyParallel: false,
   forbidOnly: false,
   retries: isCI ? 2 : 0,
-  workers: 1,
+  workers: resolveE2EWorkers(),
   reporter: [['list'], ['html', { open: 'always' }]],
-  timeout: 300_000,
+  timeout: resolveE2EWaitTimeoutMs(300_000),
 };
 
 export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
@@ -42,8 +56,8 @@ export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
     globalSetup: [resolveGlobalSetup()],
     reporter: [...reporterConfig],
     use: {
-      actionTimeout: DEFAULT_ACTION_TIMEOUT_MS,
-      expectTimeout: DEFAULT_IMPLICIT_WAIT_MS,
+      actionTimeout: resolveE2EWaitTimeoutMs(DEFAULT_ACTION_TIMEOUT_MS),
+      expectTimeout: resolveE2EWaitTimeoutMs(DEFAULT_IMPLICIT_WAIT_MS),
       ...config.use,
     },
   });

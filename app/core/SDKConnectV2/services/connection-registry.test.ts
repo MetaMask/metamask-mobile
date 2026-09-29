@@ -1645,6 +1645,51 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection1.client.reconnect).toHaveBeenCalledTimes(1);
       expect(mockConnection2.client.reconnect).toHaveBeenCalledTimes(1);
     });
+
+    it('removes the AppState subscription on destroy()', async () => {
+      // Given: addEventListener returns a subscription with a remove() spy
+      const remove = jest.fn();
+      const mockAddEventListener = AppState.addEventListener as jest.Mock;
+      mockAddEventListener.mockClear();
+      mockAddEventListener.mockReturnValue({ remove });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // When: the registry is destroyed
+      registry.destroy();
+
+      // Then: the subscription is removed exactly once
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not throw and does not double-remove when destroy() is called twice', async () => {
+      // Given: addEventListener returns a subscription with a remove() spy
+      const remove = jest.fn();
+      const mockAddEventListener = AppState.addEventListener as jest.Mock;
+      mockAddEventListener.mockClear();
+      mockAddEventListener.mockReturnValue({ remove });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // When: destroy() is called twice
+      registry.destroy();
+      expect(() => registry.destroy()).not.toThrow();
+
+      // Then: the subscription is only removed once (cleared after first call)
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('reconnectAll', () => {

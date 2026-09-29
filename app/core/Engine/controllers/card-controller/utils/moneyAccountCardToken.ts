@@ -3,10 +3,13 @@ import {
   DelegationSettingsResponse,
   FundingStatus,
 } from '../../../../../components/UI/Card/types';
-
-const MONEY_ACCOUNT_CARD_NETWORK = 'monad';
-const MONEY_ACCOUNT_CARD_TOKEN_SYMBOL = 'USDC';
-const MONEY_ACCOUNT_CARD_CAIP_CHAIN_ID = 'eip155:143';
+import {
+  getVedaTokenConfig,
+  isVedaToken,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+  MONEY_ACCOUNT_DISPLAY_SYMBOL,
+  type VedaTokenConfig,
+} from '../../../../../components/UI/Card/util/vedaToken';
 
 interface MoneyAccountCardRequirementsParams {
   isMoneyAccountEnabled: boolean;
@@ -24,68 +27,60 @@ export const hasMoneyAccountCardRequirements = ({
 export const resolveMoneyAccountCardToken = (
   delegationSettings: DelegationSettingsResponse | null | undefined,
 ): CardFundingToken | null => {
-  const network = delegationSettings?.networks?.find(
-    (item) =>
-      item.network?.toLowerCase() === MONEY_ACCOUNT_CARD_NETWORK &&
-      item.delegationContract,
-  );
-
-  if (!network) {
-    return null;
-  }
-
-  const token = Object.values(network.tokens ?? {}).find(
-    (item) =>
-      item.symbol?.toUpperCase() === MONEY_ACCOUNT_CARD_TOKEN_SYMBOL &&
-      item.address,
-  );
-
-  if (!token) {
+  const vedaConfig = getVedaTokenConfig(delegationSettings);
+  if (!vedaConfig) {
     return null;
   }
 
   return {
-    address: token.address,
-    symbol: MONEY_ACCOUNT_CARD_TOKEN_SYMBOL,
-    name: MONEY_ACCOUNT_CARD_TOKEN_SYMBOL,
-    decimals: token.decimals,
-    caipChainId: MONEY_ACCOUNT_CARD_CAIP_CHAIN_ID,
+    address: vedaConfig.address,
+    symbol: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+    name: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+    decimals: vedaConfig.decimals,
+    caipChainId: vedaConfig.caipChainId,
     walletAddress: undefined,
     fundingStatus: FundingStatus.NotEnabled,
     spendableBalance: '0',
-    delegationContract: network.delegationContract,
+    delegationContract: vedaConfig.delegationContract,
     priority: undefined,
-    stagingTokenAddress:
-      network.environment !== 'production' ? token.address : undefined,
+    stagingTokenAddress: undefined,
+    displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
   };
 };
 
 interface MoneyAccountDelegatedForCardParams {
   fundingTokens: CardFundingToken[];
   moneyAccountAddress?: string | null;
+  vedaConfig: VedaTokenConfig | null;
 }
 
-/**
- * Returns `true` when the Money Account address has a card funding row on
- * Monad / USDC whose allowance is not `NotEnabled`. The signal lives in
- * `cardHomeData.fundingAssets` (sourced from `/v1/wallet/external`) because
- * CardController itself does not persist a per-address "linked" flag — once
- * the Baanx backend indexes the on-chain approval, the wallet appears in the
- * funding list with `enabled` or `limited` status.
- */
 export const isMoneyAccountDelegatedForCard = ({
   fundingTokens,
   moneyAccountAddress,
+  vedaConfig,
 }: MoneyAccountDelegatedForCardParams): boolean => {
-  if (!moneyAccountAddress) {
+  if (!moneyAccountAddress || !vedaConfig) {
     return false;
   }
   const target = moneyAccountAddress.toLowerCase();
   return fundingTokens.some(
     (token) =>
       token.walletAddress?.toLowerCase() === target &&
-      token.caipChainId === MONEY_ACCOUNT_CARD_CAIP_CHAIN_ID &&
-      token.symbol?.toUpperCase() === MONEY_ACCOUNT_CARD_TOKEN_SYMBOL &&
+      isVedaToken(token, vedaConfig) &&
       token.fundingStatus !== FundingStatus.NotEnabled,
   );
 };
+
+export const isAnyMoneyAccountDelegatedForCard = ({
+  fundingTokens,
+  vedaConfig,
+}: {
+  fundingTokens: CardFundingToken[];
+  vedaConfig: VedaTokenConfig | null;
+}): boolean =>
+  Boolean(vedaConfig) &&
+  fundingTokens.some(
+    (token) =>
+      isVedaToken(token, vedaConfig) &&
+      token.fundingStatus !== FundingStatus.NotEnabled,
+  );

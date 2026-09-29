@@ -4,38 +4,39 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { type AppiumElement } from '../../framework';
 
 class PermissionSummaryBottomSheet {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.CONTAINER,
     );
   }
-  get addNetworkPermissionContainer(): DetoxElement {
+  get addNetworkPermissionContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
     );
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  get connectedAccountsText(): DetoxElement {
+  get connectedAccountsText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
     );
   }
 
-  get ethereumMainnetText(): DetoxElement {
+  get ethereumMainnetText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.ETHEREUM_MAINNET_LABEL,
     );
   }
 
-  get accountPermissionLabelContainer(): DetoxElement {
+  get accountPermissionLabelContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER,
     );

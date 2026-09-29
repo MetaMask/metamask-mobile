@@ -1,11 +1,15 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { TrustSignalDisplayState } from '../../types/trustSignals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
@@ -19,6 +23,11 @@ export function useFirstTimeInteractionAlert(): Alert[] {
   const to = useTransferRecipient();
   const recipient = to ?? transactionMetadata?.txParams?.to;
   const chainId = transactionMetadata?.chainId;
+
+  const isMMPayTransaction = hasTransactionType(
+    transactionMetadata,
+    MM_PAY_TRANSACTION_TYPES,
+  );
 
   const isInternalAccount = useMemo(() => {
     if (!recipient) {
@@ -44,11 +53,12 @@ export function useFirstTimeInteractionAlert(): Alert[] {
     !isInternalAccount &&
     isFirstTimeInteraction &&
     !isVerifiedAddress &&
-    !isTrustSignalLoading;
+    !isTrustSignalLoading &&
+    !isMMPayTransaction;
 
   return useMemo(() => {
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

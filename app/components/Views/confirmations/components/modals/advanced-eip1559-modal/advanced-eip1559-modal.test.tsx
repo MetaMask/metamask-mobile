@@ -7,7 +7,12 @@ import { simpleSendTransaction } from '../../../__mocks__/controllers/transactio
 import { GasModalType } from '../../../constants/gas';
 import { AdvancedEIP1559Modal } from './advanced-eip1559-modal';
 
+const mockPersistGasFeePreference = jest.fn();
+
 jest.mock('../../../../../../util/transaction-controller');
+jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
+  usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
+}));
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => {
   const { simpleSendTransaction: actualSimpleSendTransaction } =
     jest.requireActual(
@@ -73,7 +78,34 @@ describe('AdvancedEIP1559Modal', () => {
         userFeeLevel: 'custom',
       }),
     );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+        maxBaseFee: simpleSendTransaction.txParams.maxFeePerGas,
+        priorityFee: simpleSendTransaction.txParams.maxPriorityFeePerGas,
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not save when an EIP-1559 fee is missing', () => {
+    const mockSetActiveModal = jest.fn();
+    const mockHandleCloseModals = jest.fn();
+
+    const { getByTestId, getByText } = render(
+      <AdvancedEIP1559Modal
+        setActiveModal={mockSetActiveModal}
+        handleCloseModals={mockHandleCloseModals}
+      />,
+    );
+
+    fireEvent.changeText(getByTestId('priority-fee-input'), '');
+    fireEvent.press(getByText('Save'));
+
+    expect(mockUpdateTransactionGasFees).not.toHaveBeenCalled();
+    expect(mockPersistGasFeePreference).not.toHaveBeenCalled();
+    expect(mockHandleCloseModals).not.toHaveBeenCalled();
   });
 
   it('calls updateTransactionGasFees with correct values when all fields are changed', () => {
@@ -94,7 +126,7 @@ describe('AdvancedEIP1559Modal', () => {
     fireEvent.changeText(priorityFeeInput, '5');
 
     const gasLimitInput = getByTestId('gas-input');
-    fireEvent.changeText(gasLimitInput, '21000');
+    fireEvent.changeText(gasLimitInput, '12000');
 
     const saveButton = getByText('Save');
     fireEvent.press(saveButton);
@@ -102,15 +134,23 @@ describe('AdvancedEIP1559Modal', () => {
     expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith(
       simpleSendTransaction.id,
       expect.objectContaining({
-        gas: '0x5208',
+        gas: '0x2ee0',
         maxFeePerGas: '0x174876e800',
         maxPriorityFeePerGas: '0x12a05f200',
         userFeeLevel: 'custom',
       }),
     );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+        maxBaseFee: '0x174876e800',
+        priorityFee: '0x12a05f200',
+      },
+    );
   });
 
-  it('calls navigateToEstimatesModal when the back button is pressed', () => {
+  it('closes the sheet when the header close button is pressed', () => {
     const mockSetActiveModal = jest.fn();
     const mockHandleCloseModals = jest.fn();
 
@@ -121,7 +161,7 @@ describe('AdvancedEIP1559Modal', () => {
       />,
     );
 
-    const backButton = getByTestId('back-button');
+    const backButton = getByTestId('button-icon');
     fireEvent.press(backButton);
 
     expect(mockSetActiveModal).toHaveBeenCalledWith(GasModalType.ESTIMATES);

@@ -1,27 +1,40 @@
-import React from 'react';
-import { isCaipChainId, isStrictHexString } from '@metamask/utils';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import React, { useMemo } from 'react';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { TokenI } from '../../../Tokens/types';
+import type { TokenI } from '../../../Tokens/types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import { getAssetImageUrl } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import styleSheet from './AssetLogo.styles';
+import { getFallbackAssetImageUrls } from './AssetLogo.utils';
+import { useSmartImageFallback } from './AssetLogo.hook';
 
-const getFallbackAssetImageUrl = (asset: TokenI): string | undefined => {
-  if (!asset.chainId) {
-    return undefined;
-  }
+type AssetLogoAsset = Omit<TokenI, 'balance'>;
 
-  if (!isCaipChainId(asset.chainId) && !isStrictHexString(asset.chainId)) {
-    return undefined;
-  }
-
-  return getAssetImageUrl(asset.address, asset.chainId);
-};
-
-const AssetLogo = ({ asset }: { asset: TokenI }) => {
+const AssetLogo = ({
+  asset,
+  size = AvatarTokenSize.Lg,
+  testID,
+}: {
+  asset: AssetLogoAsset;
+  size?: AvatarTokenSize;
+  testID?: string;
+}) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const images = useMemo(
+    () =>
+      [
+        asset.image,
+        ...(getFallbackAssetImageUrls(asset.chainId, asset.address) ?? []),
+      ]
+        .filter((image): image is string => Boolean(image))
+        .map((image) => ({ uri: image })),
+    [asset.image, asset.chainId, asset.address],
+  );
+  const { source, onError, uniqueSourceImageKey } =
+    useSmartImageFallback(images);
 
   if (asset.isNative) {
     return (
@@ -36,13 +49,16 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
     );
   }
 
-  const imageUri = asset.image || getFallbackAssetImageUrl(asset);
-
   return (
     <AvatarToken
+      key={uniqueSourceImageKey}
       name={asset.symbol}
-      imageSource={{ uri: imageUri }}
-      size={AvatarSize.Lg}
+      src={source}
+      imageOrSvgProps={{
+        imageProps: { onError, testID: 'token-avatar-image' },
+      }}
+      size={size}
+      testID={testID}
     />
   );
 };

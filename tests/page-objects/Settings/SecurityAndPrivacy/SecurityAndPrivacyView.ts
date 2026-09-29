@@ -4,33 +4,35 @@ import {
 } from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import { type AppiumElement, type ScrollContainer } from '../../../framework';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
 
 class SecurityAndPrivacy {
-  get changePasswordButton(): DetoxElement {
+  get changePasswordButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
+  get revealSecretRecoveryPhraseButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
     );
   }
-  get clearPrivacyDataButton(): DetoxElement {
+  get clearPrivacyDataButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
     );
   }
 
-  get securityAndPrivacyHeading(): DetoxElement {
+  get securityAndPrivacyHeading(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
     );
   }
 
-  get deleteWalletButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
+  get deleteWalletButton(): Promise<AppiumElement> {
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(
           SecurityPrivacyViewSelectorsIDs.DELETE_WALLET_BUTTON,
         )
@@ -39,71 +41,71 @@ class SecurityAndPrivacy {
         );
   }
 
-  get metaMetricsToggle(): DetoxElement {
+  get metaMetricsToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
     );
   }
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
 
-  get autoLockSection(): DetoxElement {
+  get autoLockSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
     );
   }
 
-  get autoLockDefault30Seconds(): DetoxElement {
+  get autoLockDefault30Seconds(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
     );
   }
 
-  get rememberMeToggle(): DetoxElement {
+  get rememberMeToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
     );
   }
 
-  get changePasswordSection(): DetoxElement {
+  get changePasswordSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
     );
   }
 
-  get securitySettingsScroll(): DetoxElement {
+  get securitySettingsScroll(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
-  get showPrivateKey(): DetoxElement {
+  get showPrivateKey(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
-  get showPrivateKeyButton(): DetoxElement {
+  get showPrivateKeyButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
-  get backUpNow(): DetoxElement {
+  get backUpNow(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
     );
   }
 
-  get privacyHeader(): DetoxElement {
+  get privacyHeader(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
     );
   }
 
-  get clearBrowserCookiesButton(): DetoxElement {
+  get clearBrowserCookiesButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
     );

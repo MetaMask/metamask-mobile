@@ -51,7 +51,7 @@ jest.mock('../../../../core/Engine', () => ({
         }
         return Promise.reject(new Error('Wrong password'));
       },
-      exportAccount: jest.fn().mockImplementation((password, address) => {
+      exportAccount: jest.fn().mockImplementation(({ password }, address) => {
         if (password === 'correct-password') {
           return Promise.resolve(`mock-private-key-for-${address}`);
         }
@@ -287,7 +287,7 @@ describe('PrivateKeyList', () => {
 
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith({
-        description: strings('multichain_accounts.private_key_list.copied'),
+        title: strings('multichain_accounts.private_key_list.copied'),
         hasNoTimeout: false,
       });
     });
@@ -323,6 +323,12 @@ describe('PrivateKeyList', () => {
     expect(
       getByText(strings('multichain_accounts.private_key_list.warning_title')),
     ).toBeOnTheScreen();
+  });
+
+  it('separates the warning banner from the header by 8px', () => {
+    const { getByTestId } = renderWithPrivateKeyList();
+
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toHaveStyle({ marginTop: 8 });
   });
 
   it('renders warning banner with a "Learn more" link', () => {

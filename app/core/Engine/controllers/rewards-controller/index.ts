@@ -1,4 +1,5 @@
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
@@ -26,6 +27,10 @@ export const rewardsControllerInit: MessengerClientInitFunction<
     isDisabled: () => {
       const isEnabled = selectBasicFunctionalityEnabled(getState());
       return !isEnabled;
+    },
+    isVipDisabled: () => {
+      const isVipEnabled = selectVipProgramEnabled(getState());
+      return !isVipEnabled;
     },
   });
 
@@ -80,6 +85,7 @@ export type {
   RewardsControllerInvalidateSubscriptionCacheAction,
   RewardsControllerIsOptInSupportedAction,
   RewardsControllerIsRewardsFeatureEnabledAction,
+  RewardsControllerIsVipFeatureEnabledAction,
   RewardsControllerLinkAccountsToSubscriptionCandidateAction,
   RewardsControllerLinkAccountToSubscriptionCandidateAction,
   RewardsControllerLogoutAction,

@@ -39,15 +39,30 @@ jest.mock(
       onActionSelect,
       position,
       testID,
+      sheetRef,
     }: {
       onClose: () => void;
       onActionSelect: (action: string) => void;
       position?: Position;
       testID?: string;
+      sheetRef?: React.RefObject<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      } | null>;
     }) {
       const ReactModule = jest.requireActual('react');
       const { View, Text, TouchableOpacity } =
         jest.requireActual('react-native');
+
+      if (sheetRef) {
+        sheetRef.current = {
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        };
+      }
+
       return ReactModule.createElement(
         View,
         { testID: testID || 'modify-action-sheet' },
@@ -94,6 +109,7 @@ jest.mock(
 describe('PerpsSelectModifyActionView', () => {
   const mockLongPosition: Position = {
     symbol: 'ETH',
+    providerId: 'lighter',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',
@@ -167,10 +183,26 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockLongPosition,
       hideTPSL: true,
       source: 'position_screen',
     });
+  });
+
+  it('forwards the bottom-sheet treatment when adding to a position', () => {
+    render(
+      <PerpsSelectModifyActionView
+        position={mockLongPosition}
+        useBottomSheet
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
+    expect(mockNavigateToOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ useBottomSheet: true }),
+    );
   });
 
   it('navigates to order with short direction when add_to_position is selected for short position', () => {
@@ -181,6 +213,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockShortPosition,
       hideTPSL: true,
       source: 'position_screen',
@@ -195,6 +228,10 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
       mockLongPosition,
       'position_screen',
+      {
+        buttonClicked: 'reduce_exposure',
+        buttonLocation: 'screen',
+      },
     );
   });
 
@@ -220,6 +257,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      providerId: 'lighter',
       amount: '2.5',
       leverage: 10,
       source: 'position_screen',
@@ -234,6 +272,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       amount: '2.5',
       leverage: 10,
       source: 'position_screen',
@@ -257,6 +296,14 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
+  it('calls goBack after action is selected without external sheetRef', () => {
+    render(<PerpsSelectModifyActionView position={mockLongPosition} />);
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('calls onClose callback when close button is pressed with external sheetRef', () => {
     const mockOnClose = jest.fn();
     const mockSheetRef = {
@@ -273,7 +320,26 @@ describe('PerpsSelectModifyActionView', () => {
 
     fireEvent.press(screen.getByTestId('close-button'));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose callback after action is selected with external sheetRef', () => {
+    const mockOnClose = jest.fn();
+    const mockSheetRef = {
+      current: { onCloseBottomSheet: mockOnCloseBottomSheet },
+    };
+
+    render(
+      <PerpsSelectModifyActionView
+        position={mockLongPosition}
+        sheetRef={mockSheetRef as never}
+        onClose={mockOnClose}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
     expect(mockOnClose).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
@@ -287,6 +353,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockLongPosition,
       hideTPSL: true,
       source: 'position_screen',

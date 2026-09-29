@@ -3,93 +3,87 @@ import {
   GasFeeTokenSelectorIDs,
 } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
+import { type AppiumElement, Utilities } from '../../../framework';
 
 class RowComponents {
-  get AccountNetwork(): DetoxElement {
+  get AccountNetwork(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
   }
 
-  get AdvancedDetails(): DetoxElement {
+  get AdvancedDetails(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.ADVANCED_DETAILS,
     );
   }
 
-  get FromTo(): DetoxElement {
+  get FromTo(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.FROM_TO);
   }
 
-  get GasFeesDetails(): DetoxElement {
+  get GasFeesDetails(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEES_DETAILS,
     );
   }
 
-  get Message(): DetoxElement {
+  get Message(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
   }
 
-  get OriginInfo(): DetoxElement {
+  get OriginInfo(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
   }
 
-  get SimulationDetails(): DetoxElement {
+  get SimulationDetails(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIMULATION_DETAILS,
     );
   }
 
-  get SiweSigningAccountInfo(): DetoxElement {
+  get SiweSigningAccountInfo(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO,
     );
   }
 
-  get TokenHero(): DetoxElement {
+  get TokenHero(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
   }
 
-  get ApproveRow(): DetoxElement {
+  get ApproveRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.APPROVE_ROW);
   }
 
-  get NetworkAndOrigin(): DetoxElement {
+  get NetworkAndOrigin(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.NETWORK);
   }
 
-  get NetworkFeePaidByMetaMask(): DetoxElement {
+  get NetworkFeePaidByMetaMask(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.PAID_BY_METAMASK,
     );
   }
 
-  get NetworkFeeGasFeeTokenPill(): DetoxElement {
+  get NetworkFeeGasFeeTokenPill(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEE_TOKEN_PILL,
     );
   }
 
-  get NetworkFeeGasFeeTokenSymbol(): DetoxElement {
+  get NetworkFeeGasFeeTokenSymbol(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_SYMBOL,
     );
   }
 
-  get NetworkFeeGasFeeTokenArrow(): DetoxElement {
+  get NetworkFeeGasFeeTokenArrow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
     );
   }
 
   async getNetworkFeeGasFeeTokenSymbolText(): Promise<string> {
-    const symbolElement = (await this
-      .NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
-    const symbolElementAttributes = await symbolElement.getAttributes();
-    return (
-      (symbolElementAttributes as { text?: string; label?: string })?.text ??
-      (symbolElementAttributes as { text?: string; label?: string })?.label ??
-      ''
-    );
+    return Utilities.getElementText(this.NetworkFeeGasFeeTokenSymbol);
   }
 }
 

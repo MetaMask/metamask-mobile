@@ -1,28 +1,40 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TokenI } from '../../../Tokens/types';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import { Hex } from '@metamask/utils';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 
 interface CardAssetItemProps {
-  asset: TokenI | undefined;
+  asset: (TokenI & { isMoneyAccountEntry?: boolean }) | undefined;
   privacyMode?: boolean;
   onPress?: (asset: TokenI) => void;
   balanceFormatted?: string;
+  isMoneyAccountEntry?: boolean;
 }
 
-const CardAssetItem: React.FC<CardAssetItemProps> = ({ asset }) => {
+const CardAssetItem: React.FC<CardAssetItemProps> = ({
+  asset,
+  isMoneyAccountEntry,
+}) => {
   const chainId = asset?.chainId as Hex;
-  const networkBadgeSource = useMemo(
-    () => (chainId ? NetworkBadgeSource(chainId) : null),
-    [chainId],
-  );
+  const networkImage = chainId ? getNetworkImageSource({ chainId }) : undefined;
+
+  if (isMoneyAccountEntry ?? asset?.isMoneyAccountEntry) {
+    return (
+      <MoneyBalanceIcon
+        width={40}
+        height={40}
+        name="money-balance"
+        testID="card-asset-item-money-account"
+      />
+    );
+  }
 
   // Return null if chainId or asset is missing
   if (!chainId || !asset) {
@@ -31,15 +43,8 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({ asset }) => {
 
   return (
     <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        networkBadgeSource ? (
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkBadgeSource}
-          />
-        ) : null
-      }
+      position={BadgeWrapperPosition.BottomRight}
+      badge={networkImage ? <BadgeNetwork src={networkImage} /> : null}
     >
       <AssetLogo asset={asset} />
     </BadgeWrapper>

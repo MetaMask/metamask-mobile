@@ -1,6 +1,8 @@
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 
 const REFRESH_TIMEOUT_MS = 5000; // 5 second timeout
 
@@ -24,50 +26,28 @@ const withTimeout = <T>(
   ]);
 
 /**
- * Refreshes token-specific data (detection, balances, rates).
- * Does NOT refresh account balance - use performEvmRefresh for that.
+ * Refreshes token-specific data (detection, balances, rates) for the given
+ * accounts and chains via `AssetsController`, the sole source of truth for
+ * asset data.
+ * Does NOT refresh account balance.
  */
 export const performEvmTokenRefresh = async (
-  evmNetworkConfigurationsByChainId: Record<
-    string,
-    { chainId: Hex; nativeCurrency: string }
-  >,
+  accounts: readonly InternalAccount[],
+  chainIds: CaipChainId[],
 ) => {
-  const {
-    TokenDetectionController,
-    TokenRatesController,
-    TokenBalancesController,
-    NetworkEnablementController,
-  } = Engine.context;
+  if (accounts.length === 0 || chainIds.length === 0) {
+    return;
+  }
 
-  const chainIds = Object.entries(
-    NetworkEnablementController.state.enabledNetworkMap[
-      KnownCaipNamespace.Eip155
-    ] || {},
-  )
-    .filter(([, isEnabled]) => isEnabled === true)
-    .map(([chainId]) => chainId as Hex);
-
-  const actions = [
-    TokenDetectionController.detectTokens({
-      chainIds,
-    }),
-    TokenBalancesController.updateBalances({
-      chainIds,
-    }),
-    TokenRatesController.updateExchangeRates(
-      chainIds
-        .filter((chainId) => {
-          const config = evmNetworkConfigurationsByChainId[chainId];
-          return config?.chainId && config?.nativeCurrency;
-        })
-        .map((c) => evmNetworkConfigurationsByChainId[c]),
-    ),
-  ];
+  const { AssetsController } = Engine.context;
 
   try {
     await withTimeout(
-      Promise.allSettled(actions),
+      AssetsController.getAssets([...accounts], {
+        forceUpdate: true,
+        chainIds,
+        assetTypes: FUNGIBLE_ASSET_TYPES,
+      }),
       REFRESH_TIMEOUT_MS,
       'performEvmTokenRefresh',
     );
@@ -76,54 +56,4 @@ export const performEvmTokenRefresh = async (
       'performEvmTokenRefresh timed out; balances may be stale until the next refresh',
     );
   }
-};
-
-/**
- * Refreshes both token data AND account balance/currency rates.
- * Use this for full refresh that includes native balance.
- */
-export const performEvmRefresh = async (
-  evmNetworkConfigurationsByChainId: Record<
-    string,
-    { chainId: Hex; nativeCurrency: string }
-  >,
-  nativeCurrencies: string[],
-) => {
-  const {
-    AccountTrackerController,
-    CurrencyRateController,
-    NetworkController,
-    NetworkEnablementController,
-  } = Engine.context;
-
-  const networkConfigurations =
-    NetworkController.state.networkConfigurationsByChainId;
-
-  const chainIds = Object.entries(
-    NetworkEnablementController.state.enabledNetworkMap[
-      KnownCaipNamespace.Eip155
-    ] || {},
-  )
-    .filter(([, isEnabled]) => isEnabled === true)
-    .map(([chainId]) => chainId as Hex);
-
-  const networkClientIds = chainIds
-    .map((c) => {
-      const config = networkConfigurations[c];
-      if (!config) {
-        return undefined;
-      }
-
-      return config?.rpcEndpoints?.[config?.defaultRpcEndpointIndex]
-        ?.networkClientId;
-    })
-    .filter((c: string | undefined): c is string => Boolean(c));
-
-  await Promise.all([
-    performEvmTokenRefresh(evmNetworkConfigurationsByChainId),
-    AccountTrackerController.refresh(networkClientIds),
-    CurrencyRateController.updateExchangeRate(nativeCurrencies),
-  ]).catch((error) => {
-    Logger.error(error, 'Error while refreshing tokens');
-  });
 };

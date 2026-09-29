@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../../util/theme';
 import styles from './Title.styles';
-import Text from '../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 interface TitleProps extends React.ComponentPropsWithoutRef<typeof Text> {
   centered?: boolean;
   hero?: boolean;

@@ -17,13 +17,6 @@ jest.mock('../../../store', () => ({
   },
 }));
 
-const mockIsMetricsEnabled = jest.fn();
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn(() => ({ isEnabled: mockIsMetricsEnabled })),
-  },
-}));
-
 const mockGetConfiguredCaipChainIds = jest.fn();
 jest.mock('../MultichainAPI/networkMetricUtils', () => ({
   getConfiguredCaipChainIds: jest.fn(() => mockGetConfiguredCaipChainIds()),
@@ -91,7 +84,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
 
   it('returns metadata with account composition traits', () => {
     mockGetState.mockReturnValue(mockState);
-    mockIsMetricsEnabled.mockReturnValue(true);
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata).toMatchObject({

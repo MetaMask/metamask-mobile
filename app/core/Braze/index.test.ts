@@ -3,48 +3,62 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   resetBrazePluginForTesting,
-  refreshBrazeBanners,
   logBrazeBannerImpression,
   logBrazeBannerClick,
   dismissBrazeBanner,
+  refreshBrazeBanners,
+  syncBrazeEventBlocklist,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
-import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from './constants';
+import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
 
-const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();
+const mockSetBlockedEvents = jest.fn();
 const mockSetLanguage = jest.fn();
-
-jest.mock('../Engine/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      AuthenticationController: {
-        getSessionProfile: () => mockGetSessionProfile(),
-      },
-    },
-  },
-}));
+const mockHasPendingBrazePushUnregistrationSync = jest.fn();
 
 jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
   BrazePlugin: jest.fn().mockImplementation(() => ({
     type: 'destination',
     key: 'Appboy',
     setBrazeProfileId: mockSetBrazeProfileId,
+    setBlockedEvents: mockSetBlockedEvents,
     setLanguage: mockSetLanguage,
   })),
 }));
 
+jest.mock('./pushRegistrationState', () => ({
+  hasPendingBrazePushUnregistrationSync: () =>
+    mockHasPendingBrazePushUnregistrationSync(),
+}));
+
+jest.mock('../../selectors/featureFlagController/brazeEventBlocklist', () => ({
+  getBrazeBlockedEventNames: jest.fn(),
+}));
+
 const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
+const mockGetBrazeBlockedEventNames = jest.mocked(getBrazeBlockedEventNames);
 
 describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    MockBrazePlugin.mockImplementation(
+      () =>
+        ({
+          type: 'destination',
+          key: 'Appboy',
+          setBrazeProfileId: mockSetBrazeProfileId,
+          setBlockedEvents: mockSetBlockedEvents,
+          setLanguage: mockSetLanguage,
+        }) as unknown as BrazePlugin,
+    );
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     resetBrazePluginForTesting();
   });
 
@@ -59,43 +73,66 @@ describe('Braze service', () => {
   });
 
   describe('setBrazeUser', () => {
-    it('forwards profileId to the Braze Segment plugin', async () => {
-      mockGetSessionProfile.mockResolvedValue({
-        profileId: 'test-profile-id-123',
-        identifierId: 'id',
-        metaMetricsId: 'mm-id',
-      });
+    it('forwards the provided canonicalProfileId to the Braze Segment plugin', () => {
+      mockSetBrazeProfileId.mockReturnValue(false);
 
-      await setBrazeUser();
+      setBrazeUser('canonical-profile-id-123');
 
-      expect(mockSetBrazeProfileId).toHaveBeenCalledWith('test-profile-id-123');
+      expect(mockSetBrazeProfileId).toHaveBeenCalledWith(
+        'canonical-profile-id-123',
+      );
     });
 
-    it('does nothing when session profile has no profileId', async () => {
-      mockGetSessionProfile.mockResolvedValue({
-        profileId: '',
-        identifierId: 'id',
-        metaMetricsId: 'mm-id',
-      });
+    it('enables the SDK before identifying a Braze user', () => {
+      mockSetBrazeProfileId.mockReturnValue(true);
 
-      await setBrazeUser();
+      setBrazeUser('canonical-profile-id-123');
 
-      expect(mockSetBrazeProfileId).not.toHaveBeenCalled();
+      expect(Braze.enableSDK).toHaveBeenCalledTimes(1);
+      expect(
+        (Braze.enableSDK as jest.Mock).mock.invocationCallOrder[0],
+      ).toBeLessThan(mockSetBrazeProfileId.mock.invocationCallOrder[0]);
     });
 
-    it('handles errors gracefully', async () => {
-      mockGetSessionProfile.mockRejectedValue(new Error('Session error'));
+    it('refreshes banners when identifying a new Braze user', () => {
+      mockSetBrazeProfileId.mockReturnValue(true);
 
-      await expect(setBrazeUser()).resolves.toBeUndefined();
-      expect(mockSetBrazeProfileId).not.toHaveBeenCalled();
+      setBrazeUser('canonical-profile-id-123');
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not refresh banners when the Braze user is unchanged', () => {
+      mockSetBrazeProfileId.mockReturnValue(false);
+
+      setBrazeUser('canonical-profile-id-123');
+
+      expect(Braze.requestBannersRefresh).not.toHaveBeenCalled();
     });
   });
 
   describe('clearBrazeUser', () => {
-    it('clears the profile ID on the Braze Segment plugin', () => {
-      clearBrazeUser();
+    it('clears the profile ID on the Braze Segment plugin', async () => {
+      await clearBrazeUser();
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(undefined);
+    });
+
+    it('disables the SDK so the previous user is not messaged', async () => {
+      await clearBrazeUser();
+
+      expect(Braze.disableSDK).toHaveBeenCalledTimes(1);
+      expect(Braze.wipeData).not.toHaveBeenCalled();
+      expect(Braze.enableSDK).not.toHaveBeenCalled();
+    });
+
+    it('defers disabling the SDK while push unregistration is pending', async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+
+      await expect(clearBrazeUser()).resolves.toBe(false);
+
+      expect(Braze.disableSDK).not.toHaveBeenCalled();
+      expect(Braze.wipeData).not.toHaveBeenCalled();
     });
   });
 
@@ -126,6 +163,40 @@ describe('Braze service', () => {
       logBrazeBannerClick('placement-1');
 
       expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+  });
+
+  describe('refreshBrazeBanners', () => {
+    it('requests a banner refresh for the supplied placements', () => {
+      refreshBrazeBanners(['placement-1']);
+
+      expect(Braze.requestBannersRefresh).toHaveBeenCalledWith(['placement-1']);
+    });
+  });
+
+  describe('syncBrazeEventBlocklist', () => {
+    it('applies the event names returned for the flag value', () => {
+      const flagValue = {
+        enabled: true,
+        minimumVersion: '8.14.0',
+        blockedEvents: ['App Opened'],
+      };
+      mockGetBrazeBlockedEventNames.mockReturnValue(['App Opened']);
+
+      syncBrazeEventBlocklist(flagValue);
+
+      expect(mockGetBrazeBlockedEventNames).toHaveBeenCalledWith(flagValue);
+      expect(mockSetBlockedEvents).toHaveBeenCalledWith(['App Opened']);
+    });
+
+    it('clears the blocklist when parsing the flag throws', () => {
+      mockGetBrazeBlockedEventNames.mockImplementation(() => {
+        throw new Error('flag parse failed');
+      });
+
+      syncBrazeEventBlocklist({ enabled: true });
+
+      expect(mockSetBlockedEvents).toHaveBeenCalledWith([]);
     });
   });
 

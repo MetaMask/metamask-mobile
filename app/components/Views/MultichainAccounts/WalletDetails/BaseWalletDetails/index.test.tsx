@@ -116,15 +116,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
-  MultichainWalletSnapFactory: {
-    createClient: jest.fn(),
-  },
-  WalletClientType: {
-    Solana: 'solana',
-  },
-}));
-
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 const mockUseWalletBalances = useWalletBalances as jest.Mock;
@@ -268,6 +259,31 @@ describe('BaseWalletDetails', () => {
     expect(getAllByText(mockWallet.metadata.name)).toHaveLength(2);
     expect(getByText('$1,234.56')).toBeTruthy();
     expect(getByTestId(WalletDetailsIds.ACCOUNTS_LIST)).toBeTruthy();
+  });
+
+  it('separates the detail rows with a 1px divider', () => {
+    const { getByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(WalletDetailsIds.WALLET_BALANCE)).toHaveStyle({
+      marginBottom: 1,
+    });
+  });
+
+  it('spaces the details section 8px below the header', () => {
+    const { getByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(WalletDetailsIds.HEADER)).toHaveStyle({
+      marginBottom: 0,
+    });
+    expect(getByTestId(WalletDetailsIds.WALLET_DETAILS_CONTAINER)).toHaveStyle({
+      paddingTop: 8,
+    });
   });
 
   it('navigates back when back button is pressed', () => {

@@ -1,13 +1,11 @@
 import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { cloneDeep } from 'lodash';
 import Engine from '../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import { endTrace, trace, TraceName } from '../../util/trace';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { useAnalytics } from './useAnalytics/useAnalytics';
 import { useNftDetectionChainIds } from './useNftDetectionChainIds';
-import { prepareNftDetectionEvents } from '../../util/assets';
 import { getDecimalChainId } from '../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import Logger from '../../util/Logger';
@@ -15,6 +13,7 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../reducers/collectibles';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 /**
  * Hook that provides NFT detection functionality
@@ -27,6 +26,9 @@ export const useNftDetection = () => {
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
+  );
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
   );
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
@@ -46,8 +48,11 @@ export const useNftDetection = () => {
   }, []);
 
   const detectNfts = useCallback(
-    async (firstPageOnly = true) => {
+    async (firstPageOnly = true, showLoadingIndicator = true) => {
       if (!selectedAddress) return;
+
+      // Detection hits the NFT API, so it stays off while Basic Functionality is off.
+      if (!isBasicFunctionalityEnabled) return;
 
       const { NftDetectionController, NftController, PreferencesController } =
         Engine.context;
@@ -69,13 +74,22 @@ export const useNftDetection = () => {
 
       const formattedSelectedAddress = selectedAddress.toLowerCase();
 
-      const previousNfts = cloneDeep(
-        NftController.state.allNfts[formattedSelectedAddress],
+      // Capture a lightweight identity snapshot of existing NFTs before detection.
+      // NftController uses immer, so allNfts[address] is a frozen immutable object —
+      // no deep clone needed. We only need (chainId, address, tokenId) to detect new arrivals.
+      const previousNftKeys = new Set(
+        Object.entries(
+          NftController.state.allNfts[formattedSelectedAddress] ?? {},
+        ).flatMap(([chainId, nfts]) =>
+          nfts.map((nft) => `${chainId}:${nft.address}:${nft.tokenId}`),
+        ),
       );
 
       try {
         trace({ name: TraceName.DetectNfts });
-        dispatch(showNftFetchingLoadingIndicator());
+        if (showLoadingIndicator) {
+          dispatch(showNftFetchingLoadingIndicator());
+        }
 
         await NftDetectionController.detectNfts(chainIdsToDetectNftsFor, {
           firstPageOnly,
@@ -83,32 +97,39 @@ export const useNftDetection = () => {
         });
       } finally {
         endTrace({ name: TraceName.DetectNfts });
-        dispatch(hideNftFetchingLoadingIndicator());
+        if (showLoadingIndicator) {
+          dispatch(hideNftFetchingLoadingIndicator());
+        }
       }
 
-      const newNfts = cloneDeep(
-        NftController.state.allNfts[formattedSelectedAddress],
+      // Read live state directly — no clone needed, we only read from it.
+      const newNfts = NftController.state.allNfts[formattedSelectedAddress];
+
+      const newlyDetectedNfts = Object.entries(newNfts ?? {}).flatMap(
+        ([chainId, nfts]) =>
+          nfts.filter(
+            (nft) =>
+              !previousNftKeys.has(`${chainId}:${nft.address}:${nft.tokenId}`),
+          ),
       );
 
-      const eventParams = prepareNftDetectionEvents(
-        previousNfts,
-        newNfts,
-        getNftDetectionAnalyticsParams,
-      );
-
-      eventParams.forEach((params) => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-            .addProperties({
-              chain_id: params.chain_id,
-              source: params.source,
-            })
-            .build(),
-        );
+      newlyDetectedNfts.forEach((nft) => {
+        const params = getNftDetectionAnalyticsParams(nft);
+        if (params) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+              .addProperties({
+                chain_id: params.chain_id,
+                source: params.source,
+              })
+              .build(),
+          );
+        }
       });
     },
     [
       selectedAddress,
+      isBasicFunctionalityEnabled,
       chainIdsToDetectNftsFor,
       dispatch,
       trackEvent,

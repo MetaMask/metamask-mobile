@@ -1,30 +1,17 @@
 import React from 'react';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Skeleton,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { PendingTag } from './OndoCampaignStatsSummary';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { PerpsTradingCampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
   formatRewardsTimeOnly,
   formatSignedUsd,
 } from '../../utils/formatUtils';
+import CampaignLeaderboardStatsHeader from './CampaignLeaderboardStatsHeader';
 
 export const PERPS_STATS_HEADER_TEST_IDS = {
   CONTAINER: 'perps-stats-header-container',
   RANK_VALUE: 'perps-stats-header-rank',
+  SUBTEXT_VALUE: 'perps-stats-header-pnl',
   PNL_VALUE: 'perps-stats-header-pnl',
   COMPUTED_AT: 'perps-stats-header-computed-at',
   PENDING_TAG: 'perps-stats-header-pending-tag',
@@ -51,16 +38,11 @@ const PerpsTradingCampaignStatsHeader: React.FC<
   showComputedAt = true,
   isCampaignComplete = false,
 }) => {
-  const tw = useTailwind();
-
-  const isPending = position != null && !position.eligible;
-  const isQualified = position != null && position.eligible;
   const rank =
     position != null && Number.isFinite(position.rank) ? position.rank : null;
   const pnl =
     position != null && Number.isFinite(position.pnl) ? position.pnl : null;
 
-  const rankValue = rank != null ? String(rank).padStart(2, '0') : '—';
   const pnlValue = pnl != null ? formatSignedUsd(pnl) : '—';
   const pnlColor =
     pnl != null
@@ -75,82 +57,20 @@ const PerpsTradingCampaignStatsHeader: React.FC<
       })
     : '';
 
-  const showSubtextRow = showPnl || showComputedAt;
-
   return (
-    <Box twClassName="gap-4" testID={PERPS_STATS_HEADER_TEST_IDS.CONTAINER}>
-      <Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
-        >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.perps_trading_campaign.label_your_rank')}
-          </Text>
-          {isPending && !isCampaignComplete && (
-            <PendingTag testID={PERPS_STATS_HEADER_TEST_IDS.PENDING_TAG} />
-          )}
-          {isQualified && (
-            <Icon
-              name={IconName.Check}
-              size={IconSize.Sm}
-              color={IconColor.SuccessDefault}
-              testID={PERPS_STATS_HEADER_TEST_IDS.QUALIFIED_ICON}
-            />
-          )}
-        </Box>
-
-        {isLoading ? (
-          <>
-            <Skeleton style={tw.style('h-9 w-28 rounded')} />
-            {showSubtextRow && (
-              <Skeleton style={tw.style('mt-1 h-4 w-full max-w-xs rounded')} />
-            )}
-          </>
-        ) : (
-          <>
-            <Text
-              variant={TextVariant.DisplayLg}
-              fontWeight={FontWeight.Bold}
-              testID={PERPS_STATS_HEADER_TEST_IDS.RANK_VALUE}
-            >
-              {rankValue}
-            </Text>
-            {showSubtextRow && (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="w-full"
-              >
-                <Box twClassName="min-w-0 flex-1">
-                  {showPnl && (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={pnlColor}
-                      fontWeight={FontWeight.Medium}
-                      testID={PERPS_STATS_HEADER_TEST_IDS.PNL_VALUE}
-                    >
-                      {pnlValue}
-                    </Text>
-                  )}
-                </Box>
-                {showComputedAt && computedAtLabel.length > 0 && (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
-                    testID={PERPS_STATS_HEADER_TEST_IDS.COMPUTED_AT}
-                  >
-                    {computedAtLabel}
-                  </Text>
-                )}
-              </Box>
-            )}
-          </>
-        )}
-      </Box>
-    </Box>
+    <CampaignLeaderboardStatsHeader
+      title={strings('rewards.perps_trading_campaign.label_your_rank')}
+      rank={rank}
+      isEligible={position?.eligible ?? null}
+      isLoading={isLoading}
+      subtextValue={pnlValue}
+      subtextColor={pnlColor}
+      computedAtLabel={computedAtLabel}
+      showSubtext={showPnl}
+      showComputedAt={showComputedAt}
+      isCampaignComplete={isCampaignComplete}
+      testIDs={PERPS_STATS_HEADER_TEST_IDS}
+    />
   );
 };
 

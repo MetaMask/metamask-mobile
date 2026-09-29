@@ -67,9 +67,7 @@ describe('useVipDashboard', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockSetVipDashboard = setVipDashboard as jest.MockedFunction<
     typeof setVipDashboard
   >;
@@ -82,63 +80,72 @@ describe('useVipDashboard', () => {
     >;
 
   const vipDashboard: VipDashboardState = {
-    program: { id: 'vip', name: 'VIP Pilot' },
+    program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
     period: {
-      start: '2026-03-31T00:00:00.000Z',
-      end: '2026-04-30T23:59:59.999Z',
+      start: '2099-06-01T00:00:00.000Z',
+      end: '2099-06-30T23:59:59.999Z',
     },
-    currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-    nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+    computedAt: '2099-06-30T14:52:00.000Z',
+    currentTier: {
+      id: 'mock-tier-alpha-3',
+      name: 'Mock Tier Alpha 3',
+      tier: 3,
+    },
+    nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
     progress: {
-      percent: 72,
-      remainingPointsToNextTier: 800000,
+      percent: 42,
+      remainingPointsToNextTier: 123456,
       status: 'on_track',
     },
     fees: {
-      revenueShareBps: 150,
-      swapsBps: 15,
-      perpsBps: 4,
-      nextTierRevenueShareBps: 200,
-      nextTierSwapsBps: 12,
-      nextTierPerpsBps: 3,
+      revenueShareBps: 99,
+      swapsBps: 11,
+      perpsBps: 7,
+      nextTierRevenueShareBps: 88,
+      nextTierSwapsBps: 9,
+      nextTierPerpsBps: 6,
     },
     volume: {
-      swapsUsd: 4100000,
-      perpsUsd: 2300000,
-      points: 24400000,
-      pointsFromReferrals: 500000,
-      referrals: 2,
-      referralsCap: 10,
+      swapsUsd: 1234567,
+      perpsUsd: 9876543,
+      points: 5555555,
+      pointsFromReferrals: 111111,
+      referrals: 3,
+      referralsCap: 7,
     },
     pointsAllocation: {
-      earned: 24400000,
-      threshold: 100000000,
-      percent: 24.4,
+      earned: 5555555,
+      threshold: 7777777,
+      percent: 71.4,
+      lifetimeQualifyingPoints: null,
     },
     tiers: [
       {
-        id: 'gold-fox-vip-3',
-        name: 'Gold Fox 3',
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
         tier: 3,
-        pointsRequirement: 750000,
-        revenueShareBps: 150,
-        swapsBps: 15,
-        perpsBps: 4,
-        referralCarryoverBps: 2000,
+        pointsRequirement: 321000,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        referralCarryoverBps: 4242,
+        maintainPointsRequirement: null,
         status: 'current',
       },
     ],
     localizedText: {
-      periodTitle: 'Mar 31 - Apr 30',
+      equityLifetimePointsDescription: 'Lifetime total: {points}',
+      periodTitle: 'Jun 1 - Jun 30',
       memberIdTitle: 'Member ID',
+      transactionsTitle: 'Transactions',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
-      nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-      nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+      nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+      nextTierPerpsFeeDelta: '↓ 6 bps next tier',
       revenueShareTitle: 'Revenue share',
       referralPointsTitle: 'Referral points',
-      nextTierRevenueShareDelta: '↑ 2% next tier',
-      nextTierReferralPointsDelta: '↑ 20% next tier',
+      nextTierRevenueShareDelta: '↑ 1% next tier',
+      nextTierReferralPointsDelta: '↑ 42% next tier',
       topTierDescription: 'Top tier reached',
       statsTitle: 'Volume',
       pointsTitle: 'Points',
@@ -151,6 +158,8 @@ describe('useVipDashboard', () => {
       equityLockedDescription: 'Body copy',
       equityUnlockedTitle: 'VIP allocation unlocked',
       equityUnlockedDescription: 'Unlocked body copy',
+      equityMultiplierFailedTitle: 'Estimate failed',
+      equityMultiplierFailedDescription: 'Estimate failed body copy',
     },
     lastFetched: 123,
   };
@@ -190,12 +199,18 @@ describe('useVipDashboard', () => {
       'RewardsController:getVIPDashboard',
       'test-subscription-id',
     );
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(true);
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: true,
+    });
     expect(mockSetVipDashboard).toHaveBeenCalledWith({
       subscriptionId: 'test-subscription-id',
       dashboard: vipDashboard,
     });
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('clears state and skips fetch when subscription is not VIP enabled', async () => {
@@ -227,8 +242,14 @@ describe('useVipDashboard', () => {
       subscriptionId: 'test-subscription-id',
       dashboard: null,
     });
-    expect(mockSetVipDashboardError).toHaveBeenCalledWith(false);
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipDashboardError).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      error: false,
+    });
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('sets error state when fetching VIP dashboard fails', async () => {
@@ -238,8 +259,14 @@ describe('useVipDashboard', () => {
 
     await result.current.fetchVipDashboard();
 
-    expect(mockSetVipDashboardError).toHaveBeenCalledWith(true);
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipDashboardError).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      error: true,
+    });
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('registers the focus refresh callback', () => {

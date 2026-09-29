@@ -6,7 +6,7 @@
  * handle cross-margin warning, then close all positions, cancel all
  * orders, and adjust margin.
  *
- * Components covered: PerpsMarketTabs, PerpsCompactOrderRow,
+ * Components covered: PerpsCompactOrderRow,
  * PerpsSelectModifyActionView, PerpsFlipPositionConfirmSheet,
  * PerpsCloseAllPositionsView, PerpsCancelAllOrdersView,
  * PerpsAdjustMarginActionSheet, PerpsLeverageBottomSheet,
@@ -25,23 +25,14 @@ import {
   defaultOrderForViews,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../tests/component-view/helpers/perpsViewTestHelpers';
-import PerpsMarketTabs from '../components/PerpsMarketTabs/PerpsMarketTabs';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet';
 import PerpsAdjustMarginActionSheet from '../components/PerpsAdjustMarginActionSheet/PerpsAdjustMarginActionSheet';
 import PerpsCompactOrderRow from '../components/PerpsCompactOrderRow/PerpsCompactOrderRow';
 import PerpsLeverageBottomSheet from '../components/PerpsLeverageBottomSheet/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../components/PerpsLimitPriceBottomSheet/PerpsLimitPriceBottomSheet';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
-import { PerpsMarketTabsSelectorsIDs } from '../Perps.testIds';
 import type { Order } from '@metamask/perps-controller';
-
-const MarketTabsDefault: React.FC = () => <PerpsMarketTabs symbol="ETH" />;
-const MarketTabsPosition: React.FC = () => (
-  <PerpsMarketTabs symbol="ETH" initialTab="position" />
-);
-const MarketTabsOrders: React.FC = () => (
-  <PerpsMarketTabs symbol="ETH" initialTab="orders" />
-);
+import { PerpsLeverageBottomSheetSelectorsIDs } from '../Perps.testIds';
 
 const FlipSheetWrapper: React.FC = () => (
   <PerpsFlipPositionConfirmSheet
@@ -52,6 +43,7 @@ const FlipSheetWrapper: React.FC = () => (
 );
 
 const mockOnSelectAction = jest.fn();
+const mockOnLeverageConfirm = jest.fn();
 const AdjustMarginSheetWrapper: React.FC = () => (
   <PerpsAdjustMarginActionSheet
     onClose={jest.fn()}
@@ -63,7 +55,7 @@ const LeverageVisibleWrapper: React.FC = () => (
   <PerpsLeverageBottomSheet
     isVisible
     onClose={jest.fn()}
-    onConfirm={jest.fn()}
+    onConfirm={mockOnLeverageConfirm}
     leverage={5}
     minLeverage={1}
     maxLeverage={50}
@@ -186,7 +178,6 @@ const multipleOrders = [
 ];
 
 describe('Active Trader Flow', () => {
-  let MARKET_ORDERS: string;
   let LEVERAGE_MODAL_TITLE: string;
   let LIMIT_PRICE_MODAL_TITLE: string;
   let LIMIT_PRICE_MID: string;
@@ -198,7 +189,6 @@ describe('Active Trader Flow', () => {
   let REDUCE_MARGIN: string;
 
   beforeAll(() => {
-    MARKET_ORDERS = strings('perps.market.orders');
     LEVERAGE_MODAL_TITLE = strings('perps.order.leverage_modal.title');
     LIMIT_PRICE_MODAL_TITLE = strings('perps.order.limit_price_modal.title');
     LIMIT_PRICE_MID = strings('perps.order.limit_price_modal.mid_price');
@@ -212,75 +202,11 @@ describe('Active Trader Flow', () => {
 
   beforeEach(() => {
     mockOnSelectAction.mockClear();
+    mockOnLeverageConfirm.mockClear();
   });
 
   it('complete trading session: browse positions, modify, flip, configure trade, then bulk-close and cancel', async () => {
-    // ── PHASE 1: Browse market tabs ──────────────────────────────────────
-    // Trader opens market with positions and orders — all 3 tabs available
-    renderPerpsView(MarketTabsDefault, 'MarketTabsTest', {
-      streamOverrides: {
-        positions: [defaultPositionForViews],
-        orders: [defaultOrderForViews],
-      },
-    });
-    expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryAllByText(strings('perps.market.position')).length,
-    ).toBeGreaterThan(0);
-    expect(screen.queryAllByText(MARKET_ORDERS).length).toBeGreaterThan(0);
-    expect(
-      screen.queryAllByText(strings('perps.market.statistics')).length,
-    ).toBeGreaterThan(0);
-
-    // Trader taps into position tab — position card visible
-    cleanup();
-    renderPerpsView(MarketTabsPosition, 'MarketTabsTest', {
-      streamOverrides: { positions: [defaultPositionForViews] },
-    });
-    expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
-    ).toBeOnTheScreen();
-
-    // Trader taps into orders tab — orders content visible
-    cleanup();
-    renderPerpsView(MarketTabsOrders, 'MarketTabsTest', {
-      streamOverrides: { positions: [], orders: [defaultOrderForViews] },
-    });
-    expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT),
-    ).toBeOnTheScreen();
-
-    // Trader taps into statistics tab
-    cleanup();
-    renderPerpsView(MarketTabsDefault, 'MarketTabsTest', {
-      streamOverrides: {
-        positions: [defaultPositionForViews],
-        orders: [defaultOrderForViews],
-      },
-    });
-    fireEvent.press(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_TAB),
-    );
-    expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
-    ).toBeOnTheScreen();
-
-    // Trader notices orders tab disappears after all orders fill
-    cleanup();
-    renderPerpsView(MarketTabsDefault, 'MarketTabsTest', {
-      streamOverrides: { positions: [defaultPositionForViews], orders: [] },
-    });
-    expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(screen.queryAllByText(MARKET_ORDERS)).toHaveLength(0);
-    expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
-    ).toBeOnTheScreen();
-
-    // ── PHASE 2: Review individual order rows ────────────────────────────
+    // ── PHASE 1: Review individual order rows ────────────────────────────
     // Trader sees buy limit order row: long direction, limit price label
     cleanup();
     renderRow(baseLimitOrder);
@@ -357,19 +283,29 @@ describe('Active Trader Flow', () => {
     ).toBeOnTheScreen();
 
     // ── PHASE 5: Configure leverage for next trade ───────────────────────
-    // Trader opens leverage sheet: title, current 5x, presets (2x, 10x), Set
+    // Trader opens leverage sheet, reviews risk, selects 10x, and confirms
     cleanup();
     renderPerpsView(LeverageVisibleWrapper, 'LeverageTest');
     expect(await screen.findByText(LEVERAGE_MODAL_TITLE)).toBeOnTheScreen();
-    const fiveXElements = screen.getAllByText('5x');
-    expect(fiveXElements.length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(
-        strings('perps.order.leverage_modal.set_leverage', { leverage: 5 }),
+      screen.queryByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('2x')).toBeOnTheScreen();
-    expect(screen.getByText('10x')).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+      ),
+    );
+    expect(
+      screen.getByTestId(
+        `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+      ).props.accessibilityState,
+    ).toEqual({ selected: true });
+    fireEvent.press(
+      screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+    );
+    expect(mockOnLeverageConfirm).toHaveBeenCalledWith(10, 'preset');
 
     // Trader dismisses leverage sheet — title disappears
     cleanup();
@@ -432,7 +368,11 @@ describe('Active Trader Flow', () => {
     });
     expect(await screen.findByText(CLOSE_ALL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_all_modal.description')),
+      screen.getByText(
+        strings('perps.close_all_modal.description', {
+          count: multiplePositions.length,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_position.margin')),
@@ -444,7 +384,11 @@ describe('Active Trader Flow', () => {
       screen.getByText(strings('perps.close_all_modal.keep_positions')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_all_modal.close_all')),
+      screen.getByText(
+        strings('perps.close_all_modal.close_count', {
+          count: multiplePositions.length,
+        }),
+      ),
     ).toBeOnTheScreen();
 
     // After closing — no positions → empty state
@@ -465,7 +409,11 @@ describe('Active Trader Flow', () => {
     });
     expect(await screen.findByText(CANCEL_ALL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.cancel_all_modal.description')),
+      screen.getByText(
+        strings('perps.cancel_all_modal.description', {
+          count: multipleOrders.length,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.cancel_all_modal.keep_orders')),

@@ -3,7 +3,9 @@ import { useSelector } from 'react-redux';
 import type { CaipAssetType } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import useAssetVisibility from './useAssetVisibility';
+import useAssetVisibility, {
+  createCaipAssetImageUrl,
+} from './useAssetVisibility';
 import type { TokenI } from '../../Tokens/types';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
@@ -19,9 +21,6 @@ jest.mock('../../../../core/Engine', () => ({
       hideAsset: jest.fn(),
       unhideAsset: jest.fn(),
       removeCustomAsset: jest.fn(),
-    },
-    MultichainAssetsController: {
-      addAssets: jest.fn(),
     },
   },
 }));
@@ -60,6 +59,24 @@ const EVM_ASSET_ID = `${EVM_CHAIN_CAIP}/erc20:${EVM_ADDRESS}` as CaipAssetType;
 const SOL_CHAIN_CAIP = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 const SOL_ADDRESS = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const SOL_ASSET_ID = `${SOL_CHAIN_CAIP}/token:${SOL_ADDRESS}` as CaipAssetType;
+
+const EVM_METADATA = {
+  address: EVM_ADDRESS,
+  symbol: 'USDC',
+  name: 'USD Coin',
+  decimals: 6,
+  chainId: EVM_CHAIN_CAIP,
+  iconUrl: createCaipAssetImageUrl(EVM_ASSET_ID),
+};
+
+const SOL_METADATA = {
+  address: SOL_ADDRESS,
+  symbol: 'USDC',
+  name: 'USD Coin',
+  decimals: 6,
+  chainId: SOL_CHAIN_CAIP,
+  iconUrl: createCaipAssetImageUrl(SOL_ASSET_ID),
+};
 
 const evmToken = (chainId = EVM_CHAIN_HEX): TokenI =>
   ({
@@ -317,7 +334,7 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
     });
 
-    it('calls unhideAsset AND MultichainAssetsController.addAssets when non-EVM token is in allIgnoredNonEvmAssets', () => {
+    it('calls unhideAsset for a non-EVM token in allIgnoredNonEvmAssets', () => {
       setupSelectors({
         // Solana ignored assets are keyed by the Solana account ID
         allIgnoredNonEvmAssets: { [SOL_ACCOUNT_ID]: [SOL_ASSET_ID] },
@@ -327,25 +344,6 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         SOL_ASSET_ID,
       );
-      // addAssets must be called with the Solana account ID, not the EVM one
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).toHaveBeenCalledWith([SOL_ASSET_ID], SOL_ACCOUNT_ID);
-    });
-
-    it('calls unhideAsset but NOT addAssets when unhiding an EVM token (not in non-EVM ignored list)', () => {
-      setupSelectors({
-        assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
-        allIgnoredNonEvmAssets: {},
-      });
-      const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
-      expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
-        EVM_ASSET_ID,
-      );
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).not.toHaveBeenCalled();
     });
 
     it('calls removeCustomAsset only when custom asset has no balance entry', () => {
@@ -459,21 +457,21 @@ describe('useAssetVisibility', () => {
   // ── handleAddCustomAsset ──────────────────────────────────────────────────
 
   describe('handleAddCustomAsset', () => {
-    it('calls AssetsController.addCustomAsset with accountId and the provided assetId', async () => {
+    it('calls AssetsController.addCustomAsset with accountId, assetId, and the provided metadata', async () => {
       const { result } = renderHook(() => useAssetVisibility());
       await act(async () => {
-        await result.current.handleAddCustomAsset(EVM_ASSET_ID);
+        await result.current.handleAddCustomAsset(EVM_ASSET_ID, EVM_METADATA);
       });
       expect(
         Engine.context.AssetsController.addCustomAsset,
-      ).toHaveBeenCalledWith(ACCOUNT_ID, EVM_ASSET_ID);
+      ).toHaveBeenCalledWith(ACCOUNT_ID, EVM_ASSET_ID, EVM_METADATA);
     });
 
     it('does nothing when accountId is undefined', async () => {
       setupSelectors({ globalAccountId: undefined as unknown as string });
       const { result } = renderHook(() => useAssetVisibility());
       await act(async () => {
-        await result.current.handleAddCustomAsset(EVM_ASSET_ID);
+        await result.current.handleAddCustomAsset(EVM_ASSET_ID, EVM_METADATA);
       });
       expect(
         Engine.context.AssetsController.addCustomAsset,
@@ -483,11 +481,11 @@ describe('useAssetVisibility', () => {
     it('can be called with a different assetId than the one the hook was initialised with', async () => {
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
       await act(async () => {
-        await result.current.handleAddCustomAsset(SOL_ASSET_ID);
+        await result.current.handleAddCustomAsset(SOL_ASSET_ID, SOL_METADATA);
       });
       expect(
         Engine.context.AssetsController.addCustomAsset,
-      ).toHaveBeenCalledWith(ACCOUNT_ID, SOL_ASSET_ID);
+      ).toHaveBeenCalledWith(ACCOUNT_ID, SOL_ASSET_ID, SOL_METADATA);
     });
 
     it('uses accountIdOverride instead of the hook-resolved accountId when provided', async () => {
@@ -496,18 +494,26 @@ describe('useAssetVisibility', () => {
       // but the caller explicitly provides the Solana account ID.
       const { result } = renderHook(() => useAssetVisibility());
       await act(async () => {
-        await result.current.handleAddCustomAsset(SOL_ASSET_ID, SOL_ACCOUNT_ID);
+        await result.current.handleAddCustomAsset(
+          SOL_ASSET_ID,
+          SOL_METADATA,
+          SOL_ACCOUNT_ID,
+        );
       });
       expect(
         Engine.context.AssetsController.addCustomAsset,
-      ).toHaveBeenCalledWith(SOL_ACCOUNT_ID, SOL_ASSET_ID);
+      ).toHaveBeenCalledWith(SOL_ACCOUNT_ID, SOL_ASSET_ID, SOL_METADATA);
     });
 
     it('does nothing when both accountId and accountIdOverride are undefined', async () => {
       setupSelectors({ globalAccountId: undefined as unknown as string });
       const { result } = renderHook(() => useAssetVisibility());
       await act(async () => {
-        await result.current.handleAddCustomAsset(EVM_ASSET_ID, undefined);
+        await result.current.handleAddCustomAsset(
+          EVM_ASSET_ID,
+          EVM_METADATA,
+          undefined,
+        );
       });
       expect(
         Engine.context.AssetsController.addCustomAsset,

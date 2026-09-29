@@ -1,7 +1,13 @@
 import { BigNumber } from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
-import { moneyFormatFiat } from './moneyFormatFiat';
+import { AssetType } from '../../../Views/confirmations/types/token';
+import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
+import {
+  moneyFormatFiat,
+  moneyFormatUsd,
+  moneySafeTokenFiatCurrency,
+} from './moneyFormatFiat';
 
 jest.mock('../../../../util/assets', () => ({
   formatWithThreshold: jest.fn(),
@@ -124,6 +130,81 @@ describe('moneyFormatFiat', () => {
         style: 'currency',
         currency: 'usd',
       });
+    });
+  });
+
+  describe('moneyFormatUsd', () => {
+    it('always formats as USD with en-US locale, ignoring the user locale', () => {
+      mockGetLocaleLanguageCode.mockReturnValue('de');
+
+      moneyFormatUsd(new BigNumber(1234.56));
+
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        1234.56,
+        0.01,
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+        },
+      );
+    });
+
+    it('collapses sub-cent dust to 0', () => {
+      moneyFormatUsd(new BigNumber(-0.004));
+
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(0, 0.01, 'en-US', {
+        style: 'currency',
+        currency: 'USD',
+      });
+    });
+
+    it('returns the string produced by formatWithThreshold', () => {
+      mockFormatWithThreshold.mockReturnValue('$1,234.56');
+
+      expect(moneyFormatUsd(new BigNumber(1234.56))).toBe('$1,234.56');
+    });
+  });
+
+  describe('moneySafeTokenFiatCurrency', () => {
+    const makeToken = (
+      fiat?: Partial<NonNullable<AssetType['fiat']>>,
+    ): Pick<AssetType, 'fiat'> => ({ fiat: fiat as AssetType['fiat'] });
+
+    it('returns the token fiat currency when present', () => {
+      const token = makeToken({ balance: 100, currency: 'eur' });
+
+      const result = moneySafeTokenFiatCurrency(token);
+
+      expect(result).toBe('eur');
+    });
+
+    it('falls back to the Money default when token.fiat is undefined', () => {
+      const token = makeToken(undefined);
+
+      const result = moneySafeTokenFiatCurrency(token);
+
+      expect(result).toBe(MONEY_DEFAULT_FIAT_CURRENCY);
+    });
+
+    it('falls back to the Money default when token.fiat.currency is undefined', () => {
+      const token = makeToken({ balance: 100 });
+
+      const result = moneySafeTokenFiatCurrency(token);
+
+      expect(result).toBe(MONEY_DEFAULT_FIAT_CURRENCY);
+    });
+
+    it('falls back to the Money default when token is undefined', () => {
+      const result = moneySafeTokenFiatCurrency(undefined);
+
+      expect(result).toBe(MONEY_DEFAULT_FIAT_CURRENCY);
+    });
+
+    it('falls back to the Money default when token is null', () => {
+      const result = moneySafeTokenFiatCurrency(null);
+
+      expect(result).toBe(MONEY_DEFAULT_FIAT_CURRENCY);
     });
   });
 });

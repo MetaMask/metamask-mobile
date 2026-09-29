@@ -1,13 +1,14 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { type AppiumElement } from '../../framework';
 
 class SortModal {
-  get sortAlphabetically(): DetoxElement {
+  get sortAlphabetically(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_ALPHABETICAL);
   }
 
-  get sortFiatAmount(): DetoxElement {
+  get sortFiatAmount(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.SORT_DECLINING_BALANCE,
     );

@@ -9,6 +9,38 @@ import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  MONEY_URLS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockOpenSupportWithConsent: jest.Mock<
+  void,
+  [(url: string) => void, string]
+> = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
+const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
+const mockTrackButtonClicked = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
+const mockTrackActivitySurfaceClicked = jest.fn();
+const mockTrackScreenViewed = jest.fn();
+const mockTrackComponentViewed = jest.fn();
+const mockTrackOnboardingEvent = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -61,6 +93,22 @@ describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    jest.mocked(useMoneyAnalytics).mockReturnValue({
+      trackButtonClicked: mockTrackButtonClicked,
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackSurfaceClicked: mockTrackSurfaceClicked,
+      trackTooltipClicked: mockTrackTooltipClicked,
+      trackTokenButtonClicked: mockTrackTokenButtonClicked,
+      trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
+      trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
+      trackScreenViewed: mockTrackScreenViewed,
+      trackComponentViewed: mockTrackComponentViewed,
+      trackOnboardingEvent: mockTrackOnboardingEvent,
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders How it works, What you get, and Contact support rows', () => {
@@ -104,23 +152,113 @@ describe('MoneyMoreSheet', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
   });
 
-  it('opens the MUSD learn-more URL when "What you get" is pressed', () => {
+  it('opens the Money landing URL in the in-app browser when "What you get" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      AppConstants.URLS.MUSD_LEARN_MORE,
+    expect(Linking.openURL).not.toHaveBeenCalledWith(
+      AppConstants.URLS.MONEY_LANDING,
     );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: AppConstants.URLS.MONEY_LANDING,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
   });
 
-  it('opens the MetaMask support URL when "Contact support" is pressed', () => {
+  it('shows the support consent sheet with the METAMASK_SUPPORT_URL when "Contact support" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
+    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+  });
+
+  it('keeps the sheet open while the support consent sheet is shown', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('closes the sheet before opening the consented support URL in the in-app browser', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+    const [openSupportUrl] = mockOpenSupportWithConsent.mock.calls[0];
+    const consentedUrl = `${METAMASK_SUPPORT_URL}&metamask_version=1.0.0`;
+
+    openSupportUrl(consentedUrl);
+
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: consentedUrl,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_MORE_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyMoreSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyMoreSheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with HOW_IT_WORKS component and MONEY_HOW_IT_WORKS redirect when "How it works" is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent.press(getByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_HOW_IT_WORKS,
+        redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+      });
+    });
+
+    it('calls trackSurfaceClicked with WHAT_YOU_GET component and MONEY_LANDING redirect when "What you get" is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
+        redirect_target: MONEY_URLS.MONEY_LANDING,
+      });
+    });
+
+    it('calls trackSurfaceClicked with CONTACT_SUPPORT component and METAMASK_SUPPORT redirect when "Contact support" is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent.press(
+        getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION),
+      );
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
+        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
+      });
+    });
   });
 });

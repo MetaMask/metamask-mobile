@@ -1,6 +1,9 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { PredictMarket as PredictMarketType } from '../../types';
+import {
+  PredictMarket as PredictMarketType,
+  type PredictMarketBuyButtonPress,
+} from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -19,10 +22,10 @@ interface PredictMarketProps {
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
-  /** Active feed tab key forwarded to trade analytics (e.g. "trending", "world-cup"). */
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
+  /** Active feed tab key forwarded to trade analytics (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context forwarded to trade analytics (e.g. "world_cup"). */
+  /** Screen context forwarded to trade analytics. */
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -104,4 +107,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   );
 };
 
-export default PredictMarket;
+const MemoizedPredictMarket: React.FC<PredictMarketProps> =
+  React.memo(PredictMarket);
+
+export default MemoizedPredictMarket;

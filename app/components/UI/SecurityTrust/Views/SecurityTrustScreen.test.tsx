@@ -4,6 +4,11 @@ import { Linking, useColorScheme } from 'react-native';
 import SecurityTrustScreen from './SecurityTrustScreen';
 import { strings } from '../../../../../locales/i18n';
 
+jest.mock('../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -145,10 +150,30 @@ jest.mock('../../TokenDetails/hooks/useTokenActions', () => ({
   })),
 }));
 
+jest.mock('../../TokenDetails/hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: jest.fn(() => ({
+    isQuickBuyEnabled: true,
+    onQuickBuyPress: jest.fn(),
+    quickBuySheet: null,
+  })),
+}));
+
+const getMockUseStickyQuickBuy = () =>
+  (
+    jest.requireMock('../../TokenDetails/hooks/useStickyQuickBuy') as {
+      useStickyQuickBuy: jest.Mock;
+    }
+  ).useStickyQuickBuy;
+
 describe('SecurityTrustScreen', () => {
   beforeEach(() => {
-    mockRouteParams = createDefaultRouteParams();
     jest.clearAllMocks();
+    mockRouteParams = createDefaultRouteParams();
+    getMockUseStickyQuickBuy().mockReturnValue({
+      isQuickBuyEnabled: true,
+      onQuickBuyPress: jest.fn(),
+      quickBuySheet: null,
+    });
   });
 
   it('renders without crashing', () => {
@@ -206,6 +231,21 @@ describe('SecurityTrustScreen', () => {
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('tracks External Link Clicked when block explorer button is pressed', () => {
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    fireEvent.press(getByText('Etherscan'));
+
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'security_trust_page',
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    );
   });
 
   it('opens external link when link is pressed', () => {
@@ -293,5 +333,43 @@ describe('SecurityTrustScreen', () => {
       solanaMint,
       solanaChainId,
     );
+  });
+
+  describe('Quick Buy', () => {
+    it('calls useStickyQuickBuy with the security_trust source and route token', () => {
+      render(<SecurityTrustScreen />);
+
+      expect(getMockUseStickyQuickBuy()).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'security_trust',
+          token: expect.objectContaining({
+            symbol: 'TEST',
+            chainId: '0x1',
+          }),
+        }),
+      );
+    });
+
+    it('passes onQuickBuyPress from the hook to TokenDetailsStickyFooter', () => {
+      const onQuickBuyPress = jest.fn();
+      getMockUseStickyQuickBuy().mockReturnValue({
+        isQuickBuyEnabled: true,
+        onQuickBuyPress,
+        quickBuySheet: null,
+      });
+
+      // Renders without errors — the footer (mocked) receives the prop.
+      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
+    });
+
+    it('does not throw when quick-buy is disabled', () => {
+      getMockUseStickyQuickBuy().mockReturnValue({
+        isQuickBuyEnabled: false,
+        onQuickBuyPress: undefined,
+        quickBuySheet: null,
+      });
+
+      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
+    });
   });
 });

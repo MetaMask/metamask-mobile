@@ -11,12 +11,12 @@ import {
   useFocusEffect,
   useIsFocused,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
-import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
 import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
@@ -41,12 +41,13 @@ import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
+  normalizeRampsAssetId,
   RampsOrderStatus,
-  normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
+import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
@@ -55,21 +56,17 @@ import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuot
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useSelector } from 'react-redux';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
-import { failSession } from '../../headless/sessionRegistry';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -97,22 +94,14 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
-  /**
-   * Legacy param from Phase 3. The headless flow now navigates straight
-   * to `Routes.RAMP.HEADLESS_HOST` and never lands on BuildQuote, so the
-   * field is unused. Kept as `optional` for backward compatibility with
-   * any in-flight deeplinks; safe to remove once we're sure no callers
-   * pass it.
-   *
-   * @deprecated Use `Routes.RAMP.HEADLESS_HOST` instead.
-   */
-  headlessSessionId?: string;
 }
 
 /**
  * Creates navigation details for the BuildQuote screen (RampAmountInput).
  * This screen is nested inside TokenListRoutes, so navigation must go through
- * the parent route Routes.RAMP.TOKEN_SELECTION.
+ * the parent route Routes.RAMP.TOKEN_SELECTION, then the intermediate
+ * RootStack wrapper Routes.RAMP.TOKEN_SELECTION_ROOT, before reaching the
+ * AMOUNT_INPUT leaf screen.
  */
 export const createBuildQuoteNavDetails = (
   params?: BuildQuoteParams,
@@ -129,7 +118,7 @@ export const createBuildQuoteNavDetails = (
   [
     Routes.RAMP.TOKEN_SELECTION,
     {
-      screen: Routes.RAMP.TOKEN_SELECTION,
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
       params: {
         screen: Routes.RAMP.AMOUNT_INPUT,
         params,
@@ -140,7 +129,7 @@ export const createBuildQuoteNavDetails = (
 const DEFAULT_AMOUNT = 100;
 
 function BuildQuote() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
@@ -160,30 +149,17 @@ function BuildQuote() {
 
   useEffect(() => {
     if (params?.nativeFlowError) {
-      if (
-        params.headlessSessionId &&
-        failSession(
-          params.headlessSessionId,
-          {
-            code: 'AUTH_FAILED',
-            message: params.nativeFlowError,
-          },
-          'AUTH_FAILED',
-        )
-      ) {
-        navigation.setParams({ nativeFlowError: undefined });
-        return;
-      }
       setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
-  }, [params?.headlessSessionId, params?.nativeFlowError, navigation]);
+  }, [params?.nativeFlowError, navigation]);
 
   const {
     userRegion,
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     selectedToken,
     paymentMethods,
     paymentMethodsLoading,
@@ -194,7 +170,6 @@ function BuildQuote() {
   const { continueWithQuote } = useContinueWithQuote();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -302,14 +277,26 @@ function BuildQuote() {
       return;
     }
 
+    // Keep providers in deps: ensures the effect re-runs when the provider
+    // list loads or refreshes, giving the controller a chance to find a
+    // compatible provider even if it was called too early.
+    if (providers.length === 0) return;
+
     if (effectiveAssetId) {
-      const supportingProvider = providers.find(
+      const switched = setSelectedProviderForAsset(effectiveAssetId);
+      if (switched) return;
+
+      // Controller no-ops when the current provider already lists the asset in
+      // supportedCryptoCurrencies. Empty payment methods can still mark the
+      // token unavailable for that provider, so try a different supporting
+      // provider before showing the modal (parity with pre-delegation UI).
+      const otherSupporting = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
           providerSupportsAsset(p, effectiveAssetId),
       );
-      if (supportingProvider) {
-        setSelectedProvider(supportingProvider, { autoSelected: true });
+      if (otherSupporting) {
+        setSelectedProvider(otherSupporting, { autoSelected: true });
         return;
       }
     }
@@ -319,8 +306,9 @@ function BuildQuote() {
 
     const timer = setTimeout(() => {
       lastShownUnavailableKeyRef.current = key;
-      navigation.navigate(
-        ...createTokenNotAvailableModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createTokenNotAvailableModalNavigationDetails({
           assetId: effectiveAssetId ?? '',
           buyFlowOrigin: params?.buyFlowOrigin,
         }),
@@ -338,6 +326,7 @@ function BuildQuote() {
     focusTrigger,
     providers,
     setSelectedProvider,
+    setSelectedProviderForAsset,
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';
@@ -368,19 +357,16 @@ function BuildQuote() {
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
-    if (rampRoutingDecision != null) {
-      hasTrackedScreenViewRef.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-          .addProperties({
-            location: 'Amount Input',
-            ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision,
-          })
-          .build(),
-      );
-    }
-  }, [rampRoutingDecision, trackEvent, createEventBuilder]);
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   /*
    * Sets the default amount for the user's region.
@@ -436,7 +422,7 @@ function BuildQuote() {
       selectedPaymentMethod &&
       selectedProvider
         ? {
-            assetId: normalizeAssetIdForApi(selectedToken.assetId),
+            assetId: normalizeRampsAssetId(selectedToken.assetId),
             amount: debouncedPollingAmount,
             walletAddress,
             redirectUrl: getRampCallbackBaseUrl(),
@@ -483,7 +469,6 @@ function BuildQuote() {
             payment_method_id: selectedPaymentMethod?.id,
             chain_id: selectedToken?.chainId,
             ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision ?? undefined,
           })
           .build(),
       );
@@ -499,7 +484,6 @@ function BuildQuote() {
     selectedToken?.assetId,
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
-    rampRoutingDecision,
     trackEvent,
     createEventBuilder,
   ]);
@@ -512,10 +496,10 @@ function BuildQuote() {
     ) {
       return null;
     }
-    const targetProvider = normalizeProviderCode(selectedProvider.id);
+    const targetProvider = selectedProvider.id;
     return (
       quotesResponse.success.find(
-        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
+        (quote) => quote.provider === targetProvider,
       ) ?? null
     );
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
@@ -534,7 +518,7 @@ function BuildQuote() {
         })
         .build(),
     );
-    navigation.navigate(...createSettingsModalNavDetails());
+    navigateWithDetails(navigation, createSettingsModalNavDetails());
   }, [trackEvent, createEventBuilder, navigation]);
 
   const handleBackPress = useCallback(() => {
@@ -602,8 +586,9 @@ function BuildQuote() {
         })
         .build(),
     );
-    navigation.navigate(
-      ...createPaymentSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createPaymentSelectionModalNavigationDetails({
         amount: debouncedPollingAmount,
       }),
     );
@@ -622,8 +607,6 @@ function BuildQuote() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
         .addProperties({
-          ramp_routing:
-            rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
           ramp_type: 'UNIFIED_BUY_2',
           amount_source: amountAsNumber,
           payment_method_id: selectedPaymentMethod?.id ?? '',
@@ -644,9 +627,6 @@ function BuildQuote() {
         assetId: selectedToken?.assetId ?? '',
       });
     } catch (err) {
-      if (failSession(params?.headlessSessionId, err)) {
-        return;
-      }
       setRampsError((err as Error).message);
     } finally {
       setIsContinueLoading(false);
@@ -660,9 +640,7 @@ function BuildQuote() {
     amountAsNumber,
     currency,
     selectedPaymentMethod?.id,
-    rampRoutingDecision,
     userRegion?.regionCode,
-    params?.headlessSessionId,
     trackEvent,
     createEventBuilder,
     continueWithQuote,
@@ -673,6 +651,16 @@ function BuildQuote() {
     !amountLimitError &&
     !selectedQuoteLoading &&
     selectedQuote !== null;
+
+  // A provider's embedded checkout can replace the Continue button on
+  // eligible quotes; while it is anything but inactive, Continue stays out
+  // of reach so the user is not sent to the browser checkout instead.
+  const embeddedCheckout = useEmbeddedCheckout(
+    hasSettledQuoteAmount ? selectedQuote : null,
+    debouncedPollingAmount,
+  );
+  const isEmbeddedCheckoutVisible = embeddedCheckout.phase === 'ready';
+  const isEmbeddedCheckoutActive = embeddedCheckout.phase !== 'inactive';
 
   const hasNoQuotes =
     hasAmount &&
@@ -689,7 +677,10 @@ function BuildQuote() {
   }, [hasNoQuotes, quotesResponse?.error]);
 
   const inlineQuoteError =
-    displayedAmountLimitError ?? providerQuoteError ?? null;
+    displayedAmountLimitError ??
+    providerQuoteError ??
+    embeddedCheckout.error ??
+    null;
   const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
@@ -734,6 +725,12 @@ function BuildQuote() {
           amount={amountAsNumber}
         />
       );
+    }
+    // The embedded checkout takes this slot and already names the provider,
+    // so the attribution would only repeat it. Until then the ordinary
+    // Continue button is showing and the attribution stays.
+    if (isEmbeddedCheckoutVisible) {
+      return null;
     }
     if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
       return (
@@ -850,22 +847,35 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {actionSectionMessage}
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
-                  isFullWidth
-                  isDisabled={!canContinue}
-                  isLoading={
-                    selectedQuoteLoading ||
-                    isContinueLoading ||
-                    isTokenUnavailable ||
-                    !tokenStateIsSettled
-                  }
-                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                >
-                  {strings('fiat_on_ramp.continue')}
-                </Button>
+                {embeddedCheckout.renderOverlay?.({
+                  interactive: canContinue,
+                })}
+                {isEmbeddedCheckoutVisible ? null : (
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleContinuePress}
+                    isFullWidth
+                    isDisabled={!canContinue || isEmbeddedCheckoutActive}
+                    isLoading={
+                      selectedQuoteLoading ||
+                      isContinueLoading ||
+                      isTokenUnavailable ||
+                      !tokenStateIsSettled ||
+                      isEmbeddedCheckoutActive
+                    }
+                    loadingText={
+                      embeddedCheckout.phase === 'settling'
+                        ? strings(
+                            'fiat_on_ramp_aggregator.order_status_processing',
+                          )
+                        : undefined
+                    }
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp.continue')}
+                  </Button>
+                )}
               </>
             ) : (
               quickAmounts.length > 0 && (

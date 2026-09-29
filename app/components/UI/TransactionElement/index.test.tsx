@@ -12,7 +12,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -168,12 +168,7 @@ describe('TransactionElement', () => {
       // Press the transaction element
       fireEvent.press(getByText('Test Action'));
 
-      // First, navigation goes to TRANSACTIONS_VIEW to ensure correct context
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-
-      // Then after timeout, navigates to TRANSACTION_DETAILS
-      jest.advanceTimersByTime(100);
-
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: musdConversionTx.id,
       });
@@ -211,8 +206,6 @@ describe('TransactionElement', () => {
       fireEvent.press(getByText('Test Action'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-      jest.advanceTimersByTime(100);
-
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: moneyAccountTx.id,
       });
@@ -375,7 +368,7 @@ describe('TransactionElement', () => {
   });
 
   describe('analytics tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when pressed', async () => {
+    it('tracks Activity Details Opened when pressed', async () => {
       const tx = {
         id: 'tx-analytics-1',
         type: TransactionType.simpleSend,
@@ -402,7 +395,7 @@ describe('TransactionElement', () => {
       fireEvent.press(getByText('Test Action'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

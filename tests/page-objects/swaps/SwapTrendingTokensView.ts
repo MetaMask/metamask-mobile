@@ -1,4 +1,9 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  type AppiumElement,
+} from '../../framework';
 import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import { BridgeTrendingTokensSectionTestIds } from '../../../app/components/UI/Bridge/components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 
@@ -13,55 +18,55 @@ const SwapTrendingTokensViewTestIds = {
 } as const;
 
 class SwapTrendingTokensView {
-  public get section(): DetoxElement {
+  public get section(): Promise<AppiumElement> {
     return Matchers.getElementByID(BridgeTrendingTokensSectionTestIds.SECTION);
   }
 
-  public get priceFilter(): DetoxElement {
+  public get priceFilter(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.PRICE_FILTER,
     );
   }
 
-  public get networkFilter(): DetoxElement {
+  public get networkFilter(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.NETWORK_FILTER,
     );
   }
 
-  public get timeFilter(): DetoxElement {
+  public get timeFilter(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.TIME_FILTER,
     );
   }
 
-  public get priceBottomSheet(): DetoxElement {
+  public get priceBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.PRICE_BOTTOM_SHEET,
     );
   }
 
-  public get networkBottomSheet(): DetoxElement {
+  public get networkBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.NETWORK_BOTTOM_SHEET,
     );
   }
 
-  public get timeBottomSheet(): DetoxElement {
+  public get timeBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.TIME_BOTTOM_SHEET,
     );
   }
 
-  public get innerList(): DetoxElement {
+  public get innerList(): Promise<AppiumElement> {
     return Matchers.getElementByID(SwapTrendingTokensViewTestIds.INNER_LIST);
   }
 
-  public get closeButton(): DetoxElement {
+  public get closeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SwapTrendingTokensViewTestIds.CLOSE_BUTTON);
   }
 
-  public get timeSelectSixHours(): DetoxElement {
+  public get timeSelectSixHours(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.TIME_SELECT_6H,
     );
@@ -106,7 +111,7 @@ class SwapTrendingTokensView {
     });
   }
 
-  tokenRow(assetId: string): DetoxElement {
+  tokenRow(assetId: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${SwapTrendingTokensViewTestIds.TOKEN_ROW_PREFIX}${assetId}`,
     );

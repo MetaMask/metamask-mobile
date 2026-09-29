@@ -4,43 +4,44 @@ import {
 } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { type AppiumElement } from '../../framework';
 
 class OnboardingCarouselView {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
     );
   }
 
-  get getStartedButton(): DetoxElement {
+  get getStartedButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
     );
   }
 
-  get titleOne(): DetoxElement {
+  get titleOne(): Promise<AppiumElement> {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE);
   }
 
-  get imageOne(): DetoxElement {
+  get imageOne(): Promise<AppiumElement> {
     return Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID);
   }
 
-  get titleTwo(): DetoxElement {
+  get titleTwo(): Promise<AppiumElement> {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO);
   }
 
-  get imageTwo(): DetoxElement {
+  get imageTwo(): Promise<AppiumElement> {
     return Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID);
   }
 
-  get titleThree(): DetoxElement {
+  get titleThree(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       OnboardingCarouselSelectorText.TITLE_THREE,
     );
   }
 
-  get imageThree(): DetoxElement {
+  get imageThree(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
     );

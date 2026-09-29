@@ -4,7 +4,10 @@ import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { TransactionMetricsBuilderRequest } from '../types';
 import { EMPTY_METRICS } from '../constants';
 import { getSwapTransactionActiveAbTestProperties } from './swap-transaction-ab-tests';
-import { registerTransactionAbTestAttributionForIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  clearTransactionAbTestAttributionRegistry,
+  registerTransactionAbTestAttributionForIds,
+} from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const TX_ID = 'test-swap-tx-meta-id';
 
@@ -27,6 +30,11 @@ const createMockRequest = (
 });
 
 describe('getSwapTransactionActiveAbTestProperties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearTransactionAbTestAttributionRegistry();
+  });
+
   it('returns empty when event is not Transaction Added', () => {
     const request = createMockRequest({
       eventType: TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
@@ -61,9 +69,7 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
   });
 
   it('returns active_ab_tests for swap Transaction Added', () => {
-    const abTests = [
-      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
-    ];
+    const abTests = [{ key: 'testAbFlag', value: 'treatment' }];
     registerTransactionAbTestAttributionForIds([TX_ID], abTests);
     const request = createMockRequest();
 
@@ -71,10 +77,9 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
       properties: {
         active_ab_tests: [
           {
-            key: 'homeTMCU470AbtestTrendingSections',
-            value: 'trendingSections',
-            key_value_pair:
-              'homeTMCU470AbtestTrendingSections=trendingSections',
+            key: 'testAbFlag',
+            value: 'treatment',
+            key_value_pair: 'testAbFlag=treatment',
           },
         ],
       },
@@ -83,9 +88,7 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
   });
 
   it('returns active_ab_tests for perps deposit Transaction Added', () => {
-    const abTests = [
-      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
-    ];
+    const abTests = [{ key: 'testAbFlag', value: 'treatment' }];
     registerTransactionAbTestAttributionForIds([TX_ID], abTests);
     const request = createMockRequest({
       transactionMeta: {
@@ -98,10 +101,9 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
       properties: {
         active_ab_tests: [
           {
-            key: 'homeTMCU470AbtestTrendingSections',
-            value: 'trendingSections',
-            key_value_pair:
-              'homeTMCU470AbtestTrendingSections=trendingSections',
+            key: 'testAbFlag',
+            value: 'treatment',
+            key_value_pair: 'testAbFlag=treatment',
           },
         ],
       },
@@ -113,9 +115,7 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
   ])('returns active_ab_tests for %s Transaction Added', (type) => {
-    const abTests = [
-      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
-    ];
+    const abTests = [{ key: 'testAbFlag', value: 'treatment' }];
     registerTransactionAbTestAttributionForIds([TX_ID], abTests);
     const request = createMockRequest({
       transactionMeta: {
@@ -128,10 +128,9 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
       properties: {
         active_ab_tests: [
           {
-            key: 'homeTMCU470AbtestTrendingSections',
-            value: 'trendingSections',
-            key_value_pair:
-              'homeTMCU470AbtestTrendingSections=trendingSections',
+            key: 'testAbFlag',
+            value: 'treatment',
+            key_value_pair: 'testAbFlag=treatment',
           },
         ],
       },

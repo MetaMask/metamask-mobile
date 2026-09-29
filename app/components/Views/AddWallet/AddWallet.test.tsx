@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -11,6 +11,7 @@ import { AddWalletTestIds } from './AddWallet.testIds';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
+const mockedDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -40,6 +41,7 @@ describe('AddWallet', () => {
     mockUseNavigation.mockReturnValue({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+      dispatch: mockedDispatch,
     } as unknown as ReturnType<typeof useNavigation>);
   });
 
@@ -131,10 +133,13 @@ describe('AddWallet', () => {
       screen.getByTestId(AddWalletTestIds.CONNECT_HARDWARE_BUTTON),
     );
 
-    expect(mockedNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT);
-    // AddWallet must be dismissed so that pop(2) in the HW screens lands on
-    // AccountSelector rather than back on this screen.
-    expect(mockedGoBack).toHaveBeenCalledTimes(1);
+    // AddWallet is replaced by the HW flow so that pop(2) in the HW screens
+    // lands on AccountSelector instead of back on this screen.
+    expect(mockedDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.HW.CONNECT),
+    );
+    expect(mockedNavigate).not.toHaveBeenCalled();
+    expect(mockedGoBack).not.toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.ADD_HARDWARE_WALLET,
     );

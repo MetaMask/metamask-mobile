@@ -132,7 +132,7 @@ describe('StepRow', () => {
         step={{
           kind: HardwareWalletsSwapsStepKind.Transaction,
           status: HardwareWalletsSwapsStepStatus.Signing,
-          address: '0xRecipient',
+          address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
         }}
       />,
     );
@@ -143,7 +143,9 @@ describe('StepRow', () => {
     expect(
       getByTestId(`${HardwareWalletsSwapsSelectorsIDs.INLINE_QR_CODE}-1`),
     ).toBeOnTheScreen();
-    expect(getByText('Recipient 0xRecipient')).toBeOnTheScreen();
+    expect(
+      getByText('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
+    ).toBeOnTheScreen();
     expect(mockAnimatedQRCode).toHaveBeenCalledWith(
       expect.objectContaining({
         cbor: 'aabbccdd',
@@ -183,7 +185,7 @@ describe('StepRow', () => {
         step={{
           kind: HardwareWalletsSwapsStepKind.Approval,
           status: HardwareWalletsSwapsStepStatus.Rejected,
-          address: '0xSpender',
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
         }}
       />,
     );
@@ -202,12 +204,14 @@ describe('StepRow', () => {
         step={{
           kind: HardwareWalletsSwapsStepKind.Approval,
           status: HardwareWalletsSwapsStepStatus.Waiting,
-          address: '0xSpender',
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
         }}
       />,
     );
 
     expect(getByText('Approving 10 ETH')).toBeOnTheScreen();
-    expect(getByText('Spender 0xSpender')).toBeOnTheScreen();
+    expect(
+      getByText('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
+    ).toBeOnTheScreen();
   });
 });

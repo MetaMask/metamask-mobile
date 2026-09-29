@@ -26,6 +26,12 @@ const mockVerifyUserOtp = jest.fn();
 const mockSetAuthToken = jest.fn();
 const mockSendUserOtp = jest.fn();
 const mockGetBuyQuote = jest.fn();
+const mockGetSession = jest.fn();
+
+jest.mock('../../headless', () => ({
+  getChainIdFromAssetId: () => 'eip155:143',
+  getSession: (...args: unknown[]) => mockGetSession(...args),
+}));
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
@@ -134,7 +140,7 @@ jest.mock('react-native-confirmation-code-field', () => ({
   useClearByFocusCell: () => [{}, jest.fn()],
 }));
 
-jest.mock('../../Deposit/constants', () => ({
+jest.mock('../../constants', () => ({
   TRANSAK_SUPPORT_URL: 'https://support.transak.com',
 }));
 
@@ -149,6 +155,14 @@ describe('V2OtpCode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockGetSession.mockReturnValue(undefined);
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
   });
 
   afterEach(() => {
@@ -254,6 +268,133 @@ describe('V2OtpCode', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('requests a $15 quote after headless OTP verification', async () => {
+    jest.useRealTimers();
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '15',
+      currency: 'USD',
+      assetId: 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      headlessSessionId: 'headless-buy-abc',
+    });
+    mockGetSession.mockReturnValue({
+      params: {
+        paymentMethodId: '/payments/apple-pay',
+        quote: {
+          outputCurrency: {
+            assetId:
+              'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          },
+          quote: {
+            amountIn: 15,
+            amountOut: 14.3,
+            paymentMethod: '/payments/apple-pay',
+            providerFee: 0.5,
+            networkFee: 0.2,
+          },
+        },
+      },
+    });
+    mockVerifyUserOtp.mockResolvedValue({
+      accessToken: 'otp-token',
+      ttl: 3600,
+    });
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue({
+      quoteId: 'q1',
+      fiatAmount: 15,
+      cryptoAmount: 14.3,
+      cryptoCurrency: 'MUSD',
+      network: 'monad',
+      paymentMethod: 'apple_pay',
+      totalFee: 0.7,
+      feeBreakdown: [
+        { id: 'transak_fee', name: 'Transak fee', value: 0.5 },
+        { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+      ],
+      requestedAssetId:
+        'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      requestedChainId: 'eip155:143',
+    });
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        'eip155:143',
+        '/payments/apple-pay',
+        '15',
+      );
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+    });
+  });
+
+  it('continues routing when post-OTP fees change', async () => {
+    jest.useRealTimers();
+    const assetId =
+      'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '15',
+      currency: 'USD',
+      assetId,
+      headlessSessionId: 'headless-buy-abc',
+    });
+    mockGetSession.mockReturnValue({
+      params: {
+        paymentMethodId: '/payments/debit-credit-card',
+        quote: {
+          outputCurrency: { assetId },
+          quote: {
+            amountIn: 15,
+            amountOut: 14.3,
+            paymentMethod: '/payments/debit-credit-card',
+            providerFee: 0.5,
+            networkFee: 0.2,
+          },
+        },
+      },
+    });
+    mockVerifyUserOtp.mockResolvedValue({
+      accessToken: 'otp-token',
+      ttl: 3600,
+    });
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue({
+      quoteId: 'q1',
+      fiatAmount: 15,
+      cryptoAmount: 14.3,
+      cryptoCurrency: 'MUSD',
+      network: 'monad',
+      paymentMethod: 'credit_debit_card',
+      totalFee: 0.8,
+      feeBreakdown: [
+        { id: 'transak_fee', name: 'Transak fee', value: 0.6 },
+        { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+      ],
+      requestedAssetId: assetId,
+      requestedChainId: 'eip155:143',
+    });
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+    });
+  });
+
   it('navigates back to BuildQuote with error when post-auth routing fails', async () => {
     jest.useRealTimers();
 
@@ -299,6 +440,91 @@ describe('V2OtpCode', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
     });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('navigates to HEADLESS_HOST with suppressFocusDismissal when headless and no amount/currency/assetId params', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: undefined,
+      currency: undefined,
+      assetId: undefined,
+      headlessSessionId: 'headless-buy-abc',
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    // Programmatic refocus of the still-mounted Host must flag itself so the
+    // host's focus-dismissal heuristic does not kill the live session.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessHost', {
+        headlessSessionId: 'headless-buy-abc',
+        suppressFocusDismissal: true,
+      });
+    });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('navigates back to HEADLESS_HOST with nativeFlowError (not suppressFocusDismissal) when headless post-auth routing fails', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+      headlessSessionId: 'headless-buy-abc',
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockRejectedValue(new Error('Limit exceeded'));
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    // Failure must keep routing through nativeFlowError (so failSession runs);
+    // the success-only suppress flag must NOT be set on this path.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessHost', {
+        headlessSessionId: 'headless-buy-abc',
+        nativeFlowError: 'Limit exceeded',
+      });
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      'RampHeadlessHost',
+      expect.objectContaining({ suppressFocusDismissal: true }),
+    );
 
     mockUseParams.mockReturnValue({
       email: 'test@example.com',

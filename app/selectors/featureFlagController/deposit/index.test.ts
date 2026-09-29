@@ -1,6 +1,7 @@
 import {
   DepositConfig,
   selectDepositConfig,
+  selectRampsTransakWidgetUrlProxyEnabled,
   selectDepositEntrypointWalletActions,
   selectDepositEntrypoints,
   selectDepositProviderApiKey,
@@ -10,6 +11,16 @@ import {
   selectDepositFeatures,
 } from './index';
 import { selectRemoteFeatureFlags } from '..';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+
+jest.mock('../../../util/remoteFeatureFlag', () => ({
+  validatedVersionGatedFeatureFlag: jest.fn(),
+}));
+
+const mockValidatedVersionGatedFeatureFlag =
+  validatedVersionGatedFeatureFlag as jest.MockedFunction<
+    typeof validatedVersionGatedFeatureFlag
+  >;
 
 describe('Deposit selectors', () => {
   const mockRemoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags> & {
@@ -144,6 +155,53 @@ describe('Deposit selectors', () => {
     it('should return an empty object when features do not exist', () => {
       const result = selectDepositFeatures.resultFunc({});
       expect(result).toEqual({});
+    });
+  });
+
+  describe('selectRampsTransakWidgetUrlProxyEnabled', () => {
+    beforeEach(() => {
+      mockValidatedVersionGatedFeatureFlag.mockReset();
+    });
+
+    it('should pass the rampsTransakWidgetUrlProxy flag to the version-gate validator', () => {
+      const proxyFlag = { enabled: true, minimumVersion: '8.1.0' };
+      mockValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+      selectRampsTransakWidgetUrlProxyEnabled.resultFunc({
+        rampsTransakWidgetUrlProxy: proxyFlag,
+      });
+
+      expect(mockValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith(
+        proxyFlag,
+      );
+    });
+
+    it('should return true when the validated flag is enabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+      const result = selectRampsTransakWidgetUrlProxyEnabled.resultFunc({
+        rampsTransakWidgetUrlProxy: { enabled: true, minimumVersion: '8.1.0' },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when the validated flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+      const result = selectRampsTransakWidgetUrlProxyEnabled.resultFunc({
+        rampsTransakWidgetUrlProxy: { enabled: false, minimumVersion: '0.0.0' },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when the flag is absent or invalid (validator returns undefined)', () => {
+      mockValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+      const result = selectRampsTransakWidgetUrlProxyEnabled.resultFunc({});
+
+      expect(result).toBe(false);
     });
   });
 });

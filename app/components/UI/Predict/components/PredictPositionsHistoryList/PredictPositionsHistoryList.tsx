@@ -30,6 +30,7 @@ const PredictPositionsHistoryList = ({
       isVisible={isVisible}
       containerStyle="p-0"
       activityContainerStyle="px-0"
+      shouldTrackActivityViewed={false}
     />
   </Box>
 );

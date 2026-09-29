@@ -1,9 +1,11 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import type { TraderProfileResponse } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../hooks/useFollowToggle';
 import { useTraderProfile } from './useTraderProfile';
 
 jest.mock('react-redux', () => ({
@@ -12,6 +14,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/socialController', () => ({
@@ -51,12 +57,12 @@ const makeQueryResult = (
     ...overrides,
   }) as ReturnType<typeof useQuery>;
 
-const fixtureProfile = {
+const fixtureProfile: TraderProfileResponse = {
   profile: {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
@@ -69,11 +75,17 @@ const fixtureProfile = {
   socialHandles: {},
   followerCount: 45,
   followingCount: 12,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
 };
 
 describe('useTraderProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
@@ -100,6 +112,14 @@ describe('useTraderProfile', () => {
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('uses refetchOnMount always so cached prefetch data refreshes in the background', () => {
+      renderHook(() => useTraderProfile('trader-1'));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ refetchOnMount: 'always' }),
       );
     });
 

@@ -1,6 +1,8 @@
-const ReactCompilerConfig = {
-  target: '18',
-};
+// React Compiler plugin (incl. bailout logging and test-env gating) lives in its
+// own module so this config stays focused on wiring plugins together.
+// `reactCompilerPlugins` is empty under Jest and a single-element array otherwise.
+// eslint-disable-next-line import-x/no-commonjs
+const { reactCompilerBabelConfig } = require('./scripts/react-compiler');
 
 // Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
 // even inside dead code branches — and aborts with "Invalid expression
@@ -49,66 +51,141 @@ const dynamicImportToRequire = ({ types: t }) => ({
   },
 });
 
+// Metro hands Babel platform-native paths — backslash-separated on Windows —
+// so every path check below must normalize separators first or it silently
+// never matches there (e.g. ses/streams.js get transformed and the injected
+// require() crashes the app before Metro's module system exists).
+const posixPath = (filename) => (filename ? filename.replace(/\\/g, '/') : '');
+
+// Every override `test` must go through this factory (never a bare
+// `f.includes(...)`) so separator normalization can't be forgotten at
+// individual call sites.
+const pathIncludes = (needle) => (f) => posixPath(f).includes(needle);
+
+// TODO: Remove this once we have a fix for the private methods
+// Do not apply this plugin globally since it breaks FlatList props.getItem
+const privateMethodsLoose = [
+  ['@babel/plugin-transform-private-methods', { loose: true }],
+];
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   ignore: [
-    (filename) =>
-      !!filename &&
-      (/\/ses\.cjs$/.test(filename) ||
-        /\/ses-hermes\.cjs$/.test(filename) ||
-        /\/react-native-lockdown\/src\/repair\.js$/.test(filename) ||
+    (filename) => {
+      const f = posixPath(filename);
+      return (
+        /\/ses\.cjs$/.test(f) ||
+        /\/ses-hermes\.cjs$/.test(f) ||
+        /\/react-native-lockdown\/src\/repair\.js$/.test(f) ||
+        // promise-with-resolvers.js is a Metro polyfill — no require() at that
+        // stage, and Babel/preset-expo must not inject core-js/@babel/runtime
+        // into it (which is exactly the crash this polyfill exists to prevent).
+        /\/polyfills\/promise-with-resolvers\.js$/.test(f) ||
         // expo/virtual/streams.js is a Metro polyfill — no require() available at that stage
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
-        /\/expo\/virtual\/streams\.js$/.test(filename)),
+        /\/expo\/virtual\/streams\.js$/.test(f)
+      );
+    },
   ],
-  presets: ['babel-preset-expo'],
-  // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
-  plugins: [
+  presets: [
+    // `disableImportExportTransform: false` keeps Babel responsible for the
+    // ES-module -> CommonJS conversion (RN's preset runs it with
+    // `strictMode: false`), instead of deferring to Metro's static-ESM path.
+    // The `@expo/metro-config` babel-transformer maps Metro's
+    // `experimentalImportSupport: true` to the Babel caller flag
+    // `supportsStaticESM: true`; babel-preset-expo would otherwise use that to
+    // default `disableImportExportTransform` to `true`, leaving files as ES
+    // modules (`sourceType: 'module'`). metro-transform-worker then injects a
+    // `"use strict"` directive into every such module, which breaks code that
+    // relies on sloppy-mode semantics. Pinning this to `false` reproduces the
+    // pre-Expo-transformer pipeline and prevents the forced strict mode.
+    //
+    // `unstable_transformProfile` must be pinned: babel-preset-expo picks its
+    // engine preset from the Babel caller's `engine` flag, which only
+    // `@expo/metro-config` sets (from `customTransformOptions.engine`). We
+    // bundle through the React Native CLI, which never sets it, so the preset
+    // silently falls back to the legacy `hermes-v0` profile. That profile runs
+    // `@babel/plugin-transform-named-capturing-groups-regex`, rewriting every
+    // named-group regex into the `@babel/runtime` `_wrapRegExp` helper. The
+    // helper installs its `exec` override via plain assignment onto a prototype
+    // inheriting from `RegExp.prototype`, which LavaMoat's lockdown has already
+    // frozen — so the assignment silently no-ops in sloppy mode and `.groups`
+    // is never populated. Matches then succeed with `match.groups === undefined`
+    // (e.g. `parseCaipChainId('eip155:8453')` throwing "Invalid CAIP chain ID").
+    // Current Hermes supports named capture groups natively, so `hermes-stable`
+    // leaves these regexes alone.
     [
-      'react-compiler',
+      'babel-preset-expo',
       {
-        target: '18',
-        sources: (filename) => {
-          // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = [
-            'app/components/Nav',
-            'app/components/UI/DeepLinkModal',
-          ];
-          return pathsToInclude.some((path) => filename.includes(path));
-        },
+        disableImportExportTransform: false,
+        unstable_transformProfile: 'hermes-stable',
       },
     ],
-    'transform-inline-environment-variables',
+  ],
+  plugins: [
+    ...reactCompilerBabelConfig,
+    // `JEST_WORKER_ID` must NOT be inlined: Metro runs Babel transforms inside
+    // `jest-worker` child processes, which set `JEST_WORKER_ID` in their env.
+    // Inlining it bakes a truthy value into the app bundle and defeats every
+    // `process.env.JEST_WORKER_ID` runtime guard (e.g. the xhr2-based test-only
+    // XMLHttpRequest shim), crashing the app. Excluding it keeps the lookup at
+    // runtime: undefined in the app, set under Jest.
+    // `EXPO_OS` / `EXPO_SERVER` / `EXPO_BASE_URL` are NOT real environment
+    // variables — `babel-preset-expo`'s define-plugin substitutes them (e.g.
+    // `process.env.EXPO_OS` -> "ios") using the babel caller. Babel runs plugins
+    // BEFORE preset plugins, so if we don't exclude them here this plugin inlines
+    // them to `undefined` first, producing the runtime error
+    // "The global process.env.EXPO_OS is not defined". Excluding them lets
+    // babel-preset-expo define them correctly.
+    // `NODE_ENV` is excluded for the same reason: babel-preset-expo inlines it
+    // from Metro's `dev` option, which is part of Metro's transform cache key.
+    // Inlining the bundler process's NODE_ENV instead is not cache-keyed, so
+    // `expo export:embed --dev false` (which skips --reset-cache in CI) could
+    // reuse transforms made under NODE_ENV=development and ship dev React
+    // (react.development.js, withDevTools) in a release bundle.
+    [
+      'transform-inline-environment-variables',
+      {
+        exclude: [
+          'NODE_ENV',
+          'JEST_WORKER_ID',
+          'EXPO_OS',
+          'EXPO_SERVER',
+          'EXPO_BASE_URL',
+          // Must remain runtime-readable for emergency Appium session-reuse rollback.
+          'APPIUM_SESSION_REUSE',
+        ],
+      },
+    ],
     dynamicImportToRequire,
-    // NOTE: react-native-reanimated/plugin must be listed LAST.
-    // Required by reanimated v3 to compile `'worklet'` directives; without it,
-    // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector
-    // children (e.g. WebView) render at 0x0 (white screen).
-    'react-native-reanimated/plugin',
+    // NOTE: react-native-worklets/plugin must be listed LAST.
+    // Compiles `'worklet'` directives (reanimated v4 moved the babel plugin to
+    // react-native-worklets; react-native-reanimated/plugin is a deprecated
+    // alias). Without it, gesture-handler worklets silently no-op on iOS Fabric
+    // and GestureDetector children (e.g. WebView) render at 0x0 (white screen).
+    'react-native-worklets/plugin',
   ],
   overrides: [
     {
-      test: (f) => !!f?.includes('/node_modules/marked'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes('/node_modules/marked'),
+      plugins: privateMethodsLoose,
     },
     {
-      test: (f) =>
-        !!f?.includes('/node_modules/@metamask/profile-sync-controller'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes('/node_modules/@metamask/profile-sync-controller'),
+      plugins: privateMethodsLoose,
     },
     {
-      test: (f) =>
-        !!f?.includes(
-          '/node_modules/@metamask/notification-services-controller',
-        ),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes(
+        '/node_modules/@metamask/notification-services-controller',
+      ),
+      plugins: privateMethodsLoose,
     },
     {
-      test: (f) => !!f?.includes('/node_modules/@metamask/bridge-controller'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes('/node_modules/@metamask/bridge-controller'),
+      plugins: privateMethodsLoose,
     },
     {
-      test: (f) => !!f?.includes('/node_modules/@nktkas/hyperliquid'),
+      test: pathIncludes('/node_modules/@nktkas/hyperliquid'),
       plugins: [
         [
           '@babel/plugin-transform-modules-commonjs',
@@ -117,7 +194,32 @@ module.exports = {
       ],
     },
     {
-      test: (f) => !!f?.includes('/node_modules/@noble/secp256k1'),
+      // 17.x of @metamask/perps-controller ships ESM-only under dist/*.js.
+      // Force Babel to transform it (and lodash-es, a nested peer of
+      // controller-utils) to CJS so Jest can load them without needing
+      // --experimental-vm-modules.
+      test: (filename) => {
+        const f = posixPath(filename);
+        return (
+          f.includes('/node_modules/@metamask/perps-controller/') ||
+          f.includes('/node_modules/lodash-es/')
+        );
+      },
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          {
+            allowTopLevelThis: true,
+            // Loose mode emits `exports.foo = foo` instead of non-configurable
+            // getters, so jest.spyOn on named exports (e.g. splitScaleSizes)
+            // keeps working.
+            loose: true,
+          },
+        ],
+      ],
+    },
+    {
+      test: pathIncludes('/node_modules/@noble/secp256k1'),
       plugins: [
         [
           '@babel/plugin-transform-modules-commonjs',
@@ -126,31 +228,36 @@ module.exports = {
       ],
     },
     {
-      test: (f) => !!f?.includes('/node_modules/@metamask/rpc-errors'),
+      test: pathIncludes('/node_modules/@metamask/rpc-errors'),
       plugins: [['@babel/plugin-transform-classes', { loose: true }]],
     },
     {
-      test: (f) => !!f?.includes('/app/lib/snaps/SnapsExecutionWebView.tsx'),
+      test: pathIncludes('/app/lib/snaps/SnapsExecutionWebView.tsx'),
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
-    // TODO: Remove this once we have a fix for the private methods
-    // Do not apply this plugin globally since it breaks FlatList props.getItem
     {
-      test: (f) => !!f?.includes('/app/core/redux/ReduxService.ts'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      // Lighter Go/WASM signer page (base64-embedded WASM, ~10 MB) inlined as
+      // a string for the hidden signer WebView.
+      test: pathIncludes(
+        '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+      ),
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
     {
-      test: (f) => !!f?.includes('/app/core/Engine/Engine.ts'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes('/app/core/redux/ReduxService.ts'),
+      plugins: privateMethodsLoose,
     },
     {
-      test: (f) =>
-        !!f?.includes('/app/core/NavigationService/NavigationService.ts'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes('/app/core/Engine/Engine.ts'),
+      plugins: privateMethodsLoose,
     },
     {
-      test: (f) => !!f?.includes('/app/core/OAuthService/OAuthLoginHandlers'),
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      test: pathIncludes('/app/core/NavigationService/NavigationService.ts'),
+      plugins: privateMethodsLoose,
+    },
+    {
+      test: pathIncludes('/app/core/OAuthService/OAuthLoginHandlers'),
+      plugins: privateMethodsLoose,
     },
   ],
   env: {

@@ -1,12 +1,47 @@
 import Assertions from '../framework/Assertions';
+import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import Gestures from '../framework/Gestures';
 import Matchers from '../framework/Matchers';
-import Utilities from '../framework/Utilities';
+import Utilities, { sleep } from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
+import { PlatformDetector } from '../framework/PlatformLocator';
+import AppiumContextHelpers from '../framework/AppiumContextHelpers';
+import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
+import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
+import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
+import { getDappUrl } from '../framework/fixtures/FixtureUtils';
+
+/** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
+const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
+const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
+const TEST_DAPP_LOAD_POLL_MS = 500;
+
+/**
+ * Android WebView a11y often omits the heading text even after the page has
+ * rendered. Prove load via CDP on `#logo-text` (fresh DOM query each poll).
+ */
+const waitForAndroidTestDappHeadingViaCdp = async (
+  pageUrl: string,
+): Promise<void> => {
+  await Utilities.waitUntil(
+    async () => {
+      const text = await ChromeCdpHelpers.readTextByIdInWebView(
+        pageUrl,
+        TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
+      );
+      return text?.trim().includes(TEST_DAPP_LOAD_LABEL) ?? false;
+    },
+    {
+      timeout: TEST_DAPP_LOAD_TIMEOUT_MS,
+      interval: TEST_DAPP_LOAD_POLL_MS,
+    },
+  );
+};
 
 /**
  * Waits for the test dapp to load.
@@ -16,32 +51,27 @@ import TrendingView from '../page-objects/Trending/TrendingView';
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
-  const MAX_RETRIES = 3;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
-        description: 'Test Dapp Fox Logo should be visible',
-      });
-      await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
-        description: 'Test Dapp Page Title should be visible',
-      });
-      await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton, {
-        description: 'Test Dapp Connect Button should be visible',
-      });
-      return; // Success - page is fully loaded and interactive
-    } catch (error) {
-      if (attempt === MAX_RETRIES) {
-        throw new Error(
-          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`,
-        );
-      }
-    }
+  if (PlatformDetector.isAndroid()) {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+      {
+        description: 'Browser WebView native container',
+        timeout: TEST_DAPP_LOAD_TIMEOUT_MS,
+      },
+    );
+    await waitForAndroidTestDappHeadingViaCdp(getDappUrl(0));
+    return;
   }
 
-  throw new Error('Test dapp failed to become fully interactive');
+  if (PlatformDetector.isIOS()) {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(getDappUrl(0)),
+      { description: 'Browser URL bar should show test dapp URL' },
+    );
+    return;
+  }
+
+  throw new Error('Test dapp load is only supported on Android/iOS');
 };
 
 /**
@@ -53,16 +83,40 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
  */
 export const waitForTestSnapsToLoad = async (): Promise<void> => {
   const MAX_RETRIES = 3;
+  const WEBVIEW_LOAD_TIMEOUT_MS = 30_000;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await Assertions.expectElementToBeVisible(
-        Matchers.getElementByWebID(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-          'root',
-        ),
-      );
+      if (PlatformDetector.isAndroid()) {
+        await waitForAndroidTestSnapsNativeLoad();
+        return;
+      }
+
+      if (PlatformDetector.isIOS()) {
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+          {
+            description: 'Browser WebView native container',
+            timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          },
+        );
+        await Assertions.expectTextDisplayed('Test Snaps', {
+          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          description: 'Test Snaps page title should be visible',
+        });
+        return;
+      }
+
+      throw new Error('Test Snaps load is only supported on Android/iOS');
     } catch (error) {
+      if (attempt < MAX_RETRIES) {
+        await AppiumContextHelpers.switchToNativeContext().catch(
+          () => undefined,
+        );
+        await BrowserView.navigateToURL(TEST_SNAPS_URL);
+        await sleep(2_000);
+      }
+
       if (attempt === MAX_RETRIES) {
         throw new Error(
           `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${
@@ -96,7 +150,19 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  * If the "Opened tabs" grid view is shown (e.g. after tapping the browser tab icon),
  * selects the first/most recent tab so we land on the single-tab browser view.
  */
-const ensureSingleBrowserTabView = async (): Promise<void> => {
+const getFirstBrowserTabInGrid = () => {
+  if (PlatformDetector.isAndroid()) {
+    // TabThumbnail sets accessibilityLabel to "Switch tab"; Android exposes it as content-desc.
+    return Matchers.getElementByAndroidUIAutomator(
+      '.descriptionContains("Switch tab")',
+      { index: 0 },
+    );
+  }
+
+  return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_ITEM_REGEX, 0);
+};
+
+export const ensureSingleBrowserTabView = async (): Promise<void> => {
   const openedTabsHeader = Matchers.getElementByID(
     BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
   );
@@ -105,15 +171,17 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
     2000,
   );
   if (isInTabListView) {
-    const firstTab = Matchers.getElementByID(
-      BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
-      0,
-    );
+    const firstTab = getFirstBrowserTabInGrid();
     await Gestures.waitAndTap(firstTab, {
       elemDescription: 'First browser tab (select to open single-tab view)',
     });
   }
 };
+
+const getBrowserUrlBarVisibleIndicator = () =>
+  // TextInput (`browser-modal-url-input`) is hidden when the URL bar is unfocused;
+  // the wrapper view (`url-input`) stays visible and shows the current URL.
+  Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT);
 
 export const navigateToBrowserView = async (): Promise<void> => {
   await TabBarComponent.tapExploreButton();
@@ -122,7 +190,31 @@ export const navigateToBrowserView = async (): Promise<void> => {
   // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
   await ensureSingleBrowserTabView();
 
-  await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
-    description: 'Browser URL bar should be visible after navigation',
-  });
+  await Assertions.expectElementToBeVisible(
+    getBrowserUrlBarVisibleIndicator(),
+    {
+      description: 'Browser URL bar should be visible after navigation',
+      timeout: 30_000,
+    },
+  );
+};
+
+export const openUrlInBrowserView = async (): Promise<void> => {
+  await Gestures.waitAndTap(
+    Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT),
+    {
+      elemDescription: 'URL input box',
+    },
+  );
+};
+
+/**
+ * Opens the in-app test dapp and completes the default connect sheet approval.
+ * Assumes the browser tab is already open (e.g. after {@link navigateToBrowserView}).
+ */
+export const connectToTestDapp = async (): Promise<void> => {
+  await BrowserView.navigateToTestDApp();
+  await waitForTestDappToLoad();
+  await TestDApp.tapDappConnectButton();
+  await ConnectBottomSheet.tapConnectButton();
 };

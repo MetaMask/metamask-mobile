@@ -220,7 +220,7 @@ describe('PredictFeeBreakdownSheet', () => {
       expect(getByText('$0.10')).toBeOnTheScreen();
     });
 
-    it('rounds combined Exchange fee up to cents', () => {
+    it('displays the providerFee it was given', () => {
       const TestComponent = () => {
         const ref = useRef<BottomSheetRef>(null);
         return (
@@ -234,7 +234,7 @@ describe('PredictFeeBreakdownSheet', () => {
 
       const { getByText } = render(<TestComponent />);
 
-      expect(getByText('$0.04')).toBeOnTheScreen();
+      expect(getByText('$0.03')).toBeOnTheScreen();
     });
 
     it('displays Exchange fee description', () => {

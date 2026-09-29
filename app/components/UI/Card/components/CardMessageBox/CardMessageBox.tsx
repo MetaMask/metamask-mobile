@@ -9,12 +9,16 @@ import {
 } from '@metamask/design-system-react-native';
 import { CardMessageBoxType, CardMessageBoxVariant } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
+import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
 interface CardMessageBoxProps {
   messageType: CardMessageBoxType;
   onConfirm?: () => void;
   onConfirmLoading?: boolean;
   onDismiss?: () => void;
+  /** Maps to BannerAlert close (X). Prefer this for dismissible home banners. */
+  onClose?: () => void;
+  values?: Record<string, string | number>;
 }
 
 interface MessageConfig {
@@ -34,6 +38,8 @@ const CardMessageBox = ({
   onConfirm,
   onConfirmLoading,
   onDismiss,
+  onClose,
+  values,
 }: CardMessageBoxProps) => {
   const messageConfigs: Record<CardMessageBoxType, MessageConfig> = useMemo(
     () => ({
@@ -51,6 +57,11 @@ const CardMessageBox = ({
         variant: CardMessageBoxVariant.Warning,
         title: strings('card.card_home.warnings.kyc_pending.title'),
         description: strings('card.card_home.warnings.kyc_pending.description'),
+      },
+      [CardMessageBoxType.Blocked]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.card_home.warnings.blocked.title'),
+        description: strings('card.card_home.warnings.blocked.description'),
       },
       [CardMessageBoxType.CardProvisioning]: {
         variant: CardMessageBoxVariant.Info,
@@ -73,8 +84,66 @@ const CardMessageBox = ({
           'card.cashback_screen.funding_required.confirm_button_label',
         ),
       },
+      [CardMessageBoxType.CashbackMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.cashback_screen.money_account_required.title'),
+        description: strings(
+          'card.cashback_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.cashback_screen.money_account_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditFundingRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.funding_required.title'),
+        description: strings('card.credit_screen.funding_required.description'),
+        confirmButtonLabel: strings(
+          'card.credit_screen.funding_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.money_account_required.title'),
+        description: strings(
+          'card.credit_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.credit_screen.money_account_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditAvailable]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.credit_banner.title', values),
+        description: strings('card.credit_banner.description'),
+        confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
+      },
+      [CardMessageBoxType.CreditAvailableNoMoneyAccount]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.credit_banner.title', values),
+        description: strings('card.credit_banner.description_no_money_account'),
+        confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
+      },
+      [CardMessageBoxType.UkMigrationSoft]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.uk_migration_soft.title'),
+        description: values?.deadline
+          ? strings('card.uk_migration_soft.description', values)
+          : strings('card.uk_migration_soft.description_no_deadline'),
+        confirmButtonLabel: strings(
+          'card.uk_migration_soft.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.UkMigrationRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.uk_migration_required.title'),
+        description: strings('card.uk_migration_required.description'),
+        confirmButtonLabel: strings(
+          'card.uk_migration_required.confirm_button_label',
+        ),
+      },
     }),
-    [],
+    [values],
   );
 
   const config = messageConfigs[messageType];
@@ -84,7 +153,9 @@ const CardMessageBox = ({
       severity={SEVERITY_MAP[config.variant]}
       title={config.title}
       description={config.description}
+      style={FLAT_BANNER_ALERT_STYLE}
       testID="card-message-box"
+      onClose={onClose}
     >
       {(onConfirm || onDismiss) && (
         <Box

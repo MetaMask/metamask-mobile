@@ -18,18 +18,11 @@ import {
   pbkdf2,
 } from '../../../Encryptor';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { store, runSaga } from '../../../../store';
+import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { buildAndTrackEvent } from '../../utils/analytics';
-import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
-import { take } from 'redux-saga/effects';
-import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
-import {
-  SET_COMPLETED_ONBOARDING,
-  SetCompletedOnboardingAction,
-} from '../../../../actions/onboarding';
-import { SagaIterator } from 'redux-saga';
 import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
+import { getClientConfig } from './utils';
+import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
 
 /**
@@ -76,33 +69,6 @@ export const snapControllerInit: MessengerClientInitFunction<
     };
   }
 
-  function* ensureOnboardingCompleteSaga(): SagaIterator {
-    while (true) {
-      const result = (yield take([
-        SET_COMPLETED_ONBOARDING,
-      ])) as SetCompletedOnboardingAction;
-
-      if (result.completedOnboarding) {
-        return;
-      }
-    }
-  }
-
-  let onboardingPromise: Promise<void> | null = null;
-
-  async function ensureOnboardingComplete() {
-    if (selectCompletedOnboarding(store.getState())) {
-      return;
-    }
-
-    if (!onboardingPromise) {
-      onboardingPromise = runSaga(ensureOnboardingCompleteSaga).toPromise();
-    }
-
-    await onboardingPromise;
-    onboardingPromise = null;
-  }
-
   const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
@@ -147,16 +113,8 @@ export const snapControllerInit: MessengerClientInitFunction<
       pbkdf2Sha512: pbkdf2,
       hmacSha512: async (key, data) => hmacSha512(key, data),
     },
-    trackEvent: (params: {
-      event: string;
-      properties?: Record<string, unknown>;
-    }) => {
-      buildAndTrackEvent(
-        initMessenger,
-        params.event,
-        params.properties as AnalyticsUnfilteredProperties,
-      );
-    },
+
+    clientConfig: getClientConfig(),
   });
 
   initMessenger.subscribe('KeyringController:lock', () => {

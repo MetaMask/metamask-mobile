@@ -3,18 +3,16 @@
  * Exactly one kind is active at a time.
  *
  * Precedence (highest → lowest):
- * noAccount > error > retrying > loading > unavailable > balance
+ * noAccount > balance > unavailable
  *
- * `unavailable` covers the case where balance queries succeeded but a
- * dependency required to render the fiat balance (e.g. `musdFiatRate`)
- * is missing. Distinct from `error` because no actionable retry exists
- * at the view layer — token market data / currency rates are owned by
- * their respective controllers and hydrate on their own tick.
+ * `unavailable` covers any case where a fresh balance cannot be shown — still
+ * loading, a fetch error, or a missing dependency required to format the fiat
+ * balance (e.g. `musdFiatRate`). When a previously fetched balance is cached
+ * for the current account it is carried in `lastKnownValue` and rendered as a
+ * muted "last known" figure; otherwise the slot shows a dash. A BannerAlert
+ * accompanies this state at the view layer.
  */
 export type MoneyBalanceDisplayState =
   | { kind: 'noAccount' }
-  | { kind: 'error'; onRetry: () => void }
-  | { kind: 'retrying' }
-  | { kind: 'loading' }
-  | { kind: 'unavailable' }
+  | { kind: 'unavailable'; lastKnownValue?: string }
   | { kind: 'balance'; value: string };

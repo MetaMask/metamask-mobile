@@ -5,141 +5,143 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { NetworkListModalSelectorsIDs } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
+import { type AppiumElement } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class NetworkView {
-  get networkContainer(): DetoxElement {
+  get networkContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
   }
 
-  get networkFormContainer(): DetoxElement {
+  get networkFormContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CONTAINER);
   }
 
-  get rpcContainer(): DetoxElement {
+  get rpcContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
   }
 
-  get addNetworkButtonForm(): DetoxElement {
+  get addNetworkButtonForm(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON);
   }
 
-  get addRpcDropDownButton(): DetoxElement {
+  get addRpcDropDownButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
   }
 
-  get addBlockExplorerDropDownButton(): DetoxElement {
+  get addBlockExplorerDropDownButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER,
     );
   }
 
-  get addBlockExplorerButton(): DetoxElement {
+  get addBlockExplorerButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER);
   }
 
-  get addRpcButton(): DetoxElement {
+  get addRpcButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
   }
 
-  get noMatchingText(): DetoxElement {
+  get noMatchingText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
     );
   }
 
-  get emptyPopularNetworksText(): DetoxElement {
+  get emptyPopularNetworksText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
     );
   }
 
-  get closeIcon(): DetoxElement {
+  get closeIcon(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
   }
 
-  get deleteNetworkButton(): DetoxElement {
+  get deleteNetworkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
     );
   }
 
-  get networkSearchInput(): DetoxElement {
+  get networkSearchInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
     );
   }
 
-  get addNetworkButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
+  get addNetworkButton(): Promise<AppiumElement> {
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON)
       : Matchers.getElementByLabel(
           NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON,
         );
   }
 
-  get customNetworkTab(): DetoxElement {
+  get customNetworkTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.CUSTOM_NETWORK_TAB,
     );
   }
 
-  get networkNameInput(): DetoxElement {
+  get networkNameInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT);
   }
 
-  get rpcURLInput(): DetoxElement {
+  get rpcURLInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_URL_INPUT);
   }
 
-  get chainIDInput(): DetoxElement {
+  get chainIDInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CHAIN_INPUT);
   }
 
-  get networkSymbolInput(): DetoxElement {
+  get networkSymbolInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT,
     );
   }
 
-  get networkBlockExplorerInput(): DetoxElement {
+  get networkBlockExplorerInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT,
     );
   }
 
-  get rpcAddButton(): DetoxElement {
+  get rpcAddButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
     );
   }
 
-  get blockExplorer(): DetoxElement {
+  get blockExplorer(): Promise<AppiumElement> {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
   }
 
-  get chainIdLabel(): DetoxElement {
+  get chainIdLabel(): Promise<AppiumElement> {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
   }
 
-  get rpcWarningBanner(): DetoxElement {
+  get rpcWarningBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
   }
 
-  get customNetworkList(): DetoxElement {
+  get customNetworkList(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST,
     );
   }
 
-  get removeNetwork(): DetoxElement {
+  get removeNetwork(): Promise<AppiumElement> {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
-  get saveButton(): DetoxElement {
+  get saveButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
   }
 
-  async getnetworkName(networkName: string): Promise<DetoxElement> {
+  async getnetworkName(networkName: string): Promise<AppiumElement> {
     return Matchers.getElementByText(networkName);
   }
   async tapAddNetworkButton(): Promise<void> {
@@ -172,7 +174,7 @@ class NetworkView {
 
   async tapNetworkByName(networkName: string): Promise<void> {
     const network = await this.getnetworkName(networkName);
-    await Gestures.waitAndTap(network as unknown as DetoxElement);
+    await Gestures.waitAndTap(network);
   }
 
   async SearchNetworkName(networkName: string): Promise<void> {
@@ -183,7 +185,7 @@ class NetworkView {
   }
   async longPressToRemoveNetwork(networkName: string): Promise<void> {
     const network = await this.getnetworkName(networkName);
-    await Gestures.tapAndLongPress(network as unknown as DetoxElement);
+    await Gestures.tapAndLongPress(network);
     await Gestures.waitAndTap(this.removeNetwork);
   }
 
@@ -259,7 +261,7 @@ class NetworkView {
   }
 
   async tapSave(): Promise<void> {
-    device.getPlatform() === 'ios'
+    PlatformDetector.isIOS()
       ? await (async () => {
           //swipe to dismiss iOS keypad
           await Gestures.swipe(this.chainIDInput, 'up', {

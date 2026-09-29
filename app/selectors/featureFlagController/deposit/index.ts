@@ -1,5 +1,8 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import type { FiatDepositAsset } from '../../../components/UI/Ramp/utils/fiatDepositAsset';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 export interface DepositConfig {
   providerApiKey?: string | null;
@@ -75,4 +78,29 @@ export const selectDepositFeatures = createSelector(
     const depositFeatures = depositConfig?.features;
     return depositFeatures ?? {};
   },
+);
+
+export const selectRampsTransakWidgetUrlProxyEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      remoteFeatureFlags?.rampsTransakWidgetUrlProxy,
+    ) ?? false,
+);
+
+/**
+ * Per-transaction-type fiat deposit asset override, from the same
+ * `confirmations_pay_fiat` flag `@metamask/transaction-pay-controller` reads
+ * when quoting, so Ramps scopes the deposit catalog to the settling asset.
+ */
+export const selectFiatDepositAssetOverride = createSelector(
+  selectRemoteFeatureFlags,
+  (flags) =>
+    (
+      flags?.confirmations_pay_fiat as {
+        assetPerTransactionType?: Partial<
+          Record<TransactionType, FiatDepositAsset>
+        >;
+      } | null
+    )?.assetPerTransactionType,
 );

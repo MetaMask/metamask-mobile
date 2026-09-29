@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -131,9 +130,7 @@ const useRewardsToast = (): {
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
-          <Box twClassName="p-1 mr-2">
-            <ActivityIndicator size="small" color={theme.colors.icon.default} />
-          </Box>
+          <ActivityIndicator size="small" color={theme.colors.icon.default} />
         ),
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
@@ -189,14 +186,12 @@ const useRewardsToast = (): {
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
-          <Box twClassName="p-1 mr-2">
-            <RewardsNotificationIcon
-              name="notification"
-              width={24}
-              height={24}
-              color={theme.colors.warning.default}
-            />
-          </Box>
+          <RewardsNotificationIcon
+            name="notification"
+            width={24}
+            height={24}
+            color={theme.colors.warning.default}
+          />
         ),
         labelOptions: getRewardsToastLabels(
           strings('rewards.notifications_nudge.title'),
@@ -225,14 +220,12 @@ const useRewardsToast = (): {
         hasNoTimeout: true,
         hapticsType: NotificationMoment.Success,
         startAccessory: (
-          <Box twClassName="p-1 mr-2">
-            <RewardsTrophyIcon
-              name="trophy"
-              width={24}
-              height={24}
-              color={theme.colors.success.default}
-            />
-          </Box>
+          <RewardsTrophyIcon
+            name="trophy"
+            width={24}
+            height={24}
+            color={theme.colors.success.default}
+          />
         ),
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: { description },

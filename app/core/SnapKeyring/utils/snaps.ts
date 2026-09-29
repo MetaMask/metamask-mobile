@@ -5,6 +5,7 @@ import { SOLANA_WALLET_SNAP_ID } from '../SolanaWalletSnap';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { TRON_WALLET_SNAP_ID } from '../TronWalletSnap';
 ///: END:ONLY_INCLUDE_IF
+import { STELLAR_WALLET_SNAP_ID } from '../StellarWalletSnap';
 import {
   getLocalizedSnapManifest,
   stripSnapPrefix,
@@ -55,6 +56,7 @@ const ALLOW_LISTED_SNAPS = [
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON_WALLET_SNAP_ID,
   ///: END:ONLY_INCLUDE_IF
+  STELLAR_WALLET_SNAP_ID,
 ];
 
 /**

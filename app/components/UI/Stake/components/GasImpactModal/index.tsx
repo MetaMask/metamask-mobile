@@ -2,7 +2,9 @@ import React, { useCallback, useRef } from 'react';
 import { formatEther } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { View } from 'react-native';
+import { BottomSheetHeader } from '@metamask/design-system-react-native';
 
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import BottomSheet, {
@@ -12,7 +14,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -32,6 +33,9 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
 
+export const GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID =
+  'gas-impact-modal-close-button';
+
 const GasImpactModal = () => {
   const route =
     useRoute<RouteProp<{ params: GasImpactModalRouteParams }, 'params'>>();
@@ -42,7 +46,7 @@ const GasImpactModal = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -165,10 +169,11 @@ const GasImpactModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
-        <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('stake.gas_cost_impact')}
-          </Text>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{ testID: GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID }}
+        >
+          {strings('stake.gas_cost_impact')}
         </BottomSheetHeader>
         <Text style={styles.content}>
           {strings('stake.gas_cost_impact_warning', { percentOverDeposit: 30 })}

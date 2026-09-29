@@ -1,0 +1,716 @@
+import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
+import { TransactionStatus } from '@metamask/transaction-controller';
+import type { V1TransactionByHashResponse } from '@metamask/core-backend';
+import {
+  mapRampOrder,
+  type ActivityListItem,
+} from '../../../../util/activity-adapters';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../../constants/on-ramp';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import {
+  selectSelectedAccountGroupInternalAccounts,
+  selectSelectedAccountGroupEvmInternalAccount,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
+import { selectExcludedActivityTransactionHashes } from '../../../../selectors/transactionController';
+import { useActivityDetailsItem } from './useActivityDetailsItem';
+import { useLocalTransactionMeta } from './useLocalTransactionMeta';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
+import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
+import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
+import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
+import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
+/* eslint-enable import-x/no-restricted-paths */
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
+jest.mock('../../ActivityList/hooks/useRampActivityItems');
+jest.mock('../../ActivityList/useTransactionsQuery');
+jest.mock('../../ActivityList/helpers/transformations', () => ({
+  ...jest.requireActual('../../ActivityList/helpers/transformations'),
+  mapNonEvmTransactions: jest.fn(() => []),
+}));
+jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
+  useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
+    bridgeHistoryItemsBySrcTxHash: {},
+  })),
+  findBridgeHistoryItemBySrcTxHash: jest.fn(),
+}));
+jest.mock('./useLocalTransactionMeta', () => ({
+  useLocalTransactionMeta: jest.fn(),
+}));
+
+const useApiTransactionMock = jest.mocked(useApiTransaction);
+const useRampActivityItemsByIdMock = jest.mocked(useRampActivityItemsById);
+const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
+const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
+const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
+
+const rampOrder: FiatOrder = {
+  id: 'ramp-order-id',
+  provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+  createdAt: 1,
+  amount: '6.27',
+  fee: '1.26',
+  cryptoAmount: '5.01',
+  currency: 'USD',
+  cryptocurrency: 'mUSD',
+  state: FIAT_ORDER_STATES.COMPLETED,
+  account: '0x1234567890abcdef1234567890abcdef12345678',
+  network: 'eip155:59144',
+  txHash: '0xramp',
+  excludeFromPurchases: false,
+  orderType: OrderOrderTypeEnum.Buy,
+  data: {},
+} as FiatOrder;
+
+function makeItem(
+  partial: Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>,
+): ActivityListItem {
+  return {
+    chainId: 'eip155:1',
+    status: 'success',
+    timestamp: 1,
+    data: {},
+    ...partial,
+  } as ActivityListItem;
+}
+
+function stubGroup(item: ActivityListItem) {
+  return {
+    primaryTransaction: { hash: item.hash, id: item.hash },
+    initialTransaction: { hash: item.hash, id: item.hash },
+  };
+}
+
+let localByIdentifier = new Map<string, ActivityListItem>();
+
+function identifierMapFrom(
+  items: ActivityListItem[],
+  groups: ReturnType<typeof stubGroup>[],
+) {
+  const byKey = new Map<string, ActivityListItem>();
+  items.forEach((item, index) => {
+    const group = groups[index] ?? stubGroup(item);
+    for (const transaction of [
+      group.primaryTransaction,
+      group.initialTransaction,
+    ]) {
+      if (transaction.hash) {
+        byKey.set(transaction.hash.toLowerCase(), item);
+      }
+      if (transaction.id) {
+        byKey.set(String(transaction.id).toLowerCase(), item);
+      }
+    }
+  });
+  return byKey;
+}
+
+function setSources({
+  local = [],
+  localGroups,
+  confirmed = [],
+  nonEvm = [],
+  ramp = [],
+}: {
+  local?: ActivityListItem[];
+  localGroups?: ReturnType<typeof stubGroup>[];
+  confirmed?: ActivityListItem[];
+  nonEvm?: ActivityListItem[];
+  ramp?: ActivityListItem[];
+}) {
+  const groups = localGroups ?? local.map(stubGroup);
+  localByIdentifier = identifierMapFrom(local, groups);
+  useRampActivityItemsByIdMock.mockReturnValue(
+    new Map(
+      ramp.flatMap((item) => [
+        [item.hash?.toLowerCase() ?? '', item] as [string, ActivityListItem],
+        ...(item.hash === rampOrder.txHash
+          ? [[rampOrder.id, item] as [string, ActivityListItem]]
+          : []),
+      ]),
+    ),
+  );
+  useTransactionsQueryMock.mockReturnValue({
+    data: { pages: [{ data: confirmed }] },
+    isFetching: false,
+  } as unknown as ReturnType<typeof useTransactionsQuery>);
+  mapNonEvmTransactionsMock.mockReturnValue(nonEvm);
+}
+
+describe('useActivityDetailsItem', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: false,
+    });
+    useLocalTransactionMetaMock.mockReturnValue(undefined);
+    localByIdentifier = new Map();
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [];
+      }
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return undefined;
+      }
+      if (selector === selectEvmAddress) {
+        return '0x1234567890abcdef1234567890abcdef12345678';
+      }
+      if (selector === selectExcludedActivityTransactionHashes) {
+        return new Set<string>();
+      }
+      return { transactions: [] };
+    });
+  });
+
+  it('returns undefined when no identifier is provided', () => {
+    setSources({});
+    const { result } = renderHook(() => useActivityDetailsItem(undefined));
+    expect(result.current.item).toBeUndefined();
+  });
+
+  it('resolves a local item by hash (case-insensitive)', () => {
+    const local = makeItem({ type: 'send', hash: '0xABC' });
+    setSources({ local: [local] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xabc'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('resolves a non-EVM item when no local/api item matches', () => {
+    const nonEvm = makeItem({ type: 'receive', hash: '0xsol' });
+    setSources({ nonEvm: [nonEvm] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xsol'));
+    expect(result.current.item).toBe(nonEvm);
+  });
+
+  it('forwards bridge history and subject address into non-EVM mapping', () => {
+    const transaction = { id: 'sol-tx', account: 'account-1' };
+    const subjectAddress = 'So11111111111111111111111111111111111111112';
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [{ id: 'account-1', address: subjectAddress }];
+      }
+      return { transactions: [transaction] };
+    });
+    mapNonEvmTransactionsMock.mockReturnValue([
+      makeItem({ type: 'receive', hash: 'sol-tx' }),
+    ]);
+
+    renderHook(() => useActivityDetailsItem('sol-tx'));
+
+    expect(mapNonEvmTransactionsMock).toHaveBeenCalledWith(
+      [transaction],
+      expect.any(Function),
+      expect.any(Function),
+    );
+    const getSubjectAddress = mapNonEvmTransactionsMock.mock
+      .calls[0][2] as (tx: { account: string }) => string | undefined;
+    expect(getSubjectAddress(transaction)).toBe(subjectAddress);
+  });
+
+  it('prefers the API item over a generic local contractInteraction', () => {
+    const local = makeItem({ type: 'contractInteraction', hash: '0xdef' });
+    const api = makeItem({ type: 'swap', hash: '0xdef' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xdef'));
+    expect(result.current.item).toBe(api);
+  });
+
+  it('prefers the API swap over a local swap whose destination is unresolved on-device', () => {
+    const local = makeItem({
+      type: 'swap',
+      hash: '0xswap',
+      data: { sourceToken: { direction: 'out', symbol: 'ETH' } },
+    });
+    const api = makeItem({ type: 'swap', hash: '0xswap' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xswap'));
+    expect(result.current.item).toBe(api);
+  });
+
+  it('falls back to the local swap when there is no API copy', () => {
+    const local = makeItem({
+      type: 'swap',
+      hash: '0xonly',
+      data: { sourceToken: { direction: 'out', symbol: 'ETH' } },
+    });
+    setSources({ local: [local] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xonly'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('keeps the local spending-cap copy when only it carries the cap amount', () => {
+    const local = makeItem({
+      type: 'approveSpendingCap',
+      hash: '0xcap',
+      data: { token: { direction: 'out', amount: '100000' } },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const api = makeItem({ type: 'approveSpendingCap', hash: '0xcap' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xcap'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('prefers the API spending-cap copy when the local copy also lacks an amount', () => {
+    const local = makeItem({ type: 'approveSpendingCap', hash: '0xnocap' });
+    const api = makeItem({ type: 'approveSpendingCap', hash: '0xnocap' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xnocap'));
+    expect(result.current.item).toBe(api);
+  });
+
+  it('keeps the local item when it is already categorized and types differ', () => {
+    const local = makeItem({ type: 'send', hash: '0xfff' });
+    const api = makeItem({ type: 'contractInteraction', hash: '0xfff' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xfff'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('keeps the local item when only it carries a gas-token fee', () => {
+    const local = makeItem({
+      type: 'send',
+      hash: '0xgas',
+      data: {
+        from: '0xfrom',
+        to: '0xto',
+        fees: [
+          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+        ],
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const api = makeItem({
+      type: 'send',
+      hash: '0xgas',
+      data: {
+        from: '0xfrom',
+        to: '0xto',
+        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xgas'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('prefers a richer API send over a local contractInteraction that only has a gas-token fee', () => {
+    const local = makeItem({
+      type: 'contractInteraction',
+      hash: '0xdegraded',
+      data: {
+        to: '0xto',
+        fees: [
+          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+        ],
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const api = makeItem({
+      type: 'send',
+      hash: '0xdegraded',
+      data: {
+        from: '0xfrom',
+        to: '0xto',
+        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xdegraded'));
+    expect(result.current.item).toBe(api);
+  });
+
+  it('resolves a local item by TransactionMeta id when the display hash changed', () => {
+    const local = makeItem({
+      type: 'send',
+      hash: '0xnewhash',
+    });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'meta-1',
+      hash: '0xnewhash',
+    } as ReturnType<typeof useLocalTransactionMeta>);
+    setSources({ local: [local] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('resolves a local item by the initial transaction hash', () => {
+    const local = makeItem({ type: 'send', hash: '0xprimary' });
+    setSources({
+      local: [local],
+      localGroups: [
+        {
+          primaryTransaction: { id: 'primary-id', hash: '0xprimary' },
+          initialTransaction: { id: 'initial-id', hash: '0xinitial' },
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xinitial'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('resolves a local item by the transaction group id', () => {
+    const local = makeItem({ type: 'send', hash: '0xabc' });
+    setSources({
+      local: [local],
+      localGroups: [
+        {
+          primaryTransaction: { id: 'meta-1', hash: '0xabc' },
+          initialTransaction: { id: 'meta-1', hash: '0xabc' },
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
+    expect(result.current.item).toBe(local);
+  });
+
+  it('returns the API item when there is no local match', () => {
+    const api = makeItem({ type: 'swap', hash: '0xapi' });
+    setSources({ confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xAPI'));
+    expect(result.current.item).toBe(api);
+  });
+
+  it('waits for API data before resolving a confirmed local item', () => {
+    const local = makeItem({ type: 'send', hash: '0xconfirmed-local' });
+    setSources({ local: [local] });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'confirmed-local',
+      hash: '0xconfirmed-local',
+      status: TransactionStatus.confirmed,
+    } as ReturnType<typeof useLocalTransactionMeta>);
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xconfirmed-local', 'eip155:1'),
+    );
+
+    expect(result.current.item).toBeUndefined();
+    expect(result.current.isFetching).toBe(true);
+  });
+
+  it('resolves a fetched API transaction when it is not in the list query pages', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetched',
+        from: '0x1234567890abcdef1234567890abcdef12345678',
+        to: '0x0000000000000000000000000000000000000001',
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '0',
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetched', 'eip155:1'),
+    );
+
+    expect(result.current.item?.hash).toBe('0xfetched');
+  });
+
+  it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xnotours',
+        // Relayer / unrelated sender — subject only appears (if at all) in
+        // valueTransfers. List path drops these via shouldSkipTransaction.
+        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '2500000000000000000',
+        transactionCategory: 'STANDARD',
+        valueTransfers: [
+          {
+            from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            to: '0x1234567890abcdef1234567890abcdef12345678',
+            amount: '1',
+            decimal: 18,
+            contractAddress: '',
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xnotours', 'eip155:1'),
+    );
+
+    expect(result.current.item).toBeUndefined();
+  });
+
+  it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {
+    const checksummedSubject = '0x1234567890AbCdEf1234567890aBcDeF12345678';
+    const lowercaseSubject = checksummedSubject.toLowerCase();
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLocalActivityItemsByIdentifier) {
+        return localByIdentifier;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [];
+      }
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return { address: checksummedSubject };
+      }
+      if (selector === selectEvmAddress) {
+        return checksummedSubject;
+      }
+      if (selector === selectExcludedActivityTransactionHashes) {
+        return new Set<string>();
+      }
+      return { transactions: [] };
+    });
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchedreceive',
+        from: counterparty,
+        to: lowercaseSubject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '1',
+        transactionCategory: 'TRANSFER',
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('classifies a fetched native receive that carries incoming value transfers', () => {
+    const subject = '0x1234567890abcdef1234567890abcdef12345678';
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchednativereceive',
+        from: counterparty,
+        to: subject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '1000000000000000000',
+        transactionCategory: 'TRANSFER',
+        // The by-hash request always sets `includeValueTransfers`, so real
+        // receives arrive with transfers the list gate would filter out.
+        valueTransfers: [
+          {
+            from: counterparty,
+            to: subject,
+            amount: '1000000000000000000',
+            decimal: 18,
+            contractAddress: '',
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchednativereceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('classifies a fetched token receive that carries incoming value transfers', () => {
+    const subject = '0x1234567890abcdef1234567890abcdef12345678';
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchedtokenreceive',
+        from: counterparty,
+        to: subject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        transactionCategory: 'TRANSFER',
+        valueTransfers: [
+          {
+            from: counterparty,
+            to: subject,
+            amount: '1000000',
+            decimal: 6,
+            contractAddress: '0x3333333333333333333333333333333333333333',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            transferType: 'ERC20',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchedtokenreceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('does not request a single-transaction fetch when that fallback is disabled', () => {
+    setSources({});
+
+    renderHook(() =>
+      useActivityDetailsItem(
+        '0x0000000000000000000000000000000000000000000000000000000000000001',
+        'eip155:1',
+        { fetchByHash: false },
+      ),
+    );
+
+    expect(useApiTransactionMock).toHaveBeenCalledWith({
+      chainId: 'eip155:1',
+      txHash: undefined,
+    });
+  });
+
+  it('reports fetching while the single-transaction fallback is loading', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem(
+        '0x0000000000000000000000000000000000000000000000000000000000000001',
+        'eip155:1',
+      ),
+    );
+
+    expect(result.current.item).toBeUndefined();
+    expect(result.current.isFetching).toBe(true);
+  });
+
+  it('resolves the item matching the requested chainId when hashes collide across chains', () => {
+    const mainnet = makeItem({
+      type: 'send',
+      hash: '0xdup',
+      chainId: 'eip155:1',
+    });
+    const base = makeItem({
+      type: 'send',
+      hash: '0xdup',
+      chainId: 'eip155:8453',
+    });
+    setSources({ confirmed: [mainnet, base] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xdup', 'eip155:8453'),
+    );
+    expect(result.current.item).toBe(base);
+  });
+
+  it('resolves a Ramp item by hash from fiat orders', () => {
+    const ramp = mapRampOrder({ order: rampOrder }) as ActivityListItem;
+    setSources({ ramp: [ramp] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xramp', 'eip155:59144'),
+    );
+
+    expect(result.current.item).toBe(ramp);
+  });
+
+  it('resolves a Ramp item by order id when a transaction hash is available', () => {
+    const ramp = mapRampOrder({ order: rampOrder }) as ActivityListItem;
+    setSources({ ramp: [ramp] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('ramp-order-id', 'eip155:59144'),
+    );
+
+    expect(result.current.item).toBe(ramp);
+  });
+});

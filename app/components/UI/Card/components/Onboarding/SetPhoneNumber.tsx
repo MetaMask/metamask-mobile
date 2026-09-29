@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Label,
@@ -14,15 +15,18 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegions from '../../hooks/useRegions';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import {
   resetOnboardingState,
   selectContactVerificationId,
@@ -32,7 +36,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -43,7 +48,7 @@ import SelectField from './SelectField';
 const US_PHONE_REGEX = /^[2-9]\d{2}[2-9]\d{6}$/;
 
 const SetPhoneNumber = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -91,9 +96,11 @@ const SetPhoneNumber = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.SET_PHONE_NUMBER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.SET_PHONE_NUMBER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -119,10 +126,12 @@ const SetPhoneNumber = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.SET_PHONE_NUMBER_BUTTON,
-            phone_number_country_code: areaCode,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.SET_PHONE_NUMBER_BUTTON,
+              phone_number_country_code: areaCode,
+            }),
+          )
           .build(),
       );
       const { success } = await sendPhoneVerification({
@@ -158,8 +167,9 @@ const SetPhoneNumber = () => {
       setSelectedCountry(region);
     });
 
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: availableRegions,
         renderAreaCode: true,
         selectedRegionKey: selectedCountry?.key ?? null,
@@ -244,19 +254,21 @@ const SetPhoneNumber = () => {
         {/* Phone number input */}
         <Box twClassName="flex-1">
           <TextField
-            autoCapitalize={'none'}
             onChangeText={handlePhoneNumberChange}
-            numberOfLines={1}
-            autoComplete="one-time-code"
             value={phoneNumber}
-            keyboardType="phone-pad"
-            maxLength={255}
-            accessibilityLabel={strings(
-              'card.card_onboarding.set_phone_number.phone_number_label',
-            )}
-            testID="set-phone-number-phone-number-input"
-            onSubmitEditing={handleContinue}
-            returnKeyType="done"
+            inputProps={{
+              autoCapitalize: 'none',
+              numberOfLines: 1,
+              autoComplete: 'one-time-code',
+              keyboardType: 'phone-pad',
+              maxLength: 255,
+              accessibilityLabel: strings(
+                'card.card_onboarding.set_phone_number.phone_number_label',
+              ),
+              testID: 'set-phone-number-phone-number-input',
+              onSubmitEditing: handleContinue,
+              returnKeyType: 'done',
+            }}
           />
         </Box>
       </Box>

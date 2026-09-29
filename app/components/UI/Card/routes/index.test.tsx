@@ -33,15 +33,20 @@ jest.mock('@react-navigation/native-stack', () => {
       Screen: ({
         name,
         options,
+        component: Component,
       }: {
         name: string;
         options?: {
           headerShown?: boolean;
         };
+        component?: React.ComponentType;
       }) => (
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
           {options?.headerShown === false && <Text>no-header</Text>}
+          {(name === 'CardHome' || name === 'CardModals') && Component ? (
+            <Component />
+          ) : null}
         </View>
       ),
     }),
@@ -61,6 +66,11 @@ jest.mock('../Views/CardWelcome/CardWelcome', () => {
 jest.mock('../Views/CardAuthentication/CardAuthentication', () => {
   const { View } = require('react-native');
   return () => <View testID="card-authentication" />;
+});
+
+jest.mock('../Views/ContactDetails/ContactDetails', () => {
+  const { View } = require('react-native');
+  return () => <View testID="contact-details" />;
 });
 
 jest.mock('../Views/SpendingLimit/SpendingLimit', () => {
@@ -126,6 +136,16 @@ jest.mock('../components/ViewPinBottomSheet', () => {
   return () => <View testID="view-pin-bottom-sheet" />;
 });
 
+jest.mock('../Views/SetCardPin', () => {
+  const { View } = require('react-native');
+  return () => <View testID="set-card-pin" />;
+});
+
+jest.mock('../components/MoneyUnlinkCardSheet', () => {
+  const { View } = require('react-native');
+  return () => <View testID="money-unlink-card-sheet" />;
+});
+
 jest.mock('../Views/OrderCompleted/OrderCompleted', () => {
   const { View } = require('react-native');
   return () => <View testID="order-completed" />;
@@ -136,8 +156,42 @@ jest.mock('../Views/Cashback/Cashback', () => {
   return () => <View testID="cashback" />;
 });
 
+jest.mock('../Views/CreditRedeem/CreditRedeem', () => {
+  const { View } = require('react-native');
+  return () => <View testID="credit-redeem" />;
+});
+
+jest.mock(
+  '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet',
+  () => {
+    const { View } = require('react-native');
+    return () => <View testID="credit-balance-tooltip" />;
+  },
+);
+
+jest.mock(
+  '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet',
+  () => {
+    const { View } = require('react-native');
+    return () => <View testID="credit-refund-tooltip" />;
+  },
+);
+
+jest.mock('../components/DigitalWalletInstructionsSheet', () => {
+  const { View } = require('react-native');
+  return () => <View testID="digital-wallet-instructions-sheet" />;
+});
+
 jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
+}));
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: (state: {
+    card: { isAuthenticatedCard: boolean };
+  }) => state.card.isAuthenticatedCard,
+  selectIsCardholder: (state: { card: { isCardholder: boolean } }) =>
+    state.card.isCardholder,
 }));
 
 jest.mock('../../../../constants/navigation/Routes', () => ({
@@ -148,6 +202,10 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
+    CREDIT_REDEEM: 'CreditRedeem',
+    CONTACT_DETAILS: 'CardContactDetails',
+    SET_PIN: 'CardSetPin',
+    CONFIRM_PIN: 'CardConfirmPin',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
@@ -163,9 +221,31 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       RECURRING_FEE: 'RecurringFee',
       DAIMO_PAY: 'DaimoPay',
       VIEW_PIN: 'ViewPin',
+      CREDIT_BALANCE_TOOLTIP: 'CreditBalanceTooltip',
+      CREDIT_REFUND_TOOLTIP: 'CreditRefundTooltip',
+      SPENDING_LIMIT_OPTIONS: 'SpendingLimitOptions',
+      WAITLIST_FORM: 'WaitlistForm',
+      FORGOT_PASSWORD: 'ForgotPassword',
+      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
     },
   },
 }));
+
+jest.mock('../../../../core/LockManagerService', () => ({
+  __esModule: true,
+  default: {
+    stopListening: jest.fn(),
+    startListening: jest.fn(),
+  },
+}));
+
+const mockLockManagerService = jest.requireMock(
+  '../../../../core/LockManagerService',
+).default;
+const mockStopListening = mockLockManagerService.stopListening as jest.Mock;
+const mockStartListening = mockLockManagerService.startListening as jest.Mock;
 
 const createMockStore = (isAuthenticated = false, isCardholder = false) =>
   configureStore({
@@ -194,9 +274,9 @@ describe('CardRoutes', () => {
 
   describe('CardRoutes component', () => {
     it('renders successfully', () => {
-      const { getByTestId } = renderWithProviders(<CardRoutes />);
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />);
 
-      expect(getByTestId('stack-navigator')).toBeTruthy();
+      expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
     });
 
     it('renders nested stack navigators', () => {
@@ -206,15 +286,35 @@ describe('CardRoutes', () => {
     });
 
     it('includes CardHome screen', () => {
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(getAllByTestId('screen-CardHome').length).toBeGreaterThan(0);
+    });
+
+    it('includes Contact Details screen', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
-      expect(getByTestId('screen-CardHome')).toBeTruthy();
+      expect(getByTestId('screen-CardContactDetails')).toBeTruthy();
     });
 
     it('includes CardModals navigator', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
       expect(getByTestId('screen-CardModals')).toBeTruthy();
+    });
+
+    it('includes unlink Money account modal screen', () => {
+      const { getByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(getByTestId('screen-CardUnlinkMoneyAccountSheet')).toBeTruthy();
+    });
+
+    it('includes digital wallet instructions modal screen', () => {
+      const { getByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByTestId('screen-CardDigitalWalletInstructionsModal'),
+      ).toBeTruthy();
     });
   });
 
@@ -242,9 +342,32 @@ describe('CardRoutes', () => {
 
   describe('Navigator configuration', () => {
     it('renders with header hidden configuration', () => {
-      const { getByText } = renderWithProviders(<CardRoutes />);
+      const { getAllByText } = renderWithProviders(<CardRoutes />);
 
-      expect(getByText('headerShown: false')).toBeTruthy();
+      expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Auto-lock Management', () => {
+    beforeEach(() => {
+      mockStopListening.mockClear();
+      mockStartListening.mockClear();
+    });
+
+    it('disables auto-lock when Card root mounts', () => {
+      renderWithProviders(<CardRoutes />);
+
+      expect(mockStopListening).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-enables auto-lock when Card root unmounts', () => {
+      const { unmount } = renderWithProviders(<CardRoutes />);
+
+      expect(mockStartListening).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockStartListening).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -4,15 +4,43 @@ import {
   useHardwareWallet,
   isUserCancellation,
 } from '../../../../core/HardwareWallet';
-import { getDeviceId } from '../../../../core/Ledger/Ledger';
+import Engine from '../../../../core/Engine';
+import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
+import { type TransactionMeta } from '@metamask/transaction-controller';
+import {
+  getRequiredTransactionIds,
+  haveRequiredTransactionsBeenSigned,
+} from '../utils/batch-signing';
+
+// Evaluated inside a messenger event predicate, so it must read controller
+// state at event time rather than the Redux copy that trails it.
+function getTransactionControllerState() {
+  return Engine.controllerMessenger.call('TransactionController:getState');
+}
+
+/**
+ * Pay submits one quote at a time, so legs of later quotes only appear in
+ * `requiredTransactionIds` after earlier ones confirm.
+ */
+function getExpectedQuoteCount(transactionId: string): number {
+  return (
+    Engine.controllerMessenger.call('TransactionPayController:getState')
+      .transactionData[transactionId]?.quotes?.length ?? 1
+  );
+}
 
 interface UseLedgerConfirmOptions {
+  fromAddress: string;
   onReject: () => void;
   onTransactionConfirm: (opts?: {
+    deferNavigation?: boolean;
     onError?: (err: unknown) => void;
   }) => Promise<void>;
+  onSigningComplete?: () => void;
   executeApproval: () => Promise<void>;
   isTransactionReq: boolean;
+  /** Parent transaction whose `requiredTransactionIds` are batch funding legs. */
+  transactionId?: string;
 }
 
 /**
@@ -21,13 +49,17 @@ interface UseLedgerConfirmOptions {
  * signing dispatch, and error / cancellation handling.
  */
 export function useLedgerConfirm({
+  fromAddress,
   onReject,
   onTransactionConfirm,
+  onSigningComplete,
   executeApproval,
   isTransactionReq,
+  transactionId,
 }: UseLedgerConfirmOptions) {
   const {
     ensureDeviceReady,
+    setPendingOperationAddress,
     showHardwareWalletError,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
@@ -44,8 +76,38 @@ export function useLedgerConfirm({
       onReject();
     };
 
+    if (!fromAddress) {
+      rejectOnce();
+      return;
+    }
+
+    setPendingOperationAddress(fromAddress);
+    const shouldCompleteAfterSigning = Boolean(
+      isTransactionReq && onSigningComplete && transactionId,
+    );
+    let stopWatchingSignedTransactions = () => undefined;
+    let hasHiddenAwaitingConfirmation = false;
+    let hasCompletedSigning = false;
+    const hideAwaitingConfirmationOnce = () => {
+      if (hasHiddenAwaitingConfirmation) {
+        return;
+      }
+
+      hasHiddenAwaitingConfirmation = true;
+      hideAwaitingConfirmation();
+    };
+    const completeSigningOnce = () => {
+      if (hasHiddenAwaitingConfirmation) {
+        return;
+      }
+
+      hasCompletedSigning = true;
+      hideAwaitingConfirmationOnce();
+      onSigningComplete?.();
+    };
+
     try {
-      const deviceId = await getDeviceId();
+      const deviceId = await getDeviceIdForAddress(fromAddress);
       const isReady = await ensureDeviceReady(deviceId);
 
       if (!isReady) {
@@ -58,8 +120,42 @@ export function useLedgerConfirm({
         rejectOnce();
       });
 
+      if (shouldCompleteAfterSigning && transactionId) {
+        const signedHandler = Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionStatusUpdated',
+          () => {
+            completeSigningOnce();
+          },
+          ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+            const state = getTransactionControllerState();
+            const requiredTransactionIds = getRequiredTransactionIds(
+              transactionId,
+              state.transactions,
+            );
+
+            if (!requiredTransactionIds.includes(transactionMeta.id)) {
+              return false;
+            }
+
+            return haveRequiredTransactionsBeenSigned(
+              transactionId,
+              state,
+              getExpectedQuoteCount(transactionId),
+            );
+          },
+        );
+
+        stopWatchingSignedTransactions = () => {
+          Engine.controllerMessenger.tryUnsubscribe(
+            'TransactionController:transactionStatusUpdated',
+            signedHandler,
+          );
+        };
+      }
+
       if (isTransactionReq) {
         await onTransactionConfirm({
+          ...(shouldCompleteAfterSigning ? { deferNavigation: true } : {}),
           onError: (err) => {
             throw err;
           },
@@ -68,25 +164,42 @@ export function useLedgerConfirm({
         await executeApproval();
       }
 
-      hideAwaitingConfirmation();
+      if (shouldCompleteAfterSigning) {
+        completeSigningOnce();
+      } else {
+        hideAwaitingConfirmationOnce();
+      }
     } catch (err) {
-      hideAwaitingConfirmation();
+      hideAwaitingConfirmationOnce();
+
+      // Signing is done and the user has moved on; a later transaction
+      // failure is not a device error and must not navigate them back.
+      if (hasCompletedSigning) {
+        return;
+      }
 
       if (!hasRejectedRef.current && !isUserCancellation(err)) {
         showHardwareWalletError(err);
       }
 
       rejectOnce();
+    } finally {
+      stopWatchingSignedTransactions();
+      setPendingOperationAddress(null);
     }
   }, [
     onReject,
     isTransactionReq,
     onTransactionConfirm,
+    onSigningComplete,
     executeApproval,
     ensureDeviceReady,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
+    setPendingOperationAddress,
+    fromAddress,
+    transactionId,
   ]);
 
   return { onConfirm };

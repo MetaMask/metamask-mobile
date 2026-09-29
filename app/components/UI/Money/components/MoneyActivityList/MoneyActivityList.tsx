@@ -1,67 +1,68 @@
 import React from 'react';
-import {
-  Box,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import MoneySectionHeader from '../MoneySectionHeader';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
-import MoneyActivityItem from '../MoneyActivityItem/MoneyActivityItem';
+import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
-const MAX_PREVIEW_ITEMS = 5;
+export const MAX_PREVIEW_ITEMS = 5;
 
 interface MoneyActivityListProps {
-  transactions: TransactionMeta[];
+  items: MoneyActivityItem[];
   moneyAddress?: string;
-  onViewAllPress?: () => void;
+  /** Whether more activity exists beyond what's fetched (paginated upstream). */
+  hasMore?: boolean;
   onHeaderPress?: () => void;
-  onItemPress?: (transactionId: string) => void;
+  onItemPress?: (transaction: TransactionMeta) => void;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
+  cardEnrichmentByHash?: Map<string, CardTransaction>;
 }
 
 const MoneyActivityList = ({
-  transactions,
+  items,
   moneyAddress,
-  onViewAllPress,
+  hasMore = false,
   onHeaderPress,
   onItemPress,
+  privacyMode = false,
+  cardEnrichmentByHash,
 }: MoneyActivityListProps) => {
-  if (!transactions.length) {
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
+
+  if (!items.length) {
     return null;
   }
 
-  const previewItems = transactions.slice(0, MAX_PREVIEW_ITEMS);
-  const hasMoreItems = transactions.length > MAX_PREVIEW_ITEMS;
+  const previewItems = items.slice(0, MAX_PREVIEW_ITEMS);
+  const hasMoreItems = items.length > MAX_PREVIEW_ITEMS || hasMore;
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
-      <Box twClassName="px-4 pt-3 pb-1">
+      <Box twClassName="px-4 pt-3 pb-3">
         <MoneySectionHeader
+          testID={MoneyActivityListTestIds.HEADER}
           title={strings('money.activity.title')}
-          onPress={hasMoreItems ? onHeaderPress : undefined}
+          onPress={hasMoreItems && onHeaderPress ? onHeaderPress : undefined}
         />
       </Box>
       {previewItems.map((item) => (
-        <MoneyActivityItem
+        <MoneyActivityRow
           key={item.id}
-          tx={item}
+          item={item}
           moneyAddress={moneyAddress}
-          onPress={onItemPress}
+          onPress={activityDetailsEnabled ? onItemPress : undefined}
+          privacyMode={privacyMode}
+          cardEnrichmentByHash={cardEnrichmentByHash}
         />
       ))}
-      {hasMoreItems && onViewAllPress && (
-        <Box twClassName="px-4 my-3">
-          <Button
-            variant={ButtonVariant.Secondary}
-            isFullWidth
-            onPress={onViewAllPress}
-            testID={MoneyActivityListTestIds.VIEW_ALL_BUTTON}
-          >
-            {strings('money.activity.view_all')}
-          </Button>
-        </Box>
-      )}
     </Box>
   );
 };

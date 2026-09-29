@@ -1,13 +1,16 @@
 import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   type Position,
   type ClosePositionsResult,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../utils/perpsModeSwitch';
 
 export interface UsePerpsCloseAllPositionsOptions {
   /** Callback invoked when closing succeeds */
@@ -57,7 +60,8 @@ export const usePerpsCloseAllPositions = (
   positions: Position[] | null,
   options?: UsePerpsCloseAllPositionsOptions,
 ): UsePerpsCloseAllPositionsReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const navigateToPerpsHome = useNavigateToPerpsHome();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -90,7 +94,7 @@ export const usePerpsCloseAllPositions = (
 
     try {
       const result = await Engine.context.PerpsController.closePositions({
-        closeAll: true,
+        symbols: positions.map((p) => p.symbol),
       });
 
       const executionTime = Date.now() - startTime;
@@ -102,6 +106,11 @@ export const usePerpsCloseAllPositions = (
         executionTimeMs: executionTime,
       });
 
+      // A partial close still counts as an executed action.
+      if (result.successCount > 0) {
+        recordPerpsAction();
+      }
+
       // Invoke success callback if provided
       if (onSuccess) {
         onSuccess(result);
@@ -112,10 +121,7 @@ export const usePerpsCloseAllPositions = (
         if (navigation.canGoBack()) {
           navigation.goBack();
         } else {
-          // Fallback: navigate to Markets view if can't go back
-          navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.PERPS_HOME,
-          });
+          navigateToPerpsHome();
         }
       }
 
@@ -152,6 +158,7 @@ export const usePerpsCloseAllPositions = (
     onError,
     navigateBackOnSuccess,
     navigation,
+    navigateToPerpsHome,
   ]);
 
   const handleKeepPositions = useCallback(() => {
@@ -159,12 +166,9 @@ export const usePerpsCloseAllPositions = (
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      // Fallback: navigate to Markets view if can't go back
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
+      navigateToPerpsHome();
     }
-  }, [navigation]);
+  }, [navigation, navigateToPerpsHome]);
 
   return {
     isClosing,

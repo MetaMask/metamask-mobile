@@ -8,6 +8,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -19,10 +20,9 @@ export default function AnnouncementCtaFooter(
 
   const callEvent = () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED)
         .addProperties({
-          notification_id: props.notification.id,
-          notification_type: props.notification.type,
+          ...notificationAnalyticsProperties(props.notification),
           clicked_item: 'cta_button',
         })
         .build(),

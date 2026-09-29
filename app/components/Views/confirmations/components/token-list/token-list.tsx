@@ -13,7 +13,7 @@ import {
 import { useSendContext } from '../../context/send-context';
 import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
 import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
-import { Token } from '../UI/token';
+import { Token, TokenTagRenderer } from '../UI/token';
 import { HighlightedItem } from '../UI/highlighted-item';
 
 const TOKEN_COUNT_PER_PAGE = 20;
@@ -21,12 +21,14 @@ interface TokenListProps {
   onSelect?: (token: AssetType) => void;
   tokens: AssetType[];
   highlightedAssets?: HighlightedItemType[];
+  tagRenderers?: TokenTagRenderer[];
 }
 
 export function TokenList({
   onSelect,
   tokens,
   highlightedAssets = [],
+  tagRenderers,
 }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
   const {
@@ -90,6 +92,7 @@ export function TokenList({
           <Token
             key={`${token.chainId}-${token.address}`}
             asset={token}
+            tagRenderers={tagRenderers}
             onPress={handleTokenPress}
           />
         ))}

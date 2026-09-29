@@ -16,11 +16,6 @@ import {
   MOCK_HD_KEYRING_METADATA,
   MOCK_KEYRING_CONTROLLER,
 } from '../../../../selectors/keyringController/testUtils';
-import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
-import {
-  isMoneyActivityDeposit,
-  isMoneyActivityTransfer,
-} from '../constants/moneyActivityFilters';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 
 const MOCK_MONEY_ACCOUNT: MoneyAccount = {
@@ -98,19 +93,12 @@ const MOCK_MONEY_ACCOUNTS = {
   [MOCK_MONEY_ACCOUNT.id]: MOCK_MONEY_ACCOUNT,
 };
 
-const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
-const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
-
 function engineState(
-  remoteFeatureFlags: Record<string, unknown>,
   transactions: Partial<TransactionMeta>[] = [],
 ): ProviderValues['state'] {
   return {
     engine: {
       backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags,
-        },
         MoneyAccountController: {
           moneyAccounts: MOCK_MONEY_ACCOUNTS,
         },
@@ -138,22 +126,15 @@ function makeTx(
 }
 
 describe('useMoneyAccountTransactions', () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env = { ...originalEnv };
   });
 
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it('returns empty lists when mock data flag is off', () => {
+  it('returns empty lists when there are no money transactions', () => {
     const { result } = renderHookWithProvider(
       () => useMoneyAccountTransactions(),
       {
-        state: engineState({ moneyActivityMockDataEnabled: false }),
+        state: engineState(),
       },
     );
 
@@ -163,40 +144,11 @@ describe('useMoneyAccountTransactions', () => {
     expect(result.current.submittedTransactions).toEqual([]);
   });
 
-  it('returns mock activity when remote mock flag is true', () => {
-    const { result } = renderHookWithProvider(
-      () => useMoneyAccountTransactions(),
-      {
-        state: engineState({ moneyActivityMockDataEnabled: true }),
-      },
-    );
-
-    expect(result.current.allTransactions).toEqual(MOCK_MONEY_TRANSACTIONS);
-    expect(result.current.deposits).toEqual(MOCK_DEPOSITS);
-    expect(result.current.transfers).toEqual(MOCK_TRANSFERS);
-    expect(result.current.submittedTransactions).toEqual([]);
-  });
-
-  it('falls back to env when remote flag is not a boolean', () => {
-    process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED = 'true';
-
-    const { result } = renderHookWithProvider(
-      () => useMoneyAccountTransactions(),
-      {
-        state: engineState({ moneyActivityMockDataEnabled: 'invalid' }),
-      },
-    );
-
-    expect(result.current.allTransactions.length).toBe(
-      MOCK_MONEY_TRANSACTIONS.length,
-    );
-  });
-
   it('exposes checksummed money address from the primary Money account', () => {
     const { result } = renderHookWithProvider(
       () => useMoneyAccountTransactions(),
       {
-        state: engineState({ moneyActivityMockDataEnabled: false }),
+        state: engineState(),
       },
     );
 
@@ -204,12 +156,12 @@ describe('useMoneyAccountTransactions', () => {
     expect(result.current.moneyAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
   });
 
-  describe('real transaction filtering (mock flag off)', () => {
+  describe('transaction filtering', () => {
     it('includes direct moneyAccountDeposit transactions', () => {
       const tx = makeTx(TransactionType.moneyAccountDeposit);
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.deposits).toHaveLength(1);
@@ -220,7 +172,7 @@ describe('useMoneyAccountTransactions', () => {
       const tx = makeTx(TransactionType.moneyAccountWithdraw);
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.transfers).toHaveLength(1);
@@ -235,7 +187,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.deposits).toHaveLength(1);
@@ -249,17 +201,166 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.transfers).toHaveLength(1);
     });
 
+    describe.each([
+      TransactionStatus.unapproved,
+      TransactionStatus.rejected,
+      TransactionStatus.dropped,
+      TransactionStatus.cancelled,
+    ])('mid-compose / aborted Money batch status %s', (status) => {
+      it('excludes direct moneyAccountDeposit rows', () => {
+        const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState([tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+
+      it('excludes direct moneyAccountWithdraw rows', () => {
+        const tx = makeTx(TransactionType.moneyAccountWithdraw, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState([tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+
+      it('excludes EIP-7702 batch with nested moneyAccountDeposit', () => {
+        const tx = makeTx(TransactionType.batch, {
+          status,
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+          ],
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState([tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+    });
+
+    // `approved`/`signed` are user-confirmed Money txs held by the MetaMask
+    // Pay publish hook while a cross-chain payment completes — they must
+    // surface as pending rows for the whole bridge duration.
+    it.each([
+      TransactionStatus.confirmed,
+      TransactionStatus.submitted,
+      TransactionStatus.failed,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+    ])(
+      'includes direct moneyAccountDeposit with visible status %s',
+      (status) => {
+        const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState([tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(1);
+        expect(result.current.deposits).toHaveLength(1);
+      },
+    );
+
+    it.each([
+      TransactionStatus.confirmed,
+      TransactionStatus.submitted,
+      TransactionStatus.failed,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+    ])(
+      'includes EIP-7702 batch with nested moneyAccountDeposit and visible status %s',
+      (status) => {
+        const tx = makeTx(TransactionType.batch, {
+          status,
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+          ],
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState([tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(1);
+        expect(result.current.deposits).toHaveLength(1);
+      },
+    );
+
+    it.each([
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+      TransactionStatus.submitted,
+    ])(
+      'counts a moneyAccountDeposit with in-flight status %s as a submitted transaction',
+      (status) => {
+        const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState([tx]) },
+        );
+        expect(result.current.submittedTransactions).toHaveLength(1);
+      },
+    );
+
     it('excludes unrelated transaction types', () => {
       const tx = makeTx(TransactionType.swap);
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(0);
+    });
+
+    const MUSD_ON_MONAD = {
+      tokenAddress: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    };
+
+    it('includes a Perps deposit funded from the Money account as a transfer (outflow)', () => {
+      const tx = makeTx(TransactionType.perpsDeposit, {
+        metamaskPay: MUSD_ON_MONAD as TransactionMeta['metamaskPay'],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState([tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(0);
+    });
+
+    it('includes a Predict withdraw landing in the Money account as a deposit (inflow)', () => {
+      const tx = makeTx(TransactionType.batch, {
+        nestedTransactions: [
+          { type: TransactionType.predictWithdraw } as TransactionMeta,
+        ],
+        metamaskPay: MUSD_ON_MONAD as TransactionMeta['metamaskPay'],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState([tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(0);
+    });
+
+    it('excludes a Perps deposit not funded from the Money account', () => {
+      const tx = makeTx(TransactionType.perpsDeposit, {
+        metamaskPay: {
+          tokenAddress: OTHER_ERC20,
+          chainId: CHAIN_IDS.ARBITRUM,
+        } as TransactionMeta['metamaskPay'],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -271,7 +372,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.deposits).toHaveLength(1);
@@ -291,7 +392,7 @@ describe('useMoneyAccountTransactions', () => {
         });
         const { result } = renderHookWithProvider(
           () => useMoneyAccountTransactions(),
-          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+          { state: engineState([tx]) },
         );
         expect(result.current.allTransactions).toHaveLength(0);
       }
@@ -304,7 +405,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -316,7 +417,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -331,7 +432,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.deposits).toHaveLength(1);
@@ -347,7 +448,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -362,7 +463,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -377,7 +478,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -392,7 +493,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(1);
       expect(result.current.deposits).toHaveLength(1);
@@ -408,7 +509,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -425,7 +526,7 @@ describe('useMoneyAccountTransactions', () => {
       });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
-        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        { state: engineState([tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
@@ -446,7 +547,7 @@ describe('useMoneyAccountTransactions', () => {
         });
         const { result } = renderHookWithProvider(
           () => useMoneyAccountTransactions(),
-          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+          { state: engineState([tx]) },
         );
         expect(result.current.allTransactions).toHaveLength(0);
       });
@@ -462,7 +563,7 @@ describe('useMoneyAccountTransactions', () => {
         });
         const { result } = renderHookWithProvider(
           () => useMoneyAccountTransactions(),
-          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+          { state: engineState([tx]) },
         );
         expect(result.current.allTransactions).toHaveLength(0);
       });
@@ -485,7 +586,7 @@ describe('useMoneyAccountTransactions', () => {
         });
         const { result } = renderHookWithProvider(
           () => useMoneyAccountTransactions(),
-          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+          { state: engineState([tx]) },
         );
         expect(result.current.allTransactions).toHaveLength(1);
       },
@@ -503,10 +604,7 @@ describe('useMoneyAccountTransactions', () => {
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
         {
-          state: engineState({ moneyActivityMockDataEnabled: false }, [
-            noTime,
-            older,
-          ]),
+          state: engineState([noTime, older]),
         },
       );
       // Both transactions should be included; the one with a real timestamp

@@ -4,6 +4,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -14,7 +16,7 @@ import PerpsModifyActionSheet, {
   type ModifyAction,
 } from '../../components/PerpsModifyActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
@@ -24,6 +26,7 @@ interface PerpsSelectModifyActionViewProps {
   onClose?: () => void;
   onReversePosition?: (position: Position) => void;
   testID?: string;
+  useBottomSheet?: boolean;
 }
 
 const PerpsSelectModifyActionView: React.FC<
@@ -34,17 +37,28 @@ const PerpsSelectModifyActionView: React.FC<
   onClose: onExternalClose,
   onReversePosition,
   testID,
+  useBottomSheet: useBottomSheetProp,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
+  const useBottomSheet =
+    useBottomSheetProp ?? route.params?.useBottomSheet ?? false;
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
+
+  const handleClose = useCallback(() => {
+    if (externalSheetRef) {
+      onExternalClose?.();
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, onExternalClose]);
 
   const handleActionSelect = useCallback(
     (action: ModifyAction) => {
@@ -91,18 +105,26 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction,
               asset: position.symbol,
+              ...(position.providerId
+                ? { providerId: position.providerId }
+                : {}),
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
               source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
             });
           }
           break;
 
         case 'reduce_position':
-          // Open close position screen
+          // Open close position screen — this entry is the reduce-exposure CTA.
           navigateToClosePosition(
             position,
             PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+            {
+              buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+              buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+            },
           );
           break;
 
@@ -120,18 +142,20 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction: oppositeDirection,
               asset: position.symbol,
+              ...(position.providerId
+                ? { providerId: position.providerId }
+                : {}),
               amount: positionSize.toString(),
               leverage: positionLeverage,
               source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
             });
           }
           break;
       }
 
       // Close bottom sheet AFTER navigation is triggered
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
+      sheetRef.current?.onCloseBottomSheet(handleClose);
     },
     [
       position,
@@ -139,21 +163,12 @@ const PerpsSelectModifyActionView: React.FC<
       navigateToClosePosition,
       onReversePosition,
       sheetRef,
-      onExternalClose,
+      handleClose,
       trackEvent,
       createEventBuilder,
+      useBottomSheet,
     ],
   );
-
-  const handleClose = useCallback(() => {
-    if (externalSheetRef) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
-    } else {
-      navigation.goBack();
-    }
-  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   return (
     <PerpsModifyActionSheet

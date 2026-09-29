@@ -152,7 +152,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
         />
         {showPrizePool ? (
           <StatCell
-            label={strings('rewards.ondo_campaign_prize_pool.title')}
+            label={strings('rewards.campaign_prize_pool.title')}
             value={prizePoolValue ?? '-'}
             isLoading={prizePoolLoading}
             testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.PRIZE_POOL_VALUE}

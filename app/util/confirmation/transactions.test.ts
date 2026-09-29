@@ -10,6 +10,7 @@ import {
 import { strings } from '../../../locales/i18n';
 import {
   buildTransactionParams,
+  getAmountUpdateErrorToastOptions,
   getTransactionUpdateErrorToastOptions,
   resolveTransactionUpdateErrorMessage,
 } from './transactions';
@@ -180,7 +181,6 @@ describe('Confirmation Transactions Utils', () => {
             },
           ],
           descriptionOptions: { description: 'boom' },
-          hasNoTimeout: false,
         }),
       );
     });
@@ -201,6 +201,29 @@ describe('Confirmation Transactions Utils', () => {
     it('omits description when no message is available', () => {
       expect(
         getTransactionUpdateErrorToastOptions(undefined).descriptionOptions,
+      ).toBeUndefined();
+    });
+  });
+
+  describe('getAmountUpdateErrorToastOptions', () => {
+    const onClose = jest.fn();
+
+    it('returns a persistent toast with a close button', () => {
+      expect(
+        getAmountUpdateErrorToastOptions(new Error('boom'), onClose),
+      ).toEqual(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          descriptionOptions: { description: 'boom' },
+          hasNoTimeout: true,
+          closeButtonOptions: expect.objectContaining({ onPress: onClose }),
+        }),
+      );
+    });
+
+    it('omits description when no message is available', () => {
+      expect(
+        getAmountUpdateErrorToastOptions(undefined, onClose).descriptionOptions,
       ).toBeUndefined();
     });
   });

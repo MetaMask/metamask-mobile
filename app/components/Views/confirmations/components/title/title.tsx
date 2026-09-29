@@ -2,6 +2,7 @@ import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 import { SignatureRequest } from '@metamask/signature-controller';
 import {
+  hasTransactionType,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -9,13 +10,10 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   EARN_CONTRACT_INTERACTION_TYPES,
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
   MMM_ORIGIN,
   APPROVE_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
@@ -32,7 +30,7 @@ import {
   useApproveTransactionData,
 } from '../../hooks/useApproveTransactionData';
 import {
-  isPermitDaiRevoke,
+  isPermitRevoke,
   isRecognizedPermit,
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
@@ -40,6 +38,13 @@ import {
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
 import { TokenStandard } from '../../types/token';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ConfirmationParams } from '../confirm/confirm-component';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const getApproveTitle = (approveTransactionData?: ApproveTransactionData) => {
   const { isRevoke, tokenStandard } = approveTransactionData ?? {};
@@ -91,6 +96,18 @@ const getTitleAndSubTitle = (
   const type = approvalRequest?.type;
   const transactionType = transactionMetadata?.type as TransactionType;
 
+  if (
+    (type === ApprovalType.Transaction ||
+      type === ApprovalType.TransactionBatch) &&
+    !isDowngrade &&
+    !isUpgradeOnly &&
+    hasTransactionType(transactionMetadata, MONEY_ACCOUNT_DEPOSIT_TYPES)
+  ) {
+    return {
+      title: strings('confirm.title.money_account_add_money'),
+    };
+  }
+
   switch (type) {
     case ApprovalType.PersonalSign: {
       if (isSIWESignatureRequest(signatureRequest)) {
@@ -112,6 +129,7 @@ const getTitleAndSubTitle = (
           parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
         const { allowed, tokenId, value } = parsedData.message ?? {};
         const { verifyingContract } = parsedData.domain ?? {};
+        const { types, primaryType } = parsedData;
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {
@@ -121,12 +139,13 @@ const getTitleAndSubTitle = (
           };
         }
 
-        const isDaiRevoke = isPermitDaiRevoke(
+        const isRevoke = isPermitRevoke(
           verifyingContract,
           allowed,
           value,
+          types,
+          primaryType,
         );
-        const isRevoke = isDaiRevoke || value === '0';
 
         if (isRevoke) {
           return {
@@ -181,11 +200,9 @@ const getTitleAndSubTitle = (
         };
       }
 
-      if (transactionType === TransactionType.musdConversion) {
+      if (transactionType === TransactionType.perpsDeposit) {
         return {
-          title: strings(
-            'earn.musd_conversion.quick_convert.confirmation.title',
-          ),
+          title: strings('confirm.title.perps_deposit'),
         };
       }
 
@@ -214,9 +231,10 @@ const getTitleAndSubTitle = (
 };
 
 const Title = () => {
+  const { forceBottomSheet } = useParams<ConfirmationParams>();
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { forceBottomSheet });
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
@@ -252,19 +270,27 @@ const Title = () => {
 
   return (
     <View style={styles.titleContainer}>
-      <Text style={styles.title} variant={TextVariant.HeadingMD}>
+      <Text
+        style={styles.title}
+        variant={
+          forceBottomSheet ? TextVariant.HeadingSm : TextVariant.HeadingMd
+        }
+      >
         {title}
       </Text>
       {subTitle && (
         <Text
           style={styles.subTitle}
-          color={TextColor.Alternative}
-          variant={TextVariant.BodyMD}
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
         >
           {subTitle}
         </Text>
       )}
-      <BatchedTransactionTag />
+      {!hasTransactionType(
+        transactionMetadata,
+        MONEY_ACCOUNT_DEPOSIT_TYPES,
+      ) && <BatchedTransactionTag />}
     </View>
   );
 };

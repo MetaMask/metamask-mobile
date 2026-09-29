@@ -54,11 +54,14 @@ class QualityGatesValidator {
       const duration = timer.getDuration() || 0;
       const { threshold, baseThreshold } = timer;
 
-      totalDurationMs += duration;
-      if (threshold !== null) {
-        totalThresholdMs += threshold;
-      } else {
-        allTimersHaveThresholds = false;
+      const includeInTotal = timer.includeInTotal !== false;
+      if (includeInTotal) {
+        totalDurationMs += duration;
+        if (threshold !== null) {
+          totalThresholdMs += threshold;
+        } else {
+          allTimersHaveThresholds = false;
+        }
       }
 
       const passed = threshold === null || duration <= threshold;
@@ -97,7 +100,7 @@ class QualityGatesValidator {
           baseThreshold,
           exceeded,
           percentOver,
-          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)`,
+          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)\n    Description: ${timer.id}`,
         });
       }
     });
@@ -224,7 +227,7 @@ class QualityGatesValidator {
           baseThreshold,
           exceeded,
           percentOver,
-          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)`,
+          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)\n    Description: ${name}`,
         });
       }
     });

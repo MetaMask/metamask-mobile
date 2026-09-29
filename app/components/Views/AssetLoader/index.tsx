@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Hex } from '@metamask/utils';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -27,7 +28,7 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, chainId, address),
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { styles } = useStyles(styleSheet, {});
 

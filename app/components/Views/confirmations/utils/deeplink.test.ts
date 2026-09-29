@@ -98,6 +98,10 @@ describe('addTransactionForDeeplink', () => {
     mockFindNetworkClientIdByChainId.mockReturnValue('mainnet');
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('adds a native transfer transaction', async () => {
     mockFindNetworkClientIdByChainId.mockReturnValue('another-network');
     await addTransactionForDeeplink({
@@ -153,8 +157,7 @@ describe('addTransactionForDeeplink', () => {
   });
 
   it('does not call addTransaction if it is already processing another transaction', async () => {
-    // Not awaiting the first call to addTransactionForDeeplink to test the flow
-    addTransactionForDeeplink({
+    const firstCall = addTransactionForDeeplink({
       parameters: {
         value: '1000',
       },
@@ -173,6 +176,25 @@ describe('addTransactionForDeeplink', () => {
     } as unknown as DeeplinkRequest);
 
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+
+    await firstCall;
+  });
+
+  it('throws and does not add a transaction when the chain is not in the wallet', async () => {
+    mockFindNetworkClientIdByChainId.mockReturnValue('');
+
+    await expect(
+      addTransactionForDeeplink({
+        chain_id: '10',
+        parameters: {
+          value: '1000',
+        },
+        target_address: TO_ADDRESS_MOCK,
+        origin: ORIGIN_MOCK,
+      } as unknown as DeeplinkRequest),
+    ).rejects.toThrow('Unable to find network with chain id 0xa');
+
+    expect(mockAddTransaction).not.toHaveBeenCalled();
   });
 
   it('adds an ERC20 transfer transaction', async () => {
@@ -233,6 +255,10 @@ describe('validateWithPPOM', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUuid.mockReturnValue('test-uuid-123');
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it('calls ppomUtil.validateRequest with correct parameters', () => {

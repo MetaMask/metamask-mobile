@@ -9,9 +9,6 @@ import { E2E_METAMETRICS_TRACK_URL } from '../../../../util/test/utils';
  * Sends an event to the E2E test mock server.
  * This is used to capture analytics events during E2E tests.
  *
- * Matches the behavior of MetaMetricsTestUtils.trackEvent() to ensure
- * compatibility with existing e2e tests.
- *
  * @param eventName - The name of the event
  * @param properties - Optional event properties (already merged by AnalyticsController)
  */
@@ -19,8 +16,7 @@ const sendEventToTestServer = (
   eventName: string,
   properties?: AnalyticsEventProperties,
 ): void => {
-  // Use fire-and-forget pattern (similar to MetaMetricsTestUtils which is called without await)
-  // The platform adapter interface is void, so we can't await
+  // Use fire-and-forget pattern — the platform adapter interface is void, so we can't await
   // The fetch interceptor in shim.js will automatically proxy this through /proxy?url=...
   fetch(E2E_METAMETRICS_TRACK_URL, {
     method: 'POST',
@@ -33,7 +29,6 @@ const sendEventToTestServer = (
     }),
   }).catch((error) => {
     // Only log non-network errors to avoid cluttering test output
-    // Matches MetaMetricsTestUtils error handling behavior
     if (
       !(
         error instanceof TypeError &&

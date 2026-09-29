@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import { ForgotPasswordModalSelectorsIDs } from '../../../util/ForgotPasswordModal.testIds';
@@ -58,21 +58,13 @@ jest.mock('../../../actions/browser', () => ({
   },
 }));
 
-const mockSignOut = jest.fn();
-
-jest.mock('../../../util/identity/hooks/useAuthentication', () => ({
-  useSignOut: () => ({
-    signOut: mockSignOut,
-  }),
-}));
-
 jest.mock('../../../core/Authentication/Authentication', () => ({
   Authentication: {
     deleteWallet: jest.fn(() => Promise.resolve()),
   },
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const renderComponent = (
   state: DeepPartial<RootState> = {},
@@ -142,20 +134,7 @@ describe('DeleteWalletModal', () => {
       // Wait for all promises to resolve
       await Promise.resolve();
 
-      expect(mockSignOut).toHaveBeenCalled();
-    });
-
-    it('signs the user out when deleting the wallet', async () => {
-      const { getByTestId } = renderComponent(mockInitialState);
-
-      fireEvent.press(
-        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
-      );
-      fireEvent.press(
-        getByTestId(ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON),
-      );
-
-      expect(mockSignOut).toHaveBeenCalled();
+      expect(Authentication.deleteWallet).toHaveBeenCalled();
     });
 
     it('calls deleteWallet when deleting the wallet', async () => {

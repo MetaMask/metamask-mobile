@@ -14,14 +14,15 @@ import { RootMessenger } from '../types';
  * @returns The MoneyAccountBalanceServiceMessenger.
  */
 export function getMoneyAccountBalanceServiceMessenger(
-  rootMessenger: RootMessenger,
-): MoneyAccountBalanceServiceMessenger {
-  const messenger = new Messenger<
-    'MoneyAccountBalanceService',
+  rootMessenger: RootMessenger<
     MessengerActions<MoneyAccountBalanceServiceMessenger>,
-    MessengerEvents<MoneyAccountBalanceServiceMessenger>,
-    RootMessenger
-  >({ namespace: 'MoneyAccountBalanceService', parent: rootMessenger });
+    MessengerEvents<MoneyAccountBalanceServiceMessenger>
+  >,
+): MoneyAccountBalanceServiceMessenger {
+  const messenger: MoneyAccountBalanceServiceMessenger = new Messenger({
+    namespace: 'MoneyAccountBalanceService',
+    parent: rootMessenger,
+  });
 
   rootMessenger.delegate({
     messenger,
@@ -29,6 +30,9 @@ export function getMoneyAccountBalanceServiceMessenger(
       'NetworkController:getNetworkConfigurationByChainId',
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',
+      // Required by MoneyAccountBalanceService:fetchBalanceWithFallback
+      // when the Money API is the preferred or fallback balance source.
+      'MoneyAccountApiDataService:fetchPositions',
     ],
     events: ['RemoteFeatureFlagController:stateChange'],
   });

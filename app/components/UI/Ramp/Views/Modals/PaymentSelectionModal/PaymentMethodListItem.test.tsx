@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import PaymentMethodListItem from './PaymentMethodListItem';
+import { paymentMethodTestId } from './PaymentSelectionModal.testIds';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import type { PaymentMethod, Quote } from '@metamask/ramps-controller';
 
@@ -12,7 +13,7 @@ const renderWithTheme = (component: React.ReactElement) =>
   );
 
 const mockPaymentMethod: PaymentMethod = {
-  id: '/payments/debit-credit-card',
+  id: 'debit-credit-card',
   paymentType: 'debit-credit-card',
   name: 'Debit or Credit',
   score: 90,
@@ -59,6 +60,37 @@ describe('PaymentMethodListItem', () => {
     );
 
     expect(getByText('Debit or Credit')).toBeOnTheScreen();
+  });
+
+  it('exposes a stable testID derived from the canonical payment method id', () => {
+    const { getByTestId } = renderWithTheme(
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        {...defaultQuoteProps}
+      />,
+    );
+
+    expect(
+      getByTestId(paymentMethodTestId('debit-credit-card')),
+    ).toBeOnTheScreen();
+    expect(paymentMethodTestId('debit-credit-card')).toBe(
+      'payment-method-debit-credit-card',
+    );
+  });
+
+  it('calls onPress via the payment-method testID when selectable', () => {
+    const mockOnPress = jest.fn();
+    const { getByTestId } = renderWithTheme(
+      <PaymentMethodListItem
+        paymentMethod={mockPaymentMethod}
+        onPress={mockOnPress}
+        {...defaultQuoteProps}
+      />,
+    );
+
+    fireEvent.press(getByTestId('payment-method-debit-credit-card'));
+
+    expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders delay text when delay array is provided', () => {

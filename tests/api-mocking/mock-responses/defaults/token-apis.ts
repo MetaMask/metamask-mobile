@@ -13,13 +13,38 @@ const tokenListRegex =
 const tokenAssetsRegex =
   /^https:\/\/token\.api\.cx\.metamask\.io\/assets\?assetIds=.*&includeTokenSecurityData=true$/;
 
+// Matches the /assets endpoint variant used by the Watchlist getTokens helper
+// which requests market data and RWA data instead of token security data.
+// e.g. https://token.api.cx.metamask.io/assets?assetIds=eip155:1/erc20:0x...&includeMarketData=true&includeRwaData=true
+const tokenAssetsMarketDataRegex =
+  /^https:\/\/token\.api\.cx\.metamask\.io\/assets\?assetIds=.*&includeMarketData=true&includeRwaData=true$/;
+
 // Matches the v3 assets endpoint used by useERC20Tokens to fetch token metadata
 // e.g. https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0x...&includeIconUrl=true
 const tokenV3AssetsRegex =
   /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/;
 
 const tokenV2SupportedNetworksRegex =
-  /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
+  /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
+
+// Per-chain suggested occurrence floors used by TokenDataSource spam filtering
+// and TokensApiClient token-list fetches (AssetsController).
+// e.g. https://token.api.cx.metamask.io/v1/suggestedOccurrenceFloors
+const suggestedOccurrenceFloorsRegex =
+  /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v1\/suggestedOccurrenceFloors(\?.*)?$/;
+
+const SUGGESTED_OCCURRENCE_FLOORS_RESPONSE = {
+  '1': 3,
+  '143': 1,
+  '204': 1,
+  '232': 1,
+  '690': 1,
+  '1329': 1,
+  '4663': 1,
+  '10143': 1,
+  '59144': 1,
+  '98866': 1,
+};
 
 // OHLCV advanced chart (useOHLCVChart) — path includes CAIP asset id, e.g.
 // https://price.api.cx.metamask.io/v3/ohlcv-chart/eip155:8453/erc20:0x...?timePeriod=1d&vsCurrency=usd
@@ -53,6 +78,11 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       response: [],
     },
     {
+      urlEndpoint: tokenAssetsMarketDataRegex,
+      responseCode: 200,
+      response: [],
+    },
+    {
       urlEndpoint: tokenV3AssetsRegex,
       responseCode: 200,
       response: [],
@@ -74,6 +104,11 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
         ],
         partialSupport: [],
       },
+    },
+    {
+      urlEndpoint: suggestedOccurrenceFloorsRegex,
+      responseCode: 200,
+      response: SUGGESTED_OCCURRENCE_FLOORS_RESPONSE,
     },
     {
       urlEndpoint: ohlcvChartRegex,

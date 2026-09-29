@@ -1,11 +1,62 @@
-import {
+import type {
   PredictExtendedSportsMarketsFlag,
+  PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
   PredictFeeCollection,
+  PredictHiddenMarketsFlag,
+  PredictHomeCategoriesConfig,
+  PredictHomeCategoryConfig,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
-  PredictWorldCupConfig,
+  PredictSportsFeedChipConfig,
+  PredictSportsFeedConfig,
+  PredictSportsFeedTabConfig,
+  PredictWimbledonTabFlag,
 } from '../types/flags';
+import { PREDICT_MIN_GAME_OUTCOME_VOLUME } from '../utils/marketStaleness';
+import { translateIfPresent } from '../utils/translations';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from './feedBanner';
+
+export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
+  enabled: false,
+  minimumVersion: '',
+  mode: 'live',
+  priorityOrder: [],
+  prioritySlots: [],
+  contentSource: {
+    composition: 'query-results',
+    queryParams: '',
+    excludedMarketIds: [],
+  },
+};
+
+export const DEFAULT_PREDICT_FEED_BANNER_FLAG: PredictFeedBannerConfig = {
+  enabled: false,
+  minimumVersion: '',
+  id: '',
+  title: '',
+  description: '',
+  position: PredictFeedBannerPosition.AfterFeaturedCarousel,
+  severity: PredictFeedBannerSeverity.Info,
+  dismissible: false,
+};
+
+export const PREDICT_MARKET_LIST_ORDERS = [
+  'volume24hr',
+  'volume',
+  'liquidity',
+  'ending_soon',
+  'newest',
+  'upcoming',
+  'start_time',
+] as const;
+
+export type PredictMarketListOrder =
+  (typeof PREDICT_MARKET_LIST_ORDERS)[number];
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
   enabled: true,
@@ -30,7 +81,14 @@ export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsF
     enabled: false,
     minimumVersion: '',
     leagues: [],
+    enabledSportsMarketTypes: [],
   };
+
+export const DEFAULT_HIDDEN_MARKETS_FLAG: PredictHiddenMarketsFlag = {
+  enabled: false,
+  minimumVersion: '',
+  hidden: [],
+};
 
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,
@@ -45,16 +103,220 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   minimumVersion: '7.64.0',
 };
 
-export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
-export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
+export const PREDICT_POLYMARKET_GAMES_TAG_ID = '100639';
+export const PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG = 'tennis';
+export const PREDICT_WIMBLEDON_DEFAULT_SEARCH = 'Wimbledon';
 
-export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
+export const PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS =
+  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_POLYMARKET_GAMES_TAG_ID}` +
+  `&tag_slug=${PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG}` +
+  `&title_search=${PREDICT_WIMBLEDON_DEFAULT_SEARCH}` +
+  '&order=volume24hr&ascending=false';
+
+export const DEFAULT_WIMBLEDON_TAB_FLAG = {
   enabled: false,
+  queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
   minimumVersion: '',
-  showMainFeedBanner: false,
-  showMainFeedTab: false,
-  showWorldCupScreen: false,
-  tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
-  gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
-  stages: [],
+} satisfies PredictWimbledonTabFlag;
+
+const createSportsFeedChip = (
+  id: string,
+  tagSlug: string,
+): PredictSportsFeedChipConfig => ({
+  id,
+  kind: 'tag',
+  tagSlug,
+  titleKey: `predict.feed.filters.${id}`,
+});
+
+const createSportsFeedChips = (
+  ...tagSlugs: string[]
+): PredictSportsFeedChipConfig[] =>
+  tagSlugs.map((tagSlug) => createSportsFeedChip(tagSlug, tagSlug));
+
+const createSportsFeedTab = ({
+  id,
+  chips,
+  titleKey = `predict.feed.tabs.${id}`,
+  tagSlug = id,
+  gamesTitleKey = 'predict.feed.filters.games',
+  gamesFilterByVolume,
+}: {
+  id: string;
+  chips: PredictSportsFeedChipConfig[];
+  titleKey?: string;
+  tagSlug?: string;
+  gamesTitleKey?: string;
+  gamesFilterByVolume?: number;
+}): PredictSportsFeedTabConfig => ({
+  id,
+  titleKey,
+  tagSlug,
+  defaultFilterId: 'games',
+  chips: [
+    {
+      id: 'games',
+      kind: 'games',
+      titleKey: gamesTitleKey,
+      filterByVolume: gamesFilterByVolume,
+    },
+    {
+      id: 'props',
+      kind: 'props',
+      titleKey: 'predict.feed.filters.props',
+    },
+    ...chips,
+  ],
+});
+
+export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
+  enabled: true,
+  minimumVersion: '',
+  tabs: [
+    createSportsFeedTab({
+      id: 'all',
+      titleKey: 'predict.feed.tabs.all',
+      tagSlug: 'sports',
+      chips: [],
+      gamesFilterByVolume: PREDICT_MIN_GAME_OUTCOME_VOLUME,
+    }),
+    createSportsFeedTab({
+      id: 'soccer',
+      chips: createSportsFeedChips(
+        'mls',
+        'champions-league',
+        'EPL',
+        'uel',
+        'la-liga',
+        'serie-a',
+        'bundesliga',
+        'ligue-1',
+        'lib',
+      ),
+    }),
+    createSportsFeedTab({
+      id: 'baseball',
+      chips: createSportsFeedChips('mlb', 'kbo', 'npb', 'cpbl', 'awards'),
+    }),
+    createSportsFeedTab({
+      id: 'football',
+      chips: createSportsFeedChips(
+        'nfl',
+        'nfl-team-futures',
+        'nfl-free-agency',
+        'cfb',
+        'cfl',
+      ),
+    }),
+    createSportsFeedTab({
+      id: 'basketball',
+      chips: createSportsFeedChips('nba', 'nba-free-agency', 'wnba', 'ncaa'),
+    }),
+    createSportsFeedTab({
+      id: 'esports',
+      chips: createSportsFeedChips(
+        'league-of-legends',
+        'counter-strike-2',
+        'valorant',
+        'dota-2',
+        'rainbow-six-siege',
+      ),
+    }),
+    createSportsFeedTab({
+      id: 'tennis',
+      chips: createSportsFeedChips('atp', 'wta', 'itf'),
+    }),
+    createSportsFeedTab({
+      id: 'cricket',
+      chips: createSportsFeedChips('international-cricket', 't20-blast'),
+    }),
+    createSportsFeedTab({
+      id: 'golf',
+      gamesTitleKey: 'predict.feed.filters.tournaments',
+      chips: createSportsFeedChips('pga-tour', 'liv-golf'),
+    }),
+    createSportsFeedTab({
+      id: 'combat',
+      gamesTitleKey: 'predict.feed.filters.fights',
+      chips: createSportsFeedChips('ufc', 'boxing'),
+    }),
+    createSportsFeedTab({
+      id: 'hockey',
+      chips: createSportsFeedChips('nhl'),
+    }),
+  ],
+};
+
+/** Icon used for a home category tile whose `iconName` is missing or unknown. */
+export const PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME = 'Explore';
+
+export const predictHomeCategoryTitleKey = (id: string): string =>
+  `predict.category.${id}`;
+
+const createHomeCategory = ({
+  id,
+  tagSlug = id,
+  iconName,
+}: {
+  id: string;
+  tagSlug?: string;
+  iconName: string;
+}): PredictHomeCategoryConfig => ({
+  id,
+  tagSlug,
+  titleKey: predictHomeCategoryTitleKey(id),
+  iconName,
+  enabled: true,
+});
+
+/**
+ * Bundled Predict home "Categories" rail (PRED-1226). Used when the
+ * `predictHomeCategories` LaunchDarkly flag is missing, invalid, or fails its
+ * version gate. Order here is the default display order. `tagSlug` values are
+ * confirmed live against Polymarket Gamma (`Culture` → `pop-culture`).
+ */
+export const DEFAULT_PREDICT_HOME_CATEGORIES_FLAG: PredictHomeCategoriesConfig =
+  {
+    enabled: true,
+    minimumVersion: '',
+    categories: [
+      createHomeCategory({ id: 'politics', iconName: 'Global' }),
+      createHomeCategory({ id: 'sports', iconName: 'Trophy' }),
+      createHomeCategory({ id: 'crypto', iconName: 'MoneyBag' }),
+      createHomeCategory({ id: 'esports', iconName: 'Speedometer' }),
+      createHomeCategory({
+        id: 'culture',
+        tagSlug: 'pop-culture',
+        iconName: 'StarFilled',
+      }),
+      createHomeCategory({ id: 'finance', iconName: 'Bank' }),
+      createHomeCategory({ id: 'tech', iconName: 'Data' }),
+    ],
+  };
+
+/**
+ * Tile / feed copy for a home category.
+ *
+ * 1. Remote `label` — ops override, or a new tile with no i18n yet
+ * 2. Remote `titleKey` — explicit i18n key from LD
+ * 3. Locale bank `predict.category.<id>` if a translation exists, even when LD omits copy
+ * 4. Raw `id` as `label` so tiles and feed headers never render blank
+ */
+export const resolvePredictHomeCategoryCopy = (
+  category: PredictHomeCategoryConfig,
+): { titleKey?: string; label?: string } => {
+  const label = category.label?.trim();
+  if (label) {
+    return { label };
+  }
+
+  const titleKey = category.titleKey?.trim();
+  if (titleKey) {
+    return { titleKey };
+  }
+
+  const bundledTitleKey = predictHomeCategoryTitleKey(category.id);
+  return translateIfPresent(bundledTitleKey)
+    ? { titleKey: bundledTitleKey }
+    : { label: category.id };
 };

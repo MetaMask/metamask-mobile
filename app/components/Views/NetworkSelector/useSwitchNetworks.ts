@@ -7,18 +7,20 @@ import {
   InfuraNetworkType,
   BUILT_IN_NETWORKS,
 } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { FUNGIBLE_ASSET_TYPES } from '../../../core/Assets/accountGroupAssetLoader';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipChainId,
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -66,6 +68,9 @@ export function useSwitchNetworks({
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
+  );
+  const selectedAccountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -167,7 +172,7 @@ export function useSwitchNetworks({
 
       const {
         MultichainNetworkController,
-        AccountTrackerController,
+        AssetsController,
         SelectedNetworkController,
       } = Engine.context;
 
@@ -196,12 +201,17 @@ export function useSwitchNetworks({
         await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
-        AccountTrackerController.refresh([clientId]);
+        AssetsController.getAssets([...selectedAccountGroupAccounts], {
+          forceUpdate: true,
+          chainIds: [toEvmCaipChainId(networkConfiguration.chainId)],
+          assetTypes: FUNGIBLE_ASSET_TYPES,
+        }).catch((error) => {
+          Logger.error(
+            error as Error,
+            'Failed to refresh assets after network switch',
+          );
+        });
 
-        // Update incoming transactions after a delay
-        setTimeout(async () => {
-          await updateIncomingTransactions();
-        }, 1000);
         dismissModal?.();
       }
       endTrace({ name: TraceName.SwitchBuiltInNetwork });
@@ -230,6 +240,7 @@ export function useSwitchNetworks({
       parentSpan,
       dismissModal,
       closeRpcModal,
+      selectedAccountGroupAccounts,
     ],
   );
 

@@ -76,7 +76,6 @@ export type PredictControllerGetUnrealizedPnLAction = {
 /**
  * Track Predict trade transaction analytics event
  * Uses a single consolidated event with status discriminator
- *
  * @public
  */
 export type PredictControllerTrackPredictOrderEventAction = {
@@ -99,6 +98,26 @@ export type PredictControllerTrackActivityViewedAction = {
   handler: PredictController['trackActivityViewed'];
 };
 
+export type PredictControllerTrackPortfolioPositionsButtonTappedAction = {
+  type: `PredictController:trackPortfolioPositionsButtonTapped`;
+  handler: PredictController['trackPortfolioPositionsButtonTapped'];
+};
+
+export type PredictControllerTrackPortfolioTransactionInitiatedAction = {
+  type: `PredictController:trackPortfolioTransactionInitiated`;
+  handler: PredictController['trackPortfolioTransactionInitiated'];
+};
+
+export type PredictControllerTrackPositionsScreenViewedAction = {
+  type: `PredictController:trackPositionsScreenViewed`;
+  handler: PredictController['trackPositionsScreenViewed'];
+};
+
+export type PredictControllerTrackPositionsTabViewedAction = {
+  type: `PredictController:trackPositionsTabViewed`;
+  handler: PredictController['trackPositionsTabViewed'];
+};
+
 export type PredictControllerTrackGeoBlockTriggeredAction = {
   type: `PredictController:trackGeoBlockTriggered`;
   handler: PredictController['trackGeoBlockTriggered'];
@@ -114,9 +133,65 @@ export type PredictControllerTrackBannerActionAction = {
   handler: PredictController['trackBannerAction'];
 };
 
+export type PredictControllerTrackCategoryClickedAction = {
+  type: `PredictController:trackCategoryClicked`;
+  handler: PredictController['trackCategoryClicked'];
+};
+
 export type PredictControllerTrackShareActionAction = {
   type: `PredictController:trackShareAction`;
   handler: PredictController['trackShareAction'];
+};
+
+/**
+ * Track Predict Search Interacted analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackSearchInteractedAction = {
+  type: `PredictController:trackSearchInteracted`;
+  handler: PredictController['trackSearchInteracted'];
+};
+
+/**
+ * Track Predict Home Viewed analytics event (redesigned home)
+ *
+ * @public
+ */
+export type PredictControllerTrackHomeViewedAction = {
+  type: `PredictController:trackHomeViewed`;
+  handler: PredictController['trackHomeViewed'];
+};
+
+/**
+ * Track Predict Home Section Interaction analytics event
+ * (section viewed / tapped / see-all)
+ *
+ * @public
+ */
+export type PredictControllerTrackHomeSectionInteractionAction = {
+  type: `PredictController:trackHomeSectionInteraction`;
+  handler: PredictController['trackHomeSectionInteraction'];
+};
+
+/**
+ * Track Predict Feed Tab Changed analytics event (generic feed)
+ *
+ * @public
+ */
+export type PredictControllerTrackFeedTabChangedAction = {
+  type: `PredictController:trackFeedTabChanged`;
+  handler: PredictController['trackFeedTabChanged'];
+};
+
+/**
+ * Track Predict Feed Filter Changed analytics event (generic feed)
+ *
+ * @public
+ */
+export type PredictControllerTrackFeedFilterChangedAction = {
+  type: `PredictController:trackFeedFilterChanged`;
+  handler: PredictController['trackFeedFilterChanged'];
 };
 
 /**
@@ -150,7 +225,15 @@ export type PredictControllerConfirmClaimAction = {
 };
 
 /**
- * Refresh eligibility status
+ * Refresh eligibility status.
+ *
+ * Concurrent callers share one in-flight request. A confirmed
+ * `eligible` / `ineligible` result stays in state while a re-check is in
+ * flight, so a routine foreground refresh or a slow geoblock check never
+ * blocks a user who was already confirmed; only the first check (or a
+ * retry after `unavailable`) reports `checking`. A definitive result
+ * requires a country; failures and incomplete responses become
+ * `unavailable` so they are never described as a geo-restriction.
  */
 export type PredictControllerRefreshEligibilityAction = {
   type: `PredictController:refreshEligibility`;
@@ -205,6 +288,19 @@ export type PredictControllerSubscribeToOrderbookAction = {
 export type PredictControllerSubscribeToCryptoPricesAction = {
   type: `PredictController:subscribeToCryptoPrices`;
   handler: PredictController['subscribeToCryptoPrices'];
+};
+
+/**
+ * Subscribes to WebSocket connection-status changes for live data feeds.
+ * The callback fires immediately with the current status and thereafter only
+ * on real transitions, replacing per-subscriber polling.
+ *
+ * @param callback - Function invoked with the current {@link ConnectionStatus}.
+ * @returns Unsubscribe function to clean up the subscription.
+ */
+export type PredictControllerSubscribeToConnectionStatusAction = {
+  type: `PredictController:subscribeToConnectionStatus`;
+  handler: PredictController['subscribeToConnectionStatus'];
 };
 
 /**
@@ -328,10 +424,20 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackMarketDetailsOpenedAction
   | PredictControllerTrackPositionViewedAction
   | PredictControllerTrackActivityViewedAction
+  | PredictControllerTrackPortfolioPositionsButtonTappedAction
+  | PredictControllerTrackPortfolioTransactionInitiatedAction
+  | PredictControllerTrackPositionsScreenViewedAction
+  | PredictControllerTrackPositionsTabViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackBannerActionAction
+  | PredictControllerTrackCategoryClickedAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackSearchInteractedAction
+  | PredictControllerTrackHomeViewedAction
+  | PredictControllerTrackHomeSectionInteractionAction
+  | PredictControllerTrackFeedTabChangedAction
+  | PredictControllerTrackFeedFilterChangedAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
@@ -342,6 +448,7 @@ export type PredictControllerMethodActions =
   | PredictControllerSubscribeToMarketPricesAction
   | PredictControllerSubscribeToOrderbookAction
   | PredictControllerSubscribeToCryptoPricesAction
+  | PredictControllerSubscribeToConnectionStatusAction
   | PredictControllerGetConnectionStatusAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction

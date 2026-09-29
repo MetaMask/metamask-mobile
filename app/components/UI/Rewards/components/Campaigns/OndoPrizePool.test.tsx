@@ -47,18 +47,17 @@ jest.mock('../RewardsErrorBanner', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
-      'rewards.ondo_campaign_prize_pool.error_title':
-        'Failed to load prize pool',
-      'rewards.ondo_campaign_prize_pool.error_description':
+      'rewards.campaign_prize_pool.error_title': 'Failed to load prize pool',
+      'rewards.campaign_prize_pool.error_description':
         'There was an error loading the prize pool. Please try again.',
-      'rewards.ondo_campaign_prize_pool.retry_button': 'Retry',
-      'rewards.ondo_campaign_prize_pool.current_label': 'Current',
-      'rewards.ondo_campaign_prize_pool.next_label': 'Next',
-      'rewards.ondo_campaign_prize_pool.volume_subtext':
+      'rewards.campaign_prize_pool.retry': 'Retry',
+      'rewards.campaign_prize_pool.current_label': 'Current',
+      'rewards.campaign_prize_pool.next_label': 'Next',
+      'rewards.campaign_prize_pool.volume_subtext':
         '{{current}} of {{target}} volume',
-      'rewards.ondo_campaign_prize_pool.max_tier_subtext':
+      'rewards.campaign_prize_pool.max_tier_subtext':
         '{{maxThreshold}}+ TVL — all milestones reached',
-      'rewards.ondo_campaign_prize_pool.max_badge': 'Max',
+      'rewards.campaign_prize_pool.max_badge': 'Max',
     };
     let result = t[key] ?? key;
     if (params) {

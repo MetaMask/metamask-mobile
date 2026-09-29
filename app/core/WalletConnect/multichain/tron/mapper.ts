@@ -1,33 +1,26 @@
 import { isObject } from '@metamask/utils';
+import type { RpcRequest } from '../types';
 import type {
-  TronSnapMappedRequest,
-  TronSnapSignatureResult,
-  TronSnapSignMessageParams,
-  TronSnapSignTransactionParams,
-  TronWalletConnectMethod,
-  TronWalletConnectRequest,
-  TronWalletConnectSignMessageParams,
-  TronWalletConnectSignTransactionParams,
+  TronAddress,
+  TronSnapSpec,
+  TronWalletConnectSpec,
   TronWalletConnectTransaction,
 } from './types';
 
 /**
- * Extract `raw_data_hex` from a WalletConnect transaction container, walking
- * the legacy double-wrap (`transaction.transaction`) if present.
+ * Extract `raw_data_hex` from a WalletConnect transaction, walking the legacy
+ * double-wrap (`transaction.transaction`) if present.
  */
 export function extractTronRawDataHex(
-  value: Record<string, unknown> | undefined,
+  transaction: TronWalletConnectTransaction | undefined,
 ): string | undefined {
-  if (!value) {
+  if (!transaction) {
     return undefined;
   }
-
-  const candidate = value as TronWalletConnectTransaction;
-
-  if (typeof candidate.raw_data_hex === 'string') {
-    return candidate.raw_data_hex;
+  if (typeof transaction.raw_data_hex === 'string') {
+    return transaction.raw_data_hex;
   }
-  return extractTronRawDataHex(candidate.transaction);
+  return extractTronRawDataHex(transaction.transaction);
 }
 
 /**
@@ -35,152 +28,103 @@ export function extractTronRawDataHex(
  * legacy double-wrap if present.
  */
 export function extractTronType(
-  value: Record<string, unknown> | undefined,
+  transaction: TronWalletConnectTransaction | undefined,
 ): string | undefined {
-  if (!value) {
+  if (!transaction) {
     return undefined;
   }
-
-  const candidate = value as TronWalletConnectTransaction;
-
-  const contractType = candidate.raw_data?.contract?.[0]?.type;
+  const contractType = transaction.raw_data?.contract?.[0]?.type;
   if (typeof contractType === 'string' && contractType.length > 0) {
     return contractType;
   }
-  return extractTronType(candidate.transaction);
+  return extractTronType(transaction.transaction);
 }
 
 /**
- * Unwrap a Tron transaction container, walking the legacy double-wrap
- * (`transaction.transaction`) if present. Returns the innermost transaction
- * object, or `undefined` if the input is not an object.
+ * Unwrap the legacy double-wrap (`transaction.transaction`) if present.
  */
 function unwrapTronTransaction(
-  value: unknown,
-): Record<string, unknown> | undefined {
-  if (!isObject(value)) {
-    return undefined;
-  }
-  return isObject(value.transaction) ? value.transaction : value;
+  transaction: TronWalletConnectTransaction,
+): TronWalletConnectTransaction {
+  return isObject(transaction.transaction)
+    ? transaction.transaction
+    : transaction;
 }
 
 /**
- * Map a WC-shaped Tron request into the Tron Snap's params shape.
- *
- * `tron_signMessage` → `signMessage` (message base64-encoded);
- * `tron_signTransaction` → `signTransaction` (`raw_data_hex` →
- * `rawDataHex`).
- *
- * Throws on any other method. The WC namespace approval restricts dapps to
- * these two, so unsupported methods indicate a misbehaving client.
+ * Convert WalletConnect message signing params into the canonical Tron Snap
+ * request. The Tron snap expects `message` to be base64-encoded.
  */
-export function mapRequestInbound({
-  method,
+export function mapSignMessageRequest({
   params,
-}: TronWalletConnectRequest): TronSnapMappedRequest {
-  const param = isObject(params) ? params : undefined;
-
-  if (method === 'tron_signMessage') {
-    const mappedParams: Partial<TronSnapSignMessageParams> = {};
-    const address = param?.address;
-    const message = param?.message;
-
-    if (typeof address === 'string') {
-      mappedParams.address = address as TronSnapSignMessageParams['address'];
-    }
-    if (typeof message === 'string') {
-      // The Tron snap requires `message` to be base64-encoded
-      // (validated against /^(?:[A-Za-z0-9+/]{4})*...$/ then decoded via
-      // Buffer.from(message, 'base64').toString('utf8')).
-      mappedParams.message = Buffer.from(message, 'utf8').toString('base64');
-    }
-
-    return {
-      method: 'signMessage',
-      params: mappedParams,
-    };
-  }
-
-  if (method === 'tron_signTransaction') {
-    const rawDataHex = extractTronRawDataHex(param);
-    const type = extractTronType(param);
-
-    const mappedTransaction: Partial<
-      TronSnapSignTransactionParams['transaction']
-    > = {};
-    if (typeof rawDataHex === 'string') {
-      mappedTransaction.rawDataHex = rawDataHex;
-    }
-    if (typeof type === 'string') {
-      mappedTransaction.type = type;
-    }
-
-    const mappedParams: {
-      address?: TronSnapSignTransactionParams['address'];
-      transaction: Partial<TronSnapSignTransactionParams['transaction']>;
-    } = {
-      transaction: mappedTransaction,
-    };
-    const address = param?.address;
-    if (typeof address === 'string') {
-      mappedParams.address =
-        address as TronSnapSignTransactionParams['address'];
-    }
-
-    return {
-      method: 'signTransaction',
-      params: mappedParams,
-    };
-  }
-
-  throw new Error(`WalletConnect Tron method ${method} is not supported`);
+}: {
+  params: TronWalletConnectSpec['tron_signMessage']['params'];
+}): RpcRequest<TronSnapSpec, 'signMessage'> {
+  return {
+    method: 'signMessage',
+    params: {
+      address: params.address as TronAddress,
+      message: Buffer.from(params.message, 'utf8').toString('base64'),
+    },
+  };
 }
 
 /**
- * Normalize the Tron Snap's response for a WC request before forwarding it
- * to the dapp.
- *
- * `tron_signTransaction` dapps expect the original transaction with a
- * `signature` array appended; the Snap returns just `{ signature }`, so we
- * re-attach it. `tron_signMessage` passes through unchanged. Throws on any
- * other method.
+ * Forward the Tron Snap message signature in the WalletConnect
+ * `tron_signMessage` response shape.
  */
-export function mapRequestOutbound({
-  method,
+export function mapSignMessageResponse(
+  result: TronSnapSpec['signMessage']['response'],
+): TronWalletConnectSpec['tron_signMessage']['response'] {
+  return result;
+}
+
+/**
+ * Convert WalletConnect transaction signing params into the canonical Tron
+ * Snap transaction request. WalletConnect can send either the v1 flat
+ * transaction or the legacy double-wrapped shape.
+ */
+export function mapSignTransactionRequest({
+  params,
+}: {
+  params: TronWalletConnectSpec['tron_signTransaction']['params'];
+}): RpcRequest<TronSnapSpec, 'signTransaction'> {
+  const transaction: TronSnapSpec['signTransaction']['params']['transaction'] =
+    {};
+
+  const rawDataHex = extractTronRawDataHex(params.transaction);
+  if (typeof rawDataHex === 'string') {
+    transaction.rawDataHex = rawDataHex;
+  }
+
+  const type = extractTronType(params.transaction);
+  if (typeof type === 'string') {
+    transaction.type = type;
+  }
+
+  return {
+    method: 'signTransaction',
+    params: {
+      address: params.address as TronAddress,
+      transaction,
+    },
+  };
+}
+
+/**
+ * Convert the Tron Snap transaction signature into the response expected by
+ * WalletConnect Tron dapps: the original transaction with the signature
+ * appended as `signature: [hexSignature]`.
+ */
+export function mapSignTransactionResponse({
   params,
   result,
 }: {
-  method: TronWalletConnectMethod;
-  params:
-    | TronWalletConnectSignMessageParams
-    | TronWalletConnectSignTransactionParams;
-  result: TronSnapSignatureResult;
-}):
-  | TronSnapSignatureResult
-  | (TronWalletConnectTransaction & {
-      signature: string[];
-    }) {
-  if (method === 'tron_signMessage') {
-    return result;
-  }
-
-  if (method === 'tron_signTransaction') {
-    const { transaction: transactionContainer } =
-      params as TronWalletConnectSignTransactionParams;
-
-    const originalTransaction = unwrapTronTransaction(transactionContainer);
-
-    const signature = result.signature;
-
-    if (originalTransaction && typeof signature === 'string') {
-      return {
-        ...originalTransaction,
-        signature: [signature],
-      };
-    }
-
-    return result;
-  }
-
-  throw new Error(`WalletConnect Tron method ${method} is not supported`);
+  params: TronWalletConnectSpec['tron_signTransaction']['params'];
+  result: TronSnapSpec['signTransaction']['response'];
+}): TronWalletConnectSpec['tron_signTransaction']['response'] {
+  return {
+    ...unwrapTronTransaction(params.transaction),
+    signature: [result.signature],
+  };
 }

@@ -6,6 +6,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -30,23 +31,26 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from '../components/Campaigns/PerpsTradingCampaignLeaderboard';
-import PerpsTradingCampaignPrizePool from '../components/Campaigns/PerpsTradingCampaignPrizePool';
+import CampaignPrizePoolSection from '../components/Campaigns/CampaignPrizePoolSection';
 import PerpsTradingCampaignCTA from '../components/Campaigns/PerpsTradingCampaignCTA';
 import PerpsCampaignStatsSummary from '../components/Campaigns/PerpsCampaignStatsSummary';
 import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTradingCampaignEndedStats';
 import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
-import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import {
+  getCampaignStatus,
+  getLatestActiveCampaignOfType,
+} from '../components/Campaigns/CampaignTile.utils';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
-import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
+import { useGetPerpsTradingCampaignPrizePool } from '../hooks/useGetPerpsTradingCampaignPrizePool';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   CampaignType,
-  OndoCampaignHowItWorks,
+  type CampaignHowItWorks as CampaignHowItWorksData,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
@@ -68,7 +72,7 @@ export function resetPerpsTradingCampaignDetailsSessionAutoNavigationForTests():
 
 const PerpsTradingCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -86,15 +90,15 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     fetchCampaigns,
   } = useRewardCampaigns();
 
-  const campaign = useMemo(
-    () =>
-      campaigns.find((c) =>
-        routeCampaignId
-          ? c.id === routeCampaignId
-          : c.type === CampaignType.PERPS_TRADING,
-      ) ?? null,
-    [campaigns, routeCampaignId],
-  );
+  const campaign = useMemo(() => {
+    if (routeCampaignId) {
+      return campaigns.find((c) => c.id === routeCampaignId) ?? null;
+    }
+    // Entry points that reach this view without an id must not land on a past
+    // campaign once a second perps campaign exists, nor on one that has not
+    // started — an upcoming campaign has no standing to show here.
+    return getLatestActiveCampaignOfType(campaigns, CampaignType.PERPS_TRADING);
+  }, [campaigns, routeCampaignId]);
 
   const effectiveCampaignId = routeCampaignId ?? campaign?.id ?? '';
 
@@ -126,11 +130,11 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     );
 
   const {
-    volume,
-    isLoading: isVolumeLoading,
-    hasError: hasVolumeError,
-    refetch: refetchVolume,
-  } = useGetPerpsTradingCampaignVolume(effectiveCampaignId || undefined);
+    prizePool,
+    isLoading: isPrizePoolLoading,
+    hasError: hasPrizePoolError,
+    refetch: refetchPrizePool,
+  } = useGetPerpsTradingCampaignPrizePool(effectiveCampaignId || undefined);
 
   const leaderboardUserPosition = useMemo(
     () =>
@@ -291,7 +295,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                 <Box twClassName="p-4">
                   <CampaignHowItWorks
                     howItWorks={
-                      campaign.details?.howItWorks as OndoCampaignHowItWorks
+                      campaign.details?.howItWorks as CampaignHowItWorksData
                     }
                   />
                 </Box>
@@ -301,13 +305,13 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                 <Box twClassName="p-4 gap-4">
                   <PerpsTradingCampaignEndedStats
                     leaderboard={leaderboard}
-                    totalNotionalVolume={volume?.totalUsdVolume ?? null}
+                    prizePool={prizePool}
                     isLeaderboardLoading={isLeaderboardLoading}
-                    isVolumeLoading={isVolumeLoading}
+                    isPrizePoolLoading={isPrizePoolLoading}
                     hasLeaderboardError={hasLeaderboardError}
-                    hasVolumeError={hasVolumeError}
+                    hasPrizePoolError={hasPrizePoolError}
                     onRetryLeaderboard={refetchLeaderboard}
-                    onRetryVolume={refetchVolume}
+                    onRetryPrizePool={refetchPrizePool}
                   />
                   {isOptedIn && participantOutcome?.outcomeStatus != null && (
                     <CampaignOutcomeBanner
@@ -356,26 +360,12 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
               )}
 
               {showPrizePoolSection && (
-                <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <Text
-                      variant={TextVariant.HeadingMd}
-                      fontWeight={FontWeight.Bold}
-                      twClassName="mb-1"
-                    >
-                      {strings(
-                        'rewards.perps_trading_campaign.prize_pool_title',
-                      )}
-                    </Text>
-                    <PerpsTradingCampaignPrizePool
-                      totalNotionalVolume={volume?.totalUsdVolume ?? null}
-                      isLoading={isVolumeLoading}
-                      hasError={hasVolumeError}
-                      refetch={refetchVolume}
-                    />
-                  </Box>
-                </>
+                <CampaignPrizePoolSection
+                  prizePool={prizePool}
+                  isLoading={isPrizePoolLoading}
+                  hasError={hasPrizePoolError}
+                  refetch={refetchPrizePool}
+                />
               )}
 
               {showLeaderboardSection && (
@@ -432,6 +422,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       maxEntries={5}
                       campaignId={effectiveCampaignId}
                       isCampaignComplete={isComplete}
+                      numberOfWinners={leaderboard?.numberOfWinners}
                     />
                   </Box>
                 </>

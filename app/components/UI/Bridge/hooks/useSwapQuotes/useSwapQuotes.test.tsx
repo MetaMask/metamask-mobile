@@ -1,0 +1,271 @@
+import React from 'react';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
+import { useSwapQuotes } from './index';
+import { useBridgeSession } from '../useBridgeSession';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import {
+  mockContext,
+  runQuoteRequestCases,
+} from '../useBridgeQuoteRequest/runQuoteRequestCases';
+import { renderHook } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
+import { useSelector } from 'react-redux';
+import {
+  selectDestAddress,
+  selectDestToken,
+  selectSlippage,
+  selectSourceAmount,
+  selectSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { runQuoteDataCases } from '../useBridgeQuoteData/runQuoteDataCases';
+import type { BigNumber } from 'ethers';
+import type { DebounceSettings } from 'lodash';
+
+jest.mock('lodash', () => {
+  const actual = jest.requireActual<typeof import('lodash')>('lodash');
+
+  return {
+    ...actual,
+    debounce: ((
+      fn: (...args: unknown[]) => unknown,
+      wait?: number,
+      options?: DebounceSettings,
+    ) => {
+      const debounced = actual.debounce(fn, wait, options);
+      const flush = debounced.flush.bind(debounced);
+
+      debounced.flush = (() => flush() ?? fn()) as typeof debounced.flush;
+
+      return debounced;
+    }) as typeof actual.debounce,
+  };
+});
+
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+  useDispatch: () => mockDispatch,
+}));
+
+jest.mock('../useUnifiedSwapBridgeContext', () => ({
+  useUnifiedSwapBridgeContext: jest.fn(() => mockContext),
+}));
+
+jest.mock('../useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
+
+jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    validateBridgeTx: jest.fn(),
+  }),
+}));
+
+jest.mock('../useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../useInsufficientNativeReserveError', () => ({
+  useInsufficientNativeReserveError: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      getNetworkClientById: jest.fn(() => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      })),
+    },
+    BridgeController: {
+      updateBridgeQuoteRequestParams: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectSourceToken: jest.fn(),
+  selectSourceAmount: jest.fn(),
+  selectDestToken: jest.fn(),
+  selectSlippage: jest.fn(),
+  selectDestAddress: jest.fn(),
+  selectSelectedDestChainId: jest.fn(),
+  selectBridgeControllerState: jest.fn().mockReturnValue({}),
+  selectQuoteStreamComplete: jest.fn(),
+  selectIsSolanaSwap: jest.fn(),
+  selectIsSolanaToNonSolana: jest.fn(),
+  selectSelectedQuoteRequestId: jest.fn(),
+  selectIsSubmittingTx: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(),
+  selectBridgeQuotes: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../../selectors/bridge'),
+  selectSourceWalletAddress: jest.fn(),
+  selectGasIncludedQuoteParams: jest.fn().mockReturnValue({}),
+  selectBatchSellSourceWalletAddress: jest.fn(),
+  selectValidDestInternalAccountIds: jest.fn(),
+  selectIsGasIncluded7702BridgeEnabled: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: () => 'USD',
+}));
+
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn().mockReturnValue('limit_order'),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+jest.mock('../../Views/BridgeView/BridgeView.constants', () => {
+  const { FeatureId } = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...jest.requireActual('../../Views/BridgeView/BridgeView.constants'),
+    MIGRATED_FEATURE_IDS: [FeatureId.LIMIT_ORDER],
+  };
+});
+
+const mockUseBridgeSession = jest.mocked(useBridgeSession);
+
+const mockDebounceMs = 300;
+
+const Wrapper = ({
+  children,
+  quoteRequestIndex,
+  quoteRequestCount,
+  featureId,
+  ...options
+}: {
+  children: React.ReactNode;
+  latestSourceAtomicBalance?: BigNumber;
+  quoteRequestIndex?: number;
+  quoteRequestCount?: number;
+  featureId: FeatureId;
+}) => {
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
+  const slippage = useSelector(selectSlippage);
+  const walletAddress = useSelector(selectSourceWalletAddress);
+  const destAddress = useSelector(selectDestAddress);
+
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    quoteParams: {
+      srcAmount: sourceAmount,
+      srcToken: sourceToken,
+      destToken,
+      slippage,
+      walletAddress,
+      destWalletAddress: destAddress,
+    },
+    latestSourceBalance:
+      'latestSourceAtomicBalance' in options
+        ? {
+            atomicBalance: options.latestSourceAtomicBalance,
+            displayBalance: '',
+          }
+        : undefined,
+  });
+
+  return (
+    <SwapsFeatureIdProvider featureId={featureId}>
+      <SwapQuotesProvider>{children}</SwapQuotesProvider>
+    </SwapsFeatureIdProvider>
+  );
+};
+
+describe('useSwapQuotes', () => {
+  it('returns null when rendered outside SwapQuotesProvider', () => {
+    const { result } = renderHook(() => useSwapQuotes());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when the feature is not a migrated quote source', () => {
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when the feature is migrated but SwapQuotesProvider is missing', () => {
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
+
+    expect(result.current).toBeNull();
+  });
+});
+
+runQuoteRequestCases({
+  name: 'useQuoteRequest',
+  debounceMs: mockDebounceMs,
+  renderHook: (options) =>
+    // @ts-expect-error - this returns a defined update function
+    renderHook(
+      () => {
+        const value = useSwapQuotes();
+        return value?.debouncedUpdateQuoteParams;
+      },
+      {
+        wrapper: ({ children }) => (
+          <Wrapper {...options} featureId={FeatureId.LIMIT_ORDER}>
+            {children}
+          </Wrapper>
+        ),
+      },
+    ),
+  featureId: FeatureId.LIMIT_ORDER,
+});
+
+runQuoteDataCases({
+  name: 'useQuoteData',
+  mockDispatch,
+  renderHook: (options) =>
+    // @ts-expect-error - this returns quote data
+    renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <Wrapper
+          {...options}
+          featureId={options?.featureId ?? FeatureId.LIMIT_ORDER}
+        >
+          {children}
+        </Wrapper>
+      ),
+    }),
+  featureId: FeatureId.LIMIT_ORDER,
+});

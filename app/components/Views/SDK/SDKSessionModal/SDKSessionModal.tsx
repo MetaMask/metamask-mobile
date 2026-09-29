@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -87,7 +88,7 @@ const SDKSessionModal = () => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const permittedAccountsList = useSelector(selectPermissionControllerState);
 
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<

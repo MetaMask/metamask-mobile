@@ -21,13 +21,9 @@ jest.mock('../../../WalletHomeOnboardingSteps', () => {
 });
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
-  selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  selectUnifiedBalanceBySelectedAccountGroup: jest.fn(() => () => null),
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
-}));
-
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(() => true),
 }));
 
 jest.mock('../../../../../selectors/networkController', () => ({
@@ -67,10 +63,23 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
 }));
 
+jest.mock('../../../../Views/Wallet/hooks/useBalanceRefresh', () => ({
+  useBalanceRefresh: jest.fn(() => ({ refreshBalance: jest.fn() })),
+}));
+
+jest.mock('./useAccountGroupBalanceFetchState', () => ({
+  useAccountGroupBalanceFetchState: jest.fn(() => true),
+}));
+
+jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
+  useWalletHomeOnboardingBalanceRefreshEffect: jest.fn(),
+}));
+
 const onboardingEligibleEmptyBalance = {
   ...initialOnboardingState,
   completedOnboarding: true,
   walletHomeOnboardingStepsEligible: true,
+  walletHomeOnboardingSkipInitialBalanceWait: true,
   walletHomeOnboardingSteps: {
     suppressedReason: null,
     stepIndex: 0,
@@ -94,13 +103,13 @@ describe('AccountGroupBalance / wallet home onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const {
-      selectBalanceBySelectedAccountGroup,
+      selectUnifiedBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
       selectBalanceChangeBySelectedAccountGroup,
     } = jest.requireMock('../../../../../selectors/assets/balances');
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => null,
-    );
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => null);
     (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
       () => null,
     );
@@ -117,7 +126,7 @@ describe('AccountGroupBalance / wallet home onboarding', () => {
 
   it('does not suppress when stale positive aggregate corrects to zero', () => {
     const {
-      selectBalanceBySelectedAccountGroup,
+      selectUnifiedBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
     } = jest.requireMock('../../../../../selectors/assets/balances');
 
@@ -132,9 +141,9 @@ describe('AccountGroupBalance / wallet home onboarding', () => {
       userCurrency: 'usd',
     };
 
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => groupBalanceSnapshot,
-    );
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => groupBalanceSnapshot);
     (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
       () => emptyAggSnapshot,
     );
@@ -170,7 +179,7 @@ describe('AccountGroupBalance / wallet home onboarding', () => {
 
   it('does not dispatch account_funded when fund step advances to trade with positive balance', () => {
     const {
-      selectBalanceBySelectedAccountGroup,
+      selectUnifiedBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
     } = jest.requireMock('../../../../../selectors/assets/balances');
 
@@ -185,9 +194,9 @@ describe('AccountGroupBalance / wallet home onboarding', () => {
       userCurrency: 'usd',
     };
 
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => groupBalanceSnapshot,
-    );
+    (
+      selectUnifiedBalanceBySelectedAccountGroup as jest.Mock
+    ).mockImplementation(() => () => groupBalanceSnapshot);
     (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
       () => emptyAggSnapshot,
     );

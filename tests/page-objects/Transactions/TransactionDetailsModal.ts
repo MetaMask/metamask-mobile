@@ -5,38 +5,38 @@ import {
 } from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { Assertions, logger } from '../../framework';
+import { Assertions, logger, type AppiumElement } from '../../framework';
 
 class TransactionDetailsModal {
-  get closeIcon(): DetoxElement {
+  get closeIcon(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
     );
   }
 
-  get networkFee(): DetoxElement {
+  get networkFee(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.NETWORK_FEE);
   }
 
-  get paidWithSymbol(): DetoxElement {
+  get paidWithSymbol(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL,
     );
   }
 
-  get status(): DetoxElement {
+  get status(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.STATUS);
   }
 
-  get title(): DetoxElement {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
 
-  get total(): DetoxElement {
+  get total(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.TOTAL);
   }
 
-  get transactionFee(): DetoxElement {
+  get transactionFee(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionDetailsSelectorIDs.TRANSACTION_FEE,
     );
@@ -76,6 +76,10 @@ class TransactionDetailsModal {
     await Assertions.expectElementToHaveText(this.status, status, {
       description: 'Status should be correct',
     });
+  }
+
+  async verifyConfirmedStatus(): Promise<void> {
+    await this.verifyStatus('Confirmed');
   }
 
   async verifyTotal(total: string): Promise<void> {

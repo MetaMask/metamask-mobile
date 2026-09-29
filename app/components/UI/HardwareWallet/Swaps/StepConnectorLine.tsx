@@ -32,9 +32,11 @@ export const StepConnectorLine = memo(({ testID }: StepConnectorLineProps) => {
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const nextHeight = event.nativeEvent.layout.height;
     if (nextHeight > 0) {
-      setHeight(nextHeight);
+      setHeight(Math.max(nextHeight, CONNECTOR_MIN_HEIGHT));
     }
   }, []);
+
+  const containerWidth = 32;
 
   return (
     <View
@@ -42,11 +44,15 @@ export const StepConnectorLine = memo(({ testID }: StepConnectorLineProps) => {
       onLayout={handleLayout}
       testID={testID ?? HardwareWalletsSwapsSelectorsIDs.STEP_CONNECTOR}
     >
-      <Svg width={2} height={height}>
+      <Svg
+        style={StyleSheet.absoluteFill}
+        width={containerWidth}
+        height={height}
+      >
         <Line
-          x1="1"
+          x1={containerWidth / 2}
           y1="0"
-          x2="1"
+          x2={containerWidth / 2}
           y2={height}
           stroke={colors.border.muted}
           strokeWidth={2}

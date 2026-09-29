@@ -1,8 +1,9 @@
 import { Hex } from '@metamask/utils';
 import {
-  BatchTransactionParams,
+  BatchTransaction,
   GasFeeToken,
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { Interface } from '@ethersproject/abi';
@@ -14,7 +15,7 @@ import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
 import { useFeeCalculations } from './useFeeCalculations';
 import { useEthFiatAmount } from '../useEthFiatAmount';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNativeCurrencySymbol } from '../useNativeCurrencySymbol';
 
 export const RATE_WEI_NATIVE = '0xDE0B6B3A7640000'; // 1x10^18
@@ -66,7 +67,7 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
   );
   const metamaskFeeFiat = useFiatTokenValue(gasFeeToken, metaMaskFee, chainId);
 
-  const transferTransaction = useMemo(
+  const getTransferTransaction = useCallback(
     () =>
       tokenAddress === NATIVE_TOKEN_ADDRESS
         ? getNativeTransferTransaction(gasFeeToken)
@@ -80,18 +81,18 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
       amountFormatted,
       amountFiat,
       balanceFiat,
+      getTransferTransaction,
       metaMaskFee,
       metamaskFeeFiat,
-      transferTransaction,
     }),
     [
       gasFeeToken,
       amountFormatted,
       amountFiat,
       balanceFiat,
+      getTransferTransaction,
       metaMaskFee,
       metamaskFeeFiat,
-      transferTransaction,
     ],
   );
 }
@@ -177,7 +178,7 @@ function useFiatTokenValue(
 
 function getTokenTransferTransaction(
   gasFeeToken: GasFeeToken,
-): BatchTransactionParams {
+): BatchTransaction {
   const data = new Interface(abiERC20).encodeFunctionData('transfer', [
     gasFeeToken.recipient,
     gasFeeToken.amount,
@@ -189,17 +190,22 @@ function getTokenTransferTransaction(
     maxFeePerGas: gasFeeToken.maxFeePerGas,
     maxPriorityFeePerGas: gasFeeToken.maxPriorityFeePerGas,
     to: gasFeeToken.tokenAddress,
+    // Type the gas-payment child so the HW sendbundle tracker can distinguish
+    // it from the Send (tokenMethodTransfer/simpleSend) — even when the Send
+    // transfers the gas token itself (same `to`), where address comparison fails.
+    type: TransactionType.gasPayment,
   };
 }
 
 function getNativeTransferTransaction(
   gasFeeToken: GasFeeToken,
-): BatchTransactionParams {
+): BatchTransaction {
   return {
     gas: gasFeeToken.gasTransfer,
     maxFeePerGas: gasFeeToken.maxFeePerGas,
     maxPriorityFeePerGas: gasFeeToken.maxPriorityFeePerGas,
     to: gasFeeToken.recipient,
     value: gasFeeToken.amount,
+    type: TransactionType.gasPayment,
   };
 }

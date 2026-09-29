@@ -1,6 +1,8 @@
-import { CronjobController } from '@metamask/snaps-controllers';
+import {
+  CronjobController,
+  type CronjobControllerMessenger,
+} from '@metamask/snaps-controllers';
 import { MessengerClientInitFunction } from '../../types';
-import { CronjobControllerMessenger } from '../../messengers/snaps';
 import { CronjobControllerStorageManager } from '../../../CronjobControllerStorageManager/CronjobControllerStorageManager';
 
 /**

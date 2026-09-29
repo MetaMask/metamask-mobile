@@ -1,22 +1,24 @@
 import { useMemo } from 'react';
-import { AssetType } from '../../../Views/confirmations/types/token';
 import { tokenFiatValue } from '../../Earn/hooks/useMusdConversionTokens';
+import type { MoneyDepositAsset } from '../selectors/depositTokens';
+import { moneySafeTokenFiatCurrency } from '../utils/moneyFormatFiat';
 import {
   calculateProjectedEarnings,
   PROJECTION_YEARS,
 } from '../utils/projections';
 
 interface ProjectedEarnings {
-  eligibleTokens: AssetType[];
+  eligibleTokens: MoneyDepositAsset[];
   totalAssetsFiat: number;
   projectedAmount: number;
+  currency: string;
 }
 
 export function useProjectedEarnings(
-  tokens: AssetType[] | undefined,
-  apyPercent: number | undefined,
+  tokens: MoneyDepositAsset[] | undefined,
+  apyDecimal: number | undefined,
 ): ProjectedEarnings {
-  const safeApyPercent = apyPercent ?? 0;
+  const safeApyDecimal = apyDecimal ?? 0;
 
   const eligibleTokens = useMemo(
     () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
@@ -35,15 +37,21 @@ export function useProjectedEarnings(
           sum +
           calculateProjectedEarnings(
             tokenFiatValue(token),
-            safeApyPercent,
+            safeApyDecimal,
             PROJECTION_YEARS,
           ),
         0,
       ),
-    [eligibleTokens, safeApyPercent],
+    [eligibleTokens, safeApyDecimal],
   );
 
-  return { eligibleTokens, totalAssetsFiat, projectedAmount };
+  // Derived from the same `eligibleTokens` the sums are computed over to prevent drift.
+  const currency = useMemo(
+    () => moneySafeTokenFiatCurrency(eligibleTokens[0]),
+    [eligibleTokens],
+  );
+
+  return { eligibleTokens, totalAssetsFiat, projectedAmount, currency };
 }
 
 export default useProjectedEarnings;

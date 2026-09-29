@@ -1,1 +1,37 @@
-export { startAppiumServer, stopAppiumServer } from './AppiumServer.ts';
+export {
+  getAppiumHost,
+  getAppiumPort,
+  getAppiumServerUrl,
+  isAppiumServerRunning,
+  shouldSkipAppiumStop,
+  startAppiumServer,
+  stopAppiumServer,
+} from './AppiumServer.ts';
+export {
+  APPIUM_SMOKE_VIDEOS_DIR,
+  isVideoRecordingOnFailureEnabled,
+  startFailureRecording,
+  stopFailureRecordingAndAttach,
+} from './ScreenRecording.ts';
+export { isSessionAlive, switchToNativeContext } from './sessionHealth.ts';
+export {
+  consumeSharedSessionRecreate,
+  isDeviceHealthError,
+  recreateSharedSessionNow,
+  requestSharedSessionRecreate,
+  resetSharedSessionRecreateState,
+  setSharedSessionRecreateHandler,
+  type SharedSessionRecreateHandler,
+} from './sessionRecovery.ts';
+export {
+  isAdbTransportFault,
+  withAdbHostLock,
+  withAdbHostLockSync,
+} from './adbHostLock.ts';
+export {
+  softReloadAppForFixtures,
+  type SoftReloadAppForFixturesOptions,
+  type SoftReloadAppForFixturesResult,
+  type SoftReloadDeviceCommands,
+  type SoftReloadFixtureServer,
+} from './softReloadApp.ts';

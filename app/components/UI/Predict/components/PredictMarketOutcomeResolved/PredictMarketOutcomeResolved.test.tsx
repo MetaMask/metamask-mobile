@@ -9,6 +9,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'predict.volume_abbreviated': 'Vol.',
       'predict.outcome_draw': 'Draw',
+      'predict.outcome_loser': 'Loser',
     };
     return translations[key] || key;
   },
@@ -225,22 +226,18 @@ describe('PredictMarketOutcomeResolved', () => {
     expect(getByText(/\$5\.0K.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('truncates long outcome titles with ellipsis', () => {
-    const outcome = createMockOutcome({
-      groupItemTitle:
-        'This is a very long title that should be truncated with ellipsis',
-    });
+  it('wraps long outcome titles instead of truncating them', () => {
+    const longTitle = 'Total Kills Over/Under 55.5 in Game 1?';
+    const outcome = createMockOutcome({ groupItemTitle: longTitle });
 
     const { getByText } = render(
       <PredictMarketOutcomeResolved outcome={outcome} />,
     );
 
-    const titleElement = getByText(
-      'This is a very long title that should be truncated with ellipsis',
-    );
+    const titleElement = getByText(longTitle);
     expect(titleElement).toBeOnTheScreen();
-    expect(titleElement.props.numberOfLines).toBe(1);
-    expect(titleElement.props.ellipsizeMode).toBe('tail');
+    expect(titleElement.props.numberOfLines).toBeUndefined();
+    expect(titleElement.props.ellipsizeMode).toBeUndefined();
   });
 
   it('handles very small price differences between tokens', () => {
@@ -286,6 +283,32 @@ describe('PredictMarketOutcomeResolved', () => {
     );
 
     expect(getByText('Draw')).toBeOnTheScreen();
+  });
+
+  it('displays a one-token extended market as winner when price is resolved high', () => {
+    const outcome = createMockOutcome({
+      groupItemTitle: 'Team A wins',
+      tokens: [{ id: 'token-team-a', title: 'Team A', price: 1 }],
+    });
+
+    const { getByText } = render(
+      <PredictMarketOutcomeResolved outcome={outcome} />,
+    );
+
+    expect(getByText('Team A')).toBeOnTheScreen();
+  });
+
+  it('displays one-token extended market losers without crashing', () => {
+    const outcome = createMockOutcome({
+      groupItemTitle: 'Team B wins',
+      tokens: [{ id: 'token-team-b', title: 'Team B', price: 0 }],
+    });
+
+    const { getByText } = render(
+      <PredictMarketOutcomeResolved outcome={outcome} />,
+    );
+
+    expect(getByText('Loser')).toBeOnTheScreen();
   });
 
   it('calls formatVolume with outcome volume', () => {

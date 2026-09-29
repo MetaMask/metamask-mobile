@@ -2,14 +2,17 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -23,11 +26,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -132,7 +133,7 @@ interface PredictMarketSingleProps {
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -152,8 +153,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const outcome = market.outcomes[0];
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
@@ -189,7 +189,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
-    onBuyButtonPress?.(market.id);
+    onBuyButtonPress?.({ market, outcome, outcomeToken: token });
+
     executeGuardedAction(
       () => {
         openBuySheet({
@@ -243,7 +244,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 <Image
                   source={{ uri: getImageUrl() }}
                   style={tw.style('w-full h-full')}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={getImageUrl()}
                 />
               ) : (
                 <Box twClassName="w-full h-full bg-muted" />
@@ -252,7 +254,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
-              style={tw.style('flex-1 font-medium')}
+              fontWeight={FontWeight.Medium}
+              style={tw.style('flex-1')}
               numberOfLines={2}
             >
               {getTitle()}

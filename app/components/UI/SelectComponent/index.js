@@ -23,8 +23,10 @@ import {
 } from '@metamask/design-system-react-native';
 
 const ROW_HEIGHT = 35;
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (theme) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
     pickerTrigger: {
       backgroundColor: colors.background.muted,
       padding: 0,
@@ -32,7 +34,7 @@ const createStyles = (colors) =>
       paddingBottom: 12,
       paddingLeft: 16,
       paddingRight: 16,
-      borderRadius: 12,
+      borderRadius: 9999,
       borderWidth: 0,
     },
     selectedLabel: {
@@ -44,11 +46,13 @@ const createStyles = (colors) =>
       padding: 60,
     },
     modalView: {
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.elevated1,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
     },
     list: {
       width: '100%',
@@ -75,7 +79,13 @@ const createStyles = (colors) =>
       paddingBottom: 10,
     },
   });
+};
 
+/**
+ * @deprecated Please update your code to use `SelectButton` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/SelectButton/README.md}
+ */
 export default class SelectComponent extends PureComponent {
   static propTypes = {
     /**
@@ -153,8 +163,9 @@ export default class SelectComponent extends PureComponent {
   };
 
   renderDropdownSelector = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const theme = this.context || mockTheme;
+    const { colors } = theme;
+    const styles = createStyles(theme);
 
     return (
       <View style={baseStyles.flexGrow}>

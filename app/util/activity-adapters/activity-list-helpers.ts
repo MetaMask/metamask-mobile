@@ -1,0 +1,324 @@
+import { strings } from '../../../locales/i18n';
+import { mergeActivityItemSponsoredFees } from './fees';
+import type { ActivityListItem, TokenAmount } from './types';
+import { isSpendingCapUnlimited } from './adapters/helpers';
+
+const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
+  'approveSpendingCap',
+  'increaseSpendingCap',
+  'revokeSpendingCap',
+  'assetActivation',
+  'assetDeactivation',
+]);
+
+const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
+
+const STAKING_KINDS = new Set<ActivityListItem['type']>([
+  'stake',
+  'unstake',
+  'claim',
+]);
+
+/**
+ * True when a spending-cap item carries a cap amount — an explicit `amount` or
+ * an unlimited approval.
+ */
+function isSpendingCapWithAmount(item: ActivityListItem): boolean {
+  if (!SPENDING_CAP_KINDS.has(item.type)) {
+    return false;
+  }
+  const token = 'token' in item.data ? item.data.token : undefined;
+  return Boolean(
+    token?.amount || isSpendingCapUnlimited(token?.amount, token?.decimals),
+  );
+}
+
+/**
+ * True when fee.amount is a non-zero integer (decimal or hex). Empty / invalid
+ * strings are treated as no amount.
+ */
+function hasNonZeroFeeAmount(amount: string | undefined): boolean {
+  if (!amount) {
+    return false;
+  }
+  try {
+    return BigInt(amount) > 0n;
+  } catch {
+    return false;
+  }
+}
+
+/** Fallback for staking payloads with no gas data to rebuild a fee from. */
+function isStakingWithNetworkFee(item: ActivityListItem): boolean {
+  if (!STAKING_KINDS.has(item.type) || !('fees' in item.data)) {
+    return false;
+  }
+  return Boolean(item.data.fees?.length);
+}
+
+/**
+ * True when the item has a gas-token fee (ERC-20 gas payment) with a non-zero
+ * amount. Used to prefer local Activity rows over confirmed API copies that
+ * only have a native network fee (TMCU-1064).
+ */
+function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
+  if (!('fees' in item.data) || !item.data.fees?.length) {
+    return false;
+  }
+  return item.data.fees.some(
+    (fee) => fee.type === 'gasToken' && hasNonZeroFeeAmount(fee.amount),
+  );
+}
+
+/**
+ * Whether a local Activity row should win over a same-hash API/confirmed copy.
+ * Shared by the Activity list dedup and Activity Details resolution so the
+ * gas-token / spending-cap / out-categorize rules stay aligned (TMCU-1064).
+ *
+ * Gas-token preference requires matching types so a degraded local
+ * `contractInteraction` cannot permanently beat a richer API `send`/`swap`.
+ */
+function shouldPreferLocalActivityItem(
+  localItem: ActivityListItem,
+  apiItem: ActivityListItem,
+): boolean {
+  const localOutCategorizesApi =
+    apiItem.type !== localItem.type && localItem.type !== 'contractInteraction';
+
+  const localHasRicherSpendingCap =
+    apiItem.type === localItem.type &&
+    isSpendingCapWithAmount(localItem) &&
+    !isSpendingCapWithAmount(apiItem);
+
+  const localHasGasTokenFee =
+    apiItem.type === localItem.type &&
+    isGasTokenFeeWithAmount(localItem) &&
+    !isGasTokenFeeWithAmount(apiItem);
+
+  const localHasStakingNetworkFee =
+    apiItem.type === localItem.type &&
+    isStakingWithNetworkFee(localItem) &&
+    !isStakingWithNetworkFee(apiItem);
+
+  return (
+    localOutCategorizesApi ||
+    localHasRicherSpendingCap ||
+    localHasGasTokenFee ||
+    localHasStakingNetworkFee
+  );
+}
+
+/**
+ * Picks local vs API Activity for Details (and list-aligned resolution).
+ */
+export function preferLocalOrApiActivityItem(
+  localItem: ActivityListItem,
+  apiItem: ActivityListItem | undefined,
+): ActivityListItem {
+  if (!apiItem) {
+    return localItem;
+  }
+  return shouldPreferLocalActivityItem(localItem, apiItem)
+    ? localItem
+    : mergeActivityItemSponsoredFees(localItem, apiItem);
+}
+
+export type GroupedActivityListItem =
+  | { type: 'pending-header' }
+  | { type: 'date-header'; date: number }
+  | { type: 'item'; item: ActivityListItem };
+
+export function shouldShowPlusSign(activityType: ActivityListItem['type']) {
+  return !hidePlusSignActivityTypes.has(activityType);
+}
+
+/**
+ * A send/receive that failed or was cancelled moved no tokens, so its transfer
+ * amount (surfaced from the attempted/original transaction) is misleading. The
+ * row, the details amount header, and the details total all suppress it via this
+ * predicate so they stay consistent.
+ */
+export function isFailedOrCancelledTransfer(item: ActivityListItem): boolean {
+  return (
+    (item.status === 'failed' || item.status === 'cancelled') &&
+    (item.type === 'send' || item.type === 'receive')
+  );
+}
+
+const isSameLocalDay = (date: Date, otherDate: Date) =>
+  date.getFullYear() === otherDate.getFullYear() &&
+  date.getMonth() === otherDate.getMonth() &&
+  date.getDate() === otherDate.getDate();
+
+export const formatActivityListDateHeader = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  if (isSameLocalDay(date, today)) {
+    return strings('perps.today');
+  }
+
+  if (isSameLocalDay(date, yesterday)) {
+    return strings('perps.yesterday');
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+};
+
+const getTokenActivityValue = (token: TokenAmount) => {
+  const amount = isSpendingCapUnlimited(token.amount, token.decimals)
+    ? strings('confirm.unlimited')
+    : (token.amount ?? '');
+
+  return `${amount} ${token.symbol}`.trim();
+};
+
+export const getActivityValue = (item: ActivityListItem) => {
+  const { data } = item;
+
+  if ('token' in data && data.token?.symbol) {
+    return getTokenActivityValue(data.token);
+  }
+
+  if ('destinationToken' in data && data.destinationToken?.symbol) {
+    return getTokenActivityValue(data.destinationToken);
+  }
+
+  if ('sourceToken' in data && data.sourceToken?.symbol) {
+    return getTokenActivityValue(data.sourceToken);
+  }
+
+  return undefined;
+};
+
+export function enrichTokenFromApi(
+  token: TokenAmount | undefined,
+  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+): TokenAmount | undefined {
+  if (!token?.assetId) {
+    return token;
+  }
+  const listToken = dataByAssetId[token.assetId.toLowerCase()];
+  if (!listToken) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken.symbol;
+  const decimals = token.decimals ?? listToken.decimals;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+  };
+}
+
+export const getActivityFromTo = (item: ActivityListItem) => {
+  const { data } = item;
+  return {
+    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
+    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
+  };
+};
+
+function getItemHash(item: ActivityListItem) {
+  return item.hash?.toLowerCase();
+}
+
+export function getLastEvmItemIndex(
+  groupedItems: GroupedActivityListItem[],
+  evmItems: ActivityListItem[],
+) {
+  const evmItemHashes = new Set(
+    evmItems.flatMap((item) => {
+      const hash = getItemHash(item);
+      return hash ? [hash] : [];
+    }),
+  );
+
+  for (let index = groupedItems.length - 1; index >= 0; index -= 1) {
+    const row = groupedItems[index];
+    const hash = row?.type === 'item' ? getItemHash(row.item) : undefined;
+
+    if (hash && evmItemHashes.has(hash)) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+export const getGroupedActivityListItemKey = (
+  item: GroupedActivityListItem,
+  index: number,
+) => {
+  if (item.type === 'pending-header') {
+    return 'pending-header';
+  }
+
+  if (item.type === 'date-header') {
+    return `date-header-${item.date}`;
+  }
+
+  const { chainId = '', timestamp, type, hash } = item.item;
+  const identity = hash ?? String(index);
+
+  return `${chainId}:${timestamp}:${type}:${identity}`;
+};
+
+function parseDate(timestamp: number) {
+  const date = new Date(timestamp);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+}
+
+function groupItemsByDate(
+  items: ActivityListItem[],
+): GroupedActivityListItem[] {
+  let currentDate: number | null = null;
+
+  return items.flatMap((item): GroupedActivityListItem[] => {
+    const date = parseDate(item.timestamp);
+
+    if (date === currentDate) {
+      return [{ type: 'item', item }];
+    }
+
+    currentDate = date;
+    return [
+      { type: 'date-header', date },
+      { type: 'item', item },
+    ];
+  });
+}
+
+export function groupActivityListItems(
+  items: ActivityListItem[],
+): GroupedActivityListItem[] {
+  const pending: ActivityListItem[] = [];
+  const historical: ActivityListItem[] = [];
+
+  for (const item of items) {
+    if (item.status === 'pending') {
+      pending.push(item);
+    } else {
+      historical.push(item);
+    }
+  }
+
+  const grouped: GroupedActivityListItem[] = [];
+
+  if (pending.length > 0) {
+    grouped.push({ type: 'pending-header' });
+    for (const item of pending) {
+      grouped.push({ type: 'item', item });
+    }
+  }
+
+  grouped.push(...groupItemsByDate(historical));
+  return grouped;
+}

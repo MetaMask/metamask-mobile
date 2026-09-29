@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import React from 'react';
 import { View, ViewProps } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -37,7 +38,7 @@ const StakingButtons = ({
   hasStakedPositions,
   hasEthToUnstake,
 }: StakingButtonsProps) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { styles } = useStyles(styleSheet, {});
 

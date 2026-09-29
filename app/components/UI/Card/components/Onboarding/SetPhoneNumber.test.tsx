@@ -7,6 +7,15 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { CardError, CardErrorType } from '../../types';
 import useRegions from '../../hooks/useRegions';
 import SetPhoneNumber from './SetPhoneNumber';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock whenEngineReady to prevent async polling after test teardown
 jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
@@ -23,6 +32,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+  navigateWithDetails: jest.fn(
+    (
+      navigation: { navigate: (...args: unknown[]) => void },
+      details: readonly [string] | readonly [string, object | undefined],
+    ) => navigation.navigate(...details),
+  ),
 }));
 
 // Mock i18n
@@ -36,6 +51,13 @@ jest.mock('../../hooks/useRegions');
 jest.mock('../../../../hooks/useDebouncedValue');
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 // Capture setOnValueChange callbacks and navigation args so tests can simulate
@@ -115,6 +137,31 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(Text, props, children),
+    TextField: ({
+      value,
+      onChangeText,
+      onBlur,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 
@@ -295,6 +342,25 @@ describe('SetPhoneNumber Component', () => {
     });
 
     store = createTestStore();
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with SET_PHONE_NUMBER screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: CardScreens.SET_PHONE_NUMBER,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Initial Render', () => {

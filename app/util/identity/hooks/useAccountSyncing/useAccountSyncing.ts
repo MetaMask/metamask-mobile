@@ -54,8 +54,6 @@ export const useAccountSyncing = () => {
       if (!shouldDispatchAccountSyncing) {
         return;
       }
-      // HACK: Force Snap keyring instantiation.
-      await Engine.getSnapKeyring();
       await Engine.context.AccountTreeController.syncWithUserStorage();
     };
     action().catch((error) => {

@@ -8,6 +8,7 @@
  * Populated once when the Playwright `driver` fixture creates the session.
  */
 let cachedPlatform: 'android' | 'ios' = 'android';
+let cachedPlatformVersion = '';
 let cachedWindowSize: { width: number; height: number } = {
   width: 0,
   height: 0,
@@ -41,10 +42,12 @@ function assertPositiveWindowSize(windowSize: {
 export function setDeviceInfo(
   platform: 'android' | 'ios',
   windowSize: { width: number; height: number },
+  platformVersion = '',
 ): void {
   assertPositiveWindowSize(windowSize);
   cachedPlatform = platform;
   cachedWindowSize = windowSize;
+  cachedPlatformVersion = platformVersion;
   isPopulated = true;
 }
 
@@ -54,6 +57,7 @@ export function setDeviceInfo(
 export function resetDeviceInfo(): void {
   isPopulated = false;
   cachedPlatform = 'android';
+  cachedPlatformVersion = '';
   cachedWindowSize = { width: 0, height: 0 };
 }
 
@@ -66,6 +70,17 @@ export function getPlatform(): 'android' | 'ios' {
     throw new Error(NOT_INITIALIZED_MESSAGE);
   }
   return cachedPlatform;
+}
+
+/**
+ * Get the cached OS version string (e.g. `26.0`), or `''` when unknown.
+ * @throws If the cache was never populated.
+ */
+export function getPlatformVersion(): string {
+  if (!isPopulated) {
+    throw new Error(NOT_INITIALIZED_MESSAGE);
+  }
+  return cachedPlatformVersion;
 }
 
 /**

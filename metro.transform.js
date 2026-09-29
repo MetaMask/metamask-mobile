@@ -7,8 +7,8 @@ const {
   lintTransformedFile,
 } = require('@metamask/build-utils');
 const { ESLint } = require('eslint');
-const defaultTransformer = require('metro-react-native-babel-transformer');
-const svgTransformer = require('react-native-svg-transformer');
+const defaultTransformer = require('@expo/metro-config/babel-transformer');
+const svgTransformer = require('react-native-svg-transformer/expo');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
@@ -25,6 +25,7 @@ const availableFeatures = new Set([
   'sample-feature',
   'tron',
   'experimental',
+  'lighter',
 ]);
 
 // Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. local dev)
@@ -62,9 +63,9 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
-function getBuildTypeFeaturesFromEnv() {
-  const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
-  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
+function getBuildTypeFeaturesFromEnv(environment = process.env) {
+  const buildType = environment.METAMASK_BUILD_TYPE ?? 'main';
+  const envType = environment.METAMASK_ENVIRONMENT ?? 'production';
   let features;
 
   switch (buildType) {
@@ -100,20 +101,25 @@ function getBuildTypeFeaturesFromEnv() {
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
-function getBuildTypeFeatures() {
+function getBuildTypeFeatures(environment = process.env) {
   let featureSet;
 
   // Prefer GH Actions path: single source of truth from builds.yml
-  if (process.env.CODE_FENCING_FEATURES) {
-    const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
+  if (environment.CODE_FENCING_FEATURES) {
+    const features = JSON.parse(environment.CODE_FENCING_FEATURES);
     featureSet = new Set(features);
   } else {
     // Fallback for local dev builds
-    featureSet = getBuildTypeFeaturesFromEnv();
+    featureSet = getBuildTypeFeaturesFromEnv(environment);
   }
 
-  if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+  if (environment.INCLUDE_SAMPLE_FEATURE === 'true') {
     featureSet.add('sample-feature');
+  }
+
+  // Keep the embedded signer out of ordinary bundles, including local dev.
+  if (environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+    featureSet.add('lighter');
   }
 
   return featureSet;
@@ -128,17 +134,21 @@ module.exports.transform = async ({ src, filename, options }) => {
     return svgTransformer.transform({ src, filename, options });
   }
 
+  const isNodeModule = path
+    .normalize(filename)
+    .split(path.sep)
+    .includes('node_modules');
+
   const environment = process.env.METAMASK_ENVIRONMENT ?? 'production';
-  const shouldLintFencedFiles = environment === 'production';
+
+  const shouldLintFencedFiles =
+    environment === 'production' && process.env.SKIP_TRANSFORM_LINT !== 'true';
 
   /**
    * Params based on builds we're code splitting
    * i.e: flavorDimensions "version" productFlavors from android/app/build.gradle
    */
-  if (
-    !path.normalize(filename).split(path.sep).includes('node_modules') &&
-    fileExtsToScan.includes(path.extname(filename))
-  ) {
+  if (!isNodeModule && fileExtsToScan.includes(path.extname(filename))) {
     const [processedSource, didModify] = removeFencedCode(filename, src, {
       all: availableFeatures,
       active: getBuildTypeFeatures(),
@@ -215,3 +225,6 @@ function getESLintInstance() {
   }
   return eslintInstance;
 }
+
+// Exposed for focused code-fencing tests only.
+module.exports.getBuildTypeFeatures = getBuildTypeFeatures;

@@ -13,6 +13,7 @@ const mockNavigate = jest.fn();
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
   Ethereum: '2.3',
   USDC: '4.5',
+  USDC_HALF_UP: '4.25',
   USDT: '4.1',
   DAI: '5.0',
 };
@@ -83,6 +84,23 @@ describe('EarnTokenSelector', () => {
     );
     expect(getByText('4.5% APR')).toBeOnTheScreen();
     expect(getByText('6.84314 USDC')).toBeOnTheScreen();
+  });
+
+  it('rounds APR halfway values up to one decimal place', () => {
+    const halfUpToken = {
+      ...MOCK_USDC_MAINNET_ASSET,
+      symbol: 'USDC_HALF_UP',
+    };
+
+    const { getByText } = renderWithProvider(
+      <EarnTokenSelector
+        token={halfUpToken}
+        action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('4.3% APR')).toBeOnTheScreen();
   });
 
   it('navigates to earn token list when pressed', () => {

@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import BottomSheet, {
@@ -41,12 +42,16 @@ import {
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../UI/Perps/utils/perpsModeSwitch';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
@@ -67,6 +72,7 @@ const WalletActions = () => {
     sourcePage: 'MainView',
   });
   const { isEligible: isEarnEligible } = useStakingEligibility();
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -119,13 +125,18 @@ const WalletActions = () => {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON },
+        const target = getPerpsHomeNavigationTarget({
+          source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
+        navigate(Routes.PERPS.ROOT, toPerpsNavigatorScreenParams(target));
       }
     });
-  }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser]);
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    isFirstTimePerpsUser,
+    getPerpsHomeNavigationTarget,
+  ]);
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {

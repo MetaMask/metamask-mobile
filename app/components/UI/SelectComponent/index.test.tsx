@@ -9,7 +9,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('SelectComponent', () => {
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <SelectComponent
         options={[
@@ -20,6 +20,7 @@ describe('SelectComponent', () => {
         label={'Choose an option'}
       />,
     );
+
     expect(toJSON()).not.toBeNull();
   });
 });

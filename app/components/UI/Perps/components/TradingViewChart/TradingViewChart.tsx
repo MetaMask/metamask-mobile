@@ -24,16 +24,27 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+export interface ChartLimitOrderLine {
+  id: string;
+  price: string;
+  side: 'buy' | 'sell';
+}
+
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
   entryPrice?: string;
   liquidationPrice?: string;
   currentPrice?: string;
+  /** Resting limit orders drawn as additional price lines. */
+  limitOrders?: ChartLimitOrderLine[];
 }
 
 export type { TimeDuration } from '@metamask/perps-controller';
-import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import {
+  CANDLE_DATA_SOURCE,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
 
 export interface OhlcData {
   open: string;
@@ -59,6 +70,7 @@ interface TradingViewChartProps {
   onChartReady?: () => void;
   onNeedMoreHistory?: () => void; // Callback when user scrolls to left edge and needs more historical data
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
+  onVisibleCandleCountChange?: (count: number) => void;
   showVolume?: boolean; // Control volume bars visibility
   showOverlay?: boolean; // Control chart overlay visibility (OHLC legend)
   coloredVolume?: boolean; // Control volume bar coloring (true = green/red by direction, false = single color)
@@ -82,6 +94,7 @@ const TradingViewChart = React.forwardRef<
       onChartReady,
       onNeedMoreHistory,
       visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
+      onVisibleCandleCountChange,
       showVolume = true, // Default to showing volume
       showOverlay = false, // Default to hiding overlay
       coloredVolume = true, // Default to colored volume bars
@@ -96,6 +109,12 @@ const TradingViewChart = React.forwardRef<
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
     const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+    // Bumped on every CHART_READY message (including re-fires after a WebView
+    // reload/remount while isChartReady was already true, e.g. iOS reclaiming
+    // the WKWebView content process in the background). Included in the send-
+    // effect deps below so a reload always triggers a resend of currently-held
+    // candle data instead of leaving the newly-blanked chart stuck empty.
+    const [chartReadyNonce, setChartReadyNonce] = useState(0);
     // Buffer for candle data that arrives before WebView is ready (Android fix)
     const pendingCandleDataRef = useRef<{
       data: CandleData;
@@ -114,6 +133,10 @@ const TradingViewChart = React.forwardRef<
       count: number;
       lastTime: number;
     } | null>(null);
+    const visibleCandleCountRef = useRef(visibleCandleCount);
+    visibleCandleCountRef.current = visibleCandleCount;
+    const onVisibleCandleCountChangeRef = useRef(onVisibleCandleCountChange);
+    onVisibleCandleCountChangeRef.current = onVisibleCandleCountChange;
 
     // Format OHLC values using the same formatting as the header
     const formattedOhlcData = useMemo(() => {
@@ -267,6 +290,10 @@ const TradingViewChart = React.forwardRef<
               // must be a full reload regardless of prior signature state.
               lastSentSignatureRef.current = null;
               setIsChartReady(true);
+              // Force the send-effect to re-run even if isChartReady was
+              // already true (e.g. the WebView silently reloaded in the
+              // background and re-fired CHART_READY) so the chart repaints.
+              setChartReadyNonce((n) => n + 1);
               onChartReady?.();
               break;
             case 'PRICE_LINES_UPDATE':
@@ -300,6 +327,16 @@ const TradingViewChart = React.forwardRef<
               );
               onNeedMoreHistory?.();
               break;
+            case 'VISIBLE_CANDLE_COUNT_CHANGED': {
+              const candleCount = message.candleCount;
+              if (
+                typeof candleCount === 'number' &&
+                Number.isFinite(candleCount)
+              ) {
+                onVisibleCandleCountChangeRef.current?.(candleCount);
+              }
+              break;
+            }
             default:
               break;
           }
@@ -395,8 +432,6 @@ const TradingViewChart = React.forwardRef<
       // Chart is ready - send data
       if (!webViewRef.current) return;
 
-      let dataToSend = null;
-      let dataSource = 'none';
       let dataToUse: CandleData | null = null;
 
       // Check for pending buffered data first (Android case)
@@ -430,11 +465,6 @@ const TradingViewChart = React.forwardRef<
           return;
         }
 
-        dataToSend = formatCandleData(dataToUse);
-        dataSource = 'real';
-      }
-
-      if (dataToSend && dataToUse) {
         // Compute signature for incremental-vs-full routing.
         // Times are read from the raw CandleData (milliseconds) — only used
         // for equality checks, so the unit doesn't matter as long as it's stable.
@@ -466,25 +496,36 @@ const TradingViewChart = React.forwardRef<
           (nextSignature.count === prev.count ||
             nextSignature.count === prev.count + 1);
 
+        // Route BEFORE formatting so live ticks only format the 1-2 tail candles
+        // they actually send, instead of re-formatting the entire (up to ~1000)
+        // candle array on every tick.
         if (canIncrementalUpdate) {
+          const isNewBar = nextSignature.count === prev.count + 1;
           // Send the last candle for same-count ticks, or the last two candles
           // for a bar-close transition (previous bar may have been finalized
           // at a different close than its last streamed value).
-          const sliceSize =
-            nextSignature.count === (prev?.count ?? 0) + 1 ? 2 : 1;
-          const incrementalCandles = dataToSend.slice(-sliceSize);
+          const sliceSize = isNewBar ? 2 : 1;
+          const incrementalCandles = formatCandleData({
+            ...dataToUse,
+            candles: dataToUse.candles.slice(-sliceSize),
+          });
           webViewRef.current.postMessage(
             JSON.stringify({
               type: 'UPDATE_LAST_CANDLE',
               candles: incrementalCandles,
+              isNewBar,
+              previousCandleCount: prev.count,
+              nextCandleCount: nextSignature.count,
+              previousLastTime: prev.lastTime,
+              nextLastTime: nextSignature.lastTime,
             }),
           );
         } else {
           const message = {
             type: 'SET_CANDLESTICK_DATA',
-            data: dataToSend,
-            source: dataSource,
-            visibleCandleCount,
+            data: formatCandleData(dataToUse),
+            source: CANDLE_DATA_SOURCE,
+            visibleCandleCount: visibleCandleCountRef.current,
             interval: dataToUse.interval, // Pass interval for zoom reset on change
           };
           webViewRef.current.postMessage(JSON.stringify(message));
@@ -494,10 +535,10 @@ const TradingViewChart = React.forwardRef<
       }
     }, [
       isChartReady,
+      chartReadyNonce,
       candleDataVersion,
       formatCandleData,
       candleData,
-      visibleCandleCount,
       symbol,
     ]);
 
@@ -584,13 +625,13 @@ const TradingViewChart = React.forwardRef<
         // Increment this version number to force WebView remount and HTML reload
         // when making incompatible changes to TradingViewChartTemplate.tsx
         //
-        // Current version: v21 (fixed y-axis spacing and debug borders)
+        // Current version: v26 (autoscale via candlestick provider only)
         //
         // Future improvement: Consider using a content hash of the template
         // for automatic cache busting: key={`chart-webview-${templateHash}`}
         //
         // Note: HTML content is already memoized and regenerates on theme/coloredVolume changes
-        key="chart-webview-v21"
+        key="chart-webview-v26"
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles

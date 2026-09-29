@@ -3,7 +3,7 @@ import {
   WalletDevice,
   type TransactionMeta,
   TransactionEnvelopeType,
-  IsAtomicBatchSupportedRequest,
+  type IsAtomicBatchSupportedRequest,
   getAccountAddressRelationship,
 } from '@metamask/transaction-controller';
 import { cloneDeep, omit } from 'lodash';
@@ -33,7 +33,16 @@ const {
 } = TransactionControllerUtils;
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  GasFeeEstimateType: {
+    GasPrice: 'eth_gasPrice',
+  },
+  TransactionEnvelopeType: {
+    feeMarket: '0x2',
+    legacy: '0x0',
+  },
+  WalletDevice: {
+    MM_MOBILE: 'metamask_mobile',
+  },
   getAccountAddressRelationship: jest.fn(),
 }));
 
@@ -420,47 +429,6 @@ describe('Transaction Controller Util', () => {
           ],
         ).toHaveBeenCalled();
       });
-    });
-  });
-
-  describe('startIncomingTransactionPolling', () => {
-    it('should call Transaction controller API method if privacy mode is not enabled', () => {
-      TransactionControllerUtils.startIncomingTransactionPolling();
-      expect(
-        Engine.context.TransactionController.startIncomingTransactionPolling,
-      ).toHaveBeenCalled();
-    });
-
-    it('should not call Transaction controller API method if privacy mode is enabled', () => {
-      jest.spyOn(store, 'getState').mockReturnValue({
-        settings: { basicFunctionalityEnabled: false },
-      } as RootState);
-      TransactionControllerUtils.startIncomingTransactionPolling();
-      expect(
-        Engine.context.TransactionController.startIncomingTransactionPolling,
-      ).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('updateIncomingTransactions', () => {
-    it('should call Transaction controller API method is privacy mode is not enabled', () => {
-      jest.spyOn(store, 'getState').mockReturnValue({
-        settings: { basicFunctionalityEnabled: true },
-      } as RootState);
-      TransactionControllerUtils.updateIncomingTransactions();
-      expect(
-        Engine.context.TransactionController.updateIncomingTransactions,
-      ).toHaveBeenCalled();
-    });
-
-    it('should not call Transaction controller API method is privacy mode is enabled', () => {
-      jest.spyOn(store, 'getState').mockReturnValue({
-        settings: { basicFunctionalityEnabled: false },
-      } as RootState);
-      TransactionControllerUtils.updateIncomingTransactions();
-      expect(
-        Engine.context.TransactionController.updateIncomingTransactions,
-      ).not.toHaveBeenCalled();
     });
   });
 

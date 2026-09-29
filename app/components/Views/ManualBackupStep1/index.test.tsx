@@ -9,7 +9,10 @@ import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
 const store = mockStore({ user: { appTheme: AppThemeKey.light } });
@@ -73,7 +76,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     isEnabled: mockIsMetricsEnabled,
     enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
+    identify: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({ build: jest.fn() })),
       build: jest.fn(),
@@ -81,6 +84,13 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: jest.fn(),
     getAnalyticsId: jest.fn(),
   }),
+}));
+
+jest.mock('../../../util/mnemonic', () => ({
+  uint8ArrayToMnemonic: jest.fn(
+    () =>
+      'abstract accident acoustic announce apple april argue artistic atmosphere aunt around awesome',
+  ),
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -110,6 +120,13 @@ jest.mock('../../../core', () => ({
 jest.mock('../../../util/Logger', () => ({ error: jest.fn(), log: jest.fn() }));
 const Logger = jest.requireMock('../../../util/Logger');
 
+jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
+  jest.fn(),
+);
+const trackErrorAsAnalytics = jest.requireMock(
+  '../../../util/metrics/TrackError/trackErrorAsAnalytics',
+);
+
 const MOCK_WORDS = [
   'abstract',
   'accident',
@@ -137,7 +154,6 @@ const createMockNavigation = () => ({
 
 interface SetupOptions {
   seedPhrase?: string[];
-  words?: string[];
   backupFlow?: boolean;
   settingsBackup?: boolean;
 }
@@ -168,14 +184,19 @@ const renderComponent = (routeParams: SetupOptions = {}) => {
 const revealSeedPhrase = async (
   wrapper: ReturnType<typeof renderWithProvider>,
 ) => {
-  fireEvent.press(
-    wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
-  );
-  await waitFor(() => {
-    expect(
-      wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
-    ).toBeOnTheScreen();
+  // Wrap in act so the seedPhraseHidden state update flushes before assert.
+  // waitFor is unsafe here: testSetup mocks Date.now to a constant, so
+  // waitFor's timeout never elapses and a missed update hangs until Jest's
+  // test timeout (seen as flaky 15s failures in CI).
+  await act(async () => {
+    fireEvent.press(
+      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+    );
   });
+  expect(
+    wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+  ).toBeOnTheScreen();
+  expect(wrapper.getByText(MOCK_WORDS[0])).toBeOnTheScreen();
 };
 
 const renderPasswordView = async () => {
@@ -183,7 +204,6 @@ const renderPasswordView = async () => {
 
   const result = renderComponent({
     seedPhrase: undefined,
-    words: undefined,
     backupFlow: false,
     settingsBackup: false,
   });
@@ -234,13 +254,19 @@ describe('ManualBackupStep1', () => {
       ).toBeOnTheScreen();
 
       await revealSeedPhrase(wrapper);
-    }, 15000);
+    });
 
     it('displays the concealer with blur overlay before reveal', () => {
       const { wrapper } = renderComponent();
 
       expect(
         wrapper.getByText(strings('manual_backup_step_1.action')),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.getByText(strings('manual_backup_step_1.description')),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.getByText(strings('manual_backup_step_1.what_is_srp')),
       ).toBeOnTheScreen();
       expect(
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
@@ -250,8 +276,9 @@ describe('ManualBackupStep1', () => {
     it('opens the seedphrase definition modal', async () => {
       const { wrapper, navigate } = renderComponent();
 
-      const srpText = wrapper.getByText(strings('manual_backup_step_1.info-2'));
-      fireEvent.press(srpText);
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK),
+      );
 
       expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
         screen: 'SeedphraseModal',
@@ -488,7 +515,7 @@ describe('ManualBackupStep1', () => {
       expect(navigate).toHaveBeenCalledWith(
         'OptinMetrics',
         expect.objectContaining({
-          onContinue: expect.any(Function),
+          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
           accountType: AccountType.Metamask,
         }),
       );
@@ -522,12 +549,11 @@ describe('ManualBackupStep1', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows password view and logs error when getPassword throws', async () => {
+    it('shows password view and tracks analytics when getPassword throws', async () => {
       mockGetPassword.mockRejectedValue(new Error('Test error'));
 
       const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: undefined,
         backupFlow: false,
         settingsBackup: false,
       });
@@ -540,23 +566,102 @@ describe('ManualBackupStep1', () => {
         ).toBeOnTheScreen();
       });
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'ManualBackupStep1: SRP recovery failed',
+        'Test error',
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('tracks analytics with JSON-serialized payload when getPassword throws a non-Error object', async () => {
+      mockGetPassword.mockRejectedValue({ code: 'USER_CANCELED' });
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'ManualBackupStep1: SRP recovery failed',
+        JSON.stringify({ code: 'USER_CANCELED' }),
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('exports seed phrase when credentials are available', async () => {
       mockGetPassword.mockResolvedValue({ password: 'test-password' });
       mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));
 
-      renderComponent({
+      const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: [],
         backupFlow: false,
         settingsBackup: false,
       });
 
       await waitFor(() => {
         expect(mockGetPassword).toHaveBeenCalled();
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'test-password',
+        });
       });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows password view when getPassword returns false', async () => {
+      mockGetPassword.mockResolvedValue(false);
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows password view when seed phrase export fails after credentials resolve', async () => {
+      mockGetPassword.mockResolvedValue({ password: 'test-password' });
+      mockExportSeedPhrase.mockRejectedValue(new Error('export failed'));
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'ManualBackupStep1: SRP recovery failed',
+        'export failed',
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
@@ -581,7 +686,15 @@ describe('ManualBackupStep1', () => {
       });
 
       await waitFor(() => {
-        expect(mockExportSeedPhrase).toHaveBeenCalledWith('correct-password');
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'correct-password',
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+        ).toBeOnTheScreen();
       });
     });
 

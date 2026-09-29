@@ -12,7 +12,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { mockNetworkState } from '../../../../../util/test/network';
-
 // QRAccountDisplay is mocked because it uses the safeview context.
 // This is a workaround to render the component.
 jest.mock('../../../QRAccountDisplay', () => {
@@ -59,6 +58,11 @@ jest.mock('../../../QRAccountDisplay', () => {
   };
 });
 
+jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 let mockAccount = internalAccount1;
@@ -74,6 +78,11 @@ jest.mock('@react-navigation/native', () => ({
       account: mockAccount,
     },
   }),
+}));
+
+jest.mock('../../../../../util/analytics/qrCodeViewedTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/qrCodeViewedTracking'),
+  getQrCodeViewedAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -108,6 +117,16 @@ jest.mock('../../../../../core/Engine', () => {
       NetworkController: {
         getNetworkConfigurationsByCaipChainId: jest.fn(),
       },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              accounts: [mockAccountEngine.address],
+            },
+          ],
+        },
+      },
       AccountsController: {
         internalAccounts: {
           accounts: {
@@ -119,6 +138,17 @@ jest.mock('../../../../../core/Engine', () => {
     },
   };
 });
+
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: jest.requireActual(
+      '../../../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
 
 // Mock QRCode component to render something visible
 jest.mock('react-native-qrcode-svg', () => {
@@ -194,7 +224,29 @@ describe('ShareAddress', () => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
     mockNavigate.mockClear();
+    mockTrackEvent.mockClear();
     mockAccount = internalAccount1; // Reset to default
+  });
+
+  it('tracks QR Code Viewed on render without chain_id_caip', () => {
+    render();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'QR Code Viewed',
+        properties: expect.objectContaining({
+          location: 'account-details',
+          account_type: 'MetaMask',
+        }),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.not.objectContaining({
+          chain_id_caip: expect.anything(),
+        }),
+      }),
+    );
   });
 
   it('displays title and QR account information', () => {
@@ -260,6 +312,14 @@ describe('ShareAddress', () => {
       },
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'share_address',
+        url: 'https://etherscan.io',
+      }),
+    );
   });
 
   it('renders different account types correctly', () => {

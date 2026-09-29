@@ -17,8 +17,24 @@ describe('GEO_BLOCKED_COUNTRIES', () => {
     expect(hasRO).toBe(true);
   });
 
-  it('has exactly 2 entries', () => {
-    expect(GEO_BLOCKED_COUNTRIES).toHaveLength(2);
+  it('contains ES', () => {
+    const hasES = GEO_BLOCKED_COUNTRIES.some(
+      (region) => region.country === 'ES',
+    );
+
+    expect(hasES).toBe(true);
+  });
+
+  it('contains IN', () => {
+    const hasIN = GEO_BLOCKED_COUNTRIES.some(
+      (region) => region.country === 'IN',
+    );
+
+    expect(hasIN).toBe(true);
+  });
+
+  it('has exactly 4 entries', () => {
+    expect(GEO_BLOCKED_COUNTRIES).toHaveLength(4);
   });
 
   it('has country property for each entry', () => {
