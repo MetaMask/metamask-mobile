@@ -522,7 +522,7 @@ const Onboarding = () => {
       });
     };
 
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -571,7 +571,7 @@ const Onboarding = () => {
         account_type: AccountType.Imported,
       });
     };
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -1189,7 +1189,7 @@ const Onboarding = () => {
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
-      handleExistingUser(action);
+      void handleExistingUser(action);
     },
     [
       navigation,
@@ -1413,12 +1413,12 @@ const Onboarding = () => {
 
     unsetLoading();
     updateNavBar();
-    checkIfExistingUser();
+    void checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
-      checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
+      void checkForMigrationFailureAndVaultBackup();
+      void PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
