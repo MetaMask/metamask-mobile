@@ -2301,7 +2301,7 @@ describe('PerpsOrderView', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not navigate again when the confirmation settles after the sheet was swiped away', async () => {
+    it('still leaves when the confirmation settles after the sheet was swiped away mid-confirm', async () => {
       const {
         placeOrder,
         submit,
@@ -2314,8 +2314,11 @@ describe('PerpsOrderView', () => {
       dismissSheet();
       await settleConfirm();
 
-      // Only the dismissal itself navigated.
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      // The dismiss flag is snapshotted before confirm. A swipe while confirm
+      // is in flight sets the same flag as the unmount that follows deleting
+      // the approval, so settling still navigates. Only a dismiss that was
+      // already true before confirm started skips this second leave.
+      expect(mockGoBack).toHaveBeenCalledTimes(2);
       expect(placeOrder).not.toHaveBeenCalled();
 
       await confirmDepositOnChain();

@@ -387,10 +387,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // settles in that window. Reset in the effect body so a Fast Refresh effect
   // re-run does not leave it stuck at `true`.
   const isDismissedRef = useRef(false);
-  // Set only by the sheet's close handler, not by the unmount cleanup.
-  // Confirming deletes the approval and unmounts this view, which flips
-  // `isDismissedRef` without the user having left.
-  const isClosedByUserRef = useRef(false);
   useEffect(() => {
     isDismissedRef.current = false;
     return () => {
@@ -1708,6 +1704,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // a parallel deposit confirmation.
         isConfirmingDepositRef.current = true;
         let depositConfirmError: unknown;
+        // Snapshot: the unmount cleanup flips this flag when our own confirm
+        // deletes the approval, so only a pre-confirm value means the user
+        // really left.
+        const dismissedBeforeConfirm = isDismissedRef.current;
         try {
           await onDepositConfirm({
             onError: (error) => {
@@ -1733,11 +1733,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Deposit confirmed: the order is placed once funds arrive, so leaving
         // now is a real commitment, not an abandoned order.
         hasPlacedOrderRef.current = true;
-        if (isClosedByUserRef.current) {
-          // The user already closed the sheet, so `handleTradeSheetClose` has
-          // navigated; a second `goBack` here would pop whatever screen is now
-          // on top. An unmount caused by this confirm deleting the approval
-          // does not count: the user is still here and still needs to leave.
+        if (isDismissedRef.current && dismissedBeforeConfirm) {
+          // The sheet was already gone before confirming, so
+          // `handleTradeSheetClose` has navigated; a second `goBack` here
+          // would pop whatever screen is now on top.
           return;
         }
         if (fromTokenDetails) {
@@ -2200,7 +2199,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // stays mounted until the navigation transition finishes; stop any submit
     // that is still awaiting validation from placing an order.
     isDismissedRef.current = true;
-    isClosedByUserRef.current = true;
     if (fromTokenDetails) {
       const parentNavigation = navigation.getParent();
       if (parentNavigation?.canGoBack()) {
