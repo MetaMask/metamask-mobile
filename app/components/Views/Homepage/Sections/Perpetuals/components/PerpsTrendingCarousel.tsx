@@ -30,7 +30,7 @@ const PerpsTrendingCarousel = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('px-4 gap-2.5')}
+      contentContainerStyle={tw.style('px-4 gap-3')}
       testID="homepage-trending-perps-carousel"
     >
       {markets.map((market) => (
@@ -44,7 +44,7 @@ const PerpsTrendingCarousel = ({
       ))}
       <ViewMoreCard
         onPress={onPressViewMore}
-        twClassName="w-[180px] flex-1"
+        twClassName="w-[188px] flex-1"
         testID="perps-view-more-card"
       />
     </ScrollView>

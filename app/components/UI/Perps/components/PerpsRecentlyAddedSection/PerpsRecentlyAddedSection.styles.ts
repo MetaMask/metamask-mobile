@@ -21,8 +21,14 @@ const styleSheet = (params: { theme: Theme }) => {
     logoRow: {
       marginBottom: 12,
     },
-    name: {
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       marginBottom: 4,
+    },
+    name: {
+      flexShrink: 1,
     },
     priceRow: {
       flexDirection: 'row',

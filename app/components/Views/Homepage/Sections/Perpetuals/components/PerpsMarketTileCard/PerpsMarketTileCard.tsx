@@ -21,11 +21,11 @@ import SparklineChart from '../SparklineChart';
 import styleSheet from './PerpsMarketTileCard.styles';
 import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
 
-const DEFAULT_CARD_WIDTH = 180;
-const DEFAULT_CARD_HEIGHT = 180;
-const SPARKLINE_HEIGHT = 80;
+const DEFAULT_CARD_WIDTH = 188;
+const DEFAULT_CARD_HEIGHT = 188;
+const SPARKLINE_HEIGHT = 86;
 const SPARKLINE_STROKE_WIDTH = 2;
-const TOKEN_LOGO_SIZE = 40;
+const TOKEN_LOGO_SIZE = 32;
 const SHIMMER_PULSE_DURATION = 900;
 const SPARKLINE_MARGIN = 16;
 
@@ -109,34 +109,6 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
           alignItems={BoxAlignItems.Start}
           gap={2}
         >
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {getPerpsDisplaySymbol(market.symbol)}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
-                }
-                numberOfLines={1}
-                twClassName="shrink"
-              >
-                {changePercent}
-              </Text>
-              <PerpsLeverage maxLeverage={market.maxLeverage} />
-            </Box>
-          </Box>
-
           <View style={styles.tokenLogoWrapper}>
             <PerpsTokenLogo
               symbol={market.symbol}
@@ -150,12 +122,56 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
               >
                 <Icon
                   name={IconName.StarFilled}
-                  size={IconSize.Sm}
+                  size={IconSize.Xs}
                   color={IconColor.IconAlternative}
                 />
               </View>
             )}
           </View>
+
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {getPerpsDisplaySymbol(market.symbol)}
+              </Text>
+              <PerpsLeverage maxLeverage={market.maxLeverage} />
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {market.price}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={
+                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
+                }
+                numberOfLines={1}
+              >
+                {changePercent}
+              </Text>
+            </Box>
+          </Box>
         </Box>
       </View>
 
@@ -168,7 +184,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
             height={SPARKLINE_HEIGHT}
             color={sparklineColor}
             gradientId={`sparkline-${market.symbol}`}
-            revealColor={theme.colors.background.section}
+            revealColor={theme.colors.background.muted}
             showGradient={false}
           />
         )}

@@ -15,6 +15,7 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
+import { PerpsLeverage } from '../PerpsLeverage';
 import { formatTimeSinceListing } from '../../utils/time';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
@@ -60,15 +61,18 @@ const PerpsRecentlyAddedTile: React.FC<{
         <PerpsTokenLogo symbol={market.symbol} size={32} />
       </View>
 
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        style={styles.name}
-        numberOfLines={1}
-      >
-        {assetLabel}
-      </Text>
+      <View style={styles.nameRow}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          style={styles.name}
+          numberOfLines={1}
+        >
+          {assetLabel}
+        </Text>
+        <PerpsLeverage maxLeverage={market.maxLeverage} />
+      </View>
 
       <View style={styles.priceRow}>
         <Text
@@ -83,7 +87,7 @@ const PerpsRecentlyAddedTile: React.FC<{
           color={changeColor}
           numberOfLines={1}
         >
-          {market.change24hPercent}
+          {strings('perps.change_24h', { change: market.change24hPercent })}
         </Text>
       </View>
 

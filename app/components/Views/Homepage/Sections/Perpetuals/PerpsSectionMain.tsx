@@ -12,6 +12,9 @@ import {
   Box,
   SectionDivider,
   SectionHeader,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { useIsFocused } from '@react-navigation/native';
@@ -523,7 +526,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           isInteractive
           onPress={handleViewAllPerps}
           testID={homepageSectionTitleTestId(HomeSectionNames.PERPS)}
-        />
+        >
+          {showTrending || shouldShowPillsEmptyState ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('trending.last_24h')}
+            </Text>
+          ) : null}
+        </SectionHeader>
         <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
           {showHomepageUnrealizedPnl && (
             <HomepageSectionUnrealizedPnlRow

@@ -4,8 +4,8 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
 
-const CARD_WIDTH = 180;
-const CARD_HEIGHT = 180;
+const CARD_WIDTH = 188;
+const CARD_HEIGHT = 188;
 const CARD_BORDER_RADIUS = 12;
 const SKELETON_CARD_COUNT = 3;
 
@@ -15,10 +15,10 @@ const PerpsMarketTileCardSkeleton: React.FC = () => {
 
   return (
     <SkeletonPlaceholder
-      backgroundColor={colors.background.section}
+      backgroundColor={colors.background.muted}
       highlightColor={colors.background.subsection}
     >
-      <View style={tw.style('flex-row gap-2.5')}>
+      <View style={tw.style('flex-row gap-3')}>
         {Array.from({ length: SKELETON_CARD_COUNT }, (_, i) => (
           <View
             key={i}
