@@ -234,19 +234,8 @@ export async function identifyIncident1745AffectedUser(
       return;
     }
 
+    // Controller guarantees a mnemonic primary at [0] when fetch resolves.
     const remotePrimary = remoteSecrets[0];
-    if (remotePrimary?.type !== SecretType.Mnemonic) {
-      // Defensive: controller 11+ should have thrown Shape A already.
-      reportIncident1745AffectedUser({
-        source: 'unlockIdentify',
-        shape: 'invalid_primary_secret',
-        cause_message: 'Remote primary missing or not mnemonic after fetch',
-        remote_data_type: remotePrimary
-          ? String(remotePrimary.dataType ?? remotePrimary.type)
-          : 'none',
-      });
-      return;
-    }
 
     let localPrimarySeed: Uint8Array;
     try {
