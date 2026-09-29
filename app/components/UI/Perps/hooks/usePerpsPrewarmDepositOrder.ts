@@ -6,18 +6,18 @@ import {
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   discardPrewarmedDepositOrder,
   prewarmDepositOrder,
+  releasePrewarmedDepositOrderClaim,
   resolveDepositOrderProvider,
 } from '../utils/prewarmedDepositOrder';
 import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsTrading } from './usePerpsTrading';
 
-/** Lighter trades from its own balance, so it has no deposit-with-order route. */
-const LIGHTER_PROVIDER = 'lighter';
 const PREWARM_IDLE_TIMEOUT_MS = 1000;
 
 interface IdleCallbackGlobals {
@@ -77,11 +77,12 @@ export function usePerpsPrewarmDepositOrder({
   // this prewarm deliberately does not perform.
   const requiresProviderSwitch =
     marketProviderId !== undefined && marketProviderId !== depositProvider;
+  // Lighter trades from its own balance, so it has no deposit-with-order route.
   const canPrewarm =
     enabled &&
     isInitialized &&
     !requiresProviderSwitch &&
-    depositProvider !== LIGHTER_PROVIDER;
+    depositProvider !== PROVIDER_CONFIG.LighterProvider;
 
   // Kept out of the focus effect's dependencies so an unstable AB test array or
   // controller callback cannot discard and re-create the transaction on render.
@@ -95,6 +96,11 @@ export function usePerpsPrewarmDepositOrder({
       if (!canPrewarm || !accountAddress) {
         return undefined;
       }
+
+      // A Long/Short tap, here or on another screen, leaves a claim marker so a
+      // late prewarm cannot add a second transaction. This screen owns
+      // prewarming again once it is focused.
+      releasePrewarmedDepositOrderClaim();
 
       let aborted = false;
       const cancelIdleTask = scheduleIdleTask(() => {

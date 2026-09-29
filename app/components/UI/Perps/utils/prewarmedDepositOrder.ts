@@ -35,6 +35,12 @@ export function resolveDepositOrderProvider(
  * {@link discardPrewarmedDepositOrder} takes the transaction, and a generation
  * token makes sure prep that is still running cannot re-publish a transaction
  * somebody else already owns.
+ *
+ * A claim also leaves a `claimed` marker behind: Long/Short now owns
+ * transaction creation, so a prewarm that fires afterwards (a tap landing
+ * before the idle callback) must not add a second transaction. The marker is
+ * cleared by {@link discardPrewarmedDepositOrder} or
+ * {@link releasePrewarmedDepositOrderClaim}.
  */
 interface PrewarmedDepositOrder {
   transactionId: string;
@@ -58,7 +64,8 @@ type PrewarmState =
       criteria: PrewarmCriteria;
       transactionId: Promise<string>;
     }
-  | { status: 'ready'; entry: PrewarmedDepositOrder };
+  | { status: 'ready'; entry: PrewarmedDepositOrder }
+  | { status: 'claimed' };
 
 let state: PrewarmState = { status: 'idle' };
 
@@ -114,17 +121,22 @@ function isUsable(
  * Prepares a `perpsDepositAndOrder` transaction in the background.
  *
  * No-ops when a usable prewarm already exists or one is being prepared, so
- * repeated focus events cannot stack up transactions.
+ * repeated focus events cannot stack up transactions. Also no-ops after
+ * Long/Short claimed the slot, so a tap that lands before the idle callback
+ * does not end up with a second transaction.
  *
  * @param criteria - Account and provider the prewarm must be valid for.
  * @param depositWithOrder - Bound `PerpsController.depositWithOrder`.
  * @returns Promise resolving to the prewarmed transaction id, or undefined when
- * a usable prewarm is already available.
+ * a usable prewarm is already available or Long/Short already claimed the slot.
  */
 export function prewarmDepositOrder(
   criteria: PrewarmCriteria,
   depositWithOrder: () => Promise<DepositWithOrderResult>,
 ): Promise<string> | undefined {
+  if (state.status === 'claimed') {
+    return undefined;
+  }
   if (state.status === 'preparing') {
     if (matchesCriteria(state.criteria, criteria)) {
       return state.transactionId;
@@ -183,6 +195,10 @@ function validateClaimedTransaction(
 /**
  * Hands ownership of the prewarmed transaction to the caller.
  *
+ * Whatever the outcome, the caller now owns transaction creation: a prewarm
+ * that fires after this call no-ops until {@link discardPrewarmedDepositOrder}
+ * or {@link releasePrewarmedDepositOrderClaim} runs.
+ *
  * @param criteria - Account and provider the prewarm must be valid for.
  * @returns Promise resolving to the transaction id, or undefined when there is
  * nothing usable to claim and the caller must create a transaction itself.
@@ -190,39 +206,34 @@ function validateClaimedTransaction(
 export function claimPrewarmedDepositOrder(
   criteria: PrewarmCriteria,
 ): Promise<string> | undefined {
-  if (state.status === 'preparing') {
-    if (!matchesCriteria(state.criteria, criteria)) {
-      discardPrewarmedDepositOrder();
+  const current = takeState();
+  state = { status: 'claimed' };
+
+  if (current.status === 'preparing') {
+    if (!matchesCriteria(current.criteria, criteria)) {
+      rejectWhenPrepared(current.transactionId);
       return undefined;
     }
-
-    const preparing = takeState();
-    return preparing.status === 'preparing'
-      ? preparing.transactionId.then((id) =>
-          validateClaimedTransaction(id, criteria),
-        )
-      : undefined;
+    return current.transactionId.then((id) =>
+      validateClaimedTransaction(id, criteria),
+    );
   }
 
-  if (state.status !== 'ready') {
-    return undefined;
+  if (current.status === 'ready') {
+    if (!isUsable(current.entry, criteria)) {
+      rejectTransaction(current.entry.transactionId);
+      return undefined;
+    }
+    return Promise.resolve(current.entry.transactionId);
   }
 
-  const ready = takeState();
-  if (ready.status !== 'ready') {
-    return undefined;
-  }
-  if (!isUsable(ready.entry, criteria)) {
-    rejectTransaction(ready.entry.transactionId);
-    return undefined;
-  }
-
-  return Promise.resolve(ready.entry.transactionId);
+  return undefined;
 }
 
 /**
  * Rejects an unclaimed prewarmed transaction so it never lingers as an
- * unapproved transaction. Safe to call when there is nothing to discard.
+ * unapproved transaction, and clears any claim marker. Safe to call when
+ * there is nothing to discard.
  */
 export function discardPrewarmedDepositOrder(): void {
   const current = takeState();
@@ -230,12 +241,27 @@ export function discardPrewarmedDepositOrder(): void {
   if (current.status === 'ready') {
     rejectTransaction(current.entry.transactionId);
   } else if (current.status === 'preparing') {
-    current.transactionId
-      .then((transactionId) => {
-        rejectTransaction(transactionId);
-      })
-      .catch(() => undefined);
+    rejectWhenPrepared(current.transactionId);
   }
+}
+
+/**
+ * Lets prewarming resume after a claim. Called when the screen that owns
+ * prewarming gains focus, so a Long/Short tap elsewhere cannot leave it
+ * suppressed. Leaves a ready or in-flight prewarm untouched.
+ */
+export function releasePrewarmedDepositOrderClaim(): void {
+  if (state.status === 'claimed') {
+    state = { status: 'idle' };
+  }
+}
+
+function rejectWhenPrepared(transactionId: Promise<string>): void {
+  transactionId
+    .then((id) => {
+      rejectTransaction(id);
+    })
+    .catch(() => undefined);
 }
 
 function rejectTransaction(transactionId: string): void {

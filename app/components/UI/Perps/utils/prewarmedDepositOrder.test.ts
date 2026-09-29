@@ -5,6 +5,7 @@ import {
   claimPrewarmedDepositOrder,
   discardPrewarmedDepositOrder,
   prewarmDepositOrder,
+  releasePrewarmedDepositOrderClaim,
   resetPrewarmedDepositOrderForTesting,
   resolveDepositOrderProvider,
 } from './prewarmedDepositOrder';
@@ -71,7 +72,9 @@ describe('prewarmedDepositOrder', () => {
     });
 
     it('keeps a concrete provider', () => {
-      expect(resolveDepositOrderProvider('lighter')).toBe('lighter');
+      expect(resolveDepositOrderProvider(PROVIDER_CONFIG.LighterProvider)).toBe(
+        PROVIDER_CONFIG.LighterProvider,
+      );
     });
   });
 
@@ -140,6 +143,49 @@ describe('prewarmedDepositOrder', () => {
       );
       await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-2');
     });
+
+    it('does not prepare a transaction after Long/Short claimed with nothing ready', () => {
+      const deposit = resolvedDeposit('tx-1');
+      claimPrewarmedDepositOrder(CRITERIA);
+
+      const prewarm = prewarmDepositOrder(CRITERIA, deposit);
+
+      expect(prewarm).toBeUndefined();
+      expect(deposit).not.toHaveBeenCalled();
+    });
+
+    it('does not prepare another transaction after a ready one was claimed', async () => {
+      setTransactionStatus('tx-1');
+      const deposit = resolvedDeposit('tx-1');
+      await prewarmDepositOrder(CRITERIA, deposit);
+      await claimPrewarmedDepositOrder(CRITERIA);
+
+      const prewarm = prewarmDepositOrder(CRITERIA, deposit);
+
+      expect(prewarm).toBeUndefined();
+      expect(deposit).toHaveBeenCalledTimes(1);
+    });
+
+    it('prepares again once the claim is released', async () => {
+      setTransactionStatus('tx-1');
+      claimPrewarmedDepositOrder(CRITERIA);
+
+      releasePrewarmedDepositOrderClaim();
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
+
+      await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-1');
+    });
+
+    it('prepares again once the claim is discarded', async () => {
+      setTransactionStatus('tx-1');
+      claimPrewarmedDepositOrder(CRITERIA);
+
+      discardPrewarmedDepositOrder();
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
+
+      expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalled();
+      await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-1');
+    });
   });
 
   describe('claimPrewarmedDepositOrder', () => {
@@ -171,7 +217,7 @@ describe('prewarmedDepositOrder', () => {
 
       const claimed = claimPrewarmedDepositOrder({
         ...CRITERIA,
-        providerId: 'lighter',
+        providerId: PROVIDER_CONFIG.LighterProvider,
       });
       resolve();
       await pending;
@@ -256,6 +302,23 @@ describe('prewarmedDepositOrder', () => {
       discardPrewarmedDepositOrder();
 
       expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('releasePrewarmedDepositOrderClaim', () => {
+    it('leaves a ready transaction claimable', async () => {
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
+
+      releasePrewarmedDepositOrderClaim();
+
+      expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalled();
+      await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-1');
+    });
+
+    it('is a no-op when nothing was claimed', () => {
+      expect(() => releasePrewarmedDepositOrderClaim()).not.toThrow();
+      expect(claimPrewarmedDepositOrder(CRITERIA)).toBeUndefined();
     });
   });
 });

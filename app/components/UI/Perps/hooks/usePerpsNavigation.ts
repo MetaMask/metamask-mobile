@@ -30,7 +30,10 @@ import {
   resolveDepositOrderProvider,
 } from '../utils/prewarmedDepositOrder';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
-import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  CONFIRMATION_HEADER_CONFIG,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
 import { usePerpsProvider } from './usePerpsProvider';
 import {
   failPerpsTradeSheetInteractiveTrace,
@@ -288,9 +291,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       };
       // Lighter has no deposit-with-order route. Switch first so the form uses
       // Lighter's balance and market metadata, including from aggregated mode.
-      if (orderProvider === 'lighter') {
+      if (orderProvider === PROVIDER_CONFIG.LighterProvider) {
         if (
-          params.providerId === 'lighter' &&
+          params.providerId === PROVIDER_CONFIG.LighterProvider &&
           activeProvider !== undefined &&
           activeProvider !== params.providerId
         ) {

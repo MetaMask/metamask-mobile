@@ -7,6 +7,7 @@ import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountA
 import {
   discardPrewarmedDepositOrder,
   prewarmDepositOrder,
+  releasePrewarmedDepositOrderClaim,
 } from '../utils/prewarmedDepositOrder';
 import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsPrewarmDepositOrder } from './usePerpsPrewarmDepositOrder';
@@ -32,6 +33,7 @@ jest.mock('../utils/prewarmedDepositOrder', () => ({
   ...jest.requireActual('../utils/prewarmedDepositOrder'),
   prewarmDepositOrder: jest.fn(),
   discardPrewarmedDepositOrder: jest.fn(),
+  releasePrewarmedDepositOrderClaim: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -40,6 +42,9 @@ const mockUsePerpsConnection = jest.mocked(usePerpsConnection);
 const mockPrewarmDepositOrder = jest.mocked(prewarmDepositOrder);
 const mockDiscardPrewarmedDepositOrder = jest.mocked(
   discardPrewarmedDepositOrder,
+);
+const mockReleasePrewarmedDepositOrderClaim = jest.mocked(
+  releasePrewarmedDepositOrderClaim,
 );
 
 describe('usePerpsPrewarmDepositOrder', () => {
@@ -152,11 +157,31 @@ describe('usePerpsPrewarmDepositOrder', () => {
   });
 
   it('does not prewarm for Lighter, which has no deposit-with-order route', () => {
-    mockActiveProvider = 'lighter';
+    mockActiveProvider = PROVIDER_CONFIG.LighterProvider;
 
     renderHook(() => usePerpsPrewarmDepositOrder({ enabled: true }));
 
     expect(mockPrewarmDepositOrder).not.toHaveBeenCalled();
+  });
+
+  it('releases a claim left by an earlier Long/Short tap before scheduling', () => {
+    Reflect.set(globalThis, 'requestIdleCallback', (callback: () => void) => {
+      deferredIdleTask = callback;
+      return 3;
+    });
+
+    renderHook(() => usePerpsPrewarmDepositOrder({ enabled: true }));
+
+    expect(mockReleasePrewarmedDepositOrderClaim).toHaveBeenCalledTimes(1);
+    expect(mockPrewarmDepositOrder).not.toHaveBeenCalled();
+    deferredIdleTask?.();
+    expect(mockPrewarmDepositOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not release a claim when it cannot prewarm', () => {
+    renderHook(() => usePerpsPrewarmDepositOrder({ enabled: false }));
+
+    expect(mockReleasePrewarmedDepositOrderClaim).not.toHaveBeenCalled();
   });
 
   it('discards an unclaimed transaction when leaving the screen', () => {
