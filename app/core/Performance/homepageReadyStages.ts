@@ -212,7 +212,7 @@ export const finishHomepageReadyStages = (
 ): HomepageReadyStagesSummary | undefined => {
   const current = ledger;
   ledger = null;
-  if (!current || current.traceToken !== traceToken) {
+  if (current?.traceToken !== traceToken) {
     return undefined;
   }
   try {

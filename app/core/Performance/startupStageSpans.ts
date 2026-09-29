@@ -416,8 +416,7 @@ const releasePayload = () => {
 const readNativeMarks = (): Partial<Record<NativeStartupMark, number>> => {
   const marks: Partial<Record<NativeStartupMark, number>> = {};
   for (const name of NATIVE_MARKS) {
-    const entries = performance.getEntriesByName(name);
-    const entry = entries[entries.length - 1];
+    const entry = performance.getEntriesByName(name).at(-1);
     if (entry) {
       marks[name] = entry.startTime;
     }
@@ -459,6 +458,19 @@ const getCredentialReadOutcome = (read?: CredentialReadTimings) => {
     return 'unresolved';
   }
   return read.empty ? 'empty' : 'returned';
+};
+
+const getLeg2Outcome = (
+  { leg2Started }: StartupLedger,
+  outcome: StartupOutcome,
+  { keyringUnlocked }: StartupReduxFacts,
+) => {
+  if (leg2Started) {
+    return 'started';
+  }
+  return outcome === 'completed' && keyringUnlocked
+    ? 'missing'
+    : 'not_applicable';
 };
 
 const getAccountBucket = (count: number) => {
@@ -542,7 +554,7 @@ const getAnchorSuspect = (
   firstJsPoint: number,
 ): string | undefined => {
   const values = NATIVE_MARKS.map((name) => native[name]);
-  if (values.some((value) => value === undefined)) {
+  if (values.includes(undefined)) {
     return 'missing_native_marks';
   }
   const ordered = [...(values as number[]), firstJsPoint];
@@ -670,11 +682,7 @@ const buildPayload = (
     'startup.end_bound_by': endBoundBy,
     'startup.awaiting_user_via': awaitingUser?.via ?? 'none',
     'startup.credential_read': getCredentialReadOutcome(credentialRead),
-    'startup.leg2': current.leg2Started
-      ? 'started'
-      : outcome === 'completed' && facts.keyringUnlocked
-        ? 'missing'
-        : 'not_applicable',
+    'startup.leg2': getLeg2Outcome(current, outcome, facts),
   };
   if (firstRoute) {
     tags['startup.first_route'] = firstRoute.name;
@@ -995,7 +1003,7 @@ export const noteStartupRouteChange = (focusedRouteNames: readonly string[]) =>
       route === undefined ||
       focusedRouteNames.includes(Routes.FOX_LOADER) ||
       current.routeChanges.length >= MAX_ROUTE_CHANGES ||
-      current.routeChanges[current.routeChanges.length - 1]?.name === route
+      current.routeChanges.at(-1)?.name === route
     ) {
       return;
     }
@@ -1070,8 +1078,7 @@ export const setStartupPersistedStateStats = (stats: PersistedStateReadStats) =>
 export const noteStartupControllerInit = (name: string, durationMs: number) =>
   safely(() => {
     if (
-      !ledger ||
-      ledger.marks.engineStart === undefined ||
+      ledger?.marks.engineStart === undefined ||
       ledger.marks.engineEnd !== undefined
     ) {
       return;
