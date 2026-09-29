@@ -1,7 +1,7 @@
 export const X_AUTHORIZATION_ENDPOINT = 'https://x.com/i/oauth2/authorize';
 export const X_TOKEN_ENDPOINT = 'https://api.x.com/2/oauth2/token';
-export const X_REDIRECT_URI = 'metamask://x-oauth';
-export const X_OAUTH_SCOPES = ['users.read', 'tweet.read', 'offline.access'];
+export const X_REDIRECT_URI = 'https://link.metamask.io/x-oauth-redirect';
+export const X_OAUTH_SCOPES = ['users.read', 'offline.access'];
 
 /**
  * Reads the X OAuth client_id from the build-time env var. X registers a
