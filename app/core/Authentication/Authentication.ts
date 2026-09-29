@@ -1137,7 +1137,6 @@ class AuthenticationService {
     const [rootSecret, ...otherSecrets] =
       await SeedlessOnboardingController.fetchAllSecretData();
     if (!rootSecret) {
-      // captureExceptionForced bypasses enabled:false Sentry init for opted-out users,
       // surfacing incident 1745 Shape 1 (no root SRP) users who would otherwise be invisible.
       const profileId = selectAnalyticsId(ReduxService.store.getState());
       captureExceptionForced(
@@ -1388,7 +1387,6 @@ class AuthenticationService {
 
       // Detect incident 1745 Shape 1: backup has no items, or the first item is not a
       // mnemonic (primary SRP), indicating the remote metadata is corrupted.
-      // captureExceptionForced bypasses enabled:false Sentry init for opted-out users.
       if (allSRPs.length === 0 || allSRPs[0].type !== SecretType.Mnemonic) {
         const profileId = selectAnalyticsId(ReduxService.store.getState());
         captureExceptionForced(
