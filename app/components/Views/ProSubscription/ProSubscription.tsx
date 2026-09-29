@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -26,6 +27,12 @@ import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 import { PRO_DEMO_MODE, setProDemoSubscriber } from '../shared/pro/proDemo';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
+
+// iOS presents this route as a page sheet that already clears the status bar.
+// Android has no sheet: the modal is full-screen and edge-to-edge, so without
+// the top inset the close button renders under the status bar.
+const SAFE_AREA_EDGES: readonly Edge[] =
+  Platform.OS === 'android' ? ['top', 'bottom'] : ['bottom'];
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -99,7 +106,7 @@ const ProSubscription = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={SAFE_AREA_EDGES}
     >
       {/* Shared close button — sits above both Benefits and Success screens */}
       <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
