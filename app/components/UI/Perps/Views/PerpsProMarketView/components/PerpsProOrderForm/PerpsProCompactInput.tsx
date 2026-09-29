@@ -155,13 +155,18 @@ const PerpsProCompactInput = React.forwardRef<
       ref,
       () => ({
         focus: () => {
+          // Same guard as a tap. A disabled input never focuses or blurs, so
+          // setting isFocused here would leave the empty field expanded.
+          if (isDisabled) {
+            return;
+          }
           // Match a tap: expand the empty inline field, then focus it once it
           // has a real frame. Focusing the collapsed input dismisses iOS.
           setIsFocused(true);
           setShouldFocusInput(true);
         },
       }),
-      [],
+      [isDisabled],
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
@@ -211,41 +216,32 @@ const PerpsProCompactInput = React.forwardRef<
     };
 
     const input = (
-      <>
-        <Input
-          ref={inputRef}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          isDisabled={isDisabled}
-          // A tap landing here is consumed by the input, so neither the inline
-          // variant's wrapping pressable nor the stacked variant's label fires.
-          onPressIn={handleFieldPress}
-          inputAccessoryViewID={inputAccessoryViewID}
-          placeholder={isInputVisible ? placeholder : ''}
-          placeholderTextColor={tw.color(`text-${placeholderColor}`)}
-          textVariant={TextVariant.BodySm}
-          isStateStylesDisabled
-          twClassName={
-            isInputVisible
-              ? 'flex-1 border-0 bg-transparent p-0'
-              : 'absolute h-1 w-1 opacity-0'
-          }
-          testID={testID}
-          accessibilityLabel={label}
-          accessibilityElementsHidden={!isInputVisible}
-          importantForAccessibility={isInputVisible ? 'yes' : 'no'}
-        />
-        {isFocused ? (
-          <Box
-            testID={`${testID}-keyboard-focus`}
-            accessible={false}
-            twClassName="absolute h-0 w-0 overflow-hidden"
-          />
-        ) : null}
-      </>
+      <Input
+        ref={inputRef}
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        isDisabled={isDisabled}
+        // A tap landing here is consumed by the input, so neither the inline
+        // variant's wrapping pressable nor the stacked variant's label fires.
+        onPressIn={handleFieldPress}
+        inputAccessoryViewID={inputAccessoryViewID}
+        placeholder={isInputVisible ? placeholder : ''}
+        placeholderTextColor={tw.color(`text-${placeholderColor}`)}
+        textVariant={TextVariant.BodySm}
+        isStateStylesDisabled
+        twClassName={
+          isInputVisible
+            ? 'flex-1 border-0 bg-transparent p-0'
+            : 'absolute h-1 w-1 opacity-0'
+        }
+        testID={testID}
+        accessibilityLabel={label}
+        accessibilityElementsHidden={!isInputVisible}
+        importantForAccessibility={isInputVisible ? 'yes' : 'no'}
+      />
     );
 
     if (usesFloatingLabel) {
