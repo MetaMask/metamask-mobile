@@ -69,17 +69,17 @@ describe('chompApiServiceInit', () => {
     });
   });
 
-  it('falls back to the dev URL and logs when the feature flag is missing', () => {
+  it('falls back to the prod URL and logs when the feature flag is missing', () => {
     chompApiServiceInit(getInitRequestMock({ remoteFeatureFlags: {} }));
 
     expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
       messenger: expect.any(Object),
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      baseUrl: 'https://chomp.api.cx.metamask.io',
     });
     expect(Logger.log).toHaveBeenCalledWith(
       '[ChompApiServiceInit]',
-      'chompApiConfig feature flag not set; falling back to dev URL',
-      { fallback: 'https://chomp.dev-api.cx.metamask.io' },
+      'chompApiConfig feature flag not set; falling back to prod URL',
+      { fallback: 'https://chomp.api.cx.metamask.io' },
     );
   });
 
