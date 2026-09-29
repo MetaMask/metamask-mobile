@@ -1704,6 +1704,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // a parallel deposit confirmation.
         isConfirmingDepositRef.current = true;
         let depositConfirmError: unknown;
+        // Snapshot: the unmount cleanup flips this flag when our own confirm
+        // deletes the approval, so only a pre-confirm value means the user
+        // really left.
+        const dismissedBeforeConfirm = isDismissedRef.current;
         try {
           await onDepositConfirm({
             onError: (error) => {
@@ -1729,10 +1733,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Deposit confirmed: the order is placed once funds arrive, so leaving
         // now is a real commitment, not an abandoned order.
         hasPlacedOrderRef.current = true;
-        if (isDismissedRef.current) {
-          // The user already swiped the sheet away while the confirmation was
-          // pending, so `handleTradeSheetClose` has navigated; a second
-          // `goBack` here would pop whatever screen is now on top.
+        if (isDismissedRef.current && dismissedBeforeConfirm) {
+          // The sheet was already gone before confirming, so
+          // `handleTradeSheetClose` has navigated; a second `goBack` here
+          // would pop whatever screen is now on top.
           return;
         }
         if (fromTokenDetails) {
