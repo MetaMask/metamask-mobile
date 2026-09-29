@@ -91,8 +91,14 @@ function handleAppStateChange(nextState: AppStateStatus): void {
       [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
       [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
     });
-  } else if (nextState === 'active' && foregroundSegmentStartedAt === null) {
-    resumeCount += 1;
+  } else if (
+    nextState === 'active' &&
+    currentAppState === 'background' &&
+    foregroundSegmentStartedAt === null
+  ) {
+    if (backgroundCount > 0) {
+      resumeCount += 1;
+    }
     startForegroundSegment();
   }
   currentAppState = nextState;
@@ -100,7 +106,9 @@ function handleAppStateChange(nextState: AppStateStatus): void {
 
 function startLifecycleAccounting(startTime?: number): void {
   currentAppState = AppState.currentState;
-  if (currentAppState === 'active') {
+  // `inactive` and `unknown` are still in the app. Only a start that is
+  // already `background` waits for the first `active` event.
+  if (currentAppState !== 'background') {
     startForegroundSegment(startTime);
   }
   appStateSubscription = AppState.addEventListener(
@@ -329,6 +337,7 @@ export function startRampsBuyCufChildTrace({
     op: TraceOperation.RampOperation,
     parentContext,
     startTime,
+    maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });

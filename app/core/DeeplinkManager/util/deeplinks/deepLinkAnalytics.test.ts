@@ -502,6 +502,11 @@ describe('deepLinkAnalytics', () => {
       const result = mapSupportedActionToRoute(ACTIONS.PRIVACY);
       expect(result).toBe(DeepLinkRoute.PRIVACY);
     });
+
+    it('maps NOTIFICATIONS_SETTINGS action to NOTIFICATIONS_SETTINGS route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.NOTIFICATIONS_SETTINGS);
+      expect(result).toBe(DeepLinkRoute.NOTIFICATIONS_SETTINGS);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -604,6 +609,13 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/privacy?setting=metametrics',
       );
       expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
+
+    it('extract notifications-settings route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/notifications-settings?section=price-alerts',
+      );
+      expect(result).toBe(DeepLinkRoute.NOTIFICATIONS_SETTINGS);
     });
 
     it('return INVALID for unknown routes', () => {
