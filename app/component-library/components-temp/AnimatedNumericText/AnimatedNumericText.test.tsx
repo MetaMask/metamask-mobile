@@ -82,7 +82,6 @@ describe('AnimatedNumericText', () => {
   it('rolls a bulk amount replacement through Laminar', () => {
     const { getByTestId, rerender, UNSAFE_getByType } = render(
       <AnimatedNumericText
-        rollDigits={false}
         style={styles.fontSizeLarge}
         testID="animated-numeric-text"
         value="0.00"
@@ -91,7 +90,6 @@ describe('AnimatedNumericText', () => {
 
     rerender(
       <AnimatedNumericText
-        rollDigits={false}
         style={styles.fontSizeSmall}
         testID="animated-numeric-text"
         value="1 234 567.89"
@@ -109,30 +107,30 @@ describe('AnimatedNumericText', () => {
 
   it('animates the first typed digit with Laminar number lanes', () => {
     const { rerender, UNSAFE_queryAllByType } = render(
-      <AnimatedNumericText rollDigits={false} value="0.00" />,
+      <AnimatedNumericText value="0.00" />,
     );
 
-    rerender(<AnimatedNumericText rollDigits={false} value="1" />);
+    rerender(<AnimatedNumericText value="1" />);
 
     expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
   it('animates deleting the last digit with Laminar number lanes', () => {
     const { rerender, UNSAFE_queryAllByType } = render(
-      <AnimatedNumericText rollDigits={false} value="1" />,
+      <AnimatedNumericText value="1" />,
     );
 
-    rerender(<AnimatedNumericText rollDigits={false} value="0.00" />);
+    rerender(<AnimatedNumericText value="0.00" />);
 
     expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
   it('animates keypad typing with Laminar number lanes', () => {
     const { rerender, UNSAFE_queryAllByType } = render(
-      <AnimatedNumericText rollDigits={false} value="12" />,
+      <AnimatedNumericText value="12" />,
     );
 
-    rerender(<AnimatedNumericText rollDigits={false} value="123" />);
+    rerender(<AnimatedNumericText value="123" />);
 
     expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
@@ -140,7 +138,6 @@ describe('AnimatedNumericText', () => {
   it('renders grouping spaces with a custom font size', () => {
     const { getByTestId } = render(
       <AnimatedNumericText
-        rollDigits={false}
         style={styles.fontSizeSmall}
         testID="animated-numeric-text"
         value="12 345 678"
@@ -150,35 +147,6 @@ describe('AnimatedNumericText', () => {
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
       '12 345 678',
     );
-  });
-
-  it('renders grouping spaces with digit rolling turned off', () => {
-    const { getByTestId } = render(
-      <AnimatedNumericText
-        value="1 234 567.89"
-        rollDigits={false}
-        testID="animated-numeric-text"
-      />,
-    );
-
-    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
-      '1 234 567.89',
-    );
-  });
-
-  it('renders the same content with digit rolling turned off', () => {
-    const { getByTestId, UNSAFE_queryAllByType } = render(
-      <AnimatedNumericText
-        value="$ 250.00 available"
-        rollDigits={false}
-        testID="animated-numeric-text"
-      />,
-    );
-
-    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
-      '$ 250.00 available',
-    );
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
   it('renders static text when animation is disabled', () => {

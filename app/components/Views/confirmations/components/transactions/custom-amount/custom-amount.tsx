@@ -75,14 +75,13 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       }
       disabled={disabled}
       onPress={disabled ? undefined : onPress}
-      amountTestID="custom-amount-input"
       prefix={
         <Text testID="custom-amount-symbol" style={styles.input}>
           {fiatSymbol}
         </Text>
       }
-      rollDigits={false}
       style={styles.input}
+      testID="custom-amount-input"
       value={formattedAmount}
     />
   );

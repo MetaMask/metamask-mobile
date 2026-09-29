@@ -75,7 +75,6 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
         onPress={onPress}
         amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
         prefix="$"
-        rollDigits={false}
         style={tw.style(
           `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-1`,
         )}

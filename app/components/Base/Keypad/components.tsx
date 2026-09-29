@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React from 'react';
 import {
   StyleProp,
   StyleSheet,
@@ -77,43 +77,37 @@ interface KeypadButtonProps {
   testID?: string;
 }
 
-const KeypadButton = memo(
-  ({
-    style,
-    children,
-    isDisabled,
-    boxWrapperProps,
-    onPress,
-    ...props
-  }: KeypadButtonProps) => {
-    const { colors } = useTheme();
-    const styles = useMemo(() => createStyles(colors), [colors]);
+const KeypadButton: React.FC<KeypadButtonProps> = ({
+  style,
+  children,
+  isDisabled,
+  boxWrapperProps,
+  ...props
+}) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
-    return (
-      // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-      <Box twClassName="flex-1" {...boxWrapperProps}>
-        <TouchableOpacity
-          style={[styles.keypadButton, style]}
-          disabled={isDisabled}
-          accessibilityRole="button"
-          accessible
-          onPress={onPress}
-          {...props}
+  return (
+    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+    <Box twClassName="flex-1" {...boxWrapperProps}>
+      <TouchableOpacity
+        style={[styles.keypadButton, style]}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessible
+        {...props}
+      >
+        <Text
+          twClassName="font-medium text-center"
+          variant={TextVariant.DisplayMd}
+          accessibilityRole="none"
         >
-          <Text
-            twClassName="font-medium text-center"
-            variant={TextVariant.DisplayMd}
-            accessibilityRole="none"
-          >
-            {children}
-          </Text>
-        </TouchableOpacity>
-      </Box>
-    );
-  },
-);
-
-KeypadButton.displayName = 'KeypadButton';
+          {children}
+        </Text>
+      </TouchableOpacity>
+    </Box>
+  );
+};
 
 interface KeypadDeleteButtonProps {
   style?: StyleProp<ViewStyle>;
@@ -124,34 +118,33 @@ interface KeypadDeleteButtonProps {
   boxWrapperProps?: BoxComponentProps;
 }
 
-const KeypadDeleteButton = memo(
-  ({ style, boxWrapperProps, onPress, ...props }: KeypadDeleteButtonProps) => {
-    const { colors } = useTheme();
-    const styles = useMemo(() => createStyles(colors), [colors]);
+const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
+  style,
+  boxWrapperProps,
+  ...props
+}) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
-    return (
-      // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-      <Box twClassName="flex-1" {...boxWrapperProps}>
-        <TouchableOpacity
-          style={[styles.keypadDeleteButton, style]}
-          accessibilityRole="button"
-          accessible
-          onPress={onPress}
-          {...props}
-        >
-          <Icon name={IconName.Backspace} size={IconSize.Xl} />
-        </TouchableOpacity>
-      </Box>
-    );
-  },
-);
-
-KeypadDeleteButton.displayName = 'KeypadDeleteButton';
+  return (
+    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+    <Box twClassName="flex-1" {...boxWrapperProps}>
+      <TouchableOpacity
+        style={[styles.keypadDeleteButton, style]}
+        accessibilityRole="button"
+        accessible
+        {...props}
+      >
+        <Icon name={IconName.Backspace} size={IconSize.Xl} />
+      </TouchableOpacity>
+    </Box>
+  );
+};
 
 type KeypadType = React.FC<KeypadContainerProps> & {
   Row: React.FC<KeypadRowProps>;
-  Button: React.ComponentType<KeypadButtonProps>;
-  DeleteButton: React.ComponentType<KeypadDeleteButtonProps>;
+  Button: React.FC<KeypadButtonProps>;
+  DeleteButton: React.FC<KeypadDeleteButtonProps>;
 };
 
 const Keypad = KeypadContainer as KeypadType;

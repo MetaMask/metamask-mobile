@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import Keypad, {
   type KeypadButtonProps,
@@ -9,7 +9,6 @@ import { Keys } from './constants';
 import useCurrency from './useCurrency';
 import { KeypadTestIds } from './Keypad.testIds';
 import { colors } from '../../../styles/common';
-import { ImpactMoment, playImpact } from '../../../util/haptics';
 
 const styles = StyleSheet.create({
   periodButton: {
@@ -62,23 +61,9 @@ function KeypadComponent({
 }: KeypadComponentProps): React.JSX.Element {
   const { handler, decimalSeparator } = useCurrency(currency, decimals);
 
-  // Read through a ref so the per-key callbacks below keep their identity as
-  // the value changes. Depending on `value` directly rebuilt all twelve of them
-  // on every press, re-rendering the whole keypad.
-  const valueRef = React.useRef(value);
-
-  // Do not overwrite a pending press during a stale intermediate render.
-  useLayoutEffect(() => {
-    valueRef.current = value;
-  }, [value]);
-
   const handleKeypadPress = useCallback(
     (pressedKey: Keys) => {
-      playImpact(ImpactMoment.KeypadKey).catch(() => undefined);
-      const newValue = handler(valueRef.current, pressedKey);
-      // Update synchronously so rapid presses build on each other before React
-      // commits the controlled value prop back through a render.
-      valueRef.current = newValue;
+      const newValue = handler(value, pressedKey);
       let valueAsNumber = 0;
       try {
         valueAsNumber = decimalSeparator
@@ -89,7 +74,7 @@ function KeypadComponent({
       }
       onChange({ value: newValue, valueAsNumber, pressedKey });
     },
-    [decimalSeparator, handler, onChange],
+    [decimalSeparator, handler, onChange, value],
   );
 
   const handleKeypadPress1 = useCallback(

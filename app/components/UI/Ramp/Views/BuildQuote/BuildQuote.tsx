@@ -798,7 +798,6 @@ function BuildQuote() {
                   }}
                   fontWeight={FontWeight.Regular}
                   prefix={currencyPrefix}
-                  rollDigits={false}
                   suffix={currencySuffix || undefined}
                   style={tw.style(
                     `text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`,

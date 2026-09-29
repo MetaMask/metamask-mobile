@@ -223,7 +223,6 @@ const InputDisplay = ({
             isStablecoinLendingEnabled ? { style: styles.amountCursor } : false
           }
           onPress={onPressAmount}
-          rollDigits={false}
           style={styles.amountText}
           suffix={
             <Text

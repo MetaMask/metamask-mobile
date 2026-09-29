@@ -355,12 +355,9 @@ describe('V2 unified-buy BuildQuote', () => {
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
     });
 
-    const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-    expect(
-      (amountInput.props.children as unknown[])
-        .filter((child) => typeof child === 'string')
-        .join(''),
-    ).toContain('100');
+    expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+      '$100',
+    );
   });
 
   it('updates the displayed amount when a quick-amount chip is tapped', async () => {
@@ -383,11 +380,9 @@ describe('V2 unified-buy BuildQuote', () => {
     fireEvent.press(await findByText('$50'));
 
     await waitFor(() => {
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      const text = (amountInput.props.children as unknown[])
-        .filter((c) => typeof c === 'string')
-        .join('');
-      expect(text).toContain('50');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '$50',
+      );
     });
   });
 });

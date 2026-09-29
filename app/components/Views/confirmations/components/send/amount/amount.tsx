@@ -219,7 +219,6 @@ export const Amount = () => {
               amountTestID="send_amount"
               color={textColor}
               cursor={{ animated: true }}
-              rollDigits={false}
               style={styles.inputText}
               suffix={fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
               suffixColor={

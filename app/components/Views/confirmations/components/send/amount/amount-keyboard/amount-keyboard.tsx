@@ -9,7 +9,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
@@ -68,7 +67,6 @@ export const AmountKeyboard = ({
   const { styles } = useStyles(styleSheet, styleVars);
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
-  const { playImpact } = useHaptics();
 
   const { predefinedRecipient } = useParams<{
     predefinedRecipient: PredefinedRecipient;
@@ -76,7 +74,6 @@ export const AmountKeyboard = ({
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
-      playImpact(ImpactMoment.QuickAmountSelection);
       const percentageAmount = getPercentageAmount(percentage) ?? '0';
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
@@ -90,7 +87,6 @@ export const AmountKeyboard = ({
       fiatMode,
       getFiatValue,
       getPercentageAmount,
-      playImpact,
       setAmountInputMethodPressedMax,
       updateAmount,
       updateValue,
@@ -106,11 +102,10 @@ export const AmountKeyboard = ({
       ) {
         return;
       }
-      playImpact(ImpactMoment.KeypadKey);
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
-    [asset, fiatMode, getNativeValue, playImpact, updateAmount, updateValue],
+    [asset, fiatMode, getNativeValue, updateAmount, updateValue],
   );
 
   const goToNextPage = useCallback(async () => {

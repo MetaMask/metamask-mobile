@@ -5,9 +5,8 @@ import {
   View,
   type StyleProp,
   type TextStyle,
-  type ViewStyle,
 } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { useReducedMotion as useNativeReducedMotion } from 'react-native-reanimated';
 import {
   FontWeight,
   TextColor,
@@ -18,20 +17,15 @@ import { Laminar } from 'react-native-laminar';
 
 import { splitNumericString } from './splitNumericString';
 
+const useReducedMotion = useNativeReducedMotion ?? (() => false);
+
 export interface AnimatedNumericTextProps {
   value: string;
-  /**
-   * Kept for API compatibility. Laminar's number variant is used for all
-   * animated numeric changes.
-   */
-  rollDigits?: boolean;
   variant?: TextVariant;
   color?: TextColor;
   fontWeight?: FontWeight;
   twClassName?: string;
   style?: StyleProp<TextStyle>;
-  containerStyle?: StyleProp<ViewStyle>;
-  textTestID?: string;
   testID?: string;
   animated?: boolean;
 }
@@ -76,12 +70,11 @@ const AnimatedNumericText = ({
   fontWeight,
   twClassName,
   style,
-  containerStyle,
-  textTestID,
   testID,
   animated = true,
 }: AnimatedNumericTextProps) => {
   const tw = useTailwind();
+  // Some existing Jest suites provide partial Reanimated mocks.
   const reduceMotion = useReducedMotion();
   const textStyle = useMemo(() => {
     const weight = fontWeight ?? VARIANT_FONT_WEIGHT[variant];
@@ -97,20 +90,14 @@ const AnimatedNumericText = ({
       style,
     ]) as TextStyle;
   }, [color, fontWeight, style, tw, twClassName, variant]);
-  const rowStyle = useMemo(
-    () => StyleSheet.flatten([styles.container, containerStyle]) as ViewStyle,
-    [containerStyle],
-  );
   const motionEnabled = animated && !reduceMotion;
   const { prefix, numeric, suffix } = useMemo(
     () => splitNumericString(value),
     [value],
   );
 
-  const renderStaticText = (content: string, contentTestID?: string) => (
-    <Text style={[textStyle]} testID={contentTestID}>
-      {content}
-    </Text>
+  const renderStaticText = (content: string) => (
+    <Text style={textStyle}>{content}</Text>
   );
 
   return (
@@ -119,10 +106,10 @@ const AnimatedNumericText = ({
       accessible
       accessibilityRole="text"
       accessibilityLabel={value}
-      style={rowStyle}
+      style={[styles.container, textStyle]}
     >
       {!motionEnabled || !numeric ? (
-        renderStaticText(value, textTestID)
+        renderStaticText(value)
       ) : (
         <>
           {prefix ? renderStaticText(prefix) : null}
@@ -131,10 +118,9 @@ const AnimatedNumericText = ({
             animationDuration={270}
             animationPreset="snappy"
             text={numeric}
-            testID={textTestID}
             variant="number"
             align="left"
-            style={[textStyle]}
+            style={textStyle}
           />
           {suffix ? renderStaticText(suffix) : null}
         </>

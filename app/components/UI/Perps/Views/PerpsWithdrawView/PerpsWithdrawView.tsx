@@ -367,7 +367,6 @@ const PerpsWithdrawView: React.FC = () => {
                   testID: 'cursor',
                   style: tw.style('w-0.5 h-14 bg-text-default ml-1'),
                 }}
-                rollDigits={false}
                 style={tw.style(
                   'text-[54px] leading-[70px] font-medium mb-2 text-default',
                   withdrawAmount === '0' && 'text-alternative',

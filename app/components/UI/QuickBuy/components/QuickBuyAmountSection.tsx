@@ -166,7 +166,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           containerStyle={tw.style('justify-center')}
           cursor={cursor}
           fontWeight={FontWeight.Bold}
-          rollDigits={false}
           suffix={sourceSymbol ? ` ${sourceSymbol}` : undefined}
           value={formatAmountDigitsForDisplay(
             sourceCryptoAmount || '0',
@@ -186,7 +185,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         containerStyle={tw.style('justify-center')}
         cursor={cursor}
         fontWeight={FontWeight.Bold}
-        rollDigits={false}
         prefix={symbol && symbolIsPrefix ? symbol : undefined}
         suffix={symbol && !symbolIsPrefix ? ` ${symbol}` : undefined}
         value={formatAmountDigitsForDisplay(

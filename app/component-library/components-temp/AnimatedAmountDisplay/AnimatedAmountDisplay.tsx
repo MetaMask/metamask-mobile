@@ -15,11 +15,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { useReducedMotion as useNativeReducedMotion } from 'react-native-reanimated';
 
 import AnimatedNumericText from '../AnimatedNumericText/AnimatedNumericText';
 import { useTheme } from '../../../util/theme';
 import { useBlinkingCursor } from './useBlinkingCursor';
+
+const useReducedMotion = useNativeReducedMotion ?? (() => false);
 
 const styles = StyleSheet.create({
   container: {
@@ -54,7 +56,6 @@ export interface AnimatedAmountDisplayProps {
   minimumFontScale?: number;
   onPress?: () => void;
   prefix?: React.ReactNode;
-  rollDigits?: boolean;
   style?: StyleProp<TextStyle>;
   suffix?: React.ReactNode;
   suffixColor?: TextColor;
@@ -78,7 +79,6 @@ const AnimatedAmountDisplay = ({
   minimumFontScale = 0.4,
   onPress,
   prefix,
-  rollDigits = true,
   style,
   suffix,
   suffixColor,
@@ -88,6 +88,7 @@ const AnimatedAmountDisplay = ({
   value,
 }: AnimatedAmountDisplayProps) => {
   const { colors } = useTheme();
+  // Some existing Jest suites provide partial Reanimated mocks.
   const reduceMotion = useReducedMotion();
   const cursorVisible = cursor !== false && cursor.visible !== false;
   const cursorAnimated =
@@ -106,7 +107,6 @@ const AnimatedAmountDisplay = ({
     () => ({ opacity: cursorAnimated ? cursorOpacity : 1 }),
     [cursorAnimated, cursorOpacity],
   );
-
   const renderAffix = (
     affix: React.ReactNode,
     affixStyle?: StyleProp<TextStyle>,
@@ -143,35 +143,33 @@ const AnimatedAmountDisplay = ({
       animated={animated}
       color={color}
       fontWeight={fontWeight}
-      rollDigits={rollDigits}
       style={style}
-      textTestID={amountTestID}
+      testID={amountTestID}
       value={value}
       variant={variant}
     />
   );
 
-  const content = loading ? (
+  const content = (
     <View
       style={[styles.container, containerStyle]}
       testID={onPress ? undefined : testID}
     >
-      {loadingContent}
-    </View>
-  ) : (
-    <View
-      style={[styles.container, containerStyle]}
-      testID={onPress ? undefined : testID}
-    >
-      {renderAffix(prefix)}
-      {amount}
-      {cursor !== false && cursorVisible ? (
-        <RNAnimated.View
-          style={[defaultCursorStyle, cursor.style, cursorOpacityStyle]}
-          testID={cursor.testID}
-        />
-      ) : null}
-      {renderAffix(suffix, suffixStyle, suffixColor)}
+      {loading ? (
+        loadingContent
+      ) : (
+        <>
+          {renderAffix(prefix)}
+          {amount}
+          {cursor !== false && cursorVisible ? (
+            <RNAnimated.View
+              style={[defaultCursorStyle, cursor.style, cursorOpacityStyle]}
+              testID={cursor.testID}
+            />
+          ) : null}
+          {renderAffix(suffix, suffixStyle, suffixColor)}
+        </>
+      )}
     </View>
   );
 

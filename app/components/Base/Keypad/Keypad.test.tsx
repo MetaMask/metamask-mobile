@@ -2,22 +2,8 @@ import React from 'react';
 import KeypadComponents from './components';
 import Keypad from '.';
 import { act, fireEvent, render } from '@testing-library/react-native';
-import { ImpactMoment, playImpact } from '../../../util/haptics';
-
-jest.mock('../../../util/haptics', () => ({
-  ImpactMoment: {
-    KeypadKey: 'keypadKey',
-  },
-  playImpact: jest.fn().mockResolvedValue(undefined),
-}));
-
-const mockPlayImpact = jest.mocked(playImpact);
 
 describe('Keypad', () => {
-  beforeEach(() => {
-    mockPlayImpact.mockClear();
-  });
-
   it('renders all digit keys', () => {
     const mockOnChange = jest.fn();
     const { getByText } = render(
@@ -43,42 +29,6 @@ describe('Keypad', () => {
       valueAsNumber: 1,
       pressedKey: '1',
     });
-    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.KeypadKey);
-  });
-
-  it('builds rapid consecutive presses from the latest pending value', () => {
-    const mockOnChange = jest.fn();
-    const { getByText } = render(
-      <Keypad currency="native" value="0" onChange={mockOnChange} />,
-    );
-
-    act(() => {
-      fireEvent.press(getByText('1'));
-      fireEvent.press(getByText('2'));
-    });
-
-    expect(mockOnChange.mock.calls.map(([change]) => change.value)).toEqual([
-      '1',
-      '12',
-    ]);
-  });
-
-  it('preserves pending presses across a stale rerender', () => {
-    const mockOnChange = jest.fn();
-    const { getByText, rerender } = render(
-      <Keypad currency="native" value="0" onChange={mockOnChange} />,
-    );
-
-    act(() => {
-      fireEvent.press(getByText('1'));
-      rerender(<Keypad currency="native" value="0" onChange={mockOnChange} />);
-      fireEvent.press(getByText('2'));
-    });
-
-    expect(mockOnChange.mock.calls.map(([change]) => change.value)).toEqual([
-      '1',
-      '12',
-    ]);
   });
 });
 
