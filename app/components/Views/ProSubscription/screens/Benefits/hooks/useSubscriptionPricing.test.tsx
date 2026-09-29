@@ -79,13 +79,13 @@ describe('useSubscriptionPricing', () => {
     });
   });
 
-  it('calls useQuery with the SubscriptionService:getPricing key', () => {
+  it('calls useQuery with the SubscriptionService:getPricing key and skips the API in demo mode', () => {
     renderHook(() => useSubscriptionPricing());
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
-        enabled: true,
+        enabled: false,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
       }),
@@ -112,96 +112,52 @@ describe('useSubscriptionPricing', () => {
     );
   });
 
-  it('maps Plus pricing from query data', () => {
+  it('always shows mock monthly and annual plans, ignoring query data', () => {
     mockUseQuery.mockReturnValue(makeQueryResult({ data: mockPricing }));
 
     const { result } = renderHook(() => useSubscriptionPricing());
 
     expect(result.current.plusPricing.status).toBe(PLUS_PRICING_STATUS.ready);
     expect(result.current.plusPricing.monthly?.amount).toBe(4.99);
+    expect(result.current.plusPricing.annual?.amount).toBe(49.99);
     expect(result.current.hasError).toBe(false);
+    expect(result.current.isLoading).toBe(false);
   });
 
-  it('returns unavailable pricing when query data is undefined', () => {
+  it('shows both mock plans when query data is undefined', () => {
     const { result } = renderHook(() => useSubscriptionPricing());
 
-    expect(result.current.plusPricing.status).toBe(
-      PLUS_PRICING_STATUS.unavailable,
-    );
+    expect(result.current.plusPricing.status).toBe(PLUS_PRICING_STATUS.ready);
+    expect(result.current.plusPricing.monthly?.amount).toBe(4.99);
+    expect(result.current.plusPricing.annual?.amount).toBe(49.99);
   });
 
-  it('exposes isLoading from useQuery', () => {
+  it('does not stay loading when the pricing query is in flight', () => {
     mockUseQuery.mockReturnValue(
       makeQueryResult({ isLoading: true, isFetching: true }),
     );
 
     const { result } = renderHook(() => useSubscriptionPricing());
 
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.plusPricing.annual?.amount).toBe(49.99);
   });
 
-  it('reports loading and hides the previous error while a retry is in flight', () => {
+  it('does not surface a query error while demo pricing is shown', () => {
+    const fetchError = new Error('network down');
     mockUseQuery.mockReturnValue(
       makeQueryResult({
-        error: new Error('network down'),
+        error: fetchError,
         isFetching: true,
       }),
     );
 
     const { result } = renderHook(() => useSubscriptionPricing());
 
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
-  });
-
-  it('reports loading while a retry after empty pricing is in flight', () => {
-    mockUseQuery.mockReturnValue(makeQueryResult({ isFetching: true }));
-
-    const { result } = renderHook(() => useSubscriptionPricing());
-
-    expect(result.current.plusPricing.status).toBe(
-      PLUS_PRICING_STATUS.unavailable,
-    );
-    expect(result.current.isLoading).toBe(true);
-  });
-
-  it('keeps showing pricing while a refetch runs over usable data', () => {
-    mockUseQuery.mockReturnValue(
-      makeQueryResult({ data: mockPricing, isFetching: true }),
-    );
-
-    const { result } = renderHook(() => useSubscriptionPricing());
-
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.plusPricing.status).toBe(PLUS_PRICING_STATUS.ready);
-  });
-
-  it('sets hasError and logs when useQuery returns an Error', () => {
-    const fetchError = new Error('network down');
-    mockUseQuery.mockReturnValue(makeQueryResult({ error: fetchError }));
-
-    const { result } = renderHook(() => useSubscriptionPricing());
-
-    expect(result.current.hasError).toBe(true);
-    expect(result.current.isLoading).toBe(false);
-    expect(mockedLoggerError).toHaveBeenCalledWith(
-      fetchError,
-      expect.objectContaining({
-        tags: { feature: 'pro-subscription' },
-      }),
-    );
-  });
-
-  it('wraps a non-Error query failure before logging', () => {
-    mockUseQuery.mockReturnValue(makeQueryResult({ error: 'boom' }));
-
-    const { result } = renderHook(() => useSubscriptionPricing());
-
-    expect(result.current.hasError).toBe(true);
-    expect(mockedLoggerError).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'boom' }),
-      expect.any(Object),
-    );
+    expect(result.current.plusPricing.annual?.amount).toBe(49.99);
+    expect(mockedLoggerError).not.toHaveBeenCalled();
   });
 
   it('does not log when there is no query error', () => {

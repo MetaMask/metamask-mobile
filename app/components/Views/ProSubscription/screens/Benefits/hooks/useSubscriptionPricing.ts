@@ -69,7 +69,7 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   });
 
   useEffect(() => {
-    if (!error) {
+    if (PRO_DEMO_MODE || !error) {
       return;
     }
 
@@ -79,13 +79,13 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   }, [error]);
 
   const plusPricing = useMemo(() => {
-    const mapped = mapMoneyAccountPlusPricing(data);
-    // DEMO ONLY: fall back to canned pricing whenever the real response is
-    // missing or unusable so both plan cards always render.
-    if (PRO_DEMO_MODE && mapped.status !== PLUS_PRICING_STATUS.ready) {
+    // DEMO ONLY: never read the pricing API. A main-dev build can return a
+    // ready monthly-only payload, which hides the annual card and leaves the
+    // selector looking unloaded. Canned pricing always includes both plans.
+    if (PRO_DEMO_MODE) {
       return mapMoneyAccountPlusPricing(PRO_DEMO_PRICING);
     }
-    return mapped;
+    return mapMoneyAccountPlusPricing(data);
   }, [data]);
 
   // isLoading only covers the first fetch, so a retry after a failed or empty
