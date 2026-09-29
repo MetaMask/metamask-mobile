@@ -30,37 +30,37 @@ export const VbaDetailsSelectorsIDs = {
   TRANSACTION_STATUS: 'vba-details-transaction-status',
 } as const;
 
-type AutorampCursor = {
+interface AutorampCursor {
   id: string;
   walletAddress: string;
   status: string;
-};
+}
 
-type PixDepositInstructions = {
+interface PixDepositInstructions {
   brCode: string;
   instruction: string;
   pixKey?: string;
-};
+}
 
-type AutorampTransactionSummary = {
+interface AutorampTransactionSummary {
   id: string;
   status: string;
   sourceAmount?: string;
-};
+}
 
-type DepositNeoBank = {
+interface DepositNeoBank {
   getPixDepositInstructions: (
     autorampId: string,
   ) => Promise<PixDepositInstructions | null>;
   listAutorampTransactions: (
     autorampId: string,
   ) => Promise<AutorampTransactionSummary[]>;
-};
+}
 
-type DepositRamps = {
+interface DepositRamps {
   state?: { autoramps?: AutorampCursor[] };
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
-};
+}
 
 const findUsableAutoramp = (
   autoramps: AutorampCursor[],
