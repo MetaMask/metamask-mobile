@@ -38,6 +38,23 @@ export enum TraceName {
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
+  /** Process start to the later of splash gone and the app waiting on the user. */
+  StartupColdStartToUnlockReady = 'Cold Start To Unlock Ready',
+  // Stages of Cold Start To Unlock Ready, see docs/performance/startup-telemetry.md
+  StartupNativeLaunch = 'Startup - Native Launch',
+  StartupHostSetup = 'Startup - Host Setup',
+  StartupJsBundleLoad = 'Startup - JS Bundle Load',
+  StartupPostBundleGap = 'Startup - Post Bundle Gap',
+  StartupStoreInitialization = 'Startup - Store Initialization',
+  StartupReduxPersistRehydration = 'Startup - Redux Persist Rehydration',
+  StartupPostStoreGap = 'Startup - Post Store Gap',
+  StartupNavigationInitialization = 'Startup - Navigation Initialization',
+  StartupControllerStateRehydration = 'Startup - Controller State Rehydration',
+  StartupEngineInitialization = 'Startup - Engine Initialization',
+  StartupPostInitGap = 'Startup - Post Init Gap',
+  StartupRootNavigatorFirstRender = 'Startup - Root Navigator First Render',
+  StartupSplashRevealTax = 'Startup - Splash Reveal Tax',
+  StartupUnlockPromptDelay = 'Startup - Unlock Prompt Delay',
   HomepageReady = 'Homepage Ready',
   UiSlotsLoad = 'UI Slots Load',
   DeeplinkProcessed = 'Deeplink Processed',
@@ -327,6 +344,8 @@ export enum TraceOperation {
   EngineInitialization = 'engine.initialization',
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
+  StartupColdStart = 'startup.cold_start',
+  StartupStage = 'startup.stage',
   HomepagePerformance = 'homepage.performance',
   DeeplinkPerformance = 'deeplink.performance',
   NavInit = 'navigation.initialization',
@@ -1080,7 +1099,7 @@ export async function hasMetricsConsent(): Promise<boolean> {
  * Get cached consent state synchronously
  * Note: When null, traces are buffered to ensure we don't accidentally send data before consent is checked
  */
-function getCachedConsent(): boolean | null {
+export function getCachedConsent(): boolean | null {
   return cachedConsent;
 }
 

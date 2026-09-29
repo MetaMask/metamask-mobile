@@ -118,3 +118,6 @@ export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
 
 /** Persisted while an OAuth round trip is in flight (Android process-death detection). */
 export const OAUTH_IN_PROGRESS = `${prefix}oauthInProgress`;
+
+/** Epoch ms of an in-app JS reload, so the next startup is not measured as a process start. */
+export const STARTUP_JS_RELOAD = `${prefix}startupJsReload`;

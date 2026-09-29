@@ -73,6 +73,18 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
   },
 });
 
+/** Filled in by {@link ControllerStorage.getAllPersistedState} as it reads. */
+export interface PersistedStateReadStats {
+  /** Characters of persisted controller JSON, about its size in bytes. */
+  chars: number;
+  /** Total `JSON.parse` time in ms. The reads themselves overlap. */
+  parseMs: number;
+  /** Controllers with persisted state. */
+  controllers: number;
+  largestController?: string;
+  largestChars: number;
+}
+
 export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),

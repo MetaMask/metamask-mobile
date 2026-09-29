@@ -136,6 +136,12 @@ export interface AuthData {
   oauth2Login?: boolean;
 }
 
+/** `performance.now()` around the controller check; unset when the user is not seedless. */
+export interface SeedlessPasswordCheckTimings {
+  startedAt?: number;
+  endedAt?: number;
+}
+
 export interface CheckIsSeedlessPasswordOutdatedOptions {
   /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
   skipCache?: boolean;
