@@ -336,7 +336,6 @@ const PerpsHomeView = () => {
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
-  const [aggregateFills, setAggregateFills] = useState(true);
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -357,7 +356,7 @@ const PerpsHomeView = () => {
     recentActivity,
     sortBy,
     isLoading,
-  } = usePerpsHomeData({ aggregateFills });
+  } = usePerpsHomeData({});
 
   // Independently gates the section from the Terminal backend flag that
   // supplies `listedAt` data, so it can be hidden even when that data flows.
@@ -963,8 +962,6 @@ const PerpsHomeView = () => {
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
-            aggregateFills={aggregateFills}
-            onAggregateFillsChange={setAggregateFills}
           />
         ),
       },
@@ -1004,7 +1001,6 @@ const PerpsHomeView = () => {
       forexMarkets,
       sortBy,
       recentActivity,
-      aggregateFills,
       handleSectionLayout,
       moreItems,
     ],

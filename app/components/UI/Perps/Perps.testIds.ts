@@ -260,7 +260,9 @@ export const PerpsTokenSelectorSelectorsIDs = {
 
 export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
+  AMOUNT_ROW: 'perps-amount-display-amount-row',
   AMOUNT_LABEL: 'perps-amount-display-amount',
+  AMOUNT_UNIT_LABEL: 'perps-amount-display-amount-unit',
   MAX_LABEL: 'perps-amount-display-max',
   TOUCHABLE: 'perps-amount-display-touchable',
 };
@@ -1219,8 +1221,12 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
   LIQUIDATION_PRICE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-price-value',
+  LIQUIDATION_PRICE_INFO:
+    'perps-adjust-margin-bottom-sheet-liquidation-price-info',
   LIQUIDATION_DISTANCE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
+  LIQUIDATION_DISTANCE_INFO:
+    'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
 } as const;
 
 // ========================================
@@ -1339,6 +1345,8 @@ export const PerpsWebSocketHealthToastSelectorsIDs = {
 
 export const PerpsOrderDetailsViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-order-details-cancel-button',
+  SCROLL_VIEW: 'perps-order-details-scroll-view',
+  FOOTER: 'perps-order-details-footer',
 } as const;
 
 // ========================================

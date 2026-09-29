@@ -48,7 +48,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
-import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
   deriveMoneyMetaMaskCardMode,
   MoneyMetaMaskCardMode,
@@ -113,7 +113,6 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import useSubscriptions from '../../../../hooks/useSubscriptions';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
@@ -140,11 +139,10 @@ const MoneyHomeView = () => {
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
 
-  // Pro entry point: keep subscription state fresh only while the Pro flow is
-  // enabled so we do not generate API traffic for users without the flow.
+  // usePlusAccess already mounts the subscriptions query while the Pro flow
+  // is enabled, so this view only needs the resolved chrome flags.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
-  useSubscriptions({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
@@ -203,8 +201,8 @@ const MoneyHomeView = () => {
   });
   const { initiateDeposit } = useMoneyAccountDeposit();
   // Share the single merge/bucket path with the full activity view so the home
-  // preview and that view never diverge (notably in mock mode). The home
-  // preview shows the "All" bucket; `isLoading` is already mock-aware.
+  // preview and that view never diverge. The home preview shows the "All"
+  // bucket.
   const {
     buckets,
     hasMore: hasMoreActivity,
@@ -215,7 +213,6 @@ const MoneyHomeView = () => {
     isSettling: isActivitySettling,
     error: activityError,
     moneyAddress,
-    mockDataEnabled,
     cardEnrichmentByHash,
   } = useMoneyActivityItems({
     fill: {
@@ -933,7 +930,7 @@ const MoneyHomeView = () => {
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
           onHeaderPress={handleActivityHeaderPress}
-          onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          onItemPress={handleActivityItemPress}
           privacyMode={privacyMode}
           cardEnrichmentByHash={cardEnrichmentByHash}
         />

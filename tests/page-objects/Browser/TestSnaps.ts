@@ -497,6 +497,23 @@ class TestSnaps {
     );
   }
 
+  /**
+   * Asserts the Snap UI image node (`snaps-ui-image`) is visible after a
+   * show-SVG / show-PNG button tap. Uses a longer timeout because Snap dialog
+   * paint can lag the WebView tap on iOS CI.
+   */
+  async expectSnapUiImageVisible(
+    options: { timeout?: number; description?: string } = {},
+  ): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID('snaps-ui-image'),
+      {
+        timeout: options.timeout ?? 30_000,
+        description: options.description ?? 'Snap UI image (snaps-ui-image)',
+      },
+    );
+  }
+
   // Use one stable text node. Android UiAutomator does not reliably match the
   // prior multi-clause regex even while the dialog is visibly open.
   async expectEnabledSnapAlert(timeout = 30_000): Promise<void> {
