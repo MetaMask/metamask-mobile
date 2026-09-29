@@ -111,7 +111,7 @@ export const getPercentageValueFn = ({
 };
 
 export const usePercentageAmount = () => {
-  const { asset, chainId, from, to, value } = useSendContext();
+  const { asset, chainId, from, to } = useSendContext();
   const { predefinedRecipient } =
     useParams<{
       predefinedRecipient: PredefinedRecipient;
@@ -124,8 +124,15 @@ export const usePercentageAmount = () => {
   const isNetworkGasSponsored = useIsNetworkGasSponsored(chainId);
   const isGasSponsored = Boolean(isNetworkGasSponsored && !isHardwareWallet);
 
+  // `eth_estimateGas` without fee fields only requires the value to be covered
+  // by the balance, and a simple send's gas does not depend on the value, so
+  // estimate with the full balance once rather than on every amount change.
+  const maxTransactionValue = asset
+    ? fromBNWithDecimals(rawBalanceBN, (asset as AssetType).decimals)
+    : '0';
+
   const estimateGasLimit = useCallback(
-    async (recipientAddress?: string, transactionValue = value || '0') => {
+    async (recipientAddress?: string) => {
       if (
         !isEvmNativeSendType ||
         isGasSponsored ||
@@ -141,7 +148,7 @@ export const usePercentageAmount = () => {
       const transaction = prepareEVMTransaction(asset as AssetType, {
         from,
         to: recipientAddress,
-        value: transactionValue,
+        value: maxTransactionValue,
       });
       const { gas, simulationFails } = await estimateGas(
         transaction,
@@ -156,13 +163,13 @@ export const usePercentageAmount = () => {
       from,
       isEvmNativeSendType,
       isGasSponsored,
+      maxTransactionValue,
       networkClientId,
-      value,
     ],
   );
 
   const getLayer1GasFee = useCallback(
-    async (recipientAddress?: string, transactionValue = value || '0') => {
+    async (recipientAddress?: string) => {
       if (
         !isEvmNativeSendType ||
         isGasSponsored ||
@@ -180,7 +187,7 @@ export const usePercentageAmount = () => {
         from: from as Hex,
         networkClientId,
         to: recipientAddress as Hex,
-        value: transactionValue,
+        value: maxTransactionValue,
       });
 
       // Chains without a layer 1 gas fee flow resolve to undefined.
@@ -192,8 +199,8 @@ export const usePercentageAmount = () => {
       from,
       isEvmNativeSendType,
       isGasSponsored,
+      maxTransactionValue,
       networkClientId,
-      value,
     ],
   );
 
@@ -204,9 +211,9 @@ export const usePercentageAmount = () => {
     from,
     isEvmNativeSendType,
     isGasSponsored,
+    maxTransactionValue,
     networkClientId,
     recipient,
-    value,
   ].join(':');
   const estimationKeyRef = useRef(estimationKey);
   const { value: estimatedGasLimit } = useAsyncResult(

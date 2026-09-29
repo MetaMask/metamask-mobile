@@ -422,6 +422,26 @@ describe('getLayer1GasFeeForSend', () => {
       networkClientId: 'mainnet',
     });
   });
+
+  it('converts fractional values to minimal units', () => {
+    const mockGetLayer1GasFee = jest
+      .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
+      .mockImplementation(() => Promise.resolve('0x186a0'));
+
+    getLayer1GasFeeForSend({
+      asset: { decimals: 18, isNative: true } as unknown as AssetType,
+      chainId: '0xa',
+      from: '0x123',
+      to: '0x456',
+      value: '12.5',
+    });
+
+    expect(mockGetLayer1GasFee).toHaveBeenCalledWith(undefined, {
+      txParams: expect.objectContaining({ value: '0xad78ebc5ac620000' }),
+      chainId: '0xa',
+      networkClientId: undefined,
+    });
+  });
 });
 
 describe('toTokenMinimalUnit', () => {

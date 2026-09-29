@@ -28,6 +28,9 @@ const NATIVE_ASSET = {
   isNative: true,
 };
 
+// The default raw balance (1e15 at 2 decimals) is 1e13 native units, in wei.
+const FULL_BALANCE_WEI_HEX = '0x7e37be2022c0914b2680000000';
+
 let mockNetworkClientId = 'mainnet';
 const createEip1559GasFee = (suggestedMaxFeePerGas: string) => ({
   maxWaitTimeEstimate: 0,
@@ -166,7 +169,7 @@ describe('usePercentageAmount', () => {
     });
   });
 
-  it('estimates with a zero value before an amount is entered', async () => {
+  it('estimates with the full balance before an amount is entered', async () => {
     setNativeSendContext({ to: undefined, value: '' });
 
     const { result } = renderHookWithProvider(
@@ -179,9 +182,31 @@ describe('usePercentageAmount', () => {
       expect(result.current.getPercentageAmount(100)).toBe('9685000000000');
     });
     expect(mockEstimateGas).toHaveBeenCalledWith(
-      expect.objectContaining({ value: '0x0' }),
+      expect.objectContaining({ value: FULL_BALANCE_WEI_HEX }),
       'mainnet',
     );
+  });
+
+  it('does not re-estimate when the entered amount changes', async () => {
+    const l2SendContext = {
+      asset: { ...NATIVE_ASSET, chainId: '0xa' } as AssetType,
+      chainId: '0xa',
+    };
+    setNativeSendContext({ ...l2SendContext, value: '' });
+    const { result, rerender } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current.isMaxAmountSupported).toBe(true);
+    });
+
+    setNativeSendContext({ ...l2SendContext, value: '12.5' });
+    rerender({});
+
+    expect(result.current.isMaxAmountSupported).toBe(true);
+    expect(mockEstimateGas).toHaveBeenCalledTimes(1);
+    expect(SendUtils.getLayer1GasFeeForSend).toHaveBeenCalledTimes(1);
   });
 
   it('reserves a node estimate above 21,000 for native max', async () => {
@@ -218,7 +243,7 @@ describe('usePercentageAmount', () => {
     });
   });
 
-  it('estimates with the complete native transaction and selected network client', async () => {
+  it('estimates with the full balance native transaction and selected network client', async () => {
     setNativeSendContext({ value: '12.5' });
 
     renderHookWithProvider(() => usePercentageAmount(), mockState);
@@ -229,7 +254,7 @@ describe('usePercentageAmount', () => {
           data: '0x',
           from: ACCOUNT_ADDRESS_MOCK_1,
           to: MOCK_RECIPIENT_1,
-          value: '0xad78ebc5ac620000',
+          value: FULL_BALANCE_WEI_HEX,
         },
         'mainnet',
       );
@@ -275,7 +300,7 @@ describe('usePercentageAmount', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('re-estimates when sender, recipient, chain, value, or network client changes', async () => {
+  it('re-estimates when sender, recipient, chain, balance, or network client changes', async () => {
     setNativeSendContext();
     const { rerender } = renderHookWithProvider(
       () => usePercentageAmount(),
@@ -287,9 +312,9 @@ describe('usePercentageAmount', () => {
       chainId: '0x2',
       from: ACCOUNT_ADDRESS_MOCK_2,
       to: MOCK_RECIPIENT_2,
-      value: '11',
       asset: { ...NATIVE_ASSET, chainId: '0x2' } as AssetType,
     });
+    setBalance('1100');
     mockNetworkClientId = 'secondary-network-client';
     rerender({});
 
@@ -298,6 +323,7 @@ describe('usePercentageAmount', () => {
         expect.objectContaining({
           from: ACCOUNT_ADDRESS_MOCK_2,
           to: MOCK_RECIPIENT_2,
+          // 1100 raw units at 2 decimals is 11 native units.
           value: '0x98a7d9b8314c0000',
         }),
         'secondary-network-client',
