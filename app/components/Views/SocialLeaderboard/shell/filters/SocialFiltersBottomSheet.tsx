@@ -229,7 +229,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
               </BottomSheetHeader>
 
               <ScrollView>
-                <Box twClassName="px-4 pb-4">
+                <Box twClassName="px-4 pb-4 mb-4">
                   <FilterChipSection<SocialFilterType>
                     titleKey={typeTitleKey}
                     options={typeOptionObjects}
