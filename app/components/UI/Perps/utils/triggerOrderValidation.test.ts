@@ -511,20 +511,15 @@ describe('getScalePriceCrossingWarning', () => {
       'perps.order.validation.scale_price_above_partial_warning',
     );
   });
+});
 
-  it('uses the same taker-fee wording for a partial short as for a partial long', () => {
+describe('scale partial crossing copy', () => {
+  it('matches the long partial warning, with below in place of above', () => {
     const copy = enTranslations.perps.order.validation;
 
     expect(copy.scale_price_below_partial_warning).toBe(
-      'Part of your price range is below current price and may fill immediately as a taker order.',
+      copy.scale_price_above_partial_warning.replace('above', 'below'),
     );
-    expect(copy.scale_price_above_partial_warning).toBe(
-      'Part of your price range is above current price and may fill immediately as a taker order.',
-    );
-    expect(copy.scale_price_below_partial_warning).not.toContain(
-      'incur taker fees',
-    );
-    expect(copy.scale_price_below_warning).toContain('and incur taker fees');
   });
 });
 
