@@ -43,10 +43,11 @@ let animationComplete = false;
 /** How the splash animation finished, which decides how long the app waits behind it. */
 type SplashCompletion = 'exit_animation' | 'timeout' | 'rive_error';
 
-const hideNativeSplash = (failureMessage: string) =>
+const hideNativeSplash = (failureMessage: string) => {
   hideAsync()
     .then(() => markStartup('nativeSplashHidden'))
     .catch((error: unknown) => Logger.error(error as Error, failureMessage));
+};
 
 interface FoxLoaderProps {
   appServicesReady?: boolean;
