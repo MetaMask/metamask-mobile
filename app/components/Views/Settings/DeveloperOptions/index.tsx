@@ -17,6 +17,7 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import MfaRecoveryDeveloperOptionsSection from './MfaRecoveryDeveloperOptionsSection/MfaRecoveryDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
@@ -100,6 +101,7 @@ const DeveloperOptions = () => {
         {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />
+        <MfaRecoveryDeveloperOptionsSection />
         <NotificationsDeveloperOptionsSection />
         {isSocialLeaderboardEnabled && (
           <SocialLeaderboardDeveloperOptionsSection />

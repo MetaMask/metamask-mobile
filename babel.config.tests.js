@@ -113,6 +113,8 @@ const newOverrides = [
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
       'app/components/UI/Predict/controllers/PredictController.ts',
       'app/components/UI/Predict/controllers/PredictController.test.ts',
+      'app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest.ts',
+      'app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
       'tests/framework/playwrightLogger.ts',

@@ -5,6 +5,11 @@ import { renderScreen } from '../../../../util/test/renderWithProvider';
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectIsMusdConversionFlowEnabledFlag = jest.fn();
 
+jest.mock(
+  './MfaRecoveryDeveloperOptionsSection/MfaRecoveryDeveloperOptionsSection',
+  () => () => null,
+);
+
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));

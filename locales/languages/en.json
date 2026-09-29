@@ -5143,6 +5143,23 @@
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
+      "mfa_recovery": {
+        "title": "MFA recovery",
+        "description": "Run the Cubist MFA recovery controller test with the primary account and configured developer services.",
+        "run_cubist_test_button": "Run Cubist recovery test",
+        "running": "Running: {{step}}",
+        "success": "Recovery test passed (Cubist user: {{status}}, epoch: {{epoch}}, secret matches: {{matches}}).",
+        "failure": "Recovery test failed: {{code}}",
+        "steps": {
+          "signing_in": "Signing in with SIWE",
+          "registering_cubist_user": "Registering the Cubist user",
+          "creating_cubist_session": "Creating the Cubist session",
+          "registering_recovery_secret": "Registering the recovery secret",
+          "authenticating_identifier": "Authenticating the SIWE identifier",
+          "reading_recovery_secret": "Reading the recovery secret",
+          "completed": "Completed"
+        }
+      },
       "notifications": {
         "title": "Notifications",
         "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
