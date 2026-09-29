@@ -63,6 +63,7 @@ import {
   SeedlessOnboardingControllerErrorMessage,
   EncAccountDataType,
   SeedlessOnboardingMigrationVersion,
+  InvalidPrimarySecretDataTypeError,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../selectors/analyticsController';
@@ -119,6 +120,146 @@ import {
   getUnlockAppStartType,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
 } from '../Performance/unlockTraces';
+
+type Incident1745IdentifySource =
+  | 'rehydrateSeedPhrase'
+  | 'syncSeedPhrases'
+  | 'unlockIdentify';
+
+type Incident1745Shape =
+  | 'no_secrets'
+  | 'invalid_primary_secret'
+  | 'primary_mismatch';
+
+function areUint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((byte, index) => byte === b[index]);
+}
+
+function reportIncident1745AffectedUser({
+  source,
+  shape,
+  cause_message,
+  remote_data_type,
+}: {
+  source: Incident1745IdentifySource;
+  shape: Incident1745Shape;
+  cause_message?: string;
+  remote_data_type?: string;
+}): void {
+  const profileId = selectAnalyticsId(ReduxService.store.getState());
+  captureExceptionForced(
+    new Error(`incident_1745: corrupted seedless backup detected in ${source}`),
+    {
+      incident: 'incident_1745',
+      shape,
+      profile_id: profileId ?? 'unknown',
+      ...(cause_message ? { cause_message } : {}),
+      ...(remote_data_type ? { remote_data_type } : {}),
+    },
+  ).catch(() => undefined);
+}
+
+/**
+ * Force-report incident 1745 Shape A when seedless metadata has no usable primary SRP.
+ *
+ * On `@metamask/seedless-onboarding-controller` >= 11, `fetchAllSecretData` throws
+ * `NoSecretDataFound` / `InvalidPrimarySecretDataTypeError` before returning secrets
+ * (new `EncAccountDataType` schema + legacy type fallback). Post-fetch `[0].type`
+ * checks alone are not enough to identify affected users.
+ *
+ * Shapes B/C (mislabeled primary that still fetches successfully) are covered by
+ * {@link identifyIncident1745AffectedUser}.
+ */
+export function reportIncident1745Shape1IfNeeded(
+  error: unknown,
+  source: Incident1745IdentifySource,
+): void {
+  const err = error instanceof Error ? error : new Error(String(error));
+  const isNoSecrets = containsErrorMessage(
+    err,
+    SeedlessOnboardingControllerErrorMessage.NoSecretDataFound,
+  );
+  const isInvalidPrimary =
+    error instanceof InvalidPrimarySecretDataTypeError ||
+    containsErrorMessage(
+      err,
+      SeedlessOnboardingControllerErrorMessage.InvalidPrimarySecretDataType,
+    );
+
+  if (!isNoSecrets && !isInvalidPrimary) {
+    return;
+  }
+
+  reportIncident1745AffectedUser({
+    source,
+    shape: isNoSecrets ? 'no_secrets' : 'invalid_primary_secret',
+    cause_message: err.message,
+  });
+}
+
+/**
+ * Full incident 1745 identification (Shapes A/B/C) for seedless users.
+ *
+ * Per core#10219 identify-users guidance: on unlock, fetch remote secrets, resolve
+ * the remote primary (controller V1 earliest-mnemonic / V2 `PrimarySrp` sort), and
+ * compare it to the local primary HD keyring mnemonic.
+ *
+ * - Shape A: fetch throws `NoSecretDataFound` / `InvalidPrimarySecretDataType`
+ * - Shape B/C: fetch succeeds but remote "primary" bytes ≠ local primary HD
+ *
+ * @param password - Wallet password (required by KeyringController.exportSeedPhrase).
+ */
+export async function identifyIncident1745AffectedUser(
+  password: string,
+): Promise<void> {
+  try {
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+
+    let remoteSecrets: Awaited<
+      ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+    >;
+    try {
+      remoteSecrets = await SeedlessOnboardingController.fetchAllSecretData();
+    } catch (error) {
+      // Shape A only when controller signals missing/invalid primary.
+      // Other failures (network, auth, crypto) are intentionally ignored.
+      reportIncident1745Shape1IfNeeded(error, 'unlockIdentify');
+      return;
+    }
+
+    // Controller guarantees a mnemonic primary at [0] when fetch resolves.
+    const remotePrimary = remoteSecrets[0];
+
+    let localPrimarySeed: Uint8Array;
+    try {
+      // Omit keyringId → primary HD keyring (KeyringController default).
+      localPrimarySeed = await KeyringController.exportSeedPhrase({
+        password,
+      });
+    } catch {
+      // Cannot compare without local primary — do not classify.
+      return;
+    }
+
+    if (!areUint8ArraysEqual(localPrimarySeed, remotePrimary.data)) {
+      // Shape B (V1 earliest-imported) / C (V2 mislabeled PrimarySrp).
+      reportIncident1745AffectedUser({
+        source: 'unlockIdentify',
+        shape: 'primary_mismatch',
+        remote_data_type: String(remotePrimary.dataType ?? remotePrimary.type),
+      });
+    }
+  } catch {
+    // Identification must never surface to unlock UX.
+  }
+}
 
 /**
  * Holds auth data used to determine auth configuration
@@ -866,6 +1007,19 @@ class AuthenticationService {
           this.dispatchPasswordSet();
           this.postLoginAsyncOperations().catch(() => undefined);
 
+          // Incident 1745 ID (Shapes A/B/C): async, non-blocking remote vs local
+          // primary compare. Skip oauth rehydrate — Shape A is already reported
+          // there, and the local vault was rebuilt from remote so B/C cannot apply.
+          if (
+            passwordToUse &&
+            !authPreference?.oauth2Login &&
+            selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+          ) {
+            identifyIncident1745AffectedUser(passwordToUse).catch(
+              () => undefined,
+            );
+          }
+
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
 
@@ -1134,25 +1288,24 @@ class AuthenticationService {
     }
 
     // 1. fetch all seed phrases
-    const [rootSecret, ...otherSecrets] =
-      await SeedlessOnboardingController.fetchAllSecretData();
-    // Shape 1: missing primary SRP, or first item is not a mnemonic (e.g. PrivateKey).
-    // Match rehydrateSeedPhrase reporting so sync does not silently skip a PK-only "root".
-    if (!rootSecret || rootSecret.type !== SecretType.Mnemonic) {
-      const profileId = selectAnalyticsId(ReduxService.store.getState());
-      const shape = !rootSecret ? 'no_root_srp' : 'first_item_not_mnemonic';
-      captureExceptionForced(
-        new Error(
-          !rootSecret
-            ? 'incident_1745: no root SRP found in syncSeedPhrases'
-            : 'incident_1745: corrupted seedless backup detected in syncSeedPhrases',
-        ),
-        {
-          incident: 'incident_1745',
-          shape,
-          profile_id: profileId ?? 'unknown',
-        },
-      ).catch(() => undefined);
+    let rootSecret:
+      | Awaited<
+          ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+        >[number]
+      | undefined;
+    let otherSecrets: Awaited<
+      ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+    >;
+    try {
+      [rootSecret, ...otherSecrets] =
+        await SeedlessOnboardingController.fetchAllSecretData();
+    } catch (error) {
+      // Controller throws NoSecretDataFound / InvalidPrimarySecretDataType before
+      // returning secrets when primary SRP metadata is missing or corrupted.
+      reportIncident1745Shape1IfNeeded(error, 'syncSeedPhrases');
+      throw error;
+    }
+    if (!rootSecret) {
       throw new Error('No root SRP found');
     }
 
@@ -1366,6 +1519,10 @@ class AuthenticationService {
       } catch (error) {
         const err = ensureError(error, 'Fetch SRPs failed');
 
+        // Controller validates primary SRP (legacy type + EncAccountDataType) and
+        // throws before returning secrets — report Shape 1 here, not post-fetch.
+        reportIncident1745Shape1IfNeeded(error, 'rehydrateSeedPhrase');
+
         // trace only if error is not an incorrect password error
         if (
           !containsErrorMessage(
@@ -1389,23 +1546,6 @@ class AuthenticationService {
           name: TraceName.OnboardingFetchSrps,
           data: { success: fetchSrpsSuccess },
         });
-      }
-
-      // Detect incident 1745 Shape 1: backup has no items, or the first item is not a
-      // mnemonic (primary SRP), indicating the remote metadata is corrupted.
-      if (allSRPs.length === 0 || allSRPs[0].type !== SecretType.Mnemonic) {
-        const profileId = selectAnalyticsId(ReduxService.store.getState());
-        captureExceptionForced(
-          new Error(
-            'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
-          ),
-          {
-            incident: 'incident_1745',
-            shape:
-              allSRPs.length === 0 ? 'no_secrets' : 'first_item_not_mnemonic',
-            profile_id: profileId ?? 'unknown',
-          },
-        ).catch(() => undefined);
       }
 
       if (allSRPs.length > 0) {
