@@ -65,6 +65,7 @@ import {
   SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { selectAnalyticsId } from '../../selectors/analyticsController';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
@@ -109,6 +110,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
+import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
 import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
@@ -1135,6 +1137,17 @@ class AuthenticationService {
     const [rootSecret, ...otherSecrets] =
       await SeedlessOnboardingController.fetchAllSecretData();
     if (!rootSecret) {
+      // captureExceptionForced bypasses enabled:false Sentry init for opted-out users,
+      // surfacing incident 1745 Shape 1 (no root SRP) users who would otherwise be invisible.
+      const profileId = selectAnalyticsId(ReduxService.store.getState());
+      captureExceptionForced(
+        new Error('incident_1745: no root SRP found in syncSeedPhrases'),
+        {
+          incident: 'incident_1745',
+          shape: 'no_root_srp',
+          profile_id: profileId ?? 'unknown',
+        },
+      ).catch(() => undefined);
       throw new Error('No root SRP found');
     }
 
@@ -1371,6 +1384,24 @@ class AuthenticationService {
           name: TraceName.OnboardingFetchSrps,
           data: { success: fetchSrpsSuccess },
         });
+      }
+
+      // Detect incident 1745 Shape 1: backup has no items, or the first item is not a
+      // mnemonic (primary SRP), indicating the remote metadata is corrupted.
+      // captureExceptionForced bypasses enabled:false Sentry init for opted-out users.
+      if (allSRPs.length === 0 || allSRPs[0].type !== SecretType.Mnemonic) {
+        const profileId = selectAnalyticsId(ReduxService.store.getState());
+        captureExceptionForced(
+          new Error(
+            'incident_1745: corrupted seedless backup detected in rehydrateSeedPhrase',
+          ),
+          {
+            incident: 'incident_1745',
+            shape:
+              allSRPs.length === 0 ? 'no_secrets' : 'first_item_not_mnemonic',
+            profile_id: profileId ?? 'unknown',
+          },
+        ).catch(() => undefined);
       }
 
       if (allSRPs.length > 0) {
