@@ -93,6 +93,23 @@ describe('useDismissOnPaymentChange', () => {
   });
 
   describe('pay token changes', () => {
+    it('uses a custom dismiss callback instead of navigation', () => {
+      const onDismiss = jest.fn();
+      const { rerender } = renderHook(() =>
+        useDismissOnPaymentChange({ onDismiss }),
+      );
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: TOKEN_B,
+        setPayToken: setPayTokenMock,
+      });
+
+      rerender();
+
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(goBackMock).not.toHaveBeenCalled();
+    });
+
     it('dismisses when the pay token changes to a different token', () => {
       const { rerender } = renderHook(() => useDismissOnPaymentChange());
 
