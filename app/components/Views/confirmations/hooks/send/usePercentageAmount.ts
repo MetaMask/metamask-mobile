@@ -1,4 +1,5 @@
 import BN from 'bnjs4';
+import type { SingleChainGasFeeState } from '@metamask/gas-fee-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback, useEffect, useRef } from 'react';
@@ -21,29 +22,26 @@ import { useSendType } from './useSendType';
 import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
 import { isHardwareAccount } from '../../../../../util/address';
 
-export interface GasFeeEstimatesType {
-  gasPrice?: string;
-  medium?:
-    | string
-    | {
-        suggestedMaxFeePerGas: number | string;
-      };
-}
+export type GasFeeEstimates = SingleChainGasFeeState['gasFeeEstimates'];
 
 const GWEI_DECIMALS = 9;
 
-const getSuggestedGasFeePerGas = (gasFeeEstimates?: GasFeeEstimatesType) => {
-  if (typeof gasFeeEstimates?.medium === 'string') {
-    return gasFeeEstimates.medium;
+const getSuggestedGasFeePerGas = (gasFeeEstimates?: GasFeeEstimates) => {
+  if (!gasFeeEstimates) {
+    return undefined;
   }
-  return (
-    gasFeeEstimates?.medium?.suggestedMaxFeePerGas.toString() ??
-    gasFeeEstimates?.gasPrice
-  );
+  if ('gasPrice' in gasFeeEstimates) {
+    return gasFeeEstimates.gasPrice;
+  }
+  if (!('medium' in gasFeeEstimates)) {
+    return undefined;
+  }
+  const { medium } = gasFeeEstimates;
+  return typeof medium === 'string' ? medium : medium.suggestedMaxFeePerGas;
 };
 
 export const getEstimatedTotalGas = (
-  gasFeeEstimates: GasFeeEstimatesType,
+  gasFeeEstimates: GasFeeEstimates,
   gasLimit: Hex,
   layer1GasFee: string,
 ) => {
@@ -74,7 +72,7 @@ export const getPercentageValueFn = ({
   isGasSponsored,
 }: {
   asset?: AssetType;
-  gasFeeEstimates?: GasFeeEstimatesType;
+  gasFeeEstimates?: GasFeeEstimates;
   gasLimit?: Hex;
   isEvmNativeSendType?: boolean;
   layer1GasFee?: string;
@@ -232,7 +230,7 @@ export const usePercentageAmount = () => {
       if (isNonEvmNativeSendType && percentage === 100) return undefined;
       return getPercentageValueFn({
         asset: asset as AssetType,
-        gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+        gasFeeEstimates,
         gasLimit,
         isEvmNativeSendType,
         layer1GasFee,
@@ -261,7 +259,7 @@ export const usePercentageAmount = () => {
       if (!isEvmNativeSendType || isGasSponsored) {
         return getPercentageValueFn({
           asset: asset as AssetType,
-          gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+          gasFeeEstimates,
           isEvmNativeSendType,
           percentage: 100,
           rawBalanceBN,
@@ -282,7 +280,7 @@ export const usePercentageAmount = () => {
 
       return getPercentageValueFn({
         asset: asset as AssetType,
-        gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+        gasFeeEstimates,
         gasLimit: gasLimitResult.value,
         isEvmNativeSendType,
         layer1GasFee: layer1GasFeeResult.value,
@@ -304,9 +302,7 @@ export const usePercentageAmount = () => {
   );
 
   const isGasEstimateReady = Boolean(
-    getSuggestedGasFeePerGas(
-      gasFeeEstimates as unknown as GasFeeEstimatesType,
-    ) && gasLimit,
+    getSuggestedGasFeePerGas(gasFeeEstimates) && gasLimit,
   );
   const isLayer1GasFeeReady = Boolean(layer1GasFee);
   const isMaxAmountSupported =

@@ -13,10 +13,7 @@ import { AssetType } from '../../types/token';
 // eslint-disable-next-line import-x/no-namespace
 import * as SendUtils from '../../utils/send';
 import { estimateGas } from '../../../../../util/transaction-controller';
-import {
-  GasFeeEstimatesType,
-  usePercentageAmount,
-} from './usePercentageAmount';
+import { GasFeeEstimates, usePercentageAmount } from './usePercentageAmount';
 import { useBalance } from './useBalance';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
@@ -32,9 +29,29 @@ const NATIVE_ASSET = {
 };
 
 let mockNetworkClientId = 'mainnet';
-let mockGasFeeEstimates: GasFeeEstimatesType = {
-  medium: { suggestedMaxFeePerGas: 1.5 },
-};
+const createEip1559GasFee = (suggestedMaxFeePerGas: string) => ({
+  maxWaitTimeEstimate: 0,
+  minWaitTimeEstimate: 0,
+  suggestedMaxFeePerGas,
+  suggestedMaxPriorityFeePerGas: '1',
+});
+
+const createFeeMarketEstimates = (
+  suggestedMaxFeePerGas: string,
+): GasFeeEstimates => ({
+  baseFeeTrend: null,
+  estimatedBaseFee: '1',
+  high: createEip1559GasFee(suggestedMaxFeePerGas),
+  historicalBaseFeeRange: null,
+  historicalPriorityFeeRange: null,
+  latestPriorityFeeRange: null,
+  low: createEip1559GasFee(suggestedMaxFeePerGas),
+  medium: createEip1559GasFee(suggestedMaxFeePerGas),
+  networkCongestion: null,
+  priorityFeeTrend: null,
+});
+
+let mockGasFeeEstimates: GasFeeEstimates = createFeeMarketEstimates('1.5');
 
 jest.mock('@metamask/assets-controllers', () => ({
   getNativeTokenAddress: () => '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
@@ -106,9 +123,7 @@ describe('usePercentageAmount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNetworkClientId = 'mainnet';
-    mockGasFeeEstimates = {
-      medium: { suggestedMaxFeePerGas: 1.5 },
-    };
+    mockGasFeeEstimates = createFeeMarketEstimates('1.5');
     mockUseParams.mockReturnValue(undefined);
     mockUseIsNetworkGasSponsored.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
@@ -186,8 +201,8 @@ describe('usePercentageAmount', () => {
     });
   });
 
-  it.each([
-    ['legacy tiers', { medium: '1.5' }],
+  it.each<[string, GasFeeEstimates]>([
+    ['legacy tiers', { high: '2', low: '1', medium: '1.5' }],
     ['eth_gasPrice fallback', { gasPrice: '1.5' }],
   ])('reserves gas using %s estimates', async (_label, estimates) => {
     mockGasFeeEstimates = estimates;
