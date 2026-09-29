@@ -63,8 +63,26 @@ describe('Notification Services Controller', () => {
           platformVersion: expect.any(String),
         },
         locale: expect.any(Function),
+        env: 'prd',
       },
     });
+  });
+
+  it('points the inbox at dev when MM_DEV_API_ENV=dev', () => {
+    const previous = process.env.MM_DEV_API_ENV;
+    process.env.MM_DEV_API_ENV = 'dev';
+    const { messenger, assertGetConstructorCall } = arrange();
+
+    createNotificationServicesController({ messenger });
+
+    expect(
+      (
+        assertGetConstructorCall() as {
+          env?: { env?: string };
+        }
+      ).env,
+    ).toEqual(expect.objectContaining({ env: 'dev' }));
+    process.env.MM_DEV_API_ENV = previous;
   });
 
   it('can pass undefined as initial state', () => {

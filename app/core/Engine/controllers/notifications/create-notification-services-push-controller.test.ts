@@ -150,6 +150,28 @@ describe('Notification Services Controller', () => {
     },
   );
 
+  it('registers push tokens with production unless MM_DEV_API_ENV=dev', () => {
+    const previous = process.env.MM_DEV_API_ENV;
+    delete process.env.MM_DEV_API_ENV;
+
+    const { messenger, mockConstructor } = arrange();
+    const configEnv = (callIndex: number): string | undefined =>
+      (
+        mockConstructor.mock.calls[callIndex][0] as {
+          config?: { env?: string };
+        }
+      ).config?.env;
+
+    createNotificationServicesPushController({ messenger });
+    expect(configEnv(0)).toBe('prd');
+
+    process.env.MM_DEV_API_ENV = 'dev';
+    createNotificationServicesPushController({ messenger });
+    expect(configEnv(1)).toBe('dev');
+
+    process.env.MM_DEV_API_ENV = previous;
+  });
+
   it('passes mobile OS metadata for push registration', () => {
     Platform.OS = 'android';
 

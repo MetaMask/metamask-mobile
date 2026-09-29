@@ -5,6 +5,7 @@ import {
   Controller as NotificationServicesController,
 } from '@metamask/notification-services-controller/notification-services';
 import I18n from '../../../../../locales/i18n';
+import { notificationApiEnv } from '../../../devApiEnv';
 
 export const createNotificationServicesController = (props: {
   messenger: NotificationServicesControllerMessenger;
@@ -21,6 +22,7 @@ export const createNotificationServicesController = (props: {
         platformVersion: getVersion(),
       },
       locale: () => I18n.locale,
+      env: notificationApiEnv(),
     },
   });
   return notificationServicesController;
