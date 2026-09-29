@@ -1136,14 +1136,20 @@ class AuthenticationService {
     // 1. fetch all seed phrases
     const [rootSecret, ...otherSecrets] =
       await SeedlessOnboardingController.fetchAllSecretData();
-    if (!rootSecret) {
-      // surfacing incident 1745 Shape 1 (no root SRP) users who would otherwise be invisible.
+    // Shape 1: missing primary SRP, or first item is not a mnemonic (e.g. PrivateKey).
+    // Match rehydrateSeedPhrase reporting so sync does not silently skip a PK-only "root".
+    if (!rootSecret || rootSecret.type !== SecretType.Mnemonic) {
       const profileId = selectAnalyticsId(ReduxService.store.getState());
+      const shape = !rootSecret ? 'no_root_srp' : 'first_item_not_mnemonic';
       captureExceptionForced(
-        new Error('incident_1745: no root SRP found in syncSeedPhrases'),
+        new Error(
+          !rootSecret
+            ? 'incident_1745: no root SRP found in syncSeedPhrases'
+            : 'incident_1745: corrupted seedless backup detected in syncSeedPhrases',
+        ),
         {
           incident: 'incident_1745',
-          shape: 'no_root_srp',
+          shape,
           profile_id: profileId ?? 'unknown',
         },
       ).catch(() => undefined);

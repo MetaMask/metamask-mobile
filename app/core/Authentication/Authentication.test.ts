@@ -4252,6 +4252,31 @@ describe('Authentication', () => {
       );
     });
 
+    it('force-captures first_item_not_mnemonic when root secret is a private key', async () => {
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockPrivateKeySecret, mockMnemonicSecret],
+      );
+
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'No root SRP found',
+      );
+      expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'incident_1745: corrupted seedless backup detected in syncSeedPhrases',
+        }),
+        {
+          incident: 'incident_1745',
+          shape: 'first_item_not_mnemonic',
+          profile_id: 'test-analytics-id-1745',
+        },
+      );
+      expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
+    });
+
     it('handle SeedlessOnboardingController.fetchAllSecretData failure', async () => {
       // Arrange
       const error = new Error('Failed to fetch secret data');
