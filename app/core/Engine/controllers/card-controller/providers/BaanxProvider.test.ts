@@ -754,6 +754,68 @@ describe('BaanxProvider', () => {
     });
   });
 
+  describe('submitCredentials', () => {
+    const session = {
+      id: 'session',
+      currentStep: { type: 'email_password' as const },
+      _metadata: {},
+    };
+
+    it.each([403, 404])(
+      'treats a %i login rejection as invalid credentials without reporting it',
+      async (status) => {
+        const post = jest
+          .fn()
+          .mockRejectedValue(new CardApiError(status, '/v1/auth/login', ''));
+        const provider = new BaanxProvider({
+          service: { post, apiKey: 'k' } as unknown as BaanxService,
+        });
+
+        await expect(
+          provider.submitCredentials(session, {
+            type: 'email_password',
+            email: 'a@b.com',
+            password: 'pw',
+          }),
+        ).rejects.toMatchObject({
+          code: CardProviderErrorCode.InvalidCredentials,
+          statusCode: status,
+        });
+        expect(post).toHaveBeenCalledWith(
+          '/v1/auth/login',
+          { email: 'a@b.com', password: 'pw' },
+          { unreportedStatuses: [403, 404] },
+        );
+      },
+    );
+
+    it('does not report an invalid OTP', async () => {
+      const post = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(400, '/v1/auth/login', ''));
+      const provider = new BaanxProvider({
+        service: { post, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'email_password',
+          email: 'a@b.com',
+          password: 'pw',
+          otpCode: '123456',
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidOtp,
+        statusCode: 400,
+      });
+      expect(post).toHaveBeenCalledWith(
+        '/v1/auth/login',
+        { email: 'a@b.com', password: 'pw', otpCode: '123456' },
+        { unreportedStatuses: [400, 403, 404] },
+      );
+    });
+  });
+
   describe('cashback and credit wallet APIs', () => {
     const tokens: CardAuthTokens = {
       accessToken: 'at',

@@ -342,7 +342,7 @@ jest.mock('./hooks/useCardEnableCard', () => ({
 }));
 
 const mockCreditRefetch = jest.fn();
-const mockUseCreditBalance = jest.fn(() => ({
+const defaultCreditBalance = () => ({
   wallet: null as { balance: string } | null,
   creditBalance: '0',
   creditBalanceNumber: 0,
@@ -353,7 +353,8 @@ const mockUseCreditBalance = jest.fn(() => ({
   error: null as Error | null,
   refetch: mockCreditRefetch,
   isRefetching: false,
-}));
+});
+const mockUseCreditBalance = jest.fn(defaultCreditBalance);
 
 jest.mock('../../hooks/useCreditBalance', () => ({
   __esModule: true,
@@ -1510,6 +1511,8 @@ describe('CardHome Component', () => {
     mockUseMoneyAccountCardLinkage.mockImplementation(
       createDefaultMoneyAccountCardLinkageMock,
     );
+    mockUseCreditBalance.mockReset();
+    mockUseCreditBalance.mockImplementation(defaultCreditBalance);
   });
 
   it('renders card title, action buttons, and manage spending limit item', async () => {
@@ -7658,18 +7661,7 @@ describe('CardHome Component', () => {
 
     beforeEach(() => {
       mockUseCreditBalance.mockReset();
-      mockUseCreditBalance.mockImplementation(() => ({
-        wallet: null,
-        creditBalance: '0',
-        creditBalanceNumber: 0,
-        creditCurrency: undefined,
-        creditFiatNumber: undefined,
-        hasCredit: false,
-        isLoading: false,
-        error: null,
-        refetch: mockCreditRefetch,
-        isRefetching: false,
-      }));
+      mockUseCreditBalance.mockImplementation(defaultCreditBalance);
       mockCreditRefetch.mockClear();
     });
 

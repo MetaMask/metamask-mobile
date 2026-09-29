@@ -1573,7 +1573,13 @@ export class BaanxProvider implements ICardProvider {
           password: credentials.password,
           ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
         },
-        credentials.otpCode ? { unreportedStatuses: [400] } : undefined,
+        {
+          // 403/404 are invalid credentials. 400 is an invalid OTP only when
+          // a code was submitted; other 400s stay reportable.
+          unreportedStatuses: credentials.otpCode
+            ? [400, 403, 404]
+            : [403, 404],
+        },
       );
     } catch (error) {
       throw mapLoginError(error, !!credentials.otpCode);
