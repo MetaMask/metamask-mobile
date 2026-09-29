@@ -393,7 +393,7 @@ async function handleUniversalLink({
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
-      `${PROTOCOLS.HTTPS}://${urlObj.hostname}/`,
+      `${PROTOCOLS.HTTPS}://${validatedUrl.hostname}/`,
       `${PROTOCOLS.METAMASK}://`,
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
