@@ -4353,7 +4353,6 @@ describe('CardController — data pass-throughs', () => {
       expect(completed).toHaveLength(1);
       expect(Object.keys(completed[0].properties).sort()).toEqual([
         'duration_ms',
-        'endpoint',
         'mode',
         'outcome',
         'provider',
@@ -4363,7 +4362,6 @@ describe('CardController — data pass-throughs', () => {
       expect(completed[0].properties).toMatchObject({
         provider: 'baanx',
         mode: 'cashback',
-        endpoint: '/v1/wallet/reward',
         outcome: 'success',
         status_code: null,
         reason: null,
@@ -4375,7 +4373,6 @@ describe('CardController — data pass-throughs', () => {
       {
         mode: 'cashback',
         load: 'getCashbackWallet' as const,
-        endpoint: '/v1/wallet/reward',
         error: (() => {
           const apiError = new CardApiError(503, '/v1/wallet/reward', '');
           apiError.reported = true;
@@ -4388,7 +4385,6 @@ describe('CardController — data pass-throughs', () => {
       {
         mode: 'credit',
         load: 'getCreditWallet' as const,
-        endpoint: '/v1/wallet/credit',
         error: new CardProviderError(
           CardProviderErrorCode.Timeout,
           'timed out',
@@ -4402,7 +4398,7 @@ describe('CardController — data pass-throughs', () => {
       },
     ])(
       'emits a failed $mode wallet load and skips a second Sentry log',
-      async ({ load, endpoint, error, outcome, status_code, reason, mode }) => {
+      async ({ load, error, outcome, status_code, reason, mode }) => {
         const provider = buildMockProvider({
           getCashbackWallet: jest.fn().mockRejectedValue(error),
           getCreditWallet: jest.fn().mockRejectedValue(error),
@@ -4423,7 +4419,6 @@ describe('CardController — data pass-throughs', () => {
         expect(failed).toHaveLength(1);
         expect(Object.keys(failed[0].properties).sort()).toEqual([
           'duration_ms',
-          'endpoint',
           'mode',
           'outcome',
           'provider',
@@ -4433,7 +4428,6 @@ describe('CardController — data pass-throughs', () => {
         expect(failed[0].properties).toMatchObject({
           provider: 'baanx',
           mode,
-          endpoint,
           outcome,
           status_code,
           reason,

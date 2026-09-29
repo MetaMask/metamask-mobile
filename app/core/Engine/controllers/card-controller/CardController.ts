@@ -2559,7 +2559,6 @@ export class CardController extends BaseController<
       );
       this.#trackWalletLoad({
         mode: 'cashback',
-        endpoint: '/v1/wallet/reward',
         startedAt,
       });
       return wallet;
@@ -2571,7 +2570,6 @@ export class CardController extends BaseController<
       });
       this.#trackWalletLoad({
         mode: 'cashback',
-        endpoint: '/v1/wallet/reward',
         startedAt,
         error,
       });
@@ -2627,7 +2625,6 @@ export class CardController extends BaseController<
       );
       this.#trackWalletLoad({
         mode: 'credit',
-        endpoint: '/v1/wallet/credit',
         startedAt,
       });
       return wallet;
@@ -2639,7 +2636,6 @@ export class CardController extends BaseController<
       });
       this.#trackWalletLoad({
         mode: 'credit',
-        endpoint: '/v1/wallet/credit',
         startedAt,
         error,
       });
@@ -2713,7 +2709,6 @@ export class CardController extends BaseController<
    */
   #trackWalletLoad(params: {
     mode: RedeemWalletMode;
-    endpoint: string;
     startedAt: number;
     error?: unknown;
   }): void {
@@ -2724,7 +2719,6 @@ export class CardController extends BaseController<
         : MetaMetricsEvents.CARD_WALLET_LOAD_COMPLETED,
       {
         mode: params.mode,
-        endpoint: params.endpoint,
         duration_ms: Date.now() - params.startedAt,
         outcome: fields.outcome,
         status_code: fields.status_code,
