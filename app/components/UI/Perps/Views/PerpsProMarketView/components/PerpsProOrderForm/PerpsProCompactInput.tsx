@@ -153,7 +153,6 @@ const PerpsProCompactInput = React.forwardRef<
     const isInlineActive = isFocused || value.length > 0;
     const usesFloatingLabel =
       variant === 'inline' || variant === 'inline-labeled';
-    const isInputVisible = !usesFloatingLabel || isInlineActive;
     useImperativeHandle(
       ref,
       () => ({
@@ -203,18 +202,25 @@ const PerpsProCompactInput = React.forwardRef<
       setIsFocused(false);
       onBlur?.();
     };
-    const handleFieldPress = () => {
+    const handleFieldPressIn = () => {
       if (isDisabled) {
         return;
       }
       setIsFocused(true);
+    };
+    // Runs after release: a realign scroll mid-tap cancels Android's focus.
+    const handleFieldPressOut = () => {
+      if (isDisabled) {
+        return;
+      }
       onFieldPress?.();
     };
     const focusInput = () => {
       if (isDisabled) {
         return;
       }
-      handleFieldPress();
+      handleFieldPressIn();
+      handleFieldPressOut();
       setShouldFocusInput(true);
     };
 
@@ -226,24 +232,20 @@ const PerpsProCompactInput = React.forwardRef<
         keyboardType={keyboardType}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        isDisabled={isDisabled}
+        // Hidden fields stay mounted; non-editable keeps Android focus search off them.
+        isDisabled={isDisabled || isHidden}
         // A tap landing here is consumed by the input, so neither the inline
         // variant's wrapping pressable nor the stacked variant's label fires.
-        onPressIn={handleFieldPress}
+        onPressIn={handleFieldPressIn}
+        onPressOut={handleFieldPressOut}
         inputAccessoryViewID={inputAccessoryViewID}
-        placeholder={isInputVisible ? placeholder : ''}
+        placeholder={placeholder}
         placeholderTextColor={tw.color(`text-${placeholderColor}`)}
         textVariant={TextVariant.BodySm}
         isStateStylesDisabled
-        twClassName={
-          isInputVisible
-            ? 'flex-1 border-0 bg-transparent p-0'
-            : 'absolute h-1 w-1 opacity-0'
-        }
+        twClassName="flex-1 border-0 bg-transparent p-0"
         testID={testID}
         accessibilityLabel={label}
-        accessibilityElementsHidden={!isInputVisible}
-        importantForAccessibility={isInputVisible ? 'yes' : 'no'}
       />
     );
 
@@ -259,16 +261,11 @@ const PerpsProCompactInput = React.forwardRef<
           testID={`${testID}-container`}
           {...hiddenProps}
         >
-          {/* Empty fields hide the native input, so this pressable must stay in
-              the a11y tree as the control that focuses it. Once the input is
-              visible, drop out so VoiceOver/TalkBack can land on the TextInput
-              instead of a wrapping button. Mid stays outside either way. */}
+          {/* Props stay fixed across focus; Android drops focus if they toggle. */}
           <Pressable
             onPress={focusInput}
             disabled={isDisabled}
-            accessible={!isInlineActive}
-            accessibilityRole={isInlineActive ? undefined : 'button'}
-            accessibilityLabel={isInlineActive ? undefined : label}
+            accessible={false}
             style={tw`h-full min-w-0 flex-1 justify-center`}
             testID={getPerpsProCompactFieldTestId(testID)}
           >
@@ -278,26 +275,20 @@ const PerpsProCompactInput = React.forwardRef<
               numberOfLines={labelNumberOfLines}
               accessible={false}
               importantForAccessibility="no"
+              twClassName={isInlineActive ? undefined : 'absolute'}
               testID={`${testID}-label`}
             >
               {label}
             </Text>
+            {/* Hidden by opacity, not size, so the input never resizes on focus. */}
             <Box
               twClassName={
                 isInlineActive
                   ? 'w-full flex-row items-center'
-                  : 'absolute h-0 w-0 overflow-hidden'
+                  : 'w-full flex-row items-center opacity-0'
               }
             >
-              {/* Keep the accessory slot stable so activating the field does not
-                  remount the focused native input. */}
-              <Box
-                twClassName={
-                  isInlineActive ? 'shrink-0' : 'h-0 w-0 overflow-hidden'
-                }
-              >
-                {startAccessory}
-              </Box>
+              <Box twClassName="shrink-0">{startAccessory}</Box>
               {input}
             </Box>
           </Pressable>
