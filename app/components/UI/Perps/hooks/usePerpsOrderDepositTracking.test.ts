@@ -115,6 +115,14 @@ jest.mock('../providers/PerpsStreamManager', () => ({
   }),
 }));
 
+let mockSelectedAddress = '0xinitiating';
+jest.mock('../../../../store', () => ({
+  store: { getState: () => ({}) },
+}));
+jest.mock('../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: () => mockSelectedAddress,
+}));
+
 jest.mock('../constants/perpsConfig', () => ({
   PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS: 1000,
 }));
@@ -165,6 +173,7 @@ describe('usePerpsOrderDepositTracking', () => {
     jest.useFakeTimers();
     mockAccountSnapshot = { spendableBalance: '10' };
     mockAccountCallbacks.clear();
+    mockSelectedAddress = '0xinitiating';
   });
 
   afterEach(() => {
@@ -366,6 +375,31 @@ describe('usePerpsOrderDepositTracking', () => {
       });
 
       expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('account switch', () => {
+    it('places no order and reports it when another account is selected during the credit wait', () => {
+      const handlers = captureTransactionHandlers();
+      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+        wrapper,
+      });
+      const callback = jest.fn();
+      act(() => {
+        result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
+      });
+      act(() => {
+        handlers.statusUpdated?.({ transactionMeta: confirmedMeta });
+      });
+
+      mockSelectedAddress = '0xother';
+      act(() => {
+        emitAccount('500');
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith({ orderNotPlaced: true });
+      expect(mockAccountUnsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 

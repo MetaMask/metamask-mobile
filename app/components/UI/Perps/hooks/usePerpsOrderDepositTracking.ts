@@ -20,6 +20,8 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS } from '../constants/perpsConfig';
+import { store } from '../../../../store';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 
 const getSpendableBalance = (account: AccountState | null): number => {
   const spendable = Number.parseFloat(account?.spendableBalance ?? '');
@@ -87,6 +89,11 @@ export const usePerpsOrderDepositTracking = () => {
       // credit (or part of it). Without a live snapshot, the first delivery
       // becomes the baseline so a preloaded balance is never read as credit.
       const initialAccount = accountChannel.getSnapshot();
+      // The account channel is shared across account switches, so balances
+      // are only comparable while the initiating account stays selected.
+      const initiatingAddress = selectPerpsSelectedAccountAddress(
+        store.getState(),
+      );
       let baselineSpendable = initialAccount
         ? getSpendableBalance(initialAccount)
         : undefined;
@@ -149,19 +156,32 @@ export const usePerpsOrderDepositTracking = () => {
         return minCreditUsd > 0 ? credited >= minCreditUsd : credited > 0;
       };
 
+      const settleWithoutOrder = () => {
+        settle();
+        if (!cancelTradeRequested) {
+          showToast(PerpsToastOptions.accountManagement.deposit.orderNotPlaced);
+        }
+      };
+
       const waitForCreditThenPlaceOrder = () => {
-        creditTimeoutId = setTimeout(() => {
-          settle();
-          if (!cancelTradeRequested) {
-            showToast(
-              PerpsToastOptions.accountManagement.deposit.orderNotPlaced,
-            );
-          }
-        }, PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS);
+        creditTimeoutId = setTimeout(
+          settleWithoutOrder,
+          PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS,
+        );
 
         const unsubscribe = accountChannel.subscribe({
           callback: (account) => {
-            if (isSettled || !hasDepositBeenCredited(account)) {
+            if (isSettled) {
+              return;
+            }
+            if (
+              selectPerpsSelectedAccountAddress(store.getState()) !==
+              initiatingAddress
+            ) {
+              settleWithoutOrder();
+              return;
+            }
+            if (!hasDepositBeenCredited(account)) {
               return;
             }
             settle();
