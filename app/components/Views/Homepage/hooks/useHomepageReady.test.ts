@@ -1,8 +1,9 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 import {
+  cancelHomepageReadyTrace,
   endHomepageReadyTrace,
-  resolveColdHomepageReadyTrace,
+  getActiveHomepageReadyTraceToken,
   startHomepageReadyTrace,
 } from '../../../../core/Performance/HomepageReady';
 import { useHomepageReady } from './useHomepageReady';
@@ -16,13 +17,15 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/Performance/HomepageReady', () => ({
   startHomepageReadyTrace: jest.fn(),
   endHomepageReadyTrace: jest.fn(),
-  resolveColdHomepageReadyTrace: jest.fn(),
+  cancelHomepageReadyTrace: jest.fn(),
+  getActiveHomepageReadyTraceToken: jest.fn(),
 }));
 
 const mockStartHomepageReadyTrace = jest.mocked(startHomepageReadyTrace);
 const mockEndHomepageReadyTrace = jest.mocked(endHomepageReadyTrace);
-const mockResolveColdHomepageReadyTrace = jest.mocked(
-  resolveColdHomepageReadyTrace,
+const mockCancelHomepageReadyTrace = jest.mocked(cancelHomepageReadyTrace);
+const mockGetActiveHomepageReadyTraceToken = jest.mocked(
+  getActiveHomepageReadyTraceToken,
 );
 
 describe('useHomepageReady', () => {
@@ -32,6 +35,8 @@ describe('useHomepageReady', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFocused = true;
+    mockGetActiveHomepageReadyTraceToken.mockReturnValue(null);
+    mockStartHomepageReadyTrace.mockReturnValue(null);
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
       value: 'active',
@@ -57,28 +62,6 @@ describe('useHomepageReady', () => {
 
     expect(mockEndHomepageReadyTrace).toHaveBeenCalledWith({
       contentState: 'filled',
-    });
-  });
-
-  it('resolves the queued cold trace for a focused homepage', () => {
-    renderHook(() =>
-      useHomepageReady({ contentReady: false, contentState: 'filled' }),
-    );
-
-    expect(mockResolveColdHomepageReadyTrace).toHaveBeenCalledWith({
-      isHomepageFocused: true,
-    });
-  });
-
-  it('discards the queued cold trace for an unfocused homepage', () => {
-    mockIsFocused = false;
-
-    renderHook(() =>
-      useHomepageReady({ contentReady: false, contentState: 'filled' }),
-    );
-
-    expect(mockResolveColdHomepageReadyTrace).toHaveBeenCalledWith({
-      isHomepageFocused: false,
     });
   });
 
@@ -124,6 +107,78 @@ describe('useHomepageReady', () => {
     });
 
     expect(mockStartHomepageReadyTrace).not.toHaveBeenCalled();
+  });
+
+  it('cancels the trace it saw while focused when Home loses focus', () => {
+    mockGetActiveHomepageReadyTraceToken.mockReturnValue(7);
+    const { rerender } = renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+
+    mockIsFocused = false;
+    rerender({});
+
+    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+      reason: 'navigated_away',
+      traceToken: 7,
+    });
+  });
+
+  it('cancels the trace it saw while focused when Home unmounts', () => {
+    mockGetActiveHomepageReadyTraceToken.mockReturnValue(7);
+    const { unmount } = renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+
+    unmount();
+
+    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+      reason: 'navigated_away',
+      traceToken: 7,
+    });
+  });
+
+  it('cancels a warm app-open trace when Home loses focus before it ends', () => {
+    mockStartHomepageReadyTrace.mockReturnValue(3);
+    const { rerender } = renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+    act(() => {
+      appStateListener?.('background');
+      appStateListener?.('active');
+    });
+
+    mockIsFocused = false;
+    rerender({});
+
+    expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+      reason: 'navigated_away',
+      traceToken: 3,
+    });
+  });
+
+  it('keeps a trace that started after Home was last focused', () => {
+    const { rerender } = renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+    mockGetActiveHomepageReadyTraceToken.mockReturnValue(9);
+
+    mockIsFocused = false;
+    rerender({});
+
+    expect(mockCancelHomepageReadyTrace).not.toHaveBeenCalled();
+  });
+
+  it('does not cancel when Home mounts unfocused', () => {
+    mockIsFocused = false;
+    mockGetActiveHomepageReadyTraceToken.mockReturnValue(7);
+    const { unmount } = renderHook(() =>
+      useHomepageReady({ contentReady: false, contentState: 'filled' }),
+    );
+
+    unmount();
+
+    expect(mockCancelHomepageReadyTrace).not.toHaveBeenCalled();
   });
 
   it('removes the app-state listener on unmount', () => {
