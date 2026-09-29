@@ -1176,21 +1176,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return '';
   }, [marginRequired]);
 
-  useEffect(() => {
-    if (hasCustomTokenSelected && depositAmount) {
-      DevLogger.log(
-        '[TAT-4039] BUG_MARKER: pay-with-token deposit headroom',
-        JSON.stringify({
-          marginRequired,
-          depositAmount,
-          headroomUsd: new BigNumber(depositAmount)
-            .minus(marginRequired ?? 0)
-            .toFixed(4),
-        }),
-      );
-    }
-  }, [hasCustomTokenSelected, depositAmount, marginRequired]);
-
   // Real-time liquidation price calculation
   const { liquidationPrice, isCalculating: isCalculatingLiquidationPrice } =
     usePerpsLiquidationPrice(liquidationPriceParams);
