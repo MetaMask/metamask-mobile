@@ -6,6 +6,7 @@ import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
+import { VBA_ELIGIBILITY_DEBUG_CHIP_TEST_ID } from '../../../Ramp/Views/VirtualBankAccount/components/VbaEligibilityDebugChip';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
@@ -14,6 +15,7 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import { selectUserRegion } from '../../../../../selectors/rampsController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -107,6 +109,17 @@ jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: jest.fn(),
 }));
 
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.requireActual('../../../../../selectors/rampsController'),
+  selectUserRegion: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    GeolocationController: { refreshGeolocation: jest.fn() },
+  },
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
@@ -171,6 +184,7 @@ describe('MoneyAddMoneySheet', () => {
       selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
     ).mockReturnValue(true);
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
+    (selectUserRegion as unknown as jest.Mock).mockReturnValue(null);
     delete process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS;
     mockOpenVbaOnboarding.mockResolvedValue(undefined);
     mockUseOpenVbaOnboarding.mockReturnValue(mockOpenVbaOnboarding);
@@ -222,6 +236,9 @@ describe('MoneyAddMoneySheet', () => {
     const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
     expect(bankRow).toBeOnTheScreen();
     expect(getByText('New')).toBeOnTheScreen();
+    expect(getByTestId(VBA_ELIGIBILITY_DEBUG_CHIP_TEST_ID)).toHaveTextContent(
+      /DEBUG .* BR \(geolocation\) .* · eligible/,
+    );
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
     // Opening hydrates onboarding and lands on the first incomplete screen.
@@ -261,6 +278,39 @@ describe('MoneyAddMoneySheet', () => {
     expect(queryByText('Bank account')).toBeNull();
     expect(queryByText('New')).toBeNull();
     expect(getAllByText('Coming soon')).toHaveLength(1);
+  });
+
+  it('uses the Settings (Ramps) region over IP geolocation for the Bank account gate', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('ES');
+    (selectUserRegion as unknown as jest.Mock).mockReturnValue({
+      country: { isoCode: 'BR', name: 'Brazil' },
+      state: null,
+      regionCode: 'br',
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+    expect(getByTestId(VBA_ELIGIBILITY_DEBUG_CHIP_TEST_ID)).toHaveTextContent(
+      /br \(ramps\) .* ip .* ES .* · eligible/,
+    );
+  });
+
+  it('hides the Bank account row when the Settings region is not Brazil even if IP geolocation is', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
+    (selectUserRegion as unknown as jest.Mock).mockReturnValue({
+      country: { isoCode: 'US', name: 'United States' },
+      state: { stateId: 'CA', name: 'California' },
+      regionCode: 'us-ca',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeNull();
   });
 
   it('hides the Bank account row when the flag is on and geolocation is unknown', () => {

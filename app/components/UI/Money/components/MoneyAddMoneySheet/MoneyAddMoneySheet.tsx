@@ -37,12 +37,8 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import {
-  isBrazilNeobankGeoBypassEnabled,
-  selectMoneyMovementBrazilNeobankEnabled,
-} from '../../../../../selectors/featureFlagController/moneyAccount';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { getBankAccountEntryVisibility } from '../../utils/getBankAccountEntryVisibility';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
@@ -60,6 +56,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import VbaEligibilityDebugChip from '../../../Ramp/Views/VirtualBankAccount/components/VbaEligibilityDebugChip';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -80,15 +77,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
-  const isBrazilNeobankFlagEnabled = useSelector(
-    selectMoneyMovementBrazilNeobankEnabled,
-  );
-  const geolocationLocation = useSelector(selectGeolocationLocation);
-  const bankAccountVisibility = getBankAccountEntryVisibility({
-    flagEnabled: isBrazilNeobankFlagEnabled,
-    location: geolocationLocation,
-    geoBypassEnabled: isBrazilNeobankGeoBypassEnabled(),
-  });
+  // Flag, min version, Brazil region (Settings first, IP fallback), dev bypass.
+  const vbaEligibility = useVbaEligibility();
+  const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -269,9 +260,9 @@ const MoneyAddMoneySheet: React.FC = () => {
           };
 
   const baseOptions: MoneySheetOption[] = [
-    // Live row (flag on and Brazil, or the dev geo bypass): promoted to the
-    // top. Coming-soon row (flag off): keeps its pre-flag position further
-    // down. Hidden (flag on, geo failed or not Brazil): omitted.
+    // Live row (eligible): promoted to the top. Coming-soon row (flag off):
+    // keeps its pre-flag position further down. Hidden (flag on but not
+    // eligible, or region still loading): omitted.
     ...(bankAccountOption && bankAccountVisibility === 'enabled'
       ? [bankAccountOption]
       : []),
@@ -333,6 +324,8 @@ const MoneyAddMoneySheet: React.FC = () => {
           {strings('money.add_money_sheet.title')}
         </Text>
       </BottomSheetHeader>
+      {/* DEBUG: remove before marking the PR ready for review. */}
+      <VbaEligibilityDebugChip />
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>
