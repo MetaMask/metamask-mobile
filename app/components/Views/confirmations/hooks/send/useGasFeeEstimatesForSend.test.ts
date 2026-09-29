@@ -1,4 +1,3 @@
-import Engine from '../../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
@@ -28,17 +27,13 @@ const mockState = {
 };
 
 describe('useGasFeeEstimatesForSend', () => {
-  it('returns gas estimates and the matching network client', () => {
-    jest
-      .spyOn(Engine.context.NetworkController, 'findNetworkClientIdByChainId')
-      .mockReturnValue('mainnet');
-
+  it('returns gas estimates and the default network client for the chain', () => {
     const { result } = renderHookWithProvider(
       () => useGasFeeEstimatesForSend(),
       mockState,
     );
 
     expect(result.current.gasFeeEstimates).toBeDefined();
-    expect(result.current.networkClientId).toBeDefined();
+    expect(result.current.networkClientId).toBe('mainnet');
   });
 });
