@@ -36,6 +36,7 @@ export const useEarningsSummary = (
   const fetchRef = useRef<
     (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
   >(() => Promise.resolve());
+  const isLoadingRef = useRef(false);
 
   const fetchEarningsSummary = useCallback(
     async ({
@@ -45,6 +46,12 @@ export const useEarningsSummary = (
       if (!profileId) {
         return;
       }
+      // The Earnings tab stays mounted, so a second call on this instance
+      // waits until the in-flight one settles.
+      if (isLoadingRef.current) {
+        return;
+      }
+      isLoadingRef.current = true;
 
       cancelBusyRefetch();
       dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
@@ -71,6 +78,7 @@ export const useEarningsSummary = (
           });
         }
       } finally {
+        isLoadingRef.current = false;
         dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
       }
     },
