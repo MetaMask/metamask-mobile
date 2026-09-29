@@ -9204,7 +9204,7 @@ __metadata:
 
 "@metamask/accounts-controller@patch:@metamask/accounts-controller@npm%3A40.0.0#~/.yarn/patches/@metamask-accounts-controller-npm-40.0.0-4fb4a591b5.patch":
   version: 40.0.0
-  resolution: "@metamask/accounts-controller@patch:@metamask/accounts-controller@npm%3A40.0.0#~/.yarn/patches/@metamask-accounts-controller-npm-40.0.0-4fb4a591b5.patch::version=40.0.0&hash=639e7d"
+  resolution: "@metamask/accounts-controller@patch:@metamask/accounts-controller@npm%3A40.0.0#~/.yarn/patches/@metamask-accounts-controller-npm-40.0.0-4fb4a591b5.patch::version=40.0.0&hash=cb8109"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -9226,7 +9226,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/5f6966bcdb80b0a1fceee6edaa082c8f02e21d17195086368474dbd1a4c971d92285b6e17078dbfe8c323f02cbd4320dafe49ae8b84f8a7c74b8d40b97cec4f5
+  checksum: 10/65f877145fe633dd80542201ca5ee4c50b87ae15efc5ce19159be8010b975e97486b6b83a5e44549a10a5f6766b706c67ce180771ce9f324cfa34ed4002f93aa
   languageName: node
   linkType: hard
 
