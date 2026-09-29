@@ -2049,7 +2049,7 @@
         "scale_price_above_warning": "Phạm vi giá của bạn cao hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
         "scale_price_below_warning": "Phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
         "scale_price_above_partial_warning": "Một phần phạm vi giá của bạn cao hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker.",
-        "scale_price_below_partial_warning": "Một phần phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
+        "scale_price_below_partial_warning": "Một phần phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker.",
         "trigger_must_be_above_mid": "Giá kích hoạt phải cao hơn giá trung bình",
         "trigger_must_be_below_mid": "Giá kích hoạt phải thấp hơn giá trung bình",
         "trigger_orders_unavailable": "Các lệnh kích hoạt tạm thời không khả dụng. Hãy chọn lệnh thị trường.",

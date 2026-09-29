@@ -2049,7 +2049,7 @@
         "scale_price_above_warning": "Seu intervalo de preços está acima do preço atual e pode ser executado imediatamente como uma ordem taker, gerando taxas de taker.",
         "scale_price_below_warning": "Seu intervalo de preços está abaixo do preço atual e pode ser executado imediatamente como uma ordem taker, gerando taxas de taker.",
         "scale_price_above_partial_warning": "Parte do seu intervalo de preços está acima do preço atual e pode ser executado imediatamente como uma ordem taker.",
-        "scale_price_below_partial_warning": "Parte do seu intervalo de preços está abaixo do preço atual e pode ser executada imediatamente como uma ordem taker, gerando taxas de taker.",
+        "scale_price_below_partial_warning": "Parte do seu intervalo de preços está abaixo do preço atual e pode ser executada imediatamente como uma ordem taker.",
         "trigger_must_be_above_mid": "O preço de disparo deve ser superior ao preço médio",
         "trigger_must_be_below_mid": "O preço de disparo deve ser inferior ao preço médio",
         "trigger_orders_unavailable": "As ordens disparáveis estão temporariamente indisponíveis. Selecione uma ordem a mercado.",

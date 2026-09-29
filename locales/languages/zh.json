@@ -2049,7 +2049,7 @@
         "scale_price_above_warning": "您的价格范围高于当前价格，可能立即作为吃单成交并产生吃单费用。",
         "scale_price_below_warning": "您的价格范围低于当前价格，可能立即作为吃单成交并产生吃单费用。",
         "scale_price_above_partial_warning": "您的部分价格范围高于当前价格，可能立即作为吃单成交。",
-        "scale_price_below_partial_warning": "您的部分价格范围低于当前价格，可能立即作为吃单成交并产生吃单费用。",
+        "scale_price_below_partial_warning": "您的部分价格范围低于当前价格，可能立即作为吃单成交。",
         "trigger_must_be_above_mid": "触发价格必须高于中间价",
         "trigger_must_be_below_mid": "触发价格必须低于中间价",
         "trigger_orders_unavailable": "触发订单暂时不可用。请选择市价订单。",

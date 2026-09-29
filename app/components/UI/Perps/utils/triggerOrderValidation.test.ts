@@ -11,6 +11,7 @@ import {
   getTriggerPriceValidationIssue,
   getTriggerPriceValidationMessage,
 } from './triggerOrderValidation';
+import enTranslations from '../../../../../locales/languages/en.json';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -509,6 +510,21 @@ describe('getScalePriceCrossingWarning', () => {
     expect(warning).toBe(
       'perps.order.validation.scale_price_above_partial_warning',
     );
+  });
+
+  it('uses the same taker-fee wording for a partial short as for a partial long', () => {
+    const copy = enTranslations.perps.order.validation;
+
+    expect(copy.scale_price_below_partial_warning).toBe(
+      'Part of your price range is below current price and may fill immediately as a taker order.',
+    );
+    expect(copy.scale_price_above_partial_warning).toBe(
+      'Part of your price range is above current price and may fill immediately as a taker order.',
+    );
+    expect(copy.scale_price_below_partial_warning).not.toContain(
+      'incur taker fees',
+    );
+    expect(copy.scale_price_below_warning).toContain('and incur taker fees');
   });
 });
 

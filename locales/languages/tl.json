@@ -2049,7 +2049,7 @@
         "scale_price_above_warning": "Mas mataas sa current price ang saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order at mapatawan ng bayad sa taker.",
         "scale_price_below_warning": "Mas mababa sa current price ang saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order at mapatawan ng bayad sa taker.",
         "scale_price_above_partial_warning": "Mas mataas sa current price ang isang bahagi ng saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order.",
-        "scale_price_below_partial_warning": "Mas mababa sa current price ang isang bahagi ng saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order at mapatawan ng bayad sa taker.",
+        "scale_price_below_partial_warning": "Mas mababa sa current price ang isang bahagi ng saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order.",
         "trigger_must_be_above_mid": "Dapat na mas mataas sa mid price ang trigger price",
         "trigger_must_be_below_mid": "Dapat na mas mababa sa mid price ang trigger price",
         "trigger_orders_unavailable": "Pansamantalang hindi available ang mga na-trigger na order. Pumili ng market order.",
