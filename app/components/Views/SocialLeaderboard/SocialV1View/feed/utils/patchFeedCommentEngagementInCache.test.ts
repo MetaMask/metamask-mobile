@@ -46,4 +46,32 @@ describe('patchFeedCommentEngagementInCache', () => {
     ]);
     expect(authorComment?.engagement.userReaction).toBe('👍');
   });
+
+  it('updates authorComment engagement on the owner self-feed cache', () => {
+    const queryClient = new QueryClient();
+    const queryKey = [
+      'SocialService:fetchTraderFeed',
+      { addressOrId: '0xabc', commentedOnly: true, limit: 30 },
+    ];
+    queryClient.setQueryData(queryKey, {
+      pages: [
+        {
+          items: [feedItem('comment-1', 2)],
+          pagination: { olderCursor: null, newerCursor: null },
+        },
+      ],
+      pageParams: [undefined],
+    });
+
+    patchFeedCommentEngagementInCache(queryClient, 'comment-1', {
+      reactions: [{ emotion: '👍', count: 5 }],
+      userReaction: '👍',
+    });
+
+    const cached = queryClient.getQueryData<{
+      pages: FeedResponse[];
+    }>(queryKey);
+    const authorComment = readAuthorComment(cached?.pages[0]?.items[0] ?? {});
+    expect(authorComment?.engagement.userReaction).toBe('👍');
+  });
 });

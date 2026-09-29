@@ -561,13 +561,6 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampCreateVirtualBankAccount: undefined;
-  RampVbaVerifyIdentity: undefined;
-  RampVbaKycEmail: undefined;
-  RampVbaSumSubKyc: undefined;
-  RampVbaKycPending: undefined;
-  RampVbaKycRejected: undefined;
-  RampVbaOnboardingError: undefined;
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
 
   // Deposit routes
@@ -765,7 +758,7 @@ export type RootStackParamList = {
         onCancel?: () => void;
       }
     | undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: SDKSessionsManagerParams | undefined;
@@ -1009,7 +1002,11 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
-  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  /**
+   * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
+   * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
+   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   */
   SocialLeaderboardTab: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {
