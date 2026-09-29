@@ -120,7 +120,9 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
             key={category.id}
             testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
             onPress={() => handlePress(category)}
-            accessibilityLabel={resolvePredictHomeCategoryDisplayTitle(category)}
+            accessibilityLabel={resolvePredictHomeCategoryDisplayTitle(
+              category,
+            )}
             iconName={category.iconName as IconName}
             label={resolvePredictHomeCategoryDisplayTitle(category)}
             style={{ width: tileWidth }}
