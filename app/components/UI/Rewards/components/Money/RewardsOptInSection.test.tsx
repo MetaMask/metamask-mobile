@@ -135,7 +135,7 @@ describe('RewardsOptInSection', () => {
 
     expect(
       getByText(
-        'We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.',
+        'We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.',
       ),
     ).toBeOnTheScreen();
     expect(queryByText('Rewards terms apply.')).not.toBeOnTheScreen();
@@ -154,7 +154,7 @@ describe('RewardsOptInSection', () => {
 
     expect(
       getByText(
-        'Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.',
+        'Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.',
       ),
     ).toBeOnTheScreen();
     expect(
@@ -172,7 +172,7 @@ describe('RewardsOptInSection', () => {
 
     expect(
       getByText(
-        'Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.',
+        'Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.',
       ),
     ).toBeOnTheScreen();
     expect(
