@@ -94,6 +94,14 @@ const RewardsMoneyDashboard: React.FC = () => {
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
+  const tabPanelProps = (isActive: boolean) => ({
+    accessibilityElementsHidden: !isActive,
+    importantForAccessibility: isActive
+      ? ('auto' as const)
+      : ('no-hide-descendants' as const),
+    pointerEvents: isActive ? ('auto' as const) : ('none' as const),
+    style: tw.style(!isActive && 'hidden'),
+  });
 
   const tabs = useMemo<TabItem[]>(
     () => [
@@ -201,28 +209,29 @@ const RewardsMoneyDashboard: React.FC = () => {
               onScroll={onScroll}
               scrollEventThrottle={16}
             >
-              {activeTab === 'waysToEarn' ? (
-                <Box
-                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
-                >
-                  <WaysToEarnTab
-                    profileId={profileId}
-                    referralMe={referralMe}
-                    isSubscribed={Boolean(subscriptionId)}
-                  />
-                </Box>
-              ) : null}
-              {activeTab === 'earnings' ? (
-                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
-              ) : null}
-              {activeTab === 'performance' ? (
-                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}>
-                  <PerformanceTab
-                    profileId={profileId}
-                    variant={referralMe.variant}
-                  />
-                </Box>
-              ) : null}
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                {...tabPanelProps(activeTab === 'waysToEarn')}
+              >
+                <WaysToEarnTab
+                  profileId={profileId}
+                  referralMe={referralMe}
+                  isSubscribed={Boolean(subscriptionId)}
+                />
+              </Box>
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}
+                {...tabPanelProps(activeTab === 'earnings')}
+              />
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
+                {...tabPanelProps(activeTab === 'performance')}
+              >
+                <PerformanceTab
+                  profileId={profileId}
+                  variant={referralMe.variant}
+                />
+              </Box>
             </Animated.ScrollView>
           </Animated.View>
         </Box>
