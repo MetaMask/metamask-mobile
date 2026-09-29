@@ -10,6 +10,7 @@ import SearchFeedRow, {
   SearchFeedSkeleton,
   PERPS_ROW_WRAPPER_TEST_ID,
   getItemId,
+  getPredictMarketProperties,
 } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
@@ -402,6 +403,122 @@ describe('SearchFeedRow', () => {
       resultCount: undefined,
     });
   });
+});
+
+const PREDICT_MARKET_KEYS = [
+  'market_id',
+  'market_slug',
+  'market_tags',
+  'market_title',
+] as const;
+
+describe('Predict market properties on result_clicked', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('includes market identity props when a prediction row is tapped', () => {
+    const market = {
+      id: 'pred-9',
+      slug: 'lakers-vs-celtics',
+      title: 'Lakers vs Celtics',
+      tags: ['nba', 'playoffs'],
+    } as PredictMarketType;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="predictions"
+        item={market}
+        index={1}
+        searchQuery="lakers"
+        tabName="predictions"
+        resultCount={4}
+      />,
+    );
+
+    fireEvent.press(getByTestId('search-feed-tap'));
+
+    expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith({
+      interaction_type: 'result_clicked',
+      search_query: 'lakers',
+      tab_name: 'predictions',
+      item_clicked: 'pred-9',
+      position: 1,
+      result_count: 4,
+      query_length: 6,
+      market_id: 'pred-9',
+      market_slug: 'lakers-vs-celtics',
+      market_tags: ['nba', 'playoffs'],
+      market_title: 'Lakers vs Celtics',
+    });
+  });
+
+  it.each([
+    ['tokens', { assetId: 'asset-1' } as TrendingAsset],
+    ['perps', { symbol: 'ETH' } as PerpsMarketData],
+    ['sites', { url: 'https://example.com' } as SiteData],
+  ] as const)('omits market props when a %s row is tapped', (feedId, item) => {
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId={feedId}
+        item={item}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+      />,
+    );
+
+    fireEvent.press(getByTestId('search-feed-tap'));
+
+    const payload = mockTrackExploreSearchEvent.mock.calls[0][0];
+    PREDICT_MARKET_KEYS.forEach((key) => {
+      expect(payload).not.toHaveProperty(key);
+    });
+  });
+});
+
+describe('getPredictMarketProperties', () => {
+  it('returns market identity props for the predictions feed', () => {
+    const market = {
+      id: 'pred-9',
+      slug: 'btc-100k',
+      title: 'BTC above 100k?',
+      tags: ['crypto'],
+    } as PredictMarketType;
+
+    expect(getPredictMarketProperties('predictions', market)).toStrictEqual({
+      market_id: 'pred-9',
+      market_slug: 'btc-100k',
+      market_tags: ['crypto'],
+      market_title: 'BTC above 100k?',
+    });
+  });
+
+  it('omits slug and tags when the market is missing them', () => {
+    const market = {
+      id: 'pred-9',
+      title: 'BTC above 100k?',
+    } as PredictMarketType;
+
+    expect(getPredictMarketProperties('predictions', market)).toStrictEqual({
+      market_id: 'pred-9',
+      market_title: 'BTC above 100k?',
+    });
+  });
+
+  it.each(['tokens', 'stocks', 'perps', 'sites', 'earn'] as const)(
+    'returns an empty object for the %s feed',
+    (feedId) => {
+      const market = {
+        id: 'pred-9',
+        slug: 'btc-100k',
+        title: 'BTC above 100k?',
+        tags: ['crypto'],
+      } as PredictMarketType;
+
+      expect(getPredictMarketProperties(feedId, market)).toStrictEqual({});
+    },
+  );
 });
 
 describe('perps row alignment', () => {
