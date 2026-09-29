@@ -118,6 +118,37 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(screen.getByTestId('mock-countdown')).toBeOnTheScreen();
   });
 
+  it('shows a loading state while the first quote is blocking', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isBlockingQuoteLoad: true }),
+    );
+
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.loading'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows a discounted MetaMask fee as badge, struck-through base fee and current fee', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        discountBadge: { type: 'PROMO', label: 'Promo' },
+        baseFeePercentage: '0.875%',
+        metamaskFeePercent: 0,
+      }),
+    );
+
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.metamask_fee'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Promo')).toBeOnTheScreen();
+    expect(screen.getByText('0.875%')).toBeOnTheScreen();
+    expect(screen.getByText('0%')).toBeOnTheScreen();
+  });
+
   it('calls setActiveScreen("selectQuote") when the rate row is pressed', () => {
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(

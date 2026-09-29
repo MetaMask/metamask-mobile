@@ -297,7 +297,7 @@
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^10.0.0",
-    "@metamask/assets-controller": "^16.1.0",
+    "@metamask/assets-controller": "^17.0.0",
     "@metamask/assets-controllers": "^112.0.2",
     "@metamask/authenticated-user-storage": "^4.0.0",
     "@metamask/base-controller": "^10.0.0",
