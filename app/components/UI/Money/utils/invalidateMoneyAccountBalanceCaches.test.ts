@@ -1,7 +1,5 @@
 import type { CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
-import { armFreshMoneyBalanceWindow } from '../../../../core/ReactQueryService/moneyBalanceFreshWindow';
 import Engine from '../../../../core/Engine';
-import ReactQueryService from '../../../../core/ReactQueryService';
 import {
   MoneyAccountApiDataServiceQueryKeys,
   MoneyAccountBalanceServiceQueryKeys,
@@ -10,6 +8,7 @@ import {
   invalidateMoneyAccountBalanceCaches,
   refreshMoneyAccountBalanceFresh,
 } from './invalidateMoneyAccountBalanceCaches';
+import { getMoneyAccountBalanceQueryKey } from './moneyAccountBalanceQueryKey';
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -32,9 +31,6 @@ jest.mock('../../../../core/ReactQueryService', () => ({
       setQueryData: (...args: unknown[]) => mockSetQueryData(...args),
     },
   },
-}));
-jest.mock('../../../../core/ReactQueryService/moneyBalanceFreshWindow', () => ({
-  armFreshMoneyBalanceWindow: jest.fn(),
 }));
 
 const mockMessengerCall = jest.mocked(Engine.controllerMessenger.call);
@@ -77,10 +73,7 @@ describe('invalidateMoneyAccountBalanceCaches', () => {
       },
     );
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-        MOCK_ADDRESS,
-      ],
+      queryKey: getMoneyAccountBalanceQueryKey(MOCK_ADDRESS),
       refetchType: 'all',
     });
 
@@ -121,7 +114,7 @@ describe('refreshMoneyAccountBalanceFresh', () => {
     jest.clearAllMocks();
   });
 
-  it('busts the RPC cache, fetches with fresh and minBlock, then writes the UI cache', async () => {
+  it('busts the RPC cache, fetches with fresh and minBlock, then writes both UI keys', async () => {
     const callOrder: string[] = [];
     mockMessengerCall.mockImplementation((...args: unknown[]) => {
       const method = String(args[0]);
@@ -160,18 +153,22 @@ describe('refreshMoneyAccountBalanceFresh', () => {
       { fresh: true, minBlock: 42 },
     );
     expect(mockSetQueryData).toHaveBeenCalledWith(
-      [
-        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
-        MOCK_ADDRESS,
-      ],
+      getMoneyAccountBalanceQueryKey(MOCK_ADDRESS),
       FRESH_BALANCE,
     );
-    expect(armFreshMoneyBalanceWindow).toHaveBeenCalledWith(MOCK_ADDRESS, 42);
+    expect(mockSetQueryData).toHaveBeenCalledWith(
+      getMoneyAccountBalanceQueryKey(MOCK_ADDRESS, {
+        fresh: true,
+        minBlock: 42,
+      }),
+      FRESH_BALANCE,
+    );
     expect(callOrder).toEqual([
       'UI:cancelQueries',
       'MoneyAccountBalanceService:invalidateQueries',
       'MoneyAccountBalanceService:fetchBalanceWithFallback',
       'UI:cancelQueries',
+      'UI:setQueryData',
       'UI:setQueryData',
     ]);
   });
@@ -190,6 +187,10 @@ describe('refreshMoneyAccountBalanceFresh', () => {
       'MoneyAccountBalanceService:fetchBalanceWithFallback',
       MOCK_ADDRESS,
       { fresh: true },
+    );
+    expect(mockSetQueryData).toHaveBeenCalledWith(
+      getMoneyAccountBalanceQueryKey(MOCK_ADDRESS, { fresh: true }),
+      FRESH_BALANCE,
     );
   });
 

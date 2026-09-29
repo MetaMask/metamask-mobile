@@ -1,21 +1,20 @@
-import { AppState, type NativeEventSubscription } from 'react-native';
+import { Json } from '@metamask/utils';
+import { MessengerActions, MessengerEvents } from '@metamask/messenger';
 import {
   QueryClient,
   focusManager,
   onlineManager,
 } from '@tanstack/react-query';
+import { createUIQueryClient } from '@metamask/react-data-query';
 import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
-import { createUIQueryClient } from '@metamask/react-data-query';
-import { Json } from '@metamask/utils';
-import { MessengerActions, MessengerEvents } from '@metamask/messenger';
+import { AppState, type NativeEventSubscription } from 'react-native';
+import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import Engine from '../Engine/Engine';
 import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
-import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
-import { withFreshMoneyBalanceOptions } from './moneyBalanceFreshWindow';
 
 type ActionType = MessengerActions<RootMessenger>['type'];
 type EventType = MessengerEvents<RootMessenger>['type'];
@@ -27,10 +26,7 @@ type DataServiceHandler = (
 const adapter = {
   call: async (method: string, ...params: Json[]) =>
     // @ts-expect-error Target requires 1 element(s) but source may have fewer.
-    Engine.controllerMessenger.call(
-      method as ActionType,
-      ...withFreshMoneyBalanceOptions(method, params),
-    ) as Json,
+    Engine.controllerMessenger.call(method as ActionType, ...params) as Json,
   subscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.subscribe(event as EventType, callback);
   },

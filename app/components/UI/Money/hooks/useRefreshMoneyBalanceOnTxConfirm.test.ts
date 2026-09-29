@@ -418,6 +418,24 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       );
     });
 
+    it('records minBlock from the confirmed hex block number', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+      renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+      getConfirmedHandler()({
+        ...makeTx(TransactionType.moneyAccountDeposit),
+        blockNumber: '0x10',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setLastLocalMoneyFlow({
+          address: MOCK_ADDRESS,
+          confirmedAt: 1_700_000_000_000,
+          minBlock: 16,
+        }),
+      );
+    });
+
     it('does not record a marker for a tx that leaves the Money balance alone', () => {
       renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
 

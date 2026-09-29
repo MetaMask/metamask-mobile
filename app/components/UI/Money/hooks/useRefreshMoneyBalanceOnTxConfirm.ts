@@ -143,14 +143,18 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
       // Marks the live balance as ahead of anything the backend derives from
       // its on-chain ingest, so those surfaces can say they're catching up.
       // Scoped to the account that moved, so it cannot speak for another one.
+      // `minBlock` also drives the Money balance query key's fresh-read options
+      // for the post-confirm window (see useMoneyAccountBalance).
+      const minBlock = toConfirmedMinBlock(transactionMeta.blockNumber);
       store.dispatch(
-        setLastLocalMoneyFlow({ address, confirmedAt: Date.now() }),
+        setLastLocalMoneyFlow({
+          address,
+          confirmedAt: Date.now(),
+          ...(minBlock !== undefined && { minBlock }),
+        }),
       );
 
-      refreshMoneyBalanceQueries(
-        address,
-        toConfirmedMinBlock(transactionMeta.blockNumber),
-      ).catch((error) => {
+      refreshMoneyBalanceQueries(address, minBlock).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
       });
     };
