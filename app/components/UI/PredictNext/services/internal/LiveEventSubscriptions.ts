@@ -92,7 +92,7 @@ export const msUntilGameWindow = (
   now: number,
 ): number | undefined => {
   const game = event.sports?.game;
-  if (!game || game.status !== 'scheduled' || !event.startsAt) {
+  if (game?.status !== 'scheduled' || !event.startsAt) {
     return undefined;
   }
   const startsAt = Date.parse(event.startsAt);
