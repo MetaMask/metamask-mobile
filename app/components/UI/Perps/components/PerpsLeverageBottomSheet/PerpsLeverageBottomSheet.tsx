@@ -481,7 +481,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           // No horizontal padding here: KeyValueRow already insets itself by
           // px-4, so adding it again doubled these rows to 32px and pushed
           // them out of line with the description and footer button.
-          <Box accessible={false}>
+          <>
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.order.leverage_modal.current_price')}
@@ -556,7 +556,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 )
               }
             />
-          </Box>
+          </>
         ) : (
           <Text
             variant={TextVariant.BodyMd}
