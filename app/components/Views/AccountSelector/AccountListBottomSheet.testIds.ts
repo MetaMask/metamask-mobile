@@ -2,7 +2,6 @@ import enContent from '../../../../locales/languages/en.json';
 
 export const AccountListBottomSheetSelectorsIDs = {
   ACCOUNT_LIST_ID: 'account-list',
-  ACCOUNT_LIST_HEADING_ID: 'wallet-account-name-heading',
   ACCOUNT_LIST_ADD_BUTTON_ID: 'account-list-add-account-button',
   MANAGE_ACCOUNTS_BUTTON: 'account-list-manage-accounts-button',
   ACCOUNT_TYPE_LABEL: 'account-type-label',
