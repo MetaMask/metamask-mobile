@@ -553,4 +553,33 @@ describe('RewardsMoneyDashboard', () => {
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).not.toBeOnTheScreen();
   });
+
+  it('keeps inactive tab bodies mounted', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    );
+
+    expect(
+      queryByTestId('rewards-money-performance-tab', {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).toBeOnTheScreen();
+  });
 });
