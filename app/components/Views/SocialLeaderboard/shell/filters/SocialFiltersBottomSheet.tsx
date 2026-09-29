@@ -47,6 +47,16 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  // Overrides the footer's `flex-1` so Reset is sized by its label and Apply
+  // takes the rest. `flexShrink` keeps a longer translation from pushing Apply
+  // off the row.
+  resetButton: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    paddingLeft: 25,
+    paddingRight: 25,
+  },
 });
 
 export interface SocialFiltersBottomSheetProps {
@@ -178,6 +188,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
       children: strings('social_leaderboard.shell.filters.reset'),
       onPress: onReset,
       size: ButtonSize.Lg,
+      style: styles.resetButton,
       testID: SocialFiltersBottomSheetSelectorsIDs.RESET,
     }),
     [onReset],

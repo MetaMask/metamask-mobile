@@ -26,6 +26,9 @@ import {
   getLiveTradeValueTestId,
 } from './LiveTradeRow.testIds';
 
+/** Lines the card up with the identity text: avatar (32) plus its gap-2 (8). */
+const CARD_INDENT_CLASSNAME = 'ml-10';
+
 export interface LiveTradeRowProps {
   item: LiveTradeRowModel;
   onPositionPress: (item: LiveTradeRowModel) => void;
@@ -87,7 +90,9 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
         accessibilityRole="button"
         accessibilityLabel={item.symbol}
         testID={getLiveTradeCardTestId(item.id)}
-        style={({ pressed }) => tw.style(pressed && 'opacity-60', 'ml-10')}
+        style={({ pressed }) =>
+          tw.style(CARD_INDENT_CLASSNAME, pressed && 'opacity-60')
+        }
       >
         <LiveTradeCardSurface>
           <Box
@@ -109,7 +114,7 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
                 side={item.side}
               />
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
                 numberOfLines={1}
                 testID={getLiveTradeMarkPriceTestId(item.id)}
@@ -129,7 +134,7 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
               </Text>
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
                 numberOfLines={1}
                 testID={getLiveTradeAmountTestId(item.id)}
               >
