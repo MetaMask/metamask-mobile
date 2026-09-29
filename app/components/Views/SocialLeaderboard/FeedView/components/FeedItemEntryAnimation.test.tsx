@@ -76,6 +76,9 @@ const mockWithTiming = jest.mocked(withTiming);
 
 const IDENTITY_TRANSFORM = [{ translateY: 0 }, { scale: 1 }];
 const PINNED_TO_TOP = { left: 0, position: 'absolute', right: 0, top: 0 };
+const EXPECTED_ENTRY_DURATION_MS = 520;
+const EXPECTED_REDUCED_MOTION_DURATION_MS = 200;
+const EXPECTED_STAGGER_MS = 70;
 
 const getClip = () => screen.getByTestId('entry-animation');
 const getMotion = () => getClip().props.children;
@@ -129,6 +132,14 @@ describe('FeedItemEntryAnimation', () => {
     jest.useRealTimers();
   });
 
+  it('keeps production timing constants independent of debug slow motion', () => {
+    expect(FEED_ITEM_ENTRY_DURATION_MS).toBe(EXPECTED_ENTRY_DURATION_MS);
+    expect(FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS).toBe(
+      EXPECTED_REDUCED_MOTION_DURATION_MS,
+    );
+    expect(FEED_ITEM_ENTRY_STAGGER_MS).toBe(EXPECTED_STAGGER_MS);
+  });
+
   it('renders cached rows without an entrance', () => {
     render(
       <FeedItemEntryAnimation testID="entry-animation">
@@ -178,7 +189,7 @@ describe('FeedItemEntryAnimation', () => {
     expect(mockWithTiming).toHaveBeenCalledTimes(1);
     expect(mockWithTiming).toHaveBeenCalledWith(
       1,
-      expect.objectContaining({ duration: FEED_ITEM_ENTRY_DURATION_MS }),
+      expect.objectContaining({ duration: EXPECTED_ENTRY_DURATION_MS }),
       expect.any(Function),
     );
   });
@@ -282,7 +293,7 @@ describe('FeedItemEntryAnimation', () => {
     expect(mockWithTiming).toHaveBeenCalledWith(
       1,
       expect.objectContaining({
-        duration: FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS,
+        duration: EXPECTED_REDUCED_MOTION_DURATION_MS,
       }),
       expect.any(Function),
     );
@@ -296,17 +307,14 @@ describe('FeedItemEntryAnimation', () => {
   });
 
   it('waits for the scheduled stagger delay before starting', async () => {
-    const scheduleEntryDelay = jest.fn(() => FEED_ITEM_ENTRY_STAGGER_MS * 2);
+    const scheduleEntryDelay = jest.fn(() => EXPECTED_STAGGER_MS * 2);
     renderLiveEntry({ scheduleEntryDelay });
     await layoutContent();
 
     await loadBlurSnapshot();
 
     expect(scheduleEntryDelay).toHaveBeenCalledTimes(1);
-    expect(mockWithDelay).toHaveBeenCalledWith(
-      FEED_ITEM_ENTRY_STAGGER_MS * 2,
-      1,
-    );
+    expect(mockWithDelay).toHaveBeenCalledWith(EXPECTED_STAGGER_MS * 2, 1);
   });
 });
 
@@ -314,7 +322,7 @@ describe('createFeedItemEntryScheduler', () => {
   it('spaces burst entrances 70ms apart without delaying spaced-out arrivals', () => {
     let now = 1_000;
     const scheduleEntryDelay = createFeedItemEntryScheduler(
-      FEED_ITEM_ENTRY_STAGGER_MS,
+      undefined,
       () => now,
     );
 
