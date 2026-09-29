@@ -271,3 +271,6 @@ sourcemaps/**/*.js.map
 
 # Regenerated from tests/tags.js and tests/tags.performance.js before Smart E2E analysis
 .ai-pr-analyzer/modes/smart-e2e/catalog.json
+
+# Deepwork session state (git-local, OpenCode-readable via .ignore)
+.slim/deepwork/

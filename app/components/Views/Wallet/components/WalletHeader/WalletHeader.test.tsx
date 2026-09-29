@@ -31,11 +31,8 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
-jest.mock('../../../AccountSelector', () => ({
-  createAccountSelectorNavDetails: jest.fn(() => [
-    'AccountSelector',
-    { screen: 'AccountSelector' },
-  ]),
+jest.mock('../../../ProfileDrawer', () => ({
+  createProfileDrawerNavDetails: jest.fn(() => ['ProfileDrawer', {}]),
 }));
 
 const touchAreaSlop = { top: 8, bottom: 8, left: 8, right: 8 };
@@ -94,7 +91,7 @@ describe('WalletHeader', () => {
     expect(defaultProps.handleHamburgerPress).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to the account selector when the account picker is pressed', () => {
+  it('navigates to Profile Drawer when the account picker is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeader {...defaultProps} />,
     );
@@ -102,8 +99,8 @@ describe('WalletHeader', () => {
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
 
     expect(defaultProps.navigation.navigate).toHaveBeenCalledWith(
-      'AccountSelector',
-      { screen: 'AccountSelector' },
+      'ProfileDrawer',
+      {},
     );
   });
 

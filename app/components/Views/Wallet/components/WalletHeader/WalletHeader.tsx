@@ -18,7 +18,7 @@ import PickerAccount from '../../../../../component-library/components/Pickers/P
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createAccountSelectorNavDetails } from '../../../AccountSelector';
+import { createProfileDrawerNavDetails } from '../../../ProfileDrawer';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
@@ -65,7 +65,7 @@ const WalletHeader = ({
   const hasAccountsMenuAttention = useAccountsMenuAttention();
 
   const handleAccountPickerPress = useCallback(() => {
-    navigation.navigate(...createAccountSelectorNavDetails({}));
+    navigation.navigate(...createProfileDrawerNavDetails({}));
   }, [navigation]);
 
   return (

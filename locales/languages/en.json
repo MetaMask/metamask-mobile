@@ -1190,6 +1190,37 @@
       "button": "Try again"
     }
   },
+  "profile_drawer": {
+    "create_profile": "Create profile",
+    "close": "Close",
+    "scan": "Scan QR code",
+    "rows": {
+      "account_selector": "Account selector",
+      "notifications": "Notifications",
+      "subscriptions": "Subscriptions",
+      "settings": "Settings",
+      "help_and_support": "Help and support"
+    },
+    "profile_create": {
+      "coming_soon_title": "Profile creation coming soon",
+      "steps": {
+        "next_cta": "Next",
+        "get_started_cta": "Get started",
+        "step_1": {
+          "title": "Create your profile",
+          "description": "Set up a social profile to connect with others in MetaMask."
+        },
+        "step_2": {
+          "title": "Connect with others",
+          "description": "Follow friends and discover what the community is doing."
+        },
+        "step_3": {
+          "title": "You're all set",
+          "description": "Your profile is ready. Get started exploring."
+        }
+      }
+    }
+  },
   "social_leaderboard": {
     "entry_options": {
       "title": "Options",

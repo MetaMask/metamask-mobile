@@ -2045,7 +2045,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
   };
 
-  it('opens the account hub from the treatment avatar', () => {
+  it('opens Profile Drawer from the treatment avatar', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = renderWithNavigationProp();
@@ -2053,7 +2053,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PROFILE_DRAWER.ROOT, {});
   });
 
   it('opens rewards from the treatment gift icon', () => {
@@ -2065,7 +2065,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 
-  it('opens the account hub from the account name above the balance', () => {
+  it('opens Profile Drawer from the account name above the balance', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = renderWithNavigationProp();
@@ -2073,7 +2073,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PROFILE_DRAWER.ROOT, {});
   });
 });
 
