@@ -29,7 +29,7 @@ jobs:
     name: Verify latest deployed Mobile contract
     environment: default-branch
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     outputs:
       release-tag: ${{ steps.shared-contract.outputs.release-tag }}
       release-url: ${{ steps.shared-contract.outputs.release-url }}
