@@ -119,6 +119,7 @@ export const DeleteAccount = () => {
         {error && <Text color={TextColor.Error}>{error}</Text>}
       </Box>
       <BottomSheetFooter
+        style={styles.footer}
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={[cancelButtonProps, removeButtonProps]}
       />
