@@ -13,11 +13,15 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { strings } from '../../../../../../../locales/i18n';
 import { useSocialEntryOptions } from '../../../components/SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from '../../../components/SocialTraderIdentityRow';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
+import { mockCopyCount } from '../mocks/socialV1Enrichment';
+import { markMocked } from '../mockMarker';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
+import { isCopyTradeable } from '../utils/copyTrade';
 import ReactionChip from './ReactionChip';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
@@ -76,6 +80,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
     [pickEmotion],
   );
 
+  // Only a position that is still open can be copied, so only those can have
+  // been. Zero copies say nothing worth the row space.
+  const copyCount = isCopyTradeable(post.item) ? mockCopyCount(post.id) : 0;
+
   if (isHidden) {
     return null;
   }
@@ -125,47 +133,63 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Box>
       ) : null}
 
-      <View
-        ref={reactionAnchorRef}
-        collapsable={false}
-        style={tw.style('self-start')}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={3}
       >
-        <Pressable
-          accessibilityRole="button"
-          testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
-          onPress={openPicker}
-        >
-          {chips.length === 0 ? (
-            <Animated.View
-              entering={FadeIn.duration(140)}
-              exiting={FadeOut.duration(100)}
-            >
+        <View ref={reactionAnchorRef} collapsable={false}>
+          <Pressable
+            accessibilityRole="button"
+            testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+            onPress={openPicker}
+          >
+            {chips.length === 0 ? (
+              <Animated.View
+                entering={FadeIn.duration(140)}
+                exiting={FadeOut.duration(100)}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="pl-2"
+                >
+                  <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
+                </Box>
+              </Animated.View>
+            ) : (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="pl-2"
+                gap={2}
               >
-                <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
+                {chips.map((reaction) => (
+                  <ReactionChip
+                    key={reaction.emotion}
+                    emotion={reaction.emotion}
+                    count={reaction.count}
+                    testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                  />
+                ))}
               </Box>
-            </Animated.View>
-          ) : (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              {chips.map((reaction) => (
-                <ReactionChip
-                  key={reaction.emotion}
-                  emotion={reaction.emotion}
-                  count={reaction.count}
-                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-                />
-              ))}
-            </Box>
-          )}
-        </Pressable>
-      </View>
+            )}
+          </Pressable>
+        </View>
+
+        {/* Inert on purpose: the count is context for the reactions next to it,
+            not a way into a list of who copied. */}
+        {copyCount > 0 ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
+          >
+            {markMocked(
+              strings('social_leaderboard.feed.copies', { count: copyCount }),
+            )}
+          </Text>
+        ) : null}
+      </Box>
 
       <ReactionPickerBalloon
         visible={pickerVisible}

@@ -3,11 +3,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { View } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { mockCopyCount } from '../mocks/socialV1Enrichment';
+import {
+  mockClosedPerpsFeedItem,
+  mockOpenPerpsFeedItem,
+} from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+
+// Nothing reports copies yet, so the shell hashes a stand-in off the post id.
+// Drive it from the test instead of hunting for ids that hash to a given count.
+jest.mock('../mocks/socialV1Enrichment', () => ({
+  mockCopyCount: jest.fn(),
+}));
 
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
@@ -89,8 +99,11 @@ const itemWithoutStats = (id: string, comment: string) => {
   };
 };
 
+const mockedCopyCount = jest.mocked(mockCopyCount);
+
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
+    mockedCopyCount.mockReturnValue(3);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
     });
@@ -249,6 +262,50 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
     ).toBeNull();
+  });
+
+  describe('copies count', () => {
+    const copiesTestId = `${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`;
+
+    it('reads out how many readers copied the trade', () => {
+      renderShell(basePost());
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('3 copies*');
+    });
+
+    it('says copy in the singular for a single copy', () => {
+      mockedCopyCount.mockReturnValue(1);
+
+      renderShell(basePost());
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('1 copy*');
+    });
+
+    it('omits the count when nobody has copied the trade', () => {
+      mockedCopyCount.mockReturnValue(0);
+
+      renderShell(basePost());
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+    });
+
+    // A closed position can no longer be mirrored, so a copies count on one
+    // would be claiming something the reader cannot act on.
+    it('omits the count on a closed position', () => {
+      renderShell(basePost({ item: mockClosedPerpsFeedItem() }));
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+    });
+
+    it('does not open the reaction picker when the count is pressed', () => {
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(copiesTestId));
+
+      expect(
+        screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+      ).toBeNull();
+    });
   });
 
   it('passes the profile id to the avatar when the author has no image', () => {

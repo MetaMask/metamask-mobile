@@ -1,7 +1,7 @@
-import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { SocialV1FeedItem } from '../types';
+import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
@@ -29,57 +29,50 @@ export interface PositionCardBodyProps {
 
 const statId = getSocialFeedPositionCardStatTestId;
 
-/** The closed-card stat rows, identical for perps and spot. */
+/**
+ * The closed-card stats, identical for perps and spot. Three short values that
+ * sit side by side: what it was entered at, what it left at, and what it cost.
+ * Hold time and a "Closed" status row are deliberately absent -- the card's own
+ * red/green treatment already says the position is settled and which way.
+ */
 const closedStats = (item: {
   id: string;
   entryPriceLabel?: string;
   exitPriceLabel?: string;
-  holdTimeLabel?: string;
-  statusLabel?: string;
+  costLabel?: string;
 }): PositionCardStatRow[] => [
   {
     key: 'entry',
-    label: strings('social_leaderboard.feed.position_card.entry_price'),
+    label: strings('social_leaderboard.feed.position_card.entry'),
     value: item.entryPriceLabel,
     testID: statId(item.id, 'entry'),
   },
   {
     key: 'exit',
-    label: strings('social_leaderboard.feed.position_card.exit_price'),
+    label: strings('social_leaderboard.feed.position_card.exit'),
     value: item.exitPriceLabel,
     testID: statId(item.id, 'exit'),
   },
   {
-    key: 'holdTime',
-    label: strings('social_leaderboard.feed.position_card.max_hold_time'),
-    value: item.holdTimeLabel,
-    testID: statId(item.id, 'holdTime'),
-  },
-  {
-    key: 'status',
-    label: strings('social_leaderboard.feed.position_card.status'),
-    value:
-      item.statusLabel ??
-      strings('social_leaderboard.feed.position_card.closed'),
-    testID: statId(item.id, 'status'),
-    leadingValueAccessory: (
-      <Box
-        twClassName="w-1.5 h-1.5 rounded-full bg-error-default"
-        testID={statId(item.id, 'status-dot')}
-      />
-    ),
+    key: 'cost',
+    label: strings('social_leaderboard.feed.position_card.cost'),
+    value: item.costLabel,
+    testID: statId(item.id, 'cost'),
   },
 ];
 
 /**
  * The position card that forms the body of a post.
  *
- * Two shapes, not four: an open position leads with its current value and
- * offers Copy trade, a closed one leads with a hero realized P&L and offers
- * nothing to copy. The asset class only decides which stat rows sit between --
- * perps carry leverage and the auto-close bracket, spot carries neither.
+ * Two shapes, not four: an open position puts its running P&L beside the title
+ * and offers Copy trade, a closed one puts its settled result under the title and
+ * offers nothing to copy. The asset class only decides which stat rows sit
+ * between -- perps carry the auto-close bracket, spot carries hold time.
  * Composer spot shares reuse the open layout and gate Copy trade with
  * `showCopyTrade`.
+ *
+ * A closed card also takes the tone of its realized P&L, so a win and a loss
+ * are distinguishable while scrolling past at speed.
  */
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
   if (
@@ -87,15 +80,24 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
     item.variant === 'spotOpen' ||
     item.variant === 'spotShare'
   ) {
+    const entryRow: PositionCardStatRow = {
+      key: 'entry',
+      label: strings('social_leaderboard.feed.position_card.entry_price'),
+      value: item.entryPriceLabel,
+      testID: statId(item.id, 'entry'),
+    };
+    const costRow: PositionCardStatRow = {
+      key: 'cost',
+      label: strings('social_leaderboard.feed.position_card.cost'),
+      value: item.costLabel,
+      testID: statId(item.id, 'cost'),
+    };
+    // Leverage is not a row: it rides in the title, next to the direction it
+    // qualifies (`BTC · 40x Short`).
     const stats: PositionCardStatRow[] =
       item.variant === 'perpsOpen'
         ? [
-            {
-              key: 'leverage',
-              label: strings('social_leaderboard.feed.position_card.leverage'),
-              value: item.leverageLabel,
-              testID: statId(item.id, 'leverage'),
-            },
+            entryRow,
             {
               key: 'autoClose',
               label: strings(
@@ -104,34 +106,20 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
               value: item.autoCloseLabel,
               testID: statId(item.id, 'autoClose'),
             },
-            {
-              key: 'entry',
-              label: strings(
-                'social_leaderboard.feed.position_card.entry_price',
-              ),
-              value: item.entryPriceLabel,
-              testID: statId(item.id, 'entry'),
-            },
+            costRow,
           ]
         : [
-            {
-              key: 'entry',
-              label: strings(
-                'social_leaderboard.feed.position_card.entry_price',
-              ),
-              value: item.entryPriceLabel,
-              testID: statId(item.id, 'entry'),
-            },
+            entryRow,
             {
               key: 'holdTime',
               label: strings('social_leaderboard.feed.position_card.hold_time'),
               value: item.holdTimeLabel,
               testID: statId(item.id, 'holdTime'),
             },
+            costRow,
           ];
 
-    const showCopyTrade =
-      item.variant !== 'spotShare' || Boolean(item.showCopyTrade);
+    const showCopyTrade = isCopyTradeable(item);
 
     return (
       <PositionCardShell>
@@ -140,10 +128,14 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
           avatar={item.asset.avatar}
           symbol={item.asset.symbol}
           direction={item.variant === 'perpsOpen' ? item.direction : undefined}
+          leverageLabel={
+            item.variant === 'perpsOpen' ? item.leverageLabel : undefined
+          }
           side={item.variant === 'perpsOpen' ? undefined : item.side}
           markPriceLabel={item.markPriceLabel}
           valueLabel={item.valueLabel}
           pnlLabel={item.pnlLabel}
+          pnlValueLabel={item.pnlValueLabel}
           isPnlPositive={item.isPnlPositive}
         />
         <PositionCardStats rows={stats} cardId={item.id} />
@@ -157,7 +149,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
   }
 
   return (
-    <PositionCardShell>
+    <PositionCardShell tone={item.isPnlPositive ? 'positive' : 'negative'}>
       <PositionCardHeader
         layout="closed"
         avatar={item.asset.avatar}
@@ -171,7 +163,11 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
         pnlLabel={item.pnlLabel}
         isPnlPositive={item.isPnlPositive}
       />
-      <PositionCardStats rows={closedStats(item)} cardId={item.id} />
+      <PositionCardStats
+        rows={closedStats(item)}
+        cardId={item.id}
+        layout="columns"
+      />
     </PositionCardShell>
   );
 };
