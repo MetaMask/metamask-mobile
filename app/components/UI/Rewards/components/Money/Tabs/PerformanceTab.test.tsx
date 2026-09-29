@@ -262,6 +262,21 @@ describe('PerformanceTab', () => {
     expect(retryCommissions).not.toHaveBeenCalled();
   });
 
+  it('keeps the referral error banner up with a busy retry button while refetching', () => {
+    const { getByTestId, getByRole } = renderTab('REFERRER', {
+      funnelError: true,
+      funnelLoading: true,
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      getByRole('button', { name: 'Retry', busy: true }),
+    ).toBeOnTheScreen();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
+  });
+
   it('shows a transactions error above cached commissions', () => {
     const { getByTestId, getByText, queryByText } = renderTab('REFERRER', {
       commissionsError: 'failed',
