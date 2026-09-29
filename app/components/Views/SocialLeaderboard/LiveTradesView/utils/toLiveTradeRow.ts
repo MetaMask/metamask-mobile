@@ -4,7 +4,11 @@ import type {
 } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import {
+  getPerpPositionDirection,
+  getPerpTradeDirection,
+  isPerpPosition,
+} from '../../utils/perp';
 import {
   formatTokenAmount,
   formatTradeUnitPrice,
@@ -16,7 +20,10 @@ import {
   asFeedCardItem,
   toWholePercent,
 } from '../../SocialV1View/feed/utils/feedCardStats';
-import type { SocialV1SpotSide } from '../../SocialV1View/feed/types';
+import type {
+  SocialV1PerpDirection,
+  SocialV1SpotSide,
+} from '../../SocialV1View/feed/types';
 import type { LiveTradeRowModel } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
@@ -46,16 +53,24 @@ const findTriggeringTrade = (
   );
 };
 
-const toSpotSide = (
-  core: CoreFeedItem,
-  trade: Trade | undefined,
-): SocialV1SpotSide => {
+const toSpotSide = (trade: Trade | undefined): SocialV1SpotSide | undefined => {
   const action = trade?.action as TradeAction | undefined;
   if (action) {
     return isEntryAction(action) ? 'buy' : 'sell';
   }
-  return trade?.direction === 'sell' ? 'sell' : 'buy';
+  if (trade?.direction === 'sell' || trade?.direction === 'buy') {
+    return trade.direction;
+  }
+  return undefined;
 };
+
+const toPerpDirection = (
+  core: CoreFeedItem,
+  trade: Trade | undefined,
+): SocialV1PerpDirection | undefined =>
+  getPerpPositionDirection(core) ??
+  (trade ? getPerpTradeDirection(trade) : null) ??
+  undefined;
 
 const buildTokenAvatar = (coreItem: CoreFeedItem): PositionTokenAvatarData => ({
   positionId: coreItem.positionId,
@@ -139,7 +154,7 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     return {
       ...base,
       type: 'perps',
-      direction: getPerpPositionDirection(core) ?? 'long',
+      direction: toPerpDirection(core, trade),
       leverageLabel: toLeverageLabel(leverage),
     };
   }
@@ -147,7 +162,7 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
   return {
     ...base,
     type: 'spot',
-    side: toSpotSide(core, trade),
+    side: toSpotSide(trade),
   };
 }
 

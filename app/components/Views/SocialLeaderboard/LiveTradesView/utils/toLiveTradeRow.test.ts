@@ -91,4 +91,69 @@ describe('toLiveTradeRow', () => {
     expect(row.marketCapUsd).toBeNull();
     expect(row.symbol).toBe('SOL');
   });
+
+  it('infers short from a sell fill when the position omits perpPositionType', () => {
+    const core = mockPerpFeedItem({
+      positionId: 'hype-1',
+      tokenSymbol: 'HYPE',
+      chain: 'hyperliquid',
+      perpPositionType: null,
+      trades: [
+        {
+          direction: 'sell',
+          intent: 'enter',
+          action: 'opened',
+          tokenAmount: 10,
+          usdCost: 700,
+          timestamp: 1_700_000_000,
+          transactionHash: '0x3',
+          classification: 'perp',
+        },
+      ],
+      timestamp: 1_700_000_000,
+    });
+
+    const row = toLiveTradeRow(core);
+
+    expect(row.type).toBe('perps');
+    expect(row.direction).toBe('short');
+  });
+
+  it('omits direction when a hyperliquid row has no type and no fill to infer from', () => {
+    const core = mockPerpFeedItem({
+      positionId: 'unk-1',
+      tokenSymbol: 'BTC',
+      chain: 'hyperliquid',
+      perpPositionType: null,
+      trades: [],
+    });
+
+    const row = toLiveTradeRow(core);
+
+    expect(row.type).toBe('perps');
+    expect(row.direction).toBeUndefined();
+  });
+
+  it('omits buy/sell when a spot fill has no side', () => {
+    const core = mockSpotFeedItem({
+      positionId: 'pepe-2',
+      tokenSymbol: 'PEPE',
+      trades: [
+        {
+          intent: 'enter',
+          tokenAmount: 100,
+          usdCost: 50,
+          timestamp: 1_700_000_000,
+          transactionHash: '0x4',
+          classification: 'spot',
+        },
+      ],
+      timestamp: 1_700_000_000,
+    });
+
+    const row = toLiveTradeRow(core);
+
+    expect(row.type).toBe('spot');
+    expect(row.side).toBeUndefined();
+  });
 });
