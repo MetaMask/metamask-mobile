@@ -119,7 +119,7 @@ It ends when the focused homepage has usable token content, the moment `useHomep
 
 Rehydrating a wallet onto a new device is onboarding, so it is not recorded.
 
-Its tags are `app_start_type` (the first unlock in a JS runtime is `cold`, later ones `warm`, as for `Login`), `unlock.before_navigate`, and, on a `cold` unlock, `startup.kind` from Leg 1.
+Its tags are `app_start_type` (`cold` until an unlock succeeds in this JS runtime, `warm` after), `unlock.before_navigate`, and, on a `cold` unlock, `startup.kind` from Leg 1. `Login` and `Homepage Ready` turn `warm` at the first submit instead, so a retry after a wrong password can differ.
 
 ### Stages
 
