@@ -55,10 +55,11 @@ describe('useReferralFunnel', () => {
       { forceFresh: undefined },
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setReferralFunnel({ profileId: PROFILE_A, data: mockFunnel }),
+      setReferralFunnelLoading({ profileId: PROFILE_A, loading: true }),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setReferralFunnelLoading({ profileId: PROFILE_A, loading: false }),
+    // setReferralFunnel settles loading and clears error in the reducer.
+    expect(mockDispatch).toHaveBeenLastCalledWith(
+      setReferralFunnel({ profileId: PROFILE_A, data: mockFunnel }),
     );
   });
 
@@ -86,8 +87,114 @@ describe('useReferralFunnel', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setReferralFunnelError({ profileId: PROFILE_A, error: true }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralFunnelLoading({ profileId: PROFILE_A, loading: false }),
+    );
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setReferralFunnel({ profileId: PROFILE_A, data: mockFunnel }),
+    );
+  });
+
+  it('keeps a previous error visible while the retry is in flight', async () => {
+    mockEngineCall.mockReturnValue(new Promise(() => undefined));
+
+    const { result } = renderHook(() => useReferralFunnel(PROFILE_A));
+    mockDispatch.mockClear();
+    result.current.fetchReferralFunnel({ forceFresh: true });
+    await flushPromises();
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralFunnelLoading({ profileId: PROFILE_A, loading: true }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setReferralFunnelError({ profileId: PROFILE_A, error: false }),
+    );
+  });
+
+  it('ignores a stale success that resolves after a newer request', async () => {
+    const staleFunnel = { enrolled: 1, earning_generating: 0 };
+    let resolveStale: (value: typeof staleFunnel) => void = () => undefined;
+    let resolveFresh: (value: typeof mockFunnel) => void = () => undefined;
+    mockEngineCall
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveStale = resolve;
+        }),
+      )
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFresh = resolve;
+        }),
+      );
+
+    const { result } = renderHook(() => useReferralFunnel(PROFILE_A));
+    result.current.fetchReferralFunnel({ forceFresh: true });
+    resolveFresh(mockFunnel);
+    await flushPromises();
+    resolveStale(staleFunnel);
+    await flushPromises();
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralFunnel({ profileId: PROFILE_A, data: mockFunnel }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setReferralFunnel({ profileId: PROFILE_A, data: staleFunnel }),
+    );
+  });
+
+  it('ignores a stale failure that rejects after a newer success', async () => {
+    let rejectStale: (reason: Error) => void = () => undefined;
+    let resolveFresh: (value: typeof mockFunnel) => void = () => undefined;
+    mockEngineCall
+      .mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectStale = reject;
+        }),
+      )
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFresh = resolve;
+        }),
+      );
+
+    const { result } = renderHook(() => useReferralFunnel(PROFILE_A));
+    result.current.fetchReferralFunnel({ forceFresh: true });
+    resolveFresh(mockFunnel);
+    await flushPromises();
+    rejectStale(new Error('network'));
+    await flushPromises();
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralFunnel({ profileId: PROFILE_A, data: mockFunnel }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setReferralFunnelError({ profileId: PROFILE_A, error: true }),
+    );
+  });
+
+  it('drops a request from a previous mount once a remount starts a new one', async () => {
+    const staleFunnel = { enrolled: 1, earning_generating: 0 };
+    let resolveStale: (value: typeof staleFunnel) => void = () => undefined;
+    mockEngineCall
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveStale = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(mockFunnel);
+
+    const first = renderHook(() => useReferralFunnel(PROFILE_A));
+    first.unmount();
+    renderHook(() => useReferralFunnel(PROFILE_A));
+    await flushPromises();
+    resolveStale(staleFunnel);
+    await flushPromises();
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralFunnel({ profileId: PROFILE_A, data: mockFunnel }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setReferralFunnel({ profileId: PROFILE_A, data: staleFunnel }),
     );
   });
 });
