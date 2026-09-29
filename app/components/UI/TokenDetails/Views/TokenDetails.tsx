@@ -10,10 +10,18 @@ import {
   type CaipAssetType,
 } from '@metamask/utils';
 import {
+  Box,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import {
   useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   forwardRef,
@@ -40,6 +48,10 @@ import { selectCurrencyRates } from '../../../../selectors/currencyRateControlle
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../hooks/useNativeHeader';
 import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
@@ -543,6 +555,79 @@ const TokenDetails: React.FC<{
     [caip19AssetId, isNativeToken, hasBalanceValue],
   );
 
+  const canCreatePriceAlert =
+    isPriceAlertsChainSupported &&
+    (currentPriceUsd ?? 0) > 0 &&
+    !!caip19AssetId;
+
+  // First screen of the asset stack, so the native bar draws no back button.
+  const nativeHeaderLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('navigation.back'),
+        icon: { type: 'sfSymbol', name: 'chevron.backward' },
+        onPress: handleBackPress,
+      },
+    ],
+    [handleBackPress],
+  );
+  // Star stays a custom item so its toast + analytics live in one place.
+  // The actions stay our JS ButtonIcons (size, spacing) inside one custom
+  // item; UIKit still wraps them in a glass capsule.
+  const nativeHeaderRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'custom',
+        element: (
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+            {starButton}
+            {canCreatePriceAlert ? (
+              <ButtonIcon
+                iconName={IconName.Notification}
+                size={ButtonIconSize.Md}
+                onPress={handlePriceAlertPress}
+                testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
+                accessibilityLabel="Create price alert"
+              />
+            ) : null}
+            <ButtonIcon
+              iconName={IconName.Share}
+              size={ButtonIconSize.Md}
+              onPress={handleShare}
+              testID="share-button"
+              accessibilityLabel="Share token"
+            />
+          </Box>
+        ),
+      },
+    ],
+    [starButton, canCreatePriceAlert, handlePriceAlertPress, handleShare],
+  );
+  const renderNativeHeaderTitle = useCallback(
+    () => (
+      <TokenDetailsInlineHeader
+        token={token}
+        securityData={securityData}
+        onBackPress={handleBackPress}
+        onCopyAddress={handleCopyAddress}
+        isNativeTitle
+      />
+    ),
+    [token, securityData, handleBackPress, handleCopyAddress],
+  );
+  const route = useRoute();
+  const isNativeHeader = useNativeHeader({
+    title: token.ticker || token.symbol,
+    renderTitle: renderNativeHeaderTitle,
+    leftItems: nativeHeaderLeftItems,
+    rightItems: nativeHeaderRightItems,
+    isBackButtonHidden: true,
+    // Only the asset stack registers this screen with a native bar.
+    isEnabled: route.name === 'Asset',
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   const moneyDepositCta = useMemo(
     () =>
       isMoneyFooterCtaActive
@@ -642,22 +727,25 @@ const TokenDetails: React.FC<{
   );
 
   return (
-    <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        onBackPress={handleBackPress}
-        onSharePress={handleShare}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsChainSupported &&
-          (currentPriceUsd ?? 0) > 0 &&
-          caip19AssetId
-            ? handlePriceAlertPress
-            : undefined
-        }
-        onCopyAddress={handleCopyAddress}
-      />
+    <View
+      style={[
+        styles.wrapper,
+        isNativeHeader && { paddingTop: nativeHeaderInset },
+      ]}
+    >
+      {!isNativeHeader && (
+        <TokenDetailsInlineHeader
+          token={token}
+          securityData={securityData}
+          onBackPress={handleBackPress}
+          onSharePress={handleShare}
+          starButton={starButton}
+          onPriceAlertPress={
+            canCreatePriceAlert ? handlePriceAlertPress : undefined
+          }
+          onCopyAddress={handleCopyAddress}
+        />
+      )}
 
       {txIsNonEvmAsset ? (
         <MultichainTransactionsView

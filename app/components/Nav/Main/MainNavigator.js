@@ -132,6 +132,7 @@ import {
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
+import { useNativeHeaderScreenOptions } from '../../hooks/useNativeHeader';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
@@ -260,31 +261,37 @@ const useDefaultStackScreenOptions = () => {
 };
 
 /* eslint-disable react/prop-types */
-const AssetStackFlow = (props) => (
-  <NativeStack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <NativeStack.Screen
-      name={'Asset'}
-      component={TokenDetails}
-      initialParams={props.route.params}
-    />
-    <NativeStack.Screen
-      name={Routes.SECURITY_TRUST}
-      component={SecurityTrustScreen}
-    />
-    <NativeStack.Screen
-      name={Routes.CREATE_PRICE_ALERT}
-      component={CreatePriceAlertView}
-    />
-    <NativeStack.Screen
-      name={Routes.MANAGE_PRICE_ALERTS}
-      component={ManagePriceAlertsView}
-    />
-  </NativeStack.Navigator>
-);
+const AssetStackFlow = (props) => {
+  // PoC: only Token Details and Create Price Alert take the native header here.
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <NativeStack.Screen
+        name={'Asset'}
+        component={TokenDetails}
+        initialParams={props.route.params}
+        options={nativeHeaderScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.SECURITY_TRUST}
+        component={SecurityTrustScreen}
+      />
+      <NativeStack.Screen
+        name={Routes.CREATE_PRICE_ALERT}
+        component={CreatePriceAlertView}
+        options={nativeHeaderScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MANAGE_PRICE_ALERTS}
+        component={ManagePriceAlertsView}
+      />
+    </NativeStack.Navigator>
+  );
+};
 
 /* eslint-enable react/prop-types */
 
@@ -445,12 +452,20 @@ const SnapsSettingsStack = () => {
 };
 ///: END:ONLY_INCLUDE_IF
 
+/** Screens in a native-header flow that still draw their own JS header. */
+const JS_HEADER_SCREEN_OPTIONS = { headerShown: false };
+
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+  const screenOptions = useMemo(
+    () => ({ ...defaultScreenOptions, ...nativeHeaderScreenOptions }),
+    [defaultScreenOptions, nativeHeaderScreenOptions],
+  );
   return (
     <NativeStack.Navigator
       initialRouteName={Routes.ACCOUNTS_MENU_VIEW}
-      screenOptions={defaultScreenOptions}
+      screenOptions={screenOptions}
     >
       <NativeStack.Screen
         name={Routes.ACCOUNTS_MENU_VIEW}
@@ -524,12 +539,16 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
+        // Class component: cannot call useNativeHeader.
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen name="ResetPassword" component={ResetPassword} />
       <NativeStack.Screen name="WalletRecovery" component={WalletRecovery} />
       <NativeStack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
+        // Its title is the MetaMask wordmark image; a native bar title is text.
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
@@ -542,10 +561,13 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen
         name="EnterPasswordSimple"
         component={EnterPasswordSimple}
+        // Class component: cannot call useNativeHeader.
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
@@ -570,6 +592,8 @@ const SettingsFlow = () => {
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
+          // Nested stack draws its own bar; a parent bar would print the route name.
+          options={JS_HEADER_SCREEN_OPTIONS}
         />
       )}
       {
@@ -584,6 +608,22 @@ const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
+// Single-screen PoC: the Social tab root gets a native large-title header,
+// which needs a stack to own the bar.
+const SocialTabStackFlow = () => {
+  const defaultScreenOptions = useDefaultStackScreenOptions();
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+  return (
+    <NativeStack.Navigator screenOptions={defaultScreenOptions}>
+      <NativeStack.Screen
+        name={Routes.SOCIAL.TAB_ROOT}
+        component={SocialV0View}
+        options={nativeHeaderScreenOptions}
+      />
+    </NativeStack.Navigator>
+  );
+};
+
 const HOME_TAB_COMPONENTS = {
   home: WalletTabStackFlow,
   explore: ExploreFeed,
@@ -591,7 +631,7 @@ const HOME_TAB_COMPONENTS = {
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   rewards: RewardsHomeUnmountOnTabBlur,
-  social: SocialV0View,
+  social: SocialTabStackFlow,
 };
 
 const HomeTabs = () => {
@@ -899,6 +939,8 @@ const MainNavigator = () => {
     selectMarketInsightsPerpsEnabled,
   );
   const defaultScreenOptions = useDefaultStackScreenOptions();
+  // Single-screen PoC: Sites full view takes the native header with search.
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
@@ -1319,6 +1361,7 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.SOCIAL.PROFILE}
               component={TraderProfileView}
+              options={nativeHeaderScreenOptions}
             />
             <NativeStack.Screen
               name={Routes.SOCIAL.POSITION}
@@ -1344,6 +1387,7 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={nativeHeaderScreenOptions}
         />
         <NativeStack.Screen
           name={Routes.WHATS_HAPPENING_DETAIL}

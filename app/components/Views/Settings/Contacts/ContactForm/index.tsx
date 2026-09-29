@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import {
   DimensionValue,
   Platform,
@@ -18,6 +19,7 @@ import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
+import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import {
   areAddressesEqual,
   toChecksumAddress,
@@ -449,22 +451,50 @@ const ContactForm = ({
   );
   const headerEndAccessory = renderHeaderEndAccessory();
 
+  const nativeHeaderRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: editable
+          ? strings('address_book.cancel')
+          : strings('address_book.edit'),
+        onPress: () =>
+          setState((currentState) => ({
+            ...currentState,
+            editable: !currentState.editable,
+          })),
+      },
+    ],
+    [editable],
+  );
+  const isNativeHeader = useNativeHeader({
+    title: headerTitle,
+    rightItems: route.params?.mode === ADD ? undefined : nativeHeaderRightItems,
+  });
+
   return (
     <SafeAreaView
       style={styles.wrapper}
       testID={AddContactViewSelectorsIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
-      <HeaderStandard
-        includesTopInset
-        title={headerTitle}
-        onBack={() => navigation.pop()}
-        backButtonProps={{
-          testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
-        }}
-        endAccessory={headerEndAccessory ?? undefined}
-      />
-      <KeyboardAwareScrollView style={styles.informationWrapper}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          includesTopInset
+          title={headerTitle}
+          onBack={() => navigation.pop()}
+          backButtonProps={{
+            testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
+          }}
+          endAccessory={headerEndAccessory ?? undefined}
+        />
+      )}
+      <KeyboardAwareScrollView
+        style={styles.informationWrapper}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <View style={styles.scrollWrapper}>
           <ContactFormFields
             address={address}

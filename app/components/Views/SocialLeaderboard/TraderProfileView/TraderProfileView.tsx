@@ -29,8 +29,14 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, TouchableOpacity } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -342,6 +348,54 @@ const TraderProfileView = () => {
 
   const headerTitle = profile?.profile.name;
 
+  // Same timing as HeaderStandardAnimated: the compact title fades in once the
+  // in-content identity section has scrolled under the bar.
+  const compactTitleProgress = useDerivedValue(() => {
+    const hasMeasured = titleSectionHeightSv.value > 0;
+    const isFullyHidden =
+      hasMeasured && scrollYShared.value >= titleSectionHeightSv.value;
+    return withTiming(isFullyHidden ? 1 : 0, {
+      duration: AnimationDuration.Fast,
+    });
+  });
+  const compactTitleStyle = useAnimatedStyle(() => ({
+    opacity: compactTitleProgress.value,
+    transform: [{ translateY: (1 - compactTitleProgress.value) * 8 }],
+  }));
+  const profileImageUrl = profile?.profile.imageUrl;
+  const profileAddress = profile?.profile.address;
+  const renderNativeHeaderTitle = useCallback(
+    () => (
+      <Animated.View style={compactTitleStyle}>
+        <Box alignItems={BoxAlignItems.Center}>
+          {headerTitle && profileAddress ? (
+            <TraderHeaderIdentity
+              traderName={headerTitle}
+              traderImageUrl={profileImageUrl}
+              traderAddress={profileAddress}
+              variant="compact"
+              testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
+            />
+          ) : null}
+          {headlineStats ? (
+            <TraderProfileCompactStats stats={headlineStats} />
+          ) : null}
+        </Box>
+      </Animated.View>
+    ),
+    [
+      compactTitleStyle,
+      headerTitle,
+      profileImageUrl,
+      profileAddress,
+      headlineStats,
+    ],
+  );
+  const isNativeHeader = useNativeHeader({
+    title: headerTitle ?? '',
+    renderTitle: renderNativeHeaderTitle,
+  });
+
   return (
     // Top and bottom edges are deliberately off — see
     // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
@@ -351,35 +405,40 @@ const TraderProfileView = () => {
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandardAnimated
-        includesTopInset
-        scrollY={scrollYShared}
-        titleSectionHeight={titleSectionHeightSv}
-        title={
-          headerTitle && profile ? (
-            <TraderHeaderIdentity
-              traderName={headerTitle}
-              traderImageUrl={profile.profile.imageUrl}
-              traderAddress={profile.profile.address}
-              variant="compact"
-              testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
-            />
-          ) : undefined
-        }
-        subtitle={
-          headlineStats ? (
-            <TraderProfileCompactStats stats={headlineStats} />
-          ) : undefined
-        }
-        onBack={handleBack}
-        backButtonProps={{
-          testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
-        }}
-        testID={TraderProfileViewSelectorsIDs.HEADER}
-      />
+      {isNativeHeader ? null : (
+        <HeaderStandardAnimated
+          includesTopInset
+          scrollY={scrollYShared}
+          titleSectionHeight={titleSectionHeightSv}
+          title={
+            headerTitle && profile ? (
+              <TraderHeaderIdentity
+                traderName={headerTitle}
+                traderImageUrl={profile.profile.imageUrl}
+                traderAddress={profile.profile.address}
+                variant="compact"
+                testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
+              />
+            ) : undefined
+          }
+          subtitle={
+            headlineStats ? (
+              <TraderProfileCompactStats stats={headlineStats} />
+            ) : undefined
+          }
+          onBack={handleBack}
+          backButtonProps={{
+            testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
+          }}
+          testID={TraderProfileViewSelectorsIDs.HEADER}
+        />
+      )}
 
       <Box twClassName="flex-1">
         <Animated.ScrollView
+          contentInsetAdjustmentBehavior={
+            isNativeHeader ? 'automatic' : undefined
+          }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           onScroll={onScroll}

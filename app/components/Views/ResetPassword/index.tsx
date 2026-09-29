@@ -11,6 +11,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
+import {
   Text,
   TextColor,
   TextVariant,
@@ -826,6 +830,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
   );
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('password_reset.change_password'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   if (!ready)
     return (
       <>
@@ -839,14 +848,20 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
-        testID="header"
-        title={strings('password_reset.change_password')}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ isDisabled: loading }}
-        includesTopInset
-      />
-      <Box twClassName="flex-1" testID={'account-backup-step-4-screen'}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          testID="header"
+          title={strings('password_reset.change_password')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ isDisabled: loading }}
+          includesTopInset
+        />
+      )}
+      <Box
+        twClassName="flex-1"
+        style={tw.style({ paddingTop: nativeHeaderInset })}
+        testID={'account-backup-step-4-screen'}
+      >
         {view === ViewState.ResetForm
           ? renderResetPassword()
           : renderConfirmPassword()}

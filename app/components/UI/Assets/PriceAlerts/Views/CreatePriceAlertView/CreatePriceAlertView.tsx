@@ -11,7 +11,11 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  HeaderStandardCenterColumn,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -33,6 +37,10 @@ import usePerpAlertSaveFlow from '../../perpApi';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../../hooks/useNativeHeader';
 
 /**
  * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
@@ -54,6 +62,17 @@ const PerpsAlertLivePrice: React.FC<{
   }, [parsed, onPrice]);
 
   return null;
+};
+
+// The header centers the title block but not the text inside it, so longer
+// translations wrap with their trailing line pushed left.
+const HEADER_TITLE_PROPS = {
+  twClassName: 'text-center',
+  testID: CreatePriceAlertTestIds.HEADER_TITLE,
+};
+const HEADER_SUBTITLE_PROPS = {
+  twClassName: 'text-center',
+  testID: CreatePriceAlertTestIds.HEADER_SUBTITLE,
 };
 
 const CreatePriceAlertView: React.FC = () => {
@@ -154,6 +173,28 @@ const CreatePriceAlertView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const title = strings(
+    isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
+    { ticker: displayTicker },
+  );
+  // Native bars have no subtitle slot, so the title view draws both lines.
+  const renderNativeHeaderTitle = useCallback(
+    () => (
+      <HeaderStandardCenterColumn
+        title={title}
+        titleProps={HEADER_TITLE_PROPS}
+        subtitle={formattedCurrentPrice}
+        subtitleProps={HEADER_SUBTITLE_PROPS}
+      />
+    ),
+    [title, formattedCurrentPrice],
+  );
+  const isNativeHeader = useNativeHeader({
+    title,
+    renderTitle: renderNativeHeaderTitle,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   // Narrow the alert union so each form receives only its supported alert type.
   const editingAbsoluteAlert =
     editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
@@ -162,28 +203,25 @@ const CreatePriceAlertView: React.FC = () => {
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
+      edges={isNativeHeader ? ['bottom', 'left', 'right'] : undefined}
+      style={tw.style('flex-1 bg-default', { paddingTop: nativeHeaderInset })}
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
-      <Box twClassName="flex-1 bg-default">
-        {/* The header centers the title block but not the text inside it, so
-            longer translations wrap with their trailing line pushed left. */}
-        <HeaderStandard
-          title={strings(
-            isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
-            { ticker: displayTicker },
-          )}
-          titleProps={{
-            twClassName: 'text-center',
-            testID: CreatePriceAlertTestIds.HEADER_TITLE,
-          }}
-          subtitle={formattedCurrentPrice}
-          subtitleProps={{
-            twClassName: 'text-center',
-            testID: CreatePriceAlertTestIds.HEADER_SUBTITLE,
-          }}
-          onBack={handleBack}
-        />
+      {/* The native bar is 44pt vs the JS header's 56pt; keep the old gap. */}
+      <Box
+        twClassName={
+          isNativeHeader ? 'flex-1 bg-default pt-3' : 'flex-1 bg-default'
+        }
+      >
+        {!isNativeHeader && (
+          <HeaderStandard
+            title={title}
+            titleProps={HEADER_TITLE_PROPS}
+            subtitle={formattedCurrentPrice}
+            subtitleProps={HEADER_SUBTITLE_PROPS}
+            onBack={handleBack}
+          />
+        )}
 
         {isPerpsMode ? (
           <PerpsStreamProvider>

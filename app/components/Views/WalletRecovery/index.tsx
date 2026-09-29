@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -304,19 +305,29 @@ const WalletRecovery = () => {
     }
   }, [userEmail]);
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.manage_recovery_method'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
-      <HeaderStandard
-        title={strings('app_settings.manage_recovery_method')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
-        onBack={handleBack}
-        includesTopInset
-        testID="wallet-recovery-header"
-        backButtonProps={{
-          testID: 'wallet-recovery-back-button',
-        }}
-      />
-      <ScrollView>
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.manage_recovery_method')}
+          titleProps={{ color: TextColor.PrimaryDefault }}
+          onBack={handleBack}
+          includesTopInset
+          testID="wallet-recovery-header"
+          backButtonProps={{
+            testID: 'wallet-recovery-back-button',
+          }}
+        />
+      )}
+      <ScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <View style={styles.root}>
           {authConnection && (
             <View style={styles.socialContainer}>

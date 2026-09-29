@@ -1004,6 +1004,8 @@ export type RootStackParamList = {
     | undefined;
   /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
   SocialLeaderboardTab: RootStackParamList['SocialV0View'];
+  /** Stack root inside the Social tab (SOCIAL.TAB_ROOT). */
+  SocialLeaderboardTabRoot: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {
         source?: string;

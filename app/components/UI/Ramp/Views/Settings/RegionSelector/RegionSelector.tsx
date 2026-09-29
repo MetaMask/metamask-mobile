@@ -13,8 +13,13 @@ import {
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Fuse from 'fuse.js';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../../hooks/useNativeHeader';
 
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -626,17 +631,39 @@ function RegionSelector() {
     }
   }, [activeView, handleRegionBackButton, handleGoBack]);
 
+  // Back steps from state to country before leaving, so the system button is replaced.
+  const nativeHeaderLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('navigation.back'),
+        icon: { type: 'sfSymbol', name: 'chevron.backward' },
+        onPress: handleHeaderBack,
+      },
+    ],
+    [handleHeaderBack],
+  );
+  const isNativeHeader = useNativeHeader({
+    title: headerTitle,
+    leftItems: nativeHeaderLeftItems,
+    isBackButtonHidden: true,
+  });
+  // The search field sits above the list, so pad the whole screen instead.
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { paddingTop: nativeHeaderInset }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <HeaderStandard
-        title={headerTitle}
-        onBack={handleHeaderBack}
-        backButtonProps={{ testID: headerBackTestId }}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: headerBackTestId }}
+          includesTopInset
+        />
+      )}
       <View style={styles.searchContainer}>
         {activeView === RegionViewType.COUNTRY && (
           <Text

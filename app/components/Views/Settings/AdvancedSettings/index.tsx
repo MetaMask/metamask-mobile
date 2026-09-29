@@ -37,6 +37,7 @@ import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
 import type { RootState } from '../../../../reducers';
@@ -102,6 +103,9 @@ const AdvancedSettings = ({
   const styles = createStyles(colors);
   const scrollView = useRef<KeyboardAwareScrollView | null>(null);
   const [resetModalVisible, setResetModalVisible] = useState(false);
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.advanced_title'),
+  });
 
   useEffect(() => {
     if (route?.params?.scrollToBottom) {
@@ -162,14 +166,19 @@ const AdvancedSettings = ({
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-      <HeaderStandard
-        title={strings('app_settings.advanced_title')}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: AdvancedViewSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.advanced_title')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: AdvancedViewSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
       <KeyboardAwareScrollView
         style={styles.wrapper}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         resetScrollToCoords={{ x: 0, y: 0 }}
         testID={AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW}
         ref={scrollView}

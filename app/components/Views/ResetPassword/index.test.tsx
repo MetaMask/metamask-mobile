@@ -229,6 +229,11 @@ const mockNavigation = {
   reset: jest.fn(),
 };
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
+
 const defaultProps: ResetPasswordProps = {
   route: { params: { [PREVIOUS_SCREEN]: 'ChoosePassword' } },
   navigation: mockNavigation,

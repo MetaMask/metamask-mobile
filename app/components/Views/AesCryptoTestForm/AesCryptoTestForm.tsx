@@ -5,6 +5,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -138,21 +139,30 @@ const AesCryptoTestForm = () => {
     [encryptor, keyEncryptedData],
   );
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.aes_crypto_test_form_title'),
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={styles.container}
       testID={aesCryptoFormSafeArea}
     >
-      <HeaderStandard
-        title={strings('app_settings.aes_crypto_test_form_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-        testID={aesCryptoFormHeader}
-        backButtonProps={{ testID: aesCryptoFormHeaderBackButton }}
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.aes_crypto_test_form_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+          testID={aesCryptoFormHeader}
+          backButtonProps={{ testID: aesCryptoFormHeaderBackButton }}
+        />
+      )}
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         testID={aesCryptoFormScrollIdentifier}
       >
         <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>

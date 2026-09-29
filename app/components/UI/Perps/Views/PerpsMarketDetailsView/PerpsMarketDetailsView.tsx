@@ -35,6 +35,7 @@ import {
   Linking,
   Platform,
   RefreshControl,
+  useWindowDimensions,
   View,
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -84,7 +85,15 @@ import {
 } from '../../Perps.testIds';
 import PerpsMarketHeader, {
   createLiteMarketHeaderTestIDs,
+  PERPS_MARKET_HEADER_HEIGHT,
+  PerpsMarketHeaderIdentity,
 } from '../../components/PerpsMarketHeader';
+import PerpsModeToggle from '../../components/PerpsModeToggle';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../hooks/useNativeHeader';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
@@ -293,8 +302,19 @@ const resolveAccountSectionState = (
   return hasAccount ? 'content' : 'empty';
 };
 
+const LITE_MARKET_HEADER_TEST_IDS = createLiteMarketHeaderTestIDs();
+/** Native compact bar height; the JS header is taller. */
+const NATIVE_BAR_HEIGHT = 44;
+// Bar items size to their content, so the identity's `flex-1` text column
+// collapses without an explicit width. Reserved = chevron capsule + gaps +
+// trailing capsule, measured on iOS 26; too little and UIKit moves the
+// trailing items into a "•••" overflow menu.
+const NATIVE_IDENTITY_RESERVED_WIDTH = 170;
+const NATIVE_MODE_TOGGLE_WIDTH = 75;
+
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
+  isNativeHeaderEnabled = false,
 }) => {
   // Use centralized navigation hook for all Perps navigation
   const {
@@ -488,6 +508,104 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     backFallback: 'home',
   });
 
+  const {
+    scrollY: scrollYShared,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  // Custom chevron + identity keep the JS header's left-aligned layout. The
+  // compact price reads the live stream: passing the chart-synced price would
+  // re-apply the bar on every tick.
+  const { width: windowWidth } = useWindowDimensions();
+  const nativeIdentityWidth =
+    windowWidth -
+    NATIVE_IDENTITY_RESERVED_WIDTH -
+    (isPerpsProModeEnabled ? NATIVE_MODE_TOGGLE_WIDTH : 0);
+  const nativeHeaderLeftItems = useCallback((): NativeStackHeaderItem[] => {
+    const backItem: NativeStackHeaderItem = {
+      type: 'button',
+      label: strings('perps.market_details.back'),
+      icon: { type: 'sfSymbol', name: 'chevron.backward' },
+      onPress: handleBackPress,
+    };
+    if (!market) {
+      return [backItem];
+    }
+    return [
+      backItem,
+      {
+        type: 'custom',
+        hidesSharedBackground: true,
+        element: (
+          <View style={{ width: nativeIdentityWidth }}>
+            <PerpsMarketHeaderIdentity
+              market={market}
+              testIDs={LITE_MARKET_HEADER_TEST_IDS}
+              onIdentityPress={handleMarketListPress}
+              scrollY={scrollYShared}
+              priceSectionHeight={titleSectionHeightSv}
+            />
+          </View>
+        ),
+      },
+    ];
+  }, [
+    handleBackPress,
+    handleMarketListPress,
+    market,
+    nativeIdentityWidth,
+    scrollYShared,
+    titleSectionHeightSv,
+  ]);
+  const nativeHeaderRightItems = useCallback((): NativeStackHeaderItem[] => {
+    const favoriteItem: NativeStackHeaderItem = {
+      type: 'button',
+      label: strings(
+        isWatchlist
+          ? 'perps.market_details.remove_from_watchlist'
+          : 'perps.market_details.add_to_watchlist',
+      ),
+      icon: { type: 'sfSymbol', name: isWatchlist ? 'star.fill' : 'star' },
+      onPress: handleFavoritePress,
+    };
+    if (!isPerpsProModeEnabled) {
+      return [favoriteItem];
+    }
+    return [
+      favoriteItem,
+      {
+        type: 'custom',
+        element: (
+          <PerpsModeToggle
+            mode={perpsMode}
+            variant="active"
+            onChange={handlePerpsModeChange}
+            enableHaptics
+            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+          />
+        ),
+      },
+    ];
+  }, [
+    handleFavoritePress,
+    handlePerpsModeChange,
+    isPerpsProModeEnabled,
+    isWatchlist,
+    perpsMode,
+  ]);
+  const isNativeHeader = useNativeHeader({
+    leftItems: nativeHeaderLeftItems,
+    rightItems: nativeHeaderRightItems,
+    isBackButtonHidden: true,
+    isEnabled: isNativeHeaderEnabled,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+  // Keep the JS header's full height so the price section doesn't jump up.
+  const nativeHeaderTopPadding = isNativeHeader
+    ? nativeHeaderInset + PERPS_MARKET_HEADER_HEIGHT - NATIVE_BAR_HEIGHT
+    : 0;
+
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
     currentMarketSymbolRef.current = market?.symbol;
@@ -502,12 +620,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // path into this screen (market list, watchlist, related markets,
   // homepage, deep links, trade-again), not just market-list taps.
   usePerpsRecordMarketViewed(market?.symbol);
-
-  const {
-    scrollY: scrollYShared,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
 
   const handleMarketSummaryLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -1960,24 +2072,28 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   return (
     <View
-      style={styles.mainContainer}
+      style={[styles.mainContainer, { paddingTop: nativeHeaderTopPadding }]}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <PerpsMarketHeader
-        market={market}
-        testIDs={createLiteMarketHeaderTestIDs()}
-        onBackPress={handleBackPress}
-        onIdentityPress={handleMarketListPress}
-        onFavoritePress={handleFavoritePress}
-        isFavorite={isWatchlist}
-        mode={isPerpsProModeEnabled ? perpsMode : undefined}
-        onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
-        enableHaptics={perpsMode === PerpsMode.Pro}
-        enableModeHaptics={isPerpsProModeEnabled}
-        scrollY={scrollYShared}
-        priceSectionHeight={titleSectionHeightSv}
-        currentPrice={syncedChartCurrentPrice}
-      />
+      {!isNativeHeader && (
+        <PerpsMarketHeader
+          market={market}
+          testIDs={createLiteMarketHeaderTestIDs()}
+          onBackPress={handleBackPress}
+          onIdentityPress={handleMarketListPress}
+          onFavoritePress={handleFavoritePress}
+          isFavorite={isWatchlist}
+          mode={isPerpsProModeEnabled ? perpsMode : undefined}
+          onModeChange={
+            isPerpsProModeEnabled ? handlePerpsModeChange : undefined
+          }
+          enableHaptics={perpsMode === PerpsMode.Pro}
+          enableModeHaptics={isPerpsProModeEnabled}
+          scrollY={scrollYShared}
+          priceSectionHeight={titleSectionHeightSv}
+          currentPrice={syncedChartCurrentPrice}
+        />
+      )}
 
       <View style={styles.scrollableContentContainer}>
         <Animated.ScrollView

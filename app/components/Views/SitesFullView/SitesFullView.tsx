@@ -1,5 +1,11 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  View,
+  RefreshControl,
+  type TextInputChangeEvent,
+} from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -8,6 +14,10 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useAppThemeFromContext } from '../../../util/theme';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 import { Theme } from '../../../util/theme/models';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useBrowserFavoritesSites } from '../../UI/Sites/hooks/useBrowserFavoritesSites/useBrowserFavoritesSites';
@@ -106,6 +116,43 @@ const SitesFullView: React.FC = () => {
     }
   }, [refetchSites]);
 
+  // iOS 26 shows a search button in the bar that expands into the field.
+  const handleNativeSearchChange = useCallback(
+    (event: TextInputChangeEvent) => {
+      setSearchQuery(event.nativeEvent.text);
+    },
+    [],
+  );
+  const handleNativeSearchOpen = useCallback(() => {
+    setIsSearchActive(true);
+  }, []);
+  const handleNativeSearchCancel = useCallback(() => {
+    setIsSearchActive(false);
+    setSearchQuery('');
+  }, []);
+  const nativeSearchBarOptions = useMemo(
+    () => ({
+      placeholder: strings('trending.search_sites'),
+      placement: 'integratedButton' as const,
+      // Left on, iOS 26 may host the field in a bottom toolbar over the content.
+      allowToolbarIntegration: false,
+      hideWhenScrolling: false,
+      onChangeText: handleNativeSearchChange,
+      onFocus: handleNativeSearchOpen,
+      onCancelButtonPress: handleNativeSearchCancel,
+    }),
+    [
+      handleNativeSearchChange,
+      handleNativeSearchOpen,
+      handleNativeSearchCancel,
+    ],
+  );
+  const isNativeHeader = useNativeHeader({
+    title,
+    searchBarOptions: nativeSearchBarOptions,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   const renderSkeleton = () => (
     <>
       {[...Array(15)].map((_, index) => (
@@ -130,11 +177,11 @@ const SitesFullView: React.FC = () => {
         style={[
           styles.headerContainer,
           {
-            paddingTop: insets.top,
+            paddingTop: isNativeHeader ? nativeHeaderInset : insets.top,
           },
         ]}
       >
-        {isSearchActive ? (
+        {isNativeHeader ? null : isSearchActive ? (
           <HeaderSearch
             variant={HeaderSearchVariant.Inline}
             textFieldSearchProps={{

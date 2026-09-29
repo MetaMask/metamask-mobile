@@ -20,6 +20,7 @@ import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import {
   ClearCookiesSection,
@@ -86,6 +87,9 @@ const Settings: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.security_title'),
+  });
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
     useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -366,14 +370,19 @@ const Settings: React.FC = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        testID="header"
-        title={strings('app_settings.security_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          testID="header"
+          title={strings('app_settings.security_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+        />
+      )}
       <ScrollView
         style={styles.scrollView}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         contentContainerStyle={styles.scrollContent}
         testID={SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL}
         ref={scrollViewRef}

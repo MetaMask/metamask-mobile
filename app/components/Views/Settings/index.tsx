@@ -19,6 +19,7 @@ import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -46,6 +47,9 @@ const Settings = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.title'),
+  });
 
   const onPressGeneral = () => {
     trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_GENERAL).build());
@@ -117,15 +121,20 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
-        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}
+          testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
+          includesTopInset
+        />
+      )}
       <ScrollView
         style={styles.wrapper}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
         <SettingsDrawer

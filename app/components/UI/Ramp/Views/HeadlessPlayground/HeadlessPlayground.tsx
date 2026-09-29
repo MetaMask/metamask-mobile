@@ -10,6 +10,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../hooks/useNativeHeader';
+import {
   Button,
   ButtonVariant,
   FontWeight,
@@ -651,14 +655,24 @@ function HeadlessPlayground() {
     return strings('app_settings.fiat_on_ramp.headless_playground.quotes_idle');
   }, [headlessQuotesStatus, headlessQuotesError, headlessQuotesResult]);
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.fiat_on_ramp.headless_playground.title'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderStandard
-        testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
-        title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID }}
-      />
+    <SafeAreaView
+      edges={isNativeHeader ? [] : ['top']}
+      style={[styles.container, { paddingTop: nativeHeaderInset }]}
+    >
+      {!isNativeHeader && (
+        <HeaderStandard
+          testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
+          title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID }}
+        />
+      )}
       <ScreenLayout scrollable>
         <ScreenLayout.Body>
           <ScreenLayout.Content>

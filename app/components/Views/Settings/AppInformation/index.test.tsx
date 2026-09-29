@@ -16,6 +16,13 @@ jest.mock('../../../../util/support', () => ({
   navigateToSupportConsent: jest.fn(),
 }));
 
+// The screen navigates through its `navigation` prop; the hook-level
+// navigation is only used to set native header options.
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ setOptions: jest.fn() }),
+}));
+
 // Mock device info
 const mockGetApplicationName = jest.fn();
 const mockGetVersion = jest.fn();

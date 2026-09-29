@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -60,32 +62,56 @@ const DeveloperOptions = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const nativeHeaderRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('navigation.close'),
+        icon: { type: 'sfSymbol', name: 'xmark' },
+        onPress: handleClose,
+      },
+    ],
+    [handleClose],
+  );
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.developer_options.title'),
+    rightItems: isFullScreenModal ? nativeHeaderRightItems : undefined,
+    isBackButtonHidden: Boolean(isFullScreenModal),
+  });
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={styles.wrapper}
       testID={DeveloperOptionsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        title={strings('app_settings.developer_options.title')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
-        onBack={isFullScreenModal ? undefined : handleBack}
-        onClose={isFullScreenModal ? handleClose : undefined}
-        includesTopInset
-        testID={DeveloperOptionsSelectorsIDs.HEADER}
-        {...(isFullScreenModal
-          ? {
-              closeButtonProps: {
-                testID: DeveloperOptionsSelectorsIDs.CLOSE_BUTTON,
-              },
-            }
-          : {
-              backButtonProps: {
-                testID: DeveloperOptionsSelectorsIDs.BACK_BUTTON,
-              },
-            })}
-      />
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.developer_options.title')}
+          titleProps={{ color: TextColor.PrimaryDefault }}
+          onBack={isFullScreenModal ? undefined : handleBack}
+          onClose={isFullScreenModal ? handleClose : undefined}
+          includesTopInset
+          testID={DeveloperOptionsSelectorsIDs.HEADER}
+          {...(isFullScreenModal
+            ? {
+                closeButtonProps: {
+                  testID: DeveloperOptionsSelectorsIDs.CLOSE_BUTTON,
+                },
+              }
+            : {
+                backButtonProps: {
+                  testID: DeveloperOptionsSelectorsIDs.BACK_BUTTON,
+                },
+              })}
+        />
+      )}
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <SentryTest />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

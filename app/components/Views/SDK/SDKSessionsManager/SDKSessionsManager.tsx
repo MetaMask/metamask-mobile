@@ -1,5 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../hooks/useNativeHeader';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -90,6 +94,10 @@ const SDKSessionsManager = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.manage_sdk_connections_title'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
 
   const toggleClearMMSDKConnectionModal = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -142,16 +150,18 @@ const SDKSessionsManager = () => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      <HeaderStandard
-        title={strings('app_settings.manage_sdk_connections_title')}
-        onBack={handleBack}
-        includesTopInset
-        testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}
-        backButtonProps={{
-          testID: SDKSelectorsIDs.SESSION_MANAGER_BACK_BUTTON,
-        }}
-      />
-      <View style={styles.content}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.manage_sdk_connections_title')}
+          onBack={handleBack}
+          includesTopInset
+          testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}
+          backButtonProps={{
+            testID: SDKSelectorsIDs.SESSION_MANAGER_BACK_BUTTON,
+          }}
+        />
+      )}
+      <View style={[styles.content, { paddingTop: nativeHeaderInset }]}>
         {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
       </View>
     </View>

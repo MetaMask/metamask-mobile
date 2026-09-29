@@ -17,9 +17,13 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
 const mockUseRoute = jest.fn();
 const mockSetParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ setParams: mockSetParams }),
+  useNavigation: () => ({ setParams: mockSetParams, setOptions: jest.fn() }),
   useRoute: () => mockUseRoute(),
   useIsFocused: () => true,
+}));
+
+jest.mock('../../../../hooks/useNativeHeader', () => ({
+  useIsNativeHeader: () => false,
 }));
 
 const mockSafeAreaMount = jest.fn();
