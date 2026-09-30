@@ -153,16 +153,17 @@ const PerpsPositionTransactionView: React.FC = () => {
   }
 
   if (
-    transaction.fill?.pnl &&
+    transaction.fill?.pnl !== undefined &&
+    transaction.fill?.amountNumber !== undefined &&
     (transaction.fill?.action === 'Closed' ||
       transaction.fill?.action === 'Flipped')
   ) {
-    const pnlValue = BigNumber(transaction.fill?.amountNumber || 0);
+    const pnlValue = BigNumber(transaction.fill.amountNumber);
     const isPositive = pnlValue.isGreaterThanOrEqualTo(0);
 
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
-      value: transaction.fill?.amount || '0',
+      value: transaction.fill.amount,
       textColor: isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault,
     });
   }

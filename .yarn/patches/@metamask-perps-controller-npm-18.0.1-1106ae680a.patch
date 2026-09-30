@@ -1,3 +1,537 @@
+diff --git a/dist/aggregation/SubscriptionMultiplexer.d.ts b/dist/aggregation/SubscriptionMultiplexer.d.ts
+index fcb06435a222541dc06e3dd798d50b0789c29cb3..b40ba4289923c3465cf633ecdefff010b8eda85f 100644
+--- a/dist/aggregation/SubscriptionMultiplexer.d.ts
++++ b/dist/aggregation/SubscriptionMultiplexer.d.ts
+@@ -7,7 +7,7 @@
+  * - Support aggregation modes: 'merge' (all prices) or 'best_price' (best price per symbol)
+  * - Cache latest updates per provider per symbol for aggregation
+  */
+-import type { PerpsProviderType, PerpsProvider, PerpsLogger, PriceUpdate, Position, OrderFill, Order, AccountState } from '../types/index.js';
++import type { PerpsProviderType, PerpsProvider, PerpsLogger, PriceUpdate, Position, AccountState, SubscribeOrderFillsParams, SubscribeOrdersParams } from '../types/index.js';
+ /**
+  * Options for constructing SubscriptionMultiplexer
+  */
+@@ -51,19 +51,23 @@ export type MultiplexedPositionsParams = {
+  * Parameters for multiplexed order fill subscriptions
+  */
+ export type MultiplexedOrderFillsParams = {
++    /** Report provider errors without emitting a fabricated empty snapshot. */
++    onError?: SubscribeOrderFillsParams['onError'];
+     /** Provider instances to subscribe through */
+     providers: [PerpsProviderType, PerpsProvider][];
+     /** Callback to receive aggregated order fill updates */
+-    callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
++    callback: SubscribeOrderFillsParams['callback'];
+ };
+ /**
+  * Parameters for multiplexed order subscriptions
+  */
+ export type MultiplexedOrdersParams = {
++    /** Report provider errors without emitting a fabricated empty snapshot. */
++    onError?: SubscribeOrdersParams['onError'];
+     /** Provider instances to subscribe through */
+     providers: [PerpsProviderType, PerpsProvider][];
+     /** Callback to receive aggregated order updates */
+-    callback: (orders: Order[]) => void;
++    callback: SubscribeOrdersParams['callback'];
+ };
+ /**
+  * Parameters for multiplexed account subscriptions
+diff --git a/dist/aggregation/SubscriptionMultiplexer.js b/dist/aggregation/SubscriptionMultiplexer.js
+index 65a03cfc60191f0e98564d3c051bbbe5bee83768..a5162d004229ec872d89484f1c9be41abb4277e8 100644
+--- a/dist/aggregation/SubscriptionMultiplexer.js
++++ b/dist/aggregation/SubscriptionMultiplexer.js
+@@ -201,6 +201,7 @@ export class SubscriptionMultiplexer {
+         for (const [providerId, provider] of providers) {
+             try {
+                 const subscribeParams = {
++                    onError: (error) => params.onError?.(error, providerId),
+                     callback: (fills, isSnapshot) => {
+                         // Tag fills with providerId
+                         const taggedFills = fills.map((fill) => ({
+@@ -208,7 +209,7 @@ export class SubscriptionMultiplexer {
+                             providerId,
+                         }));
+                         // For fills, we don't aggregate - emit immediately with tags
+-                        callback(taggedFills, isSnapshot);
++                        callback(taggedFills, isSnapshot, providerId);
+                     },
+                 };
+                 const unsub = provider.subscribeToOrderFills(subscribeParams);
+@@ -246,6 +247,7 @@ export class SubscriptionMultiplexer {
+         for (const [providerId, provider] of providers) {
+             try {
+                 const subscribeParams = {
++                    onError: (error) => params.onError?.(error, providerId),
+                     callback: (orders) => {
+                         // Tag orders with providerId and cache
+                         const taggedOrders = orders.map((order) => ({
+@@ -255,7 +257,7 @@ export class SubscriptionMultiplexer {
+                         this.#orderCache.set(providerId, taggedOrders);
+                         // Emit aggregated orders from all providers
+                         const allOrders = this.#aggregateOrders();
+-                        callback(allOrders);
++                        callback(allOrders, providerId);
+                     },
+                 };
+                 const unsub = provider.subscribeToOrders(subscribeParams);
+diff --git a/dist/providers/LighterProvider.js b/dist/providers/LighterProvider.js
+index 31af8d8736b9aabd54c4c7f889629215937db6d0..dd2d30f2a6aee9514e0a6b24db787a03ded61e32 100644
+--- a/dist/providers/LighterProvider.js
++++ b/dist/providers/LighterProvider.js
+@@ -542,6 +542,7 @@ export class LighterProvider {
+     #signerResetUnsubscribe = null;
+     #isTestnet;
+     #apiKeyIndex;
++    #preferredApiKeyIndex;
+     #configuredAccountIndex;
+     /** Markets cache keyed by symbol (freshness delegated to client service). */
+     #marketsBySymbol = new Map();
+@@ -593,6 +594,8 @@ export class LighterProvider {
+     #wsPositions = new Map();
+     /** Merged live open orders from account_all_orders (keyed orderId). */
+     #wsOrders = new Map();
++    #hasOrdersSnapshot = false;
++    #wsFills = null;
+     #oiCapSubscribers = new Set();
+     #accountSubscribers = new Set();
+     #positionSubscribers = new Set();
+@@ -628,6 +631,7 @@ export class LighterProvider {
+                 : options.webSocketCtor;
+         this.#apiKeyIndex =
+             options.lighterAuthConfig?.apiKeyIndex ?? LIGHTER_DEFAULT_API_KEY_INDEX;
++        this.#preferredApiKeyIndex = this.#apiKeyIndex;
+         this.#configuredAccountIndex = options.lighterAuthConfig?.accountIndex;
+         this.#clientService = new LighterClientService(this.#deps, {
+             isTestnet: this.#isTestnet,
+@@ -773,6 +777,8 @@ export class LighterProvider {
+         // client, drop the cached session so the next call re-runs setup
+         // instead of failing forever against a resolved-but-dead session.
+         return {
++            getRecoverableKeyIndices: bridge.getRecoverableKeyIndices?.bind(bridge),
++            getStoredKeyIndices: bridge.getStoredKeyIndices?.bind(bridge),
+             createClient: async (params) => {
+                 try {
+                     const result = await bridge.createClient(params);
+@@ -895,6 +901,7 @@ export class LighterProvider {
+         // instead of caching results for the wrong account.
+         this.#sessionGeneration += 1;
+         this.#accountIndex = null;
++        this.#apiKeyIndex = this.#preferredApiKeyIndex;
+         this.#signerReadyPromise = null;
+         this.#authToken = null;
+         this.#replaceSignerResetListener();
+@@ -1460,10 +1467,13 @@ export class LighterProvider {
+      */
+     async getPendingManualRecoveries() {
+         this.#ensureSessionBinding();
++        const generation = this.#sessionGeneration;
+         const accountIndex = await this.#ensureAccountIndex();
+-        // ONLY the bound identity's parked warnings: another account's (or
+-        // api key's) protection state must never leak into this session.
+-        const identityPrefix = `${this.#boundAddress ?? 'unbound'}:${accountIndex}:${this.#apiKeyIndex}:`;
++        this.#assertSession(generation);
++        // Protection belongs to the wallet and venue account, even after its
++        // trading key migrates. Network storage remains separately scoped.
++        const identityPrefix = `${this.#boundAddress ?? 'unbound'}:${accountIndex}:`;
++        const currentSlotPrefix = `${identityPrefix}${this.#apiKeyIndex}:`;
+         const pending = [];
+         const actionNeeded = 'Review the position and submit a new explicit TP/SL update for this symbol to re-establish protection';
+         // Storage errors PROPAGATE — a corrupt index degrading to "nothing
+@@ -1495,18 +1505,23 @@ export class LighterProvider {
+                 continue;
+             }
+             const journal = await this.#loadTpslJournal(settlementKey);
+-            if (journal?.phase === 'manual') {
++            if (journal &&
++                (journal.phase === 'manual' ||
++                    !settlementKey.startsWith(currentSlotPrefix))) {
+                 pending.push({
+                     symbol: settlementKey.split(':').at(-1) ?? settlementKey,
+                     settlementKey,
+                     recordedAt: journal.recordedAt,
+-                    reason: 'TP/SL protection could not be safely re-established automatically (parked by an earlier session)',
++                    reason: journal.phase === 'manual'
++                        ? 'TP/SL protection could not be safely re-established automatically (parked by an earlier session)'
++                        : 'An unfinished TP/SL update from a previous trading key requires reconciliation',
+                     priorIntent: journal.intent,
+                     survivingOrderIds: [],
+                     actionNeeded,
+                 });
+             }
+         }
++        this.#assertSession(generation);
+         return pending;
+     }
+     /**
+@@ -2965,6 +2980,7 @@ export class LighterProvider {
+         this.#sessionGeneration += 1;
+         this.#boundAddress = null;
+         this.#accountIndex = null;
++        this.#apiKeyIndex = this.#preferredApiKeyIndex;
+         this.#signerReadyPromise = null;
+         this.#authToken = null;
+         this.#clearBridgeOwnership();
+@@ -2998,70 +3014,154 @@ export class LighterProvider {
+             throw error;
+         }
+     };
++    /** Find local keys first, then unused slots. Never replace a venue key. */
++    #signerCandidates = async (accountIndex, generation) => {
++        const bridge = this.#getSignerBridge();
++        const discoverKeys = bridge.getRecoverableKeyIndices?.bind(bridge) ??
++            bridge.getStoredKeyIndices?.bind(bridge);
++        if (!discoverKeys) {
++            return [this.#preferredApiKeyIndex];
++        }
++        const response = await this.#clientService.getApiKeys(accountIndex);
++        this.#assertSession(generation);
++        const occupied = new Set(response.apiKeys.map((key) => key.apiKeyIndex));
++        const requested = [
++            ...new Set([this.#preferredApiKeyIndex, ...occupied]),
++        ].filter((index) => Number.isSafeInteger(index) && index >= 2 && index <= 254);
++        const stored = await discoverKeys({
++            chainId: getLighterChainId(this.#clientService.network),
++            accountIndex,
++            apiKeyIndices: requested,
++            walletAddress: this.#boundAddress ?? undefined,
++        });
++        this.#assertSession(generation);
++        if (stored.some((index) => !requested.includes(index))) {
++            throw new Error('Lighter signer returned an unrequested key slot');
++        }
++        const unused = Array.from({ length: 253 }, (_, index) => index + 2).filter((index) => !occupied.has(index));
++        if (stored.length === 0 &&
++            occupied.has(this.#preferredApiKeyIndex) &&
++            unused.length > 0) {
++            throw new Error('Lighter trading key recovery is unavailable for this wallet type. Use an existing registered device.');
++        }
++        // Wallet recovery uses a stable free-slot order. Legacy storage-only
++        // hosts retain their allocation policy; venue public keys are always checked.
++        const offset = bridge.getRecoverableKeyIndices
++            ? 0
++            : Math.floor(Math.random() * unused.length);
++        const randomized = [...unused.slice(offset), ...unused.slice(0, offset)];
++        return [
++            ...new Set([
++                ...stored.filter((index) => occupied.has(index)),
++                ...stored.filter((index) => !occupied.has(index)),
++                ...(requested.includes(this.#preferredApiKeyIndex) &&
++                    !occupied.has(this.#preferredApiKeyIndex)
++                    ? [this.#preferredApiKeyIndex]
++                    : []),
++                ...randomized,
++            ]),
++        ];
++    };
+     #setupSigner = async (generation) => {
+         const bridge = this.#getSignerBridge();
+         const accountIndex = await this.#ensureAccountIndex();
+         this.#assertSession(generation);
+         const chainId = getLighterChainId(this.#clientService.network);
+-        // The WASM client is a singleton inside the bridge host and the venue
+-        // key registration is a nonce-consuming write. Both therefore run
+-        // INSIDE the venue write lock: a stale previous-account setup aborts at
+-        // the lock's fence before it can touch the bridge, and no other
+-        // account's setup or write can interleave with this critical section.
+-        await this.#withVenueWriteLock(accountIndex, async (nextNonce, submit) => {
+-            const nonce = await nextNonce();
+-            this.#assertSession(generation);
+-            const created = await bridge.createClient({
+-                chainId,
+-                accountIndex,
+-                nonce,
+-                apiKeyIndex: this.#apiKeyIndex,
+-            });
+-            if (created.error || !created.success) {
+-                throw new Error(`Lighter signer client creation failed: ${created.error ?? 'unknown'}`);
+-            }
+-            this.#assertSession(generation);
+-            this.#venuePublicKey = created.pk;
+-            // Record bridge-client OWNERSHIP: the WASM client is a singleton
+-            // per bridge, so every later write section re-establishes it
+-            // when another identity has since overwritten it.
+-            this.#signerIdentity = `${this.#clientService.network}:${accountIndex}:${this.#apiKeyIndex}`;
+-            // Re-establishment passes only public session metadata. The client
+-            // owns and restores the venue key inside the bridge.
+-            this.#signerRecreateParams = { chainId, accountIndex };
+-            bridgeClientOwners.set(this.#rawSignerBridge(), this.#signerIdentity);
+-            // Register the venue key when the slot does not hold it yet. The
+-            // bridge returns only public registration data; the client-owned
+-            // venue private key never crosses into Core.
+-            const registered = await this.#isVenueKeyRegistered(accountIndex);
+-            this.#assertSession(generation);
+-            if (!registered) {
+-                await this.#registerVenueKey(accountIndex, created.body, generation, nextNonce, submit);
++        const candidates = await this.#signerCandidates(accountIndex, generation);
++        for (const apiKeyIndex of candidates) {
++            // Slot selection and WASM ownership change inside the serialized write
++            // section, after older dispatch/ledger work has completely finished.
++            const ready = await this.#withVenueWriteLock(accountIndex, async (nextNonce, submit) => {
++                const nonce = await nextNonce();
++                this.#assertSession(generation);
++                const created = await bridge.createClient({
++                    chainId,
++                    accountIndex,
++                    nonce,
++                    apiKeyIndex,
++                    walletAddress: this.#boundAddress ?? undefined,
++                });
++                if (created.error || !created.success) {
++                    throw new Error(`Lighter signer client creation failed: ${created.error ?? 'unknown'}`);
++                }
+                 this.#assertSession(generation);
++                this.#venuePublicKey = created.pk;
++                this.#signerIdentity = `${this.#clientService.network}:${accountIndex}:${apiKeyIndex}`;
++                this.#signerRecreateParams = { chainId, accountIndex };
++                bridgeClientOwners.set(this.#rawSignerBridge(), this.#signerIdentity);
++                const status = await this.#venueKeyStatus(accountIndex);
++                this.#assertSession(generation);
++                if (status === 'occupied') {
++                    this.#clearBridgeOwnership();
++                    if (!bridge.getRecoverableKeyIndices &&
++                        !bridge.getStoredKeyIndices) {
++                        throw new Error(`Lighter API key slot ${String(apiKeyIndex)} already contains a different key; reconnect with a client that supports device-key recovery`);
++                    }
++                    return false;
++                }
++                if (status === 'available') {
++                    await this.#registerVenueKey(accountIndex, created.body, generation, nextNonce, submit);
++                    this.#assertSession(generation);
++                    if (bridge.getRecoverableKeyIndices || bridge.getStoredKeyIndices) {
++                        await this.#waitForRegisteredKey(accountIndex, generation);
++                    }
++                }
++                return true;
++            }, generation, apiKeyIndex);
++            if (ready) {
++                this.#kickTpslRecovery();
++                return;
+             }
+-        }, generation);
+-        // AUTOMATIC bounded recovery: pending TP/SL journals must be
+-        // reconciled at startup/reconnect, not only when the next mutation
+-        // happens to run. Detached so it awaits THIS setup's resolved promise
+-        // instead of deadlocking on it.
+-        this.#kickTpslRecovery();
++        }
++        throw new Error('No available Lighter trading key slot. Remove an unused API key in Lighter, then reconnect.');
+     };
+-    #isVenueKeyRegistered = async (accountIndex) => {
+-        // Query all slots. Lighter returns `api key not found` when a missing
+-        // slot is requested directly, which would make first-time registration
+-        // impossible. The all-slots response is successful and represents an
+-        // unused slot by omitting it from `apiKeys`.
++    #venueKeyStatus = async (accountIndex) => {
+         const response = await this.#clientService.getApiKeys(accountIndex);
+         const configuredSlot = response.apiKeys.find((key) => key.apiKeyIndex === this.#apiKeyIndex);
+         if (!configuredSlot) {
+-            return false;
++            return 'available';
+         }
+         const normalizeKey = (key) => (key ?? '').replace(/^0x/u, '').toLowerCase();
+-        if (normalizeKey(configuredSlot.publicKey) ===
+-            normalizeKey(this.#venuePublicKey)) {
+-            return true;
++        return normalizeKey(configuredSlot.publicKey) ===
++            normalizeKey(this.#venuePublicKey)
++            ? 'matching'
++            : 'occupied';
++    };
++    /**
++     * Wait for registration visibility before authenticating against a new slot.
++     * A successful send only establishes acceptance, not indexed read readiness.
++     *
++     * @param accountIndex - Account whose registration was just submitted.
++     * @param generation - Session that owns the registration.
++     */
++    #waitForRegisteredKey = async (accountIndex, generation) => {
++        const deadline = Date.now() + 10_000;
++        for (let attempt = 0; attempt < 40; attempt += 1) {
++            this.#assertSession(generation);
++            const remaining = deadline - Date.now();
++            if (remaining <= 0) {
++                break;
++            }
++            let timer;
++            const status = await Promise.race([
++                this.#venueKeyStatus(accountIndex),
++                new Promise((resolve) => {
++                    timer = setTimeout(() => resolve('pending'), remaining);
++                }),
++            ]).finally(() => clearTimeout(timer));
++            this.#assertSession(generation);
++            if (status === 'pending') {
++                break;
++            }
++            if (status === 'matching') {
++                return;
++            }
++            if (status === 'occupied') {
++                throw new Error('Lighter trading key changed during registration');
++            }
++            await new Promise((resolve) => setTimeout(resolve, 250));
+         }
+-        throw new Error(`Lighter API key slot ${String(this.#apiKeyIndex)} already contains a different key; automatic replacement is disabled because personal_sign output is not guaranteed to be byte-identical across signer implementations or devices`);
++        throw new Error('Lighter trading key registration is still pending; reconnect to check its status');
+     };
+     #registerVenueKey = async (accountIndex, changePubKeyBody, generation, nextNonce, submit) => {
+         const bridge = this.#getSignerBridge();
+@@ -3155,9 +3255,11 @@ export class LighterProvider {
+      * caller's intent was formed (defaults to now).
+      * @returns The section's result.
+      */
+-    #withVenueWriteLock = async (accountIndex, section, generationAtIntent = this.#sessionGeneration) => {
++    #withVenueWriteLock = async (accountIndex, section, generationAtIntent = this.#sessionGeneration, apiKeyIndex = this.#apiKeyIndex) => {
+         const criticalSection = async () => {
+             this.#assertSession(generationAtIntent);
++            if (this.#apiKeyIndex !== apiKeyIndex) this.#clearBridgeOwnership();
++            this.#apiKeyIndex = apiKeyIndex;
+             // Every unresolved prior dispatch (this session OR a previous one —
+             // the ledger is durable) must resolve before this section may issue
+             // nonces: a restart would otherwise reuse a consumed-but-lagging
+@@ -3279,7 +3381,7 @@ export class LighterProvider {
+         // serialized PROCESS-WIDE per network+account+api-key slot: the
+         // instance chain alone cannot stop a second live provider from
+         // issuing the same nonce or interleaving ledger writes.
+-        const guardedSection = async () => await withProcessMutex(`lighterVenueWrite:${this.#isTestnet ? 'testnet' : 'mainnet'}:${accountIndex}:${this.#apiKeyIndex}`, 
++        const guardedSection = async () => await withProcessMutex(`lighterVenueWrite:${this.#isTestnet ? 'testnet' : 'mainnet'}:${accountIndex}:${apiKeyIndex}`, 
+         // INNERMOST: the bridge mutex — the WASM client is a singleton
+         // per bridge, so ensure-correct-client + every sign of a section
+         // are serialized across ALL providers sharing the bridge.
+@@ -3309,6 +3411,7 @@ export class LighterProvider {
+             accountIndex: recreateParams.accountIndex,
+             nonce,
+             apiKeyIndex: this.#apiKeyIndex,
++            walletAddress: this.#boundAddress ?? undefined,
+         });
+         if (recreated.error || !recreated.success) {
+             throw new Error(`Lighter signer client re-establishment failed: ${recreated.error ?? 'unknown'}`);
+@@ -5687,7 +5790,7 @@ export class LighterProvider {
+             return NOOP_UNSUBSCRIBE;
+         }
+         this.#orderSubscribers.add(params);
+-        if (this.#wsOrders.size > 0) {
++        if (this.#hasOrdersSnapshot || this.#wsOrders.size > 0) {
+             params.callback([...this.#wsOrders.values()]);
+         }
+         this.#ensureAccountChannels();
+@@ -5702,6 +5805,20 @@ export class LighterProvider {
+         }
+         this.#fillSubscribers.add(params);
+         this.#ensureAccountChannels();
++        const generation = this.#sessionGeneration;
++        const channelsPromise = this.#accountChannelsPromise;
++        // A late subscriber may join after the venue's one initial trade snapshot.
++        // Replay only after authentication succeeds for the same channel session.
++        channelsPromise
++            ?.then(() => {
++            this.#assertSession(generation);
++            if (this.#accountChannelsPromise === channelsPromise &&
++                this.#fillSubscribers.has(params) &&
++                this.#wsFills !== null) {
++                params.callback([...this.#wsFills], true);
++            }
++        })
++            .catch(() => undefined);
+         return () => {
+             this.#fillSubscribers.delete(params);
+             this.#releaseChannelIfUnused();
+@@ -5727,7 +5844,9 @@ export class LighterProvider {
+         }
+         const generation = this.#sessionGeneration;
+         let channelsRequested = false;
+-        const setupPromise = (async () => {
++        // Auth setup crosses awaits before consulting this promise identity.
++        let setupPromise = undefined;
++        setupPromise = (async () => {
+             try {
+                 // Warm the margin cache before any WS position frame is adapted.
+                 await this.#ensureMarketMargins().catch(() => undefined);
+@@ -5743,6 +5862,7 @@ export class LighterProvider {
+                 this.#requestChannel(`account_all_positions/${accountIndex}`);
+                 this.#requestChannel(`account_all_trades/${accountIndex}`);
+                 channelsRequested = true;
++                const channelAddress = this.#boundAddress;
+                 try {
+                     const auth = await this.#getAuthToken();
+                     this.#assertSession(generation);
+@@ -5750,6 +5870,20 @@ export class LighterProvider {
+                 }
+                 catch (error) {
+                     this.#deps.debugLogger.log('[LighterProvider] orders channel skipped (no auth token)', { error: String(error) });
++                    this.#ensureSessionBinding();
++                    // Signer failure retires the write generation, but this channel
++                    // still owns its wallet's error. A replaced channel or wallet does not.
++                    if (!this.#isDisconnected &&
++                        channelAddress !== null &&
++                        channelAddress === this.#boundAddress &&
++                        this.#accountChannelsPromise === setupPromise) {
++                        for (const subscriber of this.#orderSubscribers) {
++                            subscriber.onError?.(ensureError(error));
++                        }
++                        for (const subscriber of this.#fillSubscribers) {
++                            subscriber.onError?.(ensureError(error));
++                        }
++                    }
+                     // Setup failures are not authoritative empty order state. Account
+                     // switches and deselection already emit their synchronous reset.
+                     channelsRequested = false;
+@@ -5784,7 +5918,6 @@ export class LighterProvider {
+                 this.#accountChannelsPromise === setupPromise) {
+                 this.#accountChannelsPromise = null;
+             }
+-            return undefined;
+         })
+             .catch(() => undefined);
+         this.#ensureStream();
+@@ -6033,6 +6166,7 @@ export class LighterProvider {
+                     }
+                 }
+             }
++            if (isSnapshot) { this.#hasOrdersSnapshot = true; }
+             this.#wsOrders.clear();
+             for (const [orderId, order] of nextOrders) {
+                 this.#wsOrders.set(orderId, order);
+@@ -6198,9 +6332,6 @@ export class LighterProvider {
+      * @param message - Camelized account_all_trades payload.
+      */
+     #handleTradesMessage = (message) => {
+-        if (this.#fillSubscribers.size === 0) {
+-            return;
+-        }
+         const isSnapshot = (message.type ?? '').startsWith('subscribed');
+         const fills = [];
+         let droppedUnsupportedFill = false;
+@@ -6232,6 +6363,19 @@ export class LighterProvider {
+             this.#deps.debugLogger.log('[LighterProvider] withholding partial fills snapshot (unsupported fills present)');
+             return;
+         }
++        const history = isSnapshot ? fills : [...fills, ...(this.#wsFills ?? [])];
++        const seen = new Set();
++        this.#wsFills = history
++            .filter((fill) => {
++            const id = fill.fillId ?? `${fill.orderId}:${fill.timestamp}`;
++            if (seen.has(id)) {
++                return false;
++            }
++            seen.add(id);
++            return true;
++        })
++            .sort((first, second) => second.timestamp - first.timestamp)
++            .slice(0, 100);
+         for (const subscriber of this.#fillSubscribers) {
+             try {
+                 subscriber.callback(fills, isSnapshot);
+@@ -6359,6 +6503,8 @@ export class LighterProvider {
+         this.#wsWantedChannels.clear();
+         this.#accountChannelsPromise = null;
+         this.#wsPositions.clear();
++        this.#hasOrdersSnapshot = false;
++        this.#wsFills = null;
+         this.#wsOrders.clear();
+         this.#orderBookState.clear();
+         this.#candleSeries.clear();
 diff --git a/dist/services/LighterClientService.js b/dist/services/LighterClientService.js
 index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615e174094c 100644
 --- a/dist/services/LighterClientService.js
@@ -13,11 +547,83 @@ index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615
  });
  const ResponseStructs = {
      orderBooks: type({
+diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
+index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..0a12788ac1271f86599cecd9832620a5e148cc88 100644
+--- a/dist/types/index.d.ts
++++ b/dist/types/index.d.ts
+@@ -973,7 +973,8 @@ export type OrderFill = {
+     side: string;
+     size: string;
+     price: string;
+-    pnl: string;
++    /** Realized PnL reported by the venue; absent when unknown. */
++    pnl?: string;
+     direction: string;
+     fee: string;
+     feeToken: string;
+@@ -1111,12 +1112,16 @@ export type SubscribePositionsParams = {
+     includeHistory?: boolean;
+ };
+ export type SubscribeOrderFillsParams = {
+-    callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
++    /** Reports a subscription failure without asserting an empty account. */
++    onError?: (error: Error, sourceProviderId?: PerpsProviderType) => void;
++    callback: (fills: OrderFill[], isSnapshot?: boolean, sourceProviderId?: PerpsProviderType) => void;
+     accountId?: CaipAccountId;
+     since?: number;
+ };
+ export type SubscribeOrdersParams = {
+-    callback: (orders: Order[]) => void;
++    /** Reports a subscription failure without asserting an empty account. */
++    onError?: (error: Error, sourceProviderId?: PerpsProviderType) => void;
++    callback: (orders: Order[], sourceProviderId?: PerpsProviderType) => void;
+     accountId?: CaipAccountId;
+     includeHistory?: boolean;
+ };
 diff --git a/dist/types/lighter-types.d.ts b/dist/types/lighter-types.d.ts
-index 04bb48bd0683598079e15771a4a4d6ff085ade59..9036534ca6fa77915306aab14fc4be025eb490c9 100644
+index 04bb48bd0683598079e15771a4a4d6ff085ade59..d1d3d5160da53958f5d9bc6139c0d93692cf5eed 100644
 --- a/dist/types/lighter-types.d.ts
 +++ b/dist/types/lighter-types.d.ts
-@@ -571,8 +571,8 @@ export type LighterRestTrade = {
+@@ -129,6 +129,8 @@ export type LighterCreateClientParams = {
+     accountIndex: number;
+     apiKeyIndex: number;
+     nonce: number;
++    /** Expected Core wallet binding. Hosts must reject a different selected account. */
++    walletAddress?: string;
+ };
+ /**
+  * Transport-agnostic seam to the Lighter Go/WASM signer.
+@@ -139,6 +141,29 @@ export type LighterCreateClientParams = {
+  * - Node (e2e): in-process `WebAssembly.instantiate` via Go's `wasm_exec.js`.
+  */
+ export type LighterSignerBridge = {
++    /**
++     * Return requested slots whose keys can be restored from local storage or
++     * wallet-owned deterministic derivation. This must never generate unrelated
++     * random keys for slots reported as recoverable. Core still verifies the
++     * derived public key against the venue before reusing any registration.
++     */
++    getRecoverableKeyIndices?(params: {
++        chainId: number;
++        accountIndex: number;
++        apiKeyIndices: number[];
++        walletAddress?: string;
++    }): Promise<number[]>;
++    /**
++     * Opt in to device-key recovery. Return only requested slots whose private
++     * keys are persisted locally for this network and account. No key material
++     * crosses this boundary. Core verifies public-key ownership before reuse.
++     */
++    getStoredKeyIndices?(params: {
++        chainId: number;
++        accountIndex: number;
++        apiKeyIndices: number[];
++        walletAddress?: string;
++    }): Promise<number[]>;
+     /**
+      * Create or restore the client-owned venue signer. The implementation owns
+      * key generation and persistence; Core never receives the seed or private
+@@ -571,8 +596,8 @@ export type LighterRestTrade = {
      takerPositionSizeBefore: string;
      makerPositionSizeBefore: string;
      /** Whether the side's position sign changed (crossed or left zero). */
@@ -28,11 +634,30 @@ index 04bb48bd0683598079e15771a4a4d6ff085ade59..9036534ca6fa77915306aab14fc4be02
  };
  /**
   * Response of `GET /api/v1/trades`.
+diff --git a/dist/utils/lighterAdapter.d.ts b/dist/utils/lighterAdapter.d.ts
+index 10b857cec38fdfe407304af090910286e187c0c4..017cd48789662c824ae20c9f8795e78de887f2a0 100644
+--- a/dist/utils/lighterAdapter.d.ts
++++ b/dist/utils/lighterAdapter.d.ts
+@@ -88,7 +88,7 @@ export declare function deriveLighterFillDirection(context: {
+     size: number;
+     positionBefore: number;
+     signChanged: boolean | undefined;
+-    pnl: number;
++    pnl: number | undefined;
+ }): string;
+ export declare function adaptFillFromLighterTrade(trade: LighterRestTrade | LighterWsTrade, symbol: string, accountIndex: number): OrderFill;
+ /**
 diff --git a/dist/utils/lighterAdapter.js b/dist/utils/lighterAdapter.js
-index 4894b39738fcca97eeabb3875f64ef751d493d1e..28ab05defa0275a98e50df2fb2c9854d55a29e0d 100644
+index 4894b39738fcca97eeabb3875f64ef751d493d1e..06fa9c1fd5026dfbea0e4b1a1762e670e63a7f9c 100644
 --- a/dist/utils/lighterAdapter.js
 +++ b/dist/utils/lighterAdapter.js
-@@ -204,13 +204,18 @@ export function adaptAccountStateFromLighterUserStats(stats) {
+@@ -199,18 +199,24 @@ export function adaptAccountStateFromLighterUserStats(stats) {
+  * @param context.size - Trade size (base units, absolute).
+  * @param context.positionBefore - Our side's absolute position size before.
+  * @param context.signChanged - Whether our side's position sign changed.
+- * @param context.pnl - Realized pnl for our side.
++ * @param context.pnl - Realized pnl for our side, or undefined when omitted.
+  * @returns Client-facing direction string.
   */
  export function deriveLighterFillDirection(context) {
      const { isBuy, size, positionBefore, signChanged, pnl } = context;
@@ -46,14 +671,28 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..28ab05defa0275a98e50df2fb2c9854d
 -    if (signChanged) {
 +    // A flat baseline proves an open. On an existing position, nonzero
 +    // realized PnL proves reduction; otherwise an omitted flag is ambiguous.
-+    if (signChanged === undefined && pnl === 0) {
++    if (signChanged === undefined && (pnl === undefined || pnl === 0)) {
 +        return isBuy ? 'Buy' : 'Sell';
 +    }
-+    if (signChanged || (signChanged === undefined && pnl !== 0)) {
++    if (signChanged ||
++        (signChanged === undefined && pnl !== undefined && pnl !== 0)) {
          // Crossed past zero → flipped; landed exactly on zero → full close.
          if (size > positionBefore * 1.000001) {
              return isBuy ? 'Short > Long' : 'Long > Short';
-@@ -305,8 +310,8 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -218,10 +224,10 @@ export function deriveLighterFillDirection(context) {
+         return isBuy ? 'Close Short' : 'Close Long';
+     }
+     // Partial fill on an existing position: realized pnl proves it reduced.
+-    if (pnl !== 0) {
++    if (pnl !== undefined && pnl !== 0) {
+         return isBuy ? 'Close Short' : 'Close Long';
+     }
+-    // Zero-pnl partial with no sign change is genuinely ambiguous from this
++    // Zero or unknown pnl with no sign change is ambiguous from this
+     // payload (a break-even partial close and an add both fit): fall back to
+     // the side-only vocabulary instead of asserting Open without evidence.
+     return isBuy ? 'Buy' : 'Sell';
+@@ -305,8 +311,8 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
      const fee = '0';
      const isBuy = !accountIsAsk;
      // The account's maker/taker role selects the matching pre-trade position
@@ -64,7 +703,7 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..28ab05defa0275a98e50df2fb2c9854d
      const positionBeforeRaw = accountIsMaker
          ? trade.makerPositionSizeBefore
          : trade.takerPositionSizeBefore;
-@@ -317,13 +322,13 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -317,17 +323,17 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
      if (positionBefore === null ||
          !Number.isFinite(positionBefore) ||
          positionBefore < 0 ||
@@ -72,13 +711,31 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..28ab05defa0275a98e50df2fb2c9854d
 +        (signChanged !== undefined && typeof signChanged !== 'boolean')) {
          throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} trade ${trade.tradeId} is missing valid position context`);
      }
-     const accountPnl = accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl;
+-    const accountPnl = accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl;
 -    // The venue omits PnL on opens from flat. Only a validated zero pre-trade
 -    // position proves zero realized PnL; never assume it for an existing position.
 -    const pnl = accountPnl === undefined && positionBefore === 0 ? '0' : accountPnl;
-+    // The trades API reports account PnL only when reducing a position;
-+    // opens and adds omit it. Preserve malformed supplied values for validation.
-+    const pnl = accountPnl === undefined ? '0' : accountPnl;
-     const parsedPnl = parseLighterStrictDecimal(pnl);
-     if (typeof pnl !== 'string' ||
-         parsedPnl === null ||
+-    const parsedPnl = parseLighterStrictDecimal(pnl);
+-    if (typeof pnl !== 'string' ||
+-        parsedPnl === null ||
+-        !Number.isFinite(parsedPnl)) {
++    const pnl = accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl;
++    // Omitted amounts remain unknown. A changed sign on an existing position
++    // proves reduction, so its realized PnL must be supplied by the venue.
++    const parsedPnl = pnl === undefined ? undefined : parseLighterStrictDecimal(pnl);
++    if (parsedPnl === null ||
++        (pnl === undefined && positionBefore !== 0 && signChanged === true) ||
++        (pnl !== undefined &&
++            (typeof pnl !== 'string' || !Number.isFinite(parsedPnl)))) {
+         throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} trade ${trade.tradeId} is missing valid account pnl`);
+     }
+     const direction = deriveLighterFillDirection({
+@@ -360,7 +366,7 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+         size: trade.size,
+         price: trade.price,
+         // The venue reports realized pnl per side of the trade.
+-        pnl,
++        ...(pnl !== undefined ? { pnl } : {}),
+         direction,
+         ...(startPosition === undefined ? {} : { startPosition }),
+         fee,

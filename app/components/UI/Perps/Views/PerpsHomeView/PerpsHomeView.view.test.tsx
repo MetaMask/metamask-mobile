@@ -120,6 +120,62 @@ describe('PerpsHomeView', () => {
     });
   });
 
+  it('retries an order authentication failure and accepts an empty snapshot', async () => {
+    const { stream } = renderPerpsHomeView({ overrides: eligibleOverrides });
+    await screen.findByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING);
+
+    act(() => {
+      stream.emitOrdersError(new Error('Trading key unavailable'));
+    });
+
+    expect(
+      await screen.findByTestId(PerpsHomeViewSelectorsIDs.ORDERS_ERROR),
+    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(PerpsHomeViewSelectorsIDs.ORDERS_RETRY));
+    expect(stream.getOrdersReconnectCount()).toBe(1);
+    act(() => {
+      stream.emitOrders([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ORDERS_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ORDERS_RETRY),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('retries an activity authentication failure and accepts an empty snapshot', async () => {
+    const { stream } = renderPerpsHomeView({ overrides: eligibleOverrides });
+    await screen.findByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING);
+
+    act(() => {
+      stream.emitFillsError(new Error('Trading key unavailable'));
+    });
+
+    expect(
+      await screen.findByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
+    );
+    expect(stream.getFillsReconnectCount()).toBe(1);
+    act(() => {
+      stream.emitFills([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   it('deposits from Add funds and reflects the updated Perps balance from the account stream', async () => {
     const depositWithConfirmation = Engine.context.PerpsController
       .depositWithConfirmation as jest.Mock;

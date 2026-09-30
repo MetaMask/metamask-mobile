@@ -277,7 +277,6 @@ export function mapPerpsTransaction({
     }
     // Sign follows the displayed amount: opens show the fee paid (negative),
     // closes show net PnL which can be either sign (liquidations negative).
-    const direction: TokenAmount['direction'] = fill.isPositive ? 'in' : 'out';
     const isOpen = kind === 'perpsOpenLong' || kind === 'perpsOpenShort';
     return {
       type: kind,
@@ -286,7 +285,15 @@ export function mapPerpsTransaction({
       timestamp,
       hash: id,
       data: {
-        token: toToken(fill.amountNumber, direction, quoteAsset),
+        ...(fill.amountNumber !== undefined && fill.isPositive !== undefined
+          ? {
+              token: toToken(
+                fill.amountNumber,
+                fill.isPositive ? 'in' : 'out',
+                quoteAsset,
+              ),
+            }
+          : {}),
         // Position leg (e.g. "2.01 ETH") — rows render it as the subtitle.
         sourceToken: {
           amount: fill.size,

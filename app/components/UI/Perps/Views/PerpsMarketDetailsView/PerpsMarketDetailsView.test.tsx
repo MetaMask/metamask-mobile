@@ -450,6 +450,7 @@ const mockUsePerpsLiveFillsImpl = jest.fn<
   >,
   []
 >(() => ({
+  retry: jest.fn(),
   fills: [],
   isInitialLoading: false,
 }));
@@ -1073,6 +1074,7 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });

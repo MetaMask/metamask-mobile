@@ -974,6 +974,81 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenLastCalledWith(null);
     });
 
+    it('discards queued order deliveries after authentication fails', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback,
+        onError,
+        throttleMs: 1000,
+      });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      source.callback([]);
+      source.callback([]);
+      callback.mockClear();
+      const error = new Error('Trading key rejected');
+
+      source.onError(error);
+      jest.advanceTimersByTime(1000);
+      testStreamManager.orders.publish([], 'cache');
+      testStreamManager.orders.publish([], 'optimistic');
+
+      expect(onError).toHaveBeenCalledWith(error);
+      expect(callback).not.toHaveBeenCalled();
+
+      source.callback([]);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([]);
+    });
+
+    it('keeps a Lighter order error while Hyperliquid delivers an empty snapshot', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      testStreamManager.orders.subscribe({ callback, onError, throttleMs: 0 });
+      const source = mockSubscribeToOrders.mock.calls[0][0] as {
+        onError: (error: Error, providerId?: string) => void;
+        callback: (orders: Order[], providerId?: string) => void;
+      };
+      const failure = new Error('Lighter authentication failed');
+
+      callback.mockClear();
+      source.onError(failure, 'lighter');
+      source.callback([], 'hyperliquid');
+
+      expect(onError).toHaveBeenCalledWith(failure);
+      expect(callback).not.toHaveBeenCalled();
+
+      source.callback([], 'lighter');
+      expect(callback).toHaveBeenCalledWith([]);
+    });
+
+    it('keeps a Lighter fill error while Hyperliquid delivers an empty snapshot', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+      testStreamManager.fills.subscribe({ callback, onError, throttleMs: 0 });
+      const source = subscribe.mock.calls[0][0] as {
+        onError: (error: Error, providerId?: string) => void;
+        callback: (
+          fills: OrderFill[],
+          snapshot?: boolean,
+          providerId?: string,
+        ) => void;
+      };
+      const failure = new Error('Lighter authentication failed');
+
+      callback.mockClear();
+      source.onError(failure, 'lighter');
+      source.callback([], true, 'hyperliquid');
+
+      expect(onError).toHaveBeenCalledWith(failure);
+      expect(callback).not.toHaveBeenCalled();
+
+      source.callback([], true, 'lighter');
+      expect(callback).toHaveBeenCalledWith([]);
+    });
+
     it('notifies position subscriber with null when clearCache is called (account switch)', () => {
       const callback = jest.fn();
       testStreamManager.positions.subscribe({ callback, throttleMs: 0 });

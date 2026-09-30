@@ -6,12 +6,16 @@ import { type OrderFill } from '@metamask/perps-controller';
 // Mock the stream provider
 const mockSubscribe = jest.fn();
 const mockGetSnapshot = jest.fn((): OrderFill[] | null => []);
+const mockClearCache = jest.fn();
+const mockReconnect = jest.fn();
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     fills: {
       subscribe: mockSubscribe,
       getSnapshot: mockGetSnapshot,
+      clearCache: mockClearCache,
+      reconnect: mockReconnect,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -50,6 +54,7 @@ describe('usePerpsLiveFills', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs,
     });
   });
@@ -65,6 +70,21 @@ describe('usePerpsLiveFills', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
+  it('settles loading with an error and retries the fill channel', () => {
+    const { result } = renderHook(() => usePerpsLiveFills());
+    const failure = new Error('Trading key rejected');
+
+    act(() => mockSubscribe.mock.calls[0][0].onError(failure));
+
+    expect(result.current.error).toBe(failure);
+    expect(result.current.isInitialLoading).toBe(false);
+
+    act(() => result.current.retry());
+
+    expect(mockClearCache).toHaveBeenCalledTimes(1);
+    expect(mockReconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('updates fills when callback is invoked', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
@@ -75,7 +95,10 @@ describe('usePerpsLiveFills', () => {
     const { result } = renderHook(() => usePerpsLiveFills());
 
     // Initially empty with isInitialLoading false (fills always start as [])
-    expect(result.current).toEqual({ fills: [], isInitialLoading: false });
+    expect(result.current).toMatchObject({
+      fills: [],
+      isInitialLoading: false,
+    });
 
     // Simulate fills update
     const fills: OrderFill[] = [
@@ -99,6 +122,7 @@ describe('usePerpsLiveFills', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 0, // Default value for fills (immediate)
     });
   });
@@ -120,6 +144,7 @@ describe('usePerpsLiveFills', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 2000,
     });
 
@@ -130,6 +155,7 @@ describe('usePerpsLiveFills', () => {
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 3000,
     });
   });
