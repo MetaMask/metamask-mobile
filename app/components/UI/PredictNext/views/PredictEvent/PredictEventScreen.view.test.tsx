@@ -1647,18 +1647,18 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Q4 · 01:12');
   });
 
-  it('watches the Event for live Game updates and stops on unmount', async () => {
+  it('watches the Event for live updates and stops on unmount', async () => {
     resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
     await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
 
-    expectMessengerCalledWith('PredictLiveDataService:watchGames', venueId, [
+    expectMessengerCalledWith('PredictLiveDataService:watchEvents', venueId, [
       eventId,
     ]);
 
     view.unmount();
 
-    expectMessengerCalledWith('PredictLiveDataService:unwatchGames', venueId, [
+    expectMessengerCalledWith('PredictLiveDataService:unwatchEvents', venueId, [
       eventId,
     ]);
   });

@@ -1,10 +1,6 @@
 import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 import type { FeedResponse } from '@metamask/social-controllers';
-import {
-  buildTraderFeedQueryKey,
-  PREFETCH_FEED_AUDIENCES,
-  toFeedScope,
-} from '../../../FeedView/hooks/traderFeedQueries';
+import { SOCIAL_FEED_QUERY_ACTIONS } from '../../../SocialFeed/socialFeedQueries';
 import { readAuthorComment, type CommentEngagement } from '../reactions';
 
 const patchPage = (
@@ -38,32 +34,41 @@ const patchPage = (
   return changed ? { page: { ...page, items }, changed } : { page, changed };
 };
 
+const patchInfiniteFeedData = (
+  old: InfiniteData<FeedResponse> | undefined,
+  commentId: string,
+  engagement: CommentEngagement,
+): InfiniteData<FeedResponse> | undefined => {
+  if (!old) {
+    return old;
+  }
+  let anyChanged = false;
+  const pages = old.pages.map((page) => {
+    const { page: nextPage, changed } = patchPage(page, commentId, engagement);
+    anyChanged = anyChanged || changed;
+    return nextPage;
+  });
+  return anyChanged ? { ...old, pages } : old;
+};
+
 /**
- * Writes confirmed Call engagement into both warmed feed caches so refresh,
- * remount, and list reshuffles see the same counts the user just committed.
+ * Writes confirmed Call engagement into every loaded feed cache (global,
+ * token, perp and trader feeds) so refresh, remount, and list reshuffles see
+ * the same counts the user just committed, wherever the post is shown.
  */
 export const patchFeedCommentEngagementInCache = (
   queryClient: QueryClient,
   commentId: string,
   engagement: CommentEngagement,
 ): void => {
-  for (const audience of PREFETCH_FEED_AUDIENCES) {
-    const queryKey = buildTraderFeedQueryKey(toFeedScope(audience));
-    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) => {
-      if (!old) {
-        return old;
-      }
-      let anyChanged = false;
-      const pages = old.pages.map((page) => {
-        const { page: nextPage, changed } = patchPage(
-          page,
-          commentId,
-          engagement,
-        );
-        anyChanged = anyChanged || changed;
-        return nextPage;
-      });
-      return anyChanged ? { ...old, pages } : old;
+  for (const action of SOCIAL_FEED_QUERY_ACTIONS) {
+    const feedQueries = queryClient.getQueriesData<InfiniteData<FeedResponse>>({
+      queryKey: [action],
     });
+    for (const [queryKey] of feedQueries) {
+      queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
+        patchInfiniteFeedData(old, commentId, engagement),
+      );
+    }
   }
 };

@@ -2,10 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -17,25 +13,19 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSocialEntryOptions } from '../../../components/SocialEntryOptionsBottomSheet';
-import { formatFeedPostAge } from '../../../utils/formatters';
+import SocialTraderIdentityRow from '../../../components/SocialTraderIdentityRow';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
-import { MOCK_MARKER } from '../mockMarker';
+import { mockCopyCount } from '../mocks/socialV1Enrichment';
+import { markMocked } from '../mockMarker';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
-import {
-  buildTraderStatLabels,
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from '../utils/traderStats';
+import { isCopyTradeable } from '../utils/copyTrade';
 import ReactionChip from './ReactionChip';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
-import RotatingTraderStat from './RotatingTraderStat';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
@@ -43,14 +33,23 @@ export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
 }
 
-/** Matches the previous `h-8 w-8` author image. */
-const AVATAR_SIZE = 32;
-
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
+  const optionsTarget = useMemo(
+    () => ({
+      postId: post.id,
+      authorId: post.item.author.id,
+      authorHandle: post.authorHandle,
+    }),
+    [post.authorHandle, post.id, post.item.author.id],
+  );
+  const {
+    open: openOptions,
+    sheet: optionsSheet,
+    isHidden,
+  } = useSocialEntryOptions(optionsTarget);
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -81,102 +80,36 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
     [pickEmotion],
   );
 
-  const author = post.item.author;
-  const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
-  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
+  // Only a position that is still open can be copied, so only those can have
+  // been. Zero copies say nothing worth the row space.
+  const copyCount = isCopyTradeable(post.item) ? mockCopyCount(post.id) : 0;
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <Box
       twClassName="gap-3"
       testID={`${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.id}`}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+      <SocialTraderIdentityRow
+        author={post.item.author}
+        handle={post.authorHandle}
+        imageUrl={post.authorImageUrl}
+        timestampMs={post.timestampMs}
+        recyclingKey={post.id}
+        onMorePress={openOptions}
         twClassName="mb-2"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          twClassName="flex-1 min-w-0"
-        >
-          <TraderAvatar
-            imageUrl={post.authorImageUrl}
-            // Profile id seeds the Maskicon. Ids that do not start with `0x`
-            // are hashed in full, so each trader stays distinct once wallet
-            // addresses leave the feed payload.
-            address={post.item.author.id}
-            size={AVATAR_SIZE}
-            recyclingKey={post.id}
-            testID={`${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`}
-          />
-          {/* The name row and the stat line share a column so the stats sit
-              under the name rather than under the avatar. */}
-          <Box twClassName="flex-1 min-w-0 overflow-hidden">
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-                twClassName="shrink"
-              >
-                {post.authorHandle}
-              </Text>
-              {/* Nothing reports verification yet, so the badge is invented
-                  and carries the mock marker every fabricated value does. */}
-              <Icon
-                name={IconName.VerifiedFilled}
-                size={IconSize.Sm}
-                twClassName="text-info-default shrink-0"
-                testID={SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
-                twClassName="shrink-0"
-              >
-                {MOCK_MARKER}
-              </Text>
-              {cohortEmoji ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="shrink-0"
-                  testID={SocialFeedPostShellSelectorsIDs.COHORT}
-                >
-                  {cohortEmoji}
-                </Text>
-              ) : null}
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
-                twClassName="shrink-0"
-                testID={`${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`}
-              >
-                {formatFeedPostAge(post.timestampMs)}
-              </Text>
-            </Box>
-            <RotatingTraderStat
-              labels={statLabels}
-              testID={SocialFeedPostShellSelectorsIDs.TRADER_STAT}
-            />
-          </Box>
-        </Box>
-        <ButtonIcon
-          iconName={IconName.MoreHorizontal}
-          size={ButtonIconSize.Md}
-          onPress={openOptions}
-          accessibilityLabel={strings('social_leaderboard.entry_options.title')}
-          twClassName="shrink-0"
-          testID={`${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`}
-        />
-      </Box>
+        testIDs={{
+          avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
+          verifiedBadge: SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE,
+          cohort: SocialFeedPostShellSelectorsIDs.COHORT,
+          timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
+          traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
+          more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
+        }}
+      />
 
       {post.item.comment ? (
         <Text
@@ -200,47 +133,63 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Box>
       ) : null}
 
-      <View
-        ref={reactionAnchorRef}
-        collapsable={false}
-        style={tw.style('self-start')}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={3}
       >
-        <Pressable
-          accessibilityRole="button"
-          testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
-          onPress={openPicker}
-        >
-          {chips.length === 0 ? (
-            <Animated.View
-              entering={FadeIn.duration(140)}
-              exiting={FadeOut.duration(100)}
-            >
+        <View ref={reactionAnchorRef} collapsable={false}>
+          <Pressable
+            accessibilityRole="button"
+            testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+            onPress={openPicker}
+          >
+            {chips.length === 0 ? (
+              <Animated.View
+                entering={FadeIn.duration(140)}
+                exiting={FadeOut.duration(100)}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="pl-2"
+                >
+                  <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
+                </Box>
+              </Animated.View>
+            ) : (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="pl-2"
+                gap={2}
               >
-                <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
+                {chips.map((reaction) => (
+                  <ReactionChip
+                    key={reaction.emotion}
+                    emotion={reaction.emotion}
+                    count={reaction.count}
+                    testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                  />
+                ))}
               </Box>
-            </Animated.View>
-          ) : (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              {chips.map((reaction) => (
-                <ReactionChip
-                  key={reaction.emotion}
-                  emotion={reaction.emotion}
-                  count={reaction.count}
-                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-                />
-              ))}
-            </Box>
-          )}
-        </Pressable>
-      </View>
+            )}
+          </Pressable>
+        </View>
+
+        {/* Inert on purpose: the count is context for the reactions next to it,
+            not a way into a list of who copied. */}
+        {copyCount > 0 ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
+          >
+            {markMocked(
+              strings('social_leaderboard.feed.copies', { count: copyCount }),
+            )}
+          </Text>
+        ) : null}
+      </Box>
 
       <ReactionPickerBalloon
         visible={pickerVisible}

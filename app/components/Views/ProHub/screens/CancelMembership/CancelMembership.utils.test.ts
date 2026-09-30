@@ -9,7 +9,6 @@ import {
   CANCELLATION_TIMINGS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
   buildPostCancellationResetState,
-  formatCancellationEndDate,
   getCancellationTiming,
   shuffleCancelReasons,
   toCancellationReason,
@@ -105,24 +104,6 @@ describe('getCancellationTiming', () => {
     CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION,
   ])('returns undefined when cancellation type is %s', (cancelType) => {
     expect(getCancellationTiming(cancelType)).toBeUndefined();
-  });
-});
-
-describe('formatCancellationEndDate', () => {
-  it('formats an ISO period end for confirmation copy', () => {
-    const periodEnd = '2027-07-20T12:00:00.000Z';
-
-    expect(formatCancellationEndDate(periodEnd)).toBe(
-      new Date(periodEnd).toLocaleDateString(undefined, {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    );
-  });
-
-  it('returns the original value when the date is invalid', () => {
-    expect(formatCancellationEndDate('invalid-date')).toBe('invalid-date');
   });
 });
 

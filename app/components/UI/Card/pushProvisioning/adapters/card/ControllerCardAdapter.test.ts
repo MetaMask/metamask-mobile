@@ -90,19 +90,13 @@ describe('ControllerCardAdapter', () => {
     const mockNonceSignatureBase64 = 'dGVzdC1zaWduYXR1cmU='; // "test-signature"
     const mockCertificatesBase64 = ['bGVhZi1jZXJ0', 'aW50ZXJtZWRpYXRlLWNlcnQ=']; // "leaf-cert", "intermediate-cert"
 
-    // Expected hex values
-    const expectedNonceHex = '746573742d6e6f6e6365';
-    const expectedNonceSignatureHex = '746573742d7369676e6174757265';
-    const expectedLeafCertHex = '6c6561662d63657274';
-    const expectedIntermediateCertHex = '696e7465726d6564696174652d63657274';
-
     const mockSuccessResponse = {
       encryptedPassData: 'encrypted-pass-data',
       activationData: 'activation-data',
       ephemeralPublicKey: 'ephemeral-key',
     };
 
-    it('converts base64 nonce/certificates to hex before calling controller', async () => {
+    it('forwards raw PassKit values to the controller', async () => {
       mockCreateApplePay.mockResolvedValue(mockSuccessResponse);
 
       await adapter.getApplePayEncryptedPayload(
@@ -112,10 +106,9 @@ describe('ControllerCardAdapter', () => {
       );
 
       expect(mockCreateApplePay).toHaveBeenCalledWith({
-        leafCertificate: expectedLeafCertHex,
-        intermediateCertificate: expectedIntermediateCertHex,
-        nonce: expectedNonceHex,
-        nonceSignature: expectedNonceSignatureHex,
+        nonce: mockNonceBase64,
+        nonceSignature: mockNonceSignatureBase64,
+        certificates: mockCertificatesBase64,
       });
     });
 
@@ -131,30 +124,6 @@ describe('ControllerCardAdapter', () => {
       expect(result.encryptedPassData).toBe('encrypted-pass-data');
       expect(result.activationData).toBe('activation-data');
       expect(result.ephemeralPublicKey).toBe('ephemeral-key');
-    });
-
-    it('throws ProvisioningError(ENCRYPTION_FAILED) when certificates.length < 2', async () => {
-      await expect(
-        adapter.getApplePayEncryptedPayload(
-          mockNonceBase64,
-          mockNonceSignatureBase64,
-          ['bGVhZi1jZXJ0'],
-        ),
-      ).rejects.toMatchObject({
-        code: ProvisioningErrorCode.ENCRYPTION_FAILED,
-      });
-    });
-
-    it('throws ProvisioningError(ENCRYPTION_FAILED) when certificates is empty', async () => {
-      await expect(
-        adapter.getApplePayEncryptedPayload(
-          mockNonceBase64,
-          mockNonceSignatureBase64,
-          [],
-        ),
-      ).rejects.toMatchObject({
-        code: ProvisioningErrorCode.ENCRYPTION_FAILED,
-      });
     });
 
     it('throws ProvisioningError(ENCRYPTION_FAILED) when response is missing encryptedPassData', async () => {
