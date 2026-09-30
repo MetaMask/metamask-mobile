@@ -348,6 +348,7 @@ const Routes = {
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
     RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
+    SWAPS_LIMIT_ORDER_ACTIVITY: 'SwapsLimitOrderActivity',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {

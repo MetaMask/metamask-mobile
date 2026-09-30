@@ -24,7 +24,6 @@ import {
 import { decimalToPrefixedHex } from '../../util/conversions';
 import {
   AssetsControllerState,
-  Caip19AssetId,
   FungibleAssetPrice,
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
@@ -87,7 +86,7 @@ export const getAccountTrackerControllerAccountsByChainId =
         );
 
         for (const [assetId, balanceData] of Object.entries(accountBalances)) {
-          const metadata = assetsInfo[assetId as Caip19AssetId];
+          const metadata = assetsInfo[assetId as CaipAssetType];
 
           const assetType = parseCaipAssetType(assetId as CaipAssetType);
 
@@ -285,7 +284,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
       result[accountAddress] ??= {};
 
       for (const [assetId, assetBalance] of Object.entries(chainIdBalances)) {
-        const metadata = assetsInfo[assetId as Caip19AssetId];
+        const metadata = assetsInfo[assetId as CaipAssetType];
         if (!metadata) {
           continue;
         }
@@ -539,7 +538,7 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
 
       for (const [assetId, balance] of Object.entries(chainIdBalances)) {
         const assetType = parseCaipAssetType(assetId as CaipAssetType);
-        const metadata = assetsInfo[assetId as Caip19AssetId];
+        const metadata = assetsInfo[assetId as CaipAssetType];
 
         if (
           !metadata ||
@@ -602,7 +601,7 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
         continue;
       }
 
-      const price = assetsPrice[assetId as Caip19AssetId];
+      const price = assetsPrice[assetId as CaipAssetType];
 
       if (price?.assetPriceType !== 'fungible') {
         continue;

@@ -607,11 +607,15 @@
     "create_password_cta": "Create password",
     "new_password_placeholder": "New password",
     "confirm_password_placeholder": "Re-enter new password",
-    "acknowledgement_error": "Confirm that you understand MetaMask cannot recover this password.",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "password_warning_title": "MetaMask can’t reset your password",
+    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_srp": "Secret Recovery Phrase",
+    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_confirm": "I understand",
+    "password_warning_cancel": "Cancel"
   },
   "wallet_creation_error": {
     "title": "Something went wrong",
@@ -1317,6 +1321,10 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "No data",
+      "copies": {
+        "one": "{{count}} copy",
+        "other": "{{count}} copies"
+      },
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
@@ -1325,12 +1333,14 @@
         "mock_data_footnote": "* Mock data",
         "entry_price": "Entry price",
         "exit_price": "Exit price",
+        "entry": "Entry",
+        "exit": "Exit",
+        "cost": "Cost",
         "hold_time": "Hold time",
-        "max_hold_time": "Max hold time",
-        "status": "Status",
-        "closed": "Closed",
         "buy": "Buy",
-        "sell": "Sell"
+        "sell": "Sell",
+        "bought": "Bought",
+        "sold": "Sold"
       }
     },
     "composer": {
@@ -1359,7 +1369,8 @@
       "empty_closed": "No closed positions",
       "error_title": "Couldn't load positions",
       "retry": "Try again",
-      "posting": "Posting..."
+      "posting": "Posting...",
+      "post_failed": "Couldn't create post. Try again."
     },
     "shell": {
       "subnav": {
@@ -1620,11 +1631,14 @@
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
+      "sell_title": "Sell {{symbol}}",
+      "change_trade_mode": "Change trade mode",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
       "buy_mode": "Buy",
       "with": "with",
-      "total": "Total",
+      "est_receive": "Est. receive",
+      "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "slippage": "Slippage",
       "minimum_received": "Minimum received",
@@ -1640,14 +1654,8 @@
       "select_quote_title": "Select quote",
       "rate": "Rate",
       "get_new_quote": "Get new quote",
-      "available_balance": "{{amount}} available",
+      "available_balance": "{{amount}} Available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
-      "pay_with_no_tokens": "No tokens available to pay with",
-      "receive_with_no_tokens": "No tokens available to receive",
-      "pay_with_filter_all": "All",
-      "buy_label": "Buy",
-      "sell_label": "Sell",
       "receive": "Receive",
       "max": "Max",
       "add_funds": "Add funds",
@@ -1656,15 +1664,7 @@
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
-      "toast_failed_sell": "Couldn't sell {{symbol}}",
-      "edit_quick_amounts_title": "Edit default amounts",
-      "edit_quick_amounts_set_buy": "To buy",
-      "edit_quick_amounts_set_sell": "To sell",
-      "edit_quick_amounts_confirm": "Save",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "toast_failed_sell": "Couldn't sell {{symbol}}"
     }
   },
   "perps": {
@@ -1983,6 +1983,14 @@
       "twap": "TWAP",
       "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} only",
+      "positions_hidden_by_filters": {
+        "one": "1 position is hidden by the filters.",
+        "other": "{{count}} positions are hidden by the filters."
+      },
+      "orders_hidden_by_filters": {
+        "one": "1 order is hidden by the filters.",
+        "other": "{{count}} orders are hidden by the filters."
+      },
       "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
@@ -2135,7 +2143,7 @@
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
-        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
@@ -3400,6 +3408,7 @@
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
       "active_positions": "Active positions",
+      "cash_out": "Cash Out",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
       "empty": {
@@ -3415,9 +3424,18 @@
     },
     "order_preview": {
       "amount": "USD amount",
+      "contracts": "Contract count",
       "minimum_amount": "Enter at least ${{amount}}.",
+      "minimum_contracts": "Enter at least 1 contract.",
+      "over_sell": "You can sell up to {{contracts}} contracts.",
+      "held_contracts": "You hold {{contracts}} contracts",
       "estimated_contracts": "Est. contracts",
       "average_price": "Avg. price",
+      "limit_price": "Limit price",
+      "proceeds": "Proceeds",
+      "net_proceeds": "Net proceeds",
+      "net_proceeds_line": "Net proceeds {{amount}}",
+      "max": "Max",
       "potential_payout": "Potential payout",
       "potential_profit": "Potential profit",
       "fee": "Fee",
@@ -3451,14 +3469,20 @@
       "partial_title": "Order partially filled",
       "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
       "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "sell_filled_title": "Cash Out complete",
+      "sell_partial_title": "Cash Out partially filled",
+      "sell_partial_description": "{{filled}} of {{quoted}} contracts sold. The other {{remainder}} remain in your position.",
+      "sold_context": "You sold {{contracts}} {{outcome}} contracts",
       "filled_contracts": "Filled",
       "average_fill_price": "Avg. fill price",
       "actual_spend": "Spent",
       "payout_exposure": "Payout exposure",
       "not_filled_title": "Order not filled",
       "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "sell_not_filled_description": "The market is moving fast, so we couldn't sell at {{price}}. Nothing was sold.",
       "rejected_title": "Order rejected",
       "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "sell_rejected_description": "The venue refused this order. Nothing was sold and your position is untouched.",
       "reconciling_title": "Still confirming your order",
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
@@ -5259,7 +5283,7 @@
       },
       "identity": {
         "title": "Identity",
-        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
       "notifications": {
@@ -9431,7 +9455,16 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "activity_title_filled": "Swapped {{source}} to {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Date created",
+      "order_type": "Order type",
+      "order_type_limit": "Limit",
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
@@ -12143,7 +12176,10 @@
       "predict": {
         "label": "Predict",
         "footnote": "One prediction trade per month. Unused trades don't roll over."
-      }
+      },
+      "resets_on": "Resets on {{date}}",
+      "load_error": "Couldn't load your allowances.",
+      "retry": "Try again"
     },
     "physical_card": {
       "title": "Get your free MetaMask Card",

@@ -51,6 +51,8 @@ import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -75,8 +77,6 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import {
   ToastContext,
   ToastVariants,
@@ -1021,7 +1021,7 @@ const Wallet = ({
     >
       {!basicFunctionalityEnabled ? (
         <BannerAlert
-          severity={BannerAlertSeverity.Error}
+          severity={BannerAlertSeverity.Danger}
           title={strings('wallet.banner.title')}
           description={
             <CustomText
