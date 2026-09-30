@@ -114,6 +114,12 @@ jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));
 
+// Settlement-overrides is exercised in its own hook test; the view only
+// needs to render whatever map it returns.
+jest.mock('../../hooks/useEffectiveMoneyActivityStatus', () => ({
+  useEffectiveStatusOverrides: jest.fn(() => new Map()),
+}));
+
 jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
   useCardCapabilities: jest.fn(() => null),
 }));

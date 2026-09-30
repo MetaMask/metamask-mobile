@@ -88,8 +88,7 @@ export function useEffectiveStatusOverrides(
     () =>
       items.filter(
         (item) =>
-          item.kind === 'onchain' &&
-          isRestartInterruptedFiatDeposit(item.tx),
+          item.kind === 'onchain' && isRestartInterruptedFiatDeposit(item.tx),
       ),
     [items],
   );
