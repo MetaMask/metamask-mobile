@@ -69,6 +69,8 @@ const TOKEN_FEED_CHAIN_BY_CAIP2 = new Map<string, TokenFeedChain>(
   }),
 );
 
+const NATIVE_ASSET_NAMESPACE = 'slip44';
+
 /** CAIP-19 asset namespace a spot token uses on each chain namespace. */
 const TOKEN_ASSET_NAMESPACE: Record<string, string> = {
   eip155: 'erc20',
@@ -85,12 +87,24 @@ const normaliseContractAddress = (
   address: string,
 ): string => (chainNamespace === 'eip155' ? address.toLowerCase() : address);
 
-const toTokenFeedRequest = (assetId: string): SocialFeedRequest | null => {
+const toAssetFeedRequest = (assetId: string): SocialFeedRequest | null => {
   if (!isCaipAssetType(assetId)) {
     return null;
   }
   const { chainId, chain, assetNamespace, assetReference } =
     parseCaipAssetType(assetId);
+
+  // A native asset has no contract for the token route, so it gets every
+  // trader's activity on its chain instead.
+  if (assetNamespace === NATIVE_ASSET_NAMESPACE) {
+    return FEED_CAIP2_CHAINS.includes(chainId)
+      ? {
+          action: 'SocialService:fetchFeed',
+          options: { scope: 'leaderboard', chains: [chainId] },
+        }
+      : null;
+  }
+
   const tokenFeedChain = TOKEN_FEED_CHAIN_BY_CAIP2.get(chainId);
   if (
     !tokenFeedChain ||
@@ -113,7 +127,8 @@ const toTokenFeedRequest = (assetId: string): SocialFeedRequest | null => {
 
 /**
  * Resolves a source to the social-api call that serves it, or `null` when the
- * source has no feed (unsupported chain, native asset, blank identifier).
+ * source has no feed (unsupported chain or asset namespace, blank identifier).
+ * A native asset resolves to the global feed filtered to its chain.
  */
 export const toSocialFeedRequest = (
   source: SocialFeedSource,
@@ -128,7 +143,7 @@ export const toSocialFeedRequest = (
         },
       };
     case 'token':
-      return toTokenFeedRequest(source.assetId);
+      return toAssetFeedRequest(source.assetId);
     case 'perp': {
       // Perp markets live on the token route under `hyperliquid`, keyed by the
       // exact market symbol (`BTC` matches, `btc` does not).
@@ -157,22 +172,33 @@ export const toSocialFeedRequest = (
   }
 };
 
+/** The asset fields a feed row carries, as the social API names them. */
+export interface SocialFeedAssetRef {
+  /** Social chain name (`ethereum`, `solana`, `hyperliquid`). */
+  chain: string;
+  tokenAddress: string;
+  /** Raw market id for perps (`BTC`, `xyz:NVDA`); used for Hyperliquid rows. */
+  tokenSymbol?: string;
+}
+
 /**
- * Builds the source for the asset a feed row is about, from the row's social
- * chain name and token address. Hyperliquid rows carry the market symbol as
- * their address, so they become perp sources.
+ * Builds the source for the asset a feed row is about. Hyperliquid rows become
+ * perp sources keyed by their market symbol, because global-feed perp rows can
+ * arrive with an empty `tokenAddress`.
  */
-export const socialFeedSourceFromAsset = (
-  chainName: string,
-  tokenAddress: string,
-): SocialFeedSource | null => {
+export const socialFeedSourceFromAsset = ({
+  chain: chainName,
+  tokenAddress,
+  tokenSymbol,
+}: SocialFeedAssetRef): SocialFeedSource | null => {
   const chain = chainName.trim().toLowerCase();
   const address = tokenAddress.trim();
+  if (chain === HYPERLIQUID_CHAIN_NAME) {
+    const symbol = tokenSymbol?.trim() || address;
+    return symbol ? { kind: 'perp', symbol } : null;
+  }
   if (!chain || !address) {
     return null;
-  }
-  if (chain === HYPERLIQUID_CHAIN_NAME) {
-    return { kind: 'perp', symbol: address };
   }
   const caip2 = chainNameToId(chain);
   if (!caip2) {

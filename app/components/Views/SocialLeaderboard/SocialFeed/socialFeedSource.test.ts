@@ -3,6 +3,7 @@ import { FEED_CAIP2_CHAINS } from '../FeedView/feed-constants';
 import {
   socialFeedSourceFromAsset,
   toSocialFeedRequest,
+  type SocialFeedAssetRef,
   type SocialFeedSource,
 } from './socialFeedSource';
 
@@ -64,7 +65,29 @@ describe('toSocialFeedRequest', () => {
   });
 
   it.each([
-    ['a native asset', 'eip155:1/slip44:60'],
+    ['ETH on Ethereum', 'eip155:1/slip44:60', 'eip155:1'],
+    ['ETH on Base', 'eip155:8453/slip44:60', 'eip155:8453'],
+    ['SOL', `${SOLANA_MAINNET}/slip44:501`, SOLANA_MAINNET],
+  ])(
+    'maps the native asset %s to every trader on its chain',
+    (_label, assetId, chainId) => {
+      expect(
+        toSocialFeedRequest({
+          kind: 'token',
+          assetId: assetId as CaipAssetType,
+        }),
+      ).toStrictEqual({
+        action: 'SocialService:fetchFeed',
+        options: { scope: 'leaderboard', chains: [chainId] },
+      });
+    },
+  );
+
+  it.each([
+    [
+      'a native asset on a chain the feed does not track',
+      'eip155:42161/slip44:60',
+    ],
     ['a chain the token route does not list', 'eip155:42161/erc20:0xabc'],
     ['an NFT namespace', 'eip155:1/erc721:0xabc'],
     ['a Solana asset in an EVM namespace', `${SOLANA_MAINNET}/erc20:0xabc`],
@@ -113,30 +136,58 @@ describe('toSocialFeedRequest', () => {
 });
 
 describe('socialFeedSourceFromAsset', () => {
-  it.each<[string, string, SocialFeedSource | null]>([
+  it.each<[string, SocialFeedAssetRef, SocialFeedSource | null]>([
     [
-      'ethereum',
-      '0x910037dc20fbdf3a347979a9553f3b8100b5efeb',
+      'an Ethereum token',
+      {
+        chain: 'ethereum',
+        tokenAddress: '0x910037dc20fbdf3a347979a9553f3b8100b5efeb',
+      },
       {
         kind: 'token',
         assetId: 'eip155:1/erc20:0x910037dc20fbdf3a347979a9553f3b8100b5efeb',
       },
     ],
     [
-      'solana',
-      SOLANA_MINT,
+      'a Solana token',
+      { chain: 'solana', tokenAddress: SOLANA_MINT },
       { kind: 'token', assetId: `${SOLANA_MAINNET}/token:${SOLANA_MINT}` },
     ],
-    ['hyperliquid', 'BTC', { kind: 'perp', symbol: 'BTC' }],
-    ['Hyperliquid', 'xyz:NVDA', { kind: 'perp', symbol: 'xyz:NVDA' }],
-    ['unknown-chain', '0xabc', null],
-    ['ethereum', '', null],
-  ])('builds the source for %s %s', (chain, address, expected) => {
-    expect(socialFeedSourceFromAsset(chain, address)).toStrictEqual(expected);
+    [
+      'a perp row with an empty address, by its symbol',
+      { chain: 'hyperliquid', tokenAddress: '', tokenSymbol: 'ETH' },
+      { kind: 'perp', symbol: 'ETH' },
+    ],
+    [
+      'a HIP-3 perp row, preferring the symbol',
+      { chain: 'Hyperliquid', tokenAddress: 'NVDA', tokenSymbol: 'xyz:NVDA' },
+      { kind: 'perp', symbol: 'xyz:NVDA' },
+    ],
+    [
+      'a perp row without a symbol, by its address',
+      { chain: 'hyperliquid', tokenAddress: 'BTC' },
+      { kind: 'perp', symbol: 'BTC' },
+    ],
+    [
+      'a perp row with neither',
+      { chain: 'hyperliquid', tokenAddress: '' },
+      null,
+    ],
+    [
+      'an unknown chain',
+      { chain: 'unknown-chain', tokenAddress: '0xabc' },
+      null,
+    ],
+    ['a token with no address', { chain: 'ethereum', tokenAddress: '' }, null],
+  ])('builds the source for %s', (_label, asset, expected) => {
+    expect(socialFeedSourceFromAsset(asset)).toStrictEqual(expected);
   });
 
   it('round-trips a feed row asset into the same token route request', () => {
-    const source = socialFeedSourceFromAsset('solana', SOLANA_MINT);
+    const source = socialFeedSourceFromAsset({
+      chain: 'solana',
+      tokenAddress: SOLANA_MINT,
+    });
 
     expect(source && toSocialFeedRequest(source)).toStrictEqual({
       action: 'SocialService:fetchTokenFeed',

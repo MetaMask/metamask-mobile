@@ -21,7 +21,10 @@ export const useSocialV1TokenFeed = (
   const source = useMemo(
     () =>
       target
-        ? socialFeedSourceFromAsset(target.chain, target.contractAddress)
+        ? socialFeedSourceFromAsset({
+            chain: target.chain,
+            tokenAddress: target.contractAddress,
+          })
         : null,
     [target],
   );

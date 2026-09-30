@@ -79,9 +79,10 @@ describe('useSocialFeed', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('stays idle for a source with no feed, such as a native asset', () => {
+  it('stays idle for a source with no feed, such as an untracked chain', () => {
     const { result } = renderHook(
-      () => useSocialFeed({ kind: 'token', assetId: 'eip155:1/slip44:60' }),
+      () =>
+        useSocialFeed({ kind: 'token', assetId: 'eip155:42161/erc20:0xabc' }),
       { wrapper: createWrapper().wrapper },
     );
 
@@ -132,6 +133,30 @@ describe('useSocialFeed', () => {
     expect(result.current.rows[0]?.core.positionId).toBe('pos-spot-1');
     expect(result.current.posts[0]?.item.asset.symbol).toBe('PEPE');
     expect(result.current.dataUpdatedAt).toEqual(expect.any(Number));
+  });
+
+  it('loads every trader on the chain for a native asset', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([olderItem, newerItem]));
+
+    const { result } = renderHook(
+      () =>
+        useSocialFeed(
+          { kind: 'token', assetId: 'eip155:1/slip44:60' },
+          { pageSize: 3 },
+        ),
+      { wrapper: createWrapper().wrapper },
+    );
+
+    await waitFor(() => expect(result.current.rows).toHaveLength(2));
+    expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+      scope: 'leaderboard',
+      chains: ['eip155:1'],
+      limit: 3,
+    });
+    expect(result.current.rows.map((row) => row.core.positionId)).toEqual([
+      'newer',
+      'older',
+    ]);
   });
 
   it('defaults to the shared feed page size', async () => {
