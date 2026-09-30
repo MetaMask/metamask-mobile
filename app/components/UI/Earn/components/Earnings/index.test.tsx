@@ -7,11 +7,15 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { EarnTokenDetails } from '../../types/lending.types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { analytics } from '../../../../../util/analytics/analytics';
 import { fireEvent } from '@testing-library/react-native';
 import { View } from 'react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.mocked(analytics.trackEvent);
 
 const STATE_MOCK = {
   engine: {
@@ -34,6 +38,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 jest.mock('../../../../../selectors/earnController', () => ({
   ...jest.requireActual('../../../../../selectors/earnController'),
@@ -324,6 +334,15 @@ describe('Earnings', () => {
     fireEvent.press(getByTestId(EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE));
 
     expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.TOOLTIP_OPENED.category,
+        properties: expect.objectContaining({
+          location: EVENT_LOCATIONS.STAKING_EARNINGS,
+          tooltip_name: 'Annual Rate',
+        }),
+      }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: {
