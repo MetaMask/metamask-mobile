@@ -360,7 +360,7 @@
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
     "@metamask/money-account-api-data-service": "^0.4.1",
-    "@metamask/money-account-balance-service": "patch:@metamask/money-account-balance-service@npm%3A3.0.0#~/.yarn/patches/@metamask-money-account-balance-service-npm-3.0.0-09f3f27fe2.patch",
+    "@metamask/money-account-balance-service": "^2.4.1",
     "@metamask/money-account-controller": "^1.0.0",
     "@metamask/money-account-upgrade-controller": "^5.1.0",
     "@metamask/money-account-utils": "^2.1.0",
