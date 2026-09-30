@@ -250,9 +250,13 @@ app/components/UI/WhatsHappening/                                    @MetaMask/s
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
+app/core/Engine/controllers/profile-controller-init*                 @MetaMask/social-ai
+app/core/Engine/controllers/profile-service-init*                    @MetaMask/social-ai
 app/core/Engine/controllers/social/                                  @MetaMask/social-ai
 app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
 app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
+app/core/Engine/messengers/profile-controller-messenger*             @MetaMask/social-ai
+app/core/Engine/messengers/profile-service-messenger*                @MetaMask/social-ai
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
 app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
 app/core/DeeplinkManager/handlers/legacy/handleSocialLeaderboardUrl.ts    @MetaMask/social-ai

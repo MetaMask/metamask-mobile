@@ -299,10 +299,7 @@ const MyProfileView: React.FC = () => {
               ))}
             </Box>
           ) : showPostsEmptyState ? (
-            <ProfilePostsEmptyState
-              onShareFirstTrade={handleShareFirstTrade}
-              onResetProfile={handleResetProfile}
-            />
+            <ProfilePostsEmptyState onShareFirstTrade={handleShareFirstTrade} />
           ) : postsError && posts.length === 0 ? (
             <Box
               alignItems={BoxAlignItems.Center}
@@ -380,6 +377,16 @@ const MyProfileView: React.FC = () => {
           </Button>
         </Box>
       )}
+      <Box paddingHorizontal={4} paddingBottom={4}>
+        <Button
+          variant={ButtonVariant.Tertiary}
+          isFullWidth
+          onPress={handleResetProfile}
+          testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+        >
+          {strings('social_leaderboard.my_profile.debug_reset_profile')}
+        </Button>
+      </Box>
       {isStatsSheetOpen && profile && overlayedStats ? (
         <TraderStatsSheet
           profile={overlayedStats.sheetProfile}

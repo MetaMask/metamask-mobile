@@ -1,3 +1,5 @@
+import type { CreateProfileParams } from '@metamask/profile-controller';
+import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
 import { DEFAULT_PROFILE_AVATAR_PRESET_ID } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 
@@ -86,10 +88,11 @@ export const profileUrlForHandle = (handle: string): string =>
 
 export const buildOnboardedSocialProfile = (
   draft: ProfileOnboardingDraft,
+  profileId = 'current-user',
 ): MySocialProfile => {
   const handle = normalizeUsername(draft.username);
   return {
-    profileId: 'current-user',
+    profileId,
     displayName: draft.displayName.trim(),
     handle,
     bio: null,
@@ -110,6 +113,42 @@ export const buildOnboardedSocialProfile = (
 
 export const canContinueUsernameStep = (
   draft: ProfileOnboardingDraft,
+  isUsernameAvailable: boolean,
 ): boolean =>
+  isUsernameAvailable &&
   getUsernameStatus(draft.username) === 'available' &&
   draft.displayName.trim().length > 0;
+
+/**
+ * Chain-agnostic CAIP-10 id for an EVM address (`eip155:0:<address>`).
+ *
+ * @param address - The wallet address chosen during onboarding.
+ * @returns The CAIP account id stored on the profile.
+ */
+export const toLinkedCaipAccountId = (address: string) =>
+  toCaipAccountId(KnownCaipNamespace.Eip155, '0', address);
+
+/**
+ * Create-profile body for the current draft.
+ *
+ * The preview controller requires `trading_privacy` and `linked_addresses` on
+ * create, so the trading-activity switch is sent here. Avatar presets are not
+ * URLs and stay off the request.
+ *
+ * @param draft - Onboarding choices.
+ * @param profileId - OIDC session id. The API does not mint this.
+ * @returns Parameters for `ProfileController.createProfile`.
+ */
+export const buildCreateProfileParams = (
+  draft: ProfileOnboardingDraft,
+  profileId: string,
+): CreateProfileParams => ({
+  profile_id: profileId,
+  username: normalizeUsername(draft.username),
+  display_name: draft.displayName.trim(),
+  bio: null,
+  linked_addresses: draft.linkedAccountAddress
+    ? [toLinkedCaipAccountId(draft.linkedAccountAddress)]
+    : [],
+  trading_privacy: draft.shareTradingActivity ? 'public' : 'private',
+});
