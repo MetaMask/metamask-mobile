@@ -760,16 +760,30 @@
       <p>
         September 30 mm-3 validation on controller 19.0.0 uses dev1
         <code>0x8dc623e964475d4d669da601fd15ea9125469003</code> on both
-        protocols. Lighter recovery passed two local key-loss cycles and
-        reconnect with zero additional venue registrations. Market and
-        passive-limit recipes match exact fills or orders and end flat.
+        protocols. The refreshed runs below used Mobile
+        <code>78afc42d4505303b14a26b6c3cd047faf545303f</code> with the
+        closing-fill correction from Core
+        <code>2e6a4d94532653c40dba4de6d586911fa7b2adfa</code>. Each run records
+        unchanged source provenance. Lighter recovery
+        <code>key-recovery/recipe-run-13</code> passed 12/12 across two local
+        key-loss cycles and reconnect with zero additional venue registrations.
+        Lighter <code>recipe-library/market-run-11</code> passed 17/17 and
+        <code>recipe-library/limit-run-06</code> passed 18/18. Hyperliquid
+        <code>recipe-library/hyperliquid-market-run-03</code> and
+        <code>recipe-library/hyperliquid-limit-run-02</code> each passed 18/18.
+        These financial recipes match exact fills or orders and end flat.
         Hyperliquid collateral is in spot USDC under unified-account mode; its
-        zero perps margin summary alone does not indicate missing funding. Retry
-        proof injects presentation failures and then verifies real snapshots.
-        Closing-fill validation now preserves omitted PnL as unknown rather than
-        rejecting the fill. Core has 403 passing affected tests; Mobile has 439
-        across 10 affected suites. Application diagnostics are retained. No
-        advanced-order or mainnet financial pass is claimed.
+        zero perps margin summary alone does not indicate missing funding.
+        <code>key-recovery/ui-error-run-17</code> passed 18/18 with visible
+        Retry controls, then real authenticated snapshots. It injects
+        presentation failures, not signer-boundary failures. Earlier controller
+        19 recovery run 12 and the previous financial runs preceded the
+        closing-fill correction and remain historical evidence. Omitted closing
+        PnL now stays unknown. Core has 403 passing affected tests; Mobile has
+        439 across 10 affected suites. These artifact paths are relative to
+        <code>temp/tasks/feat/tat-4045-0930-095044/artifacts/</code>.
+        Application diagnostics are retained. No advanced-order or mainnet
+        financial pass is claimed.
       </p>
 
       <p>
