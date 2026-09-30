@@ -116,13 +116,17 @@ describe('ProfilesToFollowView', () => {
 
     fireEvent.press(screen.getByTestId(getConnectionRowTestId('trader-1')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
-      traderId: 'trader-1',
-      traderName: 'Pain',
-      traderAddress: mockTraders[0].address,
-      source: 'profiles_to_follow',
-      traderRank: 1,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'Pain',
+        traderAddress: mockTraders[0].address,
+        source: 'profiles_to_follow',
+        traderRank: 1,
+      },
+      {},
+    );
   });
 
   it('toggles follow from a row Follow button', () => {
