@@ -82,6 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Money Account upgrade calling the dev CHOMP API before feature flags load (#37013)
+- Fixed the short scale-order warning so it no longer mentions taker fees (#36999)
+- Fixed mark price and oracle price showing the same value in the perps pro mode market stats bar (#36929)
+- Fixed deeplinks not opening when Auto-lock runs during app resume (#36925)
+- Fixed deeplinks not opening after the app auto-locks (#36905)
 - Fixed Perps price alerts to show live market prices with the same decimal formatting as the market header (#36884)
 - Matched Wallet Details row dividers to the 1px gap used on Account Details (#36179)
 - Centered trader profile metric labels under their values in longer translations (#36788)
