@@ -76,7 +76,7 @@ index 65a03cfc60191f0e98564d3c051bbbe5bee83768..a5162d004229ec872d89484f1c9be41a
                  };
                  const unsub = provider.subscribeToOrders(subscribeParams);
 diff --git a/dist/providers/LighterProvider.js b/dist/providers/LighterProvider.js
-index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717bfaa3793 100644
+index 31af8d8736b9aabd54c4c7f889629215937db6d0..eda9aa63d287f0d7c6a5f90204fb4ff13510f811 100644
 --- a/dist/providers/LighterProvider.js
 +++ b/dist/providers/LighterProvider.js
 @@ -542,6 +542,7 @@ export class LighterProvider {
@@ -272,7 +272,16 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          if (remaining.length > 0) {
              throw new Error('A previous Lighter submission has an unresolved outcome; writes are blocked until it can be proven consumed or never-landed');
          }
-@@ -1460,10 +1475,15 @@ export class LighterProvider {
+@@ -1453,19 +1468,26 @@ export class LighterProvider {
+      * List TP/SL obligations parked in DURABLE manual-recovery state: the
+      * venue removed (or rejected) protection in a way that cannot be
+      * safely re-established automatically. Surfaced to callers/UI; each
+-     * entry resolves when the user issues a new explicit TP/SL update for
+-     * the symbol.
++     * current-key entry resolves after a successful explicit TP/SL update.
++     * Previous-key obligations remain until reconciled under their own key.
+      *
+      * @returns Parked manual-recovery entries.
       */
      async getPendingManualRecoveries() {
          this.#ensureSessionBinding();
@@ -289,9 +298,23 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
 +            ? null
 +            : `${identityPrefix}${this.#apiKeyIndex}:`;
          const pending = [];
-         const actionNeeded = 'Review the position and submit a new explicit TP/SL update for this symbol to re-establish protection';
+-        const actionNeeded = 'Review the position and submit a new explicit TP/SL update for this symbol to re-establish protection';
++        const actionNeeded = (settlementKey) => currentSlotPrefix !== null && settlementKey.startsWith(currentSlotPrefix)
++            ? 'Review the position and submit a new explicit TP/SL update for this symbol to re-establish protection'
++            : 'Review the position and recorded orders from the previous trading key in Lighter. A current-key TP/SL update does not clear this obligation; initialize the wallet trading key and reconcile the recorded orders before changing protection';
          // Storage errors PROPAGATE — a corrupt index degrading to "nothing
-@@ -1495,18 +1515,30 @@ export class LighterProvider {
+         // pending" would hide a naked position.
+         const manualIndex = await this.#readTpslManualIndex();
+@@ -1482,7 +1504,7 @@ export class LighterProvider {
+                     reason: doc.reason,
+                     priorIntent: doc.priorIntent,
+                     survivingOrderIds: doc.survivingOrderIds,
+-                    actionNeeded,
++                    actionNeeded: actionNeeded(settlementKey),
+                 });
+             }
+         }
+@@ -1495,18 +1517,30 @@ export class LighterProvider {
                  continue;
              }
              const journal = await this.#loadTpslJournal(settlementKey);
@@ -316,7 +339,8 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
 +                    reason,
                      priorIntent: journal.intent,
                      survivingOrderIds: [],
-                     actionNeeded,
+-                    actionNeeded,
++                    actionNeeded: actionNeeded(settlementKey),
                  });
              }
          }
@@ -324,7 +348,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          return pending;
      }
      /**
-@@ -1519,8 +1551,11 @@ export class LighterProvider {
+@@ -1519,8 +1553,11 @@ export class LighterProvider {
       */
      async getRecoveredDispatches() {
          this.#ensureSessionBinding();
@@ -336,7 +360,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          return doc.recovered.map((outcome) => ({ ...outcome }));
      }
      /**
-@@ -1536,10 +1571,13 @@ export class LighterProvider {
+@@ -1536,10 +1573,13 @@ export class LighterProvider {
          this.#ensureSessionBinding();
          const generation = this.#sessionGeneration;
          const accountIndex = await this.#ensureAccountIndex();
@@ -352,7 +376,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
              const remaining = doc.recovered.filter((outcome) => outcome.recoveryId !== recoveryId);
              if (remaining.length === doc.recovered.length) {
                  throw new Error(`No pending recovered Lighter dispatch matches id ${recoveryId}; refresh and re-read before acknowledging`);
-@@ -1548,7 +1586,7 @@ export class LighterProvider {
+@@ -1548,7 +1588,7 @@ export class LighterProvider {
                  consumedFloor: doc.consumedFloor,
                  entries: doc.entries,
                  recovered: remaining,
@@ -361,7 +385,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          });
      }
      /**
-@@ -1556,15 +1594,16 @@ export class LighterProvider {
+@@ -1556,15 +1596,16 @@ export class LighterProvider {
       * refused when the durable consumed watermark shows a later dispatch
       * (e.g. a retry) already consumed the nonce.
       *
@@ -381,7 +405,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
      };
      /**
       * Durable TP/SL journal key (network + address + accountIndex + symbol
-@@ -1735,7 +1774,10 @@ export class LighterProvider {
+@@ -1735,7 +1776,10 @@ export class LighterProvider {
              Number.isSafeInteger(parsed.recordedAt) &&
              parsed.recordedAt >= 0 &&
              // The journal is bound to ONE api-key slot: nonces are per slot.
@@ -393,7 +417,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
              typeof parsed.operationId === 'string' &&
              parsed.operationId.length >= 1 &&
              parsed.operationId.length <= 64 &&
-@@ -2698,6 +2740,7 @@ export class LighterProvider {
+@@ -2698,6 +2742,7 @@ export class LighterProvider {
       * ACCEPTED mutation is still not visible.
       */
      #reconcilePriorTpsl = async (readActiveRaw, readInactive, accountIndex, entry) => {
@@ -401,7 +425,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          // Per-attempt reconciliation, authoritative and never time-guessed:
          // 1. Books first — a create is resolved when its ids are all
          //    active/terminal, a cancel when its target left the active book.
-@@ -2768,7 +2811,7 @@ export class LighterProvider {
+@@ -2768,7 +2813,7 @@ export class LighterProvider {
                      lookedUp.hash.toLowerCase().replace(/^0x/u, '') ===
                          attempt.txHash.toLowerCase().replace(/^0x/u, '') &&
                      lookedUp.accountIndex === accountIndex &&
@@ -410,7 +434,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                      lookedUp.nonce === attempt.nonce;
                  if (!matchesIdentity) {
                      this.#deps.debugLogger.log('[LighterProvider] TP/SL tx lookup identity mismatch; failing closed', { txHash: attempt.txHash });
-@@ -2798,7 +2841,7 @@ export class LighterProvider {
+@@ -2798,7 +2843,7 @@ export class LighterProvider {
              // Expired and venue-confirmed absent: authoritatively never landed —
              // its reserved nonce may be released UNLESS a later dispatch (a
              // retry) already consumed it (durable consumed watermark guards).
@@ -419,7 +443,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          }
          return 'resolved';
      };
-@@ -2807,11 +2850,12 @@ export class LighterProvider {
+@@ -2807,11 +2852,12 @@ export class LighterProvider {
       * PROVEN never-landed. Only the topmost reservation can be safely
       * lowered; anything else stays reserved until proven in turn.
       *
@@ -434,7 +458,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          if (this.#nonceReservations.get(reservationKey) === nonce + 1) {
              this.#nonceReservations.set(reservationKey, nonce);
          }
-@@ -2965,6 +3009,7 @@ export class LighterProvider {
+@@ -2965,6 +3011,7 @@ export class LighterProvider {
          this.#sessionGeneration += 1;
          this.#boundAddress = null;
          this.#accountIndex = null;
@@ -442,7 +466,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          this.#signerReadyPromise = null;
          this.#authToken = null;
          this.#clearBridgeOwnership();
-@@ -2998,70 +3043,154 @@ export class LighterProvider {
+@@ -2998,70 +3045,154 @@ export class LighterProvider {
              throw error;
          }
      };
@@ -539,7 +563,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
 +            // section, after older dispatch/ledger work has completely finished.
 +            const ready = await this.#withVenueWriteLock(accountIndex, async (nextNonce, submit) => {
 +                const nonce = await nextNonce();
-+                this.#assertSession(generation);
+                 this.#assertSession(generation);
 +                const created = await bridge.createClient({
 +                    chainId,
 +                    accountIndex,
@@ -556,7 +580,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
 +                this.#signerRecreateParams = { chainId, accountIndex };
 +                bridgeClientOwners.set(this.#rawSignerBridge(), this.#signerIdentity);
 +                const status = await this.#venueKeyStatus(accountIndex);
-                 this.#assertSession(generation);
++                this.#assertSession(generation);
 +                if (status === 'occupied') {
 +                    this.#clearBridgeOwnership();
 +                    if (!bridge.getRecoverableKeyIndices &&
@@ -647,7 +671,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
      };
      #registerVenueKey = async (accountIndex, changePubKeyBody, generation, nextNonce, submit) => {
          const bridge = this.#getSignerBridge();
-@@ -3155,14 +3284,16 @@ export class LighterProvider {
+@@ -3155,14 +3286,16 @@ export class LighterProvider {
       * caller's intent was formed (defaults to now).
       * @returns The section's result.
       */
@@ -666,7 +690,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
              this.#assertSession(generationAtIntent);
              // Monotonic nonce reservation: the venue's nextNonce endpoint can
              // LAG accepted submissions. The floor is SESSION-GLOBAL per
-@@ -3172,14 +3303,14 @@ export class LighterProvider {
+@@ -3172,14 +3305,14 @@ export class LighterProvider {
              // response was lost. Reservation advances at DISPATCH (a signing
              // failure never burns a nonce the venue still expects); a proven
              // never-landed submission releases it again via reconciliation.
@@ -683,7 +707,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                  this.#assertSession(generationAtIntent);
                  const reservedFloor = this.#nonceReservations.get(reservationKey);
                  const issued = reservedFloor === undefined
-@@ -3227,7 +3358,7 @@ export class LighterProvider {
+@@ -3227,7 +3360,7 @@ export class LighterProvider {
                      };
                      const appendedEntry = ledgerEntry;
                      await this.#withLedgerLock(accountIndex, async () => {
@@ -692,7 +716,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                          if (doc.entries.length >= 16) {
                              throw new Error('Too many unresolved Lighter dispatches; refusing further writes until they resolve');
                          }
-@@ -3235,8 +3366,8 @@ export class LighterProvider {
+@@ -3235,8 +3368,8 @@ export class LighterProvider {
                              consumedFloor: doc.consumedFloor,
                              entries: [...doc.entries, appendedEntry],
                              recovered: doc.recovered,
@@ -703,7 +727,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                      // Only AFTER the durable append: reserve in memory — from this
                      // point the venue may consume the nonce even if the response
                      // never arrives.
-@@ -3245,6 +3376,7 @@ export class LighterProvider {
+@@ -3245,6 +3378,7 @@ export class LighterProvider {
                  // EVERY error path below keeps the durable entry — a coded venue
                  // or HTTP error can mask a commit, so nothing short of an exact
                  // authoritative reconciliation may release the nonce.
@@ -711,7 +735,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                  const response = await this.#clientService.sendTx(txType, txInfo);
                  // Acceptance bookkeeping runs SYNCHRONOUSLY before anything can
                  // fail: a switch during network submission must cancel the
-@@ -3266,7 +3398,7 @@ export class LighterProvider {
+@@ -3266,7 +3400,7 @@ export class LighterProvider {
                      fenceError = error;
                  }
                  if (ledgerEntry !== null) {
@@ -720,7 +744,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                  }
                  if (fenceError !== null) {
                      throw ensureError(fenceError, 'LighterProvider.submit');
-@@ -3279,7 +3411,7 @@ export class LighterProvider {
+@@ -3279,7 +3413,7 @@ export class LighterProvider {
          // serialized PROCESS-WIDE per network+account+api-key slot: the
          // instance chain alone cannot stop a second live provider from
          // issuing the same nonce or interleaving ledger writes.
@@ -729,7 +753,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          // INNERMOST: the bridge mutex — the WASM client is a singleton
          // per bridge, so ensure-correct-client + every sign of a section
          // are serialized across ALL providers sharing the bridge.
-@@ -3309,6 +3441,7 @@ export class LighterProvider {
+@@ -3309,6 +3443,7 @@ export class LighterProvider {
              accountIndex: recreateParams.accountIndex,
              nonce,
              apiKeyIndex: this.#apiKeyIndex,
@@ -737,7 +761,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          });
          if (recreated.error || !recreated.success) {
              throw new Error(`Lighter signer client re-establishment failed: ${recreated.error ?? 'unknown'}`);
-@@ -5687,7 +5820,7 @@ export class LighterProvider {
+@@ -5687,7 +5822,7 @@ export class LighterProvider {
              return NOOP_UNSUBSCRIBE;
          }
          this.#orderSubscribers.add(params);
@@ -746,7 +770,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
              params.callback([...this.#wsOrders.values()]);
          }
          this.#ensureAccountChannels();
-@@ -5702,6 +5835,20 @@ export class LighterProvider {
+@@ -5702,6 +5837,20 @@ export class LighterProvider {
          }
          this.#fillSubscribers.add(params);
          this.#ensureAccountChannels();
@@ -767,7 +791,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          return () => {
              this.#fillSubscribers.delete(params);
              this.#releaseChannelIfUnused();
-@@ -5727,7 +5874,9 @@ export class LighterProvider {
+@@ -5727,7 +5876,9 @@ export class LighterProvider {
          }
          const generation = this.#sessionGeneration;
          let channelsRequested = false;
@@ -778,7 +802,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
              try {
                  // Warm the margin cache before any WS position frame is adapted.
                  await this.#ensureMarketMargins().catch(() => undefined);
-@@ -5743,6 +5892,7 @@ export class LighterProvider {
+@@ -5743,6 +5894,7 @@ export class LighterProvider {
                  this.#requestChannel(`account_all_positions/${accountIndex}`);
                  this.#requestChannel(`account_all_trades/${accountIndex}`);
                  channelsRequested = true;
@@ -786,7 +810,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                  try {
                      const auth = await this.#getAuthToken();
                      this.#assertSession(generation);
-@@ -5750,6 +5900,20 @@ export class LighterProvider {
+@@ -5750,6 +5902,20 @@ export class LighterProvider {
                  }
                  catch (error) {
                      this.#deps.debugLogger.log('[LighterProvider] orders channel skipped (no auth token)', { error: String(error) });
@@ -807,7 +831,25 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
                      // Setup failures are not authoritative empty order state. Account
                      // switches and deselection already emit their synchronous reset.
                      channelsRequested = false;
-@@ -5784,7 +5948,6 @@ export class LighterProvider {
+@@ -5767,6 +5933,17 @@ export class LighterProvider {
+                     generation === this.#sessionGeneration) {
+                     this.#emitAccountBindingReset();
+                 }
++                else if (!this.#isDisconnected &&
++                    this.#boundAddress !== null &&
++                    generation === this.#sessionGeneration &&
++                    this.#accountChannelsPromise === setupPromise) {
++                    for (const subscriber of this.#orderSubscribers) {
++                        subscriber.onError?.(ensureError(error));
++                    }
++                    for (const subscriber of this.#fillSubscribers) {
++                        subscriber.onError?.(ensureError(error));
++                    }
++                }
+                 // An aborted previous-account setup has no authority over the new
+                 // session. Current-session failures also preserve the last known data.
+                 // Transport, auth, capability, and integrity failures are not
+@@ -5784,7 +5961,6 @@ export class LighterProvider {
                  this.#accountChannelsPromise === setupPromise) {
                  this.#accountChannelsPromise = null;
              }
@@ -815,7 +857,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          })
              .catch(() => undefined);
          this.#ensureStream();
-@@ -6033,6 +6196,7 @@ export class LighterProvider {
+@@ -6033,6 +6209,7 @@ export class LighterProvider {
                      }
                  }
              }
@@ -823,7 +865,7 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
              this.#wsOrders.clear();
              for (const [orderId, order] of nextOrders) {
                  this.#wsOrders.set(orderId, order);
-@@ -6198,9 +6362,6 @@ export class LighterProvider {
+@@ -6198,9 +6375,6 @@ export class LighterProvider {
       * @param message - Camelized account_all_trades payload.
       */
      #handleTradesMessage = (message) => {
@@ -833,27 +875,41 @@ index 31af8d8736b9aabd54c4c7f889629215937db6d0..51328a1bc713afeeb97918e8ba2d3717
          const isSnapshot = (message.type ?? '').startsWith('subscribed');
          const fills = [];
          let droppedUnsupportedFill = false;
-@@ -6232,6 +6393,19 @@ export class LighterProvider {
+@@ -6221,6 +6395,11 @@ export class LighterProvider {
+                 }
+             }
+         }
++        // A cache is replayable only after a complete validated snapshot.
++        // Missing even one fill invalidates that authority until a new snapshot.
++        if (droppedUnsupportedFill) {
++            this.#wsFills = null;
++        }
+         if (fills.length === 0 && !isSnapshot) {
+             return;
+         }
+@@ -6232,6 +6411,21 @@ export class LighterProvider {
              this.#deps.debugLogger.log('[LighterProvider] withholding partial fills snapshot (unsupported fills present)');
              return;
          }
-+        const history = isSnapshot ? fills : [...fills, ...(this.#wsFills ?? [])];
-+        const seen = new Set();
-+        this.#wsFills = history
-+            .filter((fill) => {
-+            const id = fill.fillId ?? `${fill.orderId}:${fill.timestamp}`;
-+            if (seen.has(id)) {
-+                return false;
-+            }
-+            seen.add(id);
-+            return true;
-+        })
-+            .sort((first, second) => second.timestamp - first.timestamp)
-+            .slice(0, 100);
++        if (isSnapshot || this.#wsFills !== null) {
++            const history = isSnapshot ? fills : [...fills, ...(this.#wsFills ?? [])];
++            const seen = new Set();
++            this.#wsFills = history
++                .filter((fill) => {
++                const id = fill.fillId ?? `${fill.orderId}:${fill.timestamp}`;
++                if (seen.has(id)) {
++                    return false;
++                }
++                seen.add(id);
++                return true;
++            })
++                .sort((first, second) => second.timestamp - first.timestamp)
++                .slice(0, 100);
++        }
          for (const subscriber of this.#fillSubscribers) {
              try {
                  subscriber.callback(fills, isSnapshot);
-@@ -6359,6 +6533,8 @@ export class LighterProvider {
+@@ -6359,6 +6553,8 @@ export class LighterProvider {
          this.#wsWantedChannels.clear();
          this.#accountChannelsPromise = null;
          this.#wsPositions.clear();
