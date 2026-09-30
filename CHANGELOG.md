@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.13.1]
 
+### Fixed
+
+- Fixed Money Account upgrade calling the dev CHOMP API before feature flags load (#37013)
+
 ## [8.13.0]
 
 ### Added
