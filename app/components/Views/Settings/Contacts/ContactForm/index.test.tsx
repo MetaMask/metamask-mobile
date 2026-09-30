@@ -173,11 +173,10 @@ describe('ContactForm', () => {
   });
 
   it('shows an Edit button at the bottom of a read-only contact, not in the header', async () => {
-    const { findByTestId, findByText, queryByTestId } =
-      renderContactForm({
-        mode: 'edit',
-        address: MOCK_ADDRESS,
-      });
+    const { findByTestId, findByText, queryByTestId } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
 
     expect(
       await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON),
