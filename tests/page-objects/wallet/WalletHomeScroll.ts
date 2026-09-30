@@ -8,6 +8,15 @@ import { getPerformanceLocatorRecovery } from '../../framework/ai-locator/Perfor
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
+/**
+ * WDIO derives the swipe coordinates from the scrollable element and defaults
+ * to 0.95, which starts the gesture 2.5% above the bottom of the scroll view.
+ * The floating tab bar overlays that strip and swallows the touch, so the
+ * homepage never scrolls. 0.5 starts it at 75% of the container, clear of the
+ * bar on both gesture and three-button navigation.
+ */
+const WALLET_HOME_SWIPE_PERCENT = 0.5;
+
 export class WalletHomeScroll {
   get walletScrollContainer(): string {
     return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;
@@ -58,7 +67,7 @@ export class WalletHomeScroll {
 
     const fromY =
       fingerDirection === 'up'
-        ? location.y + Math.floor(size.height * 0.75)
+        ? location.y + Math.floor(size.height * 0.5)
         : location.y + Math.floor(size.height * 0.35);
     const toY = fingerDirection === 'up' ? fromY - travel : fromY + travel;
 
@@ -103,11 +112,14 @@ export class WalletHomeScroll {
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
       )) as AppiumElement;
-      await Gestures.scrollIntoView(
+      // Android reports a header behind the floating tab bar as displayed, so
+      // scrollIntoView alone stops with it unreachable.
+      await Gestures.scrollIntoViewFullyVisible(
         await this.resolveFreshWalletHomeTarget(target),
         {
           scrollableElement: scrollView,
           direction: direction === 'down' ? 'up' : 'down',
+          percent: WALLET_HOME_SWIPE_PERCENT,
           maxScrolls: maxAttempts,
         },
       );

@@ -37,7 +37,6 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         { ios: 4500, android: 5000 },
         currentDeviceDetails.platform,
       );
-      await ToastModal.waitForToastToDismiss();
 
       await WalletView.scrollAndTapPredictionsSection();
 
