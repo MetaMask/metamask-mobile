@@ -61,6 +61,22 @@ describe('WalletHeaderCompact', () => {
     expect(handleSearchPress).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the homepage search field when the search header is enabled', () => {
+    const handleSearchPress = jest.fn();
+
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact
+        {...defaultProps}
+        useSearchHeaderLayout
+        handleSearchPress={handleSearchPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON));
+
+    expect(handleSearchPress).toHaveBeenCalledTimes(1);
+  });
+
   it('opens the account hub from the collapsed header title', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeaderCompact {...defaultProps} />,

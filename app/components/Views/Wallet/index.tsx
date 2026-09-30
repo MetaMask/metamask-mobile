@@ -1272,7 +1272,9 @@ const Wallet = ({
                   handleRewardsPress={handleRewardsPress}
                   handleAccountHubPress={handleAccountHubPress}
                   handleSearchPress={
-                    isHeaderSearchEnabled ? handleSearchPress : undefined
+                    isHeaderSearchEnabled || isSearchHeaderEnabled
+                      ? handleSearchPress
+                      : undefined
                   }
                   useSearchHeaderLayout={isSearchHeaderEnabled}
                   isSearchReturnTransitionActive={Boolean(
