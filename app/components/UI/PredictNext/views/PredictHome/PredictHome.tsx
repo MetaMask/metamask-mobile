@@ -3,6 +3,7 @@ import { type LayoutChangeEvent } from 'react-native';
 import {
   type RouteProp,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -40,6 +41,7 @@ import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { PortfolioActions } from './internal/PortfolioActions';
+import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -51,6 +53,10 @@ const NFL_GAMES_FEED_ID = getFeedScreenTab(
 const NCAA_GAMES_FEED_ID = getFeedScreenTab(
   FEED_SCREENS[NCAA_FEED_SCREEN_ID],
 ).feedId;
+const FEED_SECTION_IDS: readonly FeedScreenId[] = [
+  NFL_FEED_SCREEN_ID,
+  NCAA_FEED_SCREEN_ID,
+];
 
 export const PredictHome = () => {
   const navigation =
@@ -58,6 +64,16 @@ export const PredictHome = () => {
   const route =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
   const entryPoint = route.params?.entryPoint;
+  const isFocused = useIsFocused();
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+  const {
+    visibleKeys,
+    onViewportLayout,
+    onContentLayout,
+    onSectionLayout,
+    onScrollSettled,
+  } = useVisibleSections({ keys: FEED_SECTION_IDS, scrollY });
   const balanceQuery = useBalance(KALSHI_VENUE_ID);
   const nflQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
     limit: PREVIEW_LIMIT,
@@ -77,7 +93,23 @@ export const PredictHome = () => {
     () => [...feedNflEvents, ...feedNcaaEvents],
     [feedNflEvents, feedNcaaEvents],
   );
+  // Section-level visibility: every Event of a section that overlaps the
+  // viewport is watched; a section scrolled fully out releases all of its Events.
+  const visibleEventIds = useMemo(
+    () =>
+      FEED_SECTION_IDS.flatMap((sectionId) => {
+        if (!visibleKeys.includes(sectionId)) {
+          return [];
+        }
+        const sectionEvents =
+          sectionId === NFL_FEED_SCREEN_ID ? feedNflEvents : feedNcaaEvents;
+        return sectionEvents.map((event) => event.id);
+      }),
+    [visibleKeys, feedNflEvents, feedNcaaEvents],
+  );
   const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents, {
+    visibleEventIds,
+    isVisible: isFocused,
     marketScope: 'card',
   });
   const nflEvents = useMemo(
@@ -113,8 +145,6 @@ export const PredictHome = () => {
   );
 
   const homeTitle = strings('predict_next.home_title');
-  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
-    useHeaderStandardAnimated();
 
   const handleTitleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -151,6 +181,7 @@ export const PredictHome = () => {
   const openOrder = useCallback(
     (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
       openOrderFlow({
+        action: 'buy',
         venueId: event.venueId,
         marketId: market.id,
         side: outcome.side,
@@ -181,9 +212,15 @@ export const PredictHome = () => {
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}
         onScroll={onScroll}
+        onLayout={onViewportLayout}
+        // The animated handler above only reads contentOffset, so these plain
+        // handlers are free; they give the visible-set math the exact resting
+        // offset after a drag or fling.
+        onScrollEndDrag={onScrollSettled}
+        onMomentumScrollEnd={onScrollSettled}
         scrollEventThrottle={16}
       >
-        <Box twClassName="gap-6 px-4 pb-8">
+        <Box twClassName="gap-6 px-4 pb-8" onLayout={onContentLayout}>
           <Text
             variant={TextVariant.HeadingLg}
             testID={PredictHomeTestIds.TITLE_SECTION}
@@ -205,6 +242,7 @@ export const PredictHome = () => {
           />
           <FeedPreviewSection
             feedScreenId={NFL_FEED_SCREEN_ID}
+            onLayout={onSectionLayout(NFL_FEED_SCREEN_ID)}
             title={FEED_SCREENS[NFL_FEED_SCREEN_ID].selectionLabel}
             events={nflEvents}
             isLoading={nflQuery.isLoading}
@@ -216,6 +254,7 @@ export const PredictHome = () => {
           />
           <FeedPreviewSection
             feedScreenId={NCAA_FEED_SCREEN_ID}
+            onLayout={onSectionLayout(NCAA_FEED_SCREEN_ID)}
             title={FEED_SCREENS[NCAA_FEED_SCREEN_ID].selectionLabel}
             events={ncaaEvents}
             isLoading={ncaaQuery.isLoading}

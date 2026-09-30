@@ -48,9 +48,11 @@ import {
 } from '../../search/useExploreSearch';
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import { strings } from '../../../../../../locales/i18n';
 import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
+import { useExploreSearchFooterPress } from '../../search/useExploreSearchFooterPress';
 import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors';
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -87,6 +89,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
+  const floatingTabBarInset = useFloatingTabBarInset();
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
   );
@@ -153,6 +156,12 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     }
   }, [hasMore, fetchMore]);
 
+  const handleFooterPress = useExploreSearchFooterPress({
+    searchQuery,
+    tabName,
+    resultCount,
+  });
+
   const footer = useMemo(
     () => (
       <>
@@ -162,10 +171,15 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
             accessibilityLabel="Loading more results"
           />
         )}
-        {feedId === 'sites' && <SitesSearchFooter searchQuery={searchQuery} />}
+        {feedId === 'sites' && (
+          <SitesSearchFooter
+            searchQuery={searchQuery}
+            onPress={handleFooterPress}
+          />
+        )}
       </>
     ),
-    [isFetchingMore, feedId, searchQuery, tw],
+    [isFetchingMore, feedId, searchQuery, handleFooterPress, tw],
   );
 
   if (isLoading) {
@@ -185,7 +199,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         data={data}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={tw.style('px-4')}
+        contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"

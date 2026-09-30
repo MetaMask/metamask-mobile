@@ -10,7 +10,6 @@ const baseItem = (
     status: 'success',
     timestamp: 1,
     hash: '0xabc',
-    raw: { type: 'apiEvmTransaction', data: {} },
     data: {},
     ...overrides,
   }) as ActivityListItem;
@@ -71,8 +70,7 @@ describe('getActivityDetailsRoute', () => {
   it('routes perps rows by hash', () => {
     const perpsItem = baseItem({
       type: 'perpsOpenLong',
-      raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
-    } as unknown as Partial<ActivityListItem>);
+    } as Partial<ActivityListItem>);
 
     const route = getActivityDetailsRoute(perpsItem);
 
@@ -82,8 +80,7 @@ describe('getActivityDetailsRoute', () => {
   it('routes predict rows by hash', () => {
     const predictItem = baseItem({
       type: 'predictionPlaced',
-      raw: { type: 'predictActivity', data: { id: 'predict-1' } },
-    } as unknown as Partial<ActivityListItem>);
+    } as Partial<ActivityListItem>);
 
     const route = getActivityDetailsRoute(predictItem);
 

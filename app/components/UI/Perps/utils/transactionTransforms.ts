@@ -71,6 +71,101 @@ function getDirectionForAggregation(
   return null;
 }
 
+interface FillSeed {
+  /** `${symbol}-${direction}` - the partition every grouping rule is scoped to. */
+  bucket: string;
+  /** Decides which fills seed one group together. */
+  seedKey: string;
+  isCloseCategory: boolean;
+}
+
+/**
+ * The grouping keys for one fill. Shared by the seeding loop and the row id, so the id cannot drift
+ * from the grouping it names.
+ *
+ * @param fill - A raw fill
+ * @returns Its grouping keys, or null when the direction is not aggregatable
+ */
+function getFillSeedKey(fill: OrderFill): FillSeed | null {
+  const direction = getDirectionForAggregation(fill.direction);
+
+  if (direction === null) {
+    return null;
+  }
+
+  const bucket = `${fill.symbol}-${direction}`;
+  const isCloseCategory =
+    direction.startsWith('Close ') ||
+    direction === 'Sell' ||
+    direction === 'Auto-Deleveraging';
+
+  return {
+    bucket,
+    isCloseCategory,
+    seedKey: isCloseCategory
+      ? `${bucket}-second-${Math.floor(fill.timestamp / 1000)}`
+      : `${bucket}-order-${fill.orderId || `solo-${fill.timestamp}`}`,
+  };
+}
+
+/**
+ * Identity of one aggregated row, derived from the group's seed.
+ *
+ * Two things must hold, and neither is satisfied by naming a representative fill:
+ *
+ * Independent of input order. A close group can hold several child order ids that HyperLiquid filled
+ * in the same millisecond and returns in no guaranteed order, and the market page merges websocket
+ * fills over REST while Activity is REST only. Keying on the group's latest fill made the id depend
+ * on which of those tied fills happened to come last, so the two screens could disagree about the
+ * same trade. A group is an equivalence class over the fill set, so its member set - and any
+ * minimum taken over it - is order-invariant.
+ *
+ * Independent of the list it was built from. Activity details looks a row up in a separately fetched
+ * set of fills; the market page transforms one market while the details screen transforms all of
+ * them. Seeds are scoped to `bucket`, so filtering by symbol leaves the surviving symbol's grouping
+ * identical. Never reintroduce a positional component.
+ *
+ * Seeds also do not move as history grows: an order-seeded id carries no timestamp, and close and
+ * solo ids carry the group's minimum. A newer fill can still merge two close groups, and then two
+ * rows genuinely become one - minimising means the survivor keeps the older of the two ids, so an
+ * identifier captured before the merge still resolves.
+ *
+ * `trade-` namespaces these against the `fill-` ids of individual executions.
+ *
+ * @param groupedFills - The fills of one group, in any order
+ * @returns A stable id for the row that group produces
+ */
+function getAggregatedFillId(groupedFills: OrderFill[]): string {
+  const [first] = groupedFills;
+  const seed = getFillSeedKey(first);
+
+  // Not aggregatable, so never grouped and never rendered - transformFillsToTransactions drops
+  // exactly these directions. Keyed on the fill itself to stay deterministic regardless.
+  if (!seed) {
+    return `trade-${first.symbol}-${first.direction ?? 'unknown'}-${
+      first.timestamp
+    }`.replace(/\s+/g, '');
+  }
+
+  const { bucket, isCloseCategory } = seed;
+
+  if (isCloseCategory) {
+    const second = Math.min(
+      ...groupedFills.map((fill) => Math.floor(fill.timestamp / 1000)),
+    );
+    return `trade-${bucket}-second-${second}`.replace(/\s+/g, '');
+  }
+
+  // An order-seeded group holds exactly one order id - that id is its seed, and the union-find
+  // below only links groups that share one, which two distinct order seeds never do.
+  if (first.orderId) {
+    return `trade-${bucket}-order-${first.orderId}`.replace(/\s+/g, '');
+  }
+
+  const timestamp = Math.min(...groupedFills.map((fill) => fill.timestamp));
+  return `trade-${bucket}-solo-${timestamp}`.replace(/\s+/g, '');
+}
+
 /**
  * Aggregates the fills belonging to one trade so a trade the user placed once is shown once.
  * HyperLiquid splits a single order across the book - over several price levels and, for larger
@@ -152,7 +247,19 @@ function pickOpeningPosition(fills: OrderFill[]): string | undefined {
   return openingPosition;
 }
 
-export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
+/**
+ * The aggregated rows with their ids. `aggregateFillsByOrder` is this without the ids.
+ *
+ * The id is built here rather than from the returned fill because the aggregated fill keeps only the
+ * group's latest timestamp - that is what the row displays and sorts by - so the group's seed cannot
+ * be recovered afterwards.
+ *
+ * @param fills - Array of OrderFill objects to aggregate
+ * @returns One entry per row, newest first, each carrying its stable id
+ */
+export function aggregateFillsByOrderWithIds(
+  fills: OrderFill[],
+): { fill: OrderFill; id: string }[] {
   // Seed groups, keyed by the rule that may pull fills of different orders together
   const secondGroups: { bucket: string; fills: OrderFill[] }[] = [];
   const secondGroupByKey = new Map<
@@ -165,22 +272,15 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
   // Seed one group per order, except on the close side, where the same second is the
   // seed instead so a trigger order split into several child order ids stays together.
   for (const fill of fills) {
-    const direction = getDirectionForAggregation(fill.direction);
+    const seed = getFillSeedKey(fill);
 
-    if (direction === null) {
+    if (seed === null) {
       // Unknown direction - don't aggregate, preserve as-is
       nonAggregatableFills.push(fill);
       continue;
     }
 
-    const bucket = `${fill.symbol}-${direction}`;
-    const isCloseCategory =
-      direction.startsWith('Close ') ||
-      direction === 'Sell' ||
-      direction === 'Auto-Deleveraging';
-    const seedKey = isCloseCategory
-      ? `${bucket}-second-${Math.floor(fill.timestamp / 1000)}`
-      : `${bucket}-order-${fill.orderId || `solo-${fill.timestamp}`}`;
+    const { bucket, seedKey } = seed;
 
     const existingGroup = secondGroupByKey.get(seedKey);
     if (existingGroup) {
@@ -235,12 +335,14 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
   });
 
   // Build aggregated fills
-  const aggregatedFills: OrderFill[] = [];
+  const aggregatedFills: { fill: OrderFill; id: string }[] = [];
 
   for (const groupedFills of aggregationMap.values()) {
+    const id = getAggregatedFillId(groupedFills);
+
     if (groupedFills.length === 1) {
       // Only one fill in the group - no aggregation needed
-      aggregatedFills.push(groupedFills[0]);
+      aggregatedFills.push({ fill: groupedFills[0], id });
       continue;
     }
 
@@ -308,14 +410,24 @@ export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
       detailedOrderType: aggregatedDetailedOrderType,
     };
 
-    aggregatedFills.push(aggregatedFill);
+    aggregatedFills.push({ fill: aggregatedFill, id });
   }
 
   // Combine aggregated and non-aggregatable fills, then sort by timestamp descending
-  const allFills = [...aggregatedFills, ...nonAggregatableFills];
-  allFills.sort((a, b) => b.timestamp - a.timestamp);
+  const allFills = [
+    ...aggregatedFills,
+    ...nonAggregatableFills.map((fill) => ({
+      fill,
+      id: getAggregatedFillId([fill]),
+    })),
+  ];
+  allFills.sort((a, b) => b.fill.timestamp - a.fill.timestamp);
 
   return allFills;
+}
+
+export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
+  return aggregateFillsByOrderWithIds(fills).map((group) => group.fill);
 }
 
 /**
@@ -391,8 +503,10 @@ export interface DepositRequest {
  * not reach it), so the id is derived from the fill's own content plus how many identical fills
  * precede it. Unlike an index into the rendered list, that leaves every existing id untouched
  * when a newer fill arrives, which keeps FlashList keys and Activity Details resolution stable
- * across a refresh. The `fill-` namespace keeps these ids clear of the aggregated rows, whose
- * id carries the last fill's orderId and timestamp.
+ * across a refresh. The `fill-` namespace keeps these ids clear of the aggregated rows, which are
+ * `trade-` namespaced - see getAggregatedFillId. An execution needs the occurrence counter where a
+ * group does not: two legitimate fills of one order can share timestamp, size and price, so unlike
+ * a group an execution has no content-unique key.
  *
  * @param fills - The fills about to be turned into rows, in render order
  * @returns One id per fill, positionally aligned with `fills`
@@ -435,17 +549,18 @@ export function transformFillsToTransactions(
 ): PerpsTransaction[] {
   // Collapse each order's fills into the one trade the user placed, unless the viewer asked
   // to see the individual executions.
-  const fillsToTransform = aggregate
-    ? aggregateFillsByOrder(fills)
+  const groups = aggregate ? aggregateFillsByOrderWithIds(fills) : undefined;
+  const fillsToTransform = groups
+    ? groups.map((group) => group.fill)
     : [...fills].sort((left, right) => right.timestamp - left.timestamp);
-  const individualIds = aggregate
-    ? undefined
+  // Aligned with `fillsToTransform` by index, not with the rows: some fills are skipped below.
+  const ids = groups
+    ? groups.map((group) => group.id)
     : buildIndividualFillIds(fillsToTransform);
 
   return fillsToTransform.reduce((acc: PerpsTransaction[], fill, index) => {
     const {
       direction,
-      orderId,
       symbol,
       size,
       price,
@@ -566,9 +681,7 @@ export function transformFillsToTransactions(
     }
 
     acc.push({
-      id: individualIds
-        ? individualIds[index]
-        : `${orderId || 'fill'}-${timestamp}-${acc.length}`,
+      id: ids[index],
       type: 'trade',
       category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,

@@ -128,7 +128,10 @@ describe('Trace', () => {
     );
     startNewTraceMock.mockImplementation((fn: () => unknown) => fn());
 
-    flushBufferedTraces();
+    // Discard rather than flush: flushing replays whatever the previous test
+    // left buffered, and with the consent it left cached, so those replays land
+    // on the mocks this test is about to assert against.
+    discardBufferedTraces();
     updateCachedConsent(false);
   });
 
@@ -204,9 +207,9 @@ describe('Trace', () => {
 
       endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
-      expect(withIsolationScopeMock).toHaveBeenCalledTimes(3);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
-      expect(startSpanManualMock).toHaveBeenCalledTimes(3);
+      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
@@ -1477,6 +1480,61 @@ describe('Trace', () => {
       expect(spanEndMock).toHaveBeenCalledWith(
         startTime + TRACES_CLEANUP_INTERVAL,
       );
+    });
+
+    it('caps a trace at its custom maximum lifetime', () => {
+      updateCachedConsent(true);
+
+      const startTime = 2_000;
+      const maxLifetimeMs = 30 * 60 * 1000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        startTime,
+        maxLifetimeMs,
+      });
+      endTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        timestamp: startTime + maxLifetimeMs + 1,
+      });
+
+      expect(spanEndMock).toHaveBeenCalledWith(startTime + maxLifetimeMs);
+    });
+
+    it('runs cleanup at a trace custom maximum lifetime', () => {
+      jest.useFakeTimers();
+      updateCachedConsent(true);
+
+      const startTime = 3_000;
+      const maxLifetimeMs = 10 * 60 * 1000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        startTime,
+        maxLifetimeMs,
+      });
+      jest.advanceTimersByTime(maxLifetimeMs - 1);
+
+      expect(spanEndMock).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1);
+
+      expect(spanEndMock).toHaveBeenCalledWith(startTime + maxLifetimeMs);
     });
 
     it('finishes the previous span with a capped timestamp when a duplicate trace key is started', () => {

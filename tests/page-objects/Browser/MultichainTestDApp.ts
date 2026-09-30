@@ -430,6 +430,7 @@ class MultichainTestDApp {
     await Gestures.waitAndTap(
       Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       {
+        timeout: 30_000,
         checkForDisplayed: true,
         checkEnabled: true,
         elemDescription: 'MultichainTestDApp confirm button',

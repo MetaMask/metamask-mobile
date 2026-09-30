@@ -56,7 +56,7 @@ describe('TransactionField', () => {
 
     fireEvent.press(copyButton);
     const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+      MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED,
     )
       .addProperties({
         ...notificationAnalyticsProperties(MOCK_NOTIFICATIONS[0]),

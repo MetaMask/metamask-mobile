@@ -3,7 +3,10 @@ import {
   parsePredictBalance,
   parsePredictPositionsPage,
 } from '../../contracts/v1/portfolio';
-import { parsePredictOrderPreview } from '../../contracts/v1/trading';
+import {
+  parsePredictOrderPreview,
+  parsePredictOrderReceipt,
+} from '../../contracts/v1/trading';
 import {
   parsePredictEvent,
   parsePredictFeed,
@@ -11,7 +14,7 @@ import {
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID } from '../../types';
+import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -22,14 +25,18 @@ import {
   PredictHttpError,
 } from './PredictApiReadClient';
 
-/** Backend canonical preview error codes → client error codes. */
-const PREVIEW_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
+/** Backend canonical trading error codes (preview and commit) → client
+ * error codes. */
+const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
   market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
   market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
+  preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
   balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
-  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
   insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
+  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
+  insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
+  position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
 };
 
 const isAbortError = (error: unknown): error is Error =>
@@ -72,10 +79,10 @@ const mapError = (error: unknown): never => {
 };
 
 const mapTradingError = (error: unknown): never => {
-  // The backend reports canonical preview failure codes in the body; they
+  // The backend reports canonical trading failure codes in the body; they
   // describe product states the client renders, so they win over status.
   if (error instanceof PredictHttpError && error.bodyCode) {
-    const mapped = PREVIEW_ERROR_CODE_BY_BACKEND_CODE[error.bodyCode];
+    const mapped = TRADING_ERROR_CODE_BY_BACKEND_CODE[error.bodyCode];
     if (mapped) {
       throw PredictError.from(mapped);
     }
@@ -93,17 +100,72 @@ export class KalshiRemoteAdapter {
     this.trading = {
       previewOrder: async (params, options) => {
         try {
+          // Version tolerance (ADR-0001): the deployed backend's strict
+          // request schema rejects unknown keys, so a buy keeps the exact
+          // PRED-1194 body without `action`; only a sell carries the
+          // discriminator.
+          const wireParams: FetchOrderPreviewParams =
+            params.action === 'buy'
+              ? {
+                  marketId: params.marketId,
+                  side: params.side,
+                  amount: params.amount,
+                }
+              : {
+                  marketId: params.marketId,
+                  side: params.side,
+                  action: 'sell',
+                  contracts: params.contracts,
+                };
           const value = await client.fetchOrderPreview(
             this.venueId,
-            params,
+            wireParams,
             options,
           );
           const result = parsePredictOrderPreview(value);
+          const isQuotedForIntent = (() => {
+            if (
+              result.venueId !== this.venueId ||
+              result.marketId !== params.marketId ||
+              result.side !== params.side ||
+              result.action !== params.action
+            ) {
+              return false;
+            }
+            if (params.action === 'buy') {
+              // The backend echoes the requested amount normalized to two
+              // decimals, so '20' and '20.00' are the same amount.
+              return (
+                result.action === 'buy' &&
+                isSameAmount(result.requestedAmount, params.amount)
+              );
+            }
+            return (
+              result.action === 'sell' &&
+              result.requestedContracts === Number(params.contracts)
+            );
+          })();
+          if (!isQuotedForIntent) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapTradingError(error);
+        }
+      },
+      // One network attempt per invocation; observation and reconciliation
+      // re-commit deliberately, never automatically.
+      commitOrder: async (previewId, options) => {
+        try {
+          const value = await client.commitOrder(
+            this.venueId,
+            { previewId },
+            options,
+          );
+          const result = parsePredictOrderReceipt(value);
           if (
             result.venueId !== this.venueId ||
-            result.marketId !== params.marketId ||
-            result.side !== params.side ||
-            !isSameAmount(result.requestedAmount, params.amount)
+            result.previewId !== previewId
           ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

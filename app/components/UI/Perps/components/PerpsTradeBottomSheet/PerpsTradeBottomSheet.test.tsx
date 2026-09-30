@@ -1,6 +1,12 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { BackHandler, Pressable, StyleSheet, Text } from 'react-native';
+import {
+  BackHandler,
+  Pressable,
+  StyleSheet,
+  Text,
+  type HardwareBackPressEvent,
+} from 'react-native';
 import PerpsTradeBottomSheet, {
   PerpsTradeSheetTitleBanner,
   type PerpsTradeSheetScreen,
@@ -8,8 +14,19 @@ import PerpsTradeBottomSheet, {
 } from './PerpsTradeBottomSheet';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
+const mockIsFocused = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    isFocused: mockIsFocused,
+  }),
+}));
+
 let openCallback: (() => void) | undefined;
-let hardwareBackHandler: (() => boolean | null | undefined) | undefined;
+let hardwareBackHandler:
+  | ((event: HardwareBackPressEvent) => boolean | null | undefined)
+  | undefined;
 const mockCloseBottomSheet = jest.fn();
 let mockDeferSheetClose = false;
 const tradeSheetConfig = {
@@ -18,8 +35,17 @@ const tradeSheetConfig = {
     trade: 0,
     leverage: 1,
     tpsl: 1,
-    settings: 1,
+    payWith: 1,
+    marginInfo: 1,
+    liquidationInfo: 1,
   },
+};
+const emptyNestedScreens = {
+  leverage: null,
+  tpsl: null,
+  payWith: null,
+  marginInfo: null,
+  liquidationInfo: null,
 };
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -118,6 +144,8 @@ describe('PerpsTradeBottomSheet', () => {
     hardwareBackHandler = undefined;
     mockCloseBottomSheet.mockClear();
     mockDeferSheetClose = false;
+    mockIsFocused.mockReset();
+    mockIsFocused.mockReturnValue(true);
     jest
       .spyOn(BackHandler, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -137,9 +165,8 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
           leverage: <LeverageTestScreen />,
-          tpsl: null,
-          settings: null,
         }}
       />,
     );
@@ -161,9 +188,8 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
           leverage: <LeverageTestScreen />,
-          tpsl: null,
-          settings: null,
         }}
       />,
     );
@@ -171,10 +197,34 @@ describe('PerpsTradeBottomSheet', () => {
     act(() => openCallback?.());
     fireEvent.press(screen.getByTestId('open-leverage'));
     act(() => {
-      expect(hardwareBackHandler?.()).toBe(true);
+      expect(hardwareBackHandler?.({} as HardwareBackPressEvent)).toBe(true);
     });
 
     expect(screen.getByText('Trade')).toBeOnTheScreen();
+  });
+
+  it('leaves Android back to a route stacked on the sheet', () => {
+    mockIsFocused.mockReturnValue(false);
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
+          leverage: <LeverageTestScreen />,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent.press(screen.getByTestId('open-leverage'));
+    act(() => {
+      expect(hardwareBackHandler?.({} as HardwareBackPressEvent)).toBe(false);
+    });
+
+    expect(screen.getByText('Leverage')).toBeOnTheScreen();
   });
 
   it('locks nested screens to the measured Trade screen height', () => {
@@ -184,9 +234,8 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
           leverage: <LeverageTestScreen />,
-          tpsl: null,
-          settings: null,
         }}
       />,
     );
@@ -206,6 +255,48 @@ describe('PerpsTradeBottomSheet', () => {
     ).toMatchObject({ height: expect.any(Number) });
   });
 
+  it('lets content-sized nested screens grow to their own height', () => {
+    const InfoTestScreen = () => {
+      const { navigateTo } = usePerpsTradeSheet();
+      return (
+        <Pressable
+          testID="open-margin-info"
+          onPress={() => navigateTo('marginInfo')}
+        >
+          <Text>Trade</Text>
+        </Pressable>
+      );
+    };
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        contentSizedScreens={['marginInfo']}
+        screens={{
+          trade: <InfoTestScreen />,
+          ...emptyNestedScreens,
+          marginInfo: <Text>Margin info</Text>,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+    fireEvent.press(screen.getByTestId('open-margin-info'));
+
+    expect(screen.getByText('Margin info')).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT).props.style,
+      ),
+    ).not.toHaveProperty('height');
+  });
+
   it('closes the dialog through the nested screen API', () => {
     const onClose = jest.fn();
     const onCancelBeforeInteractive = jest.fn();
@@ -217,9 +308,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -240,9 +329,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -265,9 +352,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -293,9 +378,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -315,9 +398,7 @@ describe('PerpsTradeBottomSheet', () => {
         banner={<Text>Risk warning</Text>}
         screens={{
           trade: <TitleBannerScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );

@@ -17,11 +17,14 @@ import {
 } from '../constants/rampsBuyCufTags';
 
 const mockGetBuyWidgetData = jest.fn();
+const mockGetFallbackBuyWidgetData = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getQuotes: jest.fn(),
       getBuyWidgetData: (...args: unknown[]) => mockGetBuyWidgetData(...args),
+      getFallbackBuyWidgetData: (...args: unknown[]) =>
+        mockGetFallbackBuyWidgetData(...args),
     },
   },
 }));
@@ -185,6 +188,40 @@ describe('useRampsQuotes', () => {
       });
 
       expect(mockGetBuyWidgetData).toHaveBeenCalledWith(testQuote);
+      expect(resolvedValue).toEqual(mockBuyWidget);
+    });
+  });
+
+  describe('getFallbackBuyWidgetData', () => {
+    it('calls Engine.context.RampsController.getFallbackBuyWidgetData with the fallback and options', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+      const { result } = renderHook(() => useRampsQuotes(), {
+        wrapper: Wrapper,
+      });
+      const fallback = {
+        url: 'https://on-ramp.uat-api.cx.metamask.io/providers/coinbase/buy-widget?checkout=hosted',
+        browser: 'IN_APP_OS_BROWSER' as const,
+      };
+      const mockBuyWidget = {
+        url: 'https://pay.coinbase.com/buy?sessionToken=abc',
+        orderId: null,
+      };
+      mockGetFallbackBuyWidgetData.mockResolvedValue(mockBuyWidget);
+
+      let resolvedValue: Awaited<
+        ReturnType<typeof result.current.getFallbackBuyWidgetData>
+      > = null;
+      await act(async () => {
+        resolvedValue = await result.current.getFallbackBuyWidgetData(
+          fallback,
+          { redirectUrl: 'metamask://on-ramp/providers/coinbase' },
+        );
+      });
+
+      expect(mockGetFallbackBuyWidgetData).toHaveBeenCalledWith(fallback, {
+        redirectUrl: 'metamask://on-ramp/providers/coinbase',
+      });
       expect(resolvedValue).toEqual(mockBuyWidget);
     });
   });

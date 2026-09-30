@@ -260,7 +260,9 @@ export const PerpsTokenSelectorSelectorsIDs = {
 
 export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
+  AMOUNT_ROW: 'perps-amount-display-amount-row',
   AMOUNT_LABEL: 'perps-amount-display-amount',
+  AMOUNT_UNIT_LABEL: 'perps-amount-display-amount-unit',
   MAX_LABEL: 'perps-amount-display-max',
   TOUCHABLE: 'perps-amount-display-touchable',
 };
@@ -379,10 +381,15 @@ export const PerpsTPSLViewSelectorsIDs = {
   TAKE_PROFIT_PERCENTAGE_INPUT: 'perps-tpsl-tp-percentage-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
   STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
+  LIQUIDATION_DISTANCE: 'perps-tpsl-liquidation-distance',
   TAKE_PROFIT_ERROR: 'perps-tpsl-tp-error',
   STOP_LOSS_ERROR: 'perps-tpsl-sl-error',
   TAKE_PROFIT_ROE_SIGN_BADGE: 'perps-tpsl-tp-roe-sign-badge',
   STOP_LOSS_ROE_SIGN_BADGE: 'perps-tpsl-sl-roe-sign-badge',
+  LIQUIDATION_PRICE_ROW: 'perps-tpsl-liquidation-price-row',
+  LIQUIDATION_PRICE_VALUE: 'perps-tpsl-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-tpsl-liquidation-distance-value',
+  LIQUIDATION_TREND_ICON: 'perps-tpsl-liquidation-trend-icon',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -441,6 +448,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   HEADER: 'perps-market-header',
   MARKET_SUMMARY: 'perps-market-details-market-summary',
   FULLSCREEN_CHART_BUTTON: 'perps-market-details-fullscreen-chart-button',
+  PRICE_ALERTS_BUTTON: 'perps-market-details-price-alerts-button',
   CHART_EDGE_GUARD: 'perps-market-details-chart-edge-guard',
   STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
   STATISTICS_LOW_24H: 'perps-statistics-low-24h',
@@ -507,6 +515,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_PERIOD_SELECTOR: 'perps-pro-market-chart-period-selector',
   CHART_MORE_PERIODS_SHEET: 'perps-pro-market-chart-more-periods-sheet',
   CHART_FULLSCREEN_BUTTON: 'perps-pro-market-chart-fullscreen-button',
+  CHART_PRICE_ALERTS_BUTTON: 'perps-pro-market-chart-price-alerts-button',
   CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
@@ -544,6 +553,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
   POSITIONS_FILTER_ROW: 'perps-pro-market-positions-filter-row',
+  HIDDEN_BY_FILTERS_CAPTION: 'perps-pro-market-hidden-by-filters-caption',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
@@ -1027,13 +1037,23 @@ export const PerpsTradeSheetSelectorsIDs = {
   MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
   FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
+  MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
   LIMIT_PRICE_ROW: 'perps-trade-sheet-limit-price-row',
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
   PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
   MARGIN_ROW: 'perps-trade-sheet-margin-row',
-  SLIPPAGE_ROW: 'perps-trade-sheet-slippage-row',
+  LIQUIDATION_PRICE_ROW: 'perps-trade-sheet-liquidation-price-row',
+  LIQUIDATION_PRICE_SKELETON: 'perps-trade-sheet-liquidation-price-skeleton',
+  LIQUIDATION_PRICE_VALUE: 'perps-trade-sheet-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-trade-sheet-liquidation-distance-value',
+  LIQUIDATION_TREND_ICON: 'perps-trade-sheet-liquidation-trend-icon',
+  INFO_SCREEN: 'perps-trade-sheet-info-screen',
+  INFO_BACK_BUTTON: 'perps-trade-sheet-info-back-button',
+  INFO_GOT_IT_BUTTON: 'perps-trade-sheet-info-got-it-button',
+  PAY_WITH_SCREEN: 'perps-trade-sheet-pay-with-screen',
+  PAY_WITH_BACK_BUTTON: 'perps-trade-sheet-pay-with-back-button',
   LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
   LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
   LIMIT_PRICE_PRESET_PERCENTAGE_1:
@@ -1173,6 +1193,7 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   LIQUIDATION_PRICE_SKELETON: 'perps-leverage-liquidation-price-skeleton',
   LIQUIDATION_DISTANCE_VALUE: 'perps-leverage-liquidation-distance-value',
   LIQUIDATION_TREND_ICON: 'perps-leverage-liquidation-trend-icon',
+  DESCRIPTION: 'perps-leverage-description',
   SET_BUTTON: 'perps-leverage-set-button',
 } as const;
 
@@ -1203,8 +1224,12 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
   LIQUIDATION_PRICE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-price-value',
+  LIQUIDATION_PRICE_INFO:
+    'perps-adjust-margin-bottom-sheet-liquidation-price-info',
   LIQUIDATION_DISTANCE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
+  LIQUIDATION_DISTANCE_INFO:
+    'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
 } as const;
 
 // ========================================
@@ -1323,6 +1348,8 @@ export const PerpsWebSocketHealthToastSelectorsIDs = {
 
 export const PerpsOrderDetailsViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-order-details-cancel-button',
+  SCROLL_VIEW: 'perps-order-details-scroll-view',
+  FOOTER: 'perps-order-details-footer',
 } as const;
 
 // ========================================
@@ -1338,6 +1365,7 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_ORDERS: 'perps-transactions-tab-orders',
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+  AGGREGATED_CHECKBOX: 'perps-transactions-aggregated-checkbox',
   FUNDING_LOAD_MORE_SPINNER: 'perps-transactions-funding-load-more-spinner',
 } as const;
 

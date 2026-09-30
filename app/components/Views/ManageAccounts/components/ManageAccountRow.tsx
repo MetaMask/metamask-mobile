@@ -28,13 +28,11 @@ import {
  * Trailing action variant for a row:
  * - `hide` — eye / eye-slash toggle.
  * - `remove` — minus control.
- * - `hideAndRemove` — both controls.
  * - `none` — no trailing action.
  */
 export enum ManageAccountRowVariant {
   Hide = 'hide',
   Remove = 'remove',
-  HideAndRemove = 'hideAndRemove',
   None = 'none',
 }
 
@@ -61,12 +59,10 @@ export interface ManageAccountRowProps {
 }
 
 const doesVariantIncludeHide = (variant: ManageAccountRowVariant): boolean =>
-  variant === ManageAccountRowVariant.Hide ||
-  variant === ManageAccountRowVariant.HideAndRemove;
+  variant === ManageAccountRowVariant.Hide;
 
 const doesVariantIncludeRemove = (variant: ManageAccountRowVariant): boolean =>
-  variant === ManageAccountRowVariant.Remove ||
-  variant === ManageAccountRowVariant.HideAndRemove;
+  variant === ManageAccountRowVariant.Remove;
 
 /**
  * Row rendered for one account group while the screen is in management mode.
@@ -123,7 +119,7 @@ const ManageAccountRow = ({
           )}
           accessibilityRole="button"
           testID={getManageAccountRowRemoveId(accountGroup.id)}
-          style={tw.style(showsHideToggle ? 'mx-1' : 'ml-3')}
+          style={tw.style('ml-3')}
           iconProps={{
             color: IconColor.ErrorDefault,
             testID: getManageAccountRowRemoveIconId(accountGroup.id),
