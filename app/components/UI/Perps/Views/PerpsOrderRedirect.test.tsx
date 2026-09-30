@@ -314,6 +314,7 @@ describe('PerpsOrderRedirect', () => {
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         expect.objectContaining({
           useBottomSheet: true,
+          forceBottomSheet: true,
         }),
       );
     });

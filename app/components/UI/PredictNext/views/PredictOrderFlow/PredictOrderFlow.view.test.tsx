@@ -8,24 +8,33 @@ import {
   within,
 } from '@testing-library/react-native';
 import { Linking } from 'react-native';
-import {
-  Messenger,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
 import { Text, Button } from '@metamask/design-system-react-native';
 
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
-import Engine from '../../../../../core/Engine';
-import { KalshiRemoteAdapter } from '../../adapters/remote/KalshiRemoteAdapter';
-import { PredictApiReadClient } from '../../adapters/remote/PredictApiReadClient';
 import {
-  PREDICT_ORDER_SERVICE_NAME,
-  PredictOrderService,
-} from '../../services/PredictOrderService';
-import { getPredictOrderServiceMessenger } from '../../../../../core/Engine/messengers/predict-order-service-messenger';
-import { usePredictOrderFlow } from './PredictOrderFlowProvider';
+  composePredictNextOrderService,
+  makePredictNextSellPreview,
+  makePredictNextSellReceipt,
+  messengerCall,
+} from '../../../../../../tests/component-view/fixtures/predictNext';
+
+/** An unresolved sell receipt: the venue has not reported fills yet. */
+const makeUnresolvedSellReceipt = (status: string) =>
+  makePredictNextSellReceipt({
+    status,
+    venueOrderId: null,
+    filledContracts: null,
+    averageFillPrice: null,
+    fee: null,
+    actualProceeds: null,
+    netProceeds: null,
+  });
+import Engine from '../../../../../core/Engine';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
+import {
+  usePredictOrderFlow,
+  type PredictOrderFlowIntent,
+} from './PredictOrderFlowProvider';
 import {
   KALSHI_VENUE_ID,
   type PredictDecimal,
@@ -33,39 +42,14 @@ import {
 } from '../../types';
 
 // The provider resolves the Order workflow service from Engine.context, the
-// way the real Engine init composes it: the concrete trading adapter is
-// composed here (in the test), against the stubbed globalThis.fetch below.
-// Composition happens per-test (not at module scope) because the read client
-// binds the fetch implementation at construction time.
-const composeOrderService = (): PredictOrderService => {
-  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-  // The real Engine messenger wiring, including the delegated portfolio
-  // invalidation action the Order workflow consumes after a terminal receipt.
-  const messenger = getPredictOrderServiceMessenger(
-    rootMessenger as unknown as Parameters<
-      typeof getPredictOrderServiceMessenger
-    >[0],
-  );
-  const adapter = new KalshiRemoteAdapter(
-    new PredictApiReadClient({
-      baseUrl: 'https://predict.example',
-      clientVersion: '1.0.0',
-      getBearerToken: () =>
-        Engine.context.AuthenticationController.getBearerToken(),
-    }),
-  );
-  return new PredictOrderService({
-    messenger,
-    trading: adapter.trading,
-    venueId: adapter.venueId,
-  });
-};
+// way the real Engine init composes it: the shared composer binds the
+// concrete trading adapter to the stubbed globalThis.fetch below. Composition
+// happens per-test (not at module scope) because the read client binds the
+// fetch implementation at construction time.
+const composeOrderService = composePredictNextOrderService;
 
 const PROBE_BUTTON = 'order-flow-probe-open';
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
-const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
 interface FetchReply {
   status?: number;
@@ -170,29 +154,48 @@ const stubBalance = (venueStatus?: { termsUrl?: string }) =>
     return Promise.resolve(undefined);
   });
 
-const Probe = () => {
+const buyIntent: PredictOrderFlowIntent = {
+  action: 'buy',
+  venueId: KALSHI_VENUE_ID,
+  marketId: 'KXTEST-26-A' as PredictEntityId,
+  side: 'yes',
+  outcomeLabel: 'Buffalo Bills',
+  eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
+  eventImageUrl: 'https://predict.example/bills.png',
+  askPrice: '0.53' as PredictDecimal,
+};
+
+const sellIntent: PredictOrderFlowIntent = {
+  action: 'sell',
+  venueId: KALSHI_VENUE_ID,
+  marketId: 'KXTEST-26-A' as PredictEntityId,
+  side: 'yes',
+  outcomeLabel: 'Buffalo Bills',
+  eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
+  eventImageUrl: 'https://predict.example/bills.png',
+  bidPrice: '0.53' as PredictDecimal,
+  maxContracts: 75,
+};
+
+const Probe = ({ intent }: { intent: PredictOrderFlowIntent }) => {
   const { openOrderFlow } = usePredictOrderFlow();
   return (
-    <Button
-      testID={PROBE_BUTTON}
-      onPress={() =>
-        openOrderFlow({
-          venueId: KALSHI_VENUE_ID,
-          marketId: 'KXTEST-26-A' as PredictEntityId,
-          side: 'yes',
-          outcomeLabel: 'Buffalo Bills',
-          eventTitle: 'Buffalo Bills vs. Kansas City Chiefs',
-          eventImageUrl: 'https://predict.example/bills.png',
-          askPrice: '0.53' as PredictDecimal,
-        })
-      }
-    >
+    <Button testID={PROBE_BUTTON} onPress={() => openOrderFlow(intent)}>
       <Text>Open order flow</Text>
     </Button>
   );
 };
 
-const renderProbe = () => renderPredictOrderFlow(Probe);
+const BuyProbe = () => <Probe intent={buyIntent} />;
+const SellProbe = () => <Probe intent={sellIntent} />;
+
+/** A sell probe bounded by a specific whole-contract position size. */
+const sellProbeWithMax =
+  (maxContracts: number): React.ComponentType =>
+  () => <Probe intent={{ ...sellIntent, maxContracts }} />;
+
+const renderProbe = (Component: React.ComponentType = BuyProbe) =>
+  renderPredictOrderFlow(Component);
 
 const makePreview = (overrides: Record<string, unknown> = {}) => ({
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -255,8 +258,8 @@ describe('PredictOrderFlow', () => {
     jest.restoreAllMocks();
   });
 
-  const openSheet = () => {
-    renderProbe();
+  const openSheet = (Component: React.ComponentType = BuyProbe) => {
+    renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
   };
 
@@ -946,5 +949,454 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
     ).toBeOnTheScreen();
+  });
+
+  describe('sell mode (Cash Out)', () => {
+    const pressQuickContract = (key: string) =>
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT(key)),
+      );
+
+    const typeContracts = (count: string) => {
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+      for (const key of count.split('')) {
+        pressKeypadKey(key);
+      }
+    };
+
+    const stubEchoingSellPreview = () =>
+      stubFetch((_url, init) => {
+        const body = JSON.parse(String(init?.body)) as { contracts: string };
+        return {
+          body: makePredictNextSellPreview({
+            requestedContracts: Number(body.contracts),
+          }),
+        };
+      });
+
+    /** Drives the sell flow to the approval step: type the count, wait for
+     * the quote, and open the review. The count matches the stubbed
+     * Preview's echoed `requestedContracts`. */
+    const reviewSellOrder = async (count = '75') => {
+      openSheet(SellProbe);
+      typeContracts(count);
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+        ).toBeOnTheScreen(),
+      );
+    };
+
+    const approveSellOrder = async (count = '75') => {
+      await reviewSellOrder(count);
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+    };
+
+    it('renders the held-quantity context with the bid priced in cents', async () => {
+      stubEchoingSellPreview();
+
+      openSheet(SellProbe);
+
+      expect(
+        screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent('Buffalo Bills · 53¢');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.HELD_CONTRACTS),
+      ).toHaveTextContent('You hold 75 contracts');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS_LINE),
+      ).toHaveTextContent('Net proceeds $0.00');
+      expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
+    });
+
+    it('enters whole contracts only: no decimal key and no leading zeros', () => {
+      stubEchoingSellPreview();
+
+      openSheet(SellProbe);
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD_KEY('.')),
+      ).toBeNull();
+      pressKeypadKey('0');
+      pressKeypadKey('7');
+      pressKeypadKey('5');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('75');
+    });
+
+    it('sends the sell intent with whole contracts to the preview route', async () => {
+      stubEchoingSellPreview();
+
+      openSheet(SellProbe);
+      typeContracts('70');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+
+      const calls = previewCalls();
+      expect(calls).toHaveLength(1);
+      expect(calls[0]?.body).toEqual({
+        marketId: 'KXTEST-26-A',
+        side: 'yes',
+        action: 'sell',
+        contracts: '70',
+      });
+    });
+
+    it('sets quick-sell chips to floored whole contracts: 25%, 50%, and Max', async () => {
+      stubEchoingSellPreview();
+
+      openSheet(SellProbe);
+      pressQuickContract('quarter');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('18');
+
+      pressQuickContract('half');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('37');
+
+      pressQuickContract('max');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('75');
+
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      expect(previewCalls()).toHaveLength(1);
+      expect(previewCalls()[0]?.body).toEqual({
+        marketId: 'KXTEST-26-A',
+        side: 'yes',
+        action: 'sell',
+        contracts: '75',
+      });
+    });
+
+    it('disables fraction chips that floor below one contract, keeping Max', () => {
+      stubEchoingSellPreview();
+
+      // 3 contracts: 25% floors to 0, which would only trigger the
+      // minimum-count error, so it is disabled; Max always stays available.
+      openSheet(sellProbeWithMax(3));
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      ).toBeEnabled();
+    });
+
+    it('enables the 25% chip once its floored count reaches one contract', () => {
+      stubEchoingSellPreview();
+
+      openSheet(sellProbeWithMax(4));
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      ).toBeEnabled();
+    });
+
+    it('renders fractional venue fills exactly as the venue reported them', async () => {
+      // Authoritative execution evidence beats whole-contract cosmetics: a
+      // venue-reported 2.5 fill renders 2.5, never a floored count.
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({
+          body: makePredictNextSellReceipt({
+            status: 'partially_filled',
+            quotedContracts: 6,
+            filledContracts: '2.50',
+            averageFillPrice: '0.6000',
+            fee: '0.05',
+            actualProceeds: '1.50',
+            netProceeds: '1.45',
+          }),
+        }),
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_PARTIALLY_FILLED),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REMAINDER),
+      ).toHaveTextContent(/2.5 of 6 contracts sold/);
+      expect(
+        screen.getByText(/other 3.5 remain in your position/),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.POSITION_CONTEXT),
+      ).toHaveTextContent('You sold 2.5 Buffalo Bills contracts');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FILLED_CONTRACTS),
+      ).toHaveTextContent('2.5');
+    }, 30000);
+
+    it('prevents an over-sell locally before any quote', async () => {
+      stubEchoingSellPreview();
+
+      openSheet(SellProbe);
+      typeContracts('80');
+      await flushDebounce();
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR),
+      ).toHaveTextContent('You can sell up to 75 contracts.');
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+      expect(previewCalls()).toHaveLength(0);
+
+      // Recovering with the Max chip quotes the full position.
+      pressQuickContract('max');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      expect(previewCalls()).toHaveLength(1);
+    });
+
+    it('rejects a zero count with an inline message', async () => {
+      stubEchoingSellPreview();
+
+      openSheet(SellProbe);
+      typeContracts('0');
+      await flushDebounce();
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR),
+      ).toHaveTextContent('Enter at least 1 contract.');
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+      expect(previewCalls()).toHaveLength(0);
+    });
+
+    it('surfaces the backend over-sell error as a product state', async () => {
+      stubFetch(() => ({
+        status: 422,
+        body: {
+          code: 'insufficient_position',
+          message: 'Not enough contracts in this position.',
+        },
+      }));
+
+      openSheet(SellProbe);
+      typeContracts('70');
+      await flushDebounce();
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('Not enough contracts in this position.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
+      ).toBeOnTheScreen();
+    });
+
+    it('presents the sell approval with Net Proceeds emphasized and no payout, profit, or debit rows', async () => {
+      stubFetch(() => ({ body: makePredictNextSellPreview() }));
+
+      await reviewSellOrder();
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.ESTIMATED_CONTRACTS),
+      ).toHaveTextContent('70');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AVERAGE_PRICE),
+      ).toHaveTextContent('48¢');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.LIMIT_PRICE),
+      ).toHaveTextContent('40¢');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.PROCEEDS),
+      ).toHaveTextContent('$33.60');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
+      ).toHaveTextContent('$33.26');
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.POTENTIAL_PROFIT),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
+      ).toBeNull();
+
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.BACK));
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('75');
+    }, 30000);
+
+    it('renders a full sell receipt with the sold contracts and net proceeds', async () => {
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({ body: makePredictNextSellReceipt() }),
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.POSITION_CONTEXT),
+      ).toHaveTextContent('You sold 70 Buffalo Bills contracts');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FILLED_CONTRACTS),
+      ).toHaveTextContent('70');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AVERAGE_FILL_PRICE),
+      ).toHaveTextContent('48¢');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.PROCEEDS),
+      ).toHaveTextContent('$33.60');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
+      ).toHaveTextContent('$33.26');
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.ACTUAL_SPEND),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.PAYOUT_EXPOSURE),
+      ).toBeNull();
+    }, 30000);
+
+    it('renders a partial sell honestly: the unsold remainder stays in the position', async () => {
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({
+          body: makePredictNextSellReceipt({
+            status: 'partially_filled',
+            filledContracts: '42.00',
+            averageFillPrice: '0.4700',
+            fee: '0.20',
+            actualProceeds: '19.74',
+            netProceeds: '19.54',
+          }),
+        }),
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_PARTIALLY_FILLED),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REMAINDER),
+      ).toHaveTextContent(/42 of 70 contracts sold/);
+      expect(
+        screen.getByText(/other 28 remain in your position/),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.POSITION_CONTEXT),
+      ).toHaveTextContent('You sold 42 Buffalo Bills contracts');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
+      ).toHaveTextContent('$19.54');
+    }, 30000);
+
+    it('renders a zero sell with the Order-not-filled treatment and a re-quote', async () => {
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({ body: makeUnresolvedSellReceipt('not_filled') }),
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_NOT_FILLED),
+        ).toBeOnTheScreen(),
+      );
+      expect(screen.getByText(/couldn't sell at 48¢/)).toBeOnTheScreen();
+      expect(screen.getByText(/Nothing was sold/)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REQUOTE),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REQUOTE));
+      await flushDebounce();
+      await waitFor(() => expect(previewCalls()).toHaveLength(2));
+    }, 30000);
+
+    it('renders a rejected sell honestly: nothing sold, position untouched', async () => {
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => ({ body: makeUnresolvedSellReceipt('rejected') }),
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_REJECTED),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByText(/Nothing was sold and your position is untouched/),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REQUOTE),
+      ).toBeOnTheScreen();
+    }, 30000);
+
+    it('keeps checking an unresolved sell receipt by re-committing the same preview', async () => {
+      let commits = 0;
+      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
+        commit: () => {
+          commits += 1;
+          return commits === 1
+            ? { body: makeUnresolvedSellReceipt('reconciliation_required') }
+            : { body: makePredictNextSellReceipt() };
+        },
+      });
+
+      await approveSellOrder();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_RECONCILING),
+        ).toBeOnTheScreen(),
+      );
+      expect(commitCalls()).toHaveLength(1);
+
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
+        ).toBeOnTheScreen(),
+      );
+      expect(commitCalls()).toHaveLength(2);
+      expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
+    }, 30000);
   });
 });

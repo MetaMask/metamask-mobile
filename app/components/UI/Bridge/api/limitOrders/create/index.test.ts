@@ -10,6 +10,10 @@ import {
 } from '.';
 
 const mockGetBearerToken = jest.fn();
+jest.mock('../getLimitOrdersBaseUrl', () => ({
+  getLimitOrdersBaseUrl: () => 'https://limit-orders.test',
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
