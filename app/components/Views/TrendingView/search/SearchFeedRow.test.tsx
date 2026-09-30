@@ -15,6 +15,7 @@ import SearchFeedRow, {
 } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
 
 const MockPressable = Pressable;
 const MockText = Text;
@@ -92,8 +93,16 @@ jest.mock('../feeds/tokens/TokenRowItem', () => ({
 
 jest.mock('../feeds/perps/PerpsRowItem', () => ({
   __esModule: true,
-  default: ({ market }: { market: PerpsMarketData }) => (
-    <MockText testID="stub-perps-row">{market.symbol}</MockText>
+  default: ({
+    market,
+    source,
+  }: {
+    market: PerpsMarketData;
+    source?: string;
+  }) => (
+    <MockText testID="stub-perps-row" accessibilityLabel={source}>
+      {market.symbol}
+    </MockText>
   ),
 }));
 
@@ -219,6 +228,24 @@ describe('SearchFeedRow', () => {
       );
     },
   );
+
+  it('passes explore_search source for perps feed', () => {
+    const perpsMarket = { symbol: 'ETH' } as PerpsMarketData;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="perps"
+        item={perpsMarket}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+      />,
+    );
+
+    expect(getByTestId('stub-perps-row').props.accessibilityLabel).toBe(
+      PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH,
+    );
+  });
 
   it('omits section_name on result_clicked when not on the All tab', () => {
     const token = { assetId: 'asset-1' } as TrendingAsset;
