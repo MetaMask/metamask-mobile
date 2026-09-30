@@ -352,6 +352,7 @@ const SocialV1View: React.FC = () => {
   }, [navigation]);
 
   const handleOpenComposer = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
 

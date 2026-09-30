@@ -303,6 +303,7 @@ describe('SocialV1View', () => {
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
   });
 
