@@ -1,10 +1,10 @@
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import Engine from '../../../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../../../util/version';
 import type { GetLimitOrdersQuery, GetLimitOrdersResponse } from './types';
 import { parseLimitOrderPageResponse } from './validators';
+import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
 
 /**
  * Fetches one page of the wallet's limit orders, newest first. Pass the
@@ -50,7 +50,7 @@ export async function getLimitOrders({
   }
 
   const response = await fetch(
-    `${BRIDGE_API_BASE_URL}/v2/orders/limit?${searchParams.toString()}`,
+    `${getLimitOrdersBaseUrl()}/v2/orders/limit?${searchParams.toString()}`,
     {
       method: 'GET',
       headers: {

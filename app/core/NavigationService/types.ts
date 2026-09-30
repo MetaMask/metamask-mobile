@@ -465,6 +465,20 @@ export type RootModalFlowParamList = {
  * Maps actual route name strings to their parameter types.
  * This provides TypeScript autocomplete and error checking for navigation.
  */
+/**
+ * Social V1 profile screen. Empty / omitted params open the signed-in owner.
+ * `traderId` opens another user when it is not the owner.
+ */
+export interface SocialV1ProfileViewParams {
+  traderId?: string;
+  traderName?: string;
+  traderAddress?: string;
+  /** List/feed snapshot; live `profile.imageUrl` wins once the profile loads. */
+  traderAvatarUri?: string;
+  source?: string;
+  traderRank?: number;
+}
+
 // Declared as a `type` (not `interface`) so it gains an *implicit* index
 // signature and therefore satisfies React Navigation's `ParamListBase`
 // constraint (used by `RouteProp`/`StackNavigationProp`), while `keyof`
@@ -892,6 +906,7 @@ export type RootStackParamList = {
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
   RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
+  SwapsLimitOrderActivity: BridgeScreensStackParamList['SwapsLimitOrderActivity'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -995,7 +1010,11 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
-  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  /**
+   * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
+   * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
+   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   */
   SocialLeaderboardTab: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {
@@ -1005,7 +1024,8 @@ export type RootStackParamList = {
     | undefined;
   SocialPostComposerView: undefined;
   SocialProfileOnboardingView: undefined;
-  MyProfileView: undefined;
+  MyProfileView: SocialV1ProfileViewParams | undefined;
+  SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;
   ManageProfileView: undefined;

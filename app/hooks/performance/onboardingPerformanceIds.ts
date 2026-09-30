@@ -16,7 +16,6 @@ export const OnboardingScreenIds = {
   MANUAL_BACKUP_STEP1: 'manual_backup_step1',
   MANUAL_BACKUP_STEP2: 'manual_backup_step2',
   OPTIN_METRICS: 'optin_metrics',
-  ONBOARDING_SUCCESS: 'onboarding_success',
   ACCOUNT_ALREADY_EXISTS: 'account_already_exists',
   ACCOUNT_NOT_FOUND: 'account_not_found',
   SOCIAL_REHYDRATE: 'social_rehydrate',
@@ -27,7 +26,6 @@ export type OnboardingScreenId =
 
 export const OnboardingRiveAnimationIds = {
   FOX_LOADER: 'fox_loader',
-  ONBOARDING_WORDMARK: 'onboarding_wordmark',
   FOX_APPEAR: 'fox_appear',
 } as const;
 

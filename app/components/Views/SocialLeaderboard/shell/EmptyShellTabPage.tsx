@@ -1,6 +1,7 @@
 import {
   Box,
   BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -523,13 +524,15 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             {visibleError && visibleFeedEmpty ? (
               <Box
                 alignItems={BoxAlignItems.Center}
-                twClassName="px-4 py-16 gap-3"
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="w-full px-4 py-16 gap-3"
                 testID={SOCIAL_V1_FEED_ERROR_TEST_ID}
               >
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
+                  twClassName="text-center"
                 >
                   {strings('social_leaderboard.feed.error.title')}
                 </Text>
@@ -537,6 +540,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Sm}
                   onPress={retryVisibleFeed}
+                  twClassName="self-center"
                   testID={SOCIAL_V1_FEED_RETRY_TEST_ID}
                 >
                   {strings('social_leaderboard.feed.error.retry')}

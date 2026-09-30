@@ -50,6 +50,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
   );
   const {
     customValue,
+    hasUserEditedLimitPrice,
     isCustomActive,
     isLimitFiatMode,
     isTrackingMarket,
@@ -247,14 +248,14 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
     marketFiat: quotedFiatRate,
-    executionType,
-    threshold: 0,
   });
-  const isTriggerPriceNearMarket = isSwapsLimitOrderPriceWithinMarketPercent({
-    price: limitFiat,
-    marketPrice: quotedFiatRate,
-    percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
-  });
+  const isTriggerPriceNearMarket =
+    hasUserEditedLimitPrice &&
+    isSwapsLimitOrderPriceWithinMarketPercent({
+      price: limitFiat,
+      marketPrice: quotedFiatRate,
+      percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
+    });
   const priceComparisonDirection = getSwapsLimitOrderPriceComparisonDirection({
     limitFiat,
     marketFiat: quotedFiatRate,

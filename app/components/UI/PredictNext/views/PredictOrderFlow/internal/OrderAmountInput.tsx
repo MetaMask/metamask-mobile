@@ -19,6 +19,10 @@ interface OrderAmountInputProps {
   onAmountPress: () => void;
   /** Blocks keypad open while a quote is being submitted. */
   isDisabled?: boolean;
+  /** Rendered before the figure: '$' for USD amounts, '' for contracts. */
+  prefix?: string;
+  /** Overrides the default accessibility label for the figure. */
+  accessibilityLabel?: string;
 }
 
 /** Legacy PredictAmountDisplay sizing: shrink as the figure grows. */
@@ -30,21 +34,23 @@ const fontSizeFor = (length: number) => {
 };
 
 /**
- * USD amount entry: the big centered figure with a caret while the
- * keypad is open, matching the legacy Predict amount display. The caret
- * is deliberately static: animated carets (native-driver Animated.loop or
- * Reanimated withRepeat) deadlock the main thread inside the worklets
- * frame pipeline when this sheet mounts.
+ * The big centered figure with a caret while the keypad is open, matching
+ * the legacy Predict amount display: a USD amount for a buy, a contract
+ * count for a sell. The caret is deliberately static: animated carets
+ * (native-driver Animated.loop or Reanimated withRepeat) deadlock the main
+ * thread inside the worklets frame pipeline when this sheet mounts.
  */
 export const OrderAmountInput = ({
   amount,
   isActive,
   onAmountPress,
   isDisabled = false,
+  prefix = '$',
+  accessibilityLabel = strings('predict_next.order_preview.amount'),
 }: OrderAmountInputProps) => {
   const tw = useTailwind();
 
-  const label = `$${amount || '0'}`;
+  const label = `${prefix}${amount || '0'}`;
   const fontSize = fontSizeFor(label.length);
 
   return (
@@ -53,7 +59,7 @@ export const OrderAmountInput = ({
       disabled={isDisabled}
       testID={PredictOrderFlowTestIds.AMOUNT_INPUT}
       accessibilityRole="button"
-      accessibilityLabel={strings('predict_next.order_preview.amount')}
+      accessibilityLabel={accessibilityLabel}
     >
       <Box twClassName="flex-row items-center justify-center px-6">
         <Text

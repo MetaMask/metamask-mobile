@@ -39,6 +39,7 @@ import type {
   PredictDecimal,
   PredictEntityId,
   PredictOrderPreview,
+  PredictOrderPreviewParams,
   PredictOrderReceipt,
   PredictOutcomeSide,
   PredictVenueId,
@@ -55,6 +56,7 @@ import { OrderApproval } from './OrderApproval';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
 import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
+import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
@@ -62,16 +64,38 @@ import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const QUOTE_DEBOUNCE_MS = 500;
 const MINIMUM_AMOUNT = 1;
+/** Contract counts are whole numbers only, so no fraction is valid. */
+const MINIMUM_CONTRACTS = 1;
+const MAX_INPUT_DIGITS = 9;
 
-export interface PredictOrderFlowIntent {
-  venueId: PredictVenueId;
-  marketId: PredictEntityId;
-  side: PredictOutcomeSide;
-  outcomeLabel: string;
-  eventTitle: string;
-  eventImageUrl?: string;
-  askPrice?: PredictDecimal;
-}
+/** The user's Order intent, discriminated by the Order Action (ADR-0001):
+ * a buy spends USD on an Outcome; a sell — a Cash Out — offers whole
+ * contracts of one held Position, bounded by `maxContracts`. */
+export type PredictOrderFlowIntent =
+  | {
+      action: 'buy';
+      venueId: PredictVenueId;
+      marketId: PredictEntityId;
+      side: PredictOutcomeSide;
+      outcomeLabel: string;
+      eventTitle: string;
+      eventImageUrl?: string;
+      askPrice?: PredictDecimal;
+    }
+  | {
+      action: 'sell';
+      venueId: PredictVenueId;
+      marketId: PredictEntityId;
+      side: PredictOutcomeSide;
+      outcomeLabel: string;
+      eventTitle: string;
+      eventImageUrl?: string;
+      /** Display context: the highest current Bid for the Outcome. */
+      bidPrice?: PredictDecimal;
+      /** The whole-contract size of the held Position: an over-sell never
+       * leaves this sheet. */
+      maxContracts: number;
+    };
 
 interface PredictOrderFlowSheetProps {
   intent: PredictOrderFlowIntent;
@@ -98,6 +122,7 @@ export const PredictOrderFlowSheet = ({
     useRef<React.ComponentRef<typeof BottomSheet>>(null);
 
   const [amount, setAmount] = useState('');
+  const [contracts, setContracts] = useState('');
   const [quoteNonce, setQuoteNonce] = useState(0);
   const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const [preview, setPreview] = useState<PredictOrderPreview | null>(null);
@@ -129,6 +154,7 @@ export const PredictOrderFlowSheet = ({
 
   useEffect(() => {
     setAmount('');
+    setContracts('');
     setQuoteNonce(0);
     setIsKeypadOpen(false);
     setPreview(null);
@@ -159,9 +185,29 @@ export const PredictOrderFlowSheet = ({
     return `${whole.length > 0 ? whole : '0'}.${decimals}`;
   }, []);
 
+  /** Integer-only contract entry: digits, no leading zeros, bounded length. */
+  const sanitizeContracts = useCallback(
+    (next: string) =>
+      next
+        .replace(/[^0-9]/gu, '')
+        .replace(/^0+(?=\d)/u, '')
+        .slice(0, MAX_INPUT_DIGITS),
+    [],
+  );
+
+  const maxContracts = intent.action === 'sell' ? intent.maxContracts : 0;
+  const contractCount = Number(contracts || '0');
+  const isOverSell = intent.action === 'sell' && contractCount > maxContracts;
+  const isEnteredContracts = intent.action === 'sell' && contracts.length > 0;
+
   const isQuotable =
-    /^\d{1,9}(\.\d{1,2})?$/u.test(amount) && Number(amount) >= MINIMUM_AMOUNT;
-  const isBelowMinimum = /^0\./u.test(amount);
+    intent.action === 'buy'
+      ? /^\d{1,9}(\.\d{1,2})?$/u.test(amount) &&
+        Number(amount) >= MINIMUM_AMOUNT
+      : /^\d+$/u.test(contracts) &&
+        contractCount >= MINIMUM_CONTRACTS &&
+        !isOverSell;
+  const isBelowMinimum = intent.action === 'buy' && /^0\./u.test(amount);
 
   useEffect(() => {
     requestIdRef.current += 1;
@@ -180,12 +226,22 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      const params: PredictOrderPreviewParams =
+        intent.action === 'buy'
+          ? {
+              marketId: intent.marketId,
+              side: intent.side,
+              action: 'buy',
+              amount: amount as PredictAmount,
+            }
+          : {
+              marketId: intent.marketId,
+              side: intent.side,
+              action: 'sell',
+              contracts: contracts as PredictAmount,
+            };
       service
-        .requestQuote(intent.venueId, {
-          marketId: intent.marketId,
-          side: intent.side,
-          amount: amount as PredictAmount,
-        })
+        .requestQuote(intent.venueId, params)
         .then((quote) => {
           if (requestIdRef.current !== requestId) {
             return;
@@ -209,7 +265,7 @@ export const PredictOrderFlowSheet = ({
     }, QUOTE_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
-  }, [amount, intent, isQuotable, phase, quoteNonce, service]);
+  }, [amount, contracts, intent, isQuotable, phase, quoteNonce, service]);
 
   useEffect(() => {
     if (!preview) {
@@ -337,20 +393,28 @@ export const PredictOrderFlowSheet = ({
       if (!isAmountEditable) {
         return;
       }
+      if (intent.action === 'sell') {
+        setContracts((current) => sanitizeContracts(`${current}${key}`));
+        return;
+      }
       setAmount((current) => {
         const next = sanitizeAmount(`${current}${key}`);
         const digitCount = next.match(/\d/gu)?.length ?? 0;
         return digitCount > 9 ? current : next;
       });
     },
-    [isAmountEditable, sanitizeAmount],
+    [intent.action, isAmountEditable, sanitizeAmount, sanitizeContracts],
   );
   const handleDelete = useCallback(() => {
     if (!isAmountEditable) {
       return;
     }
+    if (intent.action === 'sell') {
+      setContracts((current) => current.slice(0, -1));
+      return;
+    }
     setAmount((current) => sanitizeAmount(current.slice(0, -1)));
-  }, [isAmountEditable, sanitizeAmount]);
+  }, [intent.action, isAmountEditable, sanitizeAmount]);
   /** Adds a quick-amount chip's increment, in exact cents. */
   const handleAddAmount = useCallback(
     (increment: number) => {
@@ -364,6 +428,16 @@ export const PredictOrderFlowSheet = ({
       });
     },
     [isAmountEditable, sanitizeAmount],
+  );
+  /** Sets a quick-contract chip's whole-contract count. */
+  const handleSetContracts = useCallback(
+    (next: number) => {
+      if (!isAmountEditable) {
+        return;
+      }
+      setContracts(sanitizeContracts(String(next)));
+    },
+    [isAmountEditable, sanitizeContracts],
   );
 
   useEffect(() => {
@@ -383,12 +457,21 @@ export const PredictOrderFlowSheet = ({
     });
   }, [termsUrl]);
 
+  const contextPrice =
+    intent.action === 'buy' ? intent.askPrice : intent.bidPrice;
   const displayedPrice = isQuoting
-    ? intent.askPrice
-    : (preview?.averagePrice ?? intent.askPrice);
-  const toWinLabel = formatUsd(preview?.potentialPayout ?? '0.00');
+    ? contextPrice
+    : (preview?.averagePrice ?? contextPrice);
+  const toWinLabel = formatUsd(
+    preview?.action === 'buy' ? preview.potentialPayout : '0.00',
+  );
+  const netProceedsLabel = formatUsd(
+    preview?.action === 'sell' && !isQuoting
+      ? preview.estimatedNetProceeds
+      : '0.00',
+  );
   const totalLabel =
-    preview && !isQuoting
+    preview && !isQuoting && preview.action === 'buy'
       ? formatUsd(preview.totalDebit)
       : formatUsd(Number(amount || '0').toFixed(2));
   const balanceLabel = balanceQuery.data
@@ -396,7 +479,36 @@ export const PredictOrderFlowSheet = ({
     : undefined;
 
   const statusMessage = useMemo(() => {
-    if (!isQuotable) {
+    // Sell-mode input validation runs first: an over-sell or a zero count
+    // never reaches the quote, so its message outranks quote states.
+    if (intent.action === 'sell') {
+      if (isOverSell) {
+        return (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            twClassName="text-center"
+            testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
+          >
+            {strings('predict_next.order_preview.over_sell', {
+              contracts: maxContracts,
+            })}
+          </Text>
+        );
+      }
+      if (isEnteredContracts && contractCount < MINIMUM_CONTRACTS) {
+        return (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            twClassName="text-center"
+            testID={PredictOrderFlowTestIds.CONTRACTS_INPUT_ERROR}
+          >
+            {strings('predict_next.order_preview.minimum_contracts')}
+          </Text>
+        );
+      }
+    } else if (!isQuotable) {
       return isBelowMinimum ? (
         <Text
           variant={TextVariant.BodySm}
@@ -437,7 +549,19 @@ export const PredictOrderFlowSheet = ({
       );
     }
     return null;
-  }, [isBelowMinimum, isExpired, isQuoting, isQuotable, preview, quoteError]);
+  }, [
+    contractCount,
+    intent.action,
+    isBelowMinimum,
+    isEnteredContracts,
+    isExpired,
+    isOverSell,
+    isQuotable,
+    isQuoting,
+    maxContracts,
+    preview,
+    quoteError,
+  ]);
 
   const renderCta = () => {
     if (phase === 'submitting') {
@@ -579,13 +703,33 @@ export const PredictOrderFlowSheet = ({
                 <>
                   <Box twClassName="items-center justify-center gap-2 py-6">
                     <OrderAmountInput
-                      amount={amount}
+                      amount={intent.action === 'sell' ? contracts : amount}
                       isActive={isKeypadOpen}
                       isDisabled={!isAmountEditable}
                       onAmountPress={handleKeypadOpen}
+                      prefix={intent.action === 'sell' ? '' : '$'}
+                      accessibilityLabel={
+                        intent.action === 'sell'
+                          ? strings('predict_next.order_preview.contracts')
+                          : undefined
+                      }
                     />
                     {isQuoting ? (
                       <Skeleton width={140} height={24} />
+                    ) : intent.action === 'sell' ? (
+                      <Text
+                        variant={TextVariant.BodyLg}
+                        fontWeight={FontWeight.Medium}
+                        color={TextColor.SuccessDefault}
+                        testID={PredictOrderFlowTestIds.NET_PROCEEDS_LINE}
+                      >
+                        {strings(
+                          'predict_next.order_preview.net_proceeds_line',
+                          {
+                            amount: netProceedsLabel,
+                          },
+                        )}
+                      </Text>
                     ) : (
                       <Text
                         variant={TextVariant.BodyLg}
@@ -598,18 +742,40 @@ export const PredictOrderFlowSheet = ({
                         })}
                       </Text>
                     )}
+                    {intent.action === 'sell' ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                        twClassName="text-center"
+                        testID={PredictOrderFlowTestIds.HELD_CONTRACTS}
+                      >
+                        {strings('predict_next.order_preview.held_contracts', {
+                          contracts: maxContracts,
+                        })}
+                      </Text>
+                    ) : null}
                   </Box>
-                  <OrderQuickAmounts
-                    onAddAmount={handleAddAmount}
-                    isDisabled={!isAmountEditable}
-                  />
-                  <Box twClassName="py-3">
-                    <OrderSummaryRows
-                      balance={balanceLabel}
-                      total={totalLabel}
-                      canShowBreakdown={preview !== null && !isQuoting}
-                      onBreakdownPress={handleBreakdownPress}
+                  {intent.action === 'sell' ? (
+                    <OrderQuickContracts
+                      maxContracts={maxContracts}
+                      onSetContracts={handleSetContracts}
+                      isDisabled={!isAmountEditable}
                     />
+                  ) : (
+                    <OrderQuickAmounts
+                      onAddAmount={handleAddAmount}
+                      isDisabled={!isAmountEditable}
+                    />
+                  )}
+                  <Box twClassName="py-3">
+                    {intent.action === 'sell' ? null : (
+                      <OrderSummaryRows
+                        balance={balanceLabel}
+                        total={totalLabel}
+                        canShowBreakdown={preview !== null && !isQuoting}
+                        onBreakdownPress={handleBreakdownPress}
+                      />
+                    )}
                   </Box>
                   <Box twClassName="gap-2">
                     {statusMessage}
@@ -640,6 +806,7 @@ export const PredictOrderFlowSheet = ({
               <OrderKeypad
                 onKeyPress={handleKeyPress}
                 onDelete={handleDelete}
+                showsDecimalKey={intent.action !== 'sell'}
               />
             )}
           </BottomSheet>
