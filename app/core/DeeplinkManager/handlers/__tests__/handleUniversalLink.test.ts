@@ -369,18 +369,21 @@ describe('handleUniversalLink', () => {
 
   describe('SDK Actions', () => {
     const testCases = [
-      { action: ACTIONS.CONNECT },
-      { action: ACTIONS.MMSDK },
+      { action: ACTIONS.CONNECT, host: 'link.metamask.io' },
+      { action: ACTIONS.CONNECT, host: 'link.metamask.com' },
+      { action: ACTIONS.MMSDK, host: 'link.metamask.io' },
+      { action: ACTIONS.MMSDK, host: 'link.metamask.com' },
     ] as const;
 
     it.each(testCases)(
-      'calls handleMetaMaskDeeplink when deeplink is $url',
-      async ({ action }) => {
-        const testUrl = `https://link.metamask.io/${action}`;
+      'calls handleMetaMaskDeeplink when deeplink is https://$host/$action',
+      async ({ action, host }) => {
+        const testUrl = `https://${host}/${action}`;
         const expectedMappedUrl = `metamask://${action}`;
-        const { urlObj: testUrlObj, params: testParams } =
+        const { urlObj: testUrlObj } = extractURLParams(testUrl);
+        const { urlObj: mappedUrlObj, params: testParams } =
           extractURLParams(expectedMappedUrl);
-        const wcURL = testParams?.uri || testUrlObj.href;
+        const wcURL = testParams?.uri || mappedUrlObj.href;
 
         await handleUniversalLink({
           instance,
@@ -402,9 +405,9 @@ describe('handleUniversalLink', () => {
     );
 
     it.each(testCases)(
-      'returns null in resolve mode without executing SDK action $action',
-      async ({ action }) => {
-        const testUrl = `https://link.metamask.io/${action}`;
+      'returns null in resolve mode without executing SDK action https://$host/$action',
+      async ({ action, host }) => {
+        const testUrl = `https://${host}/${action}`;
         const { urlObj: testUrlObj } = extractURLParams(testUrl);
 
         const result = await handleUniversalLink({
@@ -437,9 +440,7 @@ describe('handleUniversalLink', () => {
       mockHandleMetaMaskDeeplink.mockRejectedValueOnce(rejectionError);
 
       const testUrl = `https://link.metamask.io/${ACTIONS.CONNECT}`;
-      const { urlObj: testUrlObj } = extractURLParams(
-        `metamask://${ACTIONS.CONNECT}`,
-      );
+      const { urlObj: testUrlObj } = extractURLParams(testUrl);
 
       await expect(
         handleUniversalLink({
