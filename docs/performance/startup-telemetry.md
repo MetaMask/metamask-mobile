@@ -9,6 +9,8 @@ The time between the two legs is the user, and is not measured. Both legs have o
 
 Both legs are new transactions. The existing `UI Startup`, `Homepage Ready` and `Deeplink Navigated` traces are unchanged: the legs do not start, end or cancel them.
 
+Each leg is sent once it has ended, as one finished transaction event, sampled like any other transaction. No live span is started, so sending a leg does not stop the profile of a transaction that is running, cannot take the app start data Sentry adds to the first transaction of a launch, and adds no tags to other events.
+
 ```
 process start                                                                  usable homepage
 |-------- Leg 1: Cold Start To Unlock Ready --------|  user  |-- Leg 2: Unlock To Homepage Ready --|
@@ -20,6 +22,7 @@ process start                                                                  u
 | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [`app/core/Performance/startupStageSpans.ts`](../../app/core/Performance/startupStageSpans.ts)                             | Records Leg 1 marks and sends the root span and its stages, once                |
 | [`app/core/Performance/unlockToHomepageReady.ts`](../../app/core/Performance/unlockToHomepageReady.ts)                     | Records Leg 2 from the hand-back in `Authentication.unlockWallet`, and sends it |
+| [`app/core/Performance/finishedTransaction.ts`](../../app/core/Performance/finishedTransaction.ts)                         | Sends a leg and its stages as one finished transaction                          |
 | [`app/components/Views/Homepage/hooks/useHomepageReady.ts`](../../app/components/Views/Homepage/hooks/useHomepageReady.ts) | Marks the homepage focused, and sends Leg 2 right after `Homepage Ready` ends   |
 | [`app/util/trace.ts`](../../app/util/trace.ts)                                                                             | Span names (`TraceName.Startup*`, `TraceName.Unlock*`) and ops                  |
 
@@ -65,7 +68,7 @@ Leg 1 ends at the later of **splash gone** and **awaiting user**. Awaiting user 
 
 With biometrics the keychain read often starts behind the splash, so the leg usually ends at splash gone (`startup.end_bound_by: splash`).
 
-If Leg 2 is still running when Leg 1 ends, or a keychain password has come back and the unlock has not reached the hand-back yet, sending Leg 1 waits for it, for at most 15 s. Leg 2 ends right after the unlock's `Homepage Ready`, and sending a new transaction while `Homepage Ready` runs would stop its profile. The wait does not change any Leg 1 timestamps.
+If Leg 2 is still running when Leg 1 ends, or a keychain password has come back and the unlock has not reached the hand-back yet, sending Leg 1 waits for it, for at most 15 s. That way Leg 1 has the hand-back for `startup.legs_overlap`, `startup.leg2` and `startup.hand_back_ms`, and the work of sending it is not part of what Leg 2 and `Homepage Ready` measure. The wait does not change any Leg 1 timestamps.
 
 ### Root span tags
 
@@ -95,7 +98,7 @@ Data values are numbers in ms. Milestones are ms after the start of the leg.
 
 | Data                                                                                                                                                                                                      | Meaning                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `startup.duration_ms`                                                                                                                                                                                     | The whole leg. Use it instead of the span duration: Sentry can move the start of the first transaction after launch                     |
+| `startup.duration_ms`                                                                                                                                                                                     | The whole leg, the same as the span duration                                                                                            |
 | `startup.stage.<stage>_ms`                                                                                                                                                                                | Each stage this startup measured                                                                                                        |
 | `startup.unattributed_ms`                                                                                                                                                                                 | The leg minus its top-level stages                                                                                                      |
 | `startup.native_splash_hidden_ms`, `startup.services_ready_ms`, `startup.splash_gone_ms`, `startup.credential_requested_ms`, `startup.awaiting_user_ms`, `startup.first_route_ms`, `startup.hand_back_ms` | Milestones                                                                                                                              |
@@ -108,7 +111,7 @@ Data values are numbers in ms. Milestones are ms after the start of the leg.
 
 ## Leg 2: Unlock To Homepage Ready
 
-The root span is `Unlock To Homepage Ready`, op `unlock.homepage_ready`, sent as its own transaction. It is built from `performance.now()` marks once the homepage shows usable content, and sent right after `Homepage Ready` ends, so it never starts a transaction while that one runs. Each stage is a child span with op `unlock.stage`.
+The root span is `Unlock To Homepage Ready`, op `unlock.homepage_ready`, sent as its own transaction. It is built from `performance.now()` marks once the homepage shows usable content, and sent right after `Homepage Ready` ends, so sending it is not part of what `Homepage Ready` measures. Each stage is a child span with op `unlock.stage`.
 
 It starts at the hand-back, in `Authentication.unlockWallet`, so every unlock path is covered:
 
@@ -142,7 +145,7 @@ Each stage is a child span with the same tags as its parent. A stage is only the
 
 | Data                       | Meaning                                                                                            |
 | -------------------------- | -------------------------------------------------------------------------------------------------- |
-| `unlock.duration_ms`       | The whole leg. Use it instead of the span duration, as for Leg 1                                   |
+| `unlock.duration_ms`       | The whole leg, the same as the span duration                                                       |
 | `unlock.stage.<stage>_ms`  | Each stage this unlock ran                                                                         |
 | `unlock.unattributed_ms`   | The leg minus its stages: the short gaps between them                                              |
 | `success`, `content_state` | `content_state` as on `Homepage Ready`: `filled`, `empty` or `error`. `success: false` for `error` |
@@ -171,7 +174,7 @@ In Sentry's Explore, query spans. Tags and data are both span attributes, so fil
 5. **Leg 2 headline and breakdown.** Filter `span.op:unlock.homepage_ready success:true app_start_type:cold startup.kind:cold unlock.before_navigate:false`, and chart p75 of `unlock.duration_ms`, every `unlock.stage.<stage>_ms` and `unlock.unattributed_ms`. Use `span.op:unlock.stage` to look at one stage, and `app_start_type:warm` for unlocks after a lock.
 6. **Across releases.** Split by `startup.schema` when the stages changed between the releases compared.
 
-The two legs are separate transactions. Chart them side by side rather than adding them per session.
+The two legs are separate transactions, each sampled on its own. Chart them side by side rather than adding them per session.
 
 ## Reading the numbers
 
@@ -188,5 +191,5 @@ The two legs are separate transactions. Chart them side by side rather than addi
 ## Changing the stages
 
 - Mark a new point with `markStartup`, time a step inside a stage with `timeStartupStep`, and add a string or boolean with `setStartupStageTag`. Leg 2 stages use `startUnlockStage` and `recordUnlockStage`.
-- Numbers go in data and strings or booleans in tags: `trace()` turns numeric tags into measurements.
+- Numbers go in data, where Sentry can chart them, and strings or booleans in tags.
 - When adding, removing or moving a stage, update `STAGES`, the span names in `app/util/trace.ts`, the tests and this page. For a Leg 1 stage, also bump `STARTUP_SCHEMA`.
