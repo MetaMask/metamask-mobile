@@ -53,7 +53,8 @@ interface BenefitsProps {
 const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
   const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
-  const { startSubscription, isSubmitting } = useStartProSubscription();
+  const { startSubscription, isSubmitting, errorMessage } =
+    useStartProSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -268,6 +269,14 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
             onChange={setEnableTestClocks}
             testID={BenefitsTestIds.TEST_CLOCKS_CHECKBOX}
             twClassName="items-start"
+          />
+        ) : null}
+
+        {errorMessage ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Danger}
+            description={errorMessage}
+            testID={BenefitsTestIds.JOIN_ERROR}
           />
         ) : null}
 

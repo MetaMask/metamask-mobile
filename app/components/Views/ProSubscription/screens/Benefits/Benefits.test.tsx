@@ -327,6 +327,34 @@ describe('Benefits', () => {
       expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
+    it('shows the join error banner when starting the subscription fails', () => {
+      const errorMessage = strings('pro_subscription.join_error');
+      mockStartSubscriptionState({ errorMessage });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.JOIN_ERROR)).toHaveTextContent(
+        errorMessage,
+      );
+    });
+
+    it('shows the insufficient balance message when the join fails on balance', () => {
+      const errorMessage = strings('pro_subscription.insufficient_balance');
+      mockStartSubscriptionState({ errorMessage });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.JOIN_ERROR)).toHaveTextContent(
+        errorMessage,
+      );
+    });
+
+    it('does not show the join error banner when there is no error', () => {
+      const { queryByTestId } = renderBenefits();
+
+      expect(queryByTestId(BenefitsTestIds.JOIN_ERROR)).toBeNull();
+    });
+
     it('shows the CTA as busy while the subscription is submitting', () => {
       mockStartSubscriptionState({ isSubmitting: true });
       const { getByTestId } = renderBenefits();

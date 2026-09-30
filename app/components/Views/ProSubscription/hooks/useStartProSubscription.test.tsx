@@ -223,6 +223,7 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
     );
+    expect(result.current.errorMessage).not.toMatch(/missing/i);
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
@@ -279,6 +280,7 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.insufficient_balance'),
     );
+    expect(result.current.errorMessage).not.toMatch(/missing/i);
     expect(mockReplace).not.toHaveBeenCalled();
   });
 });

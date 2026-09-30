@@ -12255,6 +12255,8 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "join_error": "We couldn't start your Pro membership. Try again.",
+    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {
