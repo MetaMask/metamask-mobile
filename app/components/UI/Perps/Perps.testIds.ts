@@ -290,6 +290,10 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITION_CARD: 'perps-home-position-card',
   /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
   ORDER_CARD: 'perps-home-order-card',
+  ORDERS_ERROR: 'perps-orders-error',
+  ORDERS_RETRY: 'perps-orders-retry',
+  ACTIVITY_ERROR: 'perps-activity-error',
+  ACTIVITY_RETRY: 'perps-activity-retry',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',

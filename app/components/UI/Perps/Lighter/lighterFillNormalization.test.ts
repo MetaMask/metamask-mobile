@@ -32,9 +32,9 @@ describe('Lighter fill normalization', () => {
       providerId: 'lighter',
       size: '0.0021',
       direction: 'Buy',
-      pnl: '0',
     });
     expect(fill.startPosition).toBeUndefined();
+    expect(fill).not.toHaveProperty('pnl');
   });
 
   it('retains an ambiguous sell without inventing a closing position', () => {
@@ -42,8 +42,9 @@ describe('Lighter fill normalization', () => {
 
     const fill = adaptFillFromLighterTrade(trade, 'ETH', 124);
 
-    expect(fill).toMatchObject({ direction: 'Sell', pnl: '0' });
+    expect(fill).toMatchObject({ direction: 'Sell' });
     expect(fill.startPosition).toBeUndefined();
+    expect(fill).not.toHaveProperty('pnl');
   });
 
   it.each([
@@ -62,7 +63,8 @@ describe('Lighter fill normalization', () => {
 
       const fill = adaptFillFromLighterTrade(trade, 'ETH', accountIndex);
 
-      expect(fill).toMatchObject({ direction, startPosition: '0', pnl: '0' });
+      expect(fill).toMatchObject({ direction, startPosition: '0' });
+      expect(fill).not.toHaveProperty('pnl');
     },
   );
 

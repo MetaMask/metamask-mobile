@@ -10244,7 +10244,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^13.0.0":
+"@metamask/eth-simple-keyring@npm:13.0.0, @metamask/eth-simple-keyring@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/eth-simple-keyring@npm:13.0.0"
   dependencies:
@@ -39277,6 +39277,7 @@ __metadata:
     "@metamask/eth-qr-keyring": "npm:^2.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^9.0.0"
+    "@metamask/eth-simple-keyring": "npm:13.0.0"
     "@metamask/eth-snap-keyring": "npm:^24.1.0"
     "@metamask/etherscan-link": "npm:^2.0.0"
     "@metamask/ethjs-contract": "npm:^0.4.1"

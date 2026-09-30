@@ -655,6 +655,7 @@
     "@metamask/device-mcp": "^0.4.2",
     "@metamask/eslint-config-typescript": "^13.0.0",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
+    "@metamask/eth-simple-keyring": "13.0.0",
     "@metamask/foundryup": "1.0.0",
     "@metamask/messenger-cli": "^0.2.0",
     "@metamask/mobile-provider": "^3.0.0",

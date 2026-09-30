@@ -105,9 +105,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           }
           value={fill?.amount}
           valueProps={{
-            color: fill?.isPositive
-              ? TextColor.SuccessDefault
-              : TextColor.ErrorDefault,
+            color:
+              fill?.isPositive === undefined
+                ? TextColor.TextDefault
+                : fill.isPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault,
           }}
           onPress={() => handleTransactionPress(item)}
         />

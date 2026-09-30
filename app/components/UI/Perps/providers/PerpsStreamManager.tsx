@@ -23,6 +23,7 @@ import {
   type AccountState,
   type PerpsMarketData,
   type PerpsUserDataSnapshot,
+  type PerpsProviderType,
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
@@ -134,6 +135,7 @@ interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
   onDelivery?: (source: StreamUpdateSource) => void;
+  onError?: (error: Error) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
@@ -161,6 +163,11 @@ type PerpsUserDataBundle = Pick<
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
+  private streamError: Error | null = null;
+  private readonly providerErrors = new Map<
+    PerpsProviderType | 'default',
+    Error
+  >();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   // Reverse index: symbol -> set of subscriber ids registered for that symbol.
   // Populated only for subscriptions that declare `symbols` (the price channel),
@@ -241,7 +248,13 @@ abstract class StreamChannel<T> {
   protected notifySubscribers(
     updates: T,
     source: StreamUpdateSource = 'fresh',
+    sourceProviderId?: PerpsProviderType,
   ) {
+    if (source === 'fresh') {
+      this.providerErrors.delete(sourceProviderId ?? 'default');
+      this.streamError = this.providerErrors.values().next().value ?? null;
+    }
+    if (this.streamError) return;
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
@@ -448,6 +461,7 @@ abstract class StreamChannel<T> {
   subscribe(params: {
     callback: (data: T) => void;
     onDelivery?: (source: StreamUpdateSource) => void;
+    onError?: (error: Error) => void;
     throttleMs?: number;
     symbols?: string[];
   }): () => void {
@@ -463,13 +477,14 @@ abstract class StreamChannel<T> {
 
     // Give immediate cached data if available
     const cached = this.getCachedDataForSubscription(params);
-    if (cached != null) {
+    if (cached != null && !this.streamError) {
       params.callback(cached);
       params.onDelivery?.('cache');
       // Cached data renders immediately but must not consume the first fresh
       // update exemption. The first live snapshot should also bypass throttling.
     }
 
+    if (this.streamError) params.onError?.(this.streamError);
     this.#lifecycle?.onSubscribe?.();
 
     // Ensure WebSocket connected
@@ -735,7 +750,25 @@ abstract class StreamChannel<T> {
     this.notifySubscribers(data, source);
   }
 
+  protected notifyError(
+    error: Error,
+    sourceProviderId?: PerpsProviderType,
+  ): void {
+    this.providerErrors.set(sourceProviderId ?? 'default', error);
+    this.streamError = error;
+    this.endOpenFirstDataTrace();
+    for (const subscriber of this.subscribers.values()) {
+      if (subscriber.timer) clearTimeout(subscriber.timer);
+      subscriber.timer = undefined;
+      subscriber.pendingUpdate = undefined;
+      subscriber.hasReceivedFirstFreshUpdate = false;
+      subscriber.onError?.(error);
+    }
+  }
+
   public clearCache(): void {
+    this.providerErrors.clear();
+    this.streamError = null;
     this.invalidateSubscriptionContext();
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
@@ -1242,7 +1275,11 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
     const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
-      callback: (orders: Order[]) => {
+      onError: (error: Error, sourceProviderId?: PerpsProviderType) => {
+        if (this.isSubscriptionContextCurrent(subscriptionContext))
+          this.notifyError(error, sourceProviderId);
+      },
+      callback: (orders: Order[], sourceProviderId?: PerpsProviderType) => {
         if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
@@ -1287,7 +1324,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
           PerpsConnectionManager.getConnectionGeneration(),
         );
         this.cache.set('orders', orders);
-        this.notifySubscribers(orders);
+        this.notifySubscribers(orders, 'fresh', sourceProviderId);
         // Orders confirmed in the live stream — close pending cancel / limit
         // order-render CUF spans at this delivery instant. The boundary is
         // stream confirmation (the order is now present/absent in live orders
@@ -1677,7 +1714,15 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
     const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
-      callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+      onError: (error: Error, sourceProviderId?: PerpsProviderType) => {
+        if (this.isSubscriptionContextCurrent(subscriptionContext))
+          this.notifyError(error, sourceProviderId);
+      },
+      callback: (
+        fills: OrderFill[],
+        isSnapshot?: boolean,
+        sourceProviderId?: PerpsProviderType,
+      ) => {
         if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
@@ -1698,7 +1743,7 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
           updated = [...fills, ...existing].slice(0, 100);
         }
         this.cache.set('fills', updated);
-        this.notifySubscribers(updated);
+        this.notifySubscribers(updated, 'fresh', sourceProviderId);
       },
     });
   }

@@ -73,8 +73,24 @@ describe('usePerpsLiveOrders', () => {
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
       onDelivery: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs,
     });
+  });
+
+  it('stops loading on authentication failure and clears the error on fresh data', () => {
+    mockSubscribe.mockReturnValue(jest.fn());
+    const { result } = renderHook(() => usePerpsLiveOrders());
+    const subscription = mockSubscribe.mock.calls[0][0];
+    const failure = new Error('Trading authentication failed');
+
+    act(() => subscription.onError(failure));
+
+    expect(result.current.isInitialLoading).toBe(false);
+    expect(result.current.error).toBe(failure);
+    act(() => subscription.callback([]));
+    expect(result.current.error).toBeNull();
+    expect(result.current.isInitialLoading).toBe(false);
   });
 
   it('unsubscribes on unmount', () => {
@@ -101,7 +117,7 @@ describe('usePerpsLiveOrders', () => {
     const { result } = renderHook(() => usePerpsLiveOrders());
 
     // Initially empty
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       orders: [],
       isInitialLoading: true,
       deliveryRevision: 0,
@@ -139,6 +155,7 @@ describe('usePerpsLiveOrders', () => {
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
       onDelivery: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 0, // Default value for orders (no throttling for instant updates)
     });
   });
@@ -161,6 +178,7 @@ describe('usePerpsLiveOrders', () => {
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
       onDelivery: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 500,
     });
 
@@ -172,6 +190,7 @@ describe('usePerpsLiveOrders', () => {
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
       onDelivery: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 1000,
     });
   });
@@ -252,7 +271,7 @@ describe('usePerpsLiveOrders', () => {
 
     mockSelectedAddress = '0x2222222222222222222222222222222222222222';
     rerender(undefined);
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       orders: [],
       isInitialLoading: true,
       deliveryRevision: 0,

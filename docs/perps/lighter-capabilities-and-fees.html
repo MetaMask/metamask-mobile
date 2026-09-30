@@ -87,7 +87,10 @@
   </head>
   <body>
     <header>
-      <p class="meta">MetaMask Perps · Status checked September 19, 2026</p>
+      <p class="meta">
+        MetaMask Perps · Advanced-order matrix checked September 30, 2026;
+        earlier evidence retains its original dates
+      </p>
       <h1>Lighter: fees, capabilities and integration status</h1>
       <p>
         Reviewer companion for
@@ -372,10 +375,59 @@
         Hyperliquid is the source-based comparison baseline; its flows were not
         re-proved in this Lighter run. The historical Core references below use
         #10187 at <code>2617b5880</code>. Core #10187 has since merged, and the
-        Mobile PR now consumes the published
-        <code>@metamask/perps-controller@17.2.0</code>. Advanced capability
-        declarations are not a promise of end-to-end validation in Mobile.
+        current Mobile checkout consumes
+        <code>@metamask/perps-controller@18.0.1</code> with a local Yarn patch.
+        The September 30 comparison uses Mobile <code>41eca4fb248e</code> plus
+        working changes and Core <code>d156a27a9cf7</code> plus the local
+        recovery changes. These are inspected source versions, not release or
+        live-proof claims. Advanced capability declarations are not a promise of
+        end-to-end validation in Mobile.
         <a href="#core-sources">[C1–C4]</a>
+      </p>
+      <p class="note">
+        September 30 source audit: Hyperliquid has advanced strategies that the
+        Lighter integration does not implement. Lighter's controller capability
+        response is <code>unavailable / not_implemented</code>. Mobile must keep
+        that distinct from an implemented feature awaiting validation. The
+        wallet-key recovery patch passed two local key-loss cycles and reconnect
+        on September 30, with no additional registrations and unchanged existing
+        testnet and mainnet keys. Its testnet trading recipe passed exact
+        receipt matching for limit placement/cancellation and market
+        placement/close. The orders and activity Retry recipe also passed
+        against real subsequent channel snapshots. These are local patch proofs;
+        they do not certify a published release, hardware-wallet recovery or
+        mainnet trading.
+      </p>
+      <p>
+        Current audit paths:
+        <code
+          >packages/perps-controller/src/providers/HyperLiquidProvider.ts</code
+        >
+        (<code>getOrderCapabilities</code>),
+        <code>packages/perps-controller/src/providers/LighterProvider.ts</code>
+        (<code>placeOrder</code>, <code>validateOrder</code>,
+        <code>updatePositionTPSL</code>),
+        <code>packages/perps-controller/src/PerpsController.ts</code>
+        (<code>getOrderCapabilities</code>), and Mobile
+        <a href="../../app/components/UI/Perps/hooks/usePerpsProvider.ts"
+          >usePerpsProvider</a
+        >
+        and
+        <a
+          href="../../app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderFormPanel.tsx"
+          >PerpsProOrderFormPanel</a
+        >.
+      </p>
+      <p>
+        Recipe discovery: register the Perps library, inspect
+        <code>perps.pro-order-start-state</code> and
+        <code>perps.pro-order-setup</code> with <code>--describe</code>, then
+        expand callers with <code>--plan</code>. The library has separate Scale,
+        Chase and TWAP recipes. Their provider/network parameters select a
+        context; they do not establish parity. New local
+        <code>perps.order-start-state</code> and <code>perps.market-order</code>
+        compositions have plan checks for Hyperliquid/Lighter, mainnet/testnet
+        and Pro/Lite, but no live certification yet.
       </p>
       <div class="table-wrap">
         <table>
@@ -515,19 +567,65 @@
               <td>Not revalidated; advanced protection deferred.</td>
             </tr>
             <tr>
-              <th scope="row">TWAP / scale / chase</th>
+              <th scope="row">
+                Standalone stop / take-profit market and limit
+              </th>
               <td>
-                Declared by the inspected provider's strategy capability
-                contract, subject to market readiness and client gates.
+                Implemented order types: stop_market, stop_limit,
+                take_profit_market and take_profit_limit.
               </td>
               <td>
-                No <code>getOrderCapabilities</code> implementation; controller
-                returns <code>not_implemented</code>. Basic placement accepts
-                only market/limit.
+                Unavailable: placement and validation accept only market/limit.
+                Existing-position TP/SL is a separate path.
               </td>
               <td>
-                Not part of initial integration acceptance. Do not infer support
-                from signing helpers.
+                Mobile gap: the Pro triggered-order picker is gated by Pro mode
+                and its rollout flag, without a provider capability check. It
+                can offer a type that Lighter rejects. Source finding; no
+                current device reproduction claimed.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">TWAP</th>
+              <td>
+                Implemented native strategy; advertised after market readiness.
+                Mobile additionally requires its rollout flag and Hyperliquid.
+              </td>
+              <td>
+                Unavailable: no getOrderCapabilities or TWAP strategy
+                implementation.
+              </td>
+              <td>
+                No Lighter placement proof. A parameterized recipe cannot add
+                missing provider support.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Scale</th>
+              <td>
+                Implemented ladder strategy; advertised after market readiness.
+                Mobile requires rollout and Hyperliquid capability checks.
+              </td>
+              <td>
+                Unavailable: no Scale strategy or ready capability declaration.
+              </td>
+              <td>
+                Ordinary limit-order support does not establish Scale execution,
+                partial-failure handling or ladder ownership.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Chase</th>
+              <td>
+                Implemented managed repricing strategy; advertised after market
+                readiness. Mobile requires rollout and a ready Chase capability.
+              </td>
+              <td>
+                Unavailable: no Chase strategy or ready capability declaration;
+                resting-order edit is also refused.
+              </td>
+              <td>
+                No Lighter start, repricing, reconnect or termination proof.
               </td>
             </tr>
             <tr>

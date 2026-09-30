@@ -65,6 +65,7 @@ import {
   type Position,
   type PriceUpdate,
   type Order,
+  type OrderFill,
 } from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
@@ -195,18 +196,29 @@ const initialMarketData: PerpsMarketData[] = [
 type StreamCallback<T> = (data: T | null) => void;
 
 interface MutableStreamChannel<T> {
-  subscribe: (params: { callback: StreamCallback<T> }) => () => void;
+  subscribe: (params: {
+    callback: StreamCallback<T>;
+    onError?: (error: Error) => void;
+  }) => () => void;
   getSnapshot: () => T | null;
   getLastDeliveredAt: () => number | null;
   emit: (data: T | null) => void;
+  emitError: (error: Error) => void;
   refresh: () => Promise<void>;
   clearCache: () => void;
+  reconnect: () => void;
+  getReconnectCount: () => number;
 }
 
 export interface PerpsStreamControls {
   emitAccount: (account: AccountState | null) => void;
   emitMarketData: (marketData: PerpsMarketData[] | null) => void;
   emitOrders: (orders: Order[] | null) => void;
+  emitOrdersError: (error: Error) => void;
+  emitFills: (fills: OrderFill[] | null) => void;
+  emitFillsError: (error: Error) => void;
+  getOrdersReconnectCount: () => number;
+  getFillsReconnectCount: () => number;
   emitPositions: (positions: Position[] | null) => void;
   emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
 }
@@ -217,7 +229,9 @@ function mutableChannelWithInitialValue<T>(
 ): MutableStreamChannel<T> {
   let snapshot: T | null = initialValue;
   let lastDeliveredAt: number | null = null;
+  let reconnectCount = 0;
   const subscribers = new Set<StreamCallback<T>>();
+  const errorSubscribers = new Set<(error: Error) => void>();
 
   const emit = (data: T | null) => {
     snapshot = data;
@@ -226,7 +240,13 @@ function mutableChannelWithInitialValue<T>(
   };
 
   return {
-    subscribe: (params: { callback: StreamCallback<T> }): (() => void) => {
+    subscribe: (params: {
+      callback: StreamCallback<T>;
+      onError?: (error: Error) => void;
+    }): (() => void) => {
+      if (params.onError) {
+        errorSubscribers.add(params.onError);
+      }
       if (params?.callback) {
         subscribers.add(params.callback);
         lastDeliveredAt = Date.now();
@@ -234,15 +254,25 @@ function mutableChannelWithInitialValue<T>(
       }
       return () => {
         subscribers.delete(params.callback);
+        if (params.onError) {
+          errorSubscribers.delete(params.onError);
+        }
       };
     },
     getSnapshot: () => snapshot,
     getLastDeliveredAt: () => lastDeliveredAt,
     emit,
+    emitError: (error: Error) => {
+      errorSubscribers.forEach((callback) => callback(error));
+    },
     refresh: async (): Promise<void> => undefined,
     clearCache: (): void => {
       emit(null);
     },
+    reconnect: (): void => {
+      reconnectCount += 1;
+    },
+    getReconnectCount: () => reconnectCount,
   };
 }
 
@@ -381,6 +411,7 @@ function createTestStreamManager(
 ): TestStreamManagerBundle {
   const positions = createPositionsChannel(streamOverrides?.positions ?? []);
   const orders = createOrdersChannel(streamOverrides?.orders ?? []);
+  const fills = mutableChannelWithInitialValue<OrderFill[]>([]);
   const marketData = createMarketDataChannel(
     streamOverrides?.marketData ?? initialMarketData,
   );
@@ -393,7 +424,7 @@ function createTestStreamManager(
     prices,
     orders,
     positions,
-    fills: noopChannel(),
+    fills,
     account,
     marketData,
     oiCaps: noopChannel(),
@@ -408,6 +439,11 @@ function createTestStreamManager(
     stream: {
       emitAccount: account.emit,
       emitMarketData: marketData.emit,
+      emitOrdersError: orders.emitError,
+      emitFills: fills.emit,
+      emitFillsError: fills.emitError,
+      getOrdersReconnectCount: orders.getReconnectCount,
+      getFillsReconnectCount: fills.getReconnectCount,
       // Mirror production stream channels: notify CUF matchers when test
       // doubles deliver positions/orders so place/cancel waits resolve.
       emitOrders: (nextOrders) => {

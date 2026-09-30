@@ -2987,6 +2987,8 @@
       "see_all": "See all",
       "positions": "Your positions",
       "orders": "Your orders",
+      "orders_load_error": "Couldn’t connect to your trading account. Try again to load your orders.",
+      "activity_load_error": "Couldn't load your trading activity. Try again.",
       "perps": "Perps",
       "all": "All",
       "crypto": "Explore crypto",
