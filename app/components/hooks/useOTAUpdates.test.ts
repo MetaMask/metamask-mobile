@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import {
@@ -17,12 +17,24 @@ jest.mock('expo-updates', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockGetState = jest.fn();
+let mockStateListener: (() => void) | undefined;
+
+const mockNavigation = {
+  navigate: mockNavigate,
+  getState: mockGetState,
+  addListener: (_event: string, listener: () => void) => {
+    mockStateListener = listener;
+    return jest.fn();
+  },
+};
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
+  useNavigation: () => mockNavigation,
 }));
+
+const homeState = { index: 0, routes: [{ name: 'HomeNav' }] };
+const loginState = { index: 0, routes: [{ name: 'Login' }] };
 
 const mockSelectOtaUpdatesEnabledFlag = jest.fn();
 jest.mock('../../selectors/featureFlagController/otaUpdates', () => ({
@@ -85,6 +97,8 @@ describe('useOTAUpdates', () => {
     jest.clearAllMocks();
     mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
     mockSelectCompletedOnboarding.mockReturnValue(true);
+    mockGetState.mockReturnValue(homeState);
+    mockStateListener = undefined;
     (global as unknown as { __DEV__: boolean }).__DEV__ = false;
   });
 
@@ -218,6 +232,35 @@ describe('useOTAUpdates', () => {
         'OTA Updates: New update available on onboarding, will apply on next launch',
       );
     });
+  });
+
+  it('waits for unlock to reset to Home before showing the OTA update modal', async () => {
+    mockGetState.mockReturnValue(loginState);
+    mockCheckForUpdateAsync.mockResolvedValue({
+      isAvailable: true,
+      manifest: mockManifest,
+      isRollBackToEmbedded: false,
+      reason: undefined,
+    });
+    mockFetchUpdateAsync.mockResolvedValue({
+      isNew: true,
+      isRollBackToEmbedded: false,
+      manifest: mockManifest,
+    });
+
+    renderHook(() => useOTAUpdates());
+
+    await waitFor(() => expect(mockStateListener).toBeDefined());
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    mockGetState.mockReturnValue(homeState);
+    act(() => mockStateListener?.());
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RootModalFlow',
+      expect.objectContaining({ screen: 'OTAUpdatesModal' }),
+    );
   });
 
   it('logs error on update check failure', async () => {

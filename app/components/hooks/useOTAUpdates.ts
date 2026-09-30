@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { checkForUpdateAsync, fetchUpdateAsync } from 'expo-updates';
 import { InteractionManager } from 'react-native';
@@ -9,6 +9,7 @@ import { createOTAUpdatesModalNavDetails } from '../UI/OTAUpdatesModal/OTAUpdate
 import { selectOtaUpdatesEnabledFlag } from '../../selectors/featureFlagController/otaUpdates';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { navigateWithDetails } from '../../util/navigation/navUtils';
+import Routes from '../../constants/navigation/Routes';
 /**
  * Hook to manage OTA updates based on a feature flag.
  *
@@ -17,13 +18,34 @@ import { navigateWithDetails } from '../../util/navigation/navUtils';
  * - If the `otaUpdatesEnabled` flag is on and the app is not in development, checks for an OTA update via `checkForUpdateAsync`.
  * - When a new OTA update is downloaded (`fetchUpdateAsync().isNew === true`):
  * - If the user has not completed onboarding (e.g. fresh install, onboarding screen): the update is already fetched and will apply silently on next app launch (no reload, no modal).
- * - If the user has completed onboarding (wallet screen): navigates to the `OTAUpdatesModal` bottom sheet after interactions complete; the modal calls `reloadAsync` when the user confirms.
+ * - If the user has completed onboarding: navigates to the `OTAUpdatesModal` bottom sheet once Home is the focused root route; the modal calls `reloadAsync` when the user confirms.
  * - If no update is available or the fetched update is not new, logs and continues with the current version without blocking startup.
  */
 export const useOTAUpdates = () => {
   const otaUpdatesEnabled = useSelector(selectOtaUpdatesEnabledFlag);
   const completedOnboarding = useSelector(selectCompletedOnboarding);
   const navigation = useNavigation<AppNavigationProp>();
+  const [isUpdateReady, setIsUpdateReady] = useState(false);
+
+  // Unlock ends with `navigation.reset` to Home, which drops any modal pushed
+  // while Login or the fox loader was focused, so wait for Home to be focused.
+  useEffect(() => {
+    if (!isUpdateReady) {
+      return;
+    }
+
+    const showModalWhenHomeIsFocused = () => {
+      const state = navigation.getState();
+      if (state?.routes[state.index]?.name !== Routes.ONBOARDING.HOME_NAV) {
+        return;
+      }
+      setIsUpdateReady(false);
+      navigateWithDetails(navigation, createOTAUpdatesModalNavDetails());
+    };
+
+    showModalWhenHomeIsFocused();
+    return navigation.addListener('state', showModalWhenHomeIsFocused);
+  }, [isUpdateReady, navigation]);
 
   useEffect(() => {
     const hadCompletedOnboarding = completedOnboarding;
@@ -42,10 +64,7 @@ export const useOTAUpdates = () => {
           if (fetchResult.isNew) {
             InteractionManager.runAfterInteractions(() => {
               if (hadCompletedOnboarding) {
-                navigateWithDetails(
-                  navigation,
-                  createOTAUpdatesModalNavDetails(),
-                );
+                setIsUpdateReady(true);
               } else {
                 Logger.log(
                   'OTA Updates: New update available on onboarding, will apply on next launch',
