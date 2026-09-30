@@ -66,6 +66,7 @@ const browserReducer = (state = initialState, action) => {
           {
             url: action.url,
             ...(action.linkType && { linkType: action.linkType }),
+            ...(action.entryPoint && { entryPoint: action.entryPoint }),
             id: action.id,
             lastActiveAt: Date.now(),
           },

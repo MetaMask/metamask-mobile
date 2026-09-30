@@ -547,7 +547,11 @@ describe('Browser - Tab Operations', () => {
         { state: mockInitialState },
       );
 
-      expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockCreateNewTab).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+      );
       jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
     });
   });

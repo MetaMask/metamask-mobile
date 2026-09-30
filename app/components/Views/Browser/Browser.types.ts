@@ -1,5 +1,6 @@
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import type { BrowserEntryPoint } from '../../../constants/browser';
 
 export interface BrowserParams {
   newTabUrl?: string;
@@ -17,6 +18,7 @@ export interface BrowserParams {
   fromEarnStrategySelection?: boolean;
   linkType?: string;
   url?: string;
+  entryPoint?: BrowserEntryPoint;
 }
 
 export interface BrowserTab {
@@ -26,6 +28,7 @@ export interface BrowserTab {
   /** @deprecated Use lastActiveAt-based mounting instead. */
   isArchived?: boolean;
   linkType?: string;
+  entryPoint?: BrowserEntryPoint;
   /** Timestamp (Date.now()) of when the user last activated this tab (switched to it or created it). */
   lastActiveAt?: number;
 }
@@ -43,7 +46,11 @@ export interface BrowserRoute {
 
 export interface BrowserComponentProps {
   navigation: BrowserNavigation;
-  createNewTab: (url?: string, linkType?: string) => void;
+  createNewTab: (
+    url?: string,
+    linkType?: string,
+    entryPoint?: BrowserEntryPoint,
+  ) => void;
   closeTab: (id: number) => void;
   setActiveTab: (id: number) => void;
   updateTab: (id: number, data: Record<string, unknown>) => void;

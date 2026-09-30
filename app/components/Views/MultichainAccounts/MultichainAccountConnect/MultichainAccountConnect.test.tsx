@@ -2620,5 +2620,56 @@ describe('MultichainAccountConnect', () => {
         );
       });
     });
+
+    describe('entry_point', () => {
+      const stateWithActiveTab = (entryPoint?: 'explore_search') => ({
+        browser: {
+          tabs: [
+            {
+              id: 1,
+              url: 'https://app.uniswap.org/swap',
+              ...(entryPoint ? { entryPoint } : {}),
+            },
+          ],
+          activeTab: 1,
+        },
+      });
+
+      it('adds entry_point when the connecting tab was opened by Search', async () => {
+        const { getByTestId } = renderForReferrer(
+          'app.uniswap.org',
+          stateWithActiveTab('explore_search'),
+        );
+
+        fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+        await waitFor(() => {
+          expect(mockAddProperties).toHaveBeenCalledWith(
+            expect.objectContaining({
+              entry_point: 'explore_search',
+              source: 'in-app browser',
+            }),
+          );
+        });
+      });
+
+      it('omits entry_point when the connecting tab was not opened by Search', async () => {
+        const { getByTestId } = renderForReferrer(
+          'app.uniswap.org',
+          stateWithActiveTab(),
+        );
+
+        fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+        await waitFor(() => {
+          expect(mockAddProperties).toHaveBeenCalledWith(
+            expect.objectContaining({ referrer: expect.anything() }),
+          );
+        });
+        expect(mockAddProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({ entry_point: expect.anything() }),
+        );
+      });
+    });
   });
 });

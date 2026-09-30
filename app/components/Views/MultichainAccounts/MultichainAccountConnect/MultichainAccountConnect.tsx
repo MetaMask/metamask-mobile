@@ -65,6 +65,7 @@ import {
 } from '../../../../selectors/networkController.ts';
 import { isUUID } from '../../../../core/SDKConnect/utils/isUUID.ts';
 import useOriginSource from '../../../hooks/useOriginSource.ts';
+import { useOriginEntryPoint } from '../../../hooks/useOriginEntryPoint';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
@@ -562,6 +563,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
   const originSource = useOriginSource({ origin: channelIdOrHostname });
+  const originEntryPoint = useOriginEntryPoint(
+    channelIdOrHostname,
+    originSource,
+  );
 
   const suggestedAccountGroupIds = useMemo(
     () =>
@@ -715,6 +720,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             account_type: 'multichain',
             source: originSource?.source,
             request_source: originSource?.requestSource,
+            ...(originEntryPoint ? { entry_point: originEntryPoint } : {}),
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
@@ -753,6 +759,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     createEventBuilder,
     accountsLength,
     originSource,
+    originEntryPoint,
     faviconSource,
     referrer,
   ]);

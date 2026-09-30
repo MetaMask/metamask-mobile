@@ -78,6 +78,7 @@ export const BrowserPure = (props) => {
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
+  const entryPoint = props.route?.params?.entryPoint;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
@@ -102,14 +103,16 @@ export const BrowserPure = (props) => {
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
 
   const newTab = useCallback(
-    (url, linkType, { replaceActiveIfMax = false } = {}) => {
+    (url, linkType, { replaceActiveIfMax = false, entryPoint } = {}) => {
       // if tabs.length > MAX_BROWSER_TABS, do not open a new tab
       if (tabs.length >= MAX_BROWSER_TABS) {
         const activeTab = tabs.find((tab) => tab.id === activeTabId);
         if (url && replaceActiveIfMax && activeTab) {
-          // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
+          // If replaceActiveIfMax is true and a URL was provided, open it in the active tab.
+          // Overwrite entryPoint so the reused tab never keeps a stale attribution.
           updateTab(activeTab.id, {
             url,
+            entryPoint,
           });
           setCurrentUrl(url);
           setShouldShowTabs(false);
@@ -123,7 +126,7 @@ export const BrowserPure = (props) => {
         ? undefined
         : url || homePageUrl();
       // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-      createNewTab(newTabUrl, linkType);
+      createNewTab(newTabUrl, linkType, entryPoint);
       return true; // Tab was created successfully
     },
     [
@@ -345,6 +348,7 @@ export const BrowserPure = (props) => {
         // If coming from Explore (trending), replace active tab when at max capacity
         newTab(newTabUrl, linkType, {
           replaceActiveIfMax: fromTrending,
+          entryPoint,
         });
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
@@ -526,7 +530,8 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
+  createNewTab: (url, linkType, entryPoint) =>
+    dispatch(createNewTab(url, linkType, entryPoint)),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),
   updateTab: (id, url) => dispatch(updateTab(id, url)),

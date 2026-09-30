@@ -28,6 +28,37 @@ describe('browserReducer CREATE_NEW_TAB', () => {
   });
 });
 
+describe('browserReducer CREATE_NEW_TAB entryPoint', () => {
+  const initialState = {
+    history: [],
+    whitelist: [],
+    tabs: [],
+    favicons: [],
+    activeTab: null,
+  };
+
+  it('stores the entry point on the new tab', () => {
+    const newState = browserReducer(initialState, {
+      type: 'CREATE_NEW_TAB',
+      url: 'https://app.uniswap.org',
+      entryPoint: 'explore_search',
+      id: 7,
+    });
+
+    expect(newState.tabs[0].entryPoint).toBe('explore_search');
+  });
+
+  it('omits entryPoint when none is given', () => {
+    const newState = browserReducer(initialState, {
+      type: 'CREATE_NEW_TAB',
+      url: 'https://app.uniswap.org',
+      id: 7,
+    });
+
+    expect(newState.tabs[0]).not.toHaveProperty('entryPoint');
+  });
+});
+
 describe('browserReducer SET_ACTIVE_TAB', () => {
   it('updates lastActiveAt for the activated tab', () => {
     const now = Date.now();

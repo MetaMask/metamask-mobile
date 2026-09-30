@@ -104,10 +104,12 @@ jest.mock('../feeds/predictions/PredictionRowItem', () => ({
   ),
 }));
 
+const mockSiteRowItemProps = jest.fn();
 jest.mock('../feeds/sites/SiteRowItem', () => ({
-  SiteRowItem: ({ site }: { site: SiteData }) => (
-    <MockText testID="stub-site-row">{site.url}</MockText>
-  ),
+  SiteRowItem: (props: { site: SiteData; entryPoint?: string }) => {
+    mockSiteRowItemProps(props);
+    return <MockText testID="stub-site-row">{props.site.url}</MockText>;
+  },
 }));
 
 jest.mock('./EarnSearchRow', () => ({
@@ -762,5 +764,23 @@ describe('SearchFeedSkeleton', () => {
     const { getByTestId } = render(<SearchFeedSkeleton feedId="earn" />);
 
     expect(getByTestId('stub-trending-token-skeleton')).toBeOnTheScreen();
+  });
+});
+
+describe('SearchFeedRow site rows', () => {
+  it('tags browser tabs opened from Search site rows with explore_search', () => {
+    render(
+      <SearchFeedRow
+        feedId="sites"
+        item={{ url: 'https://app.uniswap.org' }}
+        index={0}
+        searchQuery="uni"
+        tabName="all"
+      />,
+    );
+
+    expect(mockSiteRowItemProps).toHaveBeenCalledWith(
+      expect.objectContaining({ entryPoint: 'explore_search' }),
+    );
   });
 });
