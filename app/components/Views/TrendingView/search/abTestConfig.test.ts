@@ -18,7 +18,7 @@ import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 
 describe('HOMEPAGE_SEARCH_VARIANTS', () => {
   it('keeps the existing header when the flag is missing or control', () => {
-    expect(HOMEPAGE_SEARCH_AB_KEY).toBe('homeSearchABTest');
+    expect(HOMEPAGE_SEARCH_AB_KEY).toBe('homeTMCU1384AbtestHomepageSearch');
     expect(
       HOMEPAGE_SEARCH_VARIANTS[HomepageSearchVariant.Control]
         .showHomepageSearchBar,

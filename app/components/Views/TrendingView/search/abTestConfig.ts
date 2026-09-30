@@ -1,7 +1,7 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
-export const HOMEPAGE_SEARCH_AB_KEY = 'homeSearchABTest';
+export const HOMEPAGE_SEARCH_AB_KEY = 'homeTMCU1384AbtestHomepageSearch';
 
 export enum HomepageSearchVariant {
   Control = 'control',

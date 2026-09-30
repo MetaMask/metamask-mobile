@@ -141,7 +141,7 @@ describeForPlatforms('Wallet', () => {
             },
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                homeSearchABTest: 'treatment',
+                homeTMCU1384AbtestHomepageSearch: 'treatment',
               },
             },
           },
