@@ -13,11 +13,9 @@ import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
   Button,
   BoxFlexDirection,
   TextVariant,
-  TextColor,
   ButtonVariant,
   ButtonSize,
   TextField,
@@ -28,11 +26,8 @@ import {
   TitleStandard,
   HelpText,
   HelpTextSeverity,
-  Checkbox,
-  ListItem,
   ListItemMultiSelect,
   ListItemVariant,
-  TextButton,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -80,7 +75,6 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
-import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import OnboardingFoxLoader, {
   type OnboardingFoxLoaderRef,
@@ -116,6 +110,7 @@ import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboar
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import PasswordResetWarningSheet from './PasswordResetWarningSheet';
 
 interface KeyringState {
   type: string;
@@ -202,6 +197,7 @@ const ChoosePassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isWarningSheetVisible, setIsWarningSheetVisible] = useState(false);
   const stallOauthProvider = route.params?.provider;
   const stallAccountType = stallOauthProvider
     ? getSocialAccountType(stallOauthProvider, false)
@@ -425,10 +421,7 @@ const ChoosePassword = () => {
       return { valid: false, shouldTrack: false };
     }
 
-    if (
-      (!getOauth2LoginSuccess() && !isSelected) ||
-      (getOauth2LoginSuccess() && !isGeolocationResolved)
-    ) {
+    if (getOauth2LoginSuccess() && !isGeolocationResolved) {
       return { valid: false, shouldTrack: false };
     }
 
@@ -437,7 +430,6 @@ const ChoosePassword = () => {
     password,
     confirmPassword,
     loading,
-    isSelected,
     isGeolocationResolved,
     getOauth2LoginSuccess,
     route.params?.provider,
@@ -698,11 +690,7 @@ const ChoosePassword = () => {
     ],
   );
 
-  const onPressCreate = useCallback(async () => {
-    setHasSubmitted(true);
-    const validation = validatePasswordSubmission();
-    if (!validation.valid) return;
-
+  const startWalletCreation = useCallback(async () => {
     const provider = route.params?.provider;
     const accountType = provider
       ? getSocialAccountType(provider, false)
@@ -720,7 +708,6 @@ const ChoosePassword = () => {
       await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
-    validatePasswordSubmission,
     route.params?.provider,
     track,
     getOauth2LoginSuccess,
@@ -729,6 +716,29 @@ const ChoosePassword = () => {
     metrics,
   ]);
 
+  const onPressCreate = useCallback(async () => {
+    setHasSubmitted(true);
+    const validation = validatePasswordSubmission();
+    if (!validation.valid) return;
+
+    if (!getOauth2LoginSuccess()) {
+      Keyboard.dismiss();
+      setIsWarningSheetVisible(true);
+      return;
+    }
+
+    await startWalletCreation();
+  }, [validatePasswordSubmission, getOauth2LoginSuccess, startWalletCreation]);
+
+  const onDismissWarningSheet = useCallback(() => {
+    setIsWarningSheetVisible(false);
+  }, []);
+
+  const onConfirmWarningSheet = useCallback(() => {
+    setIsWarningSheetVisible(false);
+    startWalletCreation();
+  }, [startWalletCreation]);
+
   const onPasswordChange = useCallback(
     (val: string) => {
       setPassword(val);
@@ -736,22 +746,6 @@ const ChoosePassword = () => {
     },
     [confirmPassword],
   );
-
-  const learnMore = useCallback(() => {
-    track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
-      text: 'Learn More',
-      location: 'choose_password',
-      url_domain: RESET_PASSWORD_GUIDE_URL,
-    });
-
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: RESET_PASSWORD_GUIDE_URL,
-        title: 'support.metamask.io',
-      },
-    });
-  }, [navigation, track]);
 
   const toggleShowPassword = useCallback((index: number) => {
     setShowPasswordIndex((prev) => {
@@ -824,8 +818,6 @@ const ChoosePassword = () => {
       hasSubmitted && !passwordRequirementsMet(password);
     const isConfirmPasswordInvalid =
       hasSubmitted && (confirmPassword === '' || password !== confirmPassword);
-    const isAcknowledgementInvalid =
-      hasSubmitted && !getOauth2LoginSuccess() && !isSelected;
 
     return (
       <SafeAreaView
@@ -976,7 +968,7 @@ const ChoosePassword = () => {
               )}
             </Box>
 
-            {getOauth2LoginSuccess() ? (
+            {getOauth2LoginSuccess() && (
               <ListItemMultiSelect
                 variant={ListItemVariant.MultiLine}
                 isSelected={marketingOptInChecked}
@@ -991,56 +983,6 @@ const ChoosePassword = () => {
                 }}
                 title={strings('choose_password.marketing_opt_in_description')}
               />
-            ) : (
-              <ListItem
-                variant={ListItemVariant.TwoLines}
-                accessoryGap={3}
-                twClassName={
-                  marketingOptInChecked
-                    ? 'mt-2 border border-muted rounded-xl bg-background-muted'
-                    : 'mt-2 border border-muted rounded-xl'
-                }
-                endAccessory={
-                  <Checkbox
-                    isSelected={marketingOptInChecked}
-                    onChange={setSelection}
-                    label=""
-                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                    accessibilityLabel={strings(
-                      'choose_password.loose_password_description',
-                    )}
-                  />
-                }
-                title={
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextDefault}
-                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
-                  >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextDefault}
-                      onPress={setSelection}
-                    >
-                      {strings(
-                        'choose_password.loose_password_description',
-                      )}{' '}
-                    </Text>
-                    <TextButton
-                      variant={TextVariant.BodySm}
-                      onPress={learnMore}
-                      testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                    >
-                      {strings('reset_password.learn_more')}
-                    </TextButton>
-                  </Text>
-                }
-              />
-            )}
-            {isAcknowledgementInvalid && (
-              <HelpText severity={HelpTextSeverity.Danger}>
-                {strings('choose_password.acknowledgement_error')}
-              </HelpText>
             )}
 
             <Box
@@ -1062,6 +1004,11 @@ const ChoosePassword = () => {
             </Box>
           </Box>
         </KeyboardAwareScrollView>
+        <PasswordResetWarningSheet
+          isVisible={isWarningSheetVisible}
+          onConfirm={onConfirmWarningSheet}
+          onDismiss={onDismissWarningSheet}
+        />
         <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );

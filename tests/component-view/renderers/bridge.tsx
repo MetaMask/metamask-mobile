@@ -17,6 +17,7 @@ import RecurringOrderDetailsView from '../../../app/components/UI/Bridge/Views/R
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import type { RecurringOrderDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import RecurringSwapDetailsView from '../../../app/components/UI/Bridge/Views/RecurringSwapDetailsView';
+import SwapsLimitOrderActivityPage from '../../../app/components/UI/Bridge/Views/SwapsLimitOrderActivityPage';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import BlockExplorersModal from '../../../app/components/UI/Bridge/components/TransactionDetails/BlockExplorersModal';
 import { OpenLimitOrderDetailsModalScreen } from '../../../app/components/UI/Bridge/components/OpenLimitOrderDetailsModal/OpenLimitOrderDetailsModalScreen';
@@ -308,6 +309,17 @@ export function renderLimitOrderTabRow({
       {
         name: Routes.BRIDGE.MODALS.ROOT,
         Component: BridgeModalStack as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        Component:
+          SwapsLimitOrderActivityPage as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.WEBVIEW.MAIN,
+        Component: createRouteParamsProbe(
+          Routes.WEBVIEW.MAIN,
+        ) as React.ComponentType<object>,
       },
     ],
     { state },

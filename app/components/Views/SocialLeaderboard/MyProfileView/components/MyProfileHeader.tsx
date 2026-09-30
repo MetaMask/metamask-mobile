@@ -17,6 +17,9 @@ import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfileAvatar from './ProfileAvatar';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+/* eslint-enable import-x/no-restricted-paths */
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
 import MyProfileStats from './MyProfileStats';
@@ -34,6 +37,7 @@ interface MyProfileHeaderProps {
   profile: MySocialProfile;
   overlayedStats: OverlayedMyProfileStats;
   followingCount: number;
+  isOwner?: boolean;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
   onStatsPress?: () => void;
@@ -43,6 +47,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   profile,
   overlayedStats,
   followingCount,
+  isOwner = true,
   onFollowersPress,
   onFollowingPress,
   onStatsPress,
@@ -64,15 +69,25 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={4}
       >
-        <ProfileAvatar
-          imageUrl={profile.imageUrl}
-          avatarPresetId={profile.avatarPresetId}
-          size="lg"
-          accessibilityLabel={strings(
-            'social_leaderboard.my_profile.avatar_accessibility_label',
-          )}
-          testID={MyProfileViewSelectorsIDs.AVATAR}
-        />
+        {isOwner ? (
+          <ProfileAvatar
+            imageUrl={profile.imageUrl}
+            avatarPresetId={profile.avatarPresetId}
+            size="lg"
+            accessibilityLabel={strings(
+              'social_leaderboard.my_profile.avatar_accessibility_label',
+            )}
+            testID={MyProfileViewSelectorsIDs.AVATAR}
+          />
+        ) : (
+          <TraderAvatar
+            imageUrl={profile.imageUrl}
+            address={profile.linkedAccountAddress ?? undefined}
+            size={64}
+            recyclingKey={profile.profileId}
+            testID={MyProfileViewSelectorsIDs.AVATAR}
+          />
+        )}
 
         <Box twClassName="flex-1 min-w-0" gap={1}>
           <Box

@@ -197,6 +197,7 @@ let mockPositionModifyPreviewParams:
   | undefined;
 
 let mockIsAtCap = false;
+let mockUseBottomSheet = false;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
@@ -401,6 +402,12 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => ({
+    useBottomSheet: mockUseBottomSheet,
+  }),
+}));
+
 jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
   class MockChaseOrderRequestError extends Error {
     code: 'context_not_ready' | 'stale_request';
@@ -585,6 +592,7 @@ describe('usePerpsProOrderForm', () => {
     mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
+    mockUseBottomSheet = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
@@ -6931,6 +6939,40 @@ describe('usePerpsProOrderForm', () => {
       });
       expect(mockSetTakeProfitPrice).toHaveBeenCalledWith('95000');
       expect(mockSetStopLossPrice).toHaveBeenCalledWith('80000');
+    });
+
+    it('opens TP/SL as a bottom sheet when assigned the bottom-sheet arm', () => {
+      // Arrange
+      mockUseBottomSheet = true;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.objectContaining({ useBottomSheet: true }),
+      );
+    });
+
+    it('omits useBottomSheet from the TP/SL route on the screen arm', () => {
+      // Arrange
+      mockUseBottomSheet = false;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.not.objectContaining({ useBottomSheet: expect.anything() }),
+      );
     });
 
     it('shows the limit-price-required toast and does not navigate for a limit order without a price', () => {

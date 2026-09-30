@@ -28,25 +28,19 @@ export const OpenLimitOrderDetailsModalScreen = () => {
     fiatToUsdRate,
   );
 
-  // STUB FOR LIMIT ORDER CANCELLATION: the order still needs to be cancelled
-  // through the limit orders service.
-  const handleCancelConfirmed = useCallback(() => {
-    console.warn('cancel');
-  }, []);
-
   const handleCancelOrder = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.CANCEL_LIMIT_ORDER_MODAL,
-      params: { onConfirm: handleCancelConfirmed },
+      params: { order },
     });
-  }, [handleCancelConfirmed, navigation]);
+  }, [navigation, order]);
 
   return (
     <OpenLimitOrderDetailsModal
       sourceToken={sourceToken}
       destToken={destinationToken}
-      // Only an open order can be cancelled, which is the sole action this
-      // sheet offers, so it is the only status the tab row opens it for.
+      // The sheet is opened from the open orders tab, where every order, being
+      // executed or not, is still in progress.
       status={strings('bridge.limit.in_progress')}
       submittedAmount={strings('bridge.limit.quote_unit', {
         amount: formatLimitOrderAmount(
@@ -59,7 +53,9 @@ export const OpenLimitOrderDetailsModalScreen = () => {
       triggerToken={triggerToken}
       usdTriggerPrice={usdTriggerPrice}
       expiry={formatLimitOrderDate(order.timingData.expiresAt)}
-      onCancelOrder={handleCancelOrder}
+      onCancelOrder={
+        order.isCancellable === false ? undefined : handleCancelOrder
+      }
       goBack={navigation.goBack}
     />
   );
