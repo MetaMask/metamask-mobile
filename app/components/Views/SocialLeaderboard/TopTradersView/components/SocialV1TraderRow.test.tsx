@@ -64,7 +64,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
   });
 
-  it('omits the rank column when hideRank is set', () => {
+  it('keeps the rank column width when hideRank is set', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -73,9 +73,26 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
-    expect(screen.queryByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toBeNull();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
+    ).toBeOnTheScreen();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+  });
+
+  it('wraps a highlighted row in the muted gradient card', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT),
+    ).toBeOnTheScreen();
   });
 
   it('keeps the row interactive', () => {

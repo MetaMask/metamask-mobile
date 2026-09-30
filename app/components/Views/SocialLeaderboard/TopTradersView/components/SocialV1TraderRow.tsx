@@ -23,6 +23,8 @@ import {
 } from '../../../Homepage/Sections/TopTraders/topRank';
 import type { TraderRowProps } from '../../../Homepage/Sections/TopTraders/types';
 /* eslint-enable import-x/no-restricted-paths */
+import SocialGradientCardSurface from '../../components/SocialGradientCardSurface';
+import { SocialGradientCardSurfaceSelectorsIDs } from '../../components/SocialGradientCardSurface.testIds';
 import {
   resolveTraderCohort,
   traderCohortEmoji,
@@ -60,6 +62,86 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
   const rankChangeStyle = useRankChangeAnimation(trader.rank);
   const cohortEmoji = traderCohortEmoji(resolveTraderCohort(trader.pnlValue));
 
+  const rowBody = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={3}
+      style={{ height: SOCIAL_V1_TRADER_ROW_HEIGHT }}
+    >
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        style={{ width: RANK_COLUMN_WIDTH }}
+        testID={SocialV1TraderRowSelectorsIDs.RANK}
+      >
+        {hideRank ? null : showMedal ? (
+          <RankMedal rank={trader.rank} size={MEDAL_HEIGHT} />
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextMuted}
+          >
+            {trader.rank}
+          </Text>
+        )}
+      </Box>
+
+      <TraderAvatar
+        imageUrl={trader.avatarUri}
+        address={trader.address}
+        size={AVATAR_SIZE}
+        recyclingKey={trader.id}
+      />
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+        twClassName="flex-1 min-w-0"
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          twClassName="shrink"
+        >
+          {trader.username}
+        </Text>
+        <Icon
+          name={IconName.VerifiedFilled}
+          size={IconSize.Sm}
+          twClassName="text-info-default shrink-0"
+          testID={SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE}
+        />
+        {cohortEmoji ? (
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="shrink-0"
+            testID={SocialV1TraderRowSelectorsIDs.COHORT}
+          >
+            {cohortEmoji}
+          </Text>
+        ) : null}
+      </Box>
+
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        numberOfLines={1}
+        twClassName={
+          isMetricPositive
+            ? 'text-success-default shrink-0'
+            : 'text-error-default shrink-0'
+        }
+      >
+        {metricText}
+      </Text>
+    </Box>
+  );
+
   return (
     <Animated.View style={rankChangeStyle}>
       <TouchableOpacity
@@ -73,85 +155,17 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
         disabled={!onTraderPress}
         testID={testID ?? `trader-row-${trader.id}`}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={3}
-          twClassName={highlighted ? 'mx-4 rounded-xl bg-muted px-3' : 'px-4'}
-          style={{ height: SOCIAL_V1_TRADER_ROW_HEIGHT }}
-        >
-          {hideRank ? null : (
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              style={{ width: RANK_COLUMN_WIDTH }}
-              testID={SocialV1TraderRowSelectorsIDs.RANK}
+        <Box twClassName="px-4">
+          {highlighted ? (
+            <SocialGradientCardSurface
+              testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT}
+              gradientTestID={SocialGradientCardSurfaceSelectorsIDs.GRADIENT}
             >
-              {showMedal ? (
-                <RankMedal rank={trader.rank} size={MEDAL_HEIGHT} />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextMuted}
-                >
-                  {trader.rank}
-                </Text>
-              )}
-            </Box>
+              {rowBody}
+            </SocialGradientCardSurface>
+          ) : (
+            rowBody
           )}
-
-          <TraderAvatar
-            imageUrl={trader.avatarUri}
-            address={trader.address}
-            size={AVATAR_SIZE}
-            recyclingKey={trader.id}
-          />
-
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-            twClassName="flex-1 min-w-0"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              twClassName="shrink"
-            >
-              {trader.username}
-            </Text>
-            <Icon
-              name={IconName.VerifiedFilled}
-              size={IconSize.Sm}
-              twClassName="text-info-default shrink-0"
-              testID={SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE}
-            />
-            {cohortEmoji ? (
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="shrink-0"
-                testID={SocialV1TraderRowSelectorsIDs.COHORT}
-              >
-                {cohortEmoji}
-              </Text>
-            ) : null}
-          </Box>
-
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-            twClassName={
-              isMetricPositive
-                ? 'text-success-default shrink-0'
-                : 'text-error-default shrink-0'
-            }
-          >
-            {metricText}
-          </Text>
         </Box>
       </TouchableOpacity>
     </Animated.View>
