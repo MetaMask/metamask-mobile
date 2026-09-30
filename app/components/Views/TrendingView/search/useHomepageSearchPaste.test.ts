@@ -180,4 +180,51 @@ describe('useHomepageSearchPaste', () => {
     expect(first.result.current.showPastePill).toBe(false);
     expect(second.result.current.showPastePill).toBe(false);
   });
+
+  it('shows Paste again after the clipboard changes', async () => {
+    const { result } = renderHook(() =>
+      useHomepageSearchPaste({ enabled: true, onPaste: jest.fn() }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showPastePill).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.handlePastePress();
+    });
+
+    expect(result.current.showPastePill).toBe(false);
+
+    mockClipboardRevision += 1;
+    mockClipboardManager.getRevision.mockReturnValue(mockClipboardRevision);
+
+    act(() => {
+      activeClipboardListeners.forEach((listener) => listener());
+    });
+
+    await waitFor(() => {
+      expect(result.current.showPastePill).toBe(true);
+    });
+  });
+
+  it('hides Paste without forwarding an empty clipboard value', async () => {
+    mockClipboardManager.getString.mockResolvedValue('   ');
+    const onPaste = jest.fn();
+    const { result } = renderHook(() =>
+      useHomepageSearchPaste({ enabled: true, onPaste }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showPastePill).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.handlePastePress();
+    });
+
+    expect(onPaste).not.toHaveBeenCalled();
+    expect(trackHomepageSearchPaste).not.toHaveBeenCalled();
+    expect(result.current.showPastePill).toBe(false);
+  });
 });

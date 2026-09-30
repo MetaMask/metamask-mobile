@@ -1,5 +1,6 @@
 import '../../../../tests/component-view/mocks';
 import {
+  renderWalletHomepageSearch,
   renderWalletView,
   renderWalletViewWithRoutes,
 } from '../../../../tests/component-view/renderers/wallet';
@@ -10,12 +11,62 @@ import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceC
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Routes from '../../../constants/navigation/Routes';
+import ClipboardManager from '../../../core/ClipboardManager';
+import {
+  clearTrendingApiMocks,
+  mockRwaTokensData,
+  mockTrendingTokensData,
+  setupTrendingApiFetchMock,
+} from '../../../../tests/component-view/api-mocking/trending';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
 import React from 'react';
+
+const PASTED_ADDRESS = '0x1111111111111111111111111111111111111111';
+// Kept local so this Wallet view test does not import the Trending route module.
+const HOMEPAGE_SEARCH_AB_KEY = 'homeTMCU1384AbtestHomepageSearch';
+
+const walletHomeOverrides = (variant?: 'control' | 'treatment') => ({
+  overrides: {
+    settings: {
+      basicFunctionalityEnabled: true,
+    },
+    engine: {
+      backgroundState: {
+        MultichainNetworkController: {
+          isEvmSelected: true,
+        },
+        EarnController: {
+          pooled_staking: { isEligible: false },
+          lending: { positions: [], markets: [] },
+        },
+        RewardsController: {
+          activeAccount: null,
+        },
+        PreferencesController: {
+          tokenSortConfig: {
+            key: 'tokenFiatAmount',
+            order: 'dsc',
+            sortCallback: 'stringNumeric',
+          },
+        },
+        ...(variant
+          ? {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [HOMEPAGE_SEARCH_AB_KEY]: variant,
+                },
+              },
+            }
+          : {}),
+      },
+    },
+  } as unknown as Record<string, unknown>,
+});
 
 describeForPlatforms('Wallet', () => {
   it('renders wallet home with minimal state and shows key UI elements', () => {
@@ -110,52 +161,62 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to Explore search when the header search button is pressed', async () => {
-    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
-      extraRoutes: [
-        { name: Routes.QR_TAB_SWITCHER },
-        { name: Routes.EXPLORE_SEARCH },
-      ],
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: true,
-            },
-            EarnController: {
-              pooled_staking: { isEligible: false },
-              lending: { positions: [], markets: [] },
-            },
-            RewardsController: {
-              activeAccount: null,
-            },
-            PreferencesController: {
-              tokenSortConfig: {
-                key: 'tokenFiatAmount',
-                order: 'dsc',
-                sortCallback: 'stringNumeric',
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                homeTMCU1384AbtestHomepageSearch: 'treatment',
-              },
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>,
-    });
+  it('opens Explore search from the control header without a paste action', async () => {
+    jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+
+    const { getByTestId, findByTestId, queryByTestId } =
+      renderWalletViewWithRoutes({
+        extraRoutes: [{ name: Routes.EXPLORE_SEARCH }],
+        ...walletHomeOverrides('control'),
+      });
+
+    const searchButton = getByTestId(
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+    );
+
+    expect(searchButton).toHaveAccessibleName(
+      strings('wallet.search_accessibility_label'),
+    );
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(searchButton);
+
+    expect(
+      await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
+    ).toBeOnTheScreen();
+    expect(Clipboard.hasString).not.toHaveBeenCalled();
+  });
+
+  it('opens Explore search from the treatment header when the clipboard is empty', async () => {
+    jest.mocked(Clipboard.hasString).mockResolvedValue(false);
+
+    const { getByTestId, findByTestId, queryByTestId } =
+      renderWalletViewWithRoutes({
+        extraRoutes: [{ name: Routes.EXPLORE_SEARCH }],
+        ...walletHomeOverrides('treatment'),
+      });
 
     const searchButton = getByTestId(
       WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON,
     );
 
-    // Icon-only button, so screen readers have nothing to announce without this.
+    await waitFor(() => {
+      expect(Clipboard.hasString).toHaveBeenCalled();
+    });
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
+    ).not.toBeOnTheScreen();
     expect(searchButton).toHaveAccessibleName(
-      strings('wallet.search_accessibility_label'),
+      strings('wallet.homepage_search_placeholder'),
     );
 
     fireEvent.press(searchButton);
@@ -163,6 +224,46 @@ describeForPlatforms('Wallet', () => {
     expect(
       await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
     ).toBeOnTheScreen();
+  });
+
+  it('pastes the clipboard address into Explore search and loads that result', async () => {
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      mockRwaTokensData,
+      [
+        {
+          assetId: `eip155:1/erc20:${PASTED_ADDRESS}`,
+          name: 'Clipboard Token',
+          symbol: 'CLIP',
+          decimals: 18,
+          price: '1.00',
+        },
+      ],
+    );
+
+    try {
+      await ClipboardManager.setString(PASTED_ADDRESS);
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+      jest.mocked(Clipboard.getString).mockResolvedValue(PASTED_ADDRESS);
+
+      const { findByTestId, findByText, findByDisplayValue, queryByTestId } =
+        renderWalletHomepageSearch(walletHomeOverrides('treatment'));
+
+      fireEvent.press(
+        await findByTestId(
+          WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON,
+        ),
+      );
+
+      expect(await findByDisplayValue(PASTED_ADDRESS)).toBeOnTheScreen();
+      expect(await findByText('Clipboard Token')).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
+      ).not.toBeOnTheScreen();
+    } finally {
+      clearTrendingApiMocks();
+    }
   });
 
   const defaultWalletOverrides = {
@@ -204,12 +305,19 @@ describeForPlatforms('Wallet', () => {
     fireEvent.press(addressCopyButton);
   });
 
-  it('account picker in header is pressable', () => {
-    const { getByTestId } = renderWalletView(defaultWalletOverrides);
+  it('opens the account selector when the account picker is pressed', async () => {
+    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR }],
+      ...defaultWalletOverrides,
+    });
 
-    const accountPicker = getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON);
-    expect(accountPicker).toBeOnTheScreen();
-    fireEvent.press(accountPicker);
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+    expect(
+      await findByTestId(
+        `route-${Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}`,
+      ),
+    ).toBeOnTheScreen();
   });
 
   const walletStateOverrides = {
