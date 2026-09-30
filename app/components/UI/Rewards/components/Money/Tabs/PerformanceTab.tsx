@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonSize,
+  ButtonVariant,
+  IconColor,
+  IconName,
   SectionDivider,
   SectionHeader,
   Skeleton,
+  TabEmptyState,
   Text,
   TextColor,
   TextVariant,
@@ -48,7 +56,9 @@ export const PERFORMANCE_TAB_TEST_IDS = {
   FUNNEL_SKELETON: 'rewards-money-performance-funnel-skeleton',
   FUNNEL_ERROR: 'rewards-money-performance-funnel-error',
   COMMISSIONS_ERROR: 'rewards-money-performance-commissions-error',
+  COMMISSIONS_EMPTY: 'rewards-money-performance-commissions-empty',
   REBATES_ERROR: 'rewards-money-performance-rebates-error',
+  REBATES_EMPTY: 'rewards-money-performance-rebates-empty',
 } as const;
 
 const FUNNEL_SKELETON_ROWS = [
@@ -91,6 +101,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const openTradeActions = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
+  }, [navigation]);
   const isReferrer = persona === 'referrer';
   const isReferee = persona === 'referee';
   const showCommissions = isReferrer || isReferee;
@@ -171,6 +186,9 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   const showRebatesSection =
     isReferee &&
     !(rebatesError && previewRebates.length === 0 && !rebatesLoading);
+  const commissionsListEmpty =
+    !commissionsLoading && previewCommissions.length === 0;
+  const rebatesListEmpty = !rebatesLoading && previewRebates.length === 0;
 
   return (
     <Box testID={PERFORMANCE_TAB_TEST_IDS.CONTAINER}>
@@ -255,12 +273,15 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
         <>
           <SectionHeader
             title={commissionsTitle}
-            isInteractive
-            onPress={() =>
-              navigateToRewardsRoute(
-                navigation,
-                Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
-              )
+            isInteractive={!commissionsListEmpty}
+            onPress={
+              commissionsListEmpty
+                ? undefined
+                : () =>
+                    navigateToRewardsRoute(
+                      navigation,
+                      Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
+                    )
             }
             twClassName={showFunnelSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
             testID={PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER}
@@ -268,6 +289,25 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           <Box twClassName="px-4">
             {commissionsLoading ? (
               <TradingActivityListSkeleton rows={PERFORMANCE_PREVIEW_COUNT} />
+            ) : previewCommissions.length === 0 ? (
+              <Box twClassName="items-center py-4">
+                <TabEmptyState
+                  icon={
+                    <AvatarIcon
+                      iconName={IconName.Activity}
+                      size={AvatarIconSize.Xl}
+                      severity={AvatarIconSeverity.Neutral}
+                      iconProps={{ color: IconColor.IconDefault }}
+                    />
+                  }
+                  description={localizedText.tradingActivityEmptyDescription}
+                  descriptionProps={{
+                    variant: TextVariant.BodyMd,
+                    color: TextColor.TextAlternative,
+                  }}
+                  testID={PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY}
+                />
+              </Box>
             ) : (
               <Box
                 twClassName="gap-4"
@@ -293,12 +333,15 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           ) : null}
           <SectionHeader
             title={localizedText.tradingRebates}
-            isInteractive
-            onPress={() =>
-              navigateToRewardsRoute(
-                navigation,
-                Routes.REWARDS_TRADING_REBATES_VIEW,
-              )
+            isInteractive={!rebatesListEmpty}
+            onPress={
+              rebatesListEmpty
+                ? undefined
+                : () =>
+                    navigateToRewardsRoute(
+                      navigation,
+                      Routes.REWARDS_TRADING_REBATES_VIEW,
+                    )
             }
             twClassName={showCommissionsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
             testID={PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER}
@@ -306,6 +349,33 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           <Box twClassName="px-4 pb-8">
             {rebatesLoading ? (
               <TradingActivityListSkeleton rows={PERFORMANCE_PREVIEW_COUNT} />
+            ) : previewRebates.length === 0 ? (
+              <Box twClassName="items-center py-4">
+                <TabEmptyState
+                  icon={
+                    <AvatarIcon
+                      iconName={IconName.Activity}
+                      size={AvatarIconSize.Xl}
+                      severity={AvatarIconSeverity.Neutral}
+                      iconProps={{ color: IconColor.IconDefault }}
+                    />
+                  }
+                  description={localizedText.tradingActivityEmptyDescription}
+                  descriptionProps={{
+                    variant: TextVariant.BodyMd,
+                    color: TextColor.TextAlternative,
+                  }}
+                  actionButtonText={localizedText.tradingActivityEmptyAction}
+                  actionButtonProps={{
+                    variant: ButtonVariant.Primary,
+                    size: ButtonSize.Lg,
+                    twClassName: 'mt-3 self-stretch',
+                    testID: `${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`,
+                  }}
+                  onAction={openTradeActions}
+                  testID={PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}
+                />
+              </Box>
             ) : (
               <Box
                 twClassName="gap-4"

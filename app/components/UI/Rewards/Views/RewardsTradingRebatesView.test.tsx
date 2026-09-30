@@ -5,18 +5,22 @@ import type {
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import Routes from '../../../../constants/navigation/Routes';
 import { useCashbackLedger } from '../hooks/useCashbackLedger';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows';
+import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import RewardsTradingRebatesView, {
   REWARDS_TRADING_REBATES_VIEW_TEST_IDS,
 } from './RewardsTradingRebatesView';
+
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
+    useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
   };
 });
 
@@ -28,6 +32,9 @@ const LOCALIZED_TEXT = {
   tradingRebates: 'Trading rebates',
   rebatePerpsVolume: 'Perps volume',
   rebateSwaps: 'Swaps',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  tradingActivityEmptyAction: 'Start trading',
 } as unknown as ReferralLocalizedText;
 
 const REBATE: LedgerEarningEntryDto = {
@@ -103,6 +110,32 @@ describe('RewardsTradingRebatesView', () => {
     );
 
     expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the trade tray from the empty rebates action', () => {
+    (useCashbackLedger as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(<RewardsTradingRebatesView />, {
+      state: STATE,
+    });
+
+    fireEvent.press(
+      getByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
   });
 
   it('renders no rows until localized text is available', () => {

@@ -40,6 +40,7 @@ const RewardsTradingCommissionsView: React.FC = () => {
       testIDs={REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS}
       list={list}
       renderItem={renderItem}
+      emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
     />
   );
 };

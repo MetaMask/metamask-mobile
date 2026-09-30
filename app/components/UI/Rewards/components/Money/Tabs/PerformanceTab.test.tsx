@@ -51,6 +51,9 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
@@ -206,6 +209,49 @@ describe('PerformanceTab', () => {
     });
   });
 
+  it('shows an empty message in commissions and rebates when neither has rows', () => {
+    const { getAllByText, getByTestId, queryByRole, queryByTestId } = renderTab(
+      'referee',
+      {
+        commissions: [],
+        rebates: [],
+      },
+    );
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      getAllByText('Your activity is empty now. Start trading to earn today!'),
+    ).toHaveLength(2);
+    expect(
+      queryByTestId(`${PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY}-action`),
+    ).toBeNull();
+    expect(
+      getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+
+    fireEvent.press(
+      getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
+    expect(queryByRole('button', { name: 'Trading commissions' })).toBeNull();
+    expect(queryByRole('button', { name: 'Trading rebates' })).toBeNull();
+
+    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER));
+    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
+
+    expect(navigateToRewardsRoute).not.toHaveBeenCalled();
+  });
+
   it('caps the commissions preview at five rows', () => {
     const commissions = Array.from({ length: 8 }, (_, index) => ({
       ...commission,
@@ -231,7 +277,7 @@ describe('PerformanceTab', () => {
   });
 
   it('shows a funnel row skeleton while the funnel is loading', () => {
-    const { getByTestId, queryByTestId } = renderTab('REFERRER', {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
       funnelData: null,
       funnelLoading: true,
     });
@@ -243,7 +289,7 @@ describe('PerformanceTab', () => {
   });
 
   it('shows a referral error above cached funnel data', () => {
-    const { getByTestId, getByText, queryByText } = renderTab('REFERRER', {
+    const { getByTestId, getByText, queryByText } = renderTab('referrer', {
       funnelError: true,
     });
 
@@ -262,7 +308,7 @@ describe('PerformanceTab', () => {
   });
 
   it('keeps the referral error banner up with a busy retry button while refetching', () => {
-    const { getByTestId, getByRole } = renderTab('REFERRER', {
+    const { getByTestId, getByRole } = renderTab('referrer', {
       funnelError: true,
       funnelLoading: true,
     });
@@ -277,7 +323,7 @@ describe('PerformanceTab', () => {
   });
 
   it('shows a transactions error above cached commissions', () => {
-    const { getByTestId, getByText, queryByText } = renderTab('REFERRER', {
+    const { getByTestId, getByText, queryByText } = renderTab('referrer', {
       commissionsError: 'failed',
     });
 
@@ -295,7 +341,7 @@ describe('PerformanceTab', () => {
   });
 
   it('keeps one banner and retries commissions when the funnel also failed', () => {
-    const { getByTestId, getByText, queryByTestId } = renderTab('REFERRER', {
+    const { getByTestId, getByText, queryByTestId } = renderTab('referrer', {
       commissionsError: 'failed',
       funnelError: true,
     });
@@ -315,7 +361,7 @@ describe('PerformanceTab', () => {
   });
 
   it('retries rebates from the transactions error when only rebates failed', () => {
-    const { getByTestId, getByText, queryByTestId } = renderTab('REFEREE', {
+    const { getByTestId, getByText, queryByTestId } = renderTab('referee', {
       rebatesError: 'failed',
     });
 
@@ -335,7 +381,7 @@ describe('PerformanceTab', () => {
   });
 
   it('hides a section header when that request failed and nothing is cached', () => {
-    const { getByText, queryByText } = renderTab('REFEREE', {
+    const { getByText, queryByText } = renderTab('referee', {
       commissions: [],
       rebates: [],
       commissionsError: 'failed',
@@ -350,7 +396,7 @@ describe('PerformanceTab', () => {
   });
 
   it('hides the referrals header when the funnel failed with no cache', () => {
-    const { getByText, queryByText } = renderTab('REFERRER', {
+    const { getByText, queryByText } = renderTab('referrer', {
       funnelError: true,
       funnelData: null,
     });
