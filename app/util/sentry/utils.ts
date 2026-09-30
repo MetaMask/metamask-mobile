@@ -265,6 +265,115 @@ function getProtocolFromURL(url: string): string {
   return url.substring(0, colonIndex + 1);
 }
 
+/**
+ * `MoneyAccountBalanceValidationError` messages from
+ * `@metamask/money-account-balance-service` interpolate raw balance amounts,
+ * which can identify an account. These patterns mask those amounts.
+ *
+ * TODO: Remove once `@metamask/money-account-balance-service` is published
+ * without amounts in those messages.
+ * https://github.com/MetaMask/core/pull/10619
+ */
+const MONEY_BALANCE_AMOUNT_PATTERNS: [RegExp, string][] = [
+  [
+    /(Invalid balance invariant: totalBalance \()[^)\n]*(\) must equal musdBalance \()[^)\n]*(\) \+ vmusdValueInMusd \()[^)\n]*(\))/gu,
+    '$1**$2**$3**$4',
+  ],
+  [/(: expected a non-negative integer string, got ')[^\n]*(')/gu, '$1**$2'],
+];
+
+/**
+ * Replaces Money account balance amounts in a string with a mask.
+ *
+ * @param text - The string to sanitize.
+ * @returns The string with balance amounts replaced by `**`.
+ */
+function sanitizeMoneyBalanceAmountsFromString(text: string): string {
+  let sanitized = text;
+  for (const [pattern, replacement] of MONEY_BALANCE_AMOUNT_PATTERNS) {
+    pattern.lastIndex = 0;
+    sanitized = sanitized.replace(pattern, replacement);
+  }
+  return sanitized;
+}
+
+/**
+ * Rewrites string values, and `Error` message and stack, so Money balance
+ * amounts are not sent to Sentry. Objects are updated in place. `Error`
+ * instances are replaced with copies so a live error keeps its message.
+ *
+ * @param value - Breadcrumb data, or a nested value, to sanitize.
+ * @param seen - Objects already visited, to avoid cycles.
+ * @returns The sanitized value.
+ */
+function sanitizeMoneyBalanceAmountsFromValue(
+  value: unknown,
+  seen: WeakSet<object> = new WeakSet(),
+): unknown {
+  if (typeof value === 'string') {
+    return sanitizeMoneyBalanceAmountsFromString(value);
+  }
+  if (value instanceof Error) {
+    const copy = new Error(
+      sanitizeMoneyBalanceAmountsFromString(value.message),
+    );
+    copy.name = value.name;
+    if (typeof value.stack === 'string') {
+      copy.stack = sanitizeMoneyBalanceAmountsFromString(value.stack);
+    }
+    return copy;
+  }
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+  if (seen.has(value)) {
+    return value;
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index++) {
+      value[index] = sanitizeMoneyBalanceAmountsFromValue(value[index], seen);
+    }
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  for (const key of Object.keys(record)) {
+    record[key] = sanitizeMoneyBalanceAmountsFromValue(record[key], seen);
+  }
+  return record;
+}
+
+/**
+ * Masks Money balance amounts on a breadcrumb message and its data.
+ *
+ * @param breadcrumb - The breadcrumb to sanitize.
+ */
+function sanitizeMoneyBalanceAmountsFromBreadcrumb(
+  breadcrumb: Breadcrumb,
+): void {
+  if (typeof breadcrumb.message === 'string') {
+    breadcrumb.message = sanitizeMoneyBalanceAmountsFromString(
+      breadcrumb.message,
+    );
+  }
+  if (breadcrumb.data) {
+    sanitizeMoneyBalanceAmountsFromValue(breadcrumb.data);
+  }
+}
+
+/**
+ * Masks Money balance amounts on a Sentry event's message and exceptions.
+ *
+ * @param report - The event to sanitize.
+ */
+function sanitizeMoneyBalanceAmountsFromErrorMessages(
+  report: SentryEvent,
+): void {
+  rewriteErrorMessages(report, sanitizeMoneyBalanceAmountsFromString);
+}
+
 export function rewriteBreadcrumb(breadcrumb: Breadcrumb): Breadcrumb {
   if (breadcrumb.data?.url) {
     breadcrumb.data.url = getProtocolFromURL(breadcrumb.data.url);
@@ -275,6 +384,8 @@ export function rewriteBreadcrumb(breadcrumb: Breadcrumb): Breadcrumb {
   if (breadcrumb.data?.from) {
     breadcrumb.data.from = getProtocolFromURL(breadcrumb.data.from);
   }
+
+  sanitizeMoneyBalanceAmountsFromBreadcrumb(breadcrumb);
 
   return breadcrumb;
 }
@@ -428,6 +539,11 @@ export function rewriteReport(report: SentryEvent): SentryEvent {
     // but putting the code here as well gives public visibility to how we are handling
     // privacy with respect to sentry.
     sanitizeAddressesFromErrorMessages(report);
+    // Mask Money balance amounts until the balance service stops including
+    // them. TODO: Remove once https://github.com/MetaMask/core/pull/10619
+    // is released.
+    sanitizeMoneyBalanceAmountsFromErrorMessages(report);
+    report.breadcrumbs?.forEach(sanitizeMoneyBalanceAmountsFromBreadcrumb);
     // remove device timezone
     removeDeviceTimezone(report);
     // remove device name

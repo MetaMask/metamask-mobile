@@ -974,6 +974,39 @@ describe('rewriteBreadcrumb', () => {
 
     expect(() => rewriteBreadcrumb(breadcrumb)).toThrow();
   });
+
+  it('removes balance amounts from Money balance invariant breadcrumb messages', () => {
+    const breadcrumb = {
+      message:
+        'Invalid balance invariant: totalBalance (1500000) must equal musdBalance (1000000) + vmusdValueInMusd (400000)',
+    };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    expect(result.message).toBe(
+      'Invalid balance invariant: totalBalance (**) must equal musdBalance (**) + vmusdValueInMusd (**)',
+    );
+  });
+
+  it('removes balance amounts from errors stored on breadcrumb data', () => {
+    const liveError = new Error(
+      'Invalid balance invariant: totalBalance (1500000) must equal musdBalance (1000000) + vmusdValueInMusd (400000)',
+    );
+    const breadcrumb = {
+      message: 'console.error',
+      data: { arguments: [liveError] },
+    };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    const storedError = result.data?.arguments?.[0] as Error;
+    expect(storedError).not.toBe(liveError);
+    expect(storedError.message).toBe(
+      'Invalid balance invariant: totalBalance (**) must equal musdBalance (**) + vmusdValueInMusd (**)',
+    );
+    expect(storedError.stack).not.toContain('1500000');
+    expect(liveError.message).toContain('1500000');
+  });
 });
 
 describe('rewriteReport', () => {
@@ -1162,6 +1195,57 @@ describe('rewriteReport', () => {
     const result = rewriteReport(report);
 
     expect(result.exception?.values?.[0]?.value).toBe('Exception with URL **');
+  });
+
+  it('removes balance amounts from Money balance invariant errors', () => {
+    const message =
+      'Invalid balance invariant: totalBalance (1500000) must equal musdBalance (1000000) + vmusdValueInMusd (400000)';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      exception: {
+        values: [{ value: message }],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Invalid balance invariant: totalBalance (**) must equal musdBalance (**) + vmusdValueInMusd (**)',
+    );
+  });
+
+  it('removes balance amounts from Money balance field validation errors', () => {
+    const message =
+      "Invalid musdBalance: expected a non-negative integer string, got '-1234.56'";
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toBe(
+      "Invalid musdBalance: expected a non-negative integer string, got '**'",
+    );
+  });
+
+  it('removes balance amounts from breadcrumbs already attached to the report', () => {
+    const message =
+      'Invalid balance invariant: totalBalance (1500000) must equal musdBalance (1000000) + vmusdValueInMusd (400000)';
+    mockExtractEthJsErrorMessage.mockReturnValue('An error occurred');
+    const report = {
+      message: 'An error occurred',
+      breadcrumbs: [{ message }],
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.breadcrumbs?.[0]?.message).toBe(
+      'Invalid balance invariant: totalBalance (**) must equal musdBalance (**) + vmusdValueInMusd (**)',
+    );
   });
 
   it('should sanitize Ethereum addresses from error messages', () => {
