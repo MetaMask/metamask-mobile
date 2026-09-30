@@ -221,7 +221,7 @@
     "ip-address": "10.3.1",
     "undici@npm:^6.0.0": "6.28.0",
     "undici@npm:^7.0.0": "7.29.0",
-    "protobufjs": "7.6.3",
+    "protobufjs": "7.6.6",
     "@protobufjs/utf8": "1.1.1",
     "simple-git": "3.36.0",
     "shell-quote@npm:1.8.0": "1.9.0",
