@@ -4,7 +4,9 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { UseCursorPaginatedListResult } from '../../hooks/useCursorPaginatedList';
 import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from './TradingActivityListSkeleton';
-import TradingActivityListView from './TradingActivityListView';
+import TradingActivityListView, {
+  TRADING_ACTIVITY_LIST_EMPTY_TEST_ID,
+} from './TradingActivityListView';
 
 const mockGoBack = jest.fn();
 
@@ -50,7 +52,10 @@ const listState = (
   ...overrides,
 });
 
-const renderView = (list: UseCursorPaginatedListResult<Row>) =>
+const renderView = (
+  list: UseCursorPaginatedListResult<Row>,
+  empty: { emptyActionLabel?: string; emptyOnAction?: () => void } = {},
+) =>
   renderWithProvider(
     <TradingActivityListView
       view="TestActivityView"
@@ -58,6 +63,9 @@ const renderView = (list: UseCursorPaginatedListResult<Row>) =>
       testIDs={TEST_IDS}
       list={list}
       renderItem={(item) => <Text>{item.label}</Text>}
+      emptyDescription="Your activity is empty now. Start trading to earn today!"
+      emptyActionLabel={empty.emptyActionLabel}
+      emptyOnAction={empty.emptyOnAction}
     />,
   );
 
@@ -132,6 +140,38 @@ describe('TradingActivityListView', () => {
     const { UNSAFE_getByType } = renderView(listState({ isLoadingMore: true }));
 
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  it('shows an empty message when a successful fetch returns no activities', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = renderView(
+      listState({ items: [], hasMore: false }),
+    );
+
+    expect(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).toBeOnTheScreen();
+    expect(
+      getByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeOnTheScreen();
+    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(
+      queryByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
+    ).toBeNull();
+  });
+
+  it('calls the empty-state action when a label and handler are provided', () => {
+    const emptyOnAction = jest.fn();
+    const { getByTestId } = renderView(
+      listState({ items: [], hasMore: false }),
+      {
+        emptyActionLabel: 'Start trading',
+        emptyOnAction,
+      },
+    );
+
+    fireEvent.press(
+      getByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
+    );
+
+    expect(emptyOnAction).toHaveBeenCalledTimes(1);
   });
 
   it('shows the transactions error with a retry when the list is empty and a fetch failed', () => {
