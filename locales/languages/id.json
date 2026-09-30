@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Identitas",
-        "description": "Menghapus sesi autentikasi yang tersimpan. Gunakan ini setelah mengaktifkan/menonaktifkan MM_DEV_API_ENV — jika tidak, JWT yang dibuat di lingkungan produksi akan terus diberikan kepada pelanggan API pengembangan hingga kedaluwarsa. MM_DEV_API_ENV saat ini: {{env}}.",
+        "description": "Menghapus sesi autentikasi yang tersimpan. Gunakan ini setelah mengaktifkan/menonaktifkan MM_API_ENV — jika tidak, JWT yang dibuat di lingkungan produksi akan terus diberikan kepada pelanggan API pengembangan hingga kedaluwarsa. MM_API_ENV saat ini: {{env}}.",
         "clear_auth_session_button": "Hapus sesi autentikasi yang dipertahankan"
       },
       "notifications": {
