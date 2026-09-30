@@ -33,7 +33,9 @@ jest.mock('@tanstack/react-query', () => ({
       combine,
     }: {
       queries: { queryFn: () => Promise<FiatOrderSettlement> }[];
-      combine: (results: { data: FiatOrderSettlement | undefined }[]) => unknown;
+      combine: (
+        results: { data: FiatOrderSettlement | undefined }[],
+      ) => unknown;
     }) => combine(queries.map(() => mockQueryReturn)),
   ),
 }));

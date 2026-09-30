@@ -582,4 +582,60 @@ describe('TransactionDetailsSummary', () => {
       expect(getByText('Steps (2 completed)')).toBeDefined();
     });
   });
+
+  describe('vault-only failure suppression', () => {
+    function moneyDepositTx(
+      overrides: Partial<TransactionMeta> = {},
+    ): Partial<TransactionMeta> {
+      return {
+        id: transactionIdMock,
+        chainId: '0x1',
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.failed,
+        metamaskPay: {
+          fiat: { orderId: 'order-1', provider: 'transak-native' },
+        },
+        error: {
+          name: 'forced',
+          message: 'Post-Ramp: Direct mUSD: Vault: forced',
+        },
+        ...overrides,
+      } as unknown as Partial<TransactionMeta>;
+    }
+
+    it('drops ReceiveSummaryLine for a vault-only failure', () => {
+      const tx = moneyDepositTx();
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: tx as unknown as TransactionMeta,
+      });
+
+      const { queryByText } = render({ transactions: [tx] });
+
+      expect(queryByText('ReceiveSummaryLine')).toBeNull();
+    });
+
+    it('still renders ReceiveSummaryLine for a failure without the Vault marker', () => {
+      const tx = moneyDepositTx({
+        error: { name: 'other', message: 'Post-Ramp: order cancelled' },
+      });
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: tx as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render({ transactions: [tx] });
+
+      expect(getByText('ReceiveSummaryLine')).toBeDefined();
+    });
+
+    it('still renders ReceiveSummaryLine for a confirmed money deposit', () => {
+      const tx = moneyDepositTx({ status: TransactionStatus.confirmed });
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: tx as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render({ transactions: [tx] });
+
+      expect(getByText('ReceiveSummaryLine')).toBeDefined();
+    });
+  });
 });

@@ -14,7 +14,9 @@ const baseTx = {
   txParams: {},
 } as unknown as TransactionMeta;
 
-function makeDepositTx(overrides: Partial<TransactionMeta> = {}): TransactionMeta {
+function makeDepositTx(
+  overrides: Partial<TransactionMeta> = {},
+): TransactionMeta {
   return {
     ...baseTx,
     type: TransactionType.moneyAccountDeposit,
