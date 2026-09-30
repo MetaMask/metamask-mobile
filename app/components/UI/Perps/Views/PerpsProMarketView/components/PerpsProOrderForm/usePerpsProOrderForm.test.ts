@@ -10,7 +10,9 @@ import {
   formatHyperLiquidPrice,
   type PerpsMarketData,
   type OrderResult,
+  TRIGGER_ORDER_TYPES,
   type PerpsProviderType,
+  type TriggerOrderType,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
@@ -497,7 +499,15 @@ const renderProForm = (
     isScreenFocused?: boolean;
   } = {},
   formMarket: PerpsMarketData = market,
+  triggerGate: {
+    enabled?: boolean;
+    providerId?: PerpsProviderType;
+    types?: readonly TriggerOrderType[];
+    checkSupport?: (type: TriggerOrderType) => Promise<boolean>;
+  } = {},
 ) => {
+  const checkTriggerOrderSupport =
+    triggerGate.checkSupport ?? jest.fn().mockResolvedValue(true);
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
     scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true);
@@ -507,7 +517,11 @@ const renderProForm = (
   return renderHook(() =>
     usePerpsProOrderForm({
       market: formMarket,
-      isTriggeredOrdersEnabled,
+      isTriggeredOrdersEnabled: triggerGate.enabled ?? isTriggeredOrdersEnabled,
+      supportedTriggerOrderTypes: triggerGate.types ?? TRIGGER_ORDER_TYPES,
+      resolvedTriggerProviderId:
+        triggerGate.providerId ?? formMarket.providerId,
+      checkTriggerOrderSupport,
       isTwapEnabled,
       isTwapAvailabilityPending,
       resolvedTwapProviderId,
@@ -543,6 +557,9 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
       usePerpsProOrderForm({
         market,
         isTriggeredOrdersEnabled: true,
+        supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+        resolvedTriggerProviderId: 'hyperliquid',
+        checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
         isTwapEnabled: true,
         isTwapAvailabilityPending: false,
         resolvedTwapProviderId: 'hyperliquid',
@@ -1491,6 +1508,9 @@ describe('usePerpsProOrderForm', () => {
         usePerpsProOrderForm({
           market,
           isTriggeredOrdersEnabled: true,
+          supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+          resolvedTriggerProviderId: 'hyperliquid',
+          checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
           isTwapEnabled: true,
           isTwapAvailabilityPending: false,
           resolvedTwapProviderId: 'hyperliquid',
@@ -1529,6 +1549,9 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -1579,6 +1602,9 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: providerId,
@@ -1623,6 +1649,9 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -1653,6 +1682,9 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -1696,6 +1728,9 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending,
             resolvedTwapProviderId,
@@ -5880,6 +5915,153 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
         'Triggered orders are temporarily unavailable. Select a market order.',
+      );
+    });
+
+    it('preserves a draft whose type is absent from the declared subset', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockOrderForm.limitPrice = '90500';
+      mockContextValue.triggerPrice = '91000';
+      const checkSupport = jest.fn().mockResolvedValue(true);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        { types: ['stop_limit'], checkSupport },
+      );
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.triggerPrice).toBe('91000');
+      expect(result.current.limitPrice).toBe('90500');
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      act(() => result.current.onOrderTypeSelect('stop_market'));
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(checkSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('blocks placement when fresh trigger capability is removed', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const checkSupport = jest.fn().mockResolvedValue(false);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        { checkSupport },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkSupport).toHaveBeenCalledWith('stop_market');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.trigger_orders_unavailable'),
+      );
+    });
+
+    it.each([
+      'rollout',
+      'types',
+      'account',
+      'network',
+      'provider',
+      'price',
+      'unmount',
+    ] as const)(
+      'blocks a pending trigger submission after %s changes',
+      async (transition) => {
+        mockOrderForm.type = 'stop_market';
+        mockContextValue.triggerPrice = '91000';
+        let resolveSupport = (_supported: boolean): void => undefined;
+        const checkSupport = jest.fn(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSupport = resolve;
+            }),
+        );
+        const triggerGate = {
+          enabled: true,
+          types: TRIGGER_ORDER_TYPES as readonly TriggerOrderType[],
+          checkSupport,
+        };
+        const formMarket = { ...market };
+        const { result, rerender, unmount } = renderProForm(
+          true,
+          true,
+          'hyperliquid',
+          false,
+          {},
+          {},
+          formMarket,
+          triggerGate,
+        );
+        let submission: Promise<void>;
+        act(() => {
+          submission = result.current.onPlaceOrderPress();
+        });
+        await waitFor(() =>
+          expect(checkSupport).toHaveBeenCalledWith('stop_market'),
+        );
+
+        if (transition === 'unmount') unmount();
+        else {
+          if (transition === 'rollout') triggerGate.enabled = false;
+          if (transition === 'types') triggerGate.types = ['stop_limit'];
+          if (transition === 'account') mockSelectedAddress = '0xaccount-b';
+          if (transition === 'network') mockPerpsNetwork = 'testnet';
+          if (transition === 'provider') formMarket.providerId = 'lighter';
+          if (transition === 'price') mockContextValue.triggerPrice = '92000';
+          rerender({});
+        }
+        await act(async () => {
+          resolveSupport(true);
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockSetOrderType).not.toHaveBeenCalled();
+        expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+      },
+    );
+
+    it('pins the capability provider when the market omits a concrete route', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: undefined },
+        { providerId: 'hyperliquid' },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'hyperliquid',
+          orderType: 'stop_market',
+        }),
       );
     });
 

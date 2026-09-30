@@ -208,6 +208,183 @@ describe('usePerpsProvider', () => {
       expect(mockGetOrderCapabilities).not.toHaveBeenCalled();
     });
 
+    it('does not infer trigger support from a ready provider name', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(result.current).toMatchObject({ supportedTriggerOrderTypes: [] });
+    });
+
+    it('exposes only the standalone trigger types declared for the route', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(result.current).toMatchObject({
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+    });
+
+    it('rejects trigger declarations attributed to a different explicit route', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market'],
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'lighter' }),
+      );
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(result.current).toMatchObject({ supportedTriggerOrderTypes: [] });
+    });
+
+    it.each([
+      { status: 'ready', providerId: 'hyperliquid', supportedStrategies: [] },
+      {
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['take_profit_limit'],
+      },
+      {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market'],
+      },
+      {
+        status: 'unavailable',
+        providerId: 'hyperliquid',
+        reason: 'not_implemented',
+      },
+    ] as const)('rejects fresh trigger response %j', async (capabilities) => {
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+      mockGetOrderCapabilities.mockResolvedValue(capabilities);
+
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        ),
+      ).toBe(false);
+    });
+
+    it('rechecks the exact declared trigger type', async () => {
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market'],
+      });
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        ),
+      ).toBe(true);
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_limit',
+          'hyperliquid',
+        ),
+      ).toBe(false);
+      mockGetOrderCapabilities.mockRejectedValue(new Error('Disconnected'));
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        ),
+      ).toBe(false);
+    });
+
+    it.each(['provider', 'network', 'initialization', 'unmount'] as const)(
+      'discards a fresh trigger response after %s changes',
+      async (transition) => {
+        let activeProvider = 'hyperliquid';
+        let network = 'mainnet';
+        let initialization = InitializationState.Initialized;
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectPerpsProvider) return activeProvider;
+          if (selector === selectPerpsNetwork) return network;
+          if (selector === selectPerpsInitializationState)
+            return initialization;
+          return false;
+        });
+        const { result, rerender, unmount } = renderHook(() =>
+          usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+        );
+        await waitFor(() =>
+          expect(result.current.isLoadingOrderCapabilities).toBe(false),
+        );
+        const deferred = createDeferredCapabilities();
+        mockGetOrderCapabilities.mockReturnValueOnce(deferred.promise);
+        const check = result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        );
+
+        if (transition === 'unmount') unmount();
+        else {
+          if (transition === 'provider') activeProvider = 'lighter';
+          if (transition === 'network') network = 'testnet';
+          if (transition === 'initialization')
+            initialization = InitializationState.Uninitialized;
+          rerender({});
+          // Even returning to the original route must not revive the old request.
+          activeProvider = 'hyperliquid';
+          network = 'mainnet';
+          initialization = InitializationState.Initialized;
+          rerender({});
+        }
+        await act(async () =>
+          deferred.resolve({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: [],
+            supportedTriggerOrderTypes: ['stop_market'],
+          }),
+        );
+
+        expect(await check).toBe(false);
+      },
+    );
+
     it('returns TWAP support from a ready controller capability', async () => {
       mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({

@@ -75,8 +75,65 @@ index 65a03cfc60191f0e98564d3c051bbbe5bee83768..a5162d004229ec872d89484f1c9be41a
                      },
                  };
                  const unsub = provider.subscribeToOrders(subscribeParams);
+diff --git a/dist/constants/hyperLiquidConfig.d.ts b/dist/constants/hyperLiquidConfig.d.ts
+index b3547a084d4c2ea9427938d33500baffa7f48874..c9854f8310172259aaadaef1d2f266adea54a909 100644
+--- a/dist/constants/hyperLiquidConfig.d.ts
++++ b/dist/constants/hyperLiquidConfig.d.ts
+@@ -103,6 +103,7 @@ export declare const HYPERLIQUID_ORDER_CAPABILITIES: Readonly<{
+     status: "ready";
+     providerId: "hyperliquid";
+     supportedStrategies: readonly ("chase" | "scale" | "twap")[];
++    supportedTriggerOrderTypes: readonly ("stop_limit" | "stop_market" | "take_profit_limit" | "take_profit_market")[];
+ }>;
+ export declare const REFERRAL_CONFIG: {
+     MainnetCode: string;
+diff --git a/dist/constants/hyperLiquidConfig.js b/dist/constants/hyperLiquidConfig.js
+index db5ca7244653febc762834bbd1398ebc3b9e33de..cda424c5100bafa13af1cdeaf237a7164b19229c 100644
+--- a/dist/constants/hyperLiquidConfig.js
++++ b/dist/constants/hyperLiquidConfig.js
+@@ -1,5 +1,5 @@
+ import { MarketCategory } from '../types/index.js';
+-import { STRATEGY_ORDER_TYPES } from '../utils/orderTypes.js';
++import { STRATEGY_ORDER_TYPES, TRIGGER_ORDER_TYPES, } from '../utils/orderTypes.js';
+ import { PROVIDER_CONFIG } from './perpsConfig.js';
+ // Network constants
+ export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1';
+@@ -172,6 +172,7 @@ export const HYPERLIQUID_ORDER_CAPABILITIES = Object.freeze({
+     status: 'ready',
+     providerId: PROVIDER_CONFIG.DefaultProvider,
+     supportedStrategies: Object.freeze([...STRATEGY_ORDER_TYPES]),
++    supportedTriggerOrderTypes: Object.freeze([...TRIGGER_ORDER_TYPES]),
+ });
+ // Referral code configuration
+ export const REFERRAL_CONFIG = {
+diff --git a/dist/providers/LighterProvider.d.ts b/dist/providers/LighterProvider.d.ts
+index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..7b3eb7e9a5eef55a1d3c0f610660909aff13bd0f 100644
+--- a/dist/providers/LighterProvider.d.ts
++++ b/dist/providers/LighterProvider.d.ts
+@@ -81,8 +81,8 @@ export declare class LighterProvider implements PerpsProvider {
+      * List TP/SL obligations parked in DURABLE manual-recovery state: the
+      * venue removed (or rejected) protection in a way that cannot be
+      * safely re-established automatically. Surfaced to callers/UI; each
+-     * entry resolves when the user issues a new explicit TP/SL update for
+-     * the symbol.
++     * current-key entry resolves after a successful explicit TP/SL update.
++     * Previous-key obligations remain until reconciled under their own key.
+      *
+      * @returns Parked manual-recovery entries.
+      */
+@@ -100,6 +100,10 @@ export declare class LighterProvider implements PerpsProvider {
+      * (previously ambiguous submissions later resolved). Never mutates the
+      * ledger — acknowledgment is a separate, per-outcome call so a crash
+      * between reading and acting can never silently drop an outcome.
++     * Call after signer initialization has selected the wallet's key slot,
++     * including after an initialization error reports quarantined dispatches.
++     * Before initialization, an empty preferred-slot view is not proof that
++     * every restored key slot has no pending outcomes.
+      *
+      * @returns The pending recovered-dispatch outcomes.
+      */
 diff --git a/dist/providers/LighterProvider.js b/dist/providers/LighterProvider.js
-index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161630c746b 100644
+index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628db6e5e4bf 100644
 --- a/dist/providers/LighterProvider.js
 +++ b/dist/providers/LighterProvider.js
 @@ -225,7 +225,6 @@ const withProcessMutex = async (key, operation) => {
@@ -490,7 +547,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          this.#signerReadyPromise = null;
          this.#authToken = null;
          this.#clearBridgeOwnership();
-@@ -3081,70 +3138,160 @@ export class LighterProvider {
+@@ -3081,70 +3138,186 @@ export class LighterProvider {
              throw error;
          }
      };
@@ -589,15 +646,47 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
 -                await this.#registerVenueKey(accountIndex, created.body, generation, nextNonce, submit);
 +        const candidates = await this.#signerCandidates(accountIndex, generation);
 +        for (const apiKeyIndex of candidates) {
-+            // Slot selection and WASM ownership change inside the serialized write
-+            // section, after older dispatch/ledger work has completely finished.
++            let candidateNonce = 0;
++            let changePubKeyBody = '';
++            let candidateStatus = 'matching';
++            // Inspect identity under the same slot and bridge locks as writes.
++            // An unrelated key's ledger must not block discovery of our key.
 +            const ready = await this.#withVenueWriteLock(accountIndex, async (nextNonce, submit) => {
-+                const nonce = await nextNonce();
-+                this.#assertSession(generation);
++                if (candidateStatus === 'available') {
++                    // Reconciliation can raise the nonce floor. The registration
++                    // plaintext must bind to the safe nonce, not the probe's seed.
++                    const nonce = await nextNonce();
++                    if (nonce !== candidateNonce) {
++                        const created = await bridge.createClient({
++                            chainId,
++                            accountIndex,
++                            nonce,
++                            apiKeyIndex,
++                            walletAddress: this.#boundAddress ?? undefined,
++                        });
++                        this.#assertSession(generation);
++                        if (created.error ||
++                            !created.success ||
++                            created.pk !== this.#venuePublicKey) {
++                            throw new Error('Lighter signer identity changed during registration preparation');
++                        }
++                        changePubKeyBody = created.body;
++                    }
++                    await this.#registerVenueKey(accountIndex, changePubKeyBody, generation, async () => nonce, submit);
++                    this.#assertSession(generation);
++                    if (bridge.getRecoverableKeyIndices || bridge.getStoredKeyIndices) {
++                        await this.#waitForRegisteredKey(accountIndex, generation);
++                    }
++                }
++                return true;
++            }, generation, apiKeyIndex, async () => {
++                const nonceResponse = await this.#clientService.getNextNonce(accountIndex, apiKeyIndex);
+                 this.#assertSession(generation);
++                candidateNonce = nonceResponse.nonce;
 +                const created = await bridge.createClient({
 +                    chainId,
 +                    accountIndex,
-+                    nonce,
++                    nonce: candidateNonce,
 +                    apiKeyIndex,
 +                    walletAddress: this.#boundAddress ?? undefined,
 +                });
@@ -609,25 +698,19 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
 +                this.#signerIdentity = `${this.#clientService.network}:${accountIndex}:${apiKeyIndex}`;
 +                this.#signerRecreateParams = { chainId, accountIndex };
 +                bridgeClientOwners.set(this.#rawSignerBridge(), this.#signerIdentity);
++                changePubKeyBody = created.body;
 +                const status = await this.#venueKeyStatus(accountIndex);
-                 this.#assertSession(generation);
++                this.#assertSession(generation);
 +                if (status === 'occupied') {
 +                    this.#clearBridgeOwnership();
 +                    if (!bridge.getRecoverableKeyIndices &&
 +                        !bridge.getStoredKeyIndices) {
 +                        throw new Error(`Lighter API key slot ${String(apiKeyIndex)} already contains a different key; reconnect with a client that supports device-key recovery`);
 +                    }
-+                    return false;
++                    return { result: false };
 +                }
-+                if (status === 'available') {
-+                    await this.#registerVenueKey(accountIndex, created.body, generation, nextNonce, submit);
-+                    this.#assertSession(generation);
-+                    if (bridge.getRecoverableKeyIndices || bridge.getStoredKeyIndices) {
-+                        await this.#waitForRegisteredKey(accountIndex, generation);
-+                    }
-+                }
-+                return true;
-+            }, generation, apiKeyIndex);
++                candidateStatus = status;
++            });
 +            if (ready) {
 +                this.#kickTpslRecovery();
 +                return;
@@ -701,21 +784,32 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
      };
      #registerVenueKey = async (accountIndex, changePubKeyBody, generation, nextNonce, submit) => {
          const bridge = this.#getSignerBridge();
-@@ -3236,16 +3383,21 @@ export class LighterProvider {
+@@ -3236,16 +3409,32 @@ export class LighterProvider {
       * provided helper (each call returns the next fresh nonce).
       * @param generationAtIntent - Session generation captured when the
       * caller's intent was formed (defaults to now).
 +     * @param apiKeyIndex - Slot captured when this section was queued.
++     * @param inspectCandidate - Optional read-only identity inspection before
++     * ledger resolution. A nonmatching candidate may return without reading or
++     * changing its unrelated ledger. Matching/available candidates retain all
++     * nonce safeguards before the write section runs.
       * @returns The section's result.
       */
 -    #withVenueWriteLock = async (accountIndex, section, generationAtIntent = this.#sessionGeneration) => {
-+    #withVenueWriteLock = async (accountIndex, section, generationAtIntent = this.#sessionGeneration, apiKeyIndex = this.#apiKeyIndex) => {
++    #withVenueWriteLock = async (accountIndex, section, generationAtIntent = this.#sessionGeneration, apiKeyIndex = this.#apiKeyIndex, inspectCandidate) => {
          const criticalSection = async () => {
              this.#assertSession(generationAtIntent);
 +            if (this.#apiKeyIndex !== apiKeyIndex) {
 +                this.#clearBridgeOwnership();
 +            }
 +            this.#apiKeyIndex = apiKeyIndex;
++            if (inspectCandidate) {
++                const inspected = await inspectCandidate();
++                this.#assertSession(generationAtIntent);
++                if (inspected) {
++                    return inspected.result;
++                }
++            }
              // Every unresolved prior dispatch (this session OR a previous one —
              // the ledger is durable) must resolve before this section may issue
              // nonces: a restart would otherwise reuse a consumed-but-lagging
@@ -725,7 +819,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
              this.#assertSession(generationAtIntent);
              // Monotonic nonce reservation: the venue's nextNonce endpoint can
              // LAG accepted submissions. The floor is SESSION-GLOBAL per
-@@ -3255,14 +3407,14 @@ export class LighterProvider {
+@@ -3255,14 +3444,14 @@ export class LighterProvider {
              // response was lost. Reservation advances at DISPATCH (a signing
              // failure never burns a nonce the venue still expects); a proven
              // never-landed submission releases it again via reconciliation.
@@ -742,7 +836,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                  this.#assertSession(generationAtIntent);
                  const reservedFloor = this.#nonceReservations.get(reservationKey);
                  const issued = reservedFloor === undefined
-@@ -3310,7 +3462,7 @@ export class LighterProvider {
+@@ -3310,7 +3499,7 @@ export class LighterProvider {
                      };
                      const appendedEntry = ledgerEntry;
                      await this.#withLedgerLock(accountIndex, async () => {
@@ -751,7 +845,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                          if (doc.entries.length >= 16) {
                              throw new Error('Too many unresolved Lighter dispatches; refusing further writes until they resolve');
                          }
-@@ -3318,8 +3470,8 @@ export class LighterProvider {
+@@ -3318,8 +3507,8 @@ export class LighterProvider {
                              consumedFloor: doc.consumedFloor,
                              entries: [...doc.entries, appendedEntry],
                              recovered: doc.recovered,
@@ -762,7 +856,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                      // Only AFTER the durable append: reserve in memory — from this
                      // point the venue may consume the nonce even if the response
                      // never arrives.
-@@ -3328,6 +3480,10 @@ export class LighterProvider {
+@@ -3328,6 +3517,10 @@ export class LighterProvider {
                  // EVERY error path below keeps the durable entry — a coded venue
                  // or HTTP error can mask a commit, so nothing short of an exact
                  // authoritative reconciliation may release the nonce.
@@ -773,7 +867,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                  const response = await this.#clientService.sendTx(txType, txInfo);
                  // Acceptance bookkeeping runs SYNCHRONOUSLY before anything can
                  // fail: a switch during network submission must cancel the
-@@ -3349,7 +3505,7 @@ export class LighterProvider {
+@@ -3349,7 +3542,7 @@ export class LighterProvider {
                      fenceError = error;
                  }
                  if (ledgerEntry !== null) {
@@ -782,7 +876,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                  }
                  if (fenceError !== null) {
                      throw ensureError(fenceError, 'LighterProvider.submit');
-@@ -3362,7 +3518,7 @@ export class LighterProvider {
+@@ -3362,7 +3555,7 @@ export class LighterProvider {
          // serialized PROCESS-WIDE per network+account+api-key slot: the
          // instance chain alone cannot stop a second live provider from
          // issuing the same nonce or interleaving ledger writes.
@@ -791,7 +885,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          // INNERMOST: the bridge mutex — the WASM client is a singleton
          // per bridge, so ensure-correct-client + every sign of a section
          // are serialized across ALL providers sharing the bridge.
-@@ -3392,6 +3548,7 @@ export class LighterProvider {
+@@ -3392,6 +3585,7 @@ export class LighterProvider {
              accountIndex: recreateParams.accountIndex,
              nonce,
              apiKeyIndex: this.#apiKeyIndex,
@@ -799,7 +893,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          });
          if (recreated.error || !recreated.success) {
              throw new Error(`Lighter signer client re-establishment failed: ${recreated.error ?? 'unknown'}`);
-@@ -5827,7 +5984,7 @@ export class LighterProvider {
+@@ -5827,7 +6021,7 @@ export class LighterProvider {
              return NOOP_UNSUBSCRIBE;
          }
          this.#orderSubscribers.add(params);
@@ -808,7 +902,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
              params.callback([...this.#wsOrders.values()]);
          }
          this.#ensureAccountChannels();
-@@ -5842,6 +5999,20 @@ export class LighterProvider {
+@@ -5842,6 +6036,20 @@ export class LighterProvider {
          }
          this.#fillSubscribers.add(params);
          this.#ensureAccountChannels();
@@ -829,7 +923,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          return () => {
              this.#fillSubscribers.delete(params);
              this.#releaseChannelIfUnused();
-@@ -5867,7 +6038,9 @@ export class LighterProvider {
+@@ -5867,7 +6075,9 @@ export class LighterProvider {
          }
          const generation = this.#sessionGeneration;
          let channelsRequested = false;
@@ -840,7 +934,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
              try {
                  // Warm the margin cache before any WS position frame is adapted.
                  await this.#ensureMarketMargins().catch(() => undefined);
-@@ -5883,6 +6056,7 @@ export class LighterProvider {
+@@ -5883,6 +6093,7 @@ export class LighterProvider {
                  this.#requestChannel(`account_all_positions/${accountIndex}`);
                  this.#requestChannel(`account_all_trades/${accountIndex}`);
                  channelsRequested = true;
@@ -848,7 +942,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                  try {
                      const auth = await this.#getAuthToken();
                      this.#assertSession(generation);
-@@ -5890,6 +6064,20 @@ export class LighterProvider {
+@@ -5890,6 +6101,20 @@ export class LighterProvider {
                  }
                  catch (error) {
                      this.#deps.debugLogger.log('[LighterProvider] orders channel skipped (no auth token)', { error: String(error) });
@@ -869,7 +963,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                      // Setup failures are not authoritative empty order state. Account
                      // switches and deselection already emit their synchronous reset.
                      channelsRequested = false;
-@@ -5907,6 +6095,17 @@ export class LighterProvider {
+@@ -5907,6 +6132,17 @@ export class LighterProvider {
                      generation === this.#sessionGeneration) {
                      this.#emitAccountBindingReset();
                  }
@@ -887,7 +981,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                  // An aborted previous-account setup has no authority over the new
                  // session. Current-session failures also preserve the last known data.
                  // Transport, auth, capability, and integrity failures are not
-@@ -5924,7 +6123,6 @@ export class LighterProvider {
+@@ -5924,7 +6160,6 @@ export class LighterProvider {
                  this.#accountChannelsPromise === setupPromise) {
                  this.#accountChannelsPromise = null;
              }
@@ -895,7 +989,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          })
              .catch(() => undefined);
          this.#ensureStream();
-@@ -6017,7 +6215,6 @@ export class LighterProvider {
+@@ -6017,7 +6252,6 @@ export class LighterProvider {
                          }
                          this.#wsWantedChannels.set(channel, { auth: freshToken });
                          this.#sendSubscribe(channel, freshToken);
@@ -903,7 +997,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
                      })
                          .catch((error) => {
                          this.#deps.debugLogger.log('[LighterProvider] auth channel resubscribe failed', { channel, error: String(error) });
-@@ -6173,6 +6370,9 @@ export class LighterProvider {
+@@ -6173,6 +6407,9 @@ export class LighterProvider {
                      }
                  }
              }
@@ -913,7 +1007,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
              this.#wsOrders.clear();
              for (const [orderId, order] of nextOrders) {
                  this.#wsOrders.set(orderId, order);
-@@ -6338,9 +6538,6 @@ export class LighterProvider {
+@@ -6338,9 +6575,6 @@ export class LighterProvider {
       * @param message - Camelized account_all_trades payload.
       */
      #handleTradesMessage = (message) => {
@@ -923,7 +1017,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          const isSnapshot = (message.type ?? '').startsWith('subscribed');
          const fills = [];
          let droppedUnsupportedFill = false;
-@@ -6361,6 +6558,11 @@ export class LighterProvider {
+@@ -6361,6 +6595,11 @@ export class LighterProvider {
                  }
              }
          }
@@ -935,7 +1029,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          if (fills.length === 0 && !isSnapshot) {
              return;
          }
-@@ -6372,6 +6574,21 @@ export class LighterProvider {
+@@ -6372,6 +6611,21 @@ export class LighterProvider {
              this.#deps.debugLogger.log('[LighterProvider] withholding partial fills snapshot (unsupported fills present)');
              return;
          }
@@ -957,7 +1051,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          for (const subscriber of this.#fillSubscribers) {
              try {
                  subscriber.callback(fills, isSnapshot);
-@@ -6499,6 +6716,8 @@ export class LighterProvider {
+@@ -6499,6 +6753,8 @@ export class LighterProvider {
          this.#wsWantedChannels.clear();
          this.#accountChannelsPromise = null;
          this.#wsPositions.clear();
@@ -966,7 +1060,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          this.#wsOrders.clear();
          this.#orderBookState.clear();
          this.#candleSeries.clear();
-@@ -6555,7 +6774,6 @@ export class LighterProvider {
+@@ -6555,7 +6811,6 @@ export class LighterProvider {
              params.callback(seeded);
              this.#requestChannel(`candle/${market.marketId}/${resolution}`);
              this.#ensureStream();
@@ -974,7 +1068,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..3b5471ba3b2cf7cb989b831040193161
          })
              .catch((error) => {
              this.#deps.debugLogger.log('[LighterProvider] candle seed failed', {
-@@ -6625,7 +6843,6 @@ export class LighterProvider {
+@@ -6625,7 +6880,6 @@ export class LighterProvider {
              subscribers.add(params);
              this.#requestChannel(`order_book/${marketId}`);
              this.#ensureStream();
@@ -998,7 +1092,7 @@ index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615
  const ResponseStructs = {
      orderBooks: type({
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index 3924c0be2cb8eb6dac463a8d2273203d72140a00..b7844d2ae59219ef7ead892e7483fa2a50766dcc 100644
+index 3924c0be2cb8eb6dac463a8d2273203d72140a00..92f3cad6e90019c362a950307098403876cb74a8 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
 @@ -998,7 +998,8 @@ export type OrderFill = {
@@ -1030,6 +1124,19 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..b7844d2ae59219ef7ead892e7483fa2a
      accountId?: CaipAccountId;
      includeHistory?: boolean;
  };
+@@ -1405,6 +1410,12 @@ type ReadyPerpsOrderCapabilities = Readonly<{
+     status: 'ready';
+     providerId: PerpsProviderType;
+     supportedStrategies: readonly StrategyOrderType[];
++    /**
++     * Standalone stop/take-profit placements this market's provider executes.
++     * Omitted means support is not reported; clients must not infer support
++     * from the provider name. Attached or position TP/SL is a separate contract.
++     */
++    supportedTriggerOrderTypes?: readonly TriggerOrderType[];
+     /**
+      * Margin modes the market accepts for `OrderParams.marginMode`. Omitted
+      * means the provider does not report it, and clients should not offer an
 diff --git a/dist/types/lighter-types.d.ts b/dist/types/lighter-types.d.ts
 index 9f212d4edfa0141522a868fb006a8d02621bed96..df63db4afe0d5f07b82013d207cd2d86395191af 100644
 --- a/dist/types/lighter-types.d.ts

@@ -88,8 +88,8 @@
   <body>
     <header>
       <p class="meta">
-        MetaMask Perps · Advanced-order matrix checked September 30, 2026;
-        earlier evidence retains its original dates
+        MetaMask Perps · Advanced-order matrix checked October 1, 2026; earlier
+        evidence retains its original dates
       </p>
       <h1>Lighter: fees, capabilities and integration status</h1>
       <p>
@@ -384,6 +384,18 @@
         mainnet financial execution.
         <a href="#core-sources">[C1–C4]</a>
       </p>
+      <p>
+        October 1 capability stage uses the additive contract in
+        <a href="https://github.com/MetaMask/core/pull/10629">Core #10629</a>,
+        inspected at <code>64e799fab9aaee5c9198d71fe9731aa7ed915b4e</code>,
+        stacked on recovery
+        <code>797e923865a03c997b34b298995bbd0c8396d19d</code>. This Mobile
+        branch backports it into controller 19.0.0. Hyperliquid declares its
+        four existing standalone types; Lighter still reports unavailable. This
+        fixes discovery and submission guards and does not implement native
+        Lighter triggers, attached/partial TP/SL or strategies. Published
+        release availability remains separate from local validation.
+      </p>
       <p class="note">
         September 30 source audit: Hyperliquid has advanced strategies that the
         Lighter integration does not implement. Lighter's controller capability
@@ -586,10 +598,13 @@
                 Existing-position TP/SL is a separate path.
               </td>
               <td>
-                Mobile gap: the Pro triggered-order picker is gated by Pro mode
-                and its rollout flag, without a provider capability check. It
-                can offer a type that Lighter rejects. Source finding; no
-                current device reproduction claimed.
+                Fixed in this branch: Pro mode and rollout now require an
+                explicit standalone type declaration. Omitted, unavailable and
+                pending declarations offer only Basic choices. Fresh placement
+                checks bind the declared provider and current wallet/network.
+                Actual-rollout iOS recipes passed Lighter Basic-only and
+                Hyperliquid's four trigger choices on the same dev1 account.
+                Native Lighter placement remains unfinished.
               </td>
             </tr>
             <tr>
@@ -786,6 +801,22 @@
         financial pass is claimed.
       </p>
 
+      <p>
+        October 1 capability and recovery follow-up uses the same mm-3 dev1
+        fixture. With the actual remote trigger rollout enabled,
+        <code>goal/capability-gating/lighter-run-02</code> passed 15/15 and
+        <code>goal/capability-gating/hyperliquid-run-03</code> passed 22/22,
+        including native menu visibility and Basic Limit selection. Controlled
+        iOS/Android view tests cover missing, pending and subset declarations
+        and preserved drafts. The follow-up recovery recipe passed 12/12 with
+        unchanged registered keys; Lighter market/close passed 17/17 and
+        limit/cancel passed 18/18, ending flat. Recovery now skips an unrelated
+        candidate's ledger and retains the matching key's nonce safeguards.
+        Scoped source tests, lint and type diagnostics passed. Task artifacts
+        retain warnings and unrelated type diagnostics; no warning-free or
+        full-project TypeScript pass is claimed. Native advanced-order execution
+        and mainnet financial validation remain unfinished.
+      </p>
       <p>
         September 21 revalidation on commit <code>9f31932280</code>, iOS
         <code>mm-1</code>, Runway <code>35154767219</code>, and published

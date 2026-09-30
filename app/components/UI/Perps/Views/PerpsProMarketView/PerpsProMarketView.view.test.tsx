@@ -12,6 +12,7 @@ import type {
   ChaseOrder,
   Order,
   PriceUpdate,
+  PerpsOrderCapabilities,
   TwapOrder,
   TwapOrderFill,
 } from '@metamask/perps-controller';
@@ -339,14 +340,39 @@ const renderFundedProMarket = () =>
     },
   });
 
-const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
-  renderPerpsProMarketView({
+const renderProMarketWithTriggeredOrdersFlag = (
+  enabled: boolean,
+  providerId: 'hyperliquid' | 'lighter' = 'hyperliquid',
+  capabilities?: PerpsOrderCapabilities | Promise<PerpsOrderCapabilities>,
+) => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue(
+      capabilities ??
+        (providerId === 'hyperliquid'
+          ? {
+              status: 'ready',
+              providerId,
+              supportedStrategies: [],
+              supportedTriggerOrderTypes: [
+                'stop_market',
+                'stop_limit',
+                'take_profit_market',
+                'take_profit_limit',
+              ],
+            }
+          : { status: 'unavailable', providerId, reason: 'not_implemented' }),
+    );
+
+  return renderPerpsProMarketView({
+    initialParams: { market: { symbol: 'ETH', providerId } },
     streamOverrides: {
       account: createFundedAccountForViews('1000'),
     },
     overrides: {
       engine: {
         backgroundState: {
+          PerpsController: { activeProvider: providerId },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               perpsProModeEnabled: {
@@ -371,6 +397,7 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
       },
     },
   });
+};
 
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
@@ -431,6 +458,12 @@ const renderProMarketWithScaleFlag = (enabled: boolean) => {
       status: 'ready',
       providerId: 'hyperliquid',
       supportedStrategies: enabled ? ['scale'] : [],
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
     });
 
   return renderPerpsProMarketView({
@@ -611,6 +644,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         status: 'ready',
         providerId: 'hyperliquid',
         supportedStrategies: ['chase'],
+        supportedTriggerOrderTypes: [
+          'stop_market',
+          'stop_limit',
+          'take_profit_market',
+          'take_profit_limit',
+        ],
       });
       getOrderCapabilities.mockClear();
       renderPerpsProMarketView({
@@ -1934,6 +1973,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           status: 'ready',
           providerId: 'hyperliquid',
           supportedStrategies: ['chase'],
+          supportedTriggerOrderTypes: [
+            'stop_market',
+            'stop_limit',
+            'take_profit_market',
+            'take_profit_limit',
+          ],
         });
       getChaseOrders
         .mockResolvedValueOnce([])
@@ -2411,6 +2456,142 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       for (const testID of triggeredOrderTypeIDs) {
         expect(screen.getByTestId(testID)).toBeOnTheScreen();
       }
+    },
+  );
+
+  itForPlatforms(
+    'keeps Basic orders selectable when Lighter cannot execute enabled triggers',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter');
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      );
+
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
+      }
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+      expect(await findPriceInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'shows only the trigger subset declared by a provider',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter', {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+      await findSizeInput();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      const tab = await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+      );
+      fireEvent.press(tab);
+
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps Basic orders available while trigger capabilities are pending',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(
+        true,
+        'hyperliquid',
+        new Promise<PerpsOrderCapabilities>(() => undefined),
+      );
+      await findSizeInput();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'preserves the trigger draft after its rollout is disabled',
+    async () => {
+      const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+      await findSizeInput();
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+      );
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '3000');
+      const remote =
+        store.getState().engine.backgroundState.RemoteFeatureFlagController;
+      act(() =>
+        syncEngineControllerState(store, 'RemoteFeatureFlagController', {
+          ...remote,
+          remoteFeatureFlags: {
+            ...remote.remoteFeatureFlags,
+            perpsProTriggeredOrdersEnabled: {
+              enabled: false,
+              minimumVersion: '0.0.0',
+            },
+          },
+        }),
+      );
+
+      expect(triggerInput).toHaveProp('value', '3000');
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.stop_market.title'),
+      );
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
     },
   );
 
@@ -3654,6 +3835,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           status: 'ready',
           providerId: 'hyperliquid',
           supportedStrategies: ['chase'],
+          supportedTriggerOrderTypes: [
+            'stop_market',
+            'stop_limit',
+            'take_profit_market',
+            'take_profit_limit',
+          ],
         });
       renderPerpsProMarketView({
         streamOverrides: { account: createFundedAccountForViews('1000') },

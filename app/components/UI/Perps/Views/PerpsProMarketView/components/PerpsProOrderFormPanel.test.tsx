@@ -5,6 +5,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   PERPS_CONSTANTS,
+  TRIGGER_ORDER_TYPES,
   type OrderType,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
@@ -282,6 +283,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: true,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
@@ -316,7 +319,8 @@ describe('PerpsProOrderFormPanel', () => {
     });
   });
 
-  it('skips capability discovery when all strategy flags are disabled', () => {
+  it('skips capability discovery when all advanced order flags are disabled', () => {
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, false);
     selectorValues.set(selectPerpsProTwapEnabledFlag, false);
     selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
     selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
@@ -324,6 +328,19 @@ describe('PerpsProOrderFormPanel', () => {
     renderPanel();
 
     expect(mockUsePerpsProvider).toHaveBeenCalledWith(undefined);
+  });
+
+  it('loads shared capabilities when only triggered orders are enabled', () => {
+    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
   });
 
   it('loads shared capabilities when only Chase is enabled', () => {
@@ -399,6 +416,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: false,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
 
     renderPanel();
@@ -693,6 +712,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: true,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
     mockHookResult.isOrderTypeVisible = true;
 
@@ -726,6 +747,8 @@ describe('PerpsProOrderFormPanel', () => {
       supportsScaleOrders: true,
       supportsChaseOrders: false,
       checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: [],
+      checkTriggerOrderSupport: mockCheckOrderCapability,
     });
     mockHookResult.isOrderTypeVisible = true;
 
@@ -733,14 +756,7 @@ describe('PerpsProOrderFormPanel', () => {
 
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
-        availableOrderTypes: [
-          'market',
-          'limit',
-          'stop_limit',
-          'stop_market',
-          'take_profit_limit',
-          'take_profit_market',
-        ],
+        availableOrderTypes: ['market', 'limit'],
       }),
     );
     expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
