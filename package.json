@@ -436,7 +436,7 @@
     "@react-native-community/cli": "20.1.0",
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",
-    "@react-native-community/cli-server-api": "^17.0.0",
+    "@react-native-community/cli-server-api": "20.1.0",
     "@react-native-community/datetimepicker": "^8.5.1",
     "@react-native-community/netinfo": "11.5.2",
     "@react-native-community/slider": "5.2.0",
