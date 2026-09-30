@@ -38,7 +38,11 @@ import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyAct
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
-import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
+import {
+  getMoneyActivityStatus,
+  type MoneyActivityStatus,
+} from '../../utils/classifyMoneyActivity';
+import { useEffectiveStatusOverrides } from '../../hooks/useEffectiveMoneyActivityStatus';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -81,10 +85,15 @@ interface ActivitySection {
   isPending?: boolean;
 }
 
-function isPendingItem(item: MoneyActivityItem): boolean {
-  return (
-    item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
-  );
+function isPendingItem(
+  item: MoneyActivityItem,
+  overrides: Map<string, MoneyActivityStatus> = new Map(),
+): boolean {
+  if (item.kind !== 'onchain') {
+    return false;
+  }
+  const status = overrides.get(item.tx.id) ?? getMoneyActivityStatus(item.tx);
+  return status === 'pending';
 }
 
 function dateKeyUtc(time: number): string {
@@ -122,8 +131,13 @@ function groupByDate(items: MoneyActivityItem[]): ActivitySection[] {
  * Builds the list sections: a single "Pending" bucket (in-flight rows) on top,
  * followed by the confirmed/failed rows grouped by date.
  */
-function buildSections(items: MoneyActivityItem[]): ActivitySection[] {
-  const [pending, settled] = partition(items, isPendingItem);
+function buildSections(
+  items: MoneyActivityItem[],
+  overrides: Map<string, MoneyActivityStatus> = new Map(),
+): ActivitySection[] {
+  const [pending, settled] = partition(items, (item: MoneyActivityItem) =>
+    isPendingItem(item, overrides),
+  );
 
   const dateSections = groupByDate(settled);
   if (pending.length === 0) {
@@ -210,7 +224,12 @@ const MoneyActivityView = () => {
 
   const filtered = buckets[filter];
 
-  const sections = useMemo(() => buildSections(filtered), [filtered]);
+  const overrides = useEffectiveStatusOverrides(filtered);
+
+  const sections = useMemo(
+    () => buildSections(filtered, overrides),
+    [filtered, overrides],
+  );
 
   const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">

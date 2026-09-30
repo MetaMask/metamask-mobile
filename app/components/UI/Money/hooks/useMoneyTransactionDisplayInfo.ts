@@ -21,6 +21,7 @@ import {
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
 import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
+import { useEffectiveMoneyActivityStatus } from './useEffectiveMoneyActivityStatus';
 import {
   activityFiatLineNeedsMarketRates,
   buildMoneyActivityFiatLine,
@@ -40,7 +41,6 @@ import {
 import type { MoneyActivityTransactionMeta } from '../constants/moneyActivity';
 import {
   classifyMoneyActivity,
-  getMoneyActivityStatus,
   moneyActivityKindToIcon,
   moneyActivityLabel,
   type MoneyActivityKind,
@@ -182,6 +182,7 @@ export function useMoneyTransactionDisplayInfo(
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
   const paymentMethodName = useFiatPaymentMethodName(tx);
+  const activityStatus = useEffectiveMoneyActivityStatus(tx);
   const needsMarketRates = useMemo(
     () => activityFiatLineNeedsMarketRates(tx),
     [tx],
@@ -225,7 +226,7 @@ export function useMoneyTransactionDisplayInfo(
       ? MUSD_TOKEN.symbol
       : (payToken?.symbol ?? nativeTicker);
     const kind = classifyMoneyActivity(tx);
-    const status = getMoneyActivityStatus(tx);
+    const status = activityStatus;
     const isIncoming = isIncomingMoneyTransactionMeta(tx);
 
     let primaryAmount = getMusdDisplayAmountFromTransactionMeta(tx);
@@ -298,6 +299,7 @@ export function useMoneyTransactionDisplayInfo(
     tx,
     subtitle,
     paymentMethodName,
+    activityStatus,
     currencyRates,
     tokenMarketData,
     payToken,
