@@ -13,6 +13,14 @@ import LiveTradesView from './LiveTradesView';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import { getLiveTradeRowTestId } from './components/LiveTradeRow.testIds';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
+import Routes from '../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, unknown>) =>
@@ -44,6 +52,9 @@ jest.mock('react-native-linear-gradient', () => {
 });
 
 describe('LiveTradesView', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
   it('renders a single Live stream toggle above the mock feed list', () => {
     renderWithProvider(<LiveTradesView />);
 
@@ -185,5 +196,26 @@ describe('LiveTradesView', () => {
     expect(
       screen.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the V1 profile from a trader identity tap', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    const firstItem = MOCK_LIVE_TRADES_ITEMS[0];
+    fireEvent.press(screen.getByTestId(`live-trade-trader-${firstItem.id}`));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: firstItem.traderId,
+        traderName: firstItem.authorHandle,
+        traderAddress: firstItem.traderAddress,
+        ...(firstItem.authorImageUrl
+          ? { traderAvatarUri: firstItem.authorImageUrl }
+          : {}),
+        source: 'trader_feed',
+      },
+      {},
+    );
   });
 });

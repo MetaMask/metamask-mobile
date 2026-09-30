@@ -97,6 +97,7 @@ import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasInclud
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
+import { useShouldRenderMaxOption } from '../../Bridge/hooks/useShouldRenderMaxOption';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
 import { useRecipientInitialization } from '../../Bridge/hooks/useRecipientInitialization';
 import {
@@ -173,6 +174,8 @@ export interface UseQuickBuyControllerResult {
   maxSpendFiat: number;
   /** True when neither fiat nor token-balance gates allow slider interaction. */
   isSliderDisabled: boolean;
+  /** False when spending the full balance would leave nothing for gas. */
+  isMaxAmountAllowed: boolean;
   formattedExchangeRate: string | undefined;
   /** Display-only current price of the asset shown in the header. */
   tokenPrice?: number;
@@ -1023,6 +1026,10 @@ export function useQuickBuyController(
   const isSliderDisabled = hasSourcePrice
     ? maxSpendFiat <= 0
     : maxSpendTokens <= 0;
+  const isMaxAmountAllowed = useShouldRenderMaxOption(
+    sourceToken,
+    latestSourceBalance?.displayBalance,
+  );
 
   // Display-only copy of the dest token enriched with a balance-independent
   // rate (`useDestTokenExchangeRate`) so the pre-quote pill renders even when
@@ -1895,6 +1902,7 @@ export function useQuickBuyController(
     sliderPercent,
     maxSpendFiat,
     isSliderDisabled,
+    isMaxAmountAllowed,
     formattedExchangeRate,
     tokenPrice,
     metamaskFeePercent,

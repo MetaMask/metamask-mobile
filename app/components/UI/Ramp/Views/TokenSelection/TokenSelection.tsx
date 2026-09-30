@@ -46,6 +46,11 @@ import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectMod
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -322,6 +327,16 @@ function TokenSelection() {
     }
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+    contentReady: !isLoading,
+    contentState: error
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : supportedTokens.length === 0
+        ? RAMP_SCREEN_CONTENT_STATE.EMPTY
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
