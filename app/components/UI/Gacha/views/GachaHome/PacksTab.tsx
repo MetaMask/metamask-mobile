@@ -79,13 +79,16 @@ const PacksTab = ({ account, balance, onPurchased }: PacksTabProps) => {
   const { packs, isLoading, error, refetch } = useCollectorCryptPacks();
   const demoEnabled = isGachaRevealDemoEnabled();
   const listedPacks = useMemo(
-    () => demoEnabled ? [createDemoPack(packs), ...packs] : packs,
+    () => (demoEnabled ? [createDemoPack(packs), ...packs] : packs),
     [demoEnabled, packs],
   );
   const [selectedPack, setSelectedPack] = useState<CollectorCryptPack>();
   const [selectedCollection, setSelectedCollection] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const collections = useMemo(() => getPackCollections(listedPacks), [listedPacks]);
+  const collections = useMemo(
+    () => getPackCollections(listedPacks),
+    [listedPacks],
+  );
   const collection = collections.includes(selectedCollection)
     ? selectedCollection
     : '';
@@ -101,15 +104,18 @@ const PacksTab = ({ account, balance, onPurchased }: PacksTabProps) => {
   }, [refetch]);
 
   const handleCloseSheet = useCallback(() => setSelectedPack(undefined), []);
-  const handleOpenPack = useCallback((pack: CollectorCryptPack) => {
-    if (pack.code === DEMO_PACK_CODE) {
-      if (isGachaRevealDemoEnabled()) {
-        navigation.navigate(Routes.GACHA.REVEAL, { demo: true });
+  const handleOpenPack = useCallback(
+    (pack: CollectorCryptPack) => {
+      if (pack.code === DEMO_PACK_CODE) {
+        if (isGachaRevealDemoEnabled()) {
+          navigation.navigate(Routes.GACHA.REVEAL, { demo: true });
+        }
+        return;
       }
-      return;
-    }
-    setSelectedPack(pack);
-  }, [navigation]);
+      setSelectedPack(pack);
+    },
+    [navigation],
+  );
   const handleCollectionChange = useCallback((value: string) => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
     setSelectedCollection(value);
@@ -122,10 +128,14 @@ const PacksTab = ({ account, balance, onPurchased }: PacksTabProps) => {
           pack={item}
           isAffordable={canAffordPack(balance, item.price)}
           onOpen={handleOpenPack}
-          artwork={item.code === DEMO_PACK_CODE ? {
-            ...getCollectorCryptPackArtwork(DEMO_ARTWORK_CODE),
-            name: item.name,
-          } : undefined}
+          artwork={
+            item.code === DEMO_PACK_CODE
+              ? {
+                  ...getCollectorCryptPackArtwork(DEMO_ARTWORK_CODE),
+                  name: item.name,
+                }
+              : undefined
+          }
         />
       </Box>
     ),

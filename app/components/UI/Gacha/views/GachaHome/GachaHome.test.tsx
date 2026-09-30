@@ -12,6 +12,7 @@ import {
   GachaPurchaseSheetTestIds,
 } from '../../Gacha.testIds';
 import { createCollectorCryptError } from '../../providers/collector-crypt/services/errors';
+import { DEMO_PACK_CODE, isGachaRevealDemoEnabled } from '../../dev/revealDemo';
 import {
   MOCK_ACCOUNT,
   MOCK_INTERNAL_ACCOUNT,
@@ -30,6 +31,11 @@ import GachaHome from './GachaHome';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+
+jest.mock('../../dev/revealDemo', () => ({
+  ...jest.requireActual('../../dev/revealDemo'),
+  isGachaRevealDemoEnabled: jest.fn(),
+}));
 
 jest.mock('@shopify/flash-list', () =>
   jest.requireActual('../../../../../util/test/mockFlashList').flashListMock(),
@@ -98,6 +104,7 @@ const waitForSync = async () => {
 describe('GachaHome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isGachaRevealDemoEnabled).mockReturnValue(false);
     jest
       .mocked(selectSelectedInternalAccountByScope)
       .mockReturnValue(mockAccountByScope);
@@ -295,6 +302,25 @@ describe('GachaHome', () => {
         price: POKEMON_PACK.price,
       },
     });
+  });
+
+  it('opens the local demo without a purchase sheet or payment', async () => {
+    jest.mocked(isGachaRevealDemoEnabled).mockReturnValue(true);
+    renderHome({ cards: [CARD], usdcAmount: '0' });
+
+    fireEvent.press(
+      await screen.findByTestId(
+        GachaPackCardTestIds.OPEN_BUTTON(DEMO_PACK_CODE),
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.GACHA.REVEAL, {
+      demo: true,
+    });
+    expect(
+      screen.queryByTestId(GachaPurchaseSheetTestIds.SHEET),
+    ).not.toBeOnTheScreen();
+    expect(controller.generatePack).not.toHaveBeenCalled();
   });
 
   it('shows the packs error with a retry', async () => {

@@ -119,6 +119,11 @@ export const GachaRevealTestIds = {
   SELL_BUTTON: 'gacha-reveal-sell',
   SELL_AND_OPEN_BUTTON: 'gacha-reveal-sell-and-open',
   KEEP_BUTTON: 'gacha-reveal-keep',
+  BUY_AGAIN_BUTTON: 'gacha-reveal-buy-again',
+  DEMO_LABEL: 'gacha-reveal-demo-label',
+  DEMO_RARITY: (rarity: string) => `gacha-reveal-demo-${rarity}`,
+  DEMO_REPLAY_BUTTON: 'gacha-reveal-demo-replay',
+  DEMO_SELL_AND_OPEN_BUTTON: 'gacha-reveal-demo-sell-and-open',
 } as const;
 
 export const GachaCardViewTestIds = {

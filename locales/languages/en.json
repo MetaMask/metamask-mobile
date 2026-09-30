@@ -3404,11 +3404,9 @@
       "price": "Price",
       "pay_with": "Pay with",
       "balance_after": "Balance after",
-      "account": "Account",
       "odds": "Odds",
       "buyback_info": "Sell the card back instantly for {{percent}}% of its value, within 72 hours.",
-      "signing_info": "MetaMask signs the payment for you once you confirm. No other approval is needed.",
-      "confirm": "Confirm and open",
+      "confirm": "Buy and Open",
       "generating": "Preparing your pack"
     },
     "reveal": {
@@ -3425,9 +3423,21 @@
       "buyback_error": "We couldn't check the buyback offer. Try again.",
       "sell_for": "Sell for {{amount}} USDC",
       "sell_and_open": "Sell and open another",
+      "sell_and_open_amount": "Sell {{amount}} USDC & buy again",
+      "buy_again": "Buy another · {{amount}} USDC",
+      "cut_hint": "Swipe across the seal to open",
+      "reveal_card": "Reveal card",
+      "preparing_card": "Preparing your card…",
       "keep": "Keep card",
       "selling": "Selling",
       "close": "Close"
+    },
+    "demo": {
+      "title": "Demo Pack",
+      "description": "Free preview · No purchase or sale",
+      "sell_and_open": "Simulate sell & open again",
+      "replay": "Replay Demo Pack",
+      "no_card": "Choose an account with a card in My cards to preview the reveal."
     },
     "card": {
       "title": "Card",

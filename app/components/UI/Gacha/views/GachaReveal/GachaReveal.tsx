@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView } from 'react-native';
+import { ActivityIndicator, BackHandler, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   type RouteProp,
@@ -25,18 +25,28 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Theme,
+  ThemeProvider,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
+import { brandColor, darkTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { ThemeContext } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import { GachaRevealTestIds } from '../../Gacha.testIds';
 import BuybackOffer from '../../components/BuybackOffer';
-import CardDisplay from '../../components/CardDisplay';
 import CardBackdrop from '../../components/CardBackdrop';
 import { CARD_ASPECT_RATIO } from '../../components/CardImage';
 import CtaButton from '../../components/CtaButton';
 import { showErrorToast } from '../../hooks/toasts';
+import { isGachaRevealDemoEnabled } from '../../dev/revealDemo';
+import { canAffordPack } from '../../components/PackCard';
+import GachaDemoReveal from './GachaDemoReveal';
+import GachaRevealContent from './GachaRevealContent';
 import { useCollectorCryptAccount } from '../../providers/collector-crypt/hooks/useCollectorCryptAccount';
 import { useCollectorCryptOperation } from '../../providers/collector-crypt/hooks/useCollectorCryptOperation';
 import {
@@ -65,7 +75,7 @@ import {
   shouldDismissOnClose,
 } from './GachaReveal.utils';
 
-type RevealAction = 'sell' | 'sellAndOpen' | 'keep' | 'startOver';
+type RevealAction = 'sellAndOpen' | 'buyAgain' | 'startOver';
 
 interface RevealSnapshot {
   operation: PackOperation | undefined;
@@ -73,6 +83,11 @@ interface RevealSnapshot {
 }
 
 const PLACEHOLDER_STYLE = { aspectRatio: CARD_ASPECT_RATIO };
+const REVEAL_THEME = {
+  ...darkTheme,
+  brandColors: brandColor,
+  themeAppearance: AppThemeKey.dark,
+};
 
 /** Card-shaped placeholder and the current purchase stage. */
 const ProcessingState = ({ stage }: { stage: RevealStage }) => {
@@ -187,13 +202,10 @@ const ErrorState = ({
  * Pack reveal (full-screen modal). Runs `completePack` once on mount, shows
  * the purchase progress, the error recovery, or the card with its actions.
  */
-const GachaReveal = () => {
+const PurchasedPackReveal = ({ memo }: { memo: string }) => {
   const tw = useTailwind();
   const isFocused = useIsFocused();
   const navigation = useNavigation<AppStackNavigationProp>();
-  const {
-    params: { memo },
-  } = useRoute<RouteProp<GachaStackParamList, 'GachaReveal'>>();
   const account = useCollectorCryptAccount();
   const live = useCollectorCryptOperation(account?.address, memo);
   // Frozen while leaving so dismissing the operation does not flash a state.
@@ -204,6 +216,9 @@ const GachaReveal = () => {
   const [isCompleting, setIsCompleting] = useState(true);
   const [localError, setLocalError] = useState<CollectorCryptErrorState>();
   const [activeAction, setActiveAction] = useState<RevealAction>();
+  const [hasRevealed, setHasRevealed] = useState(false);
+  const actionInFlight = useRef(false);
+  const handleRevealed = useCallback(() => setHasRevealed(true), []);
   const hasStartedRef = useRef(false);
   const hasRefreshedBalanceRef = useRef(false);
   const isProcessing = isCompleting && Boolean(account);
@@ -312,14 +327,7 @@ const GachaReveal = () => {
     }
   }, [isSaleCompleted, activeAction, snapshot, refreshBalance, leave]);
 
-  const handleKeep = useCallback(() => {
-    setActiveAction('keep');
-    leave('cards');
-  }, [leave]);
-
-  const handleClose = useCallback(() => {
-    leave(revealState.kind === 'revealed' ? 'cards' : undefined);
-  }, [leave, revealState.kind]);
+  const handleClose = useCallback(() => leave('packs'), [leave]);
 
   const buyAgain = useCallback(async (): Promise<string> => {
     if (!account || !operation) {
@@ -345,30 +353,16 @@ const GachaReveal = () => {
     [dismissOperation, navigation],
   );
 
-  const handleSell = useCallback(async () => {
-    if (!revealedCard) {
-      return;
-    }
-    setActiveAction('sell');
-    setSnapshot(live);
-    const result = await sellCard(revealedCard.mint);
-    if (!result) {
-      setSnapshot(undefined);
-      setActiveAction(undefined);
-      return;
-    }
-    dismissOperation();
-    goHome('cards');
-  }, [revealedCard, live, sellCard, dismissOperation, goHome]);
-
   const handleSellAndOpen = useCallback(async () => {
-    if (!revealedCard) {
+    if (!revealedCard || actionInFlight.current) {
       return;
     }
+    actionInFlight.current = true;
     setActiveAction('sellAndOpen');
     setSnapshot(live);
     const result = await sellCard(revealedCard.mint);
     if (!result) {
+      actionInFlight.current = false;
       setSnapshot(undefined);
       setActiveAction(undefined);
       return;
@@ -376,6 +370,7 @@ const GachaReveal = () => {
     try {
       replaceWith(await buyAgain());
     } catch (error) {
+      actionInFlight.current = false;
       showErrorToast(
         strings('gacha.toast.open_failed'),
         getErrorMessageFromUnknown(error),
@@ -393,13 +388,34 @@ const GachaReveal = () => {
     goHome,
   ]);
 
+  const handleBuyAgain = useCallback(async () => {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
+    setActiveAction('buyAgain');
+    try {
+      const nextMemo = await buyAgain();
+      setSnapshot(live);
+      replaceWith(nextMemo);
+    } catch (error) {
+      actionInFlight.current = false;
+      showErrorToast(
+        strings('gacha.toast.open_failed'),
+        getErrorMessageFromUnknown(error),
+      );
+      setActiveAction(undefined);
+    }
+  }, [buyAgain, live, replaceWith]);
+
   const handleStartOver = useCallback(async () => {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
     setActiveAction('startOver');
     try {
       const nextMemo = await buyAgain();
       setSnapshot(live);
       replaceWith(nextMemo);
     } catch (error) {
+      actionInFlight.current = false;
       showErrorToast(
         strings('gacha.toast.open_failed'),
         getErrorMessageFromUnknown(error),
@@ -413,6 +429,18 @@ const GachaReveal = () => {
   }, [complete]);
 
   const isBusy = activeAction !== undefined;
+  useEffect(() => {
+    if (!isFocused) return;
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (!isBusy) handleClose();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [isFocused, isBusy, handleClose]);
+
   const canSellAndOpen =
     buyback.status === 'available' &&
     operation !== undefined &&
@@ -451,81 +479,89 @@ const GachaReveal = () => {
           onClose={handleClose}
         />
       )}
-      {revealState.kind === 'revealed' && (
-        <>
-          <ScrollView
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('items-center gap-4 px-4 pb-4')}
-            testID={GachaRevealTestIds.REVEALED}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('gacha.reveal.you_got')}
-            </Text>
-            <CardDisplay
-              card={revealState.card}
-              isActive={isFocused}
-              variant="reveal"
-            />
-            <BuybackOffer
-              display={buyback}
-              onRetry={retry}
-              isRetrying={isChecking}
-            />
-          </ScrollView>
-          <Box gap={3} twClassName="px-4 pb-4 pt-2">
-            {buyback.status === 'available' && !isSaleCompleted ? (
-              <>
+      {revealState.kind === 'revealed' && operation && (
+        <GachaRevealContent
+          card={revealState.card}
+          packCode={operation.packCode}
+          packName={operation.packName}
+          isActive={isFocused}
+          isRevealed={hasRevealed}
+          onRevealed={handleRevealed}
+          details={
+            buyback.status !== 'available' ? (
+              <BuybackOffer
+                display={buyback}
+                onRetry={retry}
+                isRetrying={isChecking}
+              />
+            ) : undefined
+          }
+          footer={
+            <>
+              {buyback.status === 'available' && !isSaleCompleted && (
                 <CtaButton
-                  label={strings('gacha.reveal.sell_for', {
+                  label={strings('gacha.reveal.sell_and_open_amount', {
                     amount: formatUsdcAmount(buyback.amount),
                   })}
-                  isLoading={activeAction === 'sell'}
                   loadingText={strings('gacha.reveal.selling')}
-                  isDisabled={isBusy}
-                  onPress={handleSell}
-                  testID={GachaRevealTestIds.SELL_BUTTON}
-                />
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Lg}
-                  isFullWidth
                   isLoading={activeAction === 'sellAndOpen'}
-                  isDisabled={isBusy || !canSellAndOpen}
+                  isDisabled={isBusy || !canSellAndOpen || !hasRevealed}
                   onPress={handleSellAndOpen}
                   testID={GachaRevealTestIds.SELL_AND_OPEN_BUTTON}
-                >
-                  {strings('gacha.reveal.sell_and_open')}
-                </Button>
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Lg}
-                  isFullWidth
-                  isDisabled={isBusy}
-                  onPress={handleKeep}
-                  testID={GachaRevealTestIds.KEEP_BUTTON}
-                >
-                  {strings('gacha.reveal.keep')}
-                </Button>
-              </>
-            ) : (
+                />
+              )}
               <Button
-                variant={ButtonVariant.Primary}
+                variant={
+                  buyback.status === 'available'
+                    ? ButtonVariant.Secondary
+                    : ButtonVariant.Primary
+                }
                 size={ButtonSize.Lg}
                 isFullWidth
-                isDisabled={isBusy}
-                onPress={handleKeep}
-                testID={GachaRevealTestIds.KEEP_BUTTON}
+                isLoading={activeAction === 'buyAgain'}
+                isDisabled={
+                  isBusy ||
+                  !hasRevealed ||
+                  !canAffordPack(balance.baseUnits, operation.price)
+                }
+                onPress={handleBuyAgain}
+                testID={GachaRevealTestIds.BUY_AGAIN_BUTTON}
               >
-                {strings('gacha.reveal.keep')}
+                {strings('gacha.reveal.buy_again', { amount: operation.price })}
               </Button>
-            )}
-          </Box>
-        </>
+            </>
+          }
+        />
       )}
     </SafeAreaView>
+  );
+};
+
+/** A preview route cannot mount the controller-driven purchase screen. */
+const GachaReveal = () => {
+  const { params } = useRoute<RouteProp<GachaStackParamList, 'GachaReveal'>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
+  const unavailableDemo = params.demo === true && !isGachaRevealDemoEnabled();
+
+  useEffect(() => {
+    if (unavailableDemo) {
+      navigation.popTo(Routes.GACHA.HOME, { initialTab: 'packs' });
+    }
+  }, [unavailableDemo, navigation]);
+
+  if (unavailableDemo) return null;
+
+  return (
+    <ThemeContext.Provider value={REVEAL_THEME}>
+      <ThemeProvider theme={Theme.Dark}>
+        <StatusBar barStyle="light-content" />
+        {params.demo ? (
+          <GachaDemoReveal />
+        ) : (
+          <PurchasedPackReveal key={params.memo} memo={params.memo} />
+        )}
+      </ThemeProvider>
+    </ThemeContext.Provider>
   );
 };
 

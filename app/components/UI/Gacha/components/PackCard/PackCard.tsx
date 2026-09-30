@@ -12,7 +12,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { GachaPackCardTestIds } from '../../Gacha.testIds';
-import { getCollectorCryptPackArtwork, type PackArtwork } from '../../assets/packs';
+import {
+  getCollectorCryptPackArtwork,
+  type PackArtwork,
+} from '../../assets/packs';
 import type { CollectorCryptPack } from '../../providers/collector-crypt/types';
 import CtaButton from '../CtaButton';
 import { UsdcIcon } from '../UsdcAmount';
@@ -26,7 +29,12 @@ export interface PackCardProps {
 }
 
 /** Intrinsic height and reserved text slots keep recycled grid cells equal-sized. */
-const PackCard = ({ pack, isAffordable, onOpen, artwork: customArtwork }: PackCardProps) => {
+const PackCard = ({
+  pack,
+  isAffordable,
+  onOpen,
+  artwork: customArtwork,
+}: PackCardProps) => {
   const { fontScale } = useWindowDimensions();
   const handleOpen = useCallback(() => onOpen(pack), [onOpen, pack]);
   const artwork = customArtwork ?? getCollectorCryptPackArtwork(pack.code);

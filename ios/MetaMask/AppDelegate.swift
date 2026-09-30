@@ -21,12 +21,34 @@ final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   }
 }
 
+@objc(MetaMaskSceneDelegate)
+final class MetaMaskSceneDelegate: ExpoAppSceneDelegate {
+  override func scene(
+    _ scene: UIScene,
+    willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions
+  ) {
+    if let response = connectionOptions.notificationResponse {
+      BrazeHelperPopulateInitialPayload([
+        UIApplication.LaunchOptionsKey(rawValue: "UIApplicationLaunchOptionsRemoteNotificationKey"):
+          response.notification.request.content.userInfo
+      ])
+    }
+    super.scene(scene, willConnectTo: session, options: connectionOptions)
+  }
+}
+
 @main
-class AppDelegate: ExpoAppDelegate {
+class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider {
   var window: UIWindow?
 
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
-  private var reactNativeFactory: RCTReactNativeFactory?
+  private(set) var reactNativeFactory: RCTReactNativeFactory?
+  var reactNativeFactoryModuleName: String { "MetaMask" }
+  var reactNativeFactoryInitialProperties: [AnyHashable: Any]? {
+    ["foxCode": (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"]
+  }
+
   private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
   private var isForwardingNotificationResponse = false
 
@@ -57,9 +79,6 @@ class AppDelegate: ExpoAppDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-    window?.makeKeyAndVisible()
-
     // Safe Firebase configuration — validates plist before configure() to prevent
     // FIRInstallations from throwing an uncatchable NSException on launch when
     // GoogleService-Info.plist is missing or contains a blank/placeholder/mock API_KEY.
@@ -72,9 +91,6 @@ class AppDelegate: ExpoAppDelegate {
        apiKey.hasPrefix("AIzaSy") {
       FirebaseApp.configure()
     }
-
-    let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
-    let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
@@ -115,13 +131,7 @@ class AppDelegate: ExpoAppDelegate {
       BrazeHelperPopulateInitialPayload(launchOptions)
     }
 
-    factory.startReactNative(
-      withModuleName: "MetaMask",
-      in: window,
-      initialProperties: initialProps,
-      launchOptions: launchOptions
-    )
-
+    // Expo creates the scene's window and starts React Native after application setup.
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
     // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations.

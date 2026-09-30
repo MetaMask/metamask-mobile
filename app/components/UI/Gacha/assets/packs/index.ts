@@ -1,4 +1,4 @@
-interface PackArtwork {
+export interface PackArtwork {
   name?: string;
   image: number;
   thumbnail: number;

@@ -11,10 +11,17 @@ import {
   hasPendingQuickBuySubmission,
   isQuickBuyTransaction,
   markQuickBuyTradeSettled,
+  notifyQuickBuyTradeState,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
+import Logger from '../../../util/Logger';
+
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
 
 const txMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
   overrides as TransactionMeta;
@@ -47,6 +54,23 @@ describe('quickBuyTradeTracker', () => {
     trackQuickBuyTrade('tx-1', buyTrade);
 
     expect(getTrackedQuickBuyTrade('tx-1')).toEqual(buyTrade);
+  });
+
+  it('isolates host callback errors from trade tracking', () => {
+    const error = new Error('host failed');
+
+    expect(() =>
+      notifyQuickBuyTradeState(
+        () => {
+          throw error;
+        },
+        { status: 'submitting' },
+      ),
+    ).not.toThrow();
+
+    expect(Logger.error).toHaveBeenCalledWith(error, {
+      tags: { feature: 'quick_buy', operation: 'trade_state_callback' },
+    });
   });
 
   it('returns undefined for an unknown tx meta id', () => {

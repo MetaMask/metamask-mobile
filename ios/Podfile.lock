@@ -44,7 +44,7 @@ PODS:
   - EXJSONUtils (57.0.2)
   - EXManifests (57.0.2):
     - ExpoModulesCore
-  - Expo (57.0.22):
+  - Expo (57.0.23):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -4194,7 +4194,7 @@ SPEC CHECKSUMS:
   EXConstants: 8948a340eb14bf2bdaaa0e21a63cb9343860b87a
   EXJSONUtils: a49e3ef80dff762108e5690c7b2f360675dcf7f6
   EXManifests: 4c53b2602e03ccf44d0b4ff9c5d655b2c5acba3f
-  Expo: 70c70c1692c316b909fbe4996cf9c92b9cfb1bae
+  Expo: d06878ab7512dbcb2deec84c4d56f07af8a8b765
   expo-dev-client: 9cd43bb07fb625c51b436d4cb23be2fc932f8d26
   expo-dev-launcher: 05c72f3a22b4c742b06bd36fa391a30a990556a0
   expo-dev-menu: 272e23ced973a0e401c2b9a679595ea6c7c05d78

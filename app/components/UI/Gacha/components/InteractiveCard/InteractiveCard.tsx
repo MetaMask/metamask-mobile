@@ -36,6 +36,7 @@ const InteractiveCard = ({
   frontPreviewImage,
   backPreviewImage,
   isActive = true,
+  onImageReady,
 }: InteractiveCardProps) => {
   const tw = useTailwind();
   const [width, setWidth] = useState(0);
@@ -68,14 +69,18 @@ const InteractiveCard = ({
   const handleFrontLoad = useCallback(
     ({ source }: ImageLoadEventData) => {
       setFrontReady(frontKey);
+      onImageReady?.();
       if (!isFrontReady && source.width > 0 && source.height > 0) {
         setAspectRatio(source.width / source.height);
       }
     },
-    [frontKey, isFrontReady],
+    [frontKey, isFrontReady, onImageReady],
   );
   const handleBackLoad = useCallback(() => setBackReady(backKey), [backKey]);
-  const handleFrontError = useCallback(() => setFrontReady(undefined), []);
+  const handleFrontError = useCallback(() => {
+    setFrontReady(undefined);
+    onImageReady?.();
+  }, [onImageReady]);
   const handleBackError = useCallback(() => {
     setBackReady(undefined);
   }, []);

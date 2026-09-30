@@ -33,6 +33,9 @@ export interface CardDisplayProps {
   owner?: string;
   isActive?: boolean;
   variant?: 'detail' | 'reveal';
+  onImageReady?: () => void;
+  imageMaxWidth?: number;
+  showMetadata?: boolean;
 }
 
 interface CardDetailRow {
@@ -87,6 +90,9 @@ const CardDisplay = ({
   owner,
   isActive = true,
   variant = 'detail',
+  onImageReady,
+  imageMaxWidth,
+  showMetadata = true,
 }: CardDisplayProps) => {
   const gradeLabel = getGradeLabel(card);
   const value = getCardValue(card);
@@ -101,13 +107,14 @@ const CardDisplay = ({
   return (
     <Box
       alignItems={BoxAlignItems.Center}
-      gap={6}
+      gap={isReveal ? 3 : 6}
       twClassName="w-full"
       testID={GachaCardDisplayTestIds.CONTAINER}
     >
       <Box
-        marginVertical={6}
+        marginVertical={isReveal ? 2 : 6}
         twClassName={isReveal ? 'w-4/5 max-w-80' : 'w-2/3 max-w-64'}
+        style={imageMaxWidth ? { maxWidth: imageMaxWidth } : undefined}
       >
         <InteractiveCard
           key={card.mint}
@@ -117,9 +124,19 @@ const CardDisplay = ({
           backPreviewImage={card.mediumBackImage}
           name={card.name}
           isActive={isActive}
+          onImageReady={onImageReady}
         />
       </Box>
-      <Box alignItems={alignment} gap={3} twClassName="w-full">
+      <Box
+        alignItems={alignment}
+        gap={3}
+        twClassName="w-full"
+        style={{ opacity: showMetadata ? 1 : 0 }}
+        accessibilityElementsHidden={!showMetadata}
+        importantForAccessibility={
+          showMetadata ? 'auto' : 'no-hide-descendants'
+        }
+      >
         <Text
           variant={TextVariant.HeadingMd}
           twClassName={isReveal ? 'text-center' : 'text-left'}
@@ -154,7 +171,16 @@ const CardDisplay = ({
         )}
       </Box>
       {value !== undefined && (
-        <Box alignItems={alignment} gap={2} twClassName="w-full">
+        <Box
+          alignItems={alignment}
+          gap={2}
+          twClassName="w-full"
+          style={{ opacity: showMetadata ? 1 : 0 }}
+          accessibilityElementsHidden={!showMetadata}
+          importantForAccessibility={
+            showMetadata ? 'auto' : 'no-hide-descendants'
+          }
+        >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('gacha.card.value')}
           </Text>

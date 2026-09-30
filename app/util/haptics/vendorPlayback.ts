@@ -26,6 +26,12 @@ export const IMPACT_STYLE_MAP: Record<HapticImpactMoment, ImpactFeedbackStyle> =
     [ImpactMoment.PullToRefresh]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.ChartCrosshair]: ImpactFeedbackStyle.Light,
     [ImpactMoment.FollowToggle]: ImpactFeedbackStyle.Light,
+    [ImpactMoment.GachaCut]: ImpactFeedbackStyle.Rigid,
+    [ImpactMoment.GachaOpen]: ImpactFeedbackStyle.Heavy,
+    [ImpactMoment.GachaRevealCommon]: ImpactFeedbackStyle.Medium,
+    [ImpactMoment.GachaRevealUncommon]: ImpactFeedbackStyle.Rigid,
+    [ImpactMoment.GachaRevealRare]: ImpactFeedbackStyle.Heavy,
+    [ImpactMoment.GachaRevealEpic]: ImpactFeedbackStyle.Heavy,
   };
 
 export async function vendorNotifySuccess(): Promise<void> {

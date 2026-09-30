@@ -1,12 +1,11 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import {
-  GachaBuybackOfferTestIds,
-  GachaRevealTestIds,
-} from '../../Gacha.testIds';
+import { GachaRevealTestIds } from '../../Gacha.testIds';
 import { showErrorToast, showSuccessToast } from '../../hooks/toasts';
 import { createCollectorCryptError } from '../../providers/collector-crypt/services/errors';
 import type {
@@ -25,6 +24,21 @@ import GachaReveal from './GachaReveal';
 
 const mockPopTo = jest.fn();
 const mockDispatch = jest.fn();
+let mockOnRevealed: (() => void) | undefined;
+
+jest.mock('../../components/PackReveal', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    onRevealed,
+  }: {
+    children: ReactNode;
+    onRevealed?: () => void;
+  }) => {
+    mockOnRevealed = onRevealed;
+    return children;
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -90,9 +104,14 @@ const renderReveal = ({
 const expectHomeWith = (params?: object) =>
   expect(mockPopTo).toHaveBeenCalledWith(Routes.GACHA.HOME, params);
 
+const finishReveal = () => {
+  act(() => mockOnRevealed?.());
+};
+
 describe('GachaReveal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOnRevealed = undefined;
     jest
       .mocked(selectSelectedInternalAccountByScope)
       .mockReturnValue(() => MOCK_INTERNAL_ACCOUNT);
@@ -131,7 +150,7 @@ describe('GachaReveal', () => {
       fireEvent.press(screen.getByTestId(GachaRevealTestIds.CLOSE_BUTTON));
 
       expect(controller.dismissOperation).not.toHaveBeenCalled();
-      expectHomeWith(undefined);
+      expectHomeWith({ initialTab: 'packs' });
     });
   });
 
@@ -175,7 +194,7 @@ describe('GachaReveal', () => {
       );
 
       expect(controller.dismissOperation).not.toHaveBeenCalled();
-      expectHomeWith(undefined);
+      expectHomeWith({ initialTab: 'packs' });
     });
 
     it('starts over an expired pack with the same pack', async () => {
@@ -253,7 +272,7 @@ describe('GachaReveal', () => {
         account: MOCK_ACCOUNT,
         memo: MEMO,
       });
-      expectHomeWith(undefined);
+      expectHomeWith({ initialTab: 'packs' });
     });
 
     it('shows not found for an unknown operation', async () => {
@@ -269,57 +288,107 @@ describe('GachaReveal', () => {
   });
 
   describe('revealed', () => {
-    it('shows the card, the offer and refreshes the USDC balance', async () => {
+    it('waits for the reveal animation before offering purchase actions', () => {
       renderReveal({ operations: [OPENED], cards: [CARD] });
 
+      expect(
+        screen.queryByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      finishReveal();
+
+      expect(
+        screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the offer and pack price after revealing and refreshes the USDC balance', async () => {
+      renderReveal({ operations: [OPENED], cards: [CARD] });
+
+      finishReveal();
+
       expect(screen.getByTestId(GachaRevealTestIds.REVEALED)).toBeOnTheScreen();
-      expect(screen.getByText('You got')).toBeOnTheScreen();
       expect(
-        screen.getByTestId(GachaBuybackOfferTestIds.AVAILABLE),
-      ).toHaveTextContent('42.00 USDC');
+        screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
+      ).toHaveTextContent(
+        strings('gacha.reveal.sell_and_open_amount', { amount: '42.00' }),
+      );
       expect(
-        screen.getByTestId(GachaRevealTestIds.SELL_BUTTON),
-      ).toHaveTextContent('Sell for 42.00 USDC');
+        screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
+      ).toHaveTextContent(strings('gacha.reveal.buy_again', { amount: 50 }));
       await waitFor(() => expect(mockGetAssets).toHaveBeenCalledTimes(1));
     });
 
-    it('sells the card and returns to My cards', async () => {
-      controller.sellCard.mockResolvedValue({
-        mint: 'MintA',
-        amount: '42000000',
-        signature: 'sig',
-      });
+    it('buys another pack without selling the revealed card', async () => {
+      controller.generatePack.mockResolvedValue('memo-2');
       renderReveal({ operations: [OPENED], cards: [CARD] });
+      finishReveal();
 
-      fireEvent.press(screen.getByTestId(GachaRevealTestIds.SELL_BUTTON));
+      fireEvent.press(screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON));
 
-      await waitFor(() => expectHomeWith({ initialTab: 'cards' }));
-      expect(controller.sellCard).toHaveBeenCalledWith({
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.replace(Routes.GACHA.REVEAL, { memo: 'memo-2' }),
+        ),
+      );
+      expect(controller.generatePack).toHaveBeenCalledWith({
         account: MOCK_ACCOUNT,
-        mint: 'MintA',
+        pack: PACK_REF,
       });
-      expect(showSuccessToast).toHaveBeenCalledWith('Sold for 42.00 USDC');
       expect(controller.dismissOperation).toHaveBeenCalledWith({
         account: MOCK_ACCOUNT,
         memo: MEMO,
       });
+      expect(controller.sellCard).not.toHaveBeenCalled();
     });
 
-    it('stays on the card when the sale fails', async () => {
+    it('stays on the card when buying another pack fails', async () => {
+      controller.generatePack.mockRejectedValue(
+        createCollectorCryptError({ code: 'MACHINE_UNAVAILABLE' }),
+      );
+      renderReveal({ operations: [OPENED], cards: [CARD] });
+      finishReveal();
+
+      fireEvent.press(screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON));
+
+      await waitFor(() => expect(showErrorToast).toHaveBeenCalled());
+      expect(
+        screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
+      ).toBeEnabled();
+      expect(screen.getByTestId(GachaRevealTestIds.REVEALED)).toBeOnTheScreen();
+      expect(controller.sellCard).not.toHaveBeenCalled();
+      expect(controller.dismissOperation).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockPopTo).not.toHaveBeenCalled();
+    });
+
+    it('stays on the card when selling and opening another pack fails at the sale', async () => {
       controller.sellCard.mockRejectedValue(
         createCollectorCryptError({ code: 'BUYBACK_UNAVAILABLE' }),
       );
       renderReveal({ operations: [OPENED], cards: [CARD] });
+      finishReveal();
 
-      fireEvent.press(screen.getByTestId(GachaRevealTestIds.SELL_BUTTON));
+      fireEvent.press(
+        screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
+      );
 
       await waitFor(() => expect(showErrorToast).toHaveBeenCalled());
       await waitFor(() =>
         expect(
-          screen.getByTestId(GachaRevealTestIds.KEEP_BUTTON),
+          screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
         ).toBeEnabled(),
       );
+      expect(screen.getByTestId(GachaRevealTestIds.REVEALED)).toBeOnTheScreen();
+      expect(controller.generatePack).not.toHaveBeenCalled();
       expect(controller.dismissOperation).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockPopTo).not.toHaveBeenCalled();
     });
 
@@ -331,6 +400,7 @@ describe('GachaReveal', () => {
       });
       controller.generatePack.mockResolvedValue('memo-2');
       renderReveal({ operations: [OPENED], cards: [CARD], usdcAmount: '10' });
+      finishReveal();
 
       fireEvent.press(
         screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
@@ -338,11 +408,14 @@ describe('GachaReveal', () => {
 
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith(
-          StackActions.replace(Routes.GACHA.REVEAL, {
-            memo: 'memo-2',
-          }),
+          StackActions.replace(Routes.GACHA.REVEAL, { memo: 'memo-2' }),
         ),
       );
+      expect(controller.sellCard).toHaveBeenCalledWith({
+        account: MOCK_ACCOUNT,
+        mint: 'MintA',
+      });
+      expect(showSuccessToast).toHaveBeenCalledWith('Sold for 42.00 USDC');
       expect(controller.generatePack).toHaveBeenCalledWith({
         account: MOCK_ACCOUNT,
         pack: PACK_REF,
@@ -353,30 +426,40 @@ describe('GachaReveal', () => {
       });
     });
 
-    it('disables Sell and open another when balance plus refund is below the price', () => {
+    it('disables selling and opening when balance plus refund is below the price', () => {
       renderReveal({ operations: [OPENED], cards: [CARD], usdcAmount: '7' });
+      finishReveal();
+
+      fireEvent.press(
+        screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
+      );
 
       expect(
         screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
       ).toBeDisabled();
-      expect(screen.getByTestId(GachaRevealTestIds.SELL_BUTTON)).toBeEnabled();
+      expect(controller.sellCard).not.toHaveBeenCalled();
+      expect(controller.generatePack).not.toHaveBeenCalled();
     });
 
-    it('keeps the card and returns to My cards', () => {
-      renderReveal({ operations: [OPENED], cards: [CARD] });
+    it('disables buying again when the balance alone is below the pack price', () => {
+      renderReveal({ operations: [OPENED], cards: [CARD], usdcAmount: '10' });
+      finishReveal();
 
-      fireEvent.press(screen.getByTestId(GachaRevealTestIds.KEEP_BUTTON));
+      fireEvent.press(screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON));
 
-      expect(controller.dismissOperation).toHaveBeenCalledWith({
-        account: MOCK_ACCOUNT,
-        memo: MEMO,
-      });
-      expectHomeWith({ initialTab: 'cards' });
+      expect(
+        screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
+      ).toBeEnabled();
+      expect(controller.generatePack).not.toHaveBeenCalled();
       expect(controller.sellCard).not.toHaveBeenCalled();
     });
 
-    it('treats the X like Keep', () => {
+    it('keeps the card and returns to Packs when closing', () => {
       renderReveal({ operations: [OPENED], cards: [CARD] });
+      finishReveal();
 
       fireEvent.press(screen.getByTestId(GachaRevealTestIds.CLOSE_BUTTON));
 
@@ -384,13 +467,16 @@ describe('GachaReveal', () => {
         account: MOCK_ACCOUNT,
         memo: MEMO,
       });
-      expectHomeWith({ initialTab: 'cards' });
+      expectHomeWith({ initialTab: 'packs' });
+      expect(controller.sellCard).not.toHaveBeenCalled();
+      expect(controller.generatePack).not.toHaveBeenCalled();
     });
 
-    it('checks an unknown offer and only offers Keep without buyback', async () => {
+    it('offers buying again while checking an unknown buyback offer', async () => {
       const card = createCard({ mint: 'MintA' });
       controller.completePack.mockResolvedValue(card);
       renderReveal({ operations: [OPENED], cards: [card] });
+      finishReveal();
 
       await waitFor(() =>
         expect(controller.refreshBuyback).toHaveBeenCalledWith({
@@ -399,11 +485,8 @@ describe('GachaReveal', () => {
         }),
       );
       expect(
-        screen.getByTestId(GachaRevealTestIds.KEEP_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(GachaRevealTestIds.SELL_BUTTON),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId(GachaRevealTestIds.BUY_AGAIN_BUTTON),
+      ).toBeEnabled();
       expect(
         screen.queryByTestId(GachaRevealTestIds.SELL_AND_OPEN_BUTTON),
       ).not.toBeOnTheScreen();

@@ -5,10 +5,11 @@ export interface GachaHomeParams {
   initialTab?: GachaHomeTab;
 }
 
-export interface GachaRevealParams {
-  /** Memo of the pack operation to reveal. */
-  memo: string;
-}
+/** Local previews never carry a purchase memo. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GachaRevealParams =
+  | { memo: string; demo?: never }
+  | { demo: true; memo?: never };
 
 export interface GachaCardParams {
   /** Mint of the card to display. */
