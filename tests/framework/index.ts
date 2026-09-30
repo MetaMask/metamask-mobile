@@ -62,6 +62,10 @@ export {
 } from './ai-locator/SelfHealingLocator.ts';
 export { createClaudeLocatorRecoveryProvider } from './ai-locator/ClaudeLocatorRecoveryProvider.ts';
 export {
+  isPerformanceSuiteActive,
+  setPerformanceSuiteActive,
+} from './ai-locator/PerformanceLocatorRecovery.ts';
+export {
   DeviceCommandHandler,
   AndroidDeviceCommandHandler,
   IOSDeviceCommandHandler,

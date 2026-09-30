@@ -18,7 +18,10 @@ import {
   Utilities,
 } from '../../framework';
 import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
-import { getPerformanceLocatorRecovery } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
+import {
+  getPerformanceLocatorRecovery,
+  isPerformanceSuiteActive,
+} from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
 import WalletView from './WalletView';
@@ -81,7 +84,14 @@ class AccountListBottomSheet {
   }
 
   get addWalletButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(AccountHubSelectorsIDs.ADD_WALLET_BUTTON);
+    // Performance Account Hub builds expose a different add-wallet control.
+    // Smoke still uses the classic AccountSelector list button.
+    if (isPerformanceSuiteActive()) {
+      return Matchers.getElementByID(AccountHubSelectorsIDs.ADD_WALLET_BUTTON);
+    }
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
   }
 
   get addEthereumAccountButton(): Promise<AppiumElement> {
@@ -358,6 +368,16 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
+    if (!isPerformanceSuiteActive()) {
+      const name = Matchers.getElementByText(accountName);
+      await Gestures.scrollIntoView(name);
+      await Gestures.waitAndTap(name, {
+        elemDescription: `Account "${accountName}"`,
+      });
+      await WalletView.checkActiveAccount(accountName);
+      return;
+    }
+
     const recovery = getPerformanceLocatorRecovery();
 
     const { element: accountElement } = await findWithSelfHealingLocator({

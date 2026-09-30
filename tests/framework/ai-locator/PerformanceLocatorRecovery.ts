@@ -9,6 +9,22 @@ export interface PerformanceLocatorRecovery {
 }
 
 let activeRecovery: PerformanceLocatorRecovery | undefined;
+let performanceSuiteActive = false;
+
+/**
+ * Marks the current Playwright test as a performance suite scenario.
+ *
+ * Page Object / flow helpers that only apply to performance (A/B header
+ * selectors, Account Hub add-wallet ID, Android account-cell tap path) must
+ * check this so smoke Appium keeps the shared deterministic selectors.
+ */
+export function setPerformanceSuiteActive(active: boolean): void {
+  performanceSuiteActive = active;
+}
+
+export function isPerformanceSuiteActive(): boolean {
+  return performanceSuiteActive;
+}
 
 /**
  * Enables locator recovery for the current performance test.

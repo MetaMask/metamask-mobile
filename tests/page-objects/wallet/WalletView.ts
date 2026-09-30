@@ -9,6 +9,7 @@ import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
@@ -53,13 +54,23 @@ class WalletView extends WalletHomeSectionsBase {
   }
 
   /**
-   * Wallet account icon / name button — works across both header A/B variants:
-   * - Compact (searchFocused / tradeFocused): `wallet-account-name-button`
-   * - Non-compact (control): `account-picker` (PickerAccount in WalletHeader)
+   * Wallet account icon / name button.
+   * Performance: match both A/B header variants (compact + control).
+   * Smoke / shared: keep the classic account-picker control only.
    */
   get accountIcon(): Promise<AppiumElement> {
-    const compactId = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON;
     const controlId = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    if (!isPerformanceSuiteActive()) {
+      if (PlatformDetector.isIOS()) {
+        // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
+        return Matchers.getElementByNativeXPath(
+          `//*[contains(@name,'${controlId}') or contains(@label,'${controlId}') or contains(@text,'${controlId}')]`,
+        );
+      }
+      return Matchers.getElementByID(controlId);
+    }
+
+    const compactId = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON;
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[contains(@name,'${compactId}') or contains(@name,'${controlId}') or contains(@label,'${compactId}') or contains(@label,'${controlId}')]`,
@@ -124,8 +135,14 @@ class WalletView extends WalletHomeSectionsBase {
    * - Non-compact (control A/B): PickerAccount renders `account-label`
    * - Compact (searchFocused / tradeFocused A/B): WalletHeaderCompact renders
    * `wallet-account-name-heading` (no `account-label` in the tree)
+   *
+   * Performance-only: smoke keeps `account-label` as the single source of truth.
    */
   private get activeAccountNameElement(): Promise<AppiumElement> {
+    if (!isPerformanceSuiteActive()) {
+      return this.accountNameLabelText;
+    }
+
     const accountLabel = WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT;
     const headingLabel = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING;
     if (PlatformDetector.isIOS()) {

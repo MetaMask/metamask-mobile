@@ -15,7 +15,10 @@ import { publishPerformanceScenarioToSentry } from '../../../reporters/providers
 import type { TestLevelFixtures, WorkerLevelFixtures } from './types.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import { createClaudeLocatorRecoveryProvider } from '../../ai-locator/ClaudeLocatorRecoveryProvider.ts';
-import { configurePerformanceLocatorRecovery } from '../../ai-locator/PerformanceLocatorRecovery.ts';
+import {
+  configurePerformanceLocatorRecovery,
+  setPerformanceSuiteActive,
+} from '../../ai-locator/PerformanceLocatorRecovery.ts';
 
 const logger = createAppiumLogger('performanceTracker');
 
@@ -58,6 +61,7 @@ export const performanceTrackerFixture = {
       `Test assigned to team: ${teamInfo.teamName} (${teamInfo.teamId})`,
     );
 
+    setPerformanceSuiteActive(true);
     const locatorRecovery = createClaudeLocatorRecoveryProvider();
     configurePerformanceLocatorRecovery(
       locatorRecovery
@@ -76,6 +80,7 @@ export const performanceTrackerFixture = {
       await use(performanceTracker);
     } finally {
       configurePerformanceLocatorRecovery(undefined);
+      setPerformanceSuiteActive(false);
     }
 
     if (isSystemTestMode) {
