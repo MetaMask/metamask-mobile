@@ -48,8 +48,9 @@ on:
       reuse_main_builds:
         description: >-
           Force reuse of the latest main-branch Android APKs (test-only override).
-          Leave unchecked to auto-detect: branches with app/ changes repack JS
-          from this branch; branches with only test/CI changes reuse main APKs.
+          Leave unchecked to auto-detect: branches with app-affecting changes
+          (app/, native, deps, bundler, scripts, …) repack JS from this branch;
+          branches with only tests/docs/CI markdown changes reuse main APKs.
         required: false
         type: boolean
         default: false
@@ -84,9 +85,11 @@ jobs:
       sentry_target: test
     secrets: inherit
 
-  # Detect whether the current branch has app/ changes vs main.
-  # If yes → fingerprint-reuse the APK and repack JS from this branch (correct UX).
-  # If no  → reuse the latest main APK as-is (test-only: same JS, no repack needed).
+  # Detect whether the current branch has app-affecting changes vs main.
+  # Latest-main APK reuse is only safe when every changed file is known to be
+  # test / documentation / CI-workflow only. Changes to package.json, yarn.lock,
+  # patches/, android/, ios/, bundler config, scripts/, etc. must keep
+  # fingerprint / build validation.
   # The reuse_main_builds checkbox overrides detection and always forces the main APK path.
   detect-changes:
     name: Detect app vs test-only changes
@@ -101,17 +104,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Count app/ changes vs main
+      - name: Count app-affecting changes vs main
         id: detect
         if: ${{ !inputs.reuse_main_builds }}
         run: |
           git fetch origin main --depth=100 2>/dev/null || git fetch origin main
-          APP_CHANGED=$(git diff origin/main --name-only | grep -c '^app/' || true)
-          echo "app_changed=$APP_CHANGED" >> "$GITHUB_OUTPUT"
-          if [ "$APP_CHANGED" -gt 0 ]; then
-            echo "ℹ️  $APP_CHANGED app/ file(s) changed — will fingerprint-reuse APK and repack JS from this branch"
+          # Allowlist: only these paths are safe for latest-main APK reuse.
+          # Anything else (app/, android/, ios/, package.json, yarn.lock,
+          # patches/, metro/babel config, scripts/, …) is app-affecting.
+          TEST_ONLY_REGEX='^(tests/|docs/|\.github/|.+\.(md|mdx)$)'
+          APP_AFFECTING=$(git diff origin/main --name-only | grep -vE "$TEST_ONLY_REGEX" | grep -c . || true)
+          echo "app_changed=$APP_AFFECTING" >> "$GITHUB_OUTPUT"
+          if [ "$APP_AFFECTING" -gt 0 ]; then
+            echo "ℹ️  $APP_AFFECTING app-affecting file(s) changed — will fingerprint-reuse APK and repack JS from this branch"
+            git diff origin/main --name-only | grep -vE "$TEST_ONLY_REGEX" | head -20
           else
-            echo "ℹ️  No app/ changes — will reuse latest main APK as-is"
+            echo "ℹ️  Only test/docs/CI changes — will reuse latest main APK as-is"
           fi
 
       - name: Resolve reuse_main_builds

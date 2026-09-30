@@ -1,3 +1,4 @@
+import TimerStore from '../TimerStore.ts';
 import type {
   LocatorRecoveryProvider,
   SelfHealingTapOptions,
@@ -38,8 +39,21 @@ export function configurePerformanceLocatorRecovery(
   activeRecovery = recovery;
 }
 
+/**
+ * Returns the active recovery config, or undefined when recovery must not run.
+ *
+ * Recovery is suppressed while any performance timer is active so screenshot /
+ * model latency cannot inflate measured durations (e.g. unlock taps inside a
+ * started `TimerHelper`).
+ */
 export function getPerformanceLocatorRecovery():
   | PerformanceLocatorRecovery
   | undefined {
+  if (!activeRecovery) {
+    return undefined;
+  }
+  if (TimerStore.hasActiveTimer()) {
+    return undefined;
+  }
   return activeRecovery;
 }

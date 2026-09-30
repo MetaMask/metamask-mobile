@@ -44,6 +44,15 @@ opt-in (`AI_LOCATOR_RECOVERY_ENABLED=true`).
 
 Recovery happens before the timed interval and its duration is reported through
 `onRecovered`. This prevents LLM, MCP, screenshot, and retry latency from being
-included in the performance metric. Recovery events should be reviewed and
-converted into stable Page Object selectors instead of being silently accepted
-forever.
+included in the performance metric. Recovery is also suppressed while any
+`TimerHelper` / `TimerStore` timer is active (for example unlock taps inside a
+started measurement). Recovery events should be reviewed and converted into
+stable Page Object selectors instead of being silently accepted forever.
+
+### Secret screens
+
+Recovery must never upload SRP words, private keys, or reveal-seed UI to the
+external model. `ClaudeLocatorRecoveryProvider` inspects the accessibility
+tree for known secret-screen markers (import-from-seed, SrpInputGrid,
+private-key input, …) and refuses recovery before taking a screenshot or
+calling Claude. Add new markers when new secret-bearing screens appear.

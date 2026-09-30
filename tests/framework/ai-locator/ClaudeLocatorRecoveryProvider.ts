@@ -1,4 +1,3 @@
-import type { Browser } from 'webdriverio';
 import { ClaudeProvider } from '../ai-visual/providers/claude';
 import type {
   LocatorRecoveryContext,
@@ -9,10 +8,39 @@ import type {
 const LOCATOR_RECOVERY_ENABLED = 'true';
 
 /**
+ * Accessibility-tree markers for screens that can expose secrets (SRP words,
+ * private keys). When any marker is present, recovery must refuse before
+ * taking a screenshot or calling the external model.
+ *
+ * Keep this list aligned with ImportFromSeed / ImportSRP / private-key /
+ * reveal seed testIDs.
+ */
+export const SENSITIVE_PAGE_SOURCE_MARKERS = [
+  'import-from-seed-screen',
+  'phrase-input-id',
+  'seed-phrase-input',
+  'import-srp-screen',
+  'srp-input-word',
+  'input-private-key',
+  'seed-phrase-warning',
+] as const;
+
+/**
+ * Returns true when the accessibility tree indicates a secret-bearing screen.
+ * Pure helper so unit tests can prove SRP-entry failures never reach the model.
+ */
+export function pageSourceContainsSecrets(pageSource: string): boolean {
+  return SENSITIVE_PAGE_SOURCE_MARKERS.some((marker) =>
+    pageSource.includes(marker),
+  );
+}
+
+/**
  * Uses the existing Claude visual provider to recover a native Appium locator.
  *
  * This provider is intentionally opt-in. It captures the accessibility tree
- * and screenshot only after the deterministic locator fails.
+ * and screenshot only after the deterministic locator fails, and only when the
+ * current screen is not secret-bearing.
  */
 export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
   private readonly provider: ClaudeProvider;
@@ -24,10 +52,14 @@ export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
   async recover(
     context: LocatorRecoveryContext,
   ): Promise<RecoveredLocator | null> {
-    const [pageSource, screenshotBase64] = await Promise.all([
-      context.driver.getPageSource(),
-      context.driver.takeScreenshot(),
-    ]);
+    const pageSource = await context.driver.getPageSource();
+
+    // Refuse before screenshot / model call so CI secrets never leave the runner.
+    if (pageSourceContainsSecrets(pageSource)) {
+      return null;
+    }
+
+    const screenshotBase64 = await context.driver.takeScreenshot();
     const screenshot = Buffer.from(screenshotBase64, 'base64');
     const prompt = createLocatorRecoveryPrompt(
       context.intent,
