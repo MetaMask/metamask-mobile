@@ -9,6 +9,7 @@ import {
   Order,
   OrderFill,
   UserHistoryItem,
+  PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -636,7 +637,7 @@ export function transformFillsToTransactions(
       (isClosed || isSell || isFlipped || isAutoDeleveraging) &&
       reportedPnl === undefined
     ) {
-      displayAmount = '—';
+      displayAmount = PERPS_CONSTANTS.FallbackDataDisplay;
     } else if (
       reportedPnl !== undefined &&
       (isClosed || isSell || isFlipped || isAutoDeleveraging)

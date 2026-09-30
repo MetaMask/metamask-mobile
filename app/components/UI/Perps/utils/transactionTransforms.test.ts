@@ -14,6 +14,7 @@ import {
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import {
+  PERPS_CONSTANTS,
   OrderFill,
   type OrdinaryOrderType,
   type TriggerOrderType,
@@ -73,7 +74,9 @@ describe('transactionTransforms', () => {
       const [transaction] = transformFillsToTransactions(fills);
 
       expect(transaction.fill?.pnl).toBeUndefined();
-      expect(transaction.fill?.amount).toBe('—');
+      expect(transaction.fill?.amount).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
       expect(transaction.fill?.amountNumber).toBeUndefined();
       expect(transaction.fill?.isPositive).toBeUndefined();
     });
@@ -85,7 +88,9 @@ describe('transactionTransforms', () => {
 
         const [transaction] = transformFillsToTransactions(fills);
 
-        expect(transaction.fill?.amount).toBe('—');
+        expect(transaction.fill?.amount).toBe(
+          PERPS_CONSTANTS.FallbackDataDisplay,
+        );
         expect(transaction.fill?.amountNumber).toBeUndefined();
         expect(transaction.fill?.isPositive).toBeUndefined();
       },
