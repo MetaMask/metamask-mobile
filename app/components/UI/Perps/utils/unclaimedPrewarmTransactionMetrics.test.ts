@@ -1,6 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   beginUnclaimedPrewarmTransaction,
+  dropAllUnclaimedPrewarmTransactions,
   dropUnclaimedPrewarmTransaction,
   endUnclaimedPrewarmTransaction,
   isUnclaimedPrewarmTransaction,
@@ -30,7 +31,7 @@ describe('unclaimed prewarm transaction metrics', () => {
   });
 
   it('does not hold back other transaction types or inserts outside a prewarm', () => {
-    beginUnclaimedPrewarmTransaction();
+    const generation = beginUnclaimedPrewarmTransaction();
 
     expect(
       suppressUnclaimedPrewarmTransactionAdded({
@@ -39,7 +40,7 @@ describe('unclaimed prewarm transaction metrics', () => {
       }),
     ).toBe(false);
 
-    endUnclaimedPrewarmTransaction();
+    endUnclaimedPrewarmTransaction(generation);
 
     expect(
       suppressUnclaimedPrewarmTransactionAdded({
@@ -51,7 +52,7 @@ describe('unclaimed prewarm transaction metrics', () => {
   });
 
   it('emits only the transactions that were not the prepared prewarm', () => {
-    beginUnclaimedPrewarmTransaction();
+    const generation = beginUnclaimedPrewarmTransaction();
     const emitted: string[] = [];
     suppressUnclaimedPrewarmTransactionAdded({
       id: 'prewarm-tx',
@@ -68,11 +69,69 @@ describe('unclaimed prewarm transaction metrics', () => {
       emitted.push('user-tx');
     });
 
-    retainOnlyUnclaimedPrewarmTransaction('prewarm-tx');
+    retainOnlyUnclaimedPrewarmTransaction(generation, 'prewarm-tx');
 
     expect(emitted).toEqual(['user-tx']);
     expect(isUnclaimedPrewarmTransaction('prewarm-tx')).toBe(true);
     expect(isUnclaimedPrewarmTransaction('user-tx')).toBe(false);
+  });
+
+  it('keeps a later prewarm stashed when an earlier prewarm settles', () => {
+    const earlier = beginUnclaimedPrewarmTransaction();
+    const emitted: string[] = [];
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'earlier-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('earlier-tx', () => {
+      emitted.push('earlier-tx');
+    });
+    const later = beginUnclaimedPrewarmTransaction();
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'later-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('later-tx', () => {
+      emitted.push('later-tx');
+    });
+
+    retainOnlyUnclaimedPrewarmTransaction(earlier, 'earlier-tx');
+    endUnclaimedPrewarmTransaction(earlier);
+
+    expect(emitted).toEqual([]);
+    expect(isUnclaimedPrewarmTransaction('earlier-tx')).toBe(true);
+    expect(isUnclaimedPrewarmTransaction('later-tx')).toBe(true);
+
+    retainOnlyUnclaimedPrewarmTransaction(later, 'later-tx');
+
+    expect(emitted).toEqual([]);
+    expect(isUnclaimedPrewarmTransaction('later-tx')).toBe(true);
+  });
+
+  it('drops only the failed prewarm while a later prewarm is in flight', () => {
+    const earlier = beginUnclaimedPrewarmTransaction();
+    const emitted: string[] = [];
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'earlier-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('earlier-tx', () => {
+      emitted.push('earlier-tx');
+    });
+    beginUnclaimedPrewarmTransaction();
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'later-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('later-tx', () => {
+      emitted.push('later-tx');
+    });
+
+    dropAllUnclaimedPrewarmTransactions(earlier);
+
+    expect(emitted).toEqual([]);
+    expect(isUnclaimedPrewarmTransaction('earlier-tx')).toBe(false);
+    expect(isUnclaimedPrewarmTransaction('later-tx')).toBe(true);
   });
 
   it('emits Transaction Added on claim and then counts a rejection', () => {
@@ -110,7 +169,7 @@ describe('unclaimed prewarm transaction metrics', () => {
   });
 
   it('releases every held-back insert when prewarm creation fails', () => {
-    beginUnclaimedPrewarmTransaction();
+    const generation = beginUnclaimedPrewarmTransaction();
     const emitted: string[] = [];
     suppressUnclaimedPrewarmTransactionAdded({
       id: 'user-tx',
@@ -120,9 +179,34 @@ describe('unclaimed prewarm transaction metrics', () => {
       emitted.push('user-tx');
     });
 
-    releaseAllStashedPrewarmTransactionAdded();
+    releaseAllStashedPrewarmTransactionAdded(generation);
 
     expect(emitted).toEqual(['user-tx']);
     expect(isUnclaimedPrewarmTransaction('user-tx')).toBe(false);
+  });
+
+  it('releases a transaction held by the failed prewarm alone and keeps the later prewarm', () => {
+    const earlier = beginUnclaimedPrewarmTransaction();
+    const emitted: string[] = [];
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'user-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('user-tx', () => {
+      emitted.push('user-tx');
+    });
+    beginUnclaimedPrewarmTransaction();
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'later-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('later-tx', () => {
+      emitted.push('later-tx');
+    });
+
+    releaseAllStashedPrewarmTransactionAdded(earlier);
+
+    expect(emitted).toEqual(['user-tx']);
+    expect(isUnclaimedPrewarmTransaction('later-tx')).toBe(true);
   });
 });

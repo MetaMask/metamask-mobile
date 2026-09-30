@@ -573,7 +573,7 @@ describe('Transaction Metric Event Handlers', () => {
     } as unknown as TransactionMeta;
 
     it('does not track Transaction Added until the prewarm is claimed', async () => {
-      beginUnclaimedPrewarmTransaction();
+      const generation = beginUnclaimedPrewarmTransaction();
 
       await handleTransactionAddedEventForMetrics(
         prewarmTransaction,
@@ -582,7 +582,7 @@ describe('Transaction Metric Event Handlers', () => {
 
       expect(mockInitMessengerCall).not.toHaveBeenCalled();
 
-      endUnclaimedPrewarmTransaction();
+      endUnclaimedPrewarmTransaction(generation);
       await trackStashedPrewarmTransactionAdded('prewarm-tx');
 
       expect(mockInitMessengerCall).toHaveBeenCalledWith(
@@ -609,12 +609,12 @@ describe('Transaction Metric Event Handlers', () => {
     });
 
     it('tracks Transaction Rejected after the prewarm was claimed', async () => {
-      beginUnclaimedPrewarmTransaction();
+      const generation = beginUnclaimedPrewarmTransaction();
       await handleTransactionAddedEventForMetrics(
         prewarmTransaction,
         mockTransactionMetricRequest,
       );
-      endUnclaimedPrewarmTransaction();
+      endUnclaimedPrewarmTransaction(generation);
       await trackStashedPrewarmTransactionAdded('prewarm-tx');
       mockInitMessengerCall.mockClear();
 

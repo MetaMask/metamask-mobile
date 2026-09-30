@@ -61,6 +61,28 @@ const deferredDeposit = (transactionId: string) => {
   return { deposit, resolve };
 };
 
+const stashDeposit = (transactionId: string, emitted: string[]) => {
+  const transaction = {
+    id: transactionId,
+    type: TransactionType.perpsDepositAndOrder,
+  };
+  if (suppressUnclaimedPrewarmTransactionAdded(transaction)) {
+    stashUnclaimedPrewarmTransactionAdded(transactionId, () => {
+      emitted.push(transactionId);
+    });
+  }
+};
+
+const depositThatStashes = (
+  transactionId: string,
+  result: Promise<string>,
+  emitted: string[],
+) =>
+  jest.fn().mockImplementation(async () => {
+    stashDeposit(transactionId, emitted);
+    return { result };
+  });
+
 describe('prewarmedDepositOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -153,6 +175,70 @@ describe('prewarmedDepositOrder', () => {
 
       expect(emitted).toEqual(['tx-1']);
       expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(false);
+    });
+
+    it('keeps the next prewarm metrics when a discarded in-flight prewarm resolves', async () => {
+      const emitted: string[] = [];
+      const { deposit: firstDeposit, resolve } = deferredDeposit('tx-1');
+      const first = jest.fn().mockImplementation(async () => {
+        stashDeposit('tx-1', emitted);
+        return firstDeposit();
+      });
+      const pendingFirst = prewarmDepositOrder(CRITERIA, first);
+
+      discardPrewarmedDepositOrder();
+      const secondCriteria = {
+        ...CRITERIA,
+        accountAddress: '0xdef',
+      };
+      setTransactionStatus('tx-2');
+      const pendingSecond = prewarmDepositOrder(
+        secondCriteria,
+        depositThatStashes('tx-2', Promise.resolve('tx-2'), emitted),
+      );
+      resolve();
+      await pendingFirst;
+      await pendingSecond;
+
+      expect(emitted).toEqual([]);
+      expect(isUnclaimedPrewarmTransaction('tx-2')).toBe(true);
+
+      await claimPrewarmedDepositOrder(secondCriteria);
+      await trackStashedPrewarmTransactionAdded('tx-2');
+
+      expect(emitted).toEqual(['tx-2']);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(false);
+    });
+
+    it('keeps the next prewarm metrics when a discarded in-flight prewarm fails', async () => {
+      const emitted: string[] = [];
+      let rejectResult: (error: Error) => void = () => undefined;
+      const result = new Promise<string>((_resolve, reject) => {
+        rejectResult = reject;
+      });
+      const pendingFirst = prewarmDepositOrder(CRITERIA, async () => {
+        stashDeposit('tx-1', emitted);
+        return { result };
+      });
+
+      discardPrewarmedDepositOrder();
+      setTransactionStatus('tx-2');
+      const pendingSecond = prewarmDepositOrder(
+        CRITERIA,
+        depositThatStashes('tx-2', Promise.resolve('tx-2'), emitted),
+      );
+      rejectResult(new Error('result failed'));
+      await expect(pendingFirst).rejects.toThrow('result failed');
+      await pendingSecond;
+
+      expect(emitted).toEqual([]);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(false);
+      expect(isUnclaimedPrewarmTransaction('tx-2')).toBe(true);
+
+      await claimPrewarmedDepositOrder(CRITERIA);
+      await trackStashedPrewarmTransactionAdded('tx-2');
+
+      expect(emitted).toEqual(['tx-2']);
     });
 
     it('does not emit Transaction Added when an unclaimed prewarm is discarded', async () => {

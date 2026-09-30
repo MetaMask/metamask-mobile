@@ -160,17 +160,19 @@ export function prewarmDepositOrder(
   }
 
   // Hold Transaction Added / Rejected until Long/Short claims this insert.
-  beginUnclaimedPrewarmTransaction();
+  // The generation keeps a discarded in-flight prewarm from emitting or wiping
+  // metrics for a prewarm that started while this promise was still running.
+  const generation = beginUnclaimedPrewarmTransaction();
   const transactionId = depositWithOrder()
     .catch((error: unknown) => {
       // Creation failed before the transaction existed, so nothing of ours was
-      // held back. Release anything else suppressed during this window.
-      releaseAllStashedPrewarmTransactionAdded();
+      // held back. Release anything else this generation suppressed alone.
+      releaseAllStashedPrewarmTransactionAdded(generation);
       throw error;
     })
     .then(({ result }) => result)
     .then((id) => {
-      retainOnlyUnclaimedPrewarmTransaction(id);
+      retainOnlyUnclaimedPrewarmTransaction(generation, id);
       if (
         state.status === 'preparing' &&
         state.transactionId === transactionId
@@ -180,7 +182,7 @@ export function prewarmDepositOrder(
       return id;
     })
     .catch((error: unknown) => {
-      dropAllUnclaimedPrewarmTransactions();
+      dropAllUnclaimedPrewarmTransactions(generation);
       if (
         state.status === 'preparing' &&
         state.transactionId === transactionId
@@ -190,7 +192,7 @@ export function prewarmDepositOrder(
       throw error;
     })
     .finally(() => {
-      endUnclaimedPrewarmTransaction();
+      endUnclaimedPrewarmTransaction(generation);
     });
 
   state = {

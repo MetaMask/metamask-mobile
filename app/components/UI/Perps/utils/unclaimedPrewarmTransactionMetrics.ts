@@ -8,6 +8,11 @@ import { TransactionType } from '@metamask/transaction-controller';
  * Creations started with {@link beginUnclaimedPrewarmTransaction} are held
  * back. {@link trackStashedPrewarmTransactionAdded} emits Added once the user
  * claims one. Rejecting an id that is still held back emits nothing.
+ *
+ * Each begin returns a generation. Blur, refocus, and account or provider
+ * changes start a new prewarm while the previous `depositWithOrder` is still
+ * in flight, and both share this module. Settlement only touches ids that
+ * generation held, so a discarded prewarm cannot emit or wipe the next one.
  */
 
 interface PrewarmTransactionIdentity {
@@ -15,19 +20,35 @@ interface PrewarmTransactionIdentity {
   type?: string;
 }
 
-let creationsInFlight = 0;
+type PrewarmGeneration = number;
+
+let nextGeneration: PrewarmGeneration = 1;
 let emittingStashed = false;
+const activeGenerations = new Set<PrewarmGeneration>();
 const unclaimedIds = new Set<string>();
 const stashedAdded = new Map<string, () => void | Promise<void>>();
+const ownersById = new Map<string, Set<PrewarmGeneration>>();
 
-/** Marks the next in-flight `perpsDepositAndOrder` insert as an unclaimed prewarm. */
-export function beginUnclaimedPrewarmTransaction(): void {
-  creationsInFlight += 1;
+/**
+ * Marks the next in-flight `perpsDepositAndOrder` insert as an unclaimed prewarm.
+ *
+ * @returns Generation token. Pass it to the matching end and settlement calls.
+ */
+export function beginUnclaimedPrewarmTransaction(): PrewarmGeneration {
+  const generation = nextGeneration;
+  nextGeneration += 1;
+  activeGenerations.add(generation);
+  return generation;
 }
 
-/** Pairs with {@link beginUnclaimedPrewarmTransaction} once that creation settles. */
-export function endUnclaimedPrewarmTransaction(): void {
-  creationsInFlight = Math.max(0, creationsInFlight - 1);
+/**
+ * Pairs with {@link beginUnclaimedPrewarmTransaction} once that creation settles.
+ * Closes the suppression window. It does not emit or drop a held-back insert.
+ */
+export function endUnclaimedPrewarmTransaction(
+  generation: PrewarmGeneration,
+): void {
+  activeGenerations.delete(generation);
 }
 
 /**
@@ -39,13 +60,14 @@ export function suppressUnclaimedPrewarmTransactionAdded(
 ): boolean {
   if (
     emittingStashed ||
-    creationsInFlight === 0 ||
+    activeGenerations.size === 0 ||
     transaction.type !== TransactionType.perpsDepositAndOrder ||
     !transaction.id
   ) {
     return false;
   }
   unclaimedIds.add(transaction.id);
+  ownersById.set(transaction.id, new Set(activeGenerations));
   return true;
 }
 
@@ -58,42 +80,41 @@ export function stashUnclaimedPrewarmTransactionAdded(
 }
 
 /**
- * The prewarm's own id is `transactionId`. Any other insert held back during
- * the same window was a real transaction and is emitted now.
+ * The prewarm's own id is `transactionId`. Any other insert this generation
+ * held alone was a real transaction and is emitted now. An insert that a
+ * newer in-flight prewarm also holds stays stashed.
  */
 export function retainOnlyUnclaimedPrewarmTransaction(
+  generation: PrewarmGeneration,
   transactionId: string,
 ): void {
-  for (const [id, emit] of [...stashedAdded]) {
-    if (id === transactionId) {
-      continue;
-    }
-    stashedAdded.delete(id);
-    unclaimedIds.delete(id);
-    emitHeldBack(emit);
-  }
+  settleGeneration(generation, transactionId, 'release');
 }
 
-/** Emits every held-back Transaction Added. Used when prewarm creation itself fails. */
-export function releaseAllStashedPrewarmTransactionAdded(): void {
-  const pending = [...stashedAdded];
-  stashedAdded.clear();
-  for (const [id, emit] of pending) {
-    unclaimedIds.delete(id);
-    emitHeldBack(emit);
-  }
+/**
+ * Emits every insert this generation held alone. Used when prewarm creation
+ * itself fails before a transaction exists. A newer in-flight prewarm keeps
+ * its own stash.
+ */
+export function releaseAllStashedPrewarmTransactionAdded(
+  generation: PrewarmGeneration,
+): void {
+  settleGeneration(generation, undefined, 'release');
 }
 
-/** Drops held-back metrics without emitting. The transaction is being rejected. */
+/** Drops held-back metrics for one id without emitting. */
 export function dropUnclaimedPrewarmTransaction(transactionId: string): void {
-  unclaimedIds.delete(transactionId);
-  stashedAdded.delete(transactionId);
+  forget(transactionId);
 }
 
-/** Drops every held-back prewarm without emitting. */
-export function dropAllUnclaimedPrewarmTransactions(): void {
-  unclaimedIds.clear();
-  stashedAdded.clear();
+/**
+ * Drops inserts this generation held alone, without emitting. The transaction
+ * is being rejected. A newer in-flight prewarm keeps its own stash.
+ */
+export function dropAllUnclaimedPrewarmTransactions(
+  generation: PrewarmGeneration,
+): void {
+  settleGeneration(generation, undefined, 'drop');
 }
 
 /** Whether Transaction Rejected for this id belongs to a prewarm the user never claimed. */
@@ -109,11 +130,52 @@ export async function trackStashedPrewarmTransactionAdded(
   transactionId: string,
 ): Promise<void> {
   const emit = stashedAdded.get(transactionId);
-  stashedAdded.delete(transactionId);
-  unclaimedIds.delete(transactionId);
+  forget(transactionId);
   if (emit) {
     await emitHeldBack(emit);
   }
+}
+
+/**
+ * Applies `action` to inserts owned by `generation` and by no prewarm that is
+ * still in flight. `keepTransactionId` stays held with no owner, so a later
+ * generation cannot emit the transaction this one prepared.
+ */
+function settleGeneration(
+  generation: PrewarmGeneration,
+  keepTransactionId: string | undefined,
+  action: 'release' | 'drop',
+): void {
+  const ids = new Set<string>([...stashedAdded.keys(), ...ownersById.keys()]);
+  for (const id of ids) {
+    const owners = ownersById.get(id);
+    if (!owners?.has(generation)) {
+      continue;
+    }
+    if (id === keepTransactionId) {
+      ownersById.delete(id);
+      continue;
+    }
+    owners.delete(generation);
+    const stillHeld = [...owners].some((owner) => activeGenerations.has(owner));
+    if (owners.size === 0) {
+      ownersById.delete(id);
+    }
+    if (stillHeld) {
+      continue;
+    }
+    const emit = stashedAdded.get(id);
+    forget(id);
+    if (action === 'release' && emit) {
+      emitHeldBack(emit);
+    }
+  }
+}
+
+function forget(transactionId: string): void {
+  unclaimedIds.delete(transactionId);
+  stashedAdded.delete(transactionId);
+  ownersById.delete(transactionId);
 }
 
 function emitHeldBack(emit: () => void | Promise<void>): Promise<void> {
@@ -130,8 +192,10 @@ function emitHeldBack(emit: () => void | Promise<void>): Promise<void> {
 
 /** Test-only. */
 export function resetUnclaimedPrewarmTransactionMetricsForTesting(): void {
-  creationsInFlight = 0;
+  nextGeneration = 1;
   emittingStashed = false;
+  activeGenerations.clear();
   unclaimedIds.clear();
   stashedAdded.clear();
+  ownersById.clear();
 }
