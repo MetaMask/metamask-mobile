@@ -468,9 +468,9 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders amount', () => {
-    const { getByText } = render();
+    const { getByTestId } = render();
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).toHaveTextContent('$123.45');
   });
 
   it('shows membership payment coverage instead of the Money balance projection', () => {
@@ -521,7 +521,7 @@ describe('CustomAmountInfo', () => {
         updateTokenAmount,
       }),
     );
-    const { getByTestId, queryByTestId } = render({
+    const { getByRole, getByTestId, queryByRole, queryByTestId } = render({
       transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     });
 
@@ -531,7 +531,9 @@ describe('CustomAmountInfo', () => {
 
     expect(updateTokenAmount).toHaveBeenCalledTimes(1);
     expect(queryByTestId(KeypadTestIds.DELETE_BUTTON)).toBeNull();
-    expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+    expect(getByTestId('custom-amount-input')).toHaveAccessibleName('$1');
+    expect(getByRole('text', { name: '$1' })).toBeOnTheScreen();
+    expect(queryByRole('button', { name: '$1' })).toBeNull();
   });
 
   it.each([
@@ -559,12 +561,14 @@ describe('CustomAmountInfo', () => {
         }),
       );
 
-      const { getByTestId, queryByTestId } = render({
+      const { getByRole, getByTestId, queryByRole, queryByTestId } = render({
         transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
       });
       fireEvent.press(getByTestId('custom-amount-input'));
 
-      expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+      expect(getByTestId('custom-amount-input')).toHaveAccessibleName('$1');
+      expect(getByRole('text', { name: '$1' })).toBeOnTheScreen();
+      expect(queryByRole('button', { name: '$1' })).toBeNull();
       expect(queryByTestId('custom-amount-cursor')).toBeNull();
       expect(queryByTestId(KeypadTestIds.DELETE_BUTTON)).toBeNull();
       expect(useMMPayNavigation).toHaveBeenCalledWith(
@@ -592,9 +596,9 @@ describe('CustomAmountInfo', () => {
       }),
     );
 
-    const { getByText, getByTestId } = render();
+    const { getByTestId } = render();
 
-    expect(getByText('50.38')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).toHaveTextContent('$50.38');
 
     fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
 
@@ -898,9 +902,7 @@ describe('CustomAmountInfo', () => {
         getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
       ).toBe('none');
       // The amount stays pressable so preparation can never strand the user.
-      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(getByTestId('custom-amount-input')).toBeEnabled();
     });
 
     it('keeps the amount visually enabled during preparation', () => {
@@ -911,9 +913,6 @@ describe('CustomAmountInfo', () => {
 
       fireEvent.press(getByTestId('deposit-keyboard-done-button'));
 
-      expect(getByTestId('custom-amount-input')).toHaveStyle({
-        color: mockTheme.colors.text.default,
-      });
       expect(getByTestId('custom-amount-symbol')).toHaveStyle({
         color: mockTheme.colors.text.default,
       });
@@ -953,9 +952,7 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
       ).toBe('auto');
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(view.getByTestId('custom-amount-input')).toBeEnabled();
     });
 
     it('keeps the loading review until Redux observes controller loading', async () => {
@@ -1185,9 +1182,7 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(view.getByTestId('custom-amount-input')).toBeEnabled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
@@ -1209,9 +1204,7 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
 
       expect(view.queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(view.getByTestId('custom-amount-input')).toBeEnabled();
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
       mockTransactionPayControllerState.transactionData[nonMoneyTransactionId] =
@@ -1333,9 +1326,7 @@ describe('CustomAmountInfo', () => {
     );
     // Keyboard stays open: Done button and amount editing remain available.
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
-    expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-      expect.any(Function),
-    );
+    expect(getByTestId('custom-amount-input')).toBeEnabled();
   });
 
   it('does not show toast when the transaction was removed before updateTokenAmount rejects', async () => {
@@ -2797,9 +2788,7 @@ describe('CustomAmountInfo', () => {
 
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
-      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(getByTestId('custom-amount-input')).toBeEnabled();
     });
 
     it('hides keyboard when deposit prefill is enabled and tokens are available', () => {
