@@ -2,17 +2,11 @@ import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,6 +24,8 @@ import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaM
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakingEarnings.styles';
 import { trace, TraceName } from '../../../../../util/trace';
+import { useTheme } from '../../../../../util/theme';
+import DottedUnderline from '../../../DottedUnderline';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import {
   FontWeight as DesignSystemFontWeight,
@@ -44,6 +40,7 @@ export interface StakingEarningsProps {
 }
 
 export const STAKING_EARNINGS_TEST_IDS = {
+  ANNUAL_RATE_PRESSABLE: 'staking-annual-rate-pressable',
   LIFETIME_EARNINGS_FIAT: 'staking-lifetime-earnings-fiat',
   LIFETIME_EARNINGS_TOKEN: 'staking-lifetime-earnings-token',
   ESTIMATED_ANNUAL_EARNINGS_FIAT: 'staking-estimated-annual-earnings-fiat',
@@ -52,6 +49,8 @@ export const STAKING_EARNINGS_TEST_IDS = {
 
 const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+  const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
 
   const { navigate } = useNavigation<AppNavigationProp>();
@@ -86,22 +85,14 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   return (
     <View style={styles.stakingEarningsContainer}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
-        {strings('stake.your_earnings')}
+        {strings('stake.staking')}
       </Text>
       <View style={styles.stakingEarningsContent}>
         {/* Annual Rate */}
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapper}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.keyValuePrimaryText}
-            >
-              {strings('stake.annual_rate')}
-            </Text>
-            <ButtonIcon
-              size={ButtonIconSizes.Xs}
-              iconColor={IconColor.Muted}
-              iconName={IconName.Info}
+            <Pressable
+              testID={STAKING_EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE}
               accessibilityRole="button"
               accessibilityLabel={strings(
                 'stake.accessibility_labels.stake_annual_rate_tooltip',
@@ -113,7 +104,17 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
                   'Annual Rate',
                 ),
               })}
-            />
+              style={({ pressed }) => tw.style(pressed && 'opacity-50')}
+            >
+              <DottedUnderline color={colors.text.alternative}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.keyValuePrimaryText}
+                >
+                  {strings('stake.annual_rate')}
+                </Text>
+              </DottedUnderline>
+            </Pressable>
           </View>
           {isLoadingEarningsData ? (
             <SkeletonPlaceholder>
@@ -124,9 +125,15 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               />
             </SkeletonPlaceholder>
           ) : (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-              {annualRewardRate} APR
-            </Text>
+            <SensitiveText
+              variant={DesignSystemTextVariant.BodyMd}
+              fontWeight={DesignSystemFontWeight.Medium}
+              color={DesignSystemTextColor.SuccessDefault}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
+              {`${annualRewardRate} APR`}
+            </SensitiveText>
           )}
         </View>
         <View style={styles.keyValueRow}>

@@ -1,10 +1,12 @@
 import React from 'react';
 import StakingEarnings, { STAKING_EARNINGS_TEST_IDS } from '.';
+import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 
@@ -132,7 +134,7 @@ describe('Staking Earnings', () => {
   it('renders pooled-staking earnings', () => {
     const { getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
     expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
     expect(
@@ -186,5 +188,34 @@ describe('Staking Earnings', () => {
     ).toHaveTextContent(/•/);
     expect(queryByText('$5000')).not.toBeOnTheScreen();
     expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
+  });
+
+  it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByText } = render();
+
+    expect(
+      getByText(
+        strings('earn.service_interruption_banner.maintenance_message'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to the pooled-staking learn more modal when annual rate is pressed', () => {
+    const { getByTestId } = render();
+
+    fireEvent.press(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId: '0x1' },
+    });
   });
 });

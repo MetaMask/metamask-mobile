@@ -1,9 +1,15 @@
 import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxFlexWrap,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -15,6 +21,9 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { useTheme } from '../../../../../util/theme';
+import DottedUnderline from '../../../DottedUnderline';
+import InlineTextFlow from '../../../InlineTextFlow';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
@@ -37,6 +46,8 @@ export const MoneyAssetOverviewBalanceDescription = ({
   tokenSymbol,
 }: MoneyAssetOverviewBalanceDescriptionProps) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { colors } = useTheme();
+  const tw = useTailwind();
   const { trackComponentViewed, trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
     component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
@@ -60,32 +71,52 @@ export const MoneyAssetOverviewBalanceDescription = ({
       testID={MoneyAssetOverviewBalanceCtaTestIds.CONTAINER}
       twClassName="mb-3 mt-2"
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('money.asset_overview.balance_cta.description_prefix', {
-          symbol: tokenSymbol,
-        })}
-        <Text
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        flexWrap={BoxFlexWrap.Wrap}
+        alignItems={BoxAlignItems.Center}
+      >
+        <InlineTextFlow
+          text={strings('money.asset_overview.balance_cta.description_prefix', {
+            symbol: tokenSymbol,
+          })}
+          keyPrefix="money-asset-overview-balance-cta-prefix"
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+        />
+        <Pressable
           accessibilityRole="button"
           accessibilityLabel={strings(
             'money.asset_overview.balance_cta.earnings_tooltip_accessibility_label',
           )}
           onPress={handleProjectedEarningsPress}
           testID={MoneyAssetOverviewBalanceCtaTestIds.EARNINGS_TOOLTIP_BUTTON}
-          variant={TextVariant.BodyMd}
+          style={({ pressed }) => tw.style(pressed && 'opacity-50')}
         >
-          <SensitiveText
-            color={TextColor.SuccessDefault}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-            testID={MoneyAssetOverviewBalanceCtaTestIds.EARNINGS_AMOUNT}
-            twClassName="underline"
-            variant={TextVariant.BodyMd}
+          <DottedUnderline
+            color={colors.success.default}
+            twClassName="shrink-0"
           >
-            {projectedEarnings}
-          </SensitiveText>
-        </Text>
-        {strings('money.asset_overview.balance_cta.description_suffix')}
-      </Text>
+            <SensitiveText
+              color={TextColor.SuccessDefault}
+              fontWeight={FontWeight.Medium}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={MoneyAssetOverviewBalanceCtaTestIds.EARNINGS_AMOUNT}
+              variant={TextVariant.BodyMd}
+            >
+              {projectedEarnings}
+            </SensitiveText>
+          </DottedUnderline>
+        </Pressable>
+        <InlineTextFlow
+          text={strings('money.asset_overview.balance_cta.description_suffix')}
+          keyPrefix="money-asset-overview-balance-cta-suffix"
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          leadingSpace
+        />
+      </Box>
     </Box>
   );
 };

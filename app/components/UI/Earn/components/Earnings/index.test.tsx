@@ -138,7 +138,7 @@ describe('Earnings', () => {
   it('renders pooled-staking earnings', () => {
     const { getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
     expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
     expect(
@@ -213,7 +213,7 @@ describe('Earnings', () => {
       <View testID="lending-action" />,
     );
 
-    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.lending'))).toBeOnTheScreen();
     expect(getByTestId('lending-action')).toBeOnTheScreen();
     expect(
       queryByText(strings('earn.view_earnings_history.lending')),
@@ -281,9 +281,9 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    fireEvent.press(getByTestId('annual-rate-tooltip'));
+    fireEvent.press(getByTestId(EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE));
 
-    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.lending'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
       params: {
@@ -321,9 +321,9 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    fireEvent.press(getByTestId('annual-rate-tooltip'));
+    fireEvent.press(getByTestId(EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE));
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: {
