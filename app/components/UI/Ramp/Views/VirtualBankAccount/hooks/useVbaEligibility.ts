@@ -9,19 +9,19 @@ import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../../selectors/geolocationController';
-import { isBrazilGeolocationLocation } from '../../../../../../util/region/isBrazilGeolocationLocation';
+import { isVbaRegionSupported } from '../../../../../../util/region/isVbaRegionSupported';
 
 export interface VbaEligibility {
   /**
    * Whether the user may enter VBA onboarding. True when the flag is on and
-   * IP geolocation is Brazil, or the flag is on and the dev bypass is set.
+   * IP geolocation is a supported VBA region, or the flag is on and the dev bypass is set.
    */
   isEligible: boolean;
   /** IP lookup has not resolved yet; callers should hold rather than deny. */
   isLoading: boolean;
   /** `moneyMovementBrazilNeobank` remote flag, including its min-version gate. */
   isFlagEnabled: boolean;
-  /** IP geolocation resolves to Brazil. */
+  /** IP geolocation resolves to a supported VBA region. */
   isRegionEligible: boolean;
   /** `MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS=true` in `.js.env`. */
   isDevBypassEnabled: boolean;
@@ -50,7 +50,7 @@ export function getVbaEligibility({
   isDevBypassEnabled,
 }: VbaEligibilityInputs): VbaEligibility {
   const trimmedLocation = location?.trim() || undefined;
-  const isRegionEligible = isBrazilGeolocationLocation(trimmedLocation);
+  const isRegionEligible = isVbaRegionSupported(trimmedLocation);
   const isLoading =
     !trimmedLocation &&
     (geolocationStatus === undefined ||
