@@ -159,6 +159,11 @@ describe('PerpsHomeView', () => {
     expect(
       await screen.findByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
     ).toBeOnTheScreen();
+    const renderedSection = JSON.stringify(screen.toJSON());
+    expect(renderedSection.indexOf('Activity')).toBeGreaterThanOrEqual(0);
+    expect(
+      renderedSection.indexOf(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
+    ).toBeGreaterThan(renderedSection.indexOf('Activity'));
     fireEvent.press(
       screen.getByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
     );

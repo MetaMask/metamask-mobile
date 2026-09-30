@@ -988,35 +988,35 @@ const PerpsHomeView = () => {
           PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
         ),
         content: (
-          <>
-            {activityError && (
-              <Box
-                paddingHorizontal={4}
-                paddingVertical={3}
-                gap={2}
-                testID={PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.ErrorDefault}
+          <PerpsRecentActivityList
+            transactions={recentActivity}
+            isLoading={isLoading.activity}
+            errorContent={
+              activityError && (
+                <Box
+                  paddingHorizontal={4}
+                  paddingVertical={3}
+                  gap={2}
+                  testID={PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR}
                 >
-                  {strings('perps.home.activity_load_error')}
-                </Text>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Md}
-                  onPress={retryActivity}
-                  testID={PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY}
-                >
-                  {strings('perps.errors.connectionFailed.retry')}
-                </Button>
-              </Box>
-            )}
-            <PerpsRecentActivityList
-              transactions={recentActivity}
-              isLoading={isLoading.activity}
-            />
-          </>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.ErrorDefault}
+                  >
+                    {strings('perps.home.activity_load_error')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    onPress={retryActivity}
+                    testID={PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY}
+                  >
+                    {strings('perps.errors.connectionFailed.retry')}
+                  </Button>
+                </Box>
+              )
+            }
+          />
         ),
       },
       {
