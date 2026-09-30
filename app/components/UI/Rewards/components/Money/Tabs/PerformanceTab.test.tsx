@@ -172,7 +172,7 @@ describe('PerformanceTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the two-stage funnel and commissions for a referrer, not rebates', () => {
+  it('shows the two-stage funnel for a referrer, not commissions or rebates', () => {
     const { getByTestId, getByText, queryByTestId, queryByText } =
       renderTab('REFERRER');
 
@@ -183,8 +183,8 @@ describe('PerformanceTab', () => {
     expect(queryByText('Active referrals')).toBeNull();
     expect(getByText('12')).toBeOnTheScreen();
     expect(getByText('5')).toBeOnTheScreen();
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
-    expect(getByText('Trade commissions')).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(queryByText('Trade commissions')).toBeNull();
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
@@ -194,12 +194,13 @@ describe('PerformanceTab', () => {
     });
   });
 
-  it('shows commissions and rebates for a referee, not the funnel', () => {
-    const { getByTestId, getByText, queryByTestId } = renderTab('REFEREE');
+  it('shows rebates for a referee, not the funnel or commissions', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } =
+      renderTab('REFEREE');
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
-    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(queryByText('Trading commissions')).toBeNull();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
     expect(getByText('Swaps')).toBeOnTheScreen();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
@@ -210,7 +211,7 @@ describe('PerformanceTab', () => {
     });
   });
 
-  it('shows an empty message in commissions and rebates when neither has rows', () => {
+  it('shows an empty message in rebates when there are no rows', () => {
     const { getAllByText, getByTestId, queryByRole, queryByTestId } = renderTab(
       'REFEREE',
       {
@@ -220,17 +221,14 @@ describe('PerformanceTab', () => {
     );
 
     expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
-    ).toBeOnTheScreen();
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
+    ).toBeNull();
     expect(
       getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
     ).toBeOnTheScreen();
     expect(
       getAllByText('Your activity is empty now. Start trading to earn today!'),
-    ).toHaveLength(2);
-    expect(
-      queryByTestId(`${PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY}-action`),
-    ).toBeNull();
+    ).toHaveLength(1);
     expect(
       getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
     ).toBeOnTheScreen();
@@ -244,37 +242,34 @@ describe('PerformanceTab', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
-    expect(queryByRole('button', { name: 'Trading commissions' })).toBeNull();
     expect(queryByRole('button', { name: 'Trading rebates' })).toBeNull();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
+    ).toBeNull();
 
-    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER));
     fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
 
     expect(navigateToRewardsRoute).not.toHaveBeenCalled();
   });
 
-  it('caps the commissions preview at five rows', () => {
+  it('hides the commissions preview while commissions are disabled', () => {
     const commissions = Array.from({ length: 8 }, (_, index) => ({
       ...commission,
       id: `row-${index}`,
     }));
 
-    const { getAllByTestId } = renderTab('REFERRER', { commissions });
+    const { queryAllByTestId, queryByTestId } = renderTab('REFERRER', {
+      commissions,
+    });
 
     expect(
-      getAllByTestId(new RegExp(PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW)),
-    ).toHaveLength(5);
-  });
-
-  it('navigates to the commissions list from the section header', () => {
-    const { getByTestId } = renderTab('REFERRER');
-
-    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER));
-
-    expect(navigateToRewardsRoute).toHaveBeenCalledWith(
-      expect.anything(),
-      Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
-    );
+      queryAllByTestId(
+        new RegExp(PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW),
+      ),
+    ).toHaveLength(0);
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
+    ).toBeNull();
   });
 
   it('shows a funnel row skeleton while the funnel is loading', () => {
@@ -300,7 +295,6 @@ describe('PerformanceTab', () => {
     expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
     expect(queryByText('Error loading your transactions')).toBeNull();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
-    expect(getByText('BTC')).toBeOnTheScreen();
 
     fireEvent.press(getByText('Retry'));
 
@@ -323,42 +317,38 @@ describe('PerformanceTab', () => {
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
   });
 
-  it('shows a transactions error above cached commissions', () => {
-    const { getByTestId, getByText, queryByText } = renderTab('REFERRER', {
+  it('hides a commissions error while commissions are disabled', () => {
+    const { queryByTestId, queryByText } = renderTab('REFERRER', {
       commissionsError: 'failed',
     });
 
     expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
-    ).toBeOnTheScreen();
-    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
-    expect(queryByText('Referral details couldn’t be loaded')).toBeNull();
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
-
-    fireEvent.press(getByText('Retry'));
-
-    expect(retryCommissions).toHaveBeenCalledTimes(1);
-    expect(fetchReferralFunnel).not.toHaveBeenCalled();
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
+    ).toBeNull();
+    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(retryCommissions).not.toHaveBeenCalled();
   });
 
-  it('keeps one banner and retries commissions when the funnel also failed', () => {
+  it('shows the referral error when the funnel failed while commissions are hidden', () => {
     const { getByTestId, getByText, queryByTestId } = renderTab('REFERRER', {
       commissionsError: 'failed',
       funnelError: true,
     });
 
     expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
+    ).toBeNull();
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR),
     ).toBeOnTheScreen();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR)).toBeNull();
-    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+    expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
-    expect(getByText('BTC')).toBeOnTheScreen();
 
     fireEvent.press(getByText('Retry'));
 
-    expect(retryCommissions).toHaveBeenCalledTimes(1);
-    expect(fetchReferralFunnel).not.toHaveBeenCalled();
+    expect(fetchReferralFunnel).toHaveBeenCalledWith({ forceFresh: true });
+    expect(retryCommissions).not.toHaveBeenCalled();
   });
 
   it('retries rebates from the transactions error when only rebates failed', () => {
@@ -404,7 +394,7 @@ describe('PerformanceTab', () => {
 
     expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
     expect(queryByText('Referrals')).toBeNull();
-    expect(getByText('Trade commissions')).toBeOnTheScreen();
+    expect(queryByText('Trade commissions')).toBeNull();
   });
 
   it('navigates to the rebates list from the section header', () => {

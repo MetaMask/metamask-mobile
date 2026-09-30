@@ -107,7 +107,8 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   }, [navigation]);
   const isReferrer = variant === 'REFERRER';
   const isReferee = variant === 'REFEREE';
-  const showCommissions = isReferrer || isReferee;
+  // Disable commissions for this pilot until the section is ready to show.
+  const showCommissions = false; // isReferrer || isReferee;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
