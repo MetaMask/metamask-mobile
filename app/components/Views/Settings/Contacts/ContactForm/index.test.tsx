@@ -49,6 +49,11 @@ jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  toast: jest.fn(),
+}));
+
 // Mock address book data
 const MOCK_ADDRESS_BOOK = {
   '1': {
