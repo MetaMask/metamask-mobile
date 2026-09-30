@@ -1,14 +1,15 @@
 import { SolScope } from '@metamask/keyring-api';
 import {
+  type CaipAccountId,
   type CaipChainId,
   KnownCaipNamespace,
+  parseCaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
 import { type Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 
 import {
   buildAdapterScopedPermissions,
-  doesProposalOrSessionIncludeNamespace,
   enrichCaveatValueForNamespace,
 } from '../utils';
 import type {
@@ -91,33 +92,33 @@ export async function getScopedPermissions({
 }: {
   channelId: string;
 }): Promise<NamespaceConfig | undefined> {
-  return buildAdapterScopedPermissions({
+  const config = await buildAdapterScopedPermissions({
     channelId,
     namespace: KnownCaipNamespace.Solana,
     methods: SOLANA_METHODS,
     events: SOLANA_EVENTS,
     normalizeChainIdOutbound: normalizeCaipChainIdOutbound,
   });
-}
-
-/**
- * Request `solana_accountChanged` notifications at handshake so Wallet
- * Standard-style clients stay in sync with the selected account.
- */
-export function getSessionProperties({
-  proposal,
-}: {
-  proposal: ProposalParamsLight;
-}): Record<string, string> | undefined {
-  if (
-    !doesProposalOrSessionIncludeNamespace({
-      proposalOrSession: proposal,
-      namespace: KnownCaipNamespace.Solana,
-    })
-  ) {
-    return undefined;
+  if (!config?.chains.includes(SolScope.Mainnet)) {
+    return config;
   }
-  return { solana_accountChanged_notifications: 'true' };
+
+  // Legacy clients require the legacy mainnet id in `requiredNamespaces`;
+  // WalletKit rejects approval unless it is advertised with matching accounts.
+  const legacyAccounts = config.accounts
+    .filter((account) => account.startsWith(`${SolScope.Mainnet}:`))
+    .map(
+      (account) =>
+        `${SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID}:${
+          parseCaipAccountId(account).address
+        }` as CaipAccountId,
+    );
+
+  return {
+    ...config,
+    chains: [...config.chains, SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID],
+    accounts: [...config.accounts, ...legacyAccounts],
+  };
 }
 
 /** Seed Solana scopes into the CAIP-25 caveat, falling back to Mainnet. */
@@ -145,7 +146,7 @@ export function enrichCaveatValue({
 export async function handleRequest({
   origin,
   originMetadata,
-  connectedAddresses,
+  connectedAddresses: sessionAddresses,
   scope,
   requestId,
   method,
@@ -153,6 +154,17 @@ export async function handleRequest({
 }: AdapterHandleRequestArgs<SolanaWalletConnectSpec>): Promise<
   RpcResponse<SolanaWalletConnectSpec>
 > {
+  // Session accounts include legacy-mainnet duplicates (see
+  // `getScopedPermissions`); fold them back onto `SolScope.Mainnet`.
+  const connectedAddresses = [
+    ...new Set(
+      sessionAddresses.map((accountId) => {
+        const { chainId, address } = parseCaipAccountId(accountId);
+        return `${normalizeCaipChainIdInbound(chainId)}:${address}` as CaipAccountId;
+      }),
+    ),
+  ];
+
   const envelope = {
     origin,
     originMetadata,
@@ -226,7 +238,6 @@ export const solanaAdapter: ChainAdapter<
   approvedMethods: SOLANA_METHODS,
   enrichCaveatValue,
   getScopedPermissions,
-  getSessionProperties,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
   handleRequest,
