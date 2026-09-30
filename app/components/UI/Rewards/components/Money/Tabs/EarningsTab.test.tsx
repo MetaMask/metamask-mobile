@@ -17,12 +17,14 @@ import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard';
 import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows';
 import EarningsTab, { EARNINGS_TAB_TEST_IDS } from './EarningsTab';
 
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       goBack: jest.fn(),
     }),
   };
@@ -54,6 +56,9 @@ const LOCALIZED_TEXT = {
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   historyClaimed: 'Claimed',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  tradingActivityEmptyAction: 'Start trading',
 } as unknown as ReferralLocalizedText;
 
 const branch = (lifetime: string) => ({
@@ -215,27 +220,22 @@ describe('EarningsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows referral and commission totals for a referrer', () => {
-    const { getByText, queryByText, getByTestId } = renderTab('referrer');
+  it('hides the breakdown for a referrer and keeps the claim card', () => {
+    const { getByText, queryByText, queryByTestId } = renderTab('referrer');
 
-    expect(getByText('Referrals')).toBeOnTheScreen();
-    expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('Trade commissions')).toBeOnTheScreen();
-    expect(getByText('$9.15')).toBeOnTheScreen();
-    expect(queryByText('Trading rebates')).toBeNull();
-    expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
+    expect(queryByText('Referrals')).toBeNull();
+    expect(queryByText('Trade commissions')).toBeNull();
     expect(getByText('$2.00')).toBeOnTheScreen();
     expect(getByText('$58.50')).toBeOnTheScreen();
   });
 
-  it('shows commission and rebate totals for a referee', () => {
-    const { getByText, queryByText } = renderTab('referee');
+  it('hides the breakdown for a referee', () => {
+    const { queryByText, queryByTestId } = renderTab('referee');
 
-    expect(queryByText('Referrals')).toBeNull();
-    expect(getByText('Trading commissions')).toBeOnTheScreen();
-    expect(getByText('$9.15')).toBeOnTheScreen();
-    expect(getByText('Trading rebates')).toBeOnTheScreen();
-    expect(getByText('$7.65')).toBeOnTheScreen();
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
+    expect(queryByText('Trading commissions')).toBeNull();
+    expect(queryByText('Trading rebates')).toBeNull();
   });
 
   it('omits the breakdown for a plain persona', () => {
@@ -300,21 +300,47 @@ describe('EarningsTab', () => {
     expect(getAllByText('Claimed').length).toBeGreaterThan(0);
   });
 
-  it('opens Performance from the breakdown header and history from its header', () => {
-    const onViewPerformance = jest.fn();
-    const { getByTestId } = renderTab('referrer', { onViewPerformance });
+  it('shows an empty history message and keeps the header from navigating', () => {
+    const { getByTestId, getByText, queryByRole, queryByTestId } = renderTab(
+      'referrer',
+      { historyItems: [] },
+    );
 
-    fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER));
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)).toBeOnTheScreen();
+    expect(
+      getByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeNull();
+    expect(queryByRole('button', { name: 'History' })).toBeNull();
+
+    fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_HEADER));
+    fireEvent.press(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY}-action`),
+    );
+
+    expect(navigateToRewardsRoute).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
+  });
+
+  it('opens history from its header while the breakdown stays hidden', () => {
+    const onViewPerformance = jest.fn();
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
+      onViewPerformance,
+    });
+
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER)).toBeNull();
     fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_HEADER));
 
-    expect(onViewPerformance).toHaveBeenCalledTimes(1);
+    expect(onViewPerformance).not.toHaveBeenCalled();
     expect(navigateToRewardsRoute).toHaveBeenCalledWith(
       expect.anything(),
       Routes.REWARDS_EARNINGS_HISTORY_VIEW,
     );
   });
 
-  it('skeletons the card, breakdown, and history while each is loading', () => {
+  it('skeletons the card and history while each is loading', () => {
     const { getByTestId, queryByTestId } = renderTab('referrer', {
       summary: null,
       summaryLoading: true,
@@ -327,9 +353,7 @@ describe('EarningsTab', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON),
-    ).toBeOnTheScreen();
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON)).toBeNull();
     expect(
       getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
