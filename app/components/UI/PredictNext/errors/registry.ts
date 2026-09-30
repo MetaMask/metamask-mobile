@@ -11,9 +11,12 @@ export enum PredictErrorCode {
   MARKET_NOT_FOUND = 'MARKET_NOT_FOUND',
   MARKET_NOT_TRADEABLE = 'MARKET_NOT_TRADEABLE',
   QUOTE_UNAVAILABLE = 'QUOTE_UNAVAILABLE',
+  PREVIEW_EXPIRED = 'PREVIEW_EXPIRED',
   BALANCE_UNAVAILABLE = 'BALANCE_UNAVAILABLE',
   INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY',
   INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
+  INSUFFICIENT_POSITION = 'INSUFFICIENT_POSITION',
+  POSITION_UNAVAILABLE = 'POSITION_UNAVAILABLE',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -93,6 +96,11 @@ export const predictErrorRegistry: Record<
     message: 'A quote is unavailable right now.',
     recoverable: true,
   },
+  [PredictErrorCode.PREVIEW_EXPIRED]: {
+    category: 'action_failed',
+    message: 'This quote expired. Refresh to get a new one.',
+    recoverable: true,
+  },
   [PredictErrorCode.BALANCE_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'Your balance is unavailable right now.',
@@ -107,6 +115,18 @@ export const predictErrorRegistry: Record<
     category: 'action_failed',
     message: 'Not enough balance for this order.',
     recoverable: false,
+  },
+  // Over-sell / not-owned: the backend validates against authoritative
+  // Venue evidence, so a local over-sell that slips through fails here.
+  [PredictErrorCode.INSUFFICIENT_POSITION]: {
+    category: 'action_failed',
+    message: 'Not enough contracts in this position.',
+    recoverable: true,
+  },
+  [PredictErrorCode.POSITION_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'Your position is unavailable right now.',
+    recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {
     category: 'action_failed',

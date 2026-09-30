@@ -9,7 +9,7 @@ import type { UserStorageControllerInitMessenger } from '../../messengers/identi
 import { MetaMetricsEvents } from '../../../Analytics';
 import { trace } from '../../../../util/trace';
 import { buildAndTrackEvent } from '../../utils/analytics';
-import { authEnv } from '../../../devApiEnv';
+import { authEnv } from '../../../apiEnv';
 
 /**
  * scrypt adapter shaped to match the react-native-fast-crypto interface.

@@ -138,6 +138,7 @@ export default {
   MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE: 'metamask-alternate.test-app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
+  MM_COM_UNIVERSAL_LINK_HOST: 'link.metamask.com',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   MM_DEEP_LINK_PUBLIC_KEY_X: 'PxxYwxHYnfdrHyG9LPws2330ffAYE9a4CDD6Wx9ZwGs',
   MM_DEEP_LINK_PUBLIC_KEY_Y: 'w4ZtTHFnWyNkbgXglqJOoc-1OA5ZC4kW4GYU_QIeBNA',
@@ -165,6 +166,7 @@ export default {
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
     ORIGIN_PUSH_NOTIFICATION: 'push-notification',
     ORIGIN_BRAZE: 'braze',
+    ORIGIN_PERPS_OUTREACH: 'perps-outreach',
   },
   WALLET_CONNECT: {
     //One day in hours

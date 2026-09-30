@@ -14,6 +14,25 @@ export class LockManagerService {
   #appState?: AppStateStatus;
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
+  #lockAppPromise?: Promise<void>;
+
+  /**
+   * True while Auto-lock still has work: a timer is scheduled, or lock has
+   * started and not finished. Deeplink parse must wait so a resume cannot
+   * consume a URL and then lose it to a lock that lands a tick later.
+   */
+  isAutoLockPending(): boolean {
+    return this.#lockTimer !== undefined || this.#lockAppPromise !== undefined;
+  }
+
+  #startLock = () => {
+    if (this.#lockAppPromise) {
+      return;
+    }
+    this.#lockAppPromise = this.#lockApp().finally(() => {
+      this.#lockAppPromise = undefined;
+    });
+  };
 
   #lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
@@ -38,6 +57,21 @@ export class LockManagerService {
     this.#lockTimer = undefined;
   };
 
+  /**
+   * Cancels a scheduled lock, waits for an in-flight lock, then parses a
+   * pending deeplink only if the wallet is still unlocked.
+   */
+  #settleAutoLockAndMaybeCheckDeeplink = async () => {
+    this.#clearBackgroundTimer();
+    if (this.#lockAppPromise) {
+      await this.#lockAppPromise;
+    }
+    if (!Engine.context.KeyringController.isUnlocked()) {
+      return;
+    }
+    ReduxService.store.dispatch(checkForDeeplink());
+  };
+
   #handleAppStateChange = async (nextAppState: AppStateStatus) => {
     // Don't auto-lock.
     try {
@@ -52,8 +86,7 @@ export class LockManagerService {
           // Android resumes as background -> inactive -> active, which lands
           // here rather than in the `active` branch below. Without this the
           // pending timer survives the resume and locks mid-session.
-          this.#clearBackgroundTimer();
-          ReduxService.store.dispatch(checkForDeeplink());
+          await this.#settleAutoLockAndMaybeCheckDeeplink();
         }
         this.#appState = nextAppState;
         return;
@@ -62,22 +95,23 @@ export class LockManagerService {
       // Handle lock logic on background.
       if (nextAppState === 'background') {
         if (lockTime === 0) {
-          this.#lockApp();
+          this.#startLock();
         } else {
           // Autolock after some time.
           this.#clearBackgroundTimer();
           this.#lockTimer = BackgroundTimer.setTimeout(() => {
-            if (this.#lockTimer) {
-              this.#lockApp();
+            if (!this.#lockTimer) {
+              return;
             }
+            this.#lockTimer = undefined;
+            this.#startLock();
           }, lockTime);
         }
       }
 
       // App has foregrounded from background.
-      // Clear background timer for safe measure.
       if (nextAppState === 'active') {
-        this.#clearBackgroundTimer();
+        await this.#settleAutoLockAndMaybeCheckDeeplink();
       }
 
       this.#appState = nextAppState;

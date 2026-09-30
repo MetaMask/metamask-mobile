@@ -196,10 +196,13 @@ function OrdersTabs<TOpen, THistory>({
   openOrders,
   history,
   initialTab = OrdersTabKey.OpenOrders,
+  activeTab,
   enabledChainIds,
   onTabChange,
 }: OrdersTabsProps<TOpen, THistory>) {
-  const [selectedTab, setSelectedTab] = useState<OrdersTabKey>(initialTab);
+  const [internalSelectedTab, setInternalSelectedTab] =
+    useState<OrdersTabKey>(initialTab);
+  const selectedTab = activeTab ?? internalSelectedTab;
 
   const tabs = useMemo<TabItem[]>(
     () => [
@@ -231,7 +234,9 @@ function OrdersTabs<TOpen, THistory>({
           onTabPress={(index) => {
             const nextTab =
               index === 1 ? OrdersTabKey.History : OrdersTabKey.OpenOrders;
-            setSelectedTab(nextTab);
+            if (activeTab === undefined) {
+              setInternalSelectedTab(nextTab);
+            }
             onTabChange?.(nextTab);
           }}
           testID={OrdersTabsSelectorsIDs.TABS_BAR}

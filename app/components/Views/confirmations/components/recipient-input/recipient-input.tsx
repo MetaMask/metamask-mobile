@@ -8,6 +8,7 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   IconName,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -20,15 +21,14 @@ import { RecipientInputMethod } from '../../context/send-context/send-metrics-co
 import { useScanRecipientQrCode } from '../../hooks/send/useScanRecipientQrCode';
 
 const ScanRecipientButton = ({ onPress }: { onPress: () => void }) => (
-  <Box twClassName="h-[30px] items-center justify-center rounded-lg bg-muted px-1">
-    <ButtonIcon
-      iconName={IconName.ScanBarcode}
-      size={ButtonIconSize.Sm}
-      onPress={onPress}
-      accessibilityLabel={strings('send.scan_qr_code')}
-      testID="recipient-qr-scan-button"
-    />
-  </Box>
+  <ButtonIcon
+    iconName={IconName.ScanBarcode}
+    size={ButtonIconSize.Md}
+    variant={ButtonIconVariant.Filled}
+    onPress={onPress}
+    accessibilityLabel={strings('send.scan_qr_code')}
+    testID="recipient-qr-scan-button"
+  />
 );
 
 export const RecipientInput = ({

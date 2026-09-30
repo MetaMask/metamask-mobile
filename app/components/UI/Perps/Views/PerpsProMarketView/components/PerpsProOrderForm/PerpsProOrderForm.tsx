@@ -106,7 +106,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
       testID={testID}
     >
       <Box
-        twClassName={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
+        twClassName={`h-12 flex-row items-center justify-between rounded-full bg-muted px-3${
           isDisabled ? ' opacity-50' : ''
         }`}
       >
@@ -726,39 +726,41 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               testID={ids.DIRECTION_CONTROL}
             >
+              {/* Labels are passed as strings, not <Text> elements: ButtonBase
+                  only applies its centering and single-line label defaults when
+                  children is a string. Translations such as el "Αγορά (Long)"
+                  are far wider than en "Long", so the default px-4 is narrowed
+                  to px-1 to give them room before they have to ellipsize.
+                  The direction colour rides on twClassName rather than `color`
+                  because the Secondary variant appends its own `text-default`
+                  after the colour prop, and only twClassName is merged last. */}
               <FilterButton
                 value="long"
                 disabled={isScaleFormLocked}
-                twClassName={isLong ? 'bg-success-muted' : ''}
+                twClassName={`px-1 ${isLong ? 'bg-success-muted' : ''}`}
                 testID={ids.DIRECTION_LONG}
+                textProps={{
+                  twClassName: isLong
+                    ? TextColor.SuccessDefault
+                    : TextColor.TextAlternative,
+                  ellipsizeMode: 'tail',
+                }}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isLong
-                      ? TextColor.SuccessDefault
-                      : TextColor.TextAlternative
-                  }
-                >
-                  {strings('perps.market.long')}
-                </Text>
+                {strings('perps.market.long')}
               </FilterButton>
               <FilterButton
                 value="short"
                 disabled={isScaleFormLocked}
-                twClassName={!isLong ? 'bg-error-muted' : ''}
+                twClassName={`px-1 ${!isLong ? 'bg-error-muted' : ''}`}
                 testID={ids.DIRECTION_SHORT}
+                textProps={{
+                  twClassName: isLong
+                    ? TextColor.TextAlternative
+                    : TextColor.ErrorDefault,
+                  ellipsizeMode: 'tail',
+                }}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isLong ? TextColor.TextAlternative : TextColor.ErrorDefault
-                  }
-                >
-                  {strings('perps.market.short')}
-                </Text>
+                {strings('perps.market.short')}
               </FilterButton>
             </SegmentedControl>
             {isOrderBookCollapsed ? (
@@ -779,7 +781,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-full bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -788,7 +790,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-full bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
@@ -796,7 +798,9 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName="overflow-hidden rounded-xl bg-muted"
+            twClassName={`overflow-hidden bg-muted ${
+              orderType === 'market' ? 'rounded-full' : 'rounded-xl'
+            }`}
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
@@ -981,7 +985,7 @@ const PerpsProOrderForm = ({
           />
           <Box
             testID={ids.REDUCE_ONLY_CONTAINER}
-            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+            twClassName="h-12 justify-center rounded-full bg-muted px-3"
           >
             <Checkbox
               label={strings('perps.order.reduce_only')}

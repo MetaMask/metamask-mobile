@@ -636,6 +636,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
+              style={tw.style('text-center')}
             >
               {strings('predict.consent_sheet.disclaimer')}
             </Text>

@@ -1,0 +1,133 @@
+# Flaky unit test history index — MCWP-474
+#
+# Builds the same-SHA fail-then-pass history that
+# flaky-unit-test-detection.yml reads on every PR. That workflow used to
+# derive this itself on each push, which meant re-walking thousands of ci.yml
+# runs to answer a question about a handful of files, against a GraphQL budget
+# shared with every other workflow in the repository.
+#
+# Here it is walked once a night over a single day: roughly 330 runs and 33
+# candidate commits, comfortably clear of both the 1000-result listWorkflowRuns
+# ceiling and the 1000 GraphQL points GITHUB_TOKEN allows per hour. Job logs
+# are also read hours after the fact rather than weeks, when they still exist.
+#
+# The index is published as an artifact and the next build merges into it, so
+# each night extends the window instead of recomputing it. The build resumes
+# from the last day the index actually covers, which is what turns a failed
+# night into a re-walk rather than a permanent hole. Retention is the outage
+# budget: 90 days without a successful build before the chain is unrecoverable,
+# at which point it cold-starts from a 14-day backfill and grows again.
+#
+# The index outlives the evidence it came from — Actions logs are deleted, so
+# after a few months this artifact is the only surviving record of the signal.
+
+name: Flaky unit test history index
+
+on:
+  schedule:
+    # 02:30 UTC — after the day being walked has fully closed.
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backfill_days:
+        description: Days to walk when cold-starting or recovering (max 14)
+        type: string
+        default: '14'
+
+# A second build would merge into the same prior artifact and one of the two
+# results would be silently discarded.
+concurrency:
+  group: flaky-unit-test-index
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-index:
+    name: Build flaky history index
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install CI script dependencies
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
+
+      # Walks recent successful builds rather than only the newest, so a build
+      # that succeeded without uploading cannot blank the index.
+      - name: Resolve the previous index build
+        id: prior
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          run_id=""
+          # Empty on the very first build, and on any API hiccup. Both mean
+          # "cold start", which costs a backfill rather than the whole history.
+          candidates=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/flaky-unit-test-index.yml/runs?status=success&per_page=10" \
+            --jq '.workflow_runs[].id' 2>/dev/null || true)
+          for candidate in $candidates; do
+            names=$(gh api "repos/${{ github.repository }}/actions/runs/$candidate/artifacts" \
+              --jq '.artifacts[].name' 2>/dev/null || true)
+            if echo "$names" | grep -qx 'flaky-history-index'; then
+              run_id="$candidate"
+              break
+            fi
+          done
+          if [ -z "$run_id" ]; then
+            echo "No previous index artifact found; this build cold-starts."
+          else
+            echo "Resuming from run $run_id."
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Download the previous index
+        id: download
+        if: steps.prior.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: flaky-history-index
+          path: .flaky-history-index-prior
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.prior.outputs.run_id }}
+
+      # Fails the job when every walked day came back incomplete, so a broken
+      # nightly shows up here instead of decaying into a staleness line on PRs.
+      # That failure still writes an index file; publishing it would look like
+      # a valid chain artifact from a build the producer already declared unusable.
+      - name: Build the index
+        id: build-index
+        working-directory: .github/scripts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FLAKY_PRIOR_INDEX_PATH: ${{ github.workspace }}/.flaky-history-index-prior/flaky-history-index.json
+          FLAKY_BACKFILL_DAYS: ${{ inputs.backfill_days }}
+        run: yarn flaky-build-history-index
+
+      - name: Publish the index
+        if: steps.build-index.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: flaky-history-index
+          path: .flaky-history-index/flaky-history-index.json
+          # The outage budget: how long the nightly can stay broken before the
+          # chain is unrecoverable and has to cold-start from a backfill.
+          retention-days: 90
+          if-no-files-found: warn

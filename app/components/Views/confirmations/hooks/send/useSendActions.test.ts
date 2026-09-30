@@ -18,11 +18,43 @@ import * as SendExitMetrics from './metrics/useSendExitMetrics';
 import * as MultichainSnaps from '../../utils/multichain-snaps';
 // eslint-disable-next-line import-x/no-namespace
 import * as SendType from './useSendType';
+import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
+import { NonEvmSendUnknownValue } from './metrics/useNonEvmSendMetrics';
 import { useSendActions } from './useSendActions';
 
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
+
+const mockUseSendMetricsContext = useSendMetricsContext as jest.MockedFunction<
+  typeof useSendMetricsContext
+>;
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../context/send-context/send-metrics-context', () => ({
+  useSendMetricsContext: jest.fn(() => ({
+    chainIdCaip: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  })),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => {
+  const { AnalyticsEventBuilder } = jest.requireActual(
+    '../../../../../util/analytics/AnalyticsEventBuilder',
+  );
+  return {
+    useAnalytics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    }),
+  };
+});
+
+const trackedEventNames = () =>
+  mockTrackEvent.mock.calls.map(([event]) => event.name);
+
+const trackedEventProperties = (eventName: string) =>
+  mockTrackEvent.mock.calls.find(([event]) => event.name === eventName)?.[0]
+    .properties;
 
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
@@ -60,6 +92,7 @@ const mockState = {
 describe('useSendActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrackEvent.mockClear();
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -208,6 +241,82 @@ describe('useSendActions', () => {
         expect(mockAlert).toHaveBeenCalledWith('Insufficient funds');
         expect(mockNavigate).not.toHaveBeenCalledWith('TransactionsView');
       });
+
+      expect(trackedEventNames()).toStrictEqual(['Send Failed']);
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        failure_phase: 'validation',
+        error_code: 'InsufficientBalance',
+        client: 'mobile',
+      });
+    });
+
+    it('records an unknown sentinel rather than undefined when the account has no snap metadata', async () => {
+      mockUseSendContext.mockReturnValue({
+        asset: SOLANA_ASSET,
+        chainId: SOLANA_ASSET.chainId,
+        from: ACCOUNT_ADDRESS_MOCK_2,
+        to: ACCOUNT_ADDRESS_MOCK_2,
+        value: '10',
+        fromAccount: {
+          id: 'solana-account-id',
+          address: ACCOUNT_ADDRESS_MOCK_2,
+        },
+      } as unknown as ReturnType<typeof useSendContext>);
+
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockResolvedValue({
+          valid: false,
+          errors: [{ code: 'InsufficientBalance' }],
+        });
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith('Insufficient funds');
+      });
+
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        failure_phase: 'validation',
+        error_code: 'InsufficientBalance',
+        snap_id: NonEvmSendUnknownValue,
+      });
+      expect(trackedEventProperties('Send Failed')).not.toHaveProperty(
+        'snap_id',
+        undefined,
+      );
+    });
+
+    it('falls back to the send chain id when the metrics context chain id is empty', async () => {
+      mockUseSendMetricsContext.mockReturnValueOnce({
+        chainIdCaip: '',
+      } as unknown as ReturnType<typeof useSendMetricsContext>);
+
+      jest
+        .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
+        .mockResolvedValue({
+          valid: false,
+          errors: [{ code: 'InsufficientBalance' }],
+        });
+
+      const { result } = renderHookWithProvider(() => useSendActions(), {
+        state: solanaSendStateMock,
+      });
+
+      await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith('Insufficient funds');
+      });
+
+      // `''` is not nullish, so `??` would have degraded this to the sentinel.
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        chain_id_caip: SOLANA_ASSET.chainId,
+      });
     });
 
     it('shows alert with generic error when valid: false without errors array', async () => {
@@ -227,6 +336,11 @@ describe('useSendActions', () => {
       await waitFor(() => {
         expect(mockAlert).toHaveBeenCalledWith('Transaction error');
         expect(mockNavigate).not.toHaveBeenCalledWith('TransactionsView');
+      });
+
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        failure_phase: 'validation',
+        error_code: 'unknown',
       });
     });
 
@@ -268,12 +382,21 @@ describe('useSendActions', () => {
       await waitFor(() => {
         expect(mockAlert).not.toHaveBeenCalled();
       });
+
+      // User rejection is classified, not dropped, so the attempt stays countable
+      expect(trackedEventNames()).toStrictEqual(['Send Failed']);
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        failure_phase: 'confirmation',
+        error_code: 'user_rejected',
+      });
     });
 
     it('shows alert with generic error for snap/internal errors (non-user-rejection)', async () => {
       jest
         .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
-        .mockRejectedValue(new Error('Snap execution failed'));
+        .mockRejectedValue(
+          Object.assign(new Error('Snap execution failed'), { code: -32603 }),
+        );
 
       const { result } = renderHookWithProvider(() => useSendActions(), {
         state: solanaSendStateMock,
@@ -283,6 +406,12 @@ describe('useSendActions', () => {
 
       await waitFor(() => {
         expect(mockAlert).toHaveBeenCalledWith('Transaction error');
+      });
+
+      expect(trackedEventNames()).toStrictEqual(['Send Failed']);
+      expect(trackedEventProperties('Send Failed')).toMatchObject({
+        failure_phase: 'snap_rpc',
+        error_code: '-32603',
       });
     });
 
@@ -343,6 +472,10 @@ describe('useSendActions', () => {
         expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
         expect(mockAlert).not.toHaveBeenCalled();
       });
+
+      // The Snap emits the post-submit lifecycle events itself, so the client
+      // does not track a duplicate submit/complete event on success.
+      expect(trackedEventNames()).toStrictEqual([]);
     });
   });
 });

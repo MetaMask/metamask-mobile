@@ -6,7 +6,8 @@ import {
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/bigint';
+import { formatSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -28,24 +29,84 @@ export function formatCount(value: number | null | undefined): string {
 }
 
 /**
+ * Compact whole-count for discovery cards (e.g. `65.7K`). Values under 1,000
+ * stay as grouped digits via {@link formatCount}.
+ */
+export function formatAbbreviatedCount(
+  value: number | null | undefined,
+): string {
+  if (value == null || !Number.isFinite(value)) {
+    return EM_DASH;
+  }
+  const absValue = Math.abs(value);
+  if (absValue < 1000) {
+    return formatCount(value);
+  }
+  const i18n = { t: (key: string) => strings(key) };
+  const sign = value < 0 ? '-' : '';
+  return (
+    sign + localizeLargeNumber(i18n, absValue, { decimals: 1, includeK: true })
+  );
+}
+
+/** Localized `{count} follower(s)` using the compact count from the mock. */
+export function formatFollowerCountLabel(
+  followerCount: number | null | undefined,
+): string {
+  const count = followerCount ?? 0;
+  return strings(
+    count === 1
+      ? 'social_leaderboard.trader_profile.followers_count'
+      : 'social_leaderboard.trader_profile.followers_count_plural',
+    { count: formatAbbreviatedCount(count) },
+  );
+}
+
+/**
+ * `$0.0₇5` once a price has four or more leading zeros after the decimal.
+ * Returns null for anything large enough to read normally, so callers fall
+ * through to ordinary currency formatting.
+ */
+const formatSubscriptUsd = (absoluteValue: number): string | null => {
+  const subscript = formatSubscriptNotation(absoluteValue);
+  return subscript ? `$${subscript}` : null;
+};
+
+/**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two
  * fractional digits for whole dollars). Rewards `formatUsd`/`formatFiat` omits
  * `.00` for integers and is not a drop-in here.
+ *
+ * Amounts small enough to vanish at two decimals (`$0.00`) use the app's
+ * subscript notation instead, so a dust figure stays legible.
  */
 export function formatUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
-  const sign = value < 0 ? '-' : '';
-  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+  const absoluteValue = Math.abs(value);
+  const subscript = formatSubscriptUsd(absoluteValue);
+  if (subscript) {
+    return value < 0 ? `-${subscript}` : subscript;
+  }
+  return (
+    (value < 0 ? '-' : '') +
+    formatPerpsFiat(absoluteValue, { stripTrailingZeros: false })
+  );
 }
 
 /**
  * Per-unit trade price for feed sub-headers and similar copy. Uses the same
  * tiered precision as Perps ({@link PRICE_RANGES_UNIVERSAL}) and the social
- * API formatter so sub-cent assets (e.g. PUMP) don't collapse to `$0.00`.
+ * API formatter so sub-cent assets (e.g. PUMP) don't collapse to `$0.00`, and
+ * the app's subscript notation once the price is mostly leading zeros
+ * (`$0.0₇5` rather than `$0.00000005`).
  */
 export function formatTradeUnitPrice(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
-  return formatPerpsFiat(Math.abs(value), { ranges: PRICE_RANGES_UNIVERSAL });
+  const absoluteValue = Math.abs(value);
+  return (
+    formatSubscriptUsd(absoluteValue) ??
+    formatPerpsFiat(absoluteValue, { ranges: PRICE_RANGES_UNIVERSAL })
+  );
 }
 
 /**
@@ -56,7 +117,12 @@ export function formatSignedUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
   if (value === 0) return formatPerpsFiat(0, { stripTrailingZeros: false });
   const sign = value > 0 ? '+' : '-';
-  return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+  const absoluteValue = Math.abs(value);
+  return (
+    sign +
+    (formatSubscriptUsd(absoluteValue) ??
+      formatPerpsFiat(absoluteValue, { stripTrailingZeros: false }))
+  );
 }
 
 /**
@@ -79,6 +145,20 @@ export function formatSignedFullUsdNoDecimals(
       maximumDecimals: 0,
     })
   );
+}
+
+/**
+ * Unsigned full USD with thousands separators and no fractional digits
+ * (e.g. `$7,100`). Used when color, not a +/- prefix, carries the sign.
+ */
+export function formatUnsignedFullUsdNoDecimals(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  return formatPerpsFiat(Math.abs(value), {
+    minimumDecimals: 0,
+    maximumDecimals: 0,
+  });
 }
 
 // Ordered largest → smallest. Walk down and promote when rounding pushes a
@@ -122,7 +202,13 @@ export function formatSignedAbbreviatedUsd(
   if (value == null) return EM_DASH;
   if (value === 0) return shortenAbsCurrency(0);
   const sign = value > 0 ? '+' : '-';
-  return sign + shortenAbsCurrency(Math.abs(value));
+  const absoluteValue = Math.abs(value);
+  // A dust P&L abbreviates to `$0.00`. The subscript keeps the real magnitude.
+  const subscript = formatSubscriptUsd(absoluteValue);
+  if (subscript) {
+    return sign + subscript;
+  }
+  return sign + shortenAbsCurrency(absoluteValue);
 }
 
 /**
@@ -132,7 +218,8 @@ export function formatSignedAbbreviatedUsd(
  */
 export function formatAbbreviatedUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
-  return shortenAbsCurrency(Math.abs(value));
+  const absoluteValue = Math.abs(value);
+  return formatSubscriptUsd(absoluteValue) ?? shortenAbsCurrency(absoluteValue);
 }
 
 /**

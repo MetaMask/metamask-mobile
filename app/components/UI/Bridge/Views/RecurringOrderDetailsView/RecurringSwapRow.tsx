@@ -22,6 +22,7 @@ interface RecurringSwapRowProps {
   swap: RecurringSwap;
   sourceToken: BridgeToken;
   destinationToken: BridgeToken;
+  onPress: () => void;
 }
 
 function getSwapAccessory(swap: RecurringSwap) {
@@ -62,6 +63,7 @@ export function RecurringSwapRow({
   swap,
   sourceToken,
   destinationToken,
+  onPress,
 }: RecurringSwapRowProps) {
   const isSkipped = swap.status === RecurringSwapStatus.Skipped;
   const hasZeroAmounts = swap.status !== RecurringSwapStatus.Filled;
@@ -92,6 +94,7 @@ export function RecurringSwapRow({
         hasZeroAmounts ? TextColor.TextAlternative : TextColor.SuccessDefault
       }
       titleEndAccessory={getSwapAccessory(swap)}
+      onPress={onPress}
       testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId)}
     />
   );
