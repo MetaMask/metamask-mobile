@@ -27,8 +27,18 @@ export enum MoneyAccountPlusAccess {
   Unknown = 'unknown',
 }
 
+export interface MoneyAccountPlusAccessState {
+  access: MoneyAccountPlusAccess;
+  /**
+   * True once the subscriptions query has completed and no refetch is in
+   * flight, including the refetch this hook starts on a stale remount.
+   */
+  isSubscriptionsSettled: boolean;
+}
+
 /**
- * Resolves which Money Account Plus experience the current user may access.
+ * Resolves Money Account Plus access together with the subscriptions query
+ * state that produced it.
  *
  * The `subSUB990AbtestProSubscriptionFlow` A/B flag gates every Pro surface,
  * so control-group users get {@link MoneyAccountPlusAccess.Disabled} even
@@ -46,29 +56,42 @@ export enum MoneyAccountPlusAccess {
  * {@link MoneyAccountPlusAccess.Subscriber} so a paying user is never shown
  * the upsell or bounced from the hub.
  *
- * @returns The access state for the current user.
+ * @returns The access state and whether the subscriptions query has settled.
  */
-export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
+export function useMoneyAccountPlusAccessState(): MoneyAccountPlusAccessState {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isLoading, isError } = useSubscriptions({
+  const { isLoading, isError, isFetched, isFetching } = useSubscriptions({
     enabled: isProSubscriptionEnabled,
   });
   const hasExistingSubscription = useSelector(
     selectHasExistingMoneyAccountPlusSubscription,
   );
   const hasEntitlement = useSelector(selectHasAnyMoneyAccountPlusEntitlement);
+  const isSubscriptionsSettled = isFetched && !isFetching;
 
   if (!isProSubscriptionEnabled) {
-    return MoneyAccountPlusAccess.Disabled;
+    return { access: MoneyAccountPlusAccess.Disabled, isSubscriptionsSettled };
   }
 
   if (hasExistingSubscription || hasEntitlement) {
-    return MoneyAccountPlusAccess.Subscriber;
+    return {
+      access: MoneyAccountPlusAccess.Subscriber,
+      isSubscriptionsSettled,
+    };
   }
 
   if (isLoading || isError) {
-    return MoneyAccountPlusAccess.Unknown;
+    return { access: MoneyAccountPlusAccess.Unknown, isSubscriptionsSettled };
   }
 
-  return MoneyAccountPlusAccess.Eligible;
+  return { access: MoneyAccountPlusAccess.Eligible, isSubscriptionsSettled };
+}
+
+/**
+ * Resolves which Money Account Plus experience the current user may access.
+ *
+ * @returns The access state for the current user.
+ */
+export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
+  return useMoneyAccountPlusAccessState().access;
 }

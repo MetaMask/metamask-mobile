@@ -10,7 +10,7 @@ import { strings } from '../../../../../../../locales/i18n';
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-const CANCELLATION_END_DATE = 'July 20, 2027';
+const CANCELLATION_END_DATE = 'Jul 20, 2027';
 
 const renderStep = ({
   onDone = jest.fn(),

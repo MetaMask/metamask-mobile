@@ -9,11 +9,11 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
   buildPostCancellationResetState,
   CANCELLATION_TIMINGS,
-  formatCancellationEndDate,
   getCancellationTiming,
   toCancellationReason,
   type CancellationTiming,
@@ -79,7 +79,9 @@ const CancelMembership = () => {
 
       setCancelledSubscription({
         timing,
-        endDate: formatCancellationEndDate(currentPeriodEnd),
+        endDate:
+          formatSubscriptionPeriodEnd(subscription.currentPeriodEnd) ??
+          subscription.currentPeriodEnd,
       });
       setStep('success');
     } catch (error) {

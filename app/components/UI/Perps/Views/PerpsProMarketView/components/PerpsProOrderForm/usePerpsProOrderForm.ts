@@ -85,6 +85,7 @@ import {
   usePerpsChaseOrders,
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
@@ -613,6 +614,11 @@ export const usePerpsProOrderForm = ({
   const { playImpact } = useHaptics();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { updatePositionTPSL } = usePerpsTrading();
+  // Tracks exposure. The positions panel on this same screen reads the
+  // experiment too, but `useABTest` emits once per session per assignment, so
+  // this cannot double-count — and silencing it here would drop exposure
+  // entirely whenever that panel is absent.
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   const {
     orderForm,
@@ -2821,6 +2827,7 @@ export const usePerpsProOrderForm = ({
       amount: effectiveUsdAmount,
       szDecimals,
       enableHaptics: true,
+      ...(useBottomSheet ? { useBottomSheet: true } : {}),
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -2848,6 +2855,7 @@ export const usePerpsProOrderForm = ({
     setTakeProfitPrice,
     setStopLossPrice,
     szDecimals,
+    useBottomSheet,
   ]);
 
   const onLeverageConfirm = useCallback(

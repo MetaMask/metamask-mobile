@@ -22,6 +22,8 @@ export interface ExplorePillProps {
   changeTextColor?: TextColor;
   /** Draws the pill as the active filter. */
   isSelected?: boolean;
+  /** Accessory after the label (e.g. a check on the active filter). */
+  trailing?: React.ReactNode;
 }
 
 /**
@@ -36,6 +38,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
   isSelected = false,
+  trailing,
 }) => {
   const tw = useTailwind();
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
@@ -82,6 +85,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
             {changeLabel}
           </Text>
         ) : null}
+        {trailing}
       </Box>
     </Pressable>
   );

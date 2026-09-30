@@ -7,15 +7,41 @@ import {
   getSocialEntryOptionsTriggerTestId,
   SocialEntryOptionsBottomSheetSelectorsIDs,
 } from '../components/SocialEntryOptionsBottomSheet.testIds';
-import { getFeedItemTestId } from '../FeedView/FeedView.testIds';
 import { SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import LiveTradesView from './LiveTradesView';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
+import { getLiveTradeRowTestId } from './components/LiveTradeRow.testIds';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, vars?: Record<string, unknown>) =>
+    vars ? `${key}:${JSON.stringify(vars)}` : key,
 }));
+
+jest.mock('../../Homepage/Sections/TopTraders/components/TraderAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
+
+jest.mock('../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('react-native-linear-gradient', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({
+    children,
+    testID,
+  }: {
+    children: React.ReactNode;
+    testID?: string;
+  }) => <View testID={testID}>{children}</View>;
+});
 
 describe('LiveTradesView', () => {
   it('renders a single Live stream toggle above the mock feed list', () => {
@@ -42,11 +68,13 @@ describe('LiveTradesView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders compact V0 feed rows for mocked live trades', () => {
+  it('renders compact live-trade rows for mocked live trades', () => {
     renderWithProvider(<LiveTradesView />);
 
     MOCK_LIVE_TRADES_ITEMS.forEach((item) => {
-      expect(screen.getByTestId(getFeedItemTestId(item.id))).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getLiveTradeRowTestId(item.id)),
+      ).toBeOnTheScreen();
     });
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-live-trades-1'),
@@ -68,10 +96,32 @@ describe('LiveTradesView', () => {
       screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST),
     );
 
-    expect(screen.queryByTestId(getFeedItemTestId(firstItem.id))).toBeNull();
+    expect(
+      screen.queryByTestId(getLiveTradeRowTestId(firstItem.id)),
+    ).toBeNull();
     expect(
       screen.getAllByTestId(new RegExp(SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID)),
     ).toHaveLength(MOCK_LIVE_TRADES_ITEMS.length - 2);
+  });
+
+  it('keeps only perp rows when the perps asset filter is applied', () => {
+    renderWithProvider(
+      <LiveTradesView appliedFilters={{ ...DEFAULT_FILTERS, type: 'perps' }} />,
+    );
+
+    const perpRows = MOCK_LIVE_TRADES_ITEMS.filter(
+      (item) => item.type === 'perps',
+    );
+    perpRows.forEach((item) => {
+      expect(
+        screen.getByTestId(getLiveTradeRowTestId(item.id)),
+      ).toBeOnTheScreen();
+    });
+    MOCK_LIVE_TRADES_ITEMS.filter((item) => item.type === 'spot').forEach(
+      (item) => {
+        expect(screen.queryByTestId(getLiveTradeRowTestId(item.id))).toBeNull();
+      },
+    );
   });
 
   it('toggles from Live to Paused without calling onOpenFilters', () => {
