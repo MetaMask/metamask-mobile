@@ -8,20 +8,11 @@ import {
 import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { useStartProSubscription } from './useStartProSubscription';
-
-const mockReplace = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    replace: mockReplace,
-  }),
-}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -113,18 +104,16 @@ describe('useStartProSubscription', () => {
     );
   });
 
-  it('opens Pro Hub after the subscription starts', async () => {
+  it('resolves without navigating after the subscription starts', async () => {
     const { result } = renderHook(() => useStartProSubscription());
 
     await act(async () => {
-      await result.current.startSubscription(PLAN);
+      await expect(
+        result.current.startSubscription(PLAN),
+      ).resolves.toBeUndefined();
     });
 
-    expect(mockReplace).toHaveBeenCalledTimes(1);
-    expect(mockReplace).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT);
-    expect(mockedStartSubscription.mock.invocationCallOrder[0]).toBeLessThan(
-      mockReplace.mock.invocationCallOrder[0],
-    );
+    expect(mockedStartSubscription).toHaveBeenCalledTimes(1);
   });
 
   it('stops when the Money Account address is missing', async () => {
@@ -144,7 +133,6 @@ describe('useStartProSubscription', () => {
 
     expect(mockedCheckBalance).not.toHaveBeenCalled();
     expect(mockedStartSubscription).not.toHaveBeenCalled();
-    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('stops when the vault chain id is missing', async () => {
@@ -164,7 +152,6 @@ describe('useStartProSubscription', () => {
 
     expect(mockedCheckBalance).not.toHaveBeenCalled();
     expect(mockedStartSubscription).not.toHaveBeenCalled();
-    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('rejects overlapping subscription attempts', async () => {
@@ -223,7 +210,6 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
     );
-    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('logs the underlying subscription request error', async () => {
@@ -279,6 +265,5 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.insufficient_balance'),
     );
-    expect(mockReplace).not.toHaveBeenCalled();
   });
 });

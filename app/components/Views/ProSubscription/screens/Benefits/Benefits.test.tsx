@@ -15,11 +15,17 @@ import {
 } from './Benefits.constants';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import { useStartProSubscription } from '../../hooks/useStartProSubscription';
 import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
 import type { MoneyAccountPlusPricingView } from './utils/mapMoneyAccountPlusPricing';
 
 jest.mock('./hooks/useSubscriptionPricing', () => ({
   useSubscriptionPricing: jest.fn(),
+}));
+
+const mockStartSubscription = jest.fn();
+jest.mock('../../hooks/useStartProSubscription', () => ({
+  useStartProSubscription: jest.fn(),
 }));
 
 const mockIsProduction = jest.fn();
@@ -28,6 +34,7 @@ jest.mock('../../../../../util/environment', () => ({
 }));
 
 const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
+const mockUseStartProSubscription = jest.mocked(useStartProSubscription);
 const mockRetry = jest.fn();
 
 const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
@@ -55,6 +62,8 @@ const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+const mockOnCheckoutStart = jest.fn();
+const mockOnCheckoutError = jest.fn();
 
 const mockPricingState = ({
   isLoading = false,
@@ -74,7 +83,14 @@ const mockPricingState = ({
 };
 
 const renderBenefits = (initialPlan?: PlanId) =>
-  render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
+  render(
+    <Benefits
+      onSuccess={mockOnSuccess}
+      onCheckoutStart={mockOnCheckoutStart}
+      onCheckoutError={mockOnCheckoutError}
+      initialPlan={initialPlan}
+    />,
+  );
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
@@ -83,6 +99,12 @@ describe('Benefits', () => {
     jest.clearAllMocks();
     mockIsProduction.mockReturnValue(false);
     mockPricingState();
+    mockStartSubscription.mockResolvedValue(undefined);
+    mockUseStartProSubscription.mockReturnValue({
+      startSubscription: mockStartSubscription,
+      isSubmitting: false,
+      errorMessage: undefined,
+    });
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -246,10 +268,34 @@ describe('Benefits', () => {
   // ── Callbacks ─────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
-    it('calls onSuccess with the annual checkout plan by default', () => {
+    it('calls onCheckoutStart before starting the subscription', () => {
       const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnCheckoutStart).toHaveBeenCalledTimes(1);
+      expect(mockStartSubscription).toHaveBeenCalledTimes(1);
+      expect(mockOnCheckoutStart.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStartSubscription.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls onCheckoutError when the subscription fails to start', async () => {
+      mockStartSubscription.mockRejectedValue(new Error('signing rejected'));
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+      await Promise.resolve();
+
+      expect(mockOnCheckoutError).toHaveBeenCalledTimes(1);
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('calls onSuccess with the annual checkout plan by default', async () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+      await Promise.resolve();
 
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(mockOnSuccess).toHaveBeenCalledWith({
@@ -263,11 +309,12 @@ describe('Benefits', () => {
       });
     });
 
-    it('calls onSuccess with the monthly checkout plan after Monthly is selected', () => {
+    it('calls onSuccess with the monthly checkout plan after Monthly is selected', async () => {
       const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+      await Promise.resolve();
 
       expect(mockOnSuccess).toHaveBeenCalledWith({
         planId: 'monthly',
