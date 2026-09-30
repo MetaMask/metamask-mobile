@@ -17,7 +17,11 @@ import type { OhlcData } from '../../components/TradingViewChart';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
@@ -3101,6 +3105,9 @@ describe('PerpsMarketDetailsView', () => {
           source: 'perp_asset_screen',
         }),
       );
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('passes marketData defaults to order screen when available', async () => {
@@ -3290,6 +3297,9 @@ describe('PerpsMarketDetailsView', () => {
           source: 'perp_asset_screen',
         }),
       );
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
@@ -3442,6 +3452,9 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when modify button is pressed and user is not eligible', () => {

@@ -82,6 +82,14 @@ export const ImpactMoment = {
   TabChange: 'tabChange',
 
   /**
+   * Entry into a flow whose commit uses `PrimaryCTA` — Light impact.
+   * Distinct from `playSelection` (discrete pickers and toggles) and from
+   * `PrimaryCTA`, so the entry tap stays lighter than the commit and can be
+   * tuned without changing either.
+   */
+  SecondaryCTA: 'secondaryCta',
+
+  /**
    * Primary surface commit (Buy opening a flow, bottom-sheet Save, etc.) —
    * Medium impact. Same underlying weight as `TabChange` by default, but a
    * separate catalog entry so tab-bar tuning never changes unrelated CTAs.
