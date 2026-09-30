@@ -14,7 +14,7 @@ import AppiumGestures from './AppiumGestures.ts';
 import Matchers from './Matchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { getDriver } from './AppiumUtilities.ts';
-import { tapWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
+import { findWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
 import { getPerformanceLocatorRecovery } from './ai-locator/PerformanceLocatorRecovery.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
@@ -155,14 +155,23 @@ export default class Gestures {
       return;
     }
 
-    await tapWithSelfHealingLocator({
+    // Matchers are lazy: resolving the promise does not prove the control is
+    // tappable. Run the real waitAndTap as `primary` so a missing/stale
+    // control triggers recovery. Tap again only for the recovered locator.
+    const { element, source } = await findWithSelfHealingLocator({
       intent: options.elemDescription ?? 'tap the current mobile control',
-      primary: async () => elementOrPromise,
+      primary: async () => {
+        const resolvedElement = await elementOrPromise;
+        await tap(resolvedElement);
+        return resolvedElement;
+      },
       driver: getDriver(),
       recovery: recovery.provider,
-      tap,
       onRecovered: recovery.onRecovered,
     });
+    if (source === 'recovered') {
+      await tap(element);
+    }
   }
 
   /**

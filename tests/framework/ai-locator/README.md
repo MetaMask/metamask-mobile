@@ -32,7 +32,9 @@ coordinates.
 The performance fixture configures the provider for the duration of each
 performance scenario. Shared Page Object boundaries that use recovery:
 
-- `Gestures.waitAndTap` — every Page Object tap
+- `Gestures.waitAndTap` — every Page Object tap. Recovery wraps the full
+  wait-and-tap attempt (not just resolving the lazy matcher), and only
+  re-taps when a replacement locator is returned.
 - `WalletHomeScroll.scrollAndTapSection` — homepage section scroll + tap
   (Perps, Predictions, Tokens, …)
 

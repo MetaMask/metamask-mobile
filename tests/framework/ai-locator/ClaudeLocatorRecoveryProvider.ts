@@ -48,7 +48,8 @@ export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
  * Creates the opt-in recovery provider used by performance tests.
  *
  * Keeping this factory undefined by default ensures regular performance runs
- * never make a network request or add model latency.
+ * never make a network request or add model latency. A missing Anthropic key
+ * also returns undefined so CI stays deterministic instead of crashing setup.
  */
 export function createClaudeLocatorRecoveryProvider():
   | ClaudeLocatorRecoveryProvider
@@ -57,7 +58,15 @@ export function createClaudeLocatorRecoveryProvider():
     return undefined;
   }
 
-  return new ClaudeLocatorRecoveryProvider();
+  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+    return undefined;
+  }
+
+  try {
+    return new ClaudeLocatorRecoveryProvider();
+  } catch {
+    return undefined;
+  }
 }
 
 function createLocatorRecoveryPrompt(
