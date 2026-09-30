@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "钱包",
     "search_accessibility_label": "搜索",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "搜索",
     "rewards_accessibility_label": "奖励",
     "tokens": "代币",
     "view_all_nfts": "查看所有 NFT",

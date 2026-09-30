@@ -610,10 +610,10 @@
     "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
     "password_error": "Οι κωδικοί πρόσβασης δεν ταιριάζουν.",
     "marketing_opt_in_description": "Λάβετε ενημερώσεις προϊόντος, συμβουλές και νέα, συμπεριλαμβανομένων μέσω email. Ενδέχεται να χρησιμοποιήσουμε τις αλληλεπιδράσεις σας για να βελτιώσουμε το περιεχόμενο που παρέχουμε.",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "Το MetaMask δεν μπορεί να επαναφέρει τον κωδικό πρόσβασής σας",
+    "password_warning_description_part1": "Αν ξεχάσετε τον κωδικό πρόσβασης, ο μόνος τρόπος να αποκτήσετε ξανά πρόσβαση είναι μέσω της ",
     "password_warning_srp": "Μυστική Φράση Ανάκτησής σας",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " ή μέσω μιας συσκευής στην οποία είναι ενεργοποιημένη η ταυτοποίηση με βιομετρικά στοιχεία.",
     "password_warning_confirm": "Κατανοώ",
     "password_warning_cancel": "Άκυρο"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Πορτοφόλι",
     "search_accessibility_label": "Αναζήτηση",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Αναζήτηση",
     "rewards_accessibility_label": "Ανταμοιβές",
     "tokens": "Tokens",
     "view_all_nfts": "Προβολή όλων των NFT",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "Ποντάρισμα",
     "earn": "Κερδίστε",
     "tron": {
       "stake_completed": "Η δέσμευση κρυπτονομισμάτων ολοκληρώθηκε",

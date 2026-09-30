@@ -610,10 +610,10 @@
     "steps": "{{totalSteps}} का स्टेप {{currentStep}}",
     "password_error": "पासवर्ड मेल नहीं खाते।",
     "marketing_opt_in_description": "उत्पाद अपडेट, सुझाव और समाचार प्राप्त करें, जिसमें ईमेल भी शामिल है। हम आपके इंटरैक्शन का उपयोग साझा की जाने वाली जानकारी को बेहतर बनाने के लिए कर सकते हैं।",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "MetaMask आपका पासवर्ड रीसेट नहीं कर सकता",
+    "password_warning_description_part1": "यदि आप यह पासवर्ड भूल जाते हैं, तो वापस लॉग इन करने का एकमात्र तरीका आपका है ",
     "password_warning_srp": "सीक्रेट रिकवरी फ्रेज़",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " या एक बायोमेट्रिक्स सक्षम डिवाइस।",
     "password_warning_confirm": "मैं समझता हूं",
     "password_warning_cancel": "कैंसिल करें"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "वॉलेट",
     "search_accessibility_label": "ढूंढें",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "खोजें",
     "rewards_accessibility_label": "पुरस्कार",
     "tokens": "टोकन",
     "view_all_nfts": "सभी NFTs देखें",
