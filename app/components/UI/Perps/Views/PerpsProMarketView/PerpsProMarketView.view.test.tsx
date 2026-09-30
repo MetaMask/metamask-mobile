@@ -12,6 +12,7 @@ import type {
   ChaseOrder,
   Order,
   PriceUpdate,
+  TriggerOrderType,
   PerpsOrderCapabilities,
   TwapOrder,
   TwapOrderFill,
@@ -344,6 +345,7 @@ const renderProMarketWithTriggeredOrdersFlag = (
   enabled: boolean,
   providerId: 'hyperliquid' | 'lighter' = 'hyperliquid',
   capabilities?: PerpsOrderCapabilities | Promise<PerpsOrderCapabilities>,
+  restoredOrderType?: TriggerOrderType,
 ) => {
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
@@ -372,7 +374,10 @@ const renderProMarketWithTriggeredOrdersFlag = (
     overrides: {
       engine: {
         backgroundState: {
-          PerpsController: { activeProvider: providerId },
+          PerpsController: {
+            activeProvider: providerId,
+            ...(restoredOrderType && { selectedOrderType: restoredOrderType }),
+          },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               perpsProModeEnabled: {
@@ -2548,6 +2553,54 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
         ),
       ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'waits for capabilities before declaring a restored trigger draft unavailable',
+    async () => {
+      let resolveCapabilities = (_capabilities: PerpsOrderCapabilities): void =>
+        undefined;
+      const capabilities = new Promise<PerpsOrderCapabilities>((resolve) => {
+        resolveCapabilities = resolve;
+      });
+      renderProMarketWithTriggeredOrdersFlag(
+        true,
+        'hyperliquid',
+        capabilities,
+        'stop_market',
+      );
+      await findSizeInput();
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+
+      fireEvent.changeText(triggerInput, '2600');
+
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.stop_market.title'),
+      );
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(
+        screen.queryByTestId(`${ids.NOTICE}-trigger-orders-unavailable`),
+      ).not.toBeOnTheScreen();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveCapabilities({
+          status: 'unavailable',
+          providerId: 'hyperliquid',
+          reason: 'not_implemented',
+        });
+        await capabilities;
+      });
+
+      expect(
+        await screen.findByTestId(`${ids.NOTICE}-trigger-orders-unavailable`),
+      ).toHaveTextContent(
+        strings('perps.order.validation.trigger_orders_unavailable'),
+      );
+      expect(triggerInput).toHaveProp('value', '2600');
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
     },
   );
 

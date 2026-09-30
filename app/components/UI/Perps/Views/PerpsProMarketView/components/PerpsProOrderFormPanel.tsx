@@ -246,6 +246,8 @@ const PerpsProOrderFormPanel = ({
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
+    isTriggerAvailabilityPending:
+      areTriggeredOrdersEnabled && isLoadingOrderCapabilities,
     supportedTriggerOrderTypes,
     resolvedTriggerProviderId: resolvedProviderId,
     checkTriggerOrderSupport: checkSelectedTriggerOrderSupport,

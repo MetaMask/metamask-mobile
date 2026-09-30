@@ -460,6 +460,8 @@ export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
   /** Feature-gate trigger order placement as well as the type picker. */
   isTriggeredOrdersEnabled: boolean;
+  /** True while the selected route's trigger capability query is unresolved. */
+  isTriggerAvailabilityPending: boolean;
   /** Standalone types explicitly declared by the selected provider route. */
   supportedTriggerOrderTypes: readonly TriggerOrderType[];
   /** Concrete route whose standalone trigger declaration authorizes placement. */
@@ -583,6 +585,7 @@ export const usePerpsProOrderForm = ({
   supportedTriggerOrderTypes,
   resolvedTriggerProviderId,
   checkTriggerOrderSupport,
+  isTriggerAvailabilityPending,
   isTwapEnabled,
   isTwapAvailabilityPending,
   resolvedTwapProviderId,
@@ -716,6 +719,7 @@ export const usePerpsProOrderForm = ({
   const refreshChaseCapabilityRef = useRef(refreshChaseCapability);
   const triggerGateRef = useRef({
     enabled: isTriggeredOrdersEnabled,
+    pending: isTriggerAvailabilityPending,
     types: supportedTriggerOrderTypes,
     checkSupport: checkTriggerOrderSupport,
     providerId: resolvedTriggerProviderId,
@@ -723,12 +727,14 @@ export const usePerpsProOrderForm = ({
   useLayoutEffect(() => {
     triggerGateRef.current = {
       enabled: isTriggeredOrdersEnabled,
+      pending: isTriggerAvailabilityPending,
       types: supportedTriggerOrderTypes,
       checkSupport: checkTriggerOrderSupport,
       providerId: resolvedTriggerProviderId,
     };
   }, [
     checkTriggerOrderSupport,
+    isTriggerAvailabilityPending,
     isTriggeredOrdersEnabled,
     supportedTriggerOrderTypes,
     resolvedTriggerProviderId,
@@ -2105,6 +2111,10 @@ export const usePerpsProOrderForm = ({
         : {}),
     });
 
+    if (isTriggerOrderType(orderForm.type) && isTriggerAvailabilityPending) {
+      return;
+    }
+
     if (
       isTriggerOrderType(orderForm.type) &&
       (!isTriggeredOrdersEnabled ||
@@ -2748,6 +2758,7 @@ export const usePerpsProOrderForm = ({
         const triggerGate = triggerGateRef.current;
         const isSupported =
           triggerGate.enabled &&
+          !triggerGate.pending &&
           triggerGate.providerId !== undefined &&
           triggerGate.types.includes(placementOrderForm.type) &&
           (await triggerGate.checkSupport(placementOrderForm.type));
@@ -3020,7 +3031,8 @@ export const usePerpsProOrderForm = ({
       guardScaleMutation(() => {
         if (
           isTriggerOrderType(type) &&
-          (!isTriggeredOrdersEnabled ||
+          (isTriggerAvailabilityPending ||
+            !isTriggeredOrdersEnabled ||
             !supportedTriggerOrderTypes.includes(type) ||
             !resolvedTriggerProviderId)
         ) {
@@ -3059,6 +3071,7 @@ export const usePerpsProOrderForm = ({
       });
     },
     [
+      isTriggerAvailabilityPending,
       isTriggeredOrdersEnabled,
       supportedTriggerOrderTypes,
       resolvedTriggerProviderId,
@@ -3104,6 +3117,7 @@ export const usePerpsProOrderForm = ({
 
   const isTriggerOrderUnavailable =
     isTriggerOrderType(orderForm.type) &&
+    !isTriggerAvailabilityPending &&
     (!isTriggeredOrdersEnabled ||
       !supportedTriggerOrderTypes.includes(orderForm.type) ||
       !resolvedTriggerProviderId);
@@ -3594,6 +3608,7 @@ export const usePerpsProOrderForm = ({
     (isScaleOrder && isScaleOrderSupportPending) ||
     (!isTwapEnabled && isTwapOrder) ||
     hasTpslBlocker ||
+    (isTriggerOrderType(orderForm.type) && isTriggerAvailabilityPending) ||
     isTriggerOrderUnavailable ||
     twapDurationMissing ||
     twapDurationError ||

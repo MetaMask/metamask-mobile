@@ -1114,6 +1114,97 @@ describe('PerpsStreamManager', () => {
       expect(testStreamManager.fills.getError()).toBe(failure);
       source.callback([], true, 'lighter');
       expect(testStreamManager.fills.getError()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toEqual(healthy);
+      expect(callback).toHaveBeenLastCalledWith(healthy);
+    });
+
+    it.each([
+      ['hyperliquid', 'lighter'],
+      ['lighter', 'hyperliquid'],
+    ] as const)(
+      'replaces only %s fills after a %s snapshot',
+      (firstProvider, secondProvider) => {
+        const callback = jest.fn();
+        const subscribe = jest.fn((_params: unknown) => jest.fn());
+        mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+        testStreamManager.fills.subscribe({ callback, throttleMs: 0 });
+        const source = subscribe.mock.calls[0][0] as {
+          callback: (
+            fills: OrderFill[],
+            snapshot?: boolean,
+            provider?: string,
+          ) => void;
+        };
+        const createFill = (orderId: string, timestamp: number): OrderFill => ({
+          orderId,
+          symbol: 'ETH',
+          side: 'buy',
+          size: '0.01',
+          price: '2500',
+          timestamp,
+          fee: '0',
+          feeToken: 'USDC',
+          direction: 'Open Long',
+        });
+        // Direct providers may omit per-fill IDs. The callback source owns them.
+        const first = createFill('first', 1);
+        const second = createFill('second', 2);
+        const replacement = createFill('replacement', 3);
+
+        source.callback([first], true, firstProvider);
+        source.callback([second], true, secondProvider);
+
+        const taggedSecond = { ...second, providerId: secondProvider };
+        expect(testStreamManager.fills.getSnapshot()).toEqual([
+          taggedSecond,
+          { ...first, providerId: firstProvider },
+        ]);
+
+        source.callback([replacement], true, firstProvider);
+
+        const expected = [
+          { ...replacement, providerId: firstProvider },
+          taggedSecond,
+        ];
+        expect(testStreamManager.fills.getSnapshot()).toEqual(expected);
+        expect(callback).toHaveBeenLastCalledWith(expected);
+
+        source.callback([], true, firstProvider);
+
+        expect(testStreamManager.fills.getSnapshot()).toEqual([taggedSecond]);
+        expect(callback).toHaveBeenLastCalledWith([taggedSecond]);
+      },
+    );
+
+    it('keeps full replacement semantics for fill snapshots without a source provider', () => {
+      const callback = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+      testStreamManager.fills.subscribe({ callback, throttleMs: 0 });
+      const source = subscribe.mock.calls[0][0] as {
+        callback: (
+          fills: OrderFill[],
+          snapshot?: boolean,
+          provider?: string,
+        ) => void;
+      };
+      const fill: OrderFill = {
+        orderId: 'hl-legacy',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '0.01',
+        price: '2500',
+        timestamp: 1,
+        fee: '0',
+        feeToken: 'USDC',
+        direction: 'Open Long',
+      };
+      source.callback([fill], false, 'hyperliquid');
+
+      source.callback([], true);
+
+      expect(testStreamManager.fills.getSnapshot()).toEqual([]);
+      expect(callback).toHaveBeenLastCalledWith([]);
     });
 
     it('notifies position subscriber with null when clearCache is called (account switch)', () => {

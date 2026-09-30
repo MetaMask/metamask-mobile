@@ -137,7 +137,7 @@ interface StreamSubscription<T> {
   onDelivery?: (source: StreamUpdateSource) => void;
   onError?: (error: Error) => void;
   throttleMs?: number;
-  timer?: NodeJS.Timeout;
+  timer?: ReturnType<typeof setTimeout>;
   pendingUpdate?: T;
   hasReceivedFirstFreshUpdate?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
@@ -1731,18 +1731,24 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
         this.accountAddress = subscriptionContext.address;
         this.cacheAccountAddress = subscriptionContext.address;
 
+        const incoming = sourceProviderId
+          ? fills.map((fill) => ({ ...fill, providerId: sourceProviderId }))
+          : fills;
+        const existing = this.cache.get('fills') || [];
         let updated: OrderFill[];
         if (isSnapshot) {
-          // Snapshot: replace cache with initial historical data
-          // Sort by timestamp descending (newest first)
-          updated = [...fills]
+          // A provider snapshot replaces only that provider's history.
+          // Callbacks without a source retain the legacy full-snapshot contract.
+          const retained = sourceProviderId
+            ? existing.filter((fill) => fill.providerId !== sourceProviderId)
+            : [];
+          updated = [...incoming, ...retained]
             .sort((a, b) => b.timestamp - a.timestamp)
             .slice(0, 100);
         } else {
           // Streaming: prepend new fills to existing (newest first)
-          const existing = this.cache.get('fills') || [];
           // New fills go at the beginning since they're most recent
-          updated = [...fills, ...existing].slice(0, 100);
+          updated = [...incoming, ...existing].slice(0, 100);
         }
         this.cache.set('fills', updated);
         this.notifySubscribers(updated, 'fresh', sourceProviderId);
