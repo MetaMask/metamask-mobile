@@ -13,6 +13,22 @@ import {
 import { isRestartInterruptedFiatDeposit } from '../utils/fiatVaultFailureSuppression';
 import type { MoneyActivityItem } from '../types/moneyActivity';
 
+/**
+ * Re-check cadence while an order is still non-terminal. Deliberately gentle:
+ * unlike the submit flow (which polls every second), this is passive display
+ * rendering that only needs to converge minutes later when the provider
+ * settles.
+ */
+const SETTLEMENT_POLL_INTERVAL_MS = 15_000;
+
+/**
+ * Hard cap on re-checks for one order: 6 attempts × 15s ≈ 90s. A restart-
+ * interrupted deposit that hasn't settled by then almost certainly won't on
+ * its own — the row is left as `Depositing` rather than polled forever, and
+ * a later remount (data uncached) restarts the budget.
+ */
+const SETTLEMENT_MAX_ATTEMPTS = 6;
+
 export type FiatOrderSettlement = 'settled' | 'order-failed' | 'unknown';
 
 /**
@@ -156,26 +172,6 @@ function useFiatOrderSettlement(tx: TransactionMeta): FiatOrderSettlement {
   return data ?? 'unknown';
 }
 
-/**
- * Re-check cadence while an order is still non-terminal. Deliberately gentle:
- * unlike the submit flow (which polls every second), this is passive display
- * rendering that only needs to converge minutes later when the provider
- * settles.
- */
-const SETTLEMENT_POLL_INTERVAL_MS = 15_000;
-
-/**
- * Hard cap on re-checks for one order: 6 attempts × 15s ≈ 90s. A restart-
- * interrupted deposit that hasn't settled by then almost certainly won't on
- * its own — the row is left as `Depositing` rather than polled forever, and
- * a later remount (data uncached) restarts the budget.
- */
-const SETTLEMENT_MAX_ATTEMPTS = 6;
-
-/**
- * Keeps polling while the settlement is unresolved (initial load or a still
- * open order) and stops once it turns terminal or the attempt budget is spent.
- */
 function settlementRefetchInterval(
   query: Query<FiatOrderSettlement>,
 ): number | false {
