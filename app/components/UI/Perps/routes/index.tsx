@@ -163,6 +163,19 @@ export const getAdjustMarginOptions = (
         headerShown: false,
       };
 
+export const getMarketListOptions = (
+  animation: NativeStackNavigationOptions['animation'] | undefined,
+  animationDuration: NativeStackNavigationOptions['animationDuration'],
+): NativeStackNavigationOptions => ({
+  title: strings('perps.home.markets'),
+  headerShown: false,
+  animation: animation ?? 'slide_from_right',
+  // native-stack passes undefined through to its own default, so no need to
+  // omit the key when the caller (e.g. the chart header's market picker)
+  // hasn't set a duration.
+  animationDuration,
+});
+
 export const getTpslOptions = (
   useBottomSheet: boolean | undefined,
 ): NativeStackNavigationOptions =>
@@ -441,14 +454,12 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.MARKET_LIST}
                 component={PerpsMarketListView}
-                options={({ route }) => ({
-                  title: strings('perps.home.markets'),
-                  headerShown: false,
-                  animation: route.params?.animation ?? 'slide_from_right',
-                  ...(route.params?.animationDuration === undefined
-                    ? {}
-                    : { animationDuration: route.params.animationDuration }),
-                })}
+                options={({ route }) =>
+                  getMarketListOptions(
+                    route.params?.animation,
+                    route.params?.animationDuration,
+                  )
+                }
                 initialParams={{
                   variant: 'full',
                   title: strings('perps.home.markets'),

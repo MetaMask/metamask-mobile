@@ -391,8 +391,6 @@ describe('usePerpsNavigation', () => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
-          // Faster than the platform default: switching markets from the chart
-          // header is high-frequency, and the default slide-up reads as latency.
           animationDuration: AnimationDuration.Promptly,
           replaceOnSelect: true,
         }),
