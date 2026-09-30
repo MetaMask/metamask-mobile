@@ -29,7 +29,7 @@ import { useFormatters } from '../../../../../hooks/useFormatters';
 import QuoteDisplay from '../PaymentSelectionModal/QuoteDisplay';
 import PaymentSelectionAlert from '../PaymentSelectionModal/PaymentSelectionAlert';
 import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertSeverity } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../../util/theme';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
@@ -378,7 +378,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
                 ? strings('fiat_on_ramp.no_quotes_available')
                 : strings('fiat_on_ramp_aggregator.no_providers_available')
             }
-            severity={BannerAlertSeverity.Error}
+            severity={BannerAlertSeverity.Danger}
           />
         </Box>
       </Box>
@@ -401,7 +401,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         <Box twClassName="px-4">
           <PaymentSelectionAlert
             message={quotesError}
-            severity={BannerAlertSeverity.Error}
+            severity={BannerAlertSeverity.Danger}
           />
         </Box>
       ) : null}
