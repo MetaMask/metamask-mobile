@@ -161,6 +161,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         await SubscriptionDelegationService.startSubscriptionWithDelegation({
           ...subscriptionParams,
           chainId,
+          // TODO: Remove this once we have the confirmation / MM Pay funding UI
           skipApproval: true,
         });
 
