@@ -61,7 +61,7 @@ export const sendFinishedTransaction = (
     return;
   }
   const attributes = getAttributes(transaction);
-  const sampleRand = Math.random();
+  const sampleRand = Math.random(); // NOSONAR - a sampling roll, not security-sensitive
   const [sampled, sampleRate, localSampleRateWasApplied] = sampleSpan(
     client.getOptions(),
     { name: transaction.name, attributes },
