@@ -519,8 +519,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
-  CHART_SERVICE_INTERRUPTION_BANNER:
-    'perps-pro-market-chart-service-interruption-banner',
+  SERVICE_INTERRUPTION_BANNER: 'perps-pro-market-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
   STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
   STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',
