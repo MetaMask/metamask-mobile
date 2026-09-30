@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Kimlik",
-        "description": "Kalıcı kimlik doğrulama oturumunu temizler. Bunu MM_DEV_API_ENV ayarını değiştirdikten sonra kullanın; aksi takdirde, süresi dolana kadar dev-API tüketicilerine üretim ortamında oluşturulmuş bir JWT verilmeye devam eder. Mevcut MM_DEV_API_ENV: {{env}}.",
+        "description": "Kalıcı kimlik doğrulama oturumunu temizler. Bunu MM_API_ENV ayarını değiştirdikten sonra kullanın; aksi takdirde, süresi dolana kadar dev-API tüketicilerine üretim ortamında oluşturulmuş bir JWT verilmeye devam eder. Mevcut MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Kalıcı kimlik doğrulama oturumunu temizle"
       },
       "notifications": {

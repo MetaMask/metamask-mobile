@@ -1,4 +1,5 @@
 import type { TraderFeedRow } from '../../../FeedView/hooks/useTraderFeed';
+import { splitKlipyGifFromCommentText } from '../../../utils/klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import { toSocialV1FeedItem } from '../utils/toSocialV1FeedItem';
@@ -19,6 +20,7 @@ export const wrapLiveFeedPosts = (
   rows.map((row) => {
     const item = toSocialV1FeedItem(row, now);
     const authorComment = readAuthorComment(row.core);
+    const { gifUrl } = splitKlipyGifFromCommentText(authorComment?.text ?? '');
 
     return {
       id: item.id,
@@ -26,6 +28,7 @@ export const wrapLiveFeedPosts = (
       authorImageUrl: item.author.avatarUri ?? null,
       timestampMs: item.timestamp,
       commentId: authorComment?.uid,
+      ...(gifUrl ? { gifUri: gifUrl } : {}),
       reactions: (authorComment?.engagement.reactions ?? []).map(
         (reaction) => ({
           emotion: reaction.emotion,

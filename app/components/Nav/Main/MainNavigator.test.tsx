@@ -912,24 +912,15 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
     });
 
-    it('registers the modular host alongside transitional VBA routes', () => {
+    it('registers one feature-level VBA onboarding route', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
-      const legacyGroup = findGroupContaining(
-        container.root,
-        Routes.RAMP.VBA_KYC_EMAIL,
-      );
 
       const vbaScreen = getScreenProps(container).find(
         ({ name }) => name === Routes.RAMP.VBA_ONBOARDING,
       );
 
-      expect(groupedScreenNames(legacyGroup)).toEqual([
-        Routes.RAMP.VBA_KYC_EMAIL,
-        Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
-        Routes.RAMP.VBA_VERIFY_IDENTITY,
-      ]);
       expect(vbaScreen).toEqual(
         expect.objectContaining({
           name: Routes.RAMP.VBA_ONBOARDING,
@@ -1828,7 +1819,10 @@ describe('MainNavigator', () => {
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {
-    const stateForArm = (headerNavBarVariant?: string) => ({
+    const stateForArm = (
+      headerNavBarVariant?: string,
+      socialV1Variant?: string,
+    ) => ({
       ...initialRootState,
       engine: {
         ...initialRootState.engine,
@@ -1846,6 +1840,9 @@ describe('MainNavigator', () => {
               },
               ...(headerNavBarVariant
                 ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+              ...(socialV1Variant
+                ? { socialAiTSA1122AbtestSocialBundleV1: socialV1Variant }
                 : {}),
             },
           },
@@ -1941,6 +1938,40 @@ describe('MainNavigator', () => {
         expect(
           renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
         ).toBe(trailingAction);
+      },
+    );
+
+    const socialTabComponentName = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string | undefined =>
+      renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0]?.props?.component?.name;
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
+      (arm) => {
+        const state = stateForArm(arm, 'treatment');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV1View');
+      },
+    );
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      (arm) => {
+        const state = stateForArm(arm, 'control');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV0View');
       },
     );
   });

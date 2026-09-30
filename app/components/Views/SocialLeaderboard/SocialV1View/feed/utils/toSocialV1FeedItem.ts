@@ -6,12 +6,15 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { TraderFeedRow } from '../../../FeedView/hooks/useTraderFeed';
 import {
   formatHoldDuration,
+  formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
+  formatUsd,
 } from '../../../utils/formatters';
 import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
 import { markMocked, type SocialV1MockedField } from '../mockMarker';
 import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
+import { splitKlipyGifFromCommentText } from '../../../utils/klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
@@ -194,7 +197,9 @@ export function toSocialV1FeedItem(
   };
 
   const authorComment = readAuthorComment(core);
-  const commentText = authorComment?.text?.trim();
+  const { text: commentText } = splitKlipyGifFromCommentText(
+    authorComment?.text ?? '',
+  );
   const comment = commentText || undefined;
 
   // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
@@ -220,6 +225,16 @@ export function toSocialV1FeedItem(
     comment,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
+    // Abbreviated: the open card puts this under the percent in a column capped
+    // at 45% of the row, where a full `+$280,638.23` would not fit.
+    pnlValueLabel: isPresentNumber(core.pnlValueUsd)
+      ? formatSignedAbbreviatedUsd(core.pnlValueUsd)
+      : undefined,
+    // `boughtUsd` is what the P&L percent is already measured against, so a
+    // card's Cost and its percent agree by construction.
+    costLabel: isPresentNumber(core.boughtUsd)
+      ? formatUsd(Math.abs(core.boughtUsd))
+      : undefined,
     isPnlPositive: item.isPnlPositive,
     mockedFields,
   };
@@ -239,7 +254,6 @@ export function toSocialV1FeedItem(
         exitPrice == null ? undefined : formatTradeUnitPrice(exitPrice),
       holdTimeLabel:
         holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
-      statusLabel: strings('social_leaderboard.feed.position_card.closed'),
     };
 
     return isSpot

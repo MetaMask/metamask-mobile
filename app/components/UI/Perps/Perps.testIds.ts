@@ -260,7 +260,9 @@ export const PerpsTokenSelectorSelectorsIDs = {
 
 export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
+  AMOUNT_ROW: 'perps-amount-display-amount-row',
   AMOUNT_LABEL: 'perps-amount-display-amount',
+  AMOUNT_UNIT_LABEL: 'perps-amount-display-amount-unit',
   MAX_LABEL: 'perps-amount-display-max',
   TOUCHABLE: 'perps-amount-display-touchable',
 };
@@ -551,6 +553,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
   POSITIONS_FILTER_ROW: 'perps-pro-market-positions-filter-row',
+  HIDDEN_BY_FILTERS_CAPTION: 'perps-pro-market-hidden-by-filters-caption',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
@@ -1343,6 +1346,8 @@ export const PerpsWebSocketHealthToastSelectorsIDs = {
 
 export const PerpsOrderDetailsViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-order-details-cancel-button',
+  SCROLL_VIEW: 'perps-order-details-scroll-view',
+  FOOTER: 'perps-order-details-footer',
 } as const;
 
 // ========================================

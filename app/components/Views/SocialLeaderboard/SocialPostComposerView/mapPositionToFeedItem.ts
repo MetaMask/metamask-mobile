@@ -1,6 +1,7 @@
 import type { Position } from '@metamask/social-controllers';
 import {
   formatPercent,
+  formatSignedAbbreviatedUsd,
   formatSignedUsd,
   formatTradeUnitPrice,
   formatUsd,
@@ -33,6 +34,21 @@ const entryPriceLabel = (position: Position): string | undefined => {
   }
   return formatTradeUnitPrice(position.costBasis / amount);
 };
+
+/** What the trader put in -- the figure a card's P&L is measured against. */
+const costLabel = (position: Position): string | undefined => {
+  const cost = position.boughtUsd ?? position.costBasis;
+  if (cost == null || cost <= 0) {
+    return undefined;
+  }
+  return formatUsd(cost);
+};
+
+/** P&L in USD, abbreviated to fit the open card's capped right-hand column. */
+const pnlValueLabel = (position: Position): string | undefined =>
+  position.pnlValueUsd == null
+    ? undefined
+    : formatSignedAbbreviatedUsd(position.pnlValueUsd);
 
 const markPriceLabel = (position: Position): string | undefined => {
   const amount = Math.abs(
@@ -134,6 +150,7 @@ export const mapPositionToFeedItem = (
         isPnlPositive,
         entryPriceLabel: entryPriceLabel(position),
         holdTimeLabel: holdTimeLabel(position, true),
+        costLabel: costLabel(position),
       };
     }
 
@@ -150,6 +167,8 @@ export const mapPositionToFeedItem = (
       entryPriceLabel: entryPriceLabel(position),
       valueLabel: formatUsd(position.currentValueUSD ?? null),
       pnlLabel,
+      pnlValueLabel: pnlValueLabel(position),
+      costLabel: costLabel(position),
       isPnlPositive,
     };
   }
@@ -168,6 +187,8 @@ export const mapPositionToFeedItem = (
       ? formatSignedUsd(position.realizedPnl)
       : formatUsd(position.currentValueUSD ?? null),
     pnlLabel,
+    pnlValueLabel: pnlValueLabel(position),
+    costLabel: costLabel(position),
     isPnlPositive,
     entryPriceLabel: entryPriceLabel(position),
     holdTimeLabel: holdTimeLabel(position, closed),

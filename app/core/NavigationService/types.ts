@@ -18,7 +18,10 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
-import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type {
+  ConfirmationParams,
+  FullScreenConfirmationParams,
+} from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
@@ -558,13 +561,6 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampCreateVirtualBankAccount: undefined;
-  RampVbaVerifyIdentity: undefined;
-  RampVbaKycEmail: undefined;
-  RampVbaSumSubKyc: undefined;
-  RampVbaKycPending: undefined;
-  RampVbaKycRejected: undefined;
-  RampVbaOnboardingError: undefined;
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
 
   // Deposit routes
@@ -762,7 +758,7 @@ export type RootStackParamList = {
         onCancel?: () => void;
       }
     | undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: SDKSessionsManagerParams | undefined;
@@ -903,6 +899,7 @@ export type RootStackParamList = {
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
   RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
+  SwapsLimitOrderActivity: BridgeScreensStackParamList['SwapsLimitOrderActivity'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -1006,7 +1003,11 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
-  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  /**
+   * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
+   * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
+   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   */
   SocialLeaderboardTab: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {
@@ -1046,7 +1047,7 @@ export type RootStackParamList = {
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
-  ConfirmationRequestModal: undefined;
+  ConfirmationRequestModal: ConfirmationParams | undefined;
   ConfirmationSwitchAccountType:
     | NavigatorScreenParams<{
         ConfirmationSwitchAccountType: { address?: string } | undefined;
