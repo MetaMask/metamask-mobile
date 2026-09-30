@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import ConnectionRow from '../FollowConnectionsView/components/ConnectionRow';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -54,7 +55,7 @@ const ProfilesToFollowView: React.FC = () => {
 
   const handleRowPress = useCallback(
     (trader: TopTrader) => {
-      navigation.navigate(Routes.SOCIAL.PROFILE, {
+      navigateToSocialV1Profile(navigation, {
         traderId: trader.id,
         traderName: trader.username,
         traderAddress: trader.address,

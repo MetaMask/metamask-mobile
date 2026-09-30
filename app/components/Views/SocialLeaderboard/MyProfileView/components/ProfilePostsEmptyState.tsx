@@ -17,13 +17,15 @@ import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 
 interface ProfilePostsEmptyStateProps {
-  onShareFirstTrade: () => void;
-  onResetProfile: () => void;
+  onShareFirstTrade?: () => void;
+  onResetProfile?: () => void;
+  isOwner?: boolean;
 }
 
 const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
   onShareFirstTrade,
   onResetProfile,
+  isOwner = true,
 }) => {
   const tw = useTailwind();
 
@@ -101,24 +103,28 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
         {strings('social_leaderboard.my_profile.empty_fee_description')}
       </Text>
 
-      <Button
-        variant={ButtonVariant.Primary}
-        isFullWidth
-        endIconName={IconName.Arrow2Right}
-        onPress={onShareFirstTrade}
-        twClassName="mt-3"
-        testID={MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON}
-      >
-        {strings('social_leaderboard.my_profile.share_first_trade')}
-      </Button>
-      <Button
-        variant={ButtonVariant.Tertiary}
-        isFullWidth
-        onPress={onResetProfile}
-        testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
-      >
-        {strings('social_leaderboard.my_profile.debug_reset_profile')}
-      </Button>
+      {isOwner && onShareFirstTrade ? (
+        <Button
+          variant={ButtonVariant.Primary}
+          isFullWidth
+          endIconName={IconName.Arrow2Right}
+          onPress={onShareFirstTrade}
+          twClassName="mt-3"
+          testID={MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON}
+        >
+          {strings('social_leaderboard.my_profile.share_first_trade')}
+        </Button>
+      ) : null}
+      {isOwner && onResetProfile ? (
+        <Button
+          variant={ButtonVariant.Tertiary}
+          isFullWidth
+          onPress={onResetProfile}
+          testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+        >
+          {strings('social_leaderboard.my_profile.debug_reset_profile')}
+        </Button>
+      ) : null}
     </Box>
   );
 };

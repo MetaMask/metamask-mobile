@@ -20,6 +20,7 @@ import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
@@ -109,7 +110,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const handleTraderPress = useCallback(
     (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL.PROFILE, {
+      navigateToSocialV1Profile(navigation, {
         traderId: item.traderId,
         traderName: item.authorHandle,
         traderAddress: item.traderAddress,

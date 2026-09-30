@@ -826,6 +826,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.V1,
         Routes.SOCIAL.POST_COMPOSER,
         Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.V1_PROFILE,
         Routes.SOCIAL.FOLLOW_CONNECTIONS,
         Routes.SOCIAL.PROFILES_TO_FOLLOW,
         Routes.SOCIAL.MANAGE_PROFILE,
@@ -1734,6 +1735,13 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const v1ProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
+    );
+
+    expect(v1ProfileScreen).toBeDefined();
+    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
@@ -1804,6 +1812,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);

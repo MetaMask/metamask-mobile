@@ -132,11 +132,15 @@ describe('FollowConnectionsView', () => {
 
     fireEvent.press(screen.getByTestId(getConnectionRowTestId('trader-1')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
-      traderId: 'trader-1',
-      traderName: 'Signal Scout',
-      traderAddress: '0x1111111111111111111111111111111111111111',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'Signal Scout',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+      },
+      {},
+    );
   });
 
   it('unfollows from a following row button', () => {

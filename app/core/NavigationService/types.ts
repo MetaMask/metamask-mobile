@@ -470,6 +470,18 @@ export type RootModalFlowParamList = {
  * Maps actual route name strings to their parameter types.
  * This provides TypeScript autocomplete and error checking for navigation.
  */
+/**
+ * Social V1 profile screen. Empty / omitted params open the signed-in owner.
+ * `traderId` opens another user when it is not the owner.
+ */
+export interface SocialV1ProfileViewParams {
+  traderId?: string;
+  traderName?: string;
+  traderAddress?: string;
+  source?: string;
+  traderRank?: number;
+}
+
 // Declared as a `type` (not `interface`) so it gains an *implicit* index
 // signature and therefore satisfies React Navigation's `ParamListBase`
 // constraint (used by `RouteProp`/`StackNavigationProp`), while `keyof`
@@ -1016,7 +1028,8 @@ export type RootStackParamList = {
     | undefined;
   SocialPostComposerView: undefined;
   SocialProfileOnboardingView: undefined;
-  MyProfileView: undefined;
+  MyProfileView: SocialV1ProfileViewParams | undefined;
+  SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;
   ManageProfileView: undefined;
