@@ -140,21 +140,23 @@ const useMoneyAccountBalance = ({
 
   const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
     useMemo(() => {
-      // Total balance (mUSD + vmUSD) from the canonical facade response.
-      const totalDecimal = moneyBalanceQuery.data?.totalBalance
+      // Missing cache is not a zero balance. A new post-confirm query key has
+      // no data until the fresh read lands; treating that as 0 flashes $0.00.
+      const hasBalanceData = moneyBalanceQuery.data !== undefined;
+      const totalDecimal = hasBalanceData
         ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
             -MUSD_DECIMALS,
           )
-        : new BigNumber(0);
+        : undefined;
 
-      // the withdrawable amount.
-      const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
+      const vmusdDecimal = hasBalanceData
         ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
             -MUSD_DECIMALS,
           )
-        : new BigNumber(0);
+        : undefined;
 
-      // Undefined while loading or on error so callers can distinguish from a genuine zero.
+      // Undefined while loading, on error, or with no cached data so callers
+      // can distinguish that from a genuine zero.
       const computedWithdrawableMusd =
         isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
 

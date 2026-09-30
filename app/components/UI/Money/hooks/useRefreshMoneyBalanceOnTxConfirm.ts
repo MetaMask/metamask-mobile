@@ -16,6 +16,7 @@ import {
   isPerpsPredictMoneyActivity,
 } from '../utils/moneyTransactionGuards';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
+import { getMoneyAccountBalanceQueryKey } from '../utils/moneyAccountBalanceQueryKey';
 import Logger from '../../../../util/Logger';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 
@@ -59,29 +60,76 @@ const toConfirmedMinBlock = (
   return hexToNumber(blockNumber);
 };
 
+interface InFlightMoneyBalanceRefresh {
+  /** Highest confirmed block this run must reach. Later confirms raise it. */
+  minBlock?: number;
+  promise: Promise<void>;
+}
+
+const highestMinBlock = (
+  current: number | undefined,
+  next: number | undefined,
+): number | undefined => {
+  if (next === undefined) {
+    return current;
+  }
+  if (current === undefined) {
+    return next;
+  }
+  return Math.max(current, next);
+};
+
+/**
+ * Copy the balance the UI is already showing onto the fresh query key it is
+ * about to observe. The key changes as soon as the confirm marker is stored,
+ * and an empty key is not loading once its fetch is cancelled, which renders
+ * as $0.00.
+ *
+ * @param address - Primary Money account address.
+ * @param minBlock - Confirmed block the upcoming UI query will require.
+ */
+const seedFreshBalanceQuery = (
+  address: string,
+  minBlock: number | undefined,
+) => {
+  const cached = readBalanceSnapshot(address);
+  if (cached === undefined) {
+    return;
+  }
+  ReactQueryService.queryClient.setQueryData(
+    getMoneyAccountBalanceQueryKey(address, {
+      fresh: true,
+      ...(minBlock !== undefined && { minBlock }),
+    }),
+    cached,
+  );
+};
+
 /**
  * Capture the pre-refresh cached snapshot as a baseline, then request a fresh
  * balance (bypassing the Money API response cache, and requiring the API to
  * have reached the confirmed block when known). Retry up to MAX_RETRIES times
- * if subsequent reads match the baseline or the fetch fails. Guards against
- * RPC nodes / API indexes serving stale reads immediately after a
- * `transactionConfirmed` event. Fails visibly via Logger.error if the retry
+ * if subsequent reads match the baseline or the fetch fails. A later confirm
+ * for the same address raises `flight.minBlock`; a read that used an older
+ * block does not finish the loop. Fails visibly via Logger.error if the retry
  * budget exhausts.
  *
  * @param address - Primary Money account address.
- * @param minBlock - Confirmed transaction block the API result must reach.
+ * @param flight - Shared state for this address's in-flight refresh.
  */
 const refreshMoneyBalanceQueries = async (
   address: string,
-  minBlock?: number,
+  flight: InFlightMoneyBalanceRefresh,
 ) => {
   const baseline = readBalanceSnapshot(address);
   let sawSuccessfulRead = false;
   let lastError: Error | undefined;
+  let attempt = 0;
+  let totalAttempts = 0;
 
   Logger.log(`${LOG_PREFIX} Baseline snapshot established`, { baseline });
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  while (attempt < MAX_RETRIES && totalAttempts < MAX_RETRIES * 2) {
     if (attempt > 0) {
       await sleep(
         calculateExponentialRetryDelay(
@@ -91,6 +139,9 @@ const refreshMoneyBalanceQueries = async (
         ),
       );
     }
+
+    const minBlock = flight.minBlock;
+    totalAttempts += 1;
 
     try {
       const next = await refreshMoneyAccountBalanceFresh(address, {
@@ -102,11 +153,20 @@ const refreshMoneyBalanceQueries = async (
 
       Logger.log(`${LOG_PREFIX} attempt ${attempt} result`, { changed, next });
 
+      if (flight.minBlock !== minBlock) {
+        attempt = 0;
+        continue;
+      }
       if (changed) return;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       Logger.error(lastError, `${LOG_PREFIX} attempt ${attempt} failed`);
+      if (flight.minBlock !== minBlock) {
+        attempt = 0;
+        continue;
+      }
     }
+    attempt += 1;
   }
 
   if (!sawSuccessfulRead && lastError) {
@@ -126,10 +186,11 @@ const refreshMoneyBalanceQueries = async (
 
 // Concurrent loops for one address bust each other's source caches and compare
 // against a baseline the other has already moved.
-const inFlightRefreshByAddress = new Map<string, Promise<void>>();
+const inFlightRefreshByAddress = new Map<string, InFlightMoneyBalanceRefresh>();
 
 /**
  * Joins the refresh already running for this address, or starts one.
+ * A joined confirm raises the block floor the running loop must reach.
  *
  * @param address - Primary Money account address.
  * @param minBlock - Confirmed transaction block the API result must reach.
@@ -141,12 +202,20 @@ const refreshMoneyBalanceQueriesOnce = (
 ): Promise<void> => {
   const existing = inFlightRefreshByAddress.get(address);
   if (existing) {
-    return existing;
+    existing.minBlock = highestMinBlock(existing.minBlock, minBlock);
+    return existing.promise;
   }
-  const run = refreshMoneyBalanceQueries(address, minBlock).finally(() => {
-    inFlightRefreshByAddress.delete(address);
+  const flight: InFlightMoneyBalanceRefresh = {
+    minBlock,
+    promise: Promise.resolve(),
+  };
+  const run = refreshMoneyBalanceQueries(address, flight).finally(() => {
+    if (inFlightRefreshByAddress.get(address) === flight) {
+      inFlightRefreshByAddress.delete(address);
+    }
   });
-  inFlightRefreshByAddress.set(address, run);
+  flight.promise = run;
+  inFlightRefreshByAddress.set(address, flight);
   return run;
 };
 
@@ -172,6 +241,7 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
       // `minBlock` also drives the Money balance query key's fresh-read options
       // for the post-confirm window (see useMoneyAccountBalance).
       const minBlock = toConfirmedMinBlock(transactionMeta.blockNumber);
+      seedFreshBalanceQuery(address, minBlock);
       store.dispatch(
         setLastLocalMoneyFlow({
           address,

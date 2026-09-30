@@ -11,6 +11,7 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
+import { getMoneyAccountBalanceQueryKey } from '../utils/moneyAccountBalanceQueryKey';
 import { store } from '../../../../store';
 import { setLastLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
 import Logger from '../../../../util/Logger';
@@ -29,6 +30,7 @@ jest.mock('../../../../core/ReactQueryService', () => ({
   default: {
     queryClient: {
       getQueryData: jest.fn(),
+      setQueryData: jest.fn(),
       invalidateQueries: jest.fn(),
     },
   },
@@ -41,6 +43,7 @@ jest.mock('../utils/invalidateMoneyAccountBalanceCaches', () => ({
 const mockQueryClient = ReactQueryService.queryClient as unknown as {
   invalidateQueries: jest.Mock;
   getQueryData: jest.Mock;
+  setQueryData: jest.Mock;
 };
 const mockGetQueryData = mockQueryClient.getQueryData;
 
@@ -371,6 +374,62 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     await jest.advanceTimersByTimeAsync(4000);
     expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
+  });
+
+  it('copies the cached balance onto the fresh query key before the UI switches', () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    getConfirmedHandler()({
+      ...makeTx(TransactionType.moneyAccountDeposit),
+      blockNumber: '0x10',
+    });
+
+    expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+      getMoneyAccountBalanceQueryKey(MOCK_ADDRESS, {
+        fresh: true,
+        minBlock: 16,
+      }),
+      BASELINE_BALANCE,
+    );
+  });
+
+  it('fetches again with the newer minBlock when a second confirmation joins', async () => {
+    let resolveFirstRead: (value: typeof CHANGED_BALANCE) => void = () =>
+      undefined;
+    mockRefreshMoneyAccountBalanceFresh
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirstRead = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(CHANGED_BALANCE);
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.moneyAccountDeposit),
+      blockNumber: '0x10',
+    });
+    handler({
+      ...makeTx(TransactionType.moneyAccountWithdraw),
+      id: 'tx-2',
+      blockNumber: '0x20',
+    });
+    resolveFirstRead(CHANGED_BALANCE);
+
+    await waitFor(() => {
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(2);
+    });
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenNthCalledWith(
+      1,
+      MOCK_ADDRESS,
+      { minBlock: 16 },
+    );
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenNthCalledWith(
+      2,
+      MOCK_ADDRESS,
+      { minBlock: 32 },
+    );
   });
 
   it('joins the refresh already running for the same address', async () => {
