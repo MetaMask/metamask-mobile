@@ -4,9 +4,7 @@ import {
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
 import {
-  getBuyQuickAmounts,
   getDefaultSellQuickPercentages,
-  type QuickBuyAmountTuple,
   type QuickBuySellPercentTuple,
 } from './utils/quickBuyQuickAmounts';
 import type {
@@ -24,7 +22,6 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
-  buyQuickAmounts: QuickBuyAmountTuple;
   sellQuickPercentages: QuickBuySellPercentTuple;
   /**
    * Called by the Buy button. When the high-price-impact modal feature is
@@ -78,21 +75,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   // dimmed/inert alongside the rest of the sheet instead, which keeps the height
   // constant no matter when the flag settles.
   const [isKeypadOpen, setIsKeypadOpen] = useState(true);
-  const {
-    currentCurrency,
-    usdToCurrentCurrencyRate,
-    isPriceImpactError,
-    isPresetAddFundsMode,
-    handleConfirm,
-  } = controller;
+  const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
+    controller;
 
-  const buyQuickAmounts = useMemo(
-    () =>
-      getBuyQuickAmounts(currentCurrency, usdToCurrentCurrencyRate).map(
-        (option) => option.value,
-      ) as QuickBuyAmountTuple,
-    [currentCurrency, usdToCurrentCurrencyRate],
-  );
   const sellQuickPercentages = useMemo(
     () => getDefaultSellQuickPercentages(),
     [],
@@ -132,7 +117,6 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     activeScreen,
     setActiveScreen,
-    buyQuickAmounts,
     sellQuickPercentages,
     handleBuy,
     isKeypadOpen,
