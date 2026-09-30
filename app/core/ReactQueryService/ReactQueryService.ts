@@ -1,20 +1,20 @@
-import { Json } from '@metamask/utils';
-import { MessengerActions, MessengerEvents } from '@metamask/messenger';
+import { AppState, type NativeEventSubscription } from 'react-native';
 import {
   QueryClient,
   focusManager,
   onlineManager,
 } from '@tanstack/react-query';
-import { createUIQueryClient } from '@metamask/react-data-query';
 import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
-import { AppState, type NativeEventSubscription } from 'react-native';
-import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
+import { createUIQueryClient } from '@metamask/react-data-query';
+import { Json } from '@metamask/utils';
+import { MessengerActions, MessengerEvents } from '@metamask/messenger';
 import Engine from '../Engine/Engine';
 import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
+import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 
 type ActionType = MessengerActions<RootMessenger>['type'];
 type EventType = MessengerEvents<RootMessenger>['type'];
