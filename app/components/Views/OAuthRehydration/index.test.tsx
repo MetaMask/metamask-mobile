@@ -104,8 +104,7 @@ jest.mock('../../../util/analytics/analytics', () => ({
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
-jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
-jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
