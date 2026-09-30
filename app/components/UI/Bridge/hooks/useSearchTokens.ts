@@ -17,6 +17,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -35,12 +36,7 @@ type SearchTraceResult = 'success' | 'error';
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
-  /**
-   * Identifies which surface triggered this request (e.g. Limit order,
-   * Recurring buy, Market order) so the backend can attribute it
-   * accordingly. Required so every caller must make an explicit choice.
-   */
-  featureId: FeatureId;
+  enabled?: boolean;
 }
 
 interface UseSearchTokensResult {
@@ -77,8 +73,9 @@ const getResultCountBucket = (count: number): string =>
 export const useSearchTokens = ({
   chainIds,
   includeAssets,
-  featureId,
+  enabled = true,
 }: UseSearchTokensParams): UseSearchTokensResult => {
+  const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
@@ -125,6 +122,9 @@ export const useSearchTokens = ({
 
   const searchTokens = useCallback(
     async (query: string, cursor?: string) => {
+      if (!enabled) {
+        return;
+      }
       if (!query.trim()) {
         // If query is empty, reset search state
         resetSearch();
@@ -255,7 +255,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [bearerToken, resetSearch],
+    [bearerToken, enabled, resetSearch],
   );
 
   // Create debounced search function

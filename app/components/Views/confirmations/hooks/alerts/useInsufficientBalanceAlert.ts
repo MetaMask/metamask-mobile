@@ -5,7 +5,7 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useConfirmReject } from '../useConfirmReject';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -55,7 +55,7 @@ export const useInsufficientBalanceAlert = ({
       isUsingPay ||
       isFiatPaymentSelected
     ) {
-      return [];
+      return NO_ALERTS;
     }
 
     const { selectedGasFeeToken, gasFeeTokens, excludeNativeTokenForFee } =
@@ -81,13 +81,18 @@ export const useInsufficientBalanceAlert = ({
     // may be populated despite no gas token being available.
     // For those chains, `excludeNativeTokenForFee` will always be `true`, hence we can
     // rely on the combination of `excludeNativeTokenForFee` and `isGasFeeTokensEmpty`.
+    // A forced gas fee token with an empty gas-station list cannot pay, and
+    // native is short, so the transaction can only fail at sign time.
+    const isForcedGasFeeTokenUnavailable =
+      Boolean(isGasFeeTokenIgnoredIfBalance) &&
+      isGasFeeTokensEmpty &&
+      Boolean(selectedGasFeeToken);
+
     const hasNoGasFeeTokenSelected =
       ignoreGasFeeToken ||
       !selectedGasFeeToken ||
       (excludeNativeTokenForFee && isGasFeeTokensEmpty) ||
-      (isGasFeeTokenIgnoredIfBalance &&
-        isGasFeeTokensEmpty &&
-        Boolean(selectedGasFeeToken));
+      isForcedGasFeeTokenUnavailable;
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
@@ -99,16 +104,28 @@ export const useInsufficientBalanceAlert = ({
         isGasFeeTokensEmpty ||
         (!isGasFeeTokensEmpty && !selectedGasFeeToken && !isQuotesLoading));
 
+    // Predict withdraw is exempt because the gas station pays in pUSD, so an
+    // empty native balance is normal. That exemption must not hide the one
+    // case the gas station cannot cover.
+    const isIgnoredType =
+      hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !(
+        isForcedGasFeeTokenUnavailable &&
+        hasTransactionType(transactionMetadata, [
+          TransactionType.predictWithdraw,
+        ])
+      );
+
     const showAlert =
       hasInsufficientBalance &&
       isSimulationComplete &&
       hasNoGasFeeTokenSelected &&
       shouldCheckGaslessConditions &&
-      !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !isIgnoredType &&
       !isSponsoredTransaction;
 
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

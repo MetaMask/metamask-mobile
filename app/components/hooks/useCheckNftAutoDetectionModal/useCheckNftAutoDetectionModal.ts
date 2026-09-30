@@ -9,7 +9,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 import { RootState } from '../../../reducers';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectIsInBasicFunctionalityConsolidationRollout } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const useCheckNftAutoDetectionModal = () => {
   const dispatch = useDispatch();
@@ -19,15 +20,23 @@ const useCheckNftAutoDetectionModal = () => {
   const isNFTAutoDetectionModalViewed = useSelector(
     (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
-  // Gate on the rollout flag, not the persisted cohort. Mixed and social-restore
-  // wallets still have `useNftDetection` off until consolidateBasicFunctionality
-  // finishes, which would otherwise race the migration sheet on ROOT_MODAL_FLOW.
+  // Mixed and social-restore wallets still have `useNftDetection` off until
+  // consolidateBasicFunctionality finishes, which would otherwise race the
+  // migration sheet on ROOT_MODAL_FLOW. Enrolled wallets stay suppressed even
+  // once the enrollment flag reads false, because NFT autodetection is no
+  // longer a control they can act on from this prompt.
   const isBasicFunctionalityConsolidationRolloutEnabled = useSelector(
-    selectMobileUxBftcConsolidationFlagEnabled,
+    selectIsInBasicFunctionalityConsolidationRollout,
+  );
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
   );
 
   const checkNftAutoDetectionModal = useCallback(() => {
-    if (isBasicFunctionalityConsolidationRolloutEnabled) {
+    if (
+      isBasicFunctionalityConsolidationRolloutEnabled ||
+      !isBasicFunctionalityEnabled
+    ) {
       return;
     }
 
@@ -45,6 +54,7 @@ const useCheckNftAutoDetectionModal = () => {
     navigation,
     chainId,
     useNftDetection,
+    isBasicFunctionalityEnabled,
   ]);
 
   useEffect(() => {

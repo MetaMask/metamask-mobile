@@ -32,6 +32,11 @@ import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 
 export interface V2KycProcessingParams {
   /**
@@ -173,6 +178,15 @@ const V2KycProcessing = () => {
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.formsRequired.length > 0;
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.KYC_PROCESSING,
+    contentReady: Boolean(error || kycForms || kycStatus),
+    contentState:
+      error || kycStatus === KycStatus.REJECTED || hasPendingForms
+        ? RAMP_SCREEN_CONTENT_STATE.ERROR
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   useEffect(() => {
     if (kycStatus === KycStatus.REJECTED) {

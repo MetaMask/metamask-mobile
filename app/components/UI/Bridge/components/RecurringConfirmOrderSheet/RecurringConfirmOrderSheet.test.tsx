@@ -8,8 +8,10 @@ import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,23 +49,16 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
-    .fn()
-    .mockImplementation(() => mockUseBridgeQuoteData),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
-
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData: useQuotedData } = jest.requireMock(
-    '../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useQuotedData()),
-  };
-});
 
 jest.mock('../../hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(() => true),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
 }));
 
 function buildState(
@@ -104,11 +99,14 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
+  currentCurrency = 'USD',
   delegationFee = {
     status: 'ready',
     displayFee: '$1.23',
     preciseNativeFeeInHex: '0x1',
+    retry: jest.fn(),
   },
+  fiatToUsdRate = 1,
   goBack = jest.fn(),
   isSubmitting = false,
   onConfirm = jest.fn(),
@@ -117,7 +115,9 @@ function renderSheet({
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
+  currentCurrency?: string;
   delegationFee?: EIP7702UpgradeFee;
+  fiatToUsdRate?: number;
   goBack?: () => void;
   isSubmitting?: boolean;
   onConfirm?: () => void;
@@ -128,11 +128,21 @@ function renderSheet({
     | { displayBalance: string; atomicBalance: BigNumber }
     | undefined;
 } = {}) {
+  jest.mocked(useBridgeSession).mockReturnValue({
+    selectedTab: BridgeTabKey.Recurring,
+    renderedTab: BridgeTabKey.Recurring,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance,
+    quoteParams: {},
+  });
   return renderWithProvider(
     <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency}
       delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
+      isPriceRangeConversionReady
       isSubmitting={isSubmitting}
-      latestSourceBalance={latestSourceBalance}
       onConfirm={onConfirm}
       onEditSlippagePress={onEditSlippagePress}
       onDelegationFeeInfoPress={onDelegationFeeInfoPress}
@@ -146,7 +156,7 @@ describe('RecurringConfirmOrderSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -181,6 +191,118 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
   });
 
+  it('shows the stored currency range with its selected token', () => {
+    const { getByTestId } = renderSheet({
+      state: buildState({
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'day',
+          repeatCount: '10',
+          priceRange: {
+            tokenSide: 'source',
+            currency: 'EUR',
+            min: '900',
+            max: '1100',
+          },
+        },
+      }),
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.price_range.label')}€900.00 - €1,100.00`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Not set when no price range exists', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.price_range.label')}${strings(
+        'bridge.recurring.price_range.not_set',
+      )}`,
+    );
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the local currency notice when EUR is selected for a configured range', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'EUR',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { getByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      fiatToUsdRate: 0.5,
+      state,
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE),
+    ).toHaveTextContent(
+      strings('bridge.recurring.local_currency_notice', {
+        rate: '2.00',
+        currency: 'EUR',
+      }),
+    );
+  });
+
+  it('hides the local currency notice when USD is selected', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'USD',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { queryByTestId } = renderSheet({ state });
+
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the local currency notice when no price range is set', () => {
+    const state = buildState();
+
+    const { queryByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      state,
+    });
+
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows estimated dest amounts per order and across all orders', () => {
     const { getByTestId, queryByTestId } = renderSheet();
 
@@ -211,7 +333,7 @@ describe('RecurringConfirmOrderSheet', () => {
     const repeat = 10;
 
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount,
@@ -303,7 +425,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows skeletons for quote-dependent values while a quote is loading', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         isLoading: true,
@@ -348,14 +470,12 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('keeps paying, receiving, expiry, and slippage populated while a quote is loading', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: true,
-        destTokenAmount: undefined,
-        formattedQuoteData: undefined,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: true,
+      destTokenAmount: undefined,
+      formattedQuoteData: undefined,
+    }));
 
     const { getByTestId } = renderSheet({
       state: buildState({ slippage: '2' }),
@@ -385,14 +505,12 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('shows placeholders for est receiving and network fee when there is no quote', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: false,
-        destTokenAmount: undefined,
-        formattedQuoteData: undefined,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: false,
+      destTokenAmount: undefined,
+      formattedQuoteData: undefined,
+    }));
 
     const { getByTestId, queryByTestId } = renderSheet();
 
@@ -439,7 +557,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows the discounted fee disclaimer when the quote has a promo discount', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -475,7 +593,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows the no MetaMask fee disclaimer when dest fee is zero', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -543,6 +661,7 @@ describe('RecurringConfirmOrderSheet', () => {
         status: 'ready',
         displayFee: '$1.23',
         preciseNativeFeeInHex: '0x123',
+        retry: jest.fn(),
       },
     });
 
@@ -555,7 +674,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
-      delegationFee: { status: 'loading' },
+      delegationFee: { status: 'loading', retry: jest.fn() },
       onConfirm,
     });
 
@@ -576,7 +695,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('hides the delegation fee row when an upgrade is not required', () => {
     const onConfirm = jest.fn();
     const { getByTestId, queryByTestId } = renderSheet({
-      delegationFee: { status: 'not-required' },
+      delegationFee: { status: 'not-required', retry: jest.fn() },
       onConfirm,
     });
 
@@ -592,7 +711,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('shows a placeholder and disables Confirm when estimation fails', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
-      delegationFee: { status: 'error' },
+      delegationFee: { status: 'error', retry: jest.fn() },
       onConfirm,
     });
 

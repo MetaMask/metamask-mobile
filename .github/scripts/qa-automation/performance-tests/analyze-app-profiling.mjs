@@ -17,6 +17,9 @@
  *   node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs
  *   … --run 123456789
  *   … --lookback-hours 24
+ *   … --weekly
+ *   … --collect-only --run 123456789
+ *   … --scheduled-exception --run 123456789
  *   … --scenario "Cold Start"
  *   … --current-dir ./downloaded-test-results --skip-ai
  *
@@ -35,6 +38,26 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import transformerModule from '@margelo/hermes-profile-transformer';
+import { proposeProfilingGroundedActions } from './profiling-regression-actions.mjs';
+import {
+  SCHEDULED_BASELINE_HOURS,
+  buildScheduledException,
+  buildScheduledExceptionMarkdown,
+  buildScheduledExceptionSlack,
+  selectBaselineReports,
+} from './scheduled-hermes-exceptions.mjs';
+import {
+  buildWeeklyMarkdown,
+  buildWeeklyParentSlack,
+  buildWeeklyReport,
+  formatDurationsAlike,
+  inHalfOpenRange,
+  lastWeekRunsMatchingThisWeekDays,
+  runsOnUtcDates,
+  utcDateKey,
+  weekBounds,
+  weeklySlackCards,
+} from './weekly-hermes-conclusions.mjs';
 
 const transformHermesProfile =
   transformerModule.default || transformerModule;
@@ -55,6 +78,16 @@ const WINDOW_SCENARIOS_IN_CHAT = 8;
 // A run whose JS work exceeds this multiple of the scenario median is called
 // out separately instead of being averaged into the headline number.
 const SPIKE_RATIO = 1.5;
+// Newest runs of a scenario, used to tell a spike that is still happening
+// from one the scenario has already run clean past.
+const TAIL_RUNS = 2;
+// Every run in the week is considered. Reusing a collected report is free, so
+// once collection has been running the whole week is analyzed. Rebuilding a
+// run from raw profiles costs ~60-75 s (symbolication, not download), so that
+// part is bounded by wall clock instead of a run count: newest days first,
+// stop when the budget is gone. `--max-runs-per-week` can still cap it.
+const DEFAULT_ANALYSIS_BUDGET_MINUTES = 25;
+const BUDGET_EXHAUSTED = 'analysis time budget exhausted';
 const KNOWN_PROJECTS = [
   'android-onboarding-seedless',
   'browserstack-android',
@@ -85,6 +118,13 @@ function parseArgs(argv) {
     scheduledOnly: true,
     dryRun: false,
     lookbackHours: null,
+    weekly: false,
+    collectOnly: false,
+    scheduledException: false,
+    skipScenarioArtifacts: false,
+    now: null,
+    maxRunsPerWeek: null,
+    maxAnalysisMinutes: DEFAULT_ANALYSIS_BUDGET_MINUTES,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -137,6 +177,36 @@ function parseArgs(argv) {
       case '--any-run':
         args.scheduledOnly = false;
         break;
+      case '--weekly':
+        args.weekly = true;
+        args.skipAi = true;
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--collect-only':
+        args.collectOnly = true;
+        args.skipAi = true;
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--scheduled-exception':
+        args.scheduledException = true;
+        args.collectOnly = true;
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--skip-scenario-artifacts':
+        args.skipScenarioArtifacts = true;
+        break;
+      case '--now':
+        args.now = next;
+        index += 1;
+        break;
+      case '--max-runs-per-week':
+        args.maxRunsPerWeek = Number(next);
+        index += 1;
+        break;
+      case '--max-analysis-minutes':
+        args.maxAnalysisMinutes = Number(next);
+        index += 1;
+        break;
       case '--dry-run':
         args.dryRun = true;
         break;
@@ -155,6 +225,18 @@ function parseArgs(argv) {
   ) {
     fail('--lookback-hours and --days must be positive numbers');
   }
+  if (
+    args.maxRunsPerWeek !== null &&
+    (!Number.isFinite(args.maxRunsPerWeek) || args.maxRunsPerWeek <= 0)
+  ) {
+    fail('--max-runs-per-week must be a positive number');
+  }
+  if (
+    !Number.isFinite(args.maxAnalysisMinutes) ||
+    args.maxAnalysisMinutes <= 0
+  ) {
+    fail('--max-analysis-minutes must be a positive number');
+  }
   return args;
 }
 
@@ -166,6 +248,13 @@ Options:
   --run <id>             Performance workflow run id
   --lookback-hours <n>   Analyze every run in the window and report medians
   --days <n>             Same window expressed in days
+  --weekly               Week-over-week exception report (scheduled main runs)
+  --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
+  --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
+  --collect-only         Analyze one run without Slack-sized scenario zips
+  --scheduled-exception  Collect one run and compare it with the previous two scheduled runs
+  --skip-scenario-artifacts  Skip per-scenario profile bundles
+  --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
   --repo <owner/name>    GitHub repo (default: ${DEFAULT_REPO})
   --workflow <file>      Source workflow (default: ${DEFAULT_WORKFLOW})
@@ -248,6 +337,42 @@ function resolveRunsInWindow(
     .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 }
 
+function resolveRunsInRange(
+  runs,
+  { sinceIso, untilIso, scheduledOnly = true } = {},
+) {
+  return runs
+    .filter(
+      (run) =>
+        run.status === 'completed' &&
+        ['success', 'failure'].includes(run.conclusion) &&
+        (!scheduledOnly || run.event === 'schedule') &&
+        inHalfOpenRange(run.createdAt, sinceIso, untilIso),
+    )
+    .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+}
+
+function getRunMetadata(repo, runId) {
+  return JSON.parse(
+    runGh([
+      'run',
+      'view',
+      String(runId),
+      '--repo',
+      repo,
+      '--json',
+      'databaseId,url,createdAt,event,headSha,conclusion,status',
+    ]) || '{}',
+  );
+}
+
+function analysisArtifactsUrl(repo, analysisRunId) {
+  if (!repo || !analysisRunId) {
+    return null;
+  }
+  return `https://github.com/${repo}/actions/runs/${analysisRunId}#artifacts`;
+}
+
 function downloadArtifactPattern(runId, pattern, destination, repo) {
   fs.mkdirSync(destination, { recursive: true });
   try {
@@ -267,6 +392,143 @@ function downloadArtifactPattern(runId, pattern, destination, repo) {
     console.log(`ℹ️ ${pattern} unavailable: ${error.message}`);
     return false;
   }
+}
+
+function findNamedFile(directory, fileName) {
+  if (!directory || !fs.existsSync(directory)) {
+    return null;
+  }
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isFile() && entry.name === fileName) {
+      return fullPath;
+    }
+    if (entry.isDirectory()) {
+      const nested = findNamedFile(fullPath, fileName);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * A collected report is only reusable when it carries everything the window
+ * aggregation reads. Reports written by earlier versions of this analyzer are
+ * missing fields such as per-scenario `attempts`, and reusing one of those
+ * used to abort the whole weekly report.
+ */
+function isReusableCollectedReport(report) {
+  const mode = report?.meta?.mode;
+  if (mode === 'lookback-window' || mode === 'weekly-conclusions') {
+    return false;
+  }
+  if (!report?.meta?.runId || !Array.isArray(report.scenarios)) {
+    return false;
+  }
+  if (report.scenarios.length === 0) {
+    return false;
+  }
+  return report.scenarios.every(
+    (scenario) =>
+      typeof scenario?.scenario === 'string' &&
+      Array.isArray(scenario.attempts) &&
+      Array.isArray(scenario.profiles) &&
+      Number.isFinite(scenario.jsWorkMs) &&
+      Number.isFinite(scenario.jsDutyPct),
+  );
+}
+
+function tryReadCollectedReport(repo, analysisRunId) {
+  const destination = fs.mkdtempSync(
+    path.join(os.tmpdir(), `app-profiling-collected-${analysisRunId}-`),
+  );
+  try {
+    const downloaded = downloadArtifactPattern(
+      analysisRunId,
+      'app-profiling-analysis',
+      destination,
+      repo,
+    );
+    if (!downloaded) {
+      return null;
+    }
+    const reportPath = findNamedFile(destination, 'report.json');
+    if (!reportPath) {
+      return null;
+    }
+    const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+    if (!isReusableCollectedReport(report)) {
+      console.log(
+        `ℹ️ Ignoring analysis ${analysisRunId}: report does not match the current schema`,
+      );
+      return null;
+    }
+    return report;
+  } catch (error) {
+    console.log(
+      `ℹ️ Could not reuse analysis ${analysisRunId}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    return null;
+  } finally {
+    fs.rmSync(destination, { recursive: true, force: true });
+  }
+}
+
+function listCompletedAnalysisRuns(repo) {
+  return JSON.parse(
+    runGh([
+      'run',
+      'list',
+      '--repo',
+      repo,
+      '--workflow',
+      'analyze-app-profiling.yml',
+      '--limit',
+      '80',
+      '--json',
+      'databaseId,conclusion,createdAt,status',
+    ]) || '[]',
+  );
+}
+
+function loadCollectedReports(
+  repo,
+  sinceIso,
+  untilIso,
+  { listAnalysisRuns = listCompletedAnalysisRuns, readReport = tryReadCollectedReport } = {},
+) {
+  const analysisRuns = listAnalysisRuns(repo);
+  const sinceMs = Date.parse(sinceIso) - 6 * 60 * 60 * 1000;
+  const untilMs = Date.parse(untilIso) + 24 * 60 * 60 * 1000;
+  const byPerformanceRunId = new Map();
+  for (const analysisRun of analysisRuns) {
+    if (
+      analysisRun.status !== 'completed' ||
+      analysisRun.conclusion !== 'success'
+    ) {
+      continue;
+    }
+    const created = Date.parse(analysisRun.createdAt);
+    if (created < sinceMs || created > untilMs) {
+      continue;
+    }
+    const report = readReport(repo, analysisRun.databaseId);
+    if (!report) {
+      continue;
+    }
+    // `gh run list` is newest first, so the first report found for a run is
+    // the freshest analysis of it. A later, older one must not replace it.
+    const performanceRunId = String(report.meta.runId);
+    if (byPerformanceRunId.has(performanceRunId)) {
+      continue;
+    }
+    byPerformanceRunId.set(performanceRunId, report);
+  }
+  return byPerformanceRunId;
 }
 
 function findAndroidSourcemaps(directory, output = []) {
@@ -654,6 +916,7 @@ function loadProfile(
     return {
       ...metadata,
       skipped: false,
+      sourcePath: filePath,
       analysisPath,
       sourcemapPath,
       symbolicated: Boolean(sourcemapPath),
@@ -1277,6 +1540,10 @@ function buildMarkdown(report) {
       '',
     );
   }
+  const downloadLines = markdownDownloadLines(report.meta);
+  if (downloadLines.length > 0) {
+    lines.push('## Downloads', '', ...downloadLines, '');
+  }
   lines.push(
     '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
     '',
@@ -1284,12 +1551,31 @@ function buildMarkdown(report) {
   return lines.join('\n');
 }
 
+function markdownDownloadLines(meta = {}) {
+  const lines = [];
+  if (meta.analysisArtifactsUrl) {
+    lines.push(
+      `- [app-profiling-analysis](${meta.analysisArtifactsUrl}) — \`report.json\`, \`report.md\`, \`ai-briefing.md\`, per-scenario JSON (7-day retention).`,
+    );
+  }
+  return lines;
+}
+
+function slackDownloadLines(meta = {}) {
+  const lines = [];
+  if (meta.analysisArtifactsUrl) {
+    lines.push(
+      `• <${meta.analysisArtifactsUrl}|app-profiling-analysis> — report files. Scenario names above download that scenario's profiles.`,
+    );
+  }
+  return lines;
+}
+
 function buildSlack(report) {
   const maps =
     `${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`;
   const lines = [
-    '*Hermes CPU-profile analysis*',
-    ':test_tube: Testing experiment, not a production alert.',
+    `*Hermes CPU-profile analysis*`,
     '',
     `_Run:_ \`${report.meta.runId || 'local'}\` · _Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount} · _Maps:_ ${maps}`,
   ];
@@ -1314,7 +1600,11 @@ function buildSlack(report) {
     }
   }
   if (report.aiAnalysis) {
-    lines.push('', '*Notes*', report.aiAnalysis.trim().slice(0, 1_200));
+    lines.push('', '*Notes*', report.aiAnalysis.trim());
+  }
+  const downloadLines = slackDownloadLines(report.meta);
+  if (downloadLines.length > 0) {
+    lines.push('', '*Downloads*', ...downloadLines);
   }
   lines.push(
     '',
@@ -1424,10 +1714,11 @@ function aggregateWindow(runReports, meta = {}) {
       entry.observations.push({
         runId: report.meta.runId,
         runUrl: report.meta.runUrl,
+        createdAt: report.meta.createdAt || null,
         jsWorkMs: scenario.jsWorkMs,
         jsDutyPct: scenario.jsDutyPct,
         profileCount: scenario.profileCount,
-        attempts: scenario.attempts.length,
+        attempts: scenario.attempts?.length ?? 0,
         frames: scenarioFrameTotals(scenario).slice(0, WINDOW_FRAMES_PER_RUN),
       });
       grouped.set(key, entry);
@@ -1442,6 +1733,18 @@ function aggregateWindow(runReports, meta = {}) {
       const medianJsWorkMs = median(jsWork);
       const maxJsWorkMs = Math.max(...jsWork);
       const peak = entry.observations.find(
+        (observation) => observation.jsWorkMs === maxJsWorkMs,
+      );
+      // Runs are not processed in order (collected reports and retries are
+      // interleaved), so recency has to come from the run timestamps.
+      const chronological = [...entry.observations].sort(
+        (left, right) =>
+          Date.parse(left.createdAt || 0) - Date.parse(right.createdAt || 0),
+      );
+      const tail = chronological.slice(-TAIL_RUNS);
+      const earlier = chronological.slice(0, -TAIL_RUNS);
+      const latest = chronological.at(-1);
+      const peakIndex = chronological.findIndex(
         (observation) => observation.jsWorkMs === maxJsWorkMs,
       );
 
@@ -1503,6 +1806,18 @@ function aggregateWindow(runReports, meta = {}) {
             : 0,
         peakRunId: peak?.runId || null,
         peakRunUrl: peak?.runUrl || null,
+        peakRunCreatedAt: peak?.createdAt || null,
+        // A spike the scenario has already run clean past is a different
+        // finding from one sitting in the newest runs.
+        runsAfterPeak: peakIndex < 0 ? 0 : chronological.length - 1 - peakIndex,
+        tailRuns: tail.length,
+        tailMedianJsWorkMs: median(tail.map((item) => item.jsWorkMs)),
+        earlierMedianJsWorkMs: earlier.length
+          ? median(earlier.map((item) => item.jsWorkMs))
+          : 0,
+        latestRunId: latest?.runId || null,
+        latestRunUrl: latest?.runUrl || null,
+        latestJsWorkMs: latest?.jsWorkMs ?? 0,
         // Long scenario captures spread JS work over thousands of frames, so
         // the skill's 5% actionability bar is usually missed. Say so instead
         // of dropping the repeated frames.
@@ -1589,7 +1904,7 @@ function buildWindowMarkdown(window) {
     lines.push(
       `| Runs observed | ${scenario.runsObserved}/${scenario.runsTotal} |`,
       `| Median JS work per run | ${formatDuration(scenario.medianJsWorkMs)} |`,
-      `| Range across runs | ${formatDuration(scenario.minJsWorkMs)} – ${formatDuration(scenario.maxJsWorkMs)} |`,
+      `| Range across runs | ${formatDurationsAlike([scenario.minJsWorkMs, scenario.maxJsWorkMs]).join(' – ')} |`,
       `| Median JS duty cycle | ${scenario.medianJsDutyPct.toFixed(1)}% |`,
       `| Peak run | ${
         scenario.peakRunId
@@ -1644,7 +1959,6 @@ function buildWindowSlack(window) {
   const { meta } = window;
   const lines = [
     `*Hermes CPU-profile analysis — last ${meta.lookbackHours}h*`,
-    ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
     '',
     `_Window:_ ${meta.since?.slice(0, 16)}Z → ${meta.until?.slice(0, 16)}Z`,
     `_Runs:_ ${meta.runCount} · _Scenarios:_ ${window.scenarios.length} · _Profiles:_ ${meta.profileCount}`,
@@ -1661,8 +1975,13 @@ function buildWindowSlack(window) {
     );
   }
   for (const scenario of scenarios) {
+    const [median, min, max] = formatDurationsAlike([
+      scenario.medianJsWorkMs,
+      scenario.minJsWorkMs,
+      scenario.maxJsWorkMs,
+    ]);
     lines.push(
-      `• *${displayName(scenario.scenario)}* — median JS ${formatDuration(scenario.medianJsWorkMs)} (range ${formatDuration(scenario.minJsWorkMs)} – ${formatDuration(scenario.maxJsWorkMs)}), duty ${scenario.medianJsDutyPct.toFixed(1)}%${windowCoverageNote(scenario)}`,
+      `• *${displayName(scenario.scenario)}* — median JS work ${median} (range ${min} – ${max}), JS duty ${scenario.medianJsDutyPct.toFixed(1)}%${windowCoverageNote(scenario)}`,
     );
     if (scenario.contributors.length === 0) {
       lines.push(
@@ -1679,8 +1998,12 @@ function buildWindowSlack(window) {
       }
     }
     if (scenario.spikeRatio >= SPIKE_RATIO && scenario.peakRunUrl) {
+      const [peak] = formatDurationsAlike([
+        scenario.maxJsWorkMs,
+        scenario.medianJsWorkMs,
+      ]);
       lines.push(
-        `  Spikiest run <${scenario.peakRunUrl}|${scenario.peakRunId}> at ${formatDuration(scenario.maxJsWorkMs)} (${scenario.spikeRatio}× the median).`,
+        `  Spikiest run <${scenario.peakRunUrl}|${scenario.peakRunId}> at JS work ${peak} (${scenario.spikeRatio}× the median).`,
       );
     }
   }
@@ -1709,7 +2032,6 @@ function buildWindowSlack(window) {
       `_Caveat:_ ${meta.profileCount - meta.symbolicatedProfileCount}/${meta.profileCount} profiles had no matching sourcemap, so frame names cannot be traced to files or owners.`,
     );
   }
-  lines.push('_Disclaimer:_ Testing experiment only — not a production alert.');
   return lines.join('\n');
 }
 
@@ -1736,7 +2058,52 @@ function writeWindowOutputs(outputDirectory, window) {
   );
 }
 
-async function callClaude(briefing) {
+function writeWeeklyOutputs(outputDirectory, weekly) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  writeEmptyScenarioManifest(outputDirectory);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'report.json'),
+    `${JSON.stringify(weekly, null, 2)}\n`,
+  );
+  const markdown = `${buildWeeklyMarkdown(weekly)}\n`;
+  fs.writeFileSync(path.join(outputDirectory, 'report.md'), markdown);
+  fs.writeFileSync(path.join(outputDirectory, 'github-summary.md'), markdown);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack.md'),
+    `${buildWeeklyParentSlack(weekly)}\n`,
+  );
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack-cards.json'),
+    `${JSON.stringify(weeklySlackCards(weekly), null, 2)}\n`,
+  );
+}
+
+function writeScheduledExceptionOutputs(
+  outputDirectory,
+  currentReport,
+  exception,
+) {
+  // Keep report.json as the reusable per-run collection consumed by Monday's
+  // report. The notification decision is a separate artifact.
+  writeOutputs(outputDirectory, currentReport);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'notification.json'),
+    `${JSON.stringify(exception, null, 2)}\n`,
+  );
+  const markdown = `${buildScheduledExceptionMarkdown(exception)}\n`;
+  fs.writeFileSync(path.join(outputDirectory, 'report.md'), markdown);
+  fs.writeFileSync(path.join(outputDirectory, 'github-summary.md'), markdown);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack.md'),
+    `${buildScheduledExceptionSlack(exception)}\n`,
+  );
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack-cards.json'),
+    '[]\n',
+  );
+}
+
+async function callClaude(briefing, { system } = {}) {
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
   if (!apiKey) {
     return null;
@@ -1752,6 +2119,7 @@ async function callClaude(briefing) {
       model: process.env.APP_PROFILING_ANALYSIS_MODEL || DEFAULT_MODEL,
       max_tokens: 800,
       system:
+        system ||
         'You are a MetaMask Mobile performance engineer analyzing Hermes CPU sampling profiles.',
       messages: [{ role: 'user', content: briefing }],
     }),
@@ -1795,6 +2163,116 @@ function writeOutputs(outputDirectory, report) {
     path.join(outputDirectory, 'ai-briefing.md'),
     buildAiBriefing(report),
   );
+}
+
+function writeScenarioArtifacts(
+  outputDirectory,
+  profiles,
+  scenarios,
+  performanceRunId = null,
+) {
+  const artifactsDirectory = path.join(outputDirectory, 'scenario-artifacts');
+  fs.mkdirSync(artifactsDirectory, { recursive: true });
+
+  const artifacts = scenarios.map((scenario, index) => {
+    const artifactName = `hermes-profile-${String(index + 1).padStart(2, '0')}-${sanitize(scenario.scenario).slice(0, 100)}`;
+    const scenarioDirectory = path.join(artifactsDirectory, artifactName);
+    const rawDirectory = path.join(scenarioDirectory, 'raw');
+    const symbolicatedDirectory = path.join(scenarioDirectory, 'symbolicated');
+    fs.mkdirSync(rawDirectory, { recursive: true });
+
+    const matchingProfiles = profiles.filter(
+      (profile) =>
+        profile.project === scenario.projectName &&
+        profile.scenario === scenario.scenario,
+    );
+    for (const profile of matchingProfiles) {
+      if (profile.sourcePath && fs.existsSync(profile.sourcePath)) {
+        fs.copyFileSync(
+          profile.sourcePath,
+          path.join(rawDirectory, path.basename(profile.sourcePath)),
+        );
+      }
+      if (
+        profile.symbolicated &&
+        profile.analysisPath &&
+        fs.existsSync(profile.analysisPath)
+      ) {
+        fs.mkdirSync(symbolicatedDirectory, { recursive: true });
+        fs.copyFileSync(
+          profile.analysisPath,
+          path.join(symbolicatedDirectory, path.basename(profile.analysisPath)),
+        );
+      }
+    }
+    fs.writeFileSync(
+      path.join(scenarioDirectory, 'README.md'),
+      `# ${displayName(scenario.scenario)}\n\n` +
+        `Performance run: ${performanceRunId || 'local analysis'}\n\n` +
+        '- `raw/` contains every Hermes `.cpuprofile` segment and retry captured for this scenario.\n' +
+        '- `symbolicated/` contains converted profiles with resolved source locations when a matching sourcemap was available.\n',
+    );
+    return {
+      artifactName,
+      path: scenarioDirectory,
+      scenario: displayName(scenario.scenario),
+    };
+  });
+
+  fs.writeFileSync(
+    path.join(outputDirectory, 'scenario-artifacts.json'),
+    `${JSON.stringify({ include: artifacts }, null, 2)}\n`,
+  );
+  return artifacts;
+}
+
+function writeEmptyScenarioManifest(outputDirectory) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  fs.writeFileSync(
+    path.join(outputDirectory, 'scenario-artifacts.json'),
+    `${JSON.stringify({ include: [] }, null, 2)}\n`,
+  );
+}
+
+function writeWindowScenarioArtifacts(outputDirectory, runReports) {
+  const byScenario = new Map();
+  for (const report of runReports) {
+    const manifestPath = path.join(
+      outputDirectory,
+      'runs',
+      String(report.meta.runId),
+      'scenario-artifacts.json',
+    );
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    for (const artifact of manifest.include || []) {
+      const entries = byScenario.get(artifact.scenario) || [];
+      entries.push({ ...artifact, runId: report.meta.runId });
+      byScenario.set(artifact.scenario, entries);
+    }
+  }
+
+  const root = path.join(outputDirectory, 'scenario-artifacts');
+  fs.rmSync(root, { recursive: true, force: true });
+  fs.mkdirSync(root, { recursive: true });
+  const artifacts = [...byScenario.entries()].map(
+    ([scenario, runArtifacts], index) => {
+      const artifactName = `hermes-profile-${String(index + 1).padStart(2, '0')}-${sanitize(scenario).slice(0, 100)}`;
+      const target = path.join(root, artifactName);
+      for (const artifact of runArtifacts) {
+        fs.cpSync(
+          artifact.path,
+          path.join(target, `run-${artifact.runId}`),
+          { recursive: true },
+        );
+      }
+      return { artifactName, path: target, scenario };
+    },
+  );
+  fs.writeFileSync(
+    path.join(outputDirectory, 'scenario-artifacts.json'),
+    `${JSON.stringify({ include: artifacts }, null, 2)}\n`,
+  );
+  return artifacts;
 }
 
 function downloadRunInputs({ runId, repo, workingDirectory }) {
@@ -1848,7 +2326,9 @@ async function analyzeProfileDirectory({
 }) {
   const files = [...new Set(findHermesProfiles(sourceDirectory))];
   if (files.length === 0) {
-    fail('No named Hermes profiles found under hermes-cpuprofiles/');
+    // Thrown, not exited: a week-long window keeps going when one run's
+    // artifacts have expired. `main` turns this into the same fatal error.
+    throw new Error('No named Hermes profiles found under hermes-cpuprofiles/');
   }
   console.log(`🧠 Hermes CPU profiles: ${files.length}`);
   const sourcemaps = findAndroidSourcemaps(sourcemapDirectory);
@@ -1892,7 +2372,7 @@ async function analyzeProfileDirectory({
 
   const scenarios = groupProfiles(profiles, scenarioFilter);
   if (scenarios.length === 0) {
-    fail(
+    throw new Error(
       scenarioFilter
         ? `No Hermes scenario matched "${scenarioFilter}"`
         : 'No Hermes scenarios found',
@@ -1909,6 +2389,19 @@ async function analyzeRun({
   skillAnalyzerPath,
   localDirectory = null,
 }) {
+  let resolvedRun = run;
+  if (!resolvedRun && runId && !localDirectory) {
+    try {
+      resolvedRun = getRunMetadata(args.repo, runId);
+    } catch (error) {
+      console.log(
+        `ℹ️ Could not load run metadata for ${runId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
   const { sourceDirectory, sourcemapDirectory } = localDirectory
     ? { sourceDirectory: localDirectory, sourcemapDirectory: localDirectory }
     : downloadRunInputs({
@@ -1924,14 +2417,20 @@ async function analyzeRun({
     scenarioFilter: args.scenario,
     skillAnalyzerPath,
   });
+  if (args.skipScenarioArtifacts) {
+    writeEmptyScenarioManifest(workingDirectory);
+  } else {
+    writeScenarioArtifacts(workingDirectory, profiles, scenarios, runId);
+  }
 
   return {
     meta: {
+      mode: args.collectOnly ? 'collect' : 'single-run',
       runId,
       runUrl:
-        run?.url ||
+        resolvedRun?.url ||
         (runId ? `https://github.com/${args.repo}/actions/runs/${runId}` : null),
-      createdAt: run?.createdAt || null,
+      createdAt: resolvedRun?.createdAt || null,
       generatedAt: new Date().toISOString(),
       source: 'Hermes CPU sampling profiles only',
       reasoningSkill: 'mms-swaps-cpu-profile-audit',
@@ -1940,6 +2439,11 @@ async function analyzeRun({
       symbolicatedProfileCount: profiles.filter(
         (profile) => profile.symbolicated,
       ).length,
+      analysisArtifactsUrl: analysisArtifactsUrl(
+        args.repo,
+        process.env.GITHUB_RUN_ID,
+      ),
+      headSha: resolvedRun?.headSha || null,
       ai: false,
     },
     scenarios,
@@ -1961,6 +2465,20 @@ async function main() {
   console.log(
     `🧭 Reasoning parser: ${path.relative(process.cwd(), skillAnalyzerPath)}`,
   );
+
+  if (args.weekly) {
+    await runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath });
+    return;
+  }
+
+  if (args.scheduledException) {
+    await runScheduledExceptionAnalysis({
+      args,
+      outputDirectory,
+      skillAnalyzerPath,
+    });
+    return;
+  }
 
   if (args.lookbackHours && !args.currentDir) {
     await runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath });
@@ -2002,6 +2520,64 @@ async function main() {
   );
 }
 
+async function runScheduledExceptionAnalysis({
+  args,
+  outputDirectory,
+  skillAnalyzerPath,
+}) {
+  const currentReport = await analyzeRun({
+    args,
+    runId: args.run,
+    workingDirectory: outputDirectory,
+    skillAnalyzerPath,
+  });
+  const until = new Date(
+    currentReport.meta.createdAt || currentReport.meta.generatedAt,
+  );
+  const since = new Date(
+    until.getTime() - SCHEDULED_BASELINE_HOURS * 60 * 60 * 1000,
+  );
+  const collected = loadCollectedReports(
+    args.repo,
+    since.toISOString(),
+    until.toISOString(),
+  );
+  collected.delete(String(currentReport.meta.runId));
+  const scheduledRuns = resolveRunsInRange(
+    listLatestRuns({
+      repo: args.repo,
+      workflow: args.workflow,
+      branch: args.branch,
+      limit: 40,
+    }),
+    {
+      sinceIso: since.toISOString(),
+      untilIso: until.toISOString(),
+      scheduledOnly: true,
+    },
+  );
+  const baselineReports = selectBaselineReports(scheduledRuns, collected);
+  const exception = buildScheduledException(currentReport, baselineReports);
+  writeScheduledExceptionOutputs(outputDirectory, currentReport, exception);
+  if (exception.meta.hasFindings && !args.skipAi && !args.dryRun) {
+    await proposeProfilingGroundedActions({
+      exception,
+      currentReport,
+      previousRun: scheduledRuns[0] || null,
+      currentSha: currentReport.meta.headSha || null,
+      previousSha: scheduledRuns[0]?.headSha || null,
+      repo: args.repo,
+      outputDirectory,
+      skipAi: args.skipAi,
+      runGh,
+      callClaude,
+    });
+  }
+  console.log(
+    `✅ Checked run ${currentReport.meta.runId} against ${baselineReports.length} collected runs: ${exception.findings.length} finding(s)`,
+  );
+}
+
 async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   const now = Date.now();
   const runs = resolveRunsInWindow(
@@ -2037,6 +2613,7 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     writeOutputs(runDirectory, report);
     runReports.push(report);
   }
+  writeWindowScenarioArtifacts(outputDirectory, runReports);
 
   const window = aggregateWindow(runReports, {
     lookbackHours: args.lookbackHours,
@@ -2051,16 +2628,348 @@ async function runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   );
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) =>
-    fail(error instanceof Error ? error.message : String(error)),
+/**
+ * Picks `limit` uncollected runs across the newest UTC days that still have
+ * runs, instead of spreading into expired early-week artifacts. One run is
+ * taken from each newest day before a second run is taken from any day.
+ */
+function sampleRunsAcrossNewestDays(runs, limit) {
+  if (!Number.isFinite(limit) || limit <= 0) {
+    return [];
+  }
+  if (runs.length <= limit) {
+    return [...runs];
+  }
+  const byDay = new Map();
+  for (const run of runs) {
+    const day = utcDateKey(run.createdAt) || 'unknown';
+    if (!byDay.has(day)) {
+      byDay.set(day, []);
+    }
+    byDay.get(day).push(run);
+  }
+  const days = [...byDay.keys()].sort((left, right) => {
+    if (left === 'unknown') {
+      return 1;
+    }
+    if (right === 'unknown') {
+      return -1;
+    }
+    return right.localeCompare(left);
+  });
+  const selected = [];
+  while (selected.length < limit) {
+    let added = false;
+    for (const day of days) {
+      const bucket = byDay.get(day);
+      if (!bucket?.length) {
+        continue;
+      }
+      selected.push(bucket.shift());
+      added = true;
+      if (selected.length >= limit) {
+        break;
+      }
+    }
+    if (!added) {
+      break;
+    }
+  }
+  const selectedIds = new Set(selected.map((run) => String(run.databaseId)));
+  return runs.filter((run) => selectedIds.has(String(run.databaseId)));
+}
+
+function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek = null) {
+  const collected = runs.filter((run) =>
+    collectedByRunId.has(String(run.databaseId)),
   );
+  const uncollected = runs.filter(
+    (run) => !collectedByRunId.has(String(run.databaseId)),
+  );
+  const sampled =
+    maxRunsPerWeek === null
+      ? uncollected
+      : sampleRunsAcrossNewestDays(uncollected, maxRunsPerWeek);
+  const selectedIds = new Set(
+    [...collected, ...sampled].map((run) => String(run.databaseId)),
+  );
+  return {
+    selected: runs.filter((run) => selectedIds.has(String(run.databaseId))),
+    skipped: uncollected.length - sampled.length,
+  };
+}
+
+/**
+ * Runs the previous week left unspent go back to this week. Only days that
+ * already have data are retried, so recovering a run cannot move the day set
+ * the previous week was matched against.
+ */
+function runsToRetryWithLeftoverBudget(runs, skipped, dayKeys) {
+  const outOfBudget = new Set(
+    skipped
+      .filter((entry) => entry.reason === BUDGET_EXHAUSTED)
+      .map((entry) => entry.runId),
+  );
+  if (outOfBudget.size === 0) {
+    return [];
+  }
+  return runsOnUtcDates(
+    runs.filter((run) => outOfBudget.has(String(run.databaseId))),
+    dayKeys,
+  );
+}
+
+async function reportsForRuns({
+  args,
+  runs,
+  collectedByRunId,
+  outputDirectory,
+  skillAnalyzerPath,
+  label,
+  deadlineMs = Infinity,
+  clock = Date.now,
+  analyze = analyzeRun,
+}) {
+  const reports = [];
+  const skipped = [];
+  for (const run of runs) {
+    const runId = String(run.databaseId);
+    const collected = collectedByRunId.get(runId);
+    if (collected) {
+      console.log(`📦 Reusing collected report for ${runId}`);
+      reports.push({
+        ...collected,
+        meta: {
+          ...collected.meta,
+          runId,
+          runUrl: collected.meta.runUrl || run.url,
+          createdAt: collected.meta.createdAt || run.createdAt,
+        },
+      });
+      continue;
+    }
+    // Runs arrive newest first, so an exhausted budget drops the oldest runs,
+    // which are also the ones whose artifacts are closest to expiring.
+    if (clock() >= deadlineMs) {
+      console.warn(`⚠️ Skipping ${label} run ${runId}: ${BUDGET_EXHAUSTED}`);
+      skipped.push({ runId, reason: BUDGET_EXHAUSTED });
+      continue;
+    }
+    console.log(`\n▶️ ${label} run ${runId} (${run.createdAt})`);
+    const runDirectory = path.join(outputDirectory, 'runs', runId);
+    try {
+      const report = await analyze({
+        args: { ...args, skipScenarioArtifacts: true, collectOnly: true },
+        run,
+        runId,
+        workingDirectory: runDirectory,
+        skillAnalyzerPath,
+      });
+      writeOutputs(runDirectory, report);
+      reports.push(report);
+    } catch (error) {
+      // Artifacts expire before the two-week comparison window closes, so a
+      // run with nothing left to read is one fewer sample, not a failed week.
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(`⚠️ Skipping ${label} run ${runId}: ${reason}`);
+      skipped.push({ runId, reason });
+    }
+    // A whole week of downloads and converted profiles does not fit on the
+    // runner; the report itself is all the window needs.
+    for (const directory of [
+      'source-profiles',
+      'source-sourcemaps',
+      'symbolicated',
+    ]) {
+      fs.rmSync(path.join(runDirectory, directory), {
+        recursive: true,
+        force: true,
+      });
+    }
+  }
+  return { reports, skipped };
+}
+
+async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
+  const now = args.now ? new Date(args.now) : new Date();
+  if (Number.isNaN(now.getTime())) {
+    fail('--now must be a valid date');
+  }
+  const bounds = weekBounds(now);
+  const listedRuns = listLatestRuns({
+    repo: args.repo,
+    workflow: args.workflow,
+    branch: args.branch,
+    limit: 80,
+  });
+  const thisWeekRuns = resolveRunsInRange(listedRuns, {
+    sinceIso: bounds.thisWeek.since,
+    untilIso: bounds.thisWeek.until,
+    scheduledOnly: true,
+  });
+  const lastWeekRuns = resolveRunsInRange(listedRuns, {
+    sinceIso: bounds.lastWeek.since,
+    untilIso: bounds.lastWeek.until,
+    scheduledOnly: true,
+  });
+  if (thisWeekRuns.length === 0 && lastWeekRuns.length === 0) {
+    fail('No scheduled performance runs finished in the last two UTC weeks');
+  }
+  console.log(
+    `🗓️ This week ${bounds.thisWeek.since} → ${bounds.thisWeek.until}: ${thisWeekRuns.map((run) => run.databaseId).join(', ') || 'none'}`,
+  );
+  console.log(
+    `🗓️ Previous week ${bounds.lastWeek.since} → ${bounds.lastWeek.until}: ${lastWeekRuns.map((run) => run.databaseId).join(', ') || 'none'}`,
+  );
+
+  const collectedByRunId = loadCollectedReports(
+    args.repo,
+    bounds.lastWeek.since,
+    bounds.thisWeek.until,
+  );
+  const thisWeekPlan = planWeeklyRuns(
+    thisWeekRuns,
+    collectedByRunId,
+    args.maxRunsPerWeek,
+  );
+  if (thisWeekPlan.skipped > 0) {
+    console.log(
+      `ℹ️ Capping uncollected this-week runs: ${thisWeekPlan.selected.length}/${thisWeekRuns.length}`,
+    );
+  }
+  // Half the budget is reserved for the previous week, or a week with plenty
+  // of raw runs would leave nothing to compare against.
+  const budgetMs = args.maxAnalysisMinutes * 60 * 1000;
+  const startedAtMs = Date.now();
+  console.log(
+    `⏱️ Rebuilding uncollected runs within ${args.maxAnalysisMinutes} min (half reserved for the previous week)`,
+  );
+  const thisWeek = await reportsForRuns({
+    args,
+    runs: thisWeekPlan.selected,
+    collectedByRunId,
+    outputDirectory,
+    skillAnalyzerPath,
+    label: 'this-week',
+    deadlineMs: startedAtMs + budgetMs / 2,
+  });
+  const thisWeekReports = thisWeek.reports;
+  if (thisWeekReports.length === 0) {
+    fail(
+      'No scheduled run in the last completed week still has Hermes profiles to analyze',
+    );
+  }
+
+  const lastWeekComparable = lastWeekRunsMatchingThisWeekDays(
+    thisWeekReports,
+    lastWeekRuns,
+  );
+  console.log(
+    `🗓️ Days with data this week: ${lastWeekComparable.thisWeekDays.join(', ') || 'unknown'}`,
+  );
+  console.log(
+    `🗓️ Matching weekdays last week: ${lastWeekComparable.lastWeekDays.join(', ') || 'none'} → ${lastWeekComparable.runs.map((run) => run.databaseId).join(', ') || 'none'}`,
+  );
+  const lastWeekPlan = planWeeklyRuns(
+    lastWeekComparable.runs,
+    collectedByRunId,
+    args.maxRunsPerWeek,
+  );
+  if (lastWeekPlan.skipped > 0) {
+    console.log(
+      `ℹ️ Capping uncollected last-week runs: ${lastWeekPlan.selected.length}/${lastWeekComparable.runs.length}`,
+    );
+  }
+  const lastWeek = await reportsForRuns({
+    args,
+    runs: lastWeekPlan.selected,
+    collectedByRunId,
+    outputDirectory,
+    skillAnalyzerPath,
+    label: 'last-week',
+    deadlineMs: startedAtMs + budgetMs,
+  });
+  const lastWeekReports = lastWeek.reports;
+
+  // The previous week is mostly expired or already collected, so it usually
+  // returns its half of the budget in seconds. Spend what is left on the
+  // this-week runs that were dropped.
+  const retryRuns = runsToRetryWithLeftoverBudget(
+    thisWeekPlan.selected,
+    thisWeek.skipped,
+    lastWeekComparable.thisWeekDays,
+  );
+  if (retryRuns.length > 0 && Date.now() < startedAtMs + budgetMs) {
+    console.log(
+      `⏱️ Unused previous-week budget: retrying ${retryRuns.length} this-week runs`,
+    );
+    const retried = await reportsForRuns({
+      args,
+      runs: retryRuns,
+      collectedByRunId,
+      outputDirectory,
+      skillAnalyzerPath,
+      label: 'this-week retry',
+      deadlineMs: startedAtMs + budgetMs,
+    });
+    thisWeekReports.push(...retried.reports);
+  }
+
+  const thisWindow = aggregateWindow(thisWeekReports, {
+    lookbackHours: 168,
+    since: bounds.thisWeek.since,
+    until: bounds.thisWeek.until,
+    repo: args.repo,
+    reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
+  });
+  const lastWindow = aggregateWindow(lastWeekReports, {
+    lookbackHours: 168,
+    since: bounds.lastWeek.since,
+    until: bounds.lastWeek.until,
+    repo: args.repo,
+    reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
+  });
+  const thisWeekRunsAvailable = lastWeekComparable.thisWeekDays.length
+    ? runsOnUtcDates(thisWeekRuns, lastWeekComparable.thisWeekDays).length
+    : thisWeekRuns.length;
+  const weekly = buildWeeklyReport({
+    thisWindow,
+    lastWindow,
+    bounds,
+    thisWeekRunCount: thisWeekReports.length,
+    lastWeekRunCount: lastWeekReports.length,
+    thisWeekRunsAvailable,
+    lastWeekRunsAvailable: lastWeekComparable.runs.length,
+    thisWeekDays: lastWeekComparable.thisWeekDays,
+    lastWeekDays: lastWeekComparable.lastWeekDays,
+  });
+  writeWeeklyOutputs(outputDirectory, weekly);
+  console.log(
+    `\n✅ Wrote weekly conclusions for ${weekly.cards.length} flagged scenarios (${thisWeekReports.length}/${thisWeekRunsAvailable} this-week reports, ${lastWeekReports.length}/${lastWeekComparable.runs.length} last-week reports) to ${outputDirectory}`,
+  );
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    if (error instanceof Error && error.stack) {
+      console.error(error.stack);
+    }
+    fail(error instanceof Error ? error.message : String(error));
+  });
 }
 
 export {
   parseArgs,
   resolveLatestRun,
   resolveRunsInWindow,
+  resolveRunsInRange,
+  sampleRunsAcrossNewestDays,
+  planWeeklyRuns,
+  loadCollectedReports,
+  runsToRetryWithLeftoverBudget,
+  reportsForRuns,
+  isReusableCollectedReport,
+  writeEmptyScenarioManifest,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,
@@ -2077,6 +2986,10 @@ export {
   buildMarkdown,
   buildSlack,
   buildConclusions,
+  writeScenarioArtifacts,
+  writeWindowScenarioArtifacts,
+  markdownDownloadLines,
+  slackDownloadLines,
   median,
   scenarioFrameTotals,
   aggregateWindow,

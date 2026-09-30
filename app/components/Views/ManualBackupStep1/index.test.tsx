@@ -196,6 +196,7 @@ const revealSeedPhrase = async (
   expect(
     wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
   ).toBeOnTheScreen();
+  expect(wrapper.getByText(MOCK_WORDS[0])).toBeOnTheScreen();
 };
 
 const renderPasswordView = async () => {
@@ -262,6 +263,12 @@ describe('ManualBackupStep1', () => {
         wrapper.getByText(strings('manual_backup_step_1.action')),
       ).toBeOnTheScreen();
       expect(
+        wrapper.getByText(strings('manual_backup_step_1.description')),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.getByText(strings('manual_backup_step_1.what_is_srp')),
+      ).toBeOnTheScreen();
+      expect(
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
       ).toBeOnTheScreen();
     });
@@ -269,8 +276,9 @@ describe('ManualBackupStep1', () => {
     it('opens the seedphrase definition modal', async () => {
       const { wrapper, navigate } = renderComponent();
 
-      const srpText = wrapper.getByText(strings('manual_backup_step_1.info-2'));
-      fireEvent.press(srpText);
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK),
+      );
 
       expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
         screen: 'SeedphraseModal',

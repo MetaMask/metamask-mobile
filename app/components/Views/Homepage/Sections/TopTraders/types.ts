@@ -78,6 +78,16 @@ export interface TraderRowProps {
   /** Toggles the muted state for this trader. */
   onMuteToggle?: (traderId: string) => void;
   testID?: string;
+  /**
+   * Social V1 only: rounded muted surface for the signed-in viewer's pinned
+   * card. Ignored by the legacy Follow-button row.
+   */
+  highlighted?: boolean;
+  /**
+   * Social V1 only: omit the position column when the viewer's rank is
+   * unknown. Ignored by the legacy Follow-button row.
+   */
+  hideRank?: boolean;
 }
 
 /**

@@ -38,7 +38,6 @@ export enum CardMessageBoxType {
   KYCPending = 'kyc_pending',
   Blocked = 'blocked',
   CardProvisioning = 'card_provisioning',
-  PendingVerification = 'pending_verification',
   AuthPrompt = 'auth_prompt',
   CashbackFundingRequired = 'cashback_funding_required',
   CashbackMoneyAccountRequired = 'cashback_money_account_required',
@@ -49,6 +48,17 @@ export enum CardMessageBoxType {
   UkMigrationSoft = 'uk_migration_soft',
   UkMigrationRequired = 'uk_migration_required',
 }
+
+/**
+ * How the `card_provisioning` alert should render. Providers that reconcile
+ * provisioning state client-side narrow this; the rest keep the default
+ * `provisioning` banner.
+ */
+export type CardProvisioningView =
+  | 'reconciling'
+  | 'hidden'
+  | 'kyc_under_review'
+  | 'provisioning';
 
 export type CardUserPhase =
   | 'ACCOUNT'

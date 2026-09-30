@@ -66,6 +66,10 @@ import {
   CardLinkingFailureReason,
   withCardProvider,
 } from '../util/metrics';
+import {
+  BOTTOM_SHEET_NAMES,
+  SCREEN_NAMES,
+} from '../../Money/constants/moneyEventLocations';
 
 export type LinkageStatus =
   | 'idle'
@@ -122,6 +126,10 @@ export interface UseMoneyAccountCardLinkageReturn {
   isLinking: boolean;
   error: Error | null;
 
+  getLinkFlowRedirectTarget: () =>
+    | SCREEN_NAMES.CARD_HOME
+    | BOTTOM_SHEET_NAMES.CARD_LINK_SHEET
+    | undefined;
   startLinkFlow: (origin: LinkFlowOrigin) => void;
   openLinkCardSheet: (entrypoint?: CardEntryPoint | string) => void;
   confirmLinkInBackground: (options?: {
@@ -207,6 +215,30 @@ export const useMoneyAccountCardLinkage =
     const canLink = Boolean(
       canSubmitDelegation && !isAlreadyDelegated && !isResidencyBlocked,
     );
+
+    const getLinkFlowRedirectTarget = useCallback(() => {
+      if (
+        linkInProgress ||
+        !hasMoneyAccountBaseRequirements ||
+        !primaryMoneyAccount?.address ||
+        isResidencyBlocked
+      ) {
+        return undefined;
+      }
+
+      if (isCardAuthenticated) {
+        return canLink ? BOTTOM_SHEET_NAMES.CARD_LINK_SHEET : undefined;
+      }
+
+      return SCREEN_NAMES.CARD_HOME;
+    }, [
+      canLink,
+      hasMoneyAccountBaseRequirements,
+      isCardAuthenticated,
+      isResidencyBlocked,
+      linkInProgress,
+      primaryMoneyAccount?.address,
+    ]);
 
     const showPendingToast = useCallback(
       (action: LinkageAction) => {
@@ -647,6 +679,7 @@ export const useMoneyAccountCardLinkage =
       isLinking: linkInProgress,
       error,
 
+      getLinkFlowRedirectTarget,
       startLinkFlow,
       openLinkCardSheet,
       confirmLinkInBackground,

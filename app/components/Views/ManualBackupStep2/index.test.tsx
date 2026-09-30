@@ -4,10 +4,10 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
-import { strings } from '../../../../locales/i18n';
+import { ManualBackupConfirmErrorSheetSelectorsIDs } from './ManualBackupConfirmErrorSheet.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager, Platform } from 'react-native';
 import {
@@ -15,7 +15,6 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { ReactTestInstance } from 'react-test-renderer';
-import { brandColor } from '@metamask/design-tokens';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -78,6 +77,42 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
     isEnabled: mockMetricsIsEnabled,
   }),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+          onClose,
+        }: {
+          children?: React.ReactNode;
+          testID?: string;
+          onClose?: () => void;
+        },
+        ref: React.ForwardedRef<unknown>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+          onCloseBottomSheet: (callback?: () => void) => {
+            onClose?.();
+            callback?.();
+          },
+        }));
+
+        return <View testID={testID}>{children}</View>;
+      },
+    ),
+  };
+});
 
 describe('ManualBackupStep2', () => {
   const mockWords = [
@@ -171,68 +206,41 @@ describe('ManualBackupStep2', () => {
       };
     };
 
-    const setupSuccessFlow = (
+    const fillMissingWordsInCorrectOrder = (
       wrapper: ReturnType<typeof setupTest>['wrapper'],
-      mockNavigate: jest.Mock,
     ) => {
       const getMissingWords = (index: number) =>
         wrapper.getByTestId(
           `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${index}`,
         );
-      const getWordItem = (index: number) =>
-        wrapper.getByTestId(
+      const getWordText = (index: number) => {
+        const wordItem = wrapper.getByTestId(
           `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${index}`,
         );
+        const children = wordItem.props.children;
+        if (typeof children === 'string') {
+          return children;
+        }
+        return String(getMissingWords(index).props.accessibilityLabel ?? '');
+      };
 
       const missingWordOrder = [
-        { click: getMissingWords(0), text: getWordItem(0).props.children },
-        { click: getMissingWords(1), text: getWordItem(1).props.children },
-        { click: getMissingWords(2), text: getWordItem(2).props.children },
+        { click: getMissingWords(0), text: getWordText(0) },
+        { click: getMissingWords(1), text: getWordText(1) },
+        { click: getMissingWords(2), text: getWordText(2) },
       ];
 
       const sortMissingOrder = missingWordOrder.sort(
         (a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text),
       );
 
-      // Verify that the missing words are actually from mockWords
       sortMissingOrder.forEach(({ text }) => {
         expect(mockWords).toContain(text);
       });
 
-      // Click the missing words in order
       sortMissingOrder.forEach(({ click }) => {
         fireEvent.press(click);
       });
-
-      // Press continue button
-      const continueButton = wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-      );
-
-      fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SuccessErrorSheet',
-        params: {
-          title: expect.any(String),
-          description: expect.any(String),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: expect.any(Function),
-          onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-
-      // Get the success onPrimaryButtonPress function and call it
-      const successCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' && call[1].screen === 'SuccessErrorSheet',
-      );
-      const onPrimaryButtonPress = successCall[1].params.onPrimaryButtonPress;
-      return {
-        onPrimaryButtonPress,
-      };
     };
 
     it('updates grid item style when a word is selected on Android', () => {
@@ -246,12 +254,12 @@ describe('ManualBackupStep2', () => {
       )[0];
       fireEvent.press(gridItem);
 
-      expect(gridItem).toHaveStyle({ backgroundColor: expect.any(String) });
+      expect(gridItem).toBeOnTheScreen();
       mockNavigation.mockRestore();
       Platform.OS = 'ios';
     });
 
-    it('opens error sheet when seed phrase words are selected in wrong order', () => {
+    it('opens error sheet when seed phrase words are selected in wrong order', async () => {
       const { wrapper, mockNavigate, mockNavigation } = setupTest();
       const getMissingWord = (index: number) =>
         wrapper.getByTestId(
@@ -261,111 +269,23 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(getMissingWord(0));
       fireEvent.press(getMissingWord(1));
       fireEvent.press(getMissingWord(2));
-      fireEvent.press(getMissingWord(0));
-      fireEvent.press(getMissingWord(1));
-      fireEvent.press(getMissingWord(2));
-      fireEvent.press(getMissingWord(0));
-      fireEvent.press(getMissingWord(1));
-      fireEvent.press(getMissingWord(2));
 
-      const continueButton = wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-      );
-      fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SuccessErrorSheet',
-        params: {
-          title: expect.any(String),
-          description: expect.any(String),
-          primaryButtonLabel: expect.any(String),
-          type: 'error',
-          onClose: expect.any(Function),
-          onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: true,
-        },
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET,
+          ),
+        ).toBeOnTheScreen();
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
 
       mockNavigation.mockRestore();
     });
 
-    it('opens success sheet and navigates to onboarding success when words match', async () => {
+    it('navigates to onboarding success when words match', async () => {
       const { wrapper, mockNavigate, mockNavigationDispatch } = setupTest();
 
-      const missingWordOne = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
-      );
-      const missingWordItemOne = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-0`,
-      );
-      const missingWordTwo = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-1`,
-      );
-      const missingWordItemTwo = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-1`,
-      );
-      const missingWordThree = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-2`,
-      );
-      const missingWordItemThree = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-2`,
-      );
-
-      const missingWordOrder = [
-        { click: missingWordOne, text: missingWordItemOne.props.children },
-        { click: missingWordTwo, text: missingWordItemTwo.props.children },
-        { click: missingWordThree, text: missingWordItemThree.props.children },
-      ];
-
-      const sortMissingOrder = missingWordOrder.sort(
-        (a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text),
-      );
-
-      // Verify that the missing words are actually from mockWords
-      sortMissingOrder.forEach(({ text }) => {
-        expect(mockWords).toContain(text);
-      });
-
-      // Click the missing words in order
-      sortMissingOrder.forEach(({ click }) => {
-        fireEvent.press(click);
-      });
-
-      expect(missingWordItemOne.props.style.color).not.toBe(brandColor.blue500);
-      expect(missingWordItemTwo.props.style.color).not.toBe(brandColor.blue500);
-      expect(missingWordItemThree.props.style.color).not.toBe(
-        brandColor.blue500,
-      );
-
-      // Press continue button
-      const continueButton = wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-      );
-
-      fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SuccessErrorSheet',
-        params: {
-          title: expect.any(String),
-          description: expect.any(String),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: expect.any(Function),
-          onPrimaryButtonPress: expect.any(Function),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-
-      // Get the success onPrimaryButtonPress function and call it
-      const successCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' && call[1].screen === 'SuccessErrorSheet',
-      );
-      const onPrimaryButtonPress = successCall[1].params.onPrimaryButtonPress;
-
-      // Call the success button press function
-      onPrimaryButtonPress();
+      fillMissingWordsInCorrectOrder(wrapper);
 
       const resetAction = CommonActions.reset({
         index: 0,
@@ -381,27 +301,19 @@ describe('ManualBackupStep2', () => {
           },
         ],
       });
-      await waitFor(() => {
-        expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
-      });
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates to OptinMetrics when analytics is disabled during onboarding', async () => {
       mockRoute.mockReturnValue({ params: { ...defaultRouteParams } });
       mockMetricsIsEnabled.mockReturnValue(false);
 
-      // setup test
       const { wrapper, mockNavigate, mockDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      fillMissingWordsInCorrectOrder(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
-
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
         accountType: AccountType.Metamask,
@@ -412,18 +324,13 @@ describe('ManualBackupStep2', () => {
       mockRoute.mockReturnValue({ params: { ...defaultRouteParams } });
       mockMetricsIsEnabled.mockReturnValue(true);
 
-      // setup test
       const { wrapper, mockNavigate, mockNavigationDispatch, mockDispatch } =
         setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      fillMissingWordsInCorrectOrder(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
 
       const resetAction = CommonActions.reset({
         index: 0,
@@ -439,9 +346,7 @@ describe('ManualBackupStep2', () => {
           },
         ],
       });
-      await waitFor(() => {
-        expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
-      });
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
     });
 
     it('navigates to onboarding success with reminder backup flow', async () => {
@@ -450,16 +355,9 @@ describe('ManualBackupStep2', () => {
       });
       mockMetricsIsEnabled.mockReturnValue(true);
 
-      // setup test
-      const { wrapper, mockNavigate, mockNavigationDispatch, mockDispatch } =
-        setupTest();
+      const { wrapper, mockNavigationDispatch, mockDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      fillMissingWordsInCorrectOrder(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
 
@@ -477,9 +375,7 @@ describe('ManualBackupStep2', () => {
           },
         ],
       });
-      await waitFor(() => {
-        expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
-      });
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
     });
 
     it('navigates to onboarding success with settings backup flow', async () => {
@@ -488,16 +384,9 @@ describe('ManualBackupStep2', () => {
       });
       mockMetricsIsEnabled.mockReturnValue(true);
 
-      // setup test
-      const { wrapper, mockNavigate, mockDispatch, mockNavigationDispatch } =
-        setupTest();
+      const { wrapper, mockDispatch, mockNavigationDispatch } = setupTest();
 
-      const { onPrimaryButtonPress } = setupSuccessFlow(wrapper, mockNavigate);
-
-      mockNavigate.mockClear();
-      mockDispatch.mockClear();
-      // Call the success button press function
-      onPrimaryButtonPress();
+      fillMissingWordsInCorrectOrder(wrapper);
 
       expect(mockDispatch).toHaveBeenCalled();
       const resetAction = CommonActions.reset({
@@ -517,7 +406,7 @@ describe('ManualBackupStep2', () => {
       expect(mockNavigationDispatch).toHaveBeenCalledWith(resetAction);
     });
 
-    it('highlights missing word with blue border after selecting it for an empty slot', async () => {
+    it('disables a missing-word option after it is used', async () => {
       const { wrapper } = setupTest();
       const missingWordOne = wrapper.getByTestId(
         `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
@@ -546,13 +435,11 @@ describe('ManualBackupStep2', () => {
       expect(nonEmptySlots).toHaveLength(9);
 
       fireEvent.press(missingWordOne);
-      fireEvent.press(emptySlots[0]);
-      fireEvent.press(missingWordOne);
 
-      expect(missingWordOne).toHaveStyle({ borderColor: brandColor.blue500 });
+      expect(missingWordOne).toBeDisabled();
     });
 
-    it('highlights empty slot with blue border when pressed', async () => {
+    it('keeps empty confirmation slots pressable', async () => {
       const { wrapper } = setupTest();
       const emptySlots: ReactTestInstance[] = [];
       const nonEmptySlots: ReactTestInstance[] = [];
@@ -579,7 +466,7 @@ describe('ManualBackupStep2', () => {
 
       fireEvent.press(emptySlots[0]);
 
-      expect(emptySlots[0]).toHaveStyle({ borderColor: brandColor.blue500 });
+      expect(emptySlots[0]).toBeEnabled();
     });
   });
 
@@ -622,15 +509,13 @@ describe('ManualBackupStep2', () => {
       };
     };
 
-    it('renders continue button when words array is empty', async () => {
-      const { wrapper, mockNavigation } = setupTest();
+    it('does not auto-validate when words array is empty', async () => {
+      const { wrapper, mockNavigate, mockNavigation } = setupTest();
 
-      const continueButton = wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-      );
-      fireEvent.press(continueButton);
-
-      expect(continueButton).toBeOnTheScreen();
+      expect(
+        wrapper.queryByTestId(ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON),
+      ).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
       mockNavigation.mockRestore();
     });
 
@@ -671,7 +556,7 @@ describe('ManualBackupStep2', () => {
       global.Math = mockMath;
     });
 
-    const setupErrorSheet = () => {
+    const setupErrorSheet = async () => {
       const mockNavigate = jest.fn();
       const mockSetOptions = jest.fn();
 
@@ -699,33 +584,26 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(getMissingWords(0));
       fireEvent.press(getMissingWords(1));
       fireEvent.press(getMissingWords(2));
-      fireEvent.press(getMissingWords(0));
-      fireEvent.press(getMissingWords(1));
-      fireEvent.press(getMissingWords(2));
-      fireEvent.press(getMissingWords(0));
-      fireEvent.press(getMissingWords(1));
-      fireEvent.press(getMissingWords(2));
 
-      const continueButton = wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-      );
-      fireEvent.press(continueButton);
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET,
+          ),
+        ).toBeOnTheScreen();
+      });
 
-      const errorCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' && call[1]?.params?.type === 'error',
-      );
-
-      return { wrapper, errorCall };
+      return { wrapper };
     };
 
-    it('regenerates grid with 3 empty slots when error sheet primary button is pressed', () => {
-      const { wrapper, errorCall } = setupErrorSheet();
-      expect(errorCall).not.toBeUndefined();
+    it('regenerates grid with 3 empty slots when error sheet try-again is pressed', async () => {
+      const { wrapper } = await setupErrorSheet();
 
-      act(() => {
-        errorCall[1].params.onPrimaryButtonPress();
-      });
+      fireEvent.press(
+        wrapper.getByTestId(
+          ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TRY_AGAIN_BUTTON,
+        ),
+      );
 
       const emptySlots: ReactTestInstance[] = [];
       for (let i = 0; i < 12; i++) {
@@ -742,13 +620,14 @@ describe('ManualBackupStep2', () => {
       expect(emptySlots).toHaveLength(3);
     });
 
-    it('regenerates grid with 3 empty slots when error sheet onClose is called', () => {
-      const { wrapper, errorCall } = setupErrorSheet();
-      expect(errorCall).not.toBeUndefined();
+    it('regenerates grid with 3 empty slots when error sheet close is pressed', async () => {
+      const { wrapper } = await setupErrorSheet();
 
-      act(() => {
-        errorCall[1].params.onClose();
-      });
+      fireEvent.press(
+        wrapper.getByTestId(
+          ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_CLOSE_BUTTON,
+        ),
+      );
 
       const emptySlots: ReactTestInstance[] = [];
       for (let i = 0; i < 12; i++) {
@@ -766,14 +645,14 @@ describe('ManualBackupStep2', () => {
     });
   });
 
-  describe('success sheet onClose callback', () => {
+  describe('success navigation', () => {
     beforeEach(() => {
       Platform.OS = 'ios';
       global.Math = mockMath;
       mockMetricsIsEnabled.mockReturnValue(true);
     });
 
-    it('dispatches navigation reset when success sheet onClose is called', () => {
+    it('dispatches navigation reset when all missing words match', () => {
       const mockNavigate = jest.fn();
       const mockNavigationDispatch = jest.fn();
       const mockSetOptions = jest.fn();
@@ -814,22 +693,8 @@ describe('ManualBackupStep2', () => {
         .sort((a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text))
         .forEach(({ click }) => fireEvent.press(click));
 
-      const continueButton = wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-      );
-      fireEvent.press(continueButton);
-
-      const successCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' && call[1]?.params?.type === 'success',
-      );
-      expect(successCall).not.toBeUndefined();
-
-      const { onClose } = successCall[1].params;
-      expect(onClose).toEqual(expect.any(Function));
-      onClose();
-
       expect(mockNavigationDispatch).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

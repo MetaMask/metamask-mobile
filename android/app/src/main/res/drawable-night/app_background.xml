@@ -1,8 +1,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/theme" />
     <item
-        android:width="130dp"
-        android:height="130dp"
+        android:width="144dp"
+        android:height="144dp"
         android:gravity="center">
         <bitmap android:src="@mipmap/splash" />
     </item>

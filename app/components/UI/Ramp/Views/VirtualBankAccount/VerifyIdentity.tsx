@@ -29,13 +29,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-  VBA_KYC_COUNTRY_CODE,
-} from './constants';
+import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
@@ -124,11 +119,14 @@ const AccordionRow = ({
   );
 };
 
-const VbaVerifyIdentity = () => {
+interface VbaVerifyIdentityProps {
+  onSuccess: () => void | Promise<void>;
+}
+
+const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { disclaimers, isLoading, error, retry } =
-    useKycSessionDisclaimers(VBA_KYC_COUNTRY_CODE);
+  const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
   const chevronRotation = useSharedValue(0);
@@ -141,10 +139,6 @@ const VbaVerifyIdentity = () => {
   }));
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
-
-  const handleContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
-  }, [navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -345,7 +339,7 @@ const VbaVerifyIdentity = () => {
           size={ButtonSize.Lg}
           isFullWidth
           isDisabled={!canContinue}
-          onPress={handleContinue}
+          onPress={onSuccess}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
           {strings('virtual_bank_account.verify_identity.button')}

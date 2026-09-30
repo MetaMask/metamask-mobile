@@ -13,7 +13,7 @@ import {
 import type {
   MoneyActivityTitleKey,
   MoneyActivityTransactionMeta,
-} from '../constants/mockActivityData';
+} from '../constants/moneyActivity';
 
 export type MoneyActivityStatus = 'pending' | 'confirmed' | 'failed';
 

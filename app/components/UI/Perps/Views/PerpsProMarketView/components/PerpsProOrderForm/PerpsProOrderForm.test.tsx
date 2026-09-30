@@ -1627,6 +1627,27 @@ describe('PerpsProOrderForm', () => {
 
       expect(onDirectionChange).toHaveBeenCalledWith('short');
     });
+
+    it('tints the selected direction and leaves the other one muted', () => {
+      const { rerender } = renderForm({ direction: 'long' });
+      const colourOf = (key: string) =>
+        StyleSheet.flatten(screen.getByText(strings(key)).props.style).color;
+
+      const longSelected = colourOf('perps.market.long');
+      const shortMuted = colourOf('perps.market.short');
+
+      rerender(<PerpsProOrderForm {...createProps({ direction: 'short' })} />);
+      const longMuted = colourOf('perps.market.long');
+      const shortSelected = colourOf('perps.market.short');
+
+      // The Secondary variant appends `text-default` to the label, so a colour
+      // passed the obvious way is silently overridden and both labels render
+      // as plain body text.
+      expect(longSelected).not.toBe(longMuted);
+      expect(shortSelected).not.toBe(shortMuted);
+      expect(longSelected).not.toBe(shortSelected);
+      expect(longMuted).toBe(shortMuted);
+    });
   });
 
   describe('order book expand icon', () => {
@@ -1779,6 +1800,22 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).not.toHaveStyle({
         justifyContent: 'space-between',
       });
+    });
+
+    it('stretches margin mode and leverage to share the full column width', () => {
+      renderForm();
+
+      const marginModeStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.MARGIN_MODE_BUTTON).props.style,
+      );
+      const leverageStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.LEVERAGE_BUTTON).props.style,
+      );
+
+      expect(marginModeStyle.flexGrow).toBe(1);
+      expect(marginModeStyle.flexBasis).toBe('0%');
+      expect(leverageStyle.flexGrow).toBe(1);
+      expect(leverageStyle.flexBasis).toBe('0%');
     });
 
     it('uses 4-point spacing between summary rows', () => {

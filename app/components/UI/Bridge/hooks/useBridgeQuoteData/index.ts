@@ -41,6 +41,7 @@ import { parseCaipAssetType } from '@metamask/utils';
 
 /**
  * Hook for getting bridge quote data without request logic
+ * @deprecated Use useSwapQuotes for new features. Avoid adding new functionality to this hook.
  */
 export const useBridgeQuoteData = ({
   latestSourceAtomicBalance,

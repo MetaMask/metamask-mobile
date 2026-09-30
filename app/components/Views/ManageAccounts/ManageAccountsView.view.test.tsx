@@ -22,6 +22,7 @@ import {
   getManageAccountRowRemoveId,
   getManageAccountSectionHeaderId,
   getManageAccountSectionHeaderRemoveId,
+  getManageAccountSectionHeaderLockId,
   getManageAccountAddAccountFooterId,
 } from './ManageAccounts.testIds';
 
@@ -285,7 +286,7 @@ describeForPlatforms('ManageAccountsView', () => {
       getManageAccountSectionHeaderRemoveId(WALLET_NAME),
     );
     expect(
-      getByText(strings('multichain_accounts.manage_accounts.locked')),
+      getByTestId(getManageAccountSectionHeaderLockId(WALLET_NAME)),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('multichain_accounts.manage_accounts.remove')),

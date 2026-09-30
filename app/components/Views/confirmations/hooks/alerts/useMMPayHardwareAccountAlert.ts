@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { hasTransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
@@ -33,13 +33,13 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
 
   return useMemo(() => {
     if (!isPayTransaction || !isHardwareWallet || isFiatPayment) {
-      return [];
+      return NO_ALERTS;
     }
 
     // QR wallets stay blocked: relay funding transactions are submitted in the
     // background and cannot drive the interactive scan loop.
     if (isHardwarePayEnabled && !isQRWallet) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

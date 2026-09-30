@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '../../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../../Box/box.types';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSourceToken,
@@ -33,13 +32,11 @@ import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDisc
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
 
 interface Props {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const BridgeMarketViewFooter = ({
-  latestSourceBalance,
   location,
   transactionActiveAbTests,
 }: Props) => {
@@ -66,7 +63,6 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <SwapsMarketOrderConfirmButton
           location={location}
-          latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
@@ -86,7 +82,6 @@ export const BridgeMarketViewFooter = ({
         <BlockaidErrorBanner />
         <SwapsMarketOrderConfirmButton
           location={location}
-          latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
         <Box flexDirection={FlexDirection.Column} gap={2}>

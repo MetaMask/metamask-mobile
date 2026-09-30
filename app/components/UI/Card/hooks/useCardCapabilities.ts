@@ -15,6 +15,5 @@ export const useCardCapabilities = (): CardProviderCapabilities | null => {
   return useMemo(() => {
     if (!providerId) return null;
     return Engine.context?.CardController?.getCapabilities() ?? null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerId, userLocation]);
 };
