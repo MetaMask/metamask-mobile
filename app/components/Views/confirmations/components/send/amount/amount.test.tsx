@@ -180,9 +180,20 @@ describe('Amount', () => {
 
   it('display default value of amount as placeholder', () => {
     const { getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
     fireEvent.press(getByTestId('fiat_toggle'));
-    expect(getByTestId('send_amount').children[0]).toEqual('0.00');
+    expect(getByTestId('send_amount')).toHaveTextContent('0.00');
+  });
+
+  it('formats the main input with animated thousands commas', () => {
+    const { getByRole, getByTestId } = renderComponent();
+
+    fireEvent.press(getByRole('button', { name: '1' }));
+    fireEvent.press(getByRole('button', { name: '2' }));
+    fireEvent.press(getByRole('button', { name: '3' }));
+    fireEvent.press(getByRole('button', { name: '4' }));
+
+    expect(getByTestId('send_amount')).toHaveTextContent('1,234');
   });
 
   it('seeds display and send-context value from predefinedAmount', () => {
@@ -190,7 +201,7 @@ describe('Amount', () => {
 
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
     expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
   });
 
@@ -209,7 +220,7 @@ describe('Amount', () => {
 
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
 
     // Clear every digit until the keypad reports an empty value.
     const deleteButton = getByTestId('keypad-delete-button');
@@ -217,7 +228,7 @@ describe('Amount', () => {
       fireEvent.press(deleteButton);
     }
 
-    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
     expect(
       mockAmountSelectionMetrics.setAmountInputTypeToken,
     ).toHaveBeenCalledTimes(1);
@@ -252,7 +263,7 @@ describe('Amount', () => {
 
     const { getByRole, getByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
-    expect(getByText('$ 4500.00')).toBeTruthy();
+    expect(getByText('$ 4500.00')).toBeOnTheScreen();
   });
 
   it('display fiat conversion of amount entered for solana asset', () => {
@@ -272,7 +283,7 @@ describe('Amount', () => {
 
     const { getByRole, getByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
-    expect(getByText('$ 250.00')).toBeTruthy();
+    expect(getByText('$ 250.00')).toBeOnTheScreen();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
@@ -302,8 +313,8 @@ describe('Amount', () => {
     const { getByRole, getByText, getByTestId } = renderComponent();
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.press(getByRole('button', { name: '5' }));
-    expect(getByText('1 ETH')).toBeTruthy();
-    expect(getByText('$ 250.00 available')).toBeTruthy();
+    expect(getByText('1 ETH')).toBeOnTheScreen();
+    expect(getByText('$ 250.00 available')).toBeOnTheScreen();
   });
 
   it('calls metrics methods on changing fiat mode', () => {
@@ -409,7 +420,7 @@ describe('Amount', () => {
     } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByText } = renderComponent(solanaSendStateMock);
-    expect(getByText('400 SOL available')).toBeTruthy();
+    expect(getByText('400 SOL available')).toBeOnTheScreen();
   });
 
   it('on amount page options - 25%, 50%, 75%, Max are present', () => {
@@ -480,13 +491,15 @@ describe('Amount', () => {
 });
 
 describe('getFontSizeForInputLength', () => {
-  it('renders correct font size using input and symbol length', () => {
+  it('smoothly scales the font size using input and symbol length', () => {
     expect(getFontSizeForInputLength(1)).toEqual(60);
     expect(getFontSizeForInputLength(10)).toEqual(60);
-    expect(getFontSizeForInputLength(12)).toEqual(48);
+    expect(getFontSizeForInputLength(11)).toEqual(57);
+    expect(getFontSizeForInputLength(12)).toEqual(53);
     expect(getFontSizeForInputLength(18)).toEqual(32);
-    expect(getFontSizeForInputLength(24)).toEqual(24);
-    expect(getFontSizeForInputLength(32)).toEqual(18);
+    expect(getFontSizeForInputLength(19)).toEqual(31);
+    expect(getFontSizeForInputLength(24)).toEqual(23);
+    expect(getFontSizeForInputLength(32)).toEqual(12);
     expect(getFontSizeForInputLength(40)).toEqual(12);
   });
 });
