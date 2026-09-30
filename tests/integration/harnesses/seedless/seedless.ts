@@ -1,6 +1,7 @@
 import { Messenger } from '@metamask/messenger';
 import {
   AuthConnection,
+  EncAccountDataType,
   SeedlessOnboardingController,
   Web3AuthNetwork,
 } from '@metamask/seedless-onboarding-controller';
@@ -88,6 +89,15 @@ export class FakeToprfBackend {
   addItem(authKeyPair: KeyPair, item: Omit<SecretItem, 'itemId' | 'version'>) {
     const namespace = this.namespaceOf(authKeyPair);
     const items = this.metadata.get(namespace) ?? [];
+    // Like the metadata store: one primary SRP per auth key.
+    if (
+      item.dataType === EncAccountDataType.PrimarySrp &&
+      items.some(
+        (existing) => existing.dataType === EncAccountDataType.PrimarySrp,
+      )
+    ) {
+      throw new Error('PRIMARY_SRP already exists for this account');
+    }
     items.push({ ...item, itemId: `item-${this.#nextItemId}`, version: 'v2' });
     this.#nextItemId += 1;
     this.metadata.set(namespace, items);

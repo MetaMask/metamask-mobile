@@ -36,4 +36,4 @@ When the harness boundary changes, update this section. Authoring workflow: [`ha
 - **Fault helpers:** `failNextCall(install, method, error?)` fails before the write; `loseNextResponse(install, method)` commits the write, then throws; `authTokenExpiredError()` builds the error that makes the controller refresh tokens and repeat the step.
 - **Use when:** checking what a failed seedless write leaves in SSS and the metadata store, and whether a new install recovers the SRP.
 
-`FakeToprfBackend` keeps one saved key per user and stores secret items per auth public key. An SRP written under one key cannot be read by an install that recovers a different key, which is how a key split shows up.
+`FakeToprfBackend` keeps one saved key per user and stores secret items per auth public key. An SRP written under one key cannot be read by an install that recovers a different key, which is how a key split shows up. Like the metadata store, it rejects a second primary SRP under the same key; other secret types can repeat.

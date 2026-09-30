@@ -1,6 +1,7 @@
 import {
   EncAccountDataType,
   SecretType,
+  SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
 import { seedlessOnboardingEncryptorAdapter } from '../Engine/wallet-init/instance-options/seedless-onboarding-controller';
 import {
@@ -95,26 +96,38 @@ describe('seedless account creation', () => {
     expect(secrets.map((secret) => secret.data)).toStrictEqual([RETRY_SRP]);
   });
 
-  // The controller refreshes the token and repeats the create step. Incident
-  // 1745 was a key split on this path; the key is now created once. ADR 0004
-  // expects one SRP entry, and the repeated metadata write currently adds two.
-  it('keeps one key but writes the SRP twice when the key-share save hits an expired token', async () => {
+  // The controller refreshes the token and repeats the create step, including
+  // the SRP write that already landed. The metadata store allows one primary
+  // SRP per key, so the repeat is rejected and creation fails. The SRP from
+  // that attempt stays under a key SSS never saved.
+  it('fails creation and leaves an orphaned SRP when the key-share save hits an expired token', async () => {
     const harness = buildSeedlessIntegrationHarness();
     const install = harness.newInstall();
     await install.signIn();
     failNextCall(install, 'persistLocalKey', authTokenExpiredError());
 
-    await createAccount(install, FIRST_ATTEMPT_SRP);
-    const secrets = await recoverOnNewInstall(harness);
+    await expect(createAccount(install, FIRST_ATTEMPT_SRP)).rejects.toThrow(
+      SeedlessOnboardingControllerErrorMessage.FailedToEncryptAndStoreSecretData,
+    );
 
     expect(harness.backend.createdKeyIds).toHaveLength(1);
-    expect(harness.backend.namespacesWithSecrets()).toStrictEqual([
-      harness.backend.savedKeyNamespace(),
-    ]);
-    expect(secrets.map((secret) => secret.data)).toStrictEqual([
-      FIRST_ATTEMPT_SRP,
-      FIRST_ATTEMPT_SRP,
-    ]);
+    expect(harness.backend.persistedKey).toBeUndefined();
+    expect(harness.backend.namespacesWithSecrets()).toHaveLength(1);
+  });
+
+  it('recovers the retry SRP after creation fails on an expired token', async () => {
+    const harness = buildSeedlessIntegrationHarness();
+    const install = harness.newInstall();
+    await install.signIn();
+    failNextCall(install, 'persistLocalKey', authTokenExpiredError());
+
+    await expect(createAccount(install, FIRST_ATTEMPT_SRP)).rejects.toThrow();
+    const { isNewUser } = await startOver(install);
+    await createAccount(install, RETRY_SRP);
+    const secrets = await recoverOnNewInstall(harness);
+
+    expect(isNewUser).toBe(true);
+    expect(secrets.map((secret) => secret.data)).toStrictEqual([RETRY_SRP]);
   });
 
   it('recovers the SRP by signing in again when the local vault write fails', async () => {
