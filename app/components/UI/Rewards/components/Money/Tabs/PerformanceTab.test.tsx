@@ -186,6 +186,9 @@ describe('PerformanceTab', () => {
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
     expect(queryByText('Trade commissions')).toBeNull();
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER),
+    ).toBeNull();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
     });
