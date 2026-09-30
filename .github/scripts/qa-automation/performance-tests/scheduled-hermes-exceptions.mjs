@@ -129,6 +129,52 @@ function baselineCoverageNote(meta) {
 }
 
 /**
+ * Issue outcome recorded by the GitHub sync. Absent when the sync did not
+ * run (branch run, manual re-analysis, or the flag was off).
+ */
+function issueSlackSuffix(issue) {
+  if (!issue) {
+    return '';
+  }
+  if (issue.error) {
+    return ` · GitHub issue not created (${issue.error})`;
+  }
+  return ` · <${issue.url}|#${issue.number}> ${issue.created ? 'opened' : 'already open, referenced'}`;
+}
+
+function issueMarkdownSuffix(issue) {
+  if (!issue) {
+    return '';
+  }
+  if (issue.error) {
+    return ` — GitHub issue not created (${issue.error})`;
+  }
+  return ` — [#${issue.number}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
+}
+
+function slowRunIssueSlackLine(meta) {
+  const issue = meta.slowRunIssue;
+  if (!issue) {
+    return null;
+  }
+  if (issue.error) {
+    return `_GitHub issue:_ not created (${issue.error})`;
+  }
+  return `_GitHub issue:_ <${issue.url}|#${issue.number}> ${issue.created ? 'opened for this slow run' : 'already open for slow runs, referenced'}`;
+}
+
+function slowRunIssueMarkdownLine(meta) {
+  const issue = meta.slowRunIssue;
+  if (!issue) {
+    return null;
+  }
+  if (issue.error) {
+    return `GitHub issue: not created (${issue.error})`;
+  }
+  return `GitHub issue: [#${issue.number}](${issue.url}) ${issue.created ? 'opened for this slow run' : 'already open for slow runs, referenced'}`;
+}
+
+/**
  * A clean run still reports. Silence is indistinguishable from a job that
  * stopped running, so the all-clear is the signal that the check is alive.
  */
@@ -161,8 +207,12 @@ export function buildScheduledExceptionSlack(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}`,
+      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
     );
+  }
+  const slowRunIssue = slowRunIssueSlackLine(exception.meta);
+  if (slowRunIssue) {
+    lines.push('', slowRunIssue);
   }
   lines.push(
     '',
@@ -199,8 +249,12 @@ export function buildScheduledExceptionMarkdown(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}`,
+      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}`,
     );
+  }
+  const slowRunIssue = slowRunIssueMarkdownLine(exception.meta);
+  if (slowRunIssue) {
+    lines.push('', slowRunIssue);
   }
   return lines.join('\n');
 }

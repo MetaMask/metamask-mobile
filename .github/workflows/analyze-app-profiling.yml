@@ -15,12 +15,19 @@
 #   Findings also get an optional Slack proposal from the pinned
 #   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
 #   only sees Evidence JSON from this job; it does not classify.
+#   Each finding on `main` also opens a GitHub issue (bug-report template,
+#   `team-*` label of the owning scenario) with that scenario's Hermes
+#   `.cpuprofile` attached. A finding whose issue is still open is added to
+#   it as a comment, with the new capture attached, and linked from Slack
+#   instead of being opened again. Several scenarios crossing in one run
+#   open one run-level issue with no team label.
 # - After a *manually dispatched* performance run: full digest + Slack
 #   (#metamask-performance on main; personal DM on a branch).
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
 #   week vs the week before). Slack lists only regressions / spikes / new
-#   hot frames. Stable scenarios are omitted. On main this posts to
-#   #metamask-performance.
+#   hot frames, plus the GitHub issues opened during that week with a
+#   one-line brief and link each. Stable scenarios are omitted. On main
+#   this posts to #metamask-performance.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -86,6 +93,8 @@ permissions:
   contents: read
   actions: read
   pull-requests: read
+  # Scheduled findings open or comment on tracking issues.
+  issues: write
 
 env:
   # A workflow_run listener always runs from the default branch, so
@@ -199,6 +208,10 @@ jobs:
           SKIP_AI: ${{ inputs.skip_ai }}
           WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
           SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          # Issues are opened only for scheduled runs of `main`; a chained
+          # branch run must not file bugs against the repository. The Monday
+          # report only reads issues, so it always lists them.
+          SCHEDULED_EXCEPTION_BRANCH: ${{ github.event.workflow_run.head_branch }}
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
           MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
         run: |
@@ -210,7 +223,7 @@ jobs:
             --repo "${GITHUB_REPOSITORY}"
           )
           if [ "${WEEKLY}" = "true" ]; then
-            ARGS+=(--weekly --skip-ai --skip-scenario-artifacts)
+            ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)
             if [ -n "${MAX_RUNS_PER_WEEK}" ]; then
               ARGS+=(--max-runs-per-week "${MAX_RUNS_PER_WEEK}")
             fi
@@ -223,6 +236,9 @@ jobs:
             ARGS+=(--run "${RUN_ID}")
             if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
               ARGS+=(--scheduled-exception)
+              if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then
+                ARGS+=(--github-issues)
+              fi
             fi
           fi
           if [ -n "${SCENARIO}" ] && [ "${WEEKLY}" != "true" ]; then
@@ -280,6 +296,7 @@ jobs:
             /tmp/analyze-app-profiling/report.json
             /tmp/analyze-app-profiling/notification.json
             /tmp/analyze-app-profiling/ai-proposal-evidence.json
+            /tmp/analyze-app-profiling/github-issues.json
             /tmp/analyze-app-profiling/slack-cards.json
             /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/

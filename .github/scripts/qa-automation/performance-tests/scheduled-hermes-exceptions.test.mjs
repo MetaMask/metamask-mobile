@@ -140,6 +140,75 @@ test('two scenarios crossing together become one run-level anomaly', () => {
   assert.match(slack, /owner mm-earn-team/);
 });
 
+test('a finding links the GitHub issue that tracks it', () => {
+  const current = report('4', [scenario('Perps add funds', 165)]);
+  const baseline = [
+    report('1', [scenario('Perps add funds', 100)]),
+    report('2', [scenario('Perps add funds', 120)]),
+  ];
+  const exception = buildScheduledException(current, baseline);
+
+  const withoutSync = buildScheduledExceptionSlack(exception);
+  assert.doesNotMatch(withoutSync, /GitHub issue|issues\//);
+
+  exception.findings[0].issue = {
+    number: 501,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
+    created: true,
+  };
+  assert.match(
+    buildScheduledExceptionSlack(exception),
+    /owner mm-perps-engineering-team · <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\|#501> opened/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /owner mm-perps-engineering-team — \[#501\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\) opened/,
+  );
+
+  exception.findings[0].issue.created = false;
+  assert.match(
+    buildScheduledExceptionSlack(exception),
+    /#501> already open, referenced/,
+  );
+
+  exception.findings[0].issue = { error: 'HTTP 403' };
+  assert.match(
+    buildScheduledExceptionSlack(exception),
+    /GitHub issue not created \(HTTP 403\)/,
+  );
+});
+
+test('a slow run links its single run-level issue', () => {
+  const current = report('4', [
+    scenario('Perps add funds', 200),
+    scenario('Money Home after importing SRP with funded balance', 350),
+  ]);
+  const baseline = [1, 2].map((runId) =>
+    report(String(runId), [
+      scenario('Perps add funds', 100),
+      scenario('Money Home after importing SRP with funded balance', 200),
+    ]),
+  );
+  const exception = buildScheduledException(current, baseline);
+  exception.meta.slowRunIssue = {
+    number: 600,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
+    created: false,
+  };
+
+  const slack = buildScheduledExceptionSlack(exception);
+
+  assert.match(
+    slack,
+    /_GitHub issue:_ <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/600\|#600> already open for slow runs, referenced/,
+  );
+  assert.doesNotMatch(slack, /owner mm-perps-engineering-team · </);
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /GitHub issue: \[#600\]\(.*\/600\) already open for slow runs, referenced/,
+  );
+});
+
 test('fewer than two observations only extends the baseline', () => {
   const current = report('3', [scenario('Perps add funds', 1000)]);
   const baseline = [report('1', [scenario('Perps add funds', 100)])];

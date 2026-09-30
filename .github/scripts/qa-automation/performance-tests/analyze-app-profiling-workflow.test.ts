@@ -129,7 +129,9 @@ describe('Analyze App Profiling triggers', () => {
     const command = analysisStep?.run ?? '';
 
     expect(command).toContain('if [ "${WEEKLY}" = "true" ]; then');
-    expect(command).toContain('ARGS+=(--weekly --skip-ai --skip-scenario-artifacts)');
+    expect(command).toContain(
+      'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)',
+    );
     expect(command).toContain('ARGS+=(--scheduled-exception)');
     expect(command).toContain('if [ -n \"${LOOKBACK_HOURS}\" ]; then');
     expect(command).toContain('ARGS+=(--lookback-hours \"${LOOKBACK_HOURS}\")');
@@ -176,6 +178,37 @@ describe('Analyze App Profiling triggers', () => {
         'pull-requests': 'read',
       }),
     });
+  });
+
+  it('opens tracking issues only for scheduled main runs and lists them on Monday', () => {
+    const workflow = loadWorkflow();
+    const analysisStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Analyze app profiling',
+    );
+    const command = analysisStep?.run ?? '';
+
+    expect(workflow.permissions).toMatchObject({ issues: 'write' });
+    expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBe(
+      '${{ github.event.workflow_run.head_branch }}',
+    );
+    // A chained branch run must never file bugs against the repository.
+    expect(command).toContain(
+      'if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then',
+    );
+    expect(command).toContain('ARGS+=(--github-issues)');
+    expect(command).toContain(
+      'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)',
+    );
+    // The lookback and single-run manual paths must not create issues.
+    const manualBranch = command.slice(command.indexOf('elif [ -n "${LOOKBACK_HOURS}" ]'));
+    expect(manualBranch.indexOf('--github-issues')).toBeGreaterThan(
+      manualBranch.indexOf('ARGS+=(--scheduled-exception)'),
+    );
+
+    const upload = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Upload analysis artifact',
+    );
+    expect(String(upload?.with?.path)).toContain('github-issues.json');
   });
 
   it('bounds the weekly rebuild by time instead of by run count', () => {
