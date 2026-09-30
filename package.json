@@ -180,16 +180,6 @@
     "docs:platform-api:build": "platform-api-docs --build --project-label Mobile --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'",
     "docs:platform-api:serve": "platform-api-docs --serve --project-label Mobile --site-base-url / --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'"
   },
-  "previewBuilds": {
-    "@metamask/subscription-controller": {
-      "type": "non-breaking",
-      "previewVersion": "10.0.1-preview-82a2b9842"
-    },
-    "@metamask/wallet": {
-      "type": "non-breaking",
-      "previewVersion": "15.0.1-preview-c4f7eb130"
-    }
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
@@ -424,14 +414,14 @@
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/stellar-wallet-snap": "^1.0.0",
     "@metamask/storage-service": "^2.0.0",
-    "@metamask/subscription-controller": "10.0.1",
+    "@metamask/subscription-controller": "11.0.0",
     "@metamask/superstruct": "^3.4.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^70.1.0",
     "@metamask/transaction-pay-controller": "^29.2.1",
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.12.1",
-    "@metamask/wallet": "15.0.1",
+    "@metamask/wallet": "15.1.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.1",
     "@noble/curves": "1.9.7",

@@ -12232,9 +12232,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/subscription-controller@npm:@metamask-previews/subscription-controller@10.0.1-preview-82a2b9842":
-  version: 10.0.1-preview-82a2b9842
-  resolution: "@metamask-previews/subscription-controller@npm:10.0.1-preview-82a2b9842"
+"@metamask/subscription-controller@npm:11.0.0, @metamask/subscription-controller@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@metamask/subscription-controller@npm:11.0.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@metamask/approval-controller": "npm:^10.0.0"
@@ -12259,7 +12259,7 @@ __metadata:
     "@tanstack/query-core": "npm:^5.103.2"
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/be14d3356b2518ad57a25f98f89560fa87b78a8dfdee28e8f57e46fa637e07b1502a24eae4f8facb81536247d7adde0f07c749ae226e9d46b47fb455b75eab47
+  checksum: 10/427ab5f5333dd328d5cef40df036b137bb36438ebd0033d368e1a1353c50c8c1392c71688028c0f279faf73903bd468b9dfc8909c72f2078962d838837f22cc6
   languageName: node
   linkType: hard
 
@@ -12450,9 +12450,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:@metamask-previews/wallet@15.0.1-preview-c4f7eb130":
-  version: 15.0.1-preview-c4f7eb130
-  resolution: "@metamask-previews/wallet@npm:15.0.1-preview-c4f7eb130"
+"@metamask/wallet@npm:15.1.0":
+  version: 15.1.0
+  resolution: "@metamask/wallet@npm:15.1.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^40.0.0"
     "@metamask/address-book-controller": "npm:^8.0.0"
@@ -12473,10 +12473,10 @@ __metadata:
     "@metamask/seedless-onboarding-controller": "npm:^11.0.1"
     "@metamask/shield-controller": "npm:^7.0.3"
     "@metamask/storage-service": "npm:^2.0.0"
-    "@metamask/subscription-controller": "npm:^10.0.1"
+    "@metamask/subscription-controller": "npm:^11.0.0"
     "@metamask/transaction-controller": "npm:^72.0.1"
     "@metamask/utils": "npm:^12.0.0"
-  checksum: 10/fe1db020fc5301229380e5e47314a4a4c999ac1e4dd413b1ad07eac04e868ed0bb73dd5eb0d763f83adfb51bd6e6b617940fd03772a724132c39de1dd4c59041
+  checksum: 10/14f2f6ac0e67c95f384df53c7b5f7a5441dfbde9f46a9204c6456fde00d2ec9a086433d18aa73163d91f3e2d069a9e84b96480e2e149314439d050ccfdd06a4e
   languageName: node
   linkType: hard
 
@@ -39333,7 +39333,7 @@ __metadata:
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/stellar-wallet-snap": "npm:^1.0.0"
     "@metamask/storage-service": "npm:^2.0.0"
-    "@metamask/subscription-controller": "npm:10.0.1"
+    "@metamask/subscription-controller": "npm:11.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/test-dapp": "npm:9.5.0"
@@ -39345,7 +39345,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^29.2.1"
     "@metamask/tron-wallet-snap": "npm:^3.2.0"
     "@metamask/utils": "npm:^11.12.1"
-    "@metamask/wallet": "npm:15.0.1"
+    "@metamask/wallet": "npm:15.1.0"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
     "@noble/curves": "npm:1.9.7"
