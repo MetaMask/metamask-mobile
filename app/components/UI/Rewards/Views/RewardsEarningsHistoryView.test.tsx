@@ -4,7 +4,9 @@ import type {
   LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows';
@@ -12,11 +14,13 @@ import RewardsEarningsHistoryView, {
   REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS,
 } from './RewardsEarningsHistoryView';
 
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
+    useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
   };
 });
 
@@ -30,6 +34,9 @@ const LOCALIZED_TEXT = {
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   historyClaimed: 'Claimed',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  tradingActivityEmptyAction: 'Start trading',
 } as unknown as ReferralLocalizedText;
 
 const earning: LedgerEntryDto = {
@@ -105,5 +112,36 @@ describe('RewardsEarningsHistoryView', () => {
     );
 
     expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the trade tray from the empty history action', () => {
+    (useEarningsHistory as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state: STATE },
+    );
+
+    expect(
+      getByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
   });
 });
