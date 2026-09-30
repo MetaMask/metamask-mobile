@@ -858,13 +858,13 @@ describe('startupStageSpans', () => {
       stopRootSaga();
       setStartupStageTag(
         'splash_reveal_tax',
-        'startup.splash.completion',
-        'exit_animation',
+        'startup.splash.example',
+        'first',
       );
       setStartupStageTag(
         'splash_reveal_tax',
-        'startup.splash.completion',
-        'timeout',
+        'startup.splash.example',
+        'second',
       );
       runMarks(laterMarks);
       runAt(SPLASH_GONE_AT, () => markStartup('splashGone'));
@@ -876,7 +876,7 @@ describe('startupStageSpans', () => {
       });
       expect(getStage(TraceName.StartupSplashRevealTax)?.tags).toEqual({
         ...SEGMENT_TAGS,
-        'startup.splash.completion': 'exit_animation',
+        'startup.splash.example': 'first',
       });
       expect(getStage(TraceName.StartupNavigationInitialization)?.tags).toEqual(
         SEGMENT_TAGS,
