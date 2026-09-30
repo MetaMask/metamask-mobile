@@ -14,6 +14,8 @@ const EarnMaintenanceBanner = () => {
     <BannerAlert
       severity={BannerAlertSeverity.Warning}
       description={maintenanceMessage}
+      // A single wrapping description centers the icon. Pin it to the first line.
+      iconProps={{ twClassName: 'self-start' }}
     />
   );
 };
