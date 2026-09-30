@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import {
   fireEvent,
   render,
@@ -186,6 +186,7 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('payWith');
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
@@ -209,6 +210,33 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the payment asset icon beside the pay with value', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
+      ).getByTestId('pay-with-icon'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the payment asset icon while the pay with row is loading', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isPayWithLoading
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(screen.queryByTestId('pay-with-icon')).toBeNull();
   });
 
   it('shows the market maximum leverage in the header, not the selected one', () => {
@@ -490,6 +518,7 @@ describe('PerpsTradeScreen errors', () => {
     expect(payWithRow.props.accessibilityState).toEqual({ disabled: true });
     fireEvent.press(payWithRow);
     expect(onPayWithPress).not.toHaveBeenCalled();
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('payWith');
   });
 
   it('shows the reused keypad while editing a limit price', () => {

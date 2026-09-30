@@ -66,6 +66,9 @@ jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../../Bridge/hooks/useShouldRenderMaxOption', () => ({
+  useShouldRenderMaxOption: jest.fn(() => true),
+}));
 jest.mock('../../Bridge/hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),

@@ -11,6 +11,7 @@ import {
   getTriggerPriceValidationIssue,
   getTriggerPriceValidationMessage,
 } from './triggerOrderValidation';
+import enTranslations from '../../../../../locales/languages/en.json';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -508,6 +509,19 @@ describe('getScalePriceCrossingWarning', () => {
 
     expect(warning).toBe(
       'perps.order.validation.scale_price_above_partial_warning',
+    );
+  });
+});
+
+describe('scale partial crossing copy', () => {
+  it('matches the long partial warning, with below in place of above', () => {
+    const copy = enTranslations.perps.order.validation;
+
+    expect(copy.scale_price_above_partial_warning).not.toContain(
+      'incur taker fees',
+    );
+    expect(copy.scale_price_below_partial_warning).toBe(
+      copy.scale_price_above_partial_warning.replace('above', 'below'),
     );
   });
 });
