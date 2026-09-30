@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="2048" viewBox="0 0 1024 2048">
+    <defs>
+      <linearGradient id="copper" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#92989f"/>
+        <stop offset="0.28" stop-color="#7c838c"/>
+        <stop offset="0.58" stop-color="#5b626b"/>
+        <stop offset="0.84" stop-color="#272d35"/>
+        <stop offset="1" stop-color="#697079"/>
+      </linearGradient>
+      <radialGradient id="glow">
+        <stop offset="0" stop-color="#e7ebf0" stop-opacity="0.2"/>
+        <stop offset="1" stop-color="#e7ebf0" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1024" height="2048" fill="url(#copper)"/>
+    <ellipse cx="512" cy="856" rx="432" ry="516" fill="url(#glow)"/>
+    <circle cx="512" cy="352" r="86" fill="#33160f" fill-opacity="0.92"/>
+    <circle cx="512" cy="352" r="86" fill="none" stroke="#ffd4c1" stroke-opacity="0.32" stroke-width="2"/>
+    <path d="M384 1624H640" stroke="#ffd4c1" stroke-opacity="0.44" stroke-width="2"/>
+  </svg>

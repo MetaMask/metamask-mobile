@@ -1,0 +1,41 @@
+{
+  "currency": "USDC",
+  "defaultTier": "usdc-lte-50",
+  "tiers": [
+    {
+      "id": "usdc-lte-50",
+      "label": "≤ 50 USDC — silver grey",
+      "upperBound": 50,
+      "inclusive": true,
+      "ground": "templates/printed-ground-usdc-lte-50.svg"
+    },
+    {
+      "id": "usdc-gt-50-lte-250",
+      "label": "> 50 to ≤ 250 USDC — light copper",
+      "upperBound": 250,
+      "inclusive": true,
+      "ground": "templates/printed-ground-usdc-gt-50-lte-250.svg"
+    },
+    {
+      "id": "usdc-gt-250-lt-500",
+      "label": "> 250 to < 500 USDC — moderate orange",
+      "upperBound": 500,
+      "inclusive": false,
+      "ground": "templates/printed-ground-usdc-gt-250-lt-500.svg"
+    },
+    {
+      "id": "usdc-gte-500-lte-1000",
+      "label": "500 to 1000 USDC inclusive — original orange",
+      "upperBound": 1000,
+      "inclusive": true,
+      "ground": "templates/printed-ground-usdc-gte-500-lte-1000.svg"
+    },
+    {
+      "id": "usdc-gt-1000",
+      "label": "> 1000 USDC — copper red",
+      "upperBound": null,
+      "inclusive": false,
+      "ground": "templates/printed-ground-usdc-gt-1000.svg"
+    }
+  ]
+}

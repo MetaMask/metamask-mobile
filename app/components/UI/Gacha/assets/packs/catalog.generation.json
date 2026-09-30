@@ -1,0 +1,569 @@
+{
+  "shared": {
+    "tool": "image_gen.imagegen",
+    "model": "not exposed by built-in tool",
+    "seed": "not exposed",
+    "review": "Subject, transparent background and absence of generated text visually checked; unmodified original bytes verified.",
+    "promptHistory": "These sources predate the unified illustration prompt. Per-pack originalPromptTextSha256 records the exact prompt originally executed; prompts/illustration.md defines future generations and may differ from those historical prompts."
+  },
+  "packs": {
+    "pokemon_25": {
+      "displayName": "Ember",
+      "source": {
+        "path": "artwork/pokemon-25-ember/source.png",
+        "sha256": "c036b0988b966c115fe6eb7c303b5e2169af4b335615bb0f697ae8dbcb9cd264",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-de5639a7-424a-470e-a2ff-05f169ccb2e3.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 670195,
+        "opaquePixels": 237,
+        "partialPixels": 902093
+      },
+      "originalPromptTextSha256": "ac55fcab7cec6737e27ebc2b38cc56cdbf9c47ec813353c697587bef0bd94a0d"
+    },
+    "pokemon_50": {
+      "displayName": "Spark",
+      "source": {
+        "path": "artwork/pokemon-50-spark/source.png",
+        "sha256": "1b939397d3f27577fa0dba7ceea38aa2d0ea2b1499f18e3ac238bddc9b60577d",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-ca042fb0-a0ac-45fd-a174-b4b68eb65611.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 716218,
+        "opaquePixels": 439,
+        "partialPixels": 855473
+      },
+      "originalPromptTextSha256": "9b05a40c9a9b556768e6e457ff2f0850da55a81f65491376920f902083a9adaf"
+    },
+    "sealed_80": {
+      "displayName": "Vault",
+      "source": {
+        "path": "artwork/sealed-80-vault/source.png",
+        "sha256": "efca945925d45bfc5c24879c4bacf78d63022704b13d445c7e6e8a18191e8747",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-630d3489-9250-4e6b-b504-d691cba8a935.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 605931,
+        "opaquePixels": 208,
+        "partialPixels": 965991
+      },
+      "originalPromptTextSha256": "882db947cf1babf8ad1b6d5df26b73161e77411c9eee3667b9ef084c106f2e48"
+    },
+    "pokemon_100": {
+      "displayName": "Surge",
+      "source": {
+        "path": "artwork/pokemon-100-surge/source.png",
+        "sha256": "4aff7d67ad7e1998f3d60a2bfbde2fa861fd6807c579161d337059006bcb8a85",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-a207cd4a-0afa-4e0f-adc5-d61a86a7d07d.png",
+        "width": 1214,
+        "height": 1296,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 524695,
+        "opaquePixels": 79,
+        "partialPixels": 1048570
+      },
+      "originalPromptTextSha256": "f55102181382f1b0806d7d773d39b0ee1f44fe1b383d0a8f5732a62ae074d0c8"
+    },
+    "pokemon_250": {
+      "displayName": "Blaze",
+      "source": {
+        "path": "artwork/pokemon-250-blaze/source.png",
+        "sha256": "190b26de7a8aeeaffea78973eca945eab5bdf41193f068168d9f38108f33e158",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-04d5313d-c8b7-42e0-8be1-595f02fd5f49.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 660979,
+        "opaquePixels": 522,
+        "partialPixels": 911024
+      },
+      "originalPromptTextSha256": "0d3bf764e03a937dad0ebee9cd1acaea693121f8bd678a9c7e961b9fda0da8fb"
+    },
+    "pokemon_500": {
+      "displayName": "Nova",
+      "source": {
+        "path": "artwork/pokemon-500-nova/source.png",
+        "sha256": "a7f109613767fb901c175610e3997ea00f91792c0063c0e627942d938935650b",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-257d0e0f-8209-49f7-8253-64fda5a61200.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 637347,
+        "opaquePixels": 230,
+        "partialPixels": 934553
+      },
+      "originalPromptTextSha256": "f69ef67025fddcedffdf1303fca3f768e76fa30ed90a8495d07f01a931e29d98"
+    },
+    "pokemon_1000": {
+      "displayName": "Zenith",
+      "source": {
+        "path": "artwork/pokemon-1000-zenith/source.png",
+        "sha256": "008fe5f42e0a9e4a753640b7378f6b7830cbca373e91b80b5881d5bbda0cd4df",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-1b8379ee-6254-4260-bc13-92a82283215e.png",
+        "width": 1206,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 587302,
+        "opaquePixels": 637,
+        "partialPixels": 985891
+      },
+      "originalPromptTextSha256": "ab2e96812ab980c3e4091e3e1f69c7b0442508d0ff45329b3a3945034455ac4b"
+    },
+    "pokemon_2500": {
+      "displayName": "Astral",
+      "source": {
+        "path": "artwork/pokemon-2500-astral/source.png",
+        "sha256": "f484c691142e3d7dc23acc3bfa0d87af65077ba1bb719f1619735e06e2dcaa84",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-be119bef-2ff3-48c5-b548-3a4aa7274e33.png",
+        "width": 1217,
+        "height": 1293,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 670047,
+        "opaquePixels": 61,
+        "partialPixels": 903473
+      },
+      "originalPromptTextSha256": "580e82ae7f57a52f88c798c5de1c55abce648960e06692a6186171bdfaf293b0"
+    },
+    "pokemon_5000": {
+      "displayName": "Genesis",
+      "source": {
+        "path": "artwork/pokemon-5000-genesis/source.png",
+        "sha256": "fdccad7fe64103891d634030de03e7343318ac1e200d0dd9d99c1a3589b2ba23",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-7e440fcb-1a5e-41e2-ac31-55456cdb0237.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 726685,
+        "opaquePixels": 138,
+        "partialPixels": 845307
+      },
+      "originalPromptTextSha256": "426355eb3815d822d8eec9d2a0295f09511c28b56867102c44493f9eb4a43ab4"
+    },
+    "onepiece_50": {
+      "displayName": "Drift",
+      "source": {
+        "path": "artwork/onepiece-50-drift/source.png",
+        "sha256": "a3775d29d60f042cf5dd2b2e13656e681d6d66b0d46f09b0ad6f229df622f81b",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-453c96ae-a418-45da-b36f-b99dd99c77ff.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 645101,
+        "opaquePixels": 171,
+        "partialPixels": 926858
+      },
+      "originalPromptTextSha256": "2dce79d770aa73b12b0d60af55eefd774d4f3c7badc79c8f4cab633029c82014"
+    },
+    "onepiece_250": {
+      "displayName": "Corsair",
+      "source": {
+        "path": "artwork/onepiece-250-corsair/source.png",
+        "sha256": "3f959a5a3e43267f5ec52b5f9ebc5d837e9f40ae2d448fcc72bbd6c2ab9211c0",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-49d4f470-74e1-4d9d-b752-ee73f77da286.png",
+        "width": 1218,
+        "height": 1291,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 600558,
+        "opaquePixels": 423,
+        "partialPixels": 971457
+      },
+      "originalPromptTextSha256": "0243b3e941c20d94a0355902e4cac7f7368c12eaad86cac85d223e4db1053dc4"
+    },
+    "onepiece_1000": {
+      "displayName": "Crown",
+      "source": {
+        "path": "artwork/onepiece-1000-crown/source.png",
+        "sha256": "f9ab4fc19efd6b899818f85de9c3b3b0ee5530e95ebf0e5e33f5c603bec4314d",
+        "generatorOutput": "01a0f3a9-6fc1-7ad2-acc5-91dad7f4988d/exec-eab0de81-8613-4f04-83fb-69db497a5b29.png",
+        "width": 1207,
+        "height": 1303,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 712563,
+        "opaquePixels": 1287,
+        "partialPixels": 858871
+      },
+      "originalPromptTextSha256": "6e2958558df520825b23010bd11edff9f5d2959e17fa3ef775c1dc77a0890de2"
+    },
+    "sports_100": {
+      "displayName": "Pulse",
+      "source": {
+        "path": "artwork/sports-100-pulse/source.png",
+        "sha256": "9ad4bb7aa241a635f6246dc8fece3c9de949f56a0f52a2cf309f4f59c34d9292",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-31a91a6d-ebd2-4e3c-a4f6-13dd8626d391.png",
+        "width": 1215,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 535578,
+        "opaquePixels": 509,
+        "partialPixels": 1037338
+      },
+      "originalPromptTextSha256": "50a93416087a4f838874c251f938dbe49065508dc4960d958864ddd183bf28e9"
+    },
+    "sports_500": {
+      "displayName": "Legacy",
+      "source": {
+        "path": "artwork/sports-500-legacy/source.png",
+        "sha256": "6383462ace9f8213d928cd1d22b5c4f52f1a0c53917606e229b843c809421414",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-6612a8c4-c3eb-4f65-ac6f-21a36ca9fa62.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 695033,
+        "opaquePixels": 936,
+        "partialPixels": 876556
+      },
+      "originalPromptTextSha256": "a11e603455fcaa50bb8a2da0b3e22a2fd6d8cdd21fb36bc5e6027ca9cd08f95c"
+    },
+    "basketball_100": {
+      "displayName": "Court",
+      "source": {
+        "path": "artwork/basketball-100-court/source.png",
+        "sha256": "b1e4745d9a2fda48016b065d2691ec0595c921d41fcaa9da64aecb23d55c6460",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-11965c0b-97e4-49ef-97e3-3f468b00929c.png",
+        "width": 1206,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 615201,
+        "opaquePixels": 377,
+        "partialPixels": 958252
+      },
+      "originalPromptTextSha256": "5b8c8955a182ea2765cfa014a6188fc6bf9105638d2ccf73260f21d4b1798d19"
+    },
+    "basketball_250": {
+      "displayName": "Flight",
+      "source": {
+        "path": "artwork/basketball-250-flight/source.png",
+        "sha256": "9303fd32fa211a89803f7ccc83529834f878df43ff0d82047581471a6f38b3ef",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-f24a3789-8c89-42ea-b7df-559754eae367.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 773449,
+        "opaquePixels": 565,
+        "partialPixels": 798116
+      },
+      "originalPromptTextSha256": "5031986b794244bc79416fd449b46a361b689d6023d4c56d60265837b47564f4"
+    },
+    "baseball_100": {
+      "displayName": "Pitch",
+      "source": {
+        "path": "artwork/baseball-100-pitch/source.png",
+        "sha256": "a04a2652c355e8696c6a06d41cf097616342fadda915e9069b82593369c784bf",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-37ef73d0-3892-4a7a-bbe0-1d86ef58baa7.png",
+        "width": 1216,
+        "height": 1294,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 524257,
+        "opaquePixels": 271,
+        "partialPixels": 1048976
+      },
+      "originalPromptTextSha256": "cb07589c524431375c166b57ceaf025a1652a17413f32ce3d6084a42a8c36acf"
+    },
+    "baseball_250": {
+      "displayName": "Homerun",
+      "source": {
+        "path": "artwork/baseball-250-homerun/source.png",
+        "sha256": "934e4392296dfecbaa1cf1126031834c8288aab8486a547a10a57c600cfea259",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-21e2c20f-3db2-41c2-8931-051b2a946a85.png",
+        "width": 1214,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 700435,
+        "opaquePixels": 657,
+        "partialPixels": 871038
+      },
+      "originalPromptTextSha256": "c3a0618c2874b4c2b75b9e8422a2cf4beda866a26439f72a6098eb6f53a13c7a"
+    },
+    "football_100": {
+      "displayName": "Drive",
+      "source": {
+        "path": "artwork/football-100-drive/source.png",
+        "sha256": "df91b85bb413e929e2e1aa629f532750161be76acf89dbdfe889d42333f12265",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-ebf44f9e-f57c-45d0-a04f-bb98854bf0fa.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 585500,
+        "opaquePixels": 286,
+        "partialPixels": 986739
+      },
+      "originalPromptTextSha256": "2d49bdb16b64de11764b764b53a3ab867c4f2e253db8d98fa82c6ce052d94354"
+    },
+    "football_250": {
+      "displayName": "Gridiron",
+      "source": {
+        "path": "artwork/football-250-gridiron/source.png",
+        "sha256": "d334d6d0b6a75d84d5f2f266c5353de8f48c84182144773fde416a8181e4b837",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-9f825785-f722-4ef5-bb00-2491cf80bb5c.png",
+        "width": 1215,
+        "height": 1295,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 546462,
+        "opaquePixels": 410,
+        "partialPixels": 1026553
+      },
+      "originalPromptTextSha256": "3ab711af5175360dbcc8f909e9c0ee65cd19481d20db7f881b664e40ed84f759"
+    },
+    "soccer_50": {
+      "displayName": "Kick",
+      "source": {
+        "path": "artwork/soccer-50-kick/source.png",
+        "sha256": "6360e1ccd1a4fde3efc345a759bad8d2e39431038fce30652f901b05955487f5",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-e15757d3-db29-4978-bf87-c011bb37bc97.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 599789,
+        "opaquePixels": 724,
+        "partialPixels": 972012
+      },
+      "originalPromptTextSha256": "ae0e2773b0dfc7d65f540bbb3cc11d12e9f91a03a05127157a9f79c6ebdb0a74"
+    },
+    "soccer_100": {
+      "displayName": "Volley",
+      "source": {
+        "path": "artwork/soccer-100-volley/source.png",
+        "sha256": "2b16ad024ed0201b3fb77e0dcb3a29ab902a7a400214257b25c78310ea7af93f",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-7482cf40-2cda-4a8e-afb8-71e201a0ef00.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 702215,
+        "opaquePixels": 332,
+        "partialPixels": 869978
+      },
+      "originalPromptTextSha256": "4fd3604831adbd6e4aea1f20e9e84cdc0a888b90f6b16f66503157b25935059a"
+    },
+    "soccer_250": {
+      "displayName": "Striker",
+      "source": {
+        "path": "artwork/soccer-250-striker/source.png",
+        "sha256": "38faaec412655e0d058676b7b326d6dfd758745f29cb4e05984ea6a0a12fa21d",
+        "generatorOutput": "01a0f3a9-b63b-7222-a8e9-704ef69d96d9/exec-5fd9835d-4b56-431a-94c2-e0426eb7d30f.png",
+        "width": 1207,
+        "height": 1303,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 586465,
+        "opaquePixels": 506,
+        "partialPixels": 985750
+      },
+      "originalPromptTextSha256": "1ba0279d2b1c89548773318fff39fa982b15a59504bf189487c5ae60f585e2dd"
+    },
+    "dragonball_50": {
+      "displayName": "Ignite",
+      "source": {
+        "path": "artwork/dragonball-50-ignite/source.png",
+        "sha256": "075bd8d0fd15a85b3e0ee19abe0ed47ba2ab789431aba16ff7bba30575520593",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-dd2f2de4-fd50-45e0-a45d-644f87d7fcae.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 632731,
+        "opaquePixels": 147,
+        "partialPixels": 939647
+      },
+      "originalPromptTextSha256": "bb69e6662c9638a26ff7d0c15b3c81e4d89fc9e8afb493e1e7afa6a300e07d64"
+    },
+    "dragonball_100": {
+      "displayName": "Ascend",
+      "source": {
+        "path": "artwork/dragonball-100-ascend/source.png",
+        "sha256": "af0c7a500557886d756511ca3635f4926bcbb643e9a65a624e2f7d58b787fbc7",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-4d2f645e-c297-4137-9d01-d2b25a8368f4.png",
+        "width": 1207,
+        "height": 1303,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 579125,
+        "opaquePixels": 170,
+        "partialPixels": 993426
+      },
+      "originalPromptTextSha256": "0c45ad098512ca681817d25a86c06d6796be9e2c105c7f2821e8e8cf0c7aa0db"
+    },
+    "riftbound_100": {
+      "displayName": "Rune",
+      "source": {
+        "path": "artwork/riftbound-100-rune/source.png",
+        "sha256": "985627413140791ef0f5c72e8577bb7134ea1e7d05e71ff344d8d948aa2cfd56",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-4fb586df-9536-45cc-a374-ca12c8062be4.png",
+        "width": 1206,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 828503,
+        "opaquePixels": 471,
+        "partialPixels": 744856
+      },
+      "originalPromptTextSha256": "9bfe0126463336719f2609cca663c17af6619b02248d525eb70fad638580d979"
+    },
+    "riftbound_250": {
+      "displayName": "Rift",
+      "source": {
+        "path": "artwork/riftbound-250-rift/source.png",
+        "sha256": "840dba9862eb9f5ee7c2e8b75c5cbcefd3df5d3059c78aca2e0721f5dbf167f4",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-f023093f-ea68-46eb-b6bc-d51984d54e49.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 703879,
+        "opaquePixels": 453,
+        "partialPixels": 868193
+      },
+      "originalPromptTextSha256": "ce76de960a3969d7efd1aeda0f1cff8a91012098bb35a03924ff90407ea58617"
+    },
+    "ewatch_250": {
+      "displayName": "Tempo",
+      "source": {
+        "path": "artwork/ewatch-250-tempo/source.png",
+        "sha256": "0948c7ca1c29a679cc7e66497d872cd6fcf03b3329175305bcbd6c9a03ef71b9",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-62279260-2966-4d37-926a-5032aa15ba7b.png",
+        "width": 1206,
+        "height": 1304,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 653553,
+        "opaquePixels": 617,
+        "partialPixels": 918454
+      },
+      "originalPromptTextSha256": "d2ee0346f007474c7f3d4ed4153d98fa4b626149ccbf2c5b8e91584ff2937f1c"
+    },
+    "ewatch_500": {
+      "displayName": "Epoch",
+      "source": {
+        "path": "artwork/ewatch-500-epoch/source.png",
+        "sha256": "9e5ba14042e2f125bcf3193774d220d987b67eb1cd565091db6a44f603eda879",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-a64dcca4-9e9d-4e79-8b79-c54f1ef857fa.png",
+        "width": 1217,
+        "height": 1293,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 624904,
+        "opaquePixels": 671,
+        "partialPixels": 948006
+      },
+      "originalPromptTextSha256": "2bc3cbe216f78e3e2e1d4759b2f240cf9514da755be8580885d9ccbd79a5f9e0"
+    },
+    "anime_75": {
+      "displayName": "Prism",
+      "source": {
+        "path": "artwork/anime-75-prism/source.png",
+        "sha256": "87cd3faf7eab1829a7989cdeddfd1cf60426621c2654023d30f26f1aaff4adfc",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-e2d139bb-0579-46c1-863f-c2448d29ede8.png",
+        "width": 1205,
+        "height": 1305,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 624577,
+        "opaquePixels": 423,
+        "partialPixels": 947525
+      },
+      "originalPromptTextSha256": "69dd8a330123246542022ce2abef218d1b34fcf91b3e8938175fcb044d18f943"
+    },
+    "default": {
+      "displayName": "Origin",
+      "source": {
+        "path": "artwork/default-origin/source.png",
+        "sha256": "1a8737382e7acca8afb22b6fe628bc56e87db6e0423ed8bc5279d0fbb446330d",
+        "generatorOutput": "01a0ed80-90a9-7e41-9aae-c22be53a6772/exec-705b6b10-295e-4412-84a6-7c493b2d8e8b.png",
+        "width": 1206,
+        "height": 1304,
+        "colourspace": "srgb",
+        "hasAlpha": true
+      },
+      "alpha": {
+        "transparentPixels": 962693,
+        "opaquePixels": 1005,
+        "partialPixels": 608926
+      },
+      "originalPromptTextSha256": "303eb8dba89aa1c50194069d92509167e0ca586d8a1a547ece705be0549f2c9c"
+    }
+  }
+}
