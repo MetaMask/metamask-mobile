@@ -22,6 +22,16 @@ jest.mock('../../../../../images/rewards/users-three.svg', () => {
   };
 });
 
+jest.mock('./TermsSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockTermsSheet({ isVisible }: { isVisible: boolean }) {
+    return isVisible
+      ? ReactActual.createElement(View, { testID: 'terms-sheet-open' })
+      : null;
+  };
+});
+
 jest.mock('./ShareCodeSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -52,6 +62,16 @@ describe('ReferralHeroCard', () => {
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.SHARE_BUTTON));
 
     expect(getByTestId('share-code-sheet-open')).toBeOnTheScreen();
+  });
+
+  it('opens the terms sheet when the header info button is pressed', () => {
+    const { getByTestId } = render(
+      <ReferralHeroCard onViewEarnings={jest.fn()} />,
+    );
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TERMS_INFO_BUTTON));
+
+    expect(getByTestId('terms-sheet-open')).toBeOnTheScreen();
   });
 
   it.each([

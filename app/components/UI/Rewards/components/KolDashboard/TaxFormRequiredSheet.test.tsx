@@ -3,7 +3,10 @@ import { Linking, Modal } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import TaxFormRequiredSheet from './TaxFormRequiredSheet';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
-import { KOL_TAX_FORM_URL } from './rewardsUiFixtures';
+import {
+  KOL_TAX_FORM_LEARN_MORE_URL,
+  KOL_TAX_FORM_URL,
+} from './rewardsUiFixtures';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -47,7 +50,12 @@ describe('TaxFormRequiredSheet', () => {
     ).toHaveTextContent('rewards.kol.tax_form_title');
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_DESCRIPTION),
-    ).toHaveTextContent('rewards.kol.tax_form_description');
+    ).toHaveTextContent(
+      'rewards.kol.tax_form_description rewards.kol.tax_form_learn_more',
+    );
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_LEARN_MORE),
+    ).toHaveTextContent('rewards.kol.tax_form_learn_more');
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_REMIND_LATER),
     ).toBeOnTheScreen();
@@ -83,5 +91,15 @@ describe('TaxFormRequiredSheet', () => {
 
     expect(Linking.openURL).toHaveBeenCalledWith(KOL_TAX_FORM_URL);
     expect(onContinue).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the tax form help page without continuing when Learn more is pressed', () => {
+    const onContinue = jest.fn();
+    const { getByTestId } = renderSheet({ onContinue });
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_LEARN_MORE));
+
+    expect(Linking.openURL).toHaveBeenCalledWith(KOL_TAX_FORM_LEARN_MORE_URL);
+    expect(onContinue).not.toHaveBeenCalled();
   });
 });

@@ -25,6 +25,19 @@ export const KOL_INVITE_FIXTURE = {
  */
 export const KOL_TAX_FORM_URL = 'https://link.metamask.io/rewards/tax-form';
 
+/**
+ * Help article for the tax-form claim gate. Engineers replace this with the
+ * live destination once the page exists.
+ */
+export const KOL_TAX_FORM_LEARN_MORE_URL =
+  'https://link.metamask.io/rewards/tax-form-learn-more';
+
+/**
+ * Terms and conditions URL opened from the referral card. Engineers replace
+ * this with the real destination once the page exists.
+ */
+export const KOL_TERMS_URL = 'https://link.metamask.io/rewards/terms';
+
 export type KolEarningsHistoryKind =
   | 'rebate'
   | 'referrals'

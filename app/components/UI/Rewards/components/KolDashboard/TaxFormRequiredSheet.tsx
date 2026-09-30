@@ -6,6 +6,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -15,7 +16,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import ArrowSquareOutIcon from '../../../../../images/rewards/arrow-square-out.svg';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
-import { KOL_TAX_FORM_URL } from './rewardsUiFixtures';
+import {
+  KOL_TAX_FORM_LEARN_MORE_URL,
+  KOL_TAX_FORM_URL,
+} from './rewardsUiFixtures';
 import KolDashboardSheet from './KolDashboardSheet';
 
 interface TaxFormRequiredSheetProps {
@@ -39,6 +43,12 @@ const TaxFormRequiredSheet: React.FC<TaxFormRequiredSheetProps> = ({
     onContinue();
   }, [onContinue]);
 
+  const handleLearnMore = useCallback(() => {
+    Linking.openURL(KOL_TAX_FORM_LEARN_MORE_URL).catch((error) => {
+      Logger.log('Error while opening tax form learn more URL', error);
+    });
+  }, []);
+
   return (
     <KolDashboardSheet
       isVisible={isVisible}
@@ -57,7 +67,17 @@ const TaxFormRequiredSheet: React.FC<TaxFormRequiredSheetProps> = ({
           color={TextColor.TextAlternative}
           testID={KOL_DASHBOARD_SELECTORS.TAX_FORM_DESCRIPTION}
         >
-          {strings('rewards.kol.tax_form_description')}
+          {strings('rewards.kol.tax_form_description')}{' '}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryDefault}
+            accessibilityRole="link"
+            onPress={handleLearnMore}
+            testID={KOL_DASHBOARD_SELECTORS.TAX_FORM_LEARN_MORE}
+          >
+            {strings('rewards.kol.tax_form_learn_more')}
+          </Text>
         </Text>
       </Box>
       <Box twClassName="gap-3 px-4 pt-6">

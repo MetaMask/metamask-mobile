@@ -186,12 +186,25 @@ const MoneyClaimableRewardsCard = ({
             justifyContent={BoxJustifyContent.Between}
           >
             <Box twClassName="flex-1 pr-4">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
               >
-                {strings('money.claimable_rewards.title')}
-              </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('money.claimable_rewards.title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('money.claimable_rewards.currency_suffix')}
+                </Text>
+              </Box>
               <Animated.View style={amountAnimatedStyle}>
                 <SensitiveText
                   variant={TextVariant.HeadingSm}

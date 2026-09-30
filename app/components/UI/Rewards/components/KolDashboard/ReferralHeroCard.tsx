@@ -4,9 +4,15 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -23,6 +29,7 @@ import { HistoryKindAvatar } from './EarningsHistoryRows';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import RewardsMetricCard from './RewardsMetricCard';
 import ShareCodeSheet from './ShareCodeSheet';
+import TermsSheet from './TermsSheet';
 
 interface ReferralHeroCardProps {
   /** Opens the Earnings tab, where these two totals are broken down. */
@@ -35,6 +42,7 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
   const storedCode = useSelector(selectReferralCode);
   const referralCode = storedCode || KOL_REFERRAL_CODE_FALLBACK;
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   return (
     <Box
@@ -44,10 +52,33 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
       {/* Vertical padding only: the divider below is full-bleed, so the rows
           carry their own horizontal padding. */}
       <Box twClassName="rounded-2xl bg-muted py-4">
-        <Box twClassName="px-4 pb-4">
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 pb-4"
+        >
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1 pr-2"
+          >
             {strings('rewards.kol.earn_eligible_fees')}
           </Text>
+          <ButtonIcon
+            iconName={IconName.Info}
+            iconProps={{
+              color: IconColor.IconAlternative,
+              size: IconSize.Md,
+            }}
+            size={ButtonIconSize.Md}
+            // Offsets the 6px inset between the 32px button and 20px glyph so
+            // the glyph lines up with the card's 16px content padding.
+            twClassName="-mr-1.5"
+            onPress={() => setIsTermsOpen(true)}
+            accessibilityLabel={strings('rewards.kol.terms_title')}
+            testID={KOL_DASHBOARD_SELECTORS.TERMS_INFO_BUTTON}
+          />
         </Box>
         <Box twClassName="h-px bg-border-muted" />
         <Box
@@ -103,6 +134,10 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
         isVisible={isShareOpen}
         referralCode={referralCode}
         onClose={() => setIsShareOpen(false)}
+      />
+      <TermsSheet
+        isVisible={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
       />
     </Box>
   );

@@ -621,8 +621,7 @@ describe('useMoneyToasts', () => {
       expect(toast.hasNoTimeout).toBe(false);
       expect(toast.labelOptions).toEqual([
         {
-          label:
-            'Earnings successfully claimed and deposited in Money account.',
+          label: 'mUSD successfully claimed to your Money account.',
           isBold: true,
         },
       ]);

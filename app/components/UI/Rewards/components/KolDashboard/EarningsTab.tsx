@@ -252,7 +252,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {strings('rewards.kol.available_to_claim')}
+                {strings('rewards.kol.available_to_claim', {
+                  symbol: strings('rewards.kol.claim_token_symbol'),
+                })}
               </Text>
               <Animated.View style={amountAnimatedStyle}>
                 <Text
