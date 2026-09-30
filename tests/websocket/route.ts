@@ -6,7 +6,9 @@
 //   before this helper existed.
 // - Any other `ws://` / `wss://` URL falls back to the central e2e mock
 //   server's `/proxy-ws` upgrade path, mirroring the `/proxy` HTTP path:
-//   `ws://localhost:<mockServerPort>/proxy-ws?url=<encodeURIComponent(original)>`.
+//   `ws://<mockServerHost>:<mockServerPort>/proxy-ws?url=<encodeURIComponent(original)>`
+//   where `mockServerHost` is the host the shim's health check actually
+//   found (e.g. `10.0.2.2` on an Android emulator without `adb reverse`).
 // - Local URLs, URLs already pointing at the mock server (or containing
 //   `/proxy`), performance-build bypass URLs, and non-string values pass
 //   through untouched.
@@ -45,6 +47,10 @@ function isLocalUrl(url: string): boolean {
  * @param shouldBypassProxy - Optional predicate mirroring the shim's
  * performance-build proxy bypass (e.g. live TOPRF auth hosts). When it
  * returns true, the URL is passed through untouched.
+ * @param mockServerHost - Host the shim's health check found the central
+ * mock server on. Defaults to `localhost`; the shim passes the hostname of
+ * the discovered `MOCKTTP_URL` so the fallback matches the HTTP `/proxy`
+ * host (e.g. `10.0.2.2` on an Android emulator without `adb reverse`).
  * @returns The URL to hand to the original WebSocket constructor: either a
  * rewritten string or the original value unchanged.
  */
@@ -53,6 +59,7 @@ export function resolveWebSocketTarget(
   wsRoutes: WebSocketRoutes,
   mockServerPort: string | number,
   shouldBypassProxy?: (targetUrl: string) => boolean,
+  mockServerHost: string = 'localhost',
 ): unknown {
   if (typeof url !== 'string') {
     return url;
@@ -67,7 +74,7 @@ export function resolveWebSocketTarget(
 
   // 2. Exemptions — mirror the XHR patch: never loop local traffic, the mock
   // server itself, anything already proxied, or performance-build bypasses.
-  const isMockServerUrl = url.includes(`localhost:${mockServerPort}`);
+  const isMockServerUrl = url.includes(`${mockServerHost}:${mockServerPort}`);
   const isProxiedUrl = url.includes('/proxy');
   if (
     isLocalUrl(url) ||
@@ -82,7 +89,7 @@ export function resolveWebSocketTarget(
   // mock server's WebSocket upgrade path, carrying the original URL in the
   // `url` query param.
   if (url.startsWith('ws://') || url.startsWith('wss://')) {
-    return `ws://localhost:${mockServerPort}/proxy-ws?url=${encodeURIComponent(
+    return `ws://${mockServerHost}:${mockServerPort}/proxy-ws?url=${encodeURIComponent(
       url,
     )}`;
   }

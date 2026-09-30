@@ -462,6 +462,12 @@ if (enableApiCallLogs || isTestEnvironment) {
       if (WS_SERVICES.length > 0 && global.WebSocket) {
         const OriginalWebSocket = global.WebSocket;
 
+        // The generic /proxy-ws fallback must target the same host the
+        // health check found (MOCKTTP_URL), not hardcoded `localhost` —
+        // on an Android emulator without `adb reverse`, the mock server
+        // is only reachable via 10.0.2.2.
+        const mockServerHost = new URL(MOCKTTP_URL).hostname;
+
         const wsRoutes = {};
         for (const svc of WS_SERVICES) {
           const port = raw?.[svc.launchArgKey] ?? svc.fallbackPort;
@@ -474,6 +480,7 @@ if (enableApiCallLogs || isTestEnvironment) {
             wsRoutes,
             mockServerPort,
             shouldBypassProxy,
+            mockServerHost,
           );
           return protocols !== undefined
             ? new OriginalWebSocket(targetUrl, protocols)
@@ -486,7 +493,7 @@ if (enableApiCallLogs || isTestEnvironment) {
 
         // eslint-disable-next-line no-console
         console.log(
-          `[WS Patch] Routes: ${JSON.stringify(wsRoutes)}; generic fallback → ws://localhost:${mockServerPort}/proxy-ws?url=<original>`,
+          `[WS Patch] Routes: ${JSON.stringify(wsRoutes)}; generic fallback → ws://${mockServerHost}:${mockServerPort}/proxy-ws?url=<original>`,
         );
       }
 

@@ -60,6 +60,22 @@ describe('resolveWebSocketTarget', () => {
         )}`,
       );
     });
+
+    it('uses the mockServerHost argument for the fallback rewrite', () => {
+      const url = 'wss://example.com/ws';
+
+      const result = resolveWebSocketTarget(
+        url,
+        wsRoutes,
+        mockServerPort,
+        undefined,
+        '10.0.2.2',
+      );
+
+      expect(result).toBe(
+        `ws://10.0.2.2:${mockServerPort}/proxy-ws?url=${encodeURIComponent(url)}`,
+      );
+    });
   });
 
   describe('exemptions (pass through untouched)', () => {
@@ -78,6 +94,22 @@ describe('resolveWebSocketTarget', () => {
       )}`;
 
       expect(resolveWebSocketTarget(url, wsRoutes, mockServerPort)).toBe(url);
+    });
+
+    it('does not rewrite URLs pointing at the mock server via the mockServerHost argument', () => {
+      const url = `ws://10.0.2.2:${mockServerPort}/proxy-ws?url=${encodeURIComponent(
+        'wss://example.com/ws',
+      )}`;
+
+      expect(
+        resolveWebSocketTarget(
+          url,
+          wsRoutes,
+          mockServerPort,
+          undefined,
+          '10.0.2.2',
+        ),
+      ).toBe(url);
     });
 
     it('does not rewrite URLs containing /proxy', () => {
