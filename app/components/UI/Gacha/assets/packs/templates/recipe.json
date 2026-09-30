@@ -80,7 +80,7 @@
     }
   },
   "promptSha256": "0af4ebdd1f711949c13894729a0958f23768a336c9870d603e4f12467202ff6f",
-  "scriptSha256": "33c706b991697e5de1adef55897e7aa1796e1502848fb86b428d860e50b8e0d5",
+  "scriptSha256": "f7a515cff227d12f3e146d17cf83adbe3df4414410fd4d6cc0f17cc17444ef1d",
   "outputs": {
     "template.png": {
       "sha256": "7240ffc2cb5b9f42e207133cca7f85328a1cd0501e86d2c356c27446c7349127",

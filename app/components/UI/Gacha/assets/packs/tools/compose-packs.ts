@@ -23,7 +23,6 @@ const RECIPE = resolve(ROOT, 'recipe-catalog.json');
 const WIDTH = 1024;
 const HEIGHT = 2048;
 const ART = { left: 128, top: 448, width: 768, height: 832 };
-const FOX = { left: 448, top: 288, width: 128, height: 128 };
 const PNG_OPTIONS = { compressionLevel: 9, adaptiveFiltering: false } as const;
 const WEBP_OPTIONS = {
   quality: 90,
@@ -35,7 +34,6 @@ const SHARED_PATHS = {
   mask: resolve(TEMPLATE, 'mask.png'),
   shadows: resolve(TEMPLATE, 'shadows.png'),
   highlights: resolve(TEMPLATE, 'highlights.png'),
-  logo: resolve(APP, 'images/fox.svg'),
   mediumFont: resolve(APP, 'fonts/MMSans-Medium.otf'),
   boldFont: resolve(APP, 'fonts/MMSans-Bold.otf'),
   manifest: MANIFEST,
@@ -89,7 +87,6 @@ async function sharedRecipe() {
     canvas: { width: WIDTH, height: HEIGHT, colourspace: 'sRGB' },
     layout: {
       illustration: { ...ART, fit: 'contain', kernel: 'lanczos3' },
-      logo: { ...FOX, fit: 'contain' },
       textColour: '#fff1e8',
       textPlacement: 'Measured ink centered; uppercase ink bottom at baseline',
       typography: 'Sharp text/Pango, 72 DPI, repository fonts only',
@@ -177,13 +174,6 @@ async function compose(
     })
     .png(PNG_OPTIONS)
     .toBuffer();
-  const fox = await sharp(SHARED_PATHS.logo)
-    .resize(FOX.width, FOX.height, {
-      fit: 'contain',
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    })
-    .png(PNG_OPTIONS)
-    .toBuffer();
   const category = await label(categoryText, 'Medium', 52);
   const name = await label(nameText, 'Bold', 136);
   if (category.info.width > ART.width || name.info.width > ART.width)
@@ -201,7 +191,6 @@ async function compose(
   const printed = await sharp(ground)
     .composite([
       { input: illustration, left: ART.left, top: ART.top },
-      { input: fox, left: FOX.left, top: FOX.top },
       { input: category.data, ...categoryPosition },
       { input: name.data, ...namePosition },
     ])

@@ -1,5 +1,6 @@
 /** Offline asset preparation. Never import this script into the mobile app. */
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +8,7 @@ import sharp from 'sharp';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIRECTORY = resolve(ROOT, 'templates');
+const RECIPE = resolve(DIRECTORY, 'recipe.json');
 const PROMPT_FILE = 'template.md';
 const WIDTH = 1024;
 const HEIGHT = 2048;
@@ -25,6 +27,17 @@ const sha256 = (bytes: Buffer): string =>
 /** Rebuilds the normalized preview and reusable material maps. */
 async function main(): Promise<void> {
   const source = await readFile(resolve(DIRECTORY, 'source.png'));
+  const sourceHash = sha256(source);
+  const previous:
+    | { source: { sha256: string }; promptSha256: string }
+    | undefined = existsSync(RECIPE)
+    ? JSON.parse(await readFile(RECIPE, 'utf8'))
+    : undefined;
+  // Prompt edits for future candidates do not change this source's provenance.
+  const promptHash =
+    previous?.source.sha256 === sourceHash
+      ? previous.promptSha256
+      : sha256(await readFile(resolve(ROOT, 'prompts', PROMPT_FILE)));
   const metadata = await sharp(source).metadata();
   if (!metadata.hasAlpha) throw new Error('The master must have real alpha.');
   const rawSource = await sharp(source)
@@ -125,7 +138,7 @@ async function main(): Promise<void> {
     outputs[name] = { sha256: sha256(encoded), bytes: encoded.length };
   }
   await writeFile(
-    resolve(DIRECTORY, 'recipe.json'),
+    RECIPE,
     `${JSON.stringify(
       {
         status: 'template-approved',
@@ -137,7 +150,7 @@ async function main(): Promise<void> {
           prompt: `../prompts/${PROMPT_FILE}`,
         },
         source: {
-          sha256: sha256(source),
+          sha256: sourceHash,
           width: metadata.width,
           height: metadata.height,
           hasAlpha: metadata.hasAlpha,
@@ -160,9 +173,7 @@ async function main(): Promise<void> {
           architecture: process.arch,
           sharp: sharp.versions,
         },
-        promptSha256: sha256(
-          await readFile(resolve(ROOT, 'prompts', PROMPT_FILE)),
-        ),
+        promptSha256: promptHash,
         scriptSha256: sha256(await readFile(fileURLToPath(import.meta.url))),
         outputs,
       },

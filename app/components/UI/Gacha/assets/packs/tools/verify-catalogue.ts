@@ -13,6 +13,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const APP = resolve(ROOT, '../../../../..');
 const WIDTH = 1024;
 const HEIGHT = 2048;
+const CLEARED_TOP = { left: 416, top: 256, right: 608, bottom: 448 };
 const EXPORTS = {
   'pack.png': { width: WIDTH, height: HEIGHT },
   'pack.webp': { width: WIDTH, height: HEIGHT },
@@ -64,7 +65,7 @@ interface RecipeCatalogue {
   shared: {
     inputs: Record<string, Input>;
     canvas: { width: number; height: number; colourspace: string };
-    layout: { illustration: Rectangle; logo: Rectangle };
+    layout: { illustration: Rectangle };
   };
   packs: Record<string, PackRecipe>;
 }
@@ -218,7 +219,6 @@ async function main(): Promise<void> {
       mask: 'templates/mask.png',
       shadows: 'templates/shadows.png',
       highlights: 'templates/highlights.png',
-      logo: resolve(APP, 'images/fox.svg'),
       mediumFont: resolve(APP, 'fonts/MMSans-Medium.otf'),
       boldFont: resolve(APP, 'fonts/MMSans-Bold.otf'),
       prompt: 'prompts/illustration.md',
@@ -244,30 +244,39 @@ async function main(): Promise<void> {
     height: HEIGHT,
     colourspace: 'sRGB',
   });
-  for (const [key, expected] of [
-    ['illustration', { left: 128, top: 448, width: 768, height: 832 }],
-    ['logo', { left: 448, top: 288, width: 128, height: 128 }],
-  ] as const) {
-    const { left, top, width, height } = recipes.shared.layout[key];
-    assert.deepEqual({ left, top, width, height }, expected, `Shared ${key}`);
-  }
+  assert.ok(!Object.hasOwn(recipes.shared.inputs, 'logo'));
+  assert.ok(!Object.hasOwn(recipes.shared.layout, 'logo'));
+  const { left, top, width, height } = recipes.shared.layout.illustration;
+  assert.deepEqual(
+    { left, top, width, height },
+    { left: 128, top: 448, width: 768, height: 832 },
+    'Shared illustration',
+  );
 
-  const mask = await sharp(resolve(ROOT, 'templates/mask.png'))
-    .ensureAlpha()
-    .raw()
-    .toBuffer();
-  const fox = await sharp(resolve(APP, 'images/fox.svg'))
-    .resize(128, 128, {
-      fit: 'contain',
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    })
-    .ensureAlpha()
-    .raw()
-    .toBuffer();
+  const [mask, shadows, highlights] = await Promise.all(
+    ['mask', 'shadows', 'highlights'].map((name) =>
+      sharp(resolve(ROOT, `templates/${name}.png`))
+        .ensureAlpha()
+        .raw()
+        .toBuffer(),
+    ),
+  );
+  const grounds = new Map<string, Buffer>();
+  for (const tier of palette.tiers) {
+    const svg = await readFile(resolve(ROOT, tier.ground));
+    assert.doesNotMatch(
+      svg.toString(),
+      /<circle\b/u,
+      `${tier.id}: remove the top logo medallion from the printed ground`,
+    );
+    grounds.set(
+      tier.id,
+      await sharp(svg).toColourspace('srgb').ensureAlpha().raw().toBuffer(),
+    );
+  }
   const tierReferences = new Map<string, Buffer>();
   const illustrationHashes = new Map<string, string>();
   const exportHashes = new Set<string>();
-  let reference: Buffer | undefined;
   let pixelChecks = 0;
   let tierComparisons = 0;
   let outputBytes = 0;
@@ -382,7 +391,8 @@ async function main(): Promise<void> {
     const pngPath = resolve(directory, 'pack.png');
     if (!existsSync(pngPath)) continue;
     const pixels = await sharp(pngPath).ensureAlpha().raw().toBuffer();
-    reference ??= pixels;
+    const ground = grounds.get(tier.id);
+    assert.ok(ground, `${pack.code}: missing ${tier.id} ground pixels`);
     pixelChecks++;
     if (tierReferences.has(tier.id)) tierComparisons++;
     const tierReference = tierReferences.get(tier.id) ?? pixels;
@@ -392,18 +402,28 @@ async function main(): Promise<void> {
         const offset = (y * WIDTH + x) * 4;
         if (pixels[offset + 3] !== mask[offset + 3])
           throw new Error(`${pack.code}: silhouette differs at ${x},${y}`);
-        // Transparent fox corners expose the recoloured ground legitimately.
-        const onOpaqueFox =
-          x >= 448 &&
-          x < 576 &&
-          y >= 288 &&
-          y < 416 &&
-          fox[((y - 288) * 128 + x - 448) * 4 + 3] === 255;
         if (
-          onOpaqueFox &&
-          pixels.readUInt32LE(offset) !== reference.readUInt32LE(offset)
-        )
-          throw new Error(`${pack.code}: official fox differs at ${x},${y}`);
+          x >= CLEARED_TOP.left &&
+          x < CLEARED_TOP.right &&
+          y >= CLEARED_TOP.top &&
+          y < CLEARED_TOP.bottom
+        ) {
+          const shadow = shadows[offset + 3] / 255;
+          const highlight = highlights[offset + 3] / 255;
+          for (let channel = 0; channel < 3; channel++) {
+            const expected =
+              mask[offset + 3] === 0
+                ? 0
+                : Math.round(
+                    ground[offset + channel] * (1 - shadow) * (1 - highlight) +
+                      255 * highlight,
+                  );
+            if (pixels[offset + channel] !== expected)
+              throw new Error(
+                `${pack.code}: top logo area is not plain material at ${x},${y}`,
+              );
+          }
+        }
         const variable =
           x >= 128 &&
           x < 896 &&
@@ -419,7 +439,7 @@ async function main(): Promise<void> {
     }
   }
   process.stdout.write(
-    `PASS: 31 unchanged unique illustrations; shared prompt and historical prompt hash records; 30 public codes + default; price boundaries, palette selection, shared/per-pack input hashes, typography and all 62 WebP hashes/dimensions/alpha metadata verified.\n${exportHashes.size} present exports checked: ${outputBytes} bytes.\nExact PNG pixel checks: ${pixelChecks}/31 present masters; ${31 - pixelChecks} skipped (not stored in Git). Same-tier ground comparisons: ${tierComparisons}; opaque fox comparisons: ${Math.max(0, pixelChecks - 1)}.\n`,
+    `PASS: 31 unchanged unique illustrations; shared prompt and historical prompt hash records; 30 public codes + default; price boundaries, palette selection, shared/per-pack input hashes, typography and all 62 WebP hashes/dimensions/alpha metadata verified.\n${exportHashes.size} present exports checked: ${outputBytes} bytes.\nExact PNG pixel checks: ${pixelChecks}/31 present masters; ${31 - pixelChecks} skipped (not stored in Git). Same-tier ground comparisons: ${tierComparisons}; cleared top material checks: ${pixelChecks}.\n`,
   );
   if (pixelChecks < 31)
     process.stdout.write(

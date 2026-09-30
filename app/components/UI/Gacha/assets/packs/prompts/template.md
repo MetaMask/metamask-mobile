@@ -1,6 +1,6 @@
-# Blank pouch — candidate
+# Blank pouch prompt
 
-Status: approved on 2026-09-30. Use this exact prompt with the built-in `image_gen.imagegen` tool, as a new image without input references. Record the returned dimensions; requested dimensions are not an assertion about the actual output.
+The archived blank pouch was approved on 2026-09-30 and remains unchanged. This revised prompt is for future candidates without a logo, medallion or reserved badge area; `templates/recipe.json` retains the original generation prompt hash as historical provenance. Use this prompt with the built-in `image_gen.imagegen` tool, as a new image without input references. Record the returned dimensions; requested dimensions are not an assertion about the actual output.
 
 ```text
 Use case: product-mockup
@@ -12,11 +12,11 @@ Material: thin flexible metallized polymer foil, cool neutral silver and graphit
 
 Lighting: a broad soft studio key from the upper left, a narrow subdued rim reflection at the right edge, believable small highlights along welded ridges, and soft darker creases immediately below and above the seals. Restrained folds concentrated around the perimeter, not large diagonal wrinkles across the printable center. Avoid blown-out white face areas. All light and shade belong to the pouch material.
 
-Visual direction: precise, premium, restrained, contemporary; suitable for a MetaMask collection with clean geometric illustrations added later. The MetaMask orange palette, official fox mark, category, and pack name will be composited separately after this master is approved. Do not paint them into this blank master.
+Visual direction: precise, premium, restrained, contemporary; suitable for a MetaMask collection with clean geometric illustrations added later. The MetaMask orange palette, category and pack name will be composited separately after this master is approved. Do not paint them into this blank master. The top must remain a continuous material surface, with no logo, medallion or reserved badge area.
 
 Composition invariants: zero perspective tilt or rotation, symmetric framing, straight vertical axis, no visible back face, no hands or other objects, no environment, no floor, no cast shadow outside the silhouette. The printable center occupies most of the pouch between the sealed bands.
 
-Text: none. No lettering, numbers, labels, borders marking text areas, symbols, logos, price, Pokemon artwork, Firefox artwork, Jupiter branding, or watermark. No opening or torn strip.
+Text: none. No lettering, numbers, labels, borders marking text areas, symbols, badges, medallions, logos, MetaMask fox, price, Pokemon artwork, Firefox artwork, Jupiter branding, or watermark. No opening or torn strip.
 
 Background: genuinely transparent alpha, not a checkerboard drawn into the image, not black, gray, or white scenery. This is a clean cutout production asset, not a presentation board. Keep the material opaque inside the pouch.
 ```
