@@ -8,6 +8,7 @@ import {
 } from '../utils/formatters';
 import {
   getPerpPositionDirection,
+  getSupportedXyzPerpMarketSymbol,
   isClosedPosition,
   isPerpPosition,
 } from '../utils/perp';
@@ -132,6 +133,9 @@ export const mapPositionToFeedItem = (
   const timestamp = options?.timestamp ?? Date.now();
 
   if (isPerp) {
+    const { targetSymbol: tradeSymbol } = getSupportedXyzPerpMarketSymbol(
+      position.tokenSymbol,
+    );
     const direction = getPerpPositionDirection(position) ?? 'long';
     if (closed) {
       return {
@@ -139,7 +143,7 @@ export const mapPositionToFeedItem = (
         author,
         timestamp,
         variant: 'perpsClosed',
-        tradeSymbol: position.tokenSymbol,
+        tradeSymbol,
         comment,
         asset: { symbol: displaySymbol, avatar },
         direction,
@@ -160,7 +164,7 @@ export const mapPositionToFeedItem = (
       author,
       timestamp,
       variant: 'perpsOpen',
-      tradeSymbol: position.tokenSymbol,
+      tradeSymbol,
       comment,
       asset: { symbol: displaySymbol, avatar },
       direction,
