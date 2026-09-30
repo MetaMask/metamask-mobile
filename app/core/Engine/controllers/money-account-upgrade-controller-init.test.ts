@@ -85,6 +85,29 @@ describe('moneyAccountUpgradeControllerInit', () => {
       },
     });
     expect(controller).toBeInstanceOf(MoneyAccountUpgradeController);
+    expect(controller.init).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a rejected init promise through the bootstrap error hook', async () => {
+    const error = new Error('init failed');
+    jest.mocked(MoneyAccountUpgradeController).mockImplementationOnce(
+      () =>
+        ({
+          init: jest.fn().mockRejectedValue(error),
+        }) as unknown as MoneyAccountUpgradeController,
+    );
+    const initRequest = getInitRequestMock();
+
+    moneyAccountUpgradeControllerInit(initRequest);
+    await Promise.resolve();
+
+    expect(Logger.error).toHaveBeenCalledWith(error, {
+      tags: { feature: 'money-account-upgrade' },
+      context: {
+        name: 'money_account_upgrade',
+        data: { phase: 'bootstrap' },
+      },
+    });
   });
 
   it('ensureChainConfigured adds the vault chain when missing', async () => {

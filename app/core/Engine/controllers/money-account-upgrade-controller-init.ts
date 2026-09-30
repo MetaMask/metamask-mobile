@@ -35,6 +35,24 @@ const reportBootstrapError = (error: unknown): void => {
 };
 
 /**
+ * Consumes the return value of `MoneyAccountUpgradeController.init`.
+ *
+ * `init` is typed as `void` and catches bootstrap failures internally.
+ * Passing the result through still handles a promise-like return.
+ *
+ * @param result - Whatever `init` returned.
+ */
+const consumeBootstrapStart = (result: unknown): void => {
+  if (!(result instanceof Promise)) {
+    return;
+  }
+
+  result.catch((error: unknown) => {
+    reportBootstrapError(error);
+  });
+};
+
+/**
  * Ensures the vault chain exists in the user's NetworkController configuration.
  * If missing, adds it from `PopularList`. The upgrade flow's
  * `eip-7702-authorization` step calls
@@ -88,10 +106,12 @@ const ensureChainConfigured = async ({
 /**
  * Initialize the MoneyAccountUpgradeController.
  *
- * The controller owns its own bootstrap: after `controller.init()` is called
- * (from Engine, once all messenger clients exist), it watches
- * `RemoteFeatureFlagController` and `KeyringController` and bootstraps when
- * the Money Account flag is on and the wallet is unlocked.
+ * The controller owns its own bootstrap. This calls `controller.init()` once
+ * the controller exists. Synchronous sync only reads wallet-owned controllers,
+ * which are already constructed. The bootstrap continuation is async and runs
+ * after Engine assigns `context`. It watches `RemoteFeatureFlagController` and
+ * `KeyringController` and bootstraps when the Money Account flag is on and the
+ * wallet is unlocked.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
@@ -111,6 +131,8 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
       onBootstrapError: reportBootstrapError,
     },
   });
+
+  consumeBootstrapStart(controller.init());
 
   return { controller };
 };
