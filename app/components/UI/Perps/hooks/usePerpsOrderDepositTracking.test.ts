@@ -12,6 +12,7 @@ const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockSubscribe = jest.fn();
 const mockUnsubscribe = jest.fn();
+const mockActiveHandlers = new Set<unknown>();
 const mockTrack = jest.fn();
 
 interface MockAccount {
@@ -78,8 +79,18 @@ jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     controllerMessenger: {
-      subscribe: (...args: unknown[]) => mockSubscribe(...args),
-      unsubscribe: (...args: unknown[]) => mockUnsubscribe(...args),
+      subscribe: (event: string, handler: unknown) => {
+        mockActiveHandlers.add(handler);
+        return mockSubscribe(event, handler);
+      },
+      // Mirrors Messenger.unsubscribe, which throws for an unknown handler.
+      unsubscribe: (event: string, handler: unknown) => {
+        if (!mockActiveHandlers.has(handler)) {
+          throw new Error(`Subscription not found for event: ${event}`);
+        }
+        mockActiveHandlers.delete(handler);
+        return mockUnsubscribe(event, handler);
+      },
     },
   },
 }));
@@ -179,6 +190,7 @@ describe('usePerpsOrderDepositTracking', () => {
     jest.useFakeTimers();
     mockAccountSnapshot = { spendableBalance: '10' };
     mockAccountCallbacks.clear();
+    mockActiveHandlers.clear();
     mockSelectedAddress = '0xinitiating';
     mockPerpsProvider = 'hyperliquid';
     mockPerpsNetwork = 'mainnet';

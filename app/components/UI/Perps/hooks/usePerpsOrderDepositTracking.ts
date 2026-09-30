@@ -247,6 +247,9 @@ export const usePerpsOrderDepositTracking = () => {
         handleTransactionStatusUpdated,
       );
       removeTransactionListeners = () => {
+        // The messenger throws on a second unsubscribe, and both confirmation
+        // and settlement remove these listeners.
+        removeTransactionListeners = () => undefined;
         Engine.controllerMessenger.unsubscribe(
           'TransactionController:transactionFailed',
           handleTransactionFailed,
