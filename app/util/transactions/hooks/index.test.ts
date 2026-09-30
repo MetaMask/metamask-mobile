@@ -296,6 +296,22 @@ describe('getTransactionControllerHooks', () => {
     );
   });
 
+  it('records get_fees_error metrics when the smart transaction hook fails to get fees', async () => {
+    jest.mocked(submitSmartTransactionHook).mockResolvedValue({
+      transactionHash: '0xhash2',
+      getFeesError: 'Failed to get fees',
+    });
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    await hooks.publish?.(MOCK_TRANSACTION_META);
+
+    expect(store.dispatch).toHaveBeenCalledTimes(2);
+    expect(updateConfirmationMetric).toHaveBeenCalledWith({
+      id: '123',
+      params: { properties: { get_fees_error: 'Failed to get fees' } },
+    });
+  });
+
   it('returns undefined from publishBatch when smart transactions are disabled', async () => {
     jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
 
