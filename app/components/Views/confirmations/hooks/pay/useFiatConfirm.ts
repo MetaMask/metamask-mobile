@@ -136,9 +136,9 @@ export function useFiatConfirm() {
         },
       );
     } catch (error) {
-      // startHeadlessBuy can throw before a session exists (token not in the
-      // catalog). onError is not guaranteed to have run, and the spinner was
-      // already turned on above.
+      // Defense in depth: the real startHeadlessBuy reports via onError and
+      // does not throw, but mocks or future callers that throw would still
+      // leave the preparing spinner on without this catch.
       setIsHeadlessBuyInProgress(false);
       setHeadlessBuyError(
         error instanceof Error

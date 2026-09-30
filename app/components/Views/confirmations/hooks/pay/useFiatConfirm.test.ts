@@ -147,7 +147,9 @@ describe('useFiatConfirm', () => {
 
     it('clears the preparing spinner when startHeadlessBuy throws before a session exists', () => {
       startHeadlessBuyMock.mockImplementation(() => {
-        throw new Error('Token with asset ID "eip155:143/erc20:0xabc" not found');
+        throw new Error(
+          'Token with asset ID "eip155:143/erc20:0xabc" not found',
+        );
       });
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',

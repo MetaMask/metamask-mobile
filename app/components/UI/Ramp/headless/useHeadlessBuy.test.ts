@@ -433,11 +433,12 @@ describe('useHeadlessBuy', () => {
       });
       const { result } = renderHook(() => useHeadlessBuy());
       const callbacks = buildCallbacks();
-      expect(() => {
-        act(() => {
-          result.current.startHeadlessBuy(baseStartParams, callbacks);
-        });
-      }).toThrow('not found');
+      let started: ReturnType<typeof result.current.startHeadlessBuy> =
+        undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(baseStartParams, callbacks);
+      });
+      expect(started).toBeUndefined();
       expect(callbacks.onError).toHaveBeenCalledWith(
         expect.objectContaining({
           code: 'UNKNOWN',
@@ -445,6 +446,27 @@ describe('useHeadlessBuy', () => {
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('fails the session through onError when navigate throws after createSession', () => {
+      mockNavigate.mockImplementationOnce(() => {
+        throw new Error('navigation failed');
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = buildCallbacks();
+      let started: ReturnType<typeof result.current.startHeadlessBuy> =
+        undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(baseStartParams, callbacks);
+      });
+      expect(started).toBeUndefined();
+      expect(callbacks.onError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'UNKNOWN',
+          message: expect.stringContaining('navigation failed'),
+        }),
+      );
+      expect(callbacks.onClose).not.toHaveBeenCalled();
     });
 
     it('seeds provider as null when quote provider is not in the loaded catalog', () => {
