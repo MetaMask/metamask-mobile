@@ -5,7 +5,6 @@ import QuickCrypto, {
 import { toByteArray } from 'react-native-quick-base64'; // Import the Base64 decoding function
 import AppConstants from '../../AppConstants';
 
-const LINK_METAMASK_COM_HOST = 'link.metamask.com';
 const LINK_METAMASK_IO_ORIGIN = 'https://link.metamask.io';
 
 function normalizeBase64(base64String: string): string {
@@ -35,7 +34,7 @@ function getKeyData() {
 
 function canonicalize(url: URL): string {
   const signingOrigin =
-    url.hostname === LINK_METAMASK_COM_HOST
+    url.hostname === AppConstants.MM_COM_UNIVERSAL_LINK_HOST
       ? LINK_METAMASK_IO_ORIGIN
       : url.origin;
   const sigParams = url.searchParams.get('sig_params');

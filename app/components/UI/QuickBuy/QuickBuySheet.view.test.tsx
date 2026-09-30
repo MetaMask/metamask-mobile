@@ -40,8 +40,7 @@ import { KeypadTestIds } from '../../Base/Keypad/Keypad.testIds';
 import { QuoteViewSelectorIDs } from '../../../../tests/selectors/Bridge/QuoteView.selectors';
 import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
-  getQuickBuyBuyPillTestId,
-  getQuickBuySellPillTestId,
+  getQuickBuyPercentPillTestId,
   QuickBuySheetSelectorsIDs,
 } from './QuickBuySheet.testIds';
 
@@ -144,11 +143,11 @@ const waitForQuoteTotal = async (screen: Pick<RenderAPI, 'getByTestId'>) => {
   );
 };
 
-const selectTenDollarBuy = async (
+const selectQuarterBuy = async (
   screen: Pick<RenderAPI, 'findByTestId' | 'getByTestId'>,
 ) => {
   await waitForSheetReady(screen);
-  fireEvent.press(await screen.findByTestId(getQuickBuyBuyPillTestId(10)));
+  fireEvent.press(await screen.findByTestId(getQuickBuyPercentPillTestId(25)));
 };
 
 /** Local Quick Buy path: BridgeController.fetchQuotes, not Redux quote polling. */
@@ -212,7 +211,7 @@ describeForPlatforms('QuickBuySheet', () => {
   it('shows the estimated receive row after a gasless quote loads', async () => {
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
 
     await waitForQuoteTotal(screen);
     expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
@@ -221,7 +220,7 @@ describeForPlatforms('QuickBuySheet', () => {
   it('enables confirm when a valid amount and quote are available', async () => {
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
 
     await waitForConfirmEnabled(screen);
   });
@@ -229,7 +228,7 @@ describeForPlatforms('QuickBuySheet', () => {
   it('fetches quotes through BridgeController.fetchQuotes after a buy pill is selected', async () => {
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
     expectDirectFetchQuotes(FeatureId.UNKNOWN);
@@ -240,7 +239,7 @@ describeForPlatforms('QuickBuySheet', () => {
       analyticsContext: { source: 'leaderboard' },
     });
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
     expectDirectFetchQuotes(FeatureId.QUICK_BUY_FOLLOW_TRADING);
@@ -250,7 +249,7 @@ describeForPlatforms('QuickBuySheet', () => {
     mockFetchQuotes(() => []);
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
 
     await waitFor(
       () => {
@@ -271,7 +270,7 @@ describeForPlatforms('QuickBuySheet', () => {
     ).mockRejectedValue(new Error('quote fetch failed'));
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
 
     await waitFor(
       () => {
@@ -325,7 +324,7 @@ describeForPlatforms('QuickBuySheet', () => {
   it('opens quote details when the rate tag is pressed', async () => {
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE),
@@ -342,7 +341,7 @@ describeForPlatforms('QuickBuySheet', () => {
   it('returns from quote details when the sub-screen back button is pressed', async () => {
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE),
@@ -374,7 +373,7 @@ describeForPlatforms('QuickBuySheet', () => {
     );
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForConfirmEnabled(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
@@ -401,7 +400,7 @@ describeForPlatforms('QuickBuySheet', () => {
     );
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForConfirmEnabled(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
@@ -423,7 +422,7 @@ describeForPlatforms('QuickBuySheet', () => {
     );
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForConfirmEnabled(screen);
     fireEvent.press(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
@@ -435,21 +434,67 @@ describeForPlatforms('QuickBuySheet', () => {
     expectDirectFetchQuotes(FeatureId.UNKNOWN);
   });
 
-  it('switches to sell pills when Sell is pressed', async () => {
+  it('shows percentage pills instead of the CTA in both trade modes while empty', async () => {
     const screen = renderQuickBuySheet({
       overrides: quickBuySellableUsdcOverrides(),
     });
 
     await waitForSheetReady(screen);
+    expect(
+      screen.getByTestId(getQuickBuyPercentPillTestId(25)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
+    ).not.toBeOnTheScreen();
+
     fireEvent.press(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
 
     expect(
-      await screen.findByTestId(getQuickBuySellPillTestId(25)),
+      await screen.findByTestId(getQuickBuyPercentPillTestId(25)),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(getQuickBuyBuyPillTestId(10)),
+      screen.getByTestId(getQuickBuyPercentPillTestId(100)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Max when paying with a native token on a quote without gas included', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+
+    expect(
+      screen.getByTestId(getQuickBuyPercentPillTestId(75)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getQuickBuyPercentPillTestId(100)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('swaps the pills for the CTA on entry and back when the amount is cleared', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+    fireEvent.press(screen.getByTestId(QuickBuySheetSelectorsIDs.KEYPAD_KEY_1));
+
+    expect(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getQuickBuyPercentPillTestId(25)),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('keypad-delete-button'));
+
+    expect(
+      await screen.findByTestId(getQuickBuyPercentPillTestId(25)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
@@ -647,11 +692,8 @@ describeForPlatforms('QuickBuySheet', () => {
     });
 
     expect(
-      await screen.findByTestId(getQuickBuySellPillTestId(25)),
+      await screen.findByTestId(getQuickBuyPercentPillTestId(25)),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(getQuickBuyBuyPillTestId(10)),
-    ).not.toBeOnTheScreen();
     expect(screen.getByText('Sell USDC')).toBeOnTheScreen();
   });
 
@@ -712,7 +754,7 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
-    await screen.findByTestId(getQuickBuySellPillTestId(25));
+    await screen.findByText('Sell USDC');
     // balanceOf is mocked as 2 ETH wei for every token, so USDC's live balance
     // is 2e12 units. Type past that.
     typeAmount(screen, '3000000000000');
@@ -749,14 +791,14 @@ describeForPlatforms('QuickBuySheet', () => {
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
     expect(
-      await within(amountArea).findByText(/^100 .*Available$/),
+      await within(amountArea).findByText(/^\$100\.00 Available$/),
     ).toBeOnTheScreen();
   });
 
   it('shows quote detail fields after a quote loads', async () => {
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE),
@@ -789,7 +831,7 @@ describeForPlatforms('QuickBuySheet', () => {
     ]);
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE),
@@ -834,7 +876,7 @@ describeForPlatforms('QuickBuySheet', () => {
       extraRoutes: [SLIPPAGE_ROUTE],
     });
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE),
@@ -851,7 +893,7 @@ describeForPlatforms('QuickBuySheet', () => {
       analyticsContext: { source: 'asset_details' },
     });
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
     expectDirectFetchQuotes(FeatureId.QUICK_BUY_TOKEN_DETAILS);
@@ -862,7 +904,7 @@ describeForPlatforms('QuickBuySheet', () => {
       analyticsContext: { source: 'explore_crypto' },
     });
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
     expectDirectFetchQuotes(FeatureId.QUICK_BUY_EXPLORE);
@@ -881,7 +923,7 @@ describeForPlatforms('QuickBuySheet', () => {
     );
     const screen = renderQuickBuySheet();
 
-    await selectTenDollarBuy(screen);
+    await selectQuarterBuy(screen);
     await waitForConfirmEnabled(screen);
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
