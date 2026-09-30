@@ -21,13 +21,12 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
   selected,
   onSelect,
   disabled = false,
-  twClassName,
 }) => (
   <FilterButtonGroup
     value={selected}
     onChange={(value) => onSelect(value as ChartTimeframe)}
     variant={FilterButtonVariant.Secondary}
-    twClassName={`w-full justify-between pt-2 ${twClassName ?? ''}`}
+    twClassName="w-full justify-between pt-2 px-4"
   >
     {TIMEFRAMES.map(({ value, label }) => (
       <FilterButton

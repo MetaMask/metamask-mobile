@@ -3,6 +3,9 @@ import { render, fireEvent } from '@testing-library/react-native';
 import TimeframeSelector from './TimeframeSelector';
 import { ChartTimeframe } from './PredictGameChart.types';
 
+const getTimeframeOptionTestID = (value: string) =>
+  `filter-button-${value}`;
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactMock = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -12,15 +15,12 @@ jest.mock('@metamask/design-system-react-native', () => {
     FilterButtonGroup: ({
       children,
       onChange,
-      ...props
     }: {
       children?: React.ReactNode;
       onChange?: (value: string) => void;
     }) => (
       <FilterButtonGroupContext.Provider value={onChange}>
-        <View testID="filter-button-group" {...props}>
-          {children}
-        </View>
+        <View>{children}</View>
       </FilterButtonGroupContext.Provider>
     ),
     FilterButton: ({
@@ -36,6 +36,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
       return (
         <Pressable
+          testID={getTimeframeOptionTestID(value)}
           disabled={isDisabled}
           onPress={() => !isDisabled && onChange?.(value)}
         >
@@ -67,16 +68,6 @@ describe('TimeframeSelector', () => {
       expect(getByText('6H')).toBeTruthy();
       expect(getByText('1D')).toBeTruthy();
       expect(getByText('Max')).toBeTruthy();
-    });
-
-    it('accepts layout classes from its container', () => {
-      const { getByTestId } = render(
-        <TimeframeSelector {...defaultProps} twClassName="px-4" />,
-      );
-
-      expect(getByTestId('filter-button-group').props.twClassName).toBe(
-        'w-full justify-between pt-2 px-4',
-      );
     });
 
     it('renders with selected state for live timeframe', () => {
@@ -115,44 +106,56 @@ describe('TimeframeSelector', () => {
   describe('Interactions', () => {
     it('calls onSelect when Live is pressed', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
-        <TimeframeSelector {...defaultProps} onSelect={onSelect} />,
+      const { getByTestId } = render(
+        <TimeframeSelector
+          {...defaultProps}
+          selected="6h"
+          onSelect={onSelect}
+        />,
       );
 
-      fireEvent.press(getByText('Live'));
+      fireEvent.press(
+        getByTestId(getTimeframeOptionTestID('live')),
+      );
 
       expect(onSelect).toHaveBeenCalledWith('live');
     });
 
     it('calls onSelect when 6H is pressed', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TimeframeSelector {...defaultProps} onSelect={onSelect} />,
       );
 
-      fireEvent.press(getByText('6H'));
+      fireEvent.press(
+        getByTestId(getTimeframeOptionTestID('6h')),
+      );
 
       expect(onSelect).toHaveBeenCalledWith('6h');
     });
 
     it('calls onSelect when 1D is pressed', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TimeframeSelector {...defaultProps} onSelect={onSelect} />,
       );
 
-      fireEvent.press(getByText('1D'));
+      fireEvent.press(
+        getByTestId(getTimeframeOptionTestID('1d')),
+      );
 
       expect(onSelect).toHaveBeenCalledWith('1d');
     });
 
     it('calls onSelect when Max is pressed', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TimeframeSelector {...defaultProps} onSelect={onSelect} />,
       );
 
-      fireEvent.press(getByText('Max'));
+      fireEvent.press(
+        getByTestId(getTimeframeOptionTestID('max')),
+      );
 
       expect(onSelect).toHaveBeenCalledWith('max');
     });
@@ -161,25 +164,28 @@ describe('TimeframeSelector', () => {
   describe('Disabled State', () => {
     it('does not call onSelect when disabled', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TimeframeSelector {...defaultProps} onSelect={onSelect} disabled />,
       );
 
-      fireEvent.press(getByText('6H'));
+      fireEvent.press(
+        getByTestId(getTimeframeOptionTestID('6h')),
+      );
 
       expect(onSelect).not.toHaveBeenCalled();
     });
 
     it('does not call onSelect for any timeframe when disabled', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TimeframeSelector {...defaultProps} onSelect={onSelect} disabled />,
       );
 
-      fireEvent.press(getByText('Live'));
-      fireEvent.press(getByText('6H'));
-      fireEvent.press(getByText('1D'));
-      fireEvent.press(getByText('Max'));
+      ['live', '6h', '1d', 'max'].forEach((timeframe) => {
+        fireEvent.press(
+          getByTestId(getTimeframeOptionTestID(timeframe)),
+        );
+      });
 
       expect(onSelect).not.toHaveBeenCalled();
     });
@@ -188,31 +194,34 @@ describe('TimeframeSelector', () => {
   describe('Default Props', () => {
     it('uses default disabled value of false', () => {
       const onSelect = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TimeframeSelector selected="live" onSelect={onSelect} />,
       );
 
-      fireEvent.press(getByText('6H'));
+      fireEvent.press(
+        getByTestId(getTimeframeOptionTestID('6h')),
+      );
 
       expect(onSelect).toHaveBeenCalledWith('6h');
     });
   });
 
   describe('Timeframe Values', () => {
-    it.each([
-      ['Live', 'live'],
-      ['6H', '6h'],
-      ['1D', '1d'],
-      ['Max', 'max'],
-    ] as [string, ChartTimeframe][])(
-      'maps %s button to %s value',
-      (label, value) => {
+    it.each(['live', '6h', '1d', 'max'] as ChartTimeframe[])(
+      'maps the %s button to its timeframe value',
+      (value) => {
         const onSelect = jest.fn();
-        const { getByText } = render(
-          <TimeframeSelector {...defaultProps} onSelect={onSelect} />,
+        const { getByTestId } = render(
+          <TimeframeSelector
+            {...defaultProps}
+            selected={value === 'live' ? '6h' : 'live'}
+            onSelect={onSelect}
+          />,
         );
 
-        fireEvent.press(getByText(label));
+        fireEvent.press(
+          getByTestId(getTimeframeOptionTestID(value)),
+        );
 
         expect(onSelect).toHaveBeenCalledWith(value);
       },

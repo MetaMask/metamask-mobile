@@ -192,7 +192,6 @@ const PredictGameDetailsContentComponent: React.FC<
         <Box twClassName="mt-4">
           <PredictGameChart
             market={market}
-            timeframeSelectorTwClassName="px-4"
             testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
           />
         </Box>
