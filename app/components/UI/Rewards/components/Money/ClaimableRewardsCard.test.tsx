@@ -32,8 +32,10 @@ const renderCard = (
   );
 
 describe('claimButtonState', () => {
-  it('prefers a payable balance over money already claimed', () => {
-    expect(claimButtonState('50', '50')).toBe('claim');
+  it('enables Claim only at $1 or more', () => {
+    expect(claimButtonState('1000000', '50', true)).toBe('claim');
+    expect(claimButtonState('50', '50')).toBe('claimed');
+    expect(claimButtonState('999999', '0')).toBe('hidden');
     expect(claimButtonState(undefined, '50')).toBe('claimed');
     expect(claimButtonState('0', '0')).toBe('hidden');
     expect(claimButtonState(undefined, undefined)).toBe('hidden');
@@ -41,8 +43,20 @@ describe('claimButtonState', () => {
 });
 
 describe('ClaimableRewardsCard', () => {
-  it('renders Claim when claimable is positive', () => {
-    const { getByTestId, queryByTestId } = renderCard('50', '0');
+  it('renders Claim when a route clears $1', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+      />,
+    );
 
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
