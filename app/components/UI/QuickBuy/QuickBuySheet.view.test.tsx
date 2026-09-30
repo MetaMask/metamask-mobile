@@ -455,7 +455,23 @@ describeForPlatforms('QuickBuySheet', () => {
       await screen.findByTestId(getQuickBuyPercentPillTestId(25)),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(getQuickBuyPercentPillTestId(100)),
+    ).toBeOnTheScreen();
+    expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Max when paying with a native token on a quote without gas included', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+
+    expect(
+      screen.getByTestId(getQuickBuyPercentPillTestId(75)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getQuickBuyPercentPillTestId(100)),
     ).not.toBeOnTheScreen();
   });
 

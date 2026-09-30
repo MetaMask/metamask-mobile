@@ -62,6 +62,7 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     sellQuickPercentages,
     hasSourcePrice,
     isSliderDisabled,
+    isMaxAmountAllowed,
     handleSliderChange,
     handleSliderDragEnd,
     setIsKeypadOpen,
@@ -72,8 +73,8 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
       resolveSellQuickPercentages(
         sellQuickPercentages,
         strings('social_leaderboard.quick_buy.max'),
-      ),
-    [sellQuickPercentages],
+      ).filter((option) => isMaxAmountAllowed || option.percent < 100),
+    [sellQuickPercentages, isMaxAmountAllowed],
   );
 
   // Selecting a preset amount commits the value and dismisses the keypad. The

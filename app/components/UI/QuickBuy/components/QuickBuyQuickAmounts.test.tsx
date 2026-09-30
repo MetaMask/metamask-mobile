@@ -27,6 +27,7 @@ const baseContext = {
   sellQuickPercentages: [25, 50, 75, 100] as [number, number, number, number],
   hasSourcePrice: true,
   isSliderDisabled: false,
+  isMaxAmountAllowed: true,
   handleSliderChange: jest.fn(),
   handleSliderDragEnd: jest.fn(),
   setIsKeypadOpen: jest.fn(),
