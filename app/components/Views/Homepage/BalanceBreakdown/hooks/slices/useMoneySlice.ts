@@ -34,7 +34,7 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
   const { tokenTotal, isBalanceLoading, isBalanceFetchError } =
     useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy({
-    enabled: isMoneyAccountAvailable,
+    enabled: isMoneyAccountFeatureEnabled,
   });
   const hasNonZeroBalance = tokenTotal?.isZero() === false;
   const isMoneyAccountVisible =
@@ -57,9 +57,9 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       ? 'error'
       : moneyStatus;
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
-  const apyLoading = isMoneyAccountAvailable && vaultApyQuery.isLoading;
+  const apyLoading = isMoneyAccountVisible && vaultApyQuery.isLoading;
   const visibleApyPercent =
-    isMoneyAccountAvailable && !apyLoading && apyPercent !== undefined
+    isMoneyAccountVisible && !apyLoading && apyPercent !== undefined
       ? apyPercent
       : undefined;
 

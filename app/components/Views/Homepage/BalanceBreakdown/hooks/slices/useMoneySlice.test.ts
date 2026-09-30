@@ -151,7 +151,7 @@ describe('useMoneySlice', () => {
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
     expect(result.current).toEqual({
       key: 'money',
       isVisible: false,
@@ -162,19 +162,19 @@ describe('useMoneySlice', () => {
     });
   });
 
-  it('shows a funded Money account without APY when the account is geo-ineligible', () => {
+  it('shows a funded Money account with APY when the account is geo-ineligible', () => {
     mockUseSelector.mockReturnValue(false);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
     expect(result.current).toEqual({
       key: 'money',
       isVisible: true,
       valueFiat: 100,
       status: 'ready',
-      apyPercent: undefined,
+      apyPercent: 4.1,
       apyLoading: false,
     });
   });
