@@ -1,0 +1,9 @@
+{
+  "id" : "16f3f27a-ed42-4407-a27a-a127c9f64bbe",
+  "targets" : [
+    {
+      "id" : "4081D6B9-E851-476A-B810-7AB52F3C36E8",
+      "name" : "MetaMask"
+    }
+  ]
+}

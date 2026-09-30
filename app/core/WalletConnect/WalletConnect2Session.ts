@@ -42,6 +42,8 @@ import getRpcMethodMiddleware, {
   getRpcMethodMiddlewareHooks,
 } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
+import { getWalletConnectSessionId } from './wc-analytics';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import {
   getScopedPermissions,
@@ -95,6 +97,12 @@ class WalletConnect2Session {
 
   private _isHandlingRequest = false;
 
+  /**
+   * Analytics context shared by every RPC request raised on this connection.
+   * Assigned in the constructor because it is derived from `channelId`.
+   */
+  private analyticsProperties: { [key: string]: string | boolean };
+
   public session: SessionTypes.Struct;
 
   constructor({
@@ -116,6 +124,11 @@ class WalletConnect2Session {
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.channelId = channelId;
+    this.analyticsProperties = {
+      isRemoteConn: false,
+      transport: TransportType.WALLETCONNECT,
+      remote_session_id: getWalletConnectSessionId(channelId),
+    };
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
     this.session = session;
@@ -172,7 +185,15 @@ class WalletConnect2Session {
           hostname: this.selfReportedHostname,
           getProviderState,
           channelId,
-          analytics: {},
+          // Carries `remote_session_id` onto every transaction/signature event
+          // raised on this connection, which is what makes WalletConnect
+          // activity attributable back to its connection event.
+          //
+          // `isRemoteConn` stays false on purpose: it is the flag the RPC
+          // middleware's getSource() uses to pick between the SDK v1 and
+          // MetaMask Connect request sources. WalletConnect must keep falling
+          // through to `request_source: 'WalletConnect'`.
+          analytics: this.analyticsProperties,
           isMMSDK: false,
           navigation: this.navigation,
           // Website info — self-reported by dapp via WC session metadata, shown in
@@ -533,7 +554,7 @@ class WalletConnect2Session {
         icon: {
           current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
         },
-        analytics: {},
+        analytics: this.analyticsProperties,
         channelId: this.channelId,
         getSource: () => AppConstants.REQUEST_SOURCES.WC,
       });
@@ -565,7 +586,7 @@ class WalletConnect2Session {
         nativeCurrency: networkConfiguration.nativeCurrency,
         chainId: hexChainIdString,
         rpcUrl,
-        analytics: {},
+        analytics: this.analyticsProperties,
         origin: this.channelId,
         hooks: getRpcMethodMiddlewareHooks({
           origin: this.channelId,
@@ -575,7 +596,7 @@ class WalletConnect2Session {
             current: this.session.peer.metadata
               .icons?.[0] as ImageSourcePropType,
           },
-          analytics: {},
+          analytics: this.analyticsProperties,
           channelId: this.channelId,
           getSource: () => AppConstants.REQUEST_SOURCES.WC,
         }),
