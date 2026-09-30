@@ -216,6 +216,28 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      ProfileService: {
+        getXAuthUrl: jest.fn().mockResolvedValue({
+          url: 'https://x.com/i/oauth2/authorize',
+          state: 'pkce-state',
+        }),
+      },
+      ProfileController: {
+        checkUsernameAvailability: jest.fn().mockResolvedValue({
+          username: 'wen-cat',
+          available: true,
+          valid: true,
+          normalized: 'wen-cat',
+          errors: [],
+        }),
+        createProfile: jest.fn().mockImplementation(async (params) => ({
+          profileId: params.profile_id,
+          username: params.username,
+          displayName: params.display_name,
+        })),
+        connectX: jest.fn().mockResolvedValue(undefined),
+        fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
+      },
       GeolocationController: {
         state: {
           location: 'US',

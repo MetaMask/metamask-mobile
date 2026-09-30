@@ -191,6 +191,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/profile-controller": {
+      "type": "breaking",
+      "previewVersion": "0.0.0-preview-3a5622e8c"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.101.4",
     "@metamask/network-controller": "36.0.0",
@@ -383,6 +389,7 @@
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.8.1",
+    "@metamask/profile-controller": "0.0.0",
     "@metamask/profile-metrics-controller": "^5.1.0",
     "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch",
     "@metamask/ramps-controller": "^26.0.1",

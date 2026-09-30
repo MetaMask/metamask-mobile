@@ -41,19 +41,21 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
-import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
-  buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
   displayNameFromUsername,
-  getUsernameStatus,
   nextUsernameSuggestion,
   normalizeUsername,
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import {
+  useConnectSocialX,
+  useCreateSocialProfile,
+  useSocialUsernameAvailability,
+} from './useSocialProfileOnboarding';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
 
@@ -230,15 +232,34 @@ const SocialProfileOnboardingView: React.FC = () => {
     });
   }, []);
 
-  const handleFinish = useCallback(() => {
-    saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
+  const openFeed = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.V1);
-  }, [draft, navigation]);
+  }, [navigation]);
+  const handleXConnected = useCallback(() => {
+    setStep('username');
+  }, []);
 
-  const usernameStatus = getUsernameStatus(draft.username);
+  const usernameStatus = useSocialUsernameAvailability(draft.username);
+  const {
+    connect: connectX,
+    isConnecting: isConnectingX,
+    error: connectXError,
+  } = useConnectSocialX({
+    onConnected: handleXConnected,
+  });
+  const {
+    finish,
+    isSubmitting,
+    error: submitError,
+  } = useCreateSocialProfile({
+    draft,
+    onCreated: openFeed,
+  });
+
   const username = normalizeUsername(draft.username);
   const continueDisabled =
-    (step === 'username' && !canContinueUsernameStep(draft)) ||
+    (step === 'username' &&
+      !canContinueUsernameStep(draft, usernameStatus === 'available')) ||
     (step === 'account' && !draft.linkedAccountId);
 
   return (
@@ -350,12 +371,24 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
+                  isDisabled={isConnectingX}
                   startIconName={IconName.X}
-                  onPress={() => undefined}
+                  onPress={() => {
+                    void connectX();
+                  }}
                   testID={SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON}
                 >
                   {strings('social_leaderboard.profile_onboarding.connect_x')}
                 </Button>
+                {connectXError ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                    twClassName="text-center"
+                  >
+                    {connectXError}
+                  </Text>
+                ) : null}
                 <Button
                   variant={ButtonVariant.Tertiary}
                   isFullWidth
@@ -466,6 +499,32 @@ const SocialProfileOnboardingView: React.FC = () => {
                       >
                         {strings(
                           'social_leaderboard.profile_onboarding.username_invalid',
+                        )}
+                      </Text>
+                    ) : null}
+                    {usernameStatus === 'taken' ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        testID={
+                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
+                        }
+                      >
+                        {strings(
+                          'social_leaderboard.profile_onboarding.username_taken',
+                        )}
+                      </Text>
+                    ) : null}
+                    {usernameStatus === 'error' ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        testID={
+                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
+                        }
+                      >
+                        {strings(
+                          'social_leaderboard.profile_onboarding.username_check_failed',
                         )}
                       </Text>
                     ) : null}
@@ -816,14 +875,28 @@ const SocialProfileOnboardingView: React.FC = () => {
           {step !== 'intro' ? (
             <Box paddingHorizontal={4} paddingBottom={4}>
               {step === 'ready' ? (
-                <Button
-                  variant={ButtonVariant.Primary}
-                  isFullWidth
-                  onPress={handleFinish}
-                  testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
-                >
-                  {strings('social_leaderboard.profile_onboarding.lets_go')}
-                </Button>
+                <Box gap={2}>
+                  {submitError ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.ErrorDefault}
+                      twClassName="text-center"
+                    >
+                      {submitError}
+                    </Text>
+                  ) : null}
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    isFullWidth
+                    isDisabled={isSubmitting}
+                    onPress={() => {
+                      void finish();
+                    }}
+                    testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
+                  >
+                    {strings('social_leaderboard.profile_onboarding.lets_go')}
+                  </Button>
+                </Box>
               ) : (
                 <Button
                   variant={ButtonVariant.Primary}

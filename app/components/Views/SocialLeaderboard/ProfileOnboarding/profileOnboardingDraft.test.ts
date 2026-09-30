@@ -1,4 +1,5 @@
 import {
+  buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
@@ -32,9 +33,13 @@ describe('profileOnboardingDraft', () => {
   it('blocks continue until the handle and display name are filled', () => {
     const draft = createInitialOnboardingDraft();
 
-    expect(canContinueUsernameStep(draft)).toBe(true);
+    expect(canContinueUsernameStep(draft, true)).toBe(true);
+    expect(canContinueUsernameStep(draft, false)).toBe(false);
     expect(
-      canContinueUsernameStep({ ...draft, username: 'no', displayName: '' }),
+      canContinueUsernameStep(
+        { ...draft, username: 'no', displayName: '' },
+        true,
+      ),
     ).toBe(false);
   });
 
@@ -57,5 +62,22 @@ describe('profileOnboardingDraft', () => {
     expect(profile.xHandle).toBeNull();
     expect(profile.rankingTag).toBeNull();
     expect(profile.shareUrl).toBe('https://metamask.io/wen-cat');
+  });
+
+  it('builds a create-profile body from the session id', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountAddress: '0x0000000000000000000000000000000000000001',
+      shareTradingActivity: false,
+    };
+
+    expect(buildCreateProfileParams(draft, 'session-profile')).toEqual({
+      profile_id: 'session-profile',
+      username: 'wen-cat',
+      display_name: 'Wen Cat',
+      bio: null,
+      linked_addresses: ['eip155:0:0x0000000000000000000000000000000000000001'],
+      trading_privacy: 'private',
+    });
   });
 });

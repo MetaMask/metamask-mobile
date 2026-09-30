@@ -190,6 +190,8 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { socialServiceInit } from './controllers/social-service-init';
+import { profileServiceInit } from './controllers/profile-service-init';
+import { profileControllerInit } from './controllers/profile-controller-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
@@ -419,6 +421,8 @@ export class Engine {
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
+        ProfileService: profileServiceInit,
+        ProfileController: profileControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
         UiSlotsController: uiSlotsControllerInit,
@@ -506,6 +510,8 @@ export class Engine {
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
     const socialController = messengerClientsByName.SocialController;
+    const profileService = messengerClientsByName.ProfileService;
+    const profileController = messengerClientsByName.ProfileController;
     const authenticatedUserStorageService =
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
@@ -726,6 +732,8 @@ export class Engine {
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
+      ProfileService: profileService,
+      ProfileController: profileController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
       UiSlotsController: uiSlotsController,
@@ -1683,6 +1691,7 @@ export default {
       AiDigestController,
       ClientController,
       SocialController,
+      ProfileController,
       ComplianceController,
       KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1765,6 +1774,7 @@ export default {
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
+      ProfileController: ProfileController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,

@@ -527,5 +527,30 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.RETRY_BUTTON));
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the debug reset button when posts fail to load', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: 'Posts unavailable',
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    ).toBeOnTheScreen();
   });
 });

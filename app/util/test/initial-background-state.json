@@ -420,6 +420,20 @@
     "lastUpdated": null,
     "signature": null
   },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
+  },
   "SocialController": {
     "followingAddresses": [],
     "followingProfileIds": [],
