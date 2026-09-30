@@ -395,7 +395,7 @@ const Wallet = ({
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const showMoneyBalanceCard =
-    isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
+    isMoneyAccountEnabled && !inWalletHomePostOnboardingFlow;
 
   /**
    * Provider configuration for the current selected network

@@ -113,6 +113,14 @@ const MoneyBalanceCard = () => {
     !isBalanceFetchError &&
     !isUnavailable &&
     totalFiatRaw === '0';
+  const hasResolvedNonZeroBalance =
+    hasMoneyAccount &&
+    !isBalanceLoading &&
+    !isBalanceFetchError &&
+    totalFiatRaw !== undefined &&
+    totalFiatRaw !== '0';
+  const shouldRenderCard =
+    isMoneyAccountGeoEligible || hasResolvedNonZeroBalance;
 
   const balanceText = totalFiatFormatted ?? '';
 
@@ -141,12 +149,12 @@ const MoneyBalanceCard = () => {
   }
 
   useEffect(() => {
-    if (hasSeenMoneyCardRef.current) {
+    if (!shouldRenderCard || hasSeenMoneyCardRef.current) {
       return;
     }
     hasSeenMoneyCardRef.current = true;
     trackComponentViewed();
-  }, [trackComponentViewed]);
+  }, [shouldRenderCard, trackComponentViewed]);
 
   const navigateToGeoBlockSheet = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -236,6 +244,10 @@ const MoneyBalanceCard = () => {
       screen: Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET,
     });
   }, [navigation, trackTooltipClicked]);
+
+  if (!shouldRenderCard) {
+    return null;
+  }
 
   const renderBalanceSlot = () => {
     if (!hasMoneyAccount || isBalanceLoading || isRetrying) {

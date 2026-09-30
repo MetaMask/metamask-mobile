@@ -529,6 +529,41 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
+  describe('geo-ineligible visibility', () => {
+    beforeEach(() => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+    });
+
+    it('hides the card when the Money balance is zero', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: '0',
+          totalFiatFormatted: '$0.00',
+        }),
+      );
+
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.APY_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the funded card with its APY', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
+        /4% APY/,
+      );
+    });
+  });
+
   describe('privacy mode', () => {
     it('shows the real balance when privacy mode is disabled', () => {
       mockSelectPrivacyMode.mockReturnValue(false);
@@ -1030,6 +1065,20 @@ describe('MoneyBalanceCard', () => {
       renderWithProvider(<MoneyBalanceCard />);
 
       expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not track a hidden zero-balance card for a geo-ineligible user', () => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: '0',
+          totalFiatFormatted: '$0.00',
+        }),
+      );
+
+      renderWithProvider(<MoneyBalanceCard />);
+
+      expect(mockTrackComponentViewed).not.toHaveBeenCalled();
     });
 
     it('does not call trackComponentViewed again on re-render', () => {
