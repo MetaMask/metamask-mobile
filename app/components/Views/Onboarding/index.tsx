@@ -10,7 +10,6 @@ import {
   AppState,
   BackHandler,
   ScrollView,
-  InteractionManager,
   Platform,
   StyleSheet,
   View,
@@ -222,6 +221,21 @@ async function isDeviceOffline(): Promise<boolean> {
   const netState = await netInfoFetch();
   return !netState.isConnected || netState.isInternetReachable === false;
 }
+
+type IdleCallbackHost = typeof globalThis & {
+  requestIdleCallback?: (callback: () => void) => number;
+};
+
+const scheduleIdleTask = (task: () => void): void => {
+  const idleHost = globalThis as IdleCallbackHost;
+
+  if (typeof idleHost.requestIdleCallback === 'function') {
+    idleHost.requestIdleCallback(task);
+    return;
+  }
+
+  setTimeout(task, 0);
+};
 
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
@@ -1393,7 +1407,7 @@ const Onboarding = () => {
     void checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
-    InteractionManager.runAfterInteractions(() => {
+    scheduleIdleTask(() => {
       void checkForMigrationFailureAndVaultBackup();
       void PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
@@ -1438,9 +1452,9 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(() =>
-        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
-      );
+      scheduleIdleTask(() => {
+        void PreventScreenshot.allow(CAPTURE_KEYS.onboarding);
+      });
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );

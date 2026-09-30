@@ -366,6 +366,8 @@ jest.mock('@react-navigation/native-stack', () => ({
   }),
 }));
 
+// trackOnboarding still defers through InteractionManager, and testSetup mocks
+// it as a no-op, so it has to run synchronously here for analytics assertions.
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -378,6 +380,20 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
+
+const mockRequestIdleCallback = jest.fn((callback: () => void) => {
+  callback();
+  return 0;
+});
+const idleHost = globalThis as typeof globalThis & {
+  requestIdleCallback?: (callback: () => void) => number;
+};
+const originalRequestIdleCallback = idleHost.requestIdleCallback;
+idleHost.requestIdleCallback = mockRequestIdleCallback;
+
+afterAll(() => {
+  idleHost.requestIdleCallback = originalRequestIdleCallback;
+});
 
 // Mock React Navigation hooks
 const mockRoute = {
