@@ -826,6 +826,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.V1,
         Routes.SOCIAL.POST_COMPOSER,
         Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.V1_PROFILE,
         Routes.SOCIAL.FOLLOW_CONNECTIONS,
         Routes.SOCIAL.PROFILES_TO_FOLLOW,
         Routes.SOCIAL.MANAGE_PROFILE,
@@ -1734,6 +1735,13 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const v1ProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
+    );
+
+    expect(v1ProfileScreen).toBeDefined();
+    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
@@ -1804,6 +1812,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
@@ -1819,7 +1828,10 @@ describe('MainNavigator', () => {
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {
-    const stateForArm = (headerNavBarVariant?: string) => ({
+    const stateForArm = (
+      headerNavBarVariant?: string,
+      socialV1Variant?: string,
+    ) => ({
       ...initialRootState,
       engine: {
         ...initialRootState.engine,
@@ -1837,6 +1849,9 @@ describe('MainNavigator', () => {
               },
               ...(headerNavBarVariant
                 ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+              ...(socialV1Variant
+                ? { socialAiTSA1122AbtestSocialBundleV1: socialV1Variant }
                 : {}),
             },
           },
@@ -1932,6 +1947,40 @@ describe('MainNavigator', () => {
         expect(
           renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
         ).toBe(trailingAction);
+      },
+    );
+
+    const socialTabComponentName = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string | undefined =>
+      renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0]?.props?.component?.name;
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
+      (arm) => {
+        const state = stateForArm(arm, 'treatment');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV1View');
+      },
+    );
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      (arm) => {
+        const state = stateForArm(arm, 'control');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV0View');
       },
     );
   });

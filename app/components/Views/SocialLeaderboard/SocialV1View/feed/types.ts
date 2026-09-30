@@ -46,8 +46,17 @@ interface SocialV1FeedItemBase {
   asset: SocialV1FeedAsset;
   /** Author comment. */
   comment?: string;
+  /**
+   * Realized P&L in USD on a closed position, current value on an open one.
+   * Only the closed layout renders it; the open layout leads with P&L instead.
+   */
   valueLabel: string;
+  /** P&L as a percent. */
   pnlLabel: string;
+  /** P&L in USD, abbreviated (`+$256.96K`). Sits under the percent when open. */
+  pnlValueLabel?: string;
+  /** USD the trader put in, i.e. what the P&L is measured against. */
+  costLabel?: string;
   isPnlPositive: boolean;
   /**
    * Which of this item's values the client invented. The marked labels already
@@ -76,7 +85,6 @@ export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   exitPriceLabel?: string;
   holdTimeLabel?: string;
-  statusLabel?: string;
 }
 
 export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
@@ -94,7 +102,6 @@ export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   exitPriceLabel?: string;
   holdTimeLabel?: string;
-  statusLabel?: string;
 }
 
 /**

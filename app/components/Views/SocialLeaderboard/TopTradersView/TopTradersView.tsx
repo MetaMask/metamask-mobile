@@ -47,6 +47,8 @@ import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useMyProfile } from '../MyProfileView/hooks';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import {
   TraderRow,
@@ -394,6 +396,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [activeTab, sort, queryTimeframe],
   );
 
+  const { profile: myProfile } = useMyProfile();
+
   const { rows: traders, isShowingSnapshot } = useLeaderboardReveal({
     freshTraders,
     hasFetched: activeResult.hasFetched,
@@ -401,6 +405,75 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     enabled: revealPreviousOrder,
     hydrateRow: hydrateSnapshotRow,
   });
+
+  const isViewerTrader = useCallback(
+    (trader: TopTrader) => {
+      if (!myProfile) {
+        return false;
+      }
+      if (trader.id === myProfile.profileId) {
+        return true;
+      }
+      const linked = myProfile.linkedAccountAddress;
+      return Boolean(
+        linked && trader.address.toLowerCase() === linked.toLowerCase(),
+      );
+    },
+    [myProfile],
+  );
+
+  const matchedViewer = useMemo(
+    () => (useV1Filters ? traders.find(isViewerTrader) : undefined),
+    [isViewerTrader, traders, useV1Filters],
+  );
+
+  const listTraders = useMemo(
+    () =>
+      useV1Filters && matchedViewer
+        ? traders.filter((trader) => trader.id !== matchedViewer.id)
+        : traders,
+    [matchedViewer, traders, useV1Filters],
+  );
+
+  const viewerRow = useMemo(() => {
+    if (!useV1Filters || !myProfile) {
+      return null;
+    }
+    if (matchedViewer) {
+      return { trader: matchedViewer, hideRank: false };
+    }
+    const synthetic: RankedTrader = {
+      id: myProfile.profileId,
+      address: myProfile.linkedAccountAddress ?? '',
+      rank: 0,
+      overallRank: 0,
+      username: myProfile.handle || myProfile.displayName,
+      avatarUri: myProfile.imageUrl ?? undefined,
+      percentageChange: 0,
+      pnlValue: myProfile.pnlUsd ?? 0,
+      winRatePercent: myProfile.winRatePercent ?? null,
+      pnlPerChain: {},
+      followerCount: myProfile.followerCount ?? 0,
+      isFollowing: false,
+      displayMetric: getTraderMetricDisplay(
+        {
+          id: myProfile.profileId,
+          address: myProfile.linkedAccountAddress ?? '',
+          rank: 0,
+          overallRank: 0,
+          username: myProfile.handle || myProfile.displayName,
+          percentageChange: 0,
+          pnlValue: myProfile.pnlUsd ?? 0,
+          winRatePercent: myProfile.winRatePercent ?? null,
+          pnlPerChain: {},
+          followerCount: myProfile.followerCount ?? 0,
+          isFollowing: false,
+        },
+        sort,
+      ),
+    };
+    return { trader: synthetic, hideRank: true };
+  }, [matchedViewer, myProfile, sort, useV1Filters]);
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
@@ -624,6 +697,19 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
         });
       }
+      if (useV1Filters) {
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName,
+          traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
+          source: 'leaderboard',
+          traderRank: trader?.rank,
+          viewerProfileId: myProfile?.profileId ?? undefined,
+          viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+        });
+        return;
+      }
       navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
@@ -632,8 +718,15 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders, activeTab, track],
+    [activeTab, myProfile, navigation, traders, track, useV1Filters],
   );
+
+  const handleViewerPress = useCallback(() => {
+    navigateToSocialV1Profile(navigation, {
+      viewerProfileId: myProfile?.profileId ?? undefined,
+      viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+    });
+  }, [myProfile, navigation]);
 
   const renderTraderRow = useCallback(
     ({ item }: { item: RankedTrader }) => (
@@ -663,17 +756,32 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const listHeader = useMemo(
     () =>
       useV1Filters ? (
-        <SocialTabFilterBar
-          onOpenFilters={onOpenCustomFilters}
-          isFilterActive={isCustomFilterActive}
-          filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
-        >
-          <RankingFilterSelector
-            value={ranking}
-            onPress={openRankingSheet}
-            testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
-          />
-        </SocialTabFilterBar>
+        <Box>
+          <SocialTabFilterBar
+            onOpenFilters={onOpenCustomFilters}
+            isFilterActive={isCustomFilterActive}
+            filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+          >
+            <RankingFilterSelector
+              value={ranking}
+              onPress={openRankingSheet}
+              testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
+            />
+          </SocialTabFilterBar>
+          {viewerRow ? (
+            <Box twClassName="pb-2">
+              <RowComponent
+                trader={viewerRow.trader}
+                metric={viewerRow.trader.displayMetric}
+                onFollowPress={handleFollowPress}
+                onTraderPress={handleViewerPress}
+                highlighted
+                hideRank={viewerRow.hideRank}
+                testID={TopTradersViewSelectorsIDs.VIEWER_CARD}
+              />
+            </Box>
+          ) : null}
+        </Box>
       ) : (
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -704,6 +812,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       ),
     [
       activeTab,
+      handleFollowPress,
+      handleViewerPress,
       isCustomFilterActive,
       onOpenCustomFilters,
       openSortSheet,
@@ -711,10 +821,12 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       openTypeSheet,
       openRankingSheet,
       ranking,
+      RowComponent,
       showTypeFilter,
       sort,
       timeframe,
       useV1Filters,
+      viewerRow,
     ],
   );
 
@@ -749,7 +861,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       ) : (
         <Animated.FlatList<RankedTrader>
           ref={listRef}
-          data={traders}
+          data={listTraders}
           keyExtractor={(item) => item.id}
           // Stable keys are what let a reorder read as movement rather than a
           // re-render: the cell for a given trader survives the sort, so

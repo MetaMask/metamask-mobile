@@ -373,11 +373,14 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
 
     it('swaps the primary amount between fiat and token when toggled', () => {
-      const { getByTestId } = renderSheet();
+      const { getByTestId, queryByTestId } = renderSheet();
 
       const amount = () =>
         getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
+      const unit = () =>
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL);
       const fiatFirst = amount().props.children;
+      expect(unit()).toBeNull();
 
       fireEvent.press(
         getByTestId(
@@ -387,7 +390,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       const tokenFirst = amount().props.children;
 
       expect(tokenFirst).not.toBe(fiatFirst);
-      expect(String(tokenFirst)).toContain('ETH');
+      expect(unit()).toHaveTextContent('ETH');
 
       fireEvent.press(
         getByTestId(
@@ -395,6 +398,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         ),
       );
       expect(amount().props.children).toBe(fiatFirst);
+      expect(unit()).toBeNull();
     });
 
     it('renders the order type toggle when the limit order flag is enabled', () => {
@@ -692,6 +696,20 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
       ).toHaveLength(1);
+    });
+
+    it('opens the size keypad when the amount display is pressed in market mode', () => {
+      const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } =
+        renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+
+      expect(queryByTestId('mock-keypad')).toBeOnTheScreen();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(0);
     });
 
     it('shows the slider when the close size is pressed on a limit view', () => {
