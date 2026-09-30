@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "ウォレット",
     "search_accessibility_label": "Search",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "検索",
     "rewards_accessibility_label": "報酬",
     "tokens": "トークン",
     "view_all_nfts": "すべてのNFTを表示",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "ステーク",
     "earn": "獲得",
     "tron": {
       "stake_completed": "ステーキング完了",

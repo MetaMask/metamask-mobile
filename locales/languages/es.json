@@ -610,10 +610,10 @@
     "steps": "Paso {{currentStep}} de {{totalSteps}}",
     "password_error": "Las contraseñas no coinciden.",
     "marketing_opt_in_description": "Recibe actualizaciones de productos, consejos y noticias, incluso por correo electrónico. Podemos usar tus interacciones para mejorar lo que compartimos.",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "MetaMask no puede restablecer tu contraseña",
+    "password_warning_description_part1": "Si olvidas esta contraseña, la única forma de volver a ingresar es con tu ",
     "password_warning_srp": "Frase secreta de recuperación",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " o un dispositivo con biometría habilitada.",
     "password_warning_confirm": "Comprendo",
     "password_warning_cancel": "Cancelar"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Billetera",
     "search_accessibility_label": "Buscar",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Buscar",
     "rewards_accessibility_label": "Recompensas",
     "tokens": "Tokens",
     "view_all_nfts": "Ver todos los NFT",
