@@ -27274,14 +27274,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cockatiel@npm:^3.1.2":
-  version: 3.1.2
-  resolution: "cockatiel@npm:3.1.2"
-  checksum: 10/52d8fd0038fc5fe5579962947243fe971fa827db5ad1acecec5dbde854d7018696d3c6967a4860d8399e39d0f53e9d762c00cad5e2b3694c554d19e7d08b3f6a
-  languageName: node
-  linkType: hard
-
-"cockatiel@npm:^3.2.1":
+"cockatiel@npm:^3.1.2, cockatiel@npm:^3.2.1":
   version: 3.2.1
   resolution: "cockatiel@npm:3.2.1"
   checksum: 10/b022d588dc1e31db59a17527b89acd6ed52c6d8761402afe112c7688af8836363e260ebf71b6f07c7edd69e62047adbf9fc1b3ffcb9081b7a0a751e6018773a6
