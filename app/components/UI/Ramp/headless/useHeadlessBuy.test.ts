@@ -16,7 +16,14 @@ const mockNavigate = jest.fn();
 const mockGetQuotesRaw = jest.fn();
 const mockGetOrderById = jest.fn();
 const mockResolveAccount = jest.fn();
+const mockLoggerError = jest.fn();
 
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: (...args: unknown[]) => mockLoggerError(...args),
+  },
+}));
 jest.mock('../hooks/useRampsController', () => jest.fn());
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -119,6 +126,7 @@ const baseControllerValue: ReturnType<typeof useRampsController> = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockLoggerError.mockClear();
   __resetSessionRegistryForTests();
   (useRampsController as jest.Mock).mockReturnValue(baseControllerValue);
   mockResolveAccount.mockReturnValue({ address: '0xWALLET' });
@@ -467,6 +475,60 @@ describe('useHeadlessBuy', () => {
         }),
       );
       expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('logs when onError itself throws during a pre-session failure', () => {
+      const setSelectedToken = jest.fn(() => {
+        throw new Error('Token with asset ID "missing" not found');
+      });
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        setSelectedToken,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = {
+        ...buildCallbacks(),
+        onError: jest.fn(() => {
+          throw new Error('consumer onError blew up');
+        }),
+      };
+      let started: ReturnType<typeof result.current.startHeadlessBuy> =
+        undefined;
+      act(() => {
+        started = result.current.startHeadlessBuy(baseStartParams, callbacks);
+      });
+      expect(started).toBeUndefined();
+      expect(callbacks.onError).toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'consumer onError blew up' }),
+        'useHeadlessBuy: onError callback threw',
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('logs a wrapped Error when onError throws a non-Error value', () => {
+      const setSelectedToken = jest.fn(() => {
+        throw new Error('Token with asset ID "missing" not found');
+      });
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        setSelectedToken,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = {
+        ...buildCallbacks(),
+        onError: jest.fn(() => {
+          // eslint-disable-next-line @typescript-eslint/only-throw-error -- cover non-Error Logger branch
+          throw 'consumer onError string';
+        }),
+      };
+      act(() => {
+        result.current.startHeadlessBuy(baseStartParams, callbacks);
+      });
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'consumer onError string' }),
+        'useHeadlessBuy: onError callback threw',
+      );
     });
 
     it('seeds provider as null when quote provider is not in the loaded catalog', () => {
