@@ -28,13 +28,18 @@ export function getMoneySliceStatus({
 }
 
 export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
-  const { hasMoneyAccount } = useMoneyAccountInfo();
-  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
+    useMoneyAccountInfo();
+  const isMoneyAccountAvailable = useSelector(selectIsMoneyAccountVisible);
   const { tokenTotal, isBalanceLoading, isBalanceFetchError } =
-    useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
+    useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy({
-    enabled: isMoneyAccountVisible,
+    enabled: isMoneyAccountAvailable,
   });
+  const hasNonZeroBalance = tokenTotal?.isZero() === false;
+  const isMoneyAccountVisible =
+    isMoneyAccountAvailable ||
+    (isMoneyAccountFeatureEnabled && hasMoneyAccount && hasNonZeroBalance);
   const moneyStatus = getMoneySliceStatus({
     isMoneyAccountVisible,
     hasMoneyAccount,
@@ -52,9 +57,9 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       ? 'error'
       : moneyStatus;
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
-  const apyLoading = isMoneyAccountVisible && vaultApyQuery.isLoading;
+  const apyLoading = isMoneyAccountAvailable && vaultApyQuery.isLoading;
   const visibleApyPercent =
-    isMoneyAccountVisible && !apyLoading && apyPercent !== undefined
+    isMoneyAccountAvailable && !apyLoading && apyPercent !== undefined
       ? apyPercent
       : undefined;
 

@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
@@ -55,7 +56,7 @@ describe('useMoneySlice', () => {
       hasMoneyAccount: true,
     } as ReturnType<typeof useMoneyAccountInfo>);
     mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: { toNumber: () => 100 },
+      tokenTotal: new BigNumber(100),
       isBalanceLoading: false,
       isBalanceFetchError: false,
     } as ReturnType<typeof useMoneyAccountBalance>);
@@ -139,31 +140,40 @@ describe('useMoneySlice', () => {
     expect(result.current.apyLoading).toBe(false);
   });
 
-  it('hides Money and skips requests when the account is geo-ineligible', () => {
+  it('hides an empty Money account when the account is geo-ineligible', () => {
     mockUseSelector.mockReturnValue(false);
-    mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-    } as ReturnType<typeof useMoneyAccountInfo>);
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyPercent: 4.1,
-      vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: undefined,
+      tokenTotal: new BigNumber(0),
       isBalanceLoading: false,
       isBalanceFetchError: false,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
-    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
     expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
     expect(result.current).toEqual({
       key: 'money',
       isVisible: false,
       valueFiat: 0,
       status: 'ineligible',
+      apyPercent: undefined,
+      apyLoading: false,
+    });
+  });
+
+  it('shows a funded Money account without APY when the account is geo-ineligible', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    const { result } = renderHook(() => useMoneySlice((amount) => amount));
+
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(result.current).toEqual({
+      key: 'money',
+      isVisible: true,
+      valueFiat: 100,
+      status: 'ready',
       apyPercent: undefined,
       apyLoading: false,
     });
