@@ -52,6 +52,7 @@ describe('useExploreSearchFooterPress', () => {
         tab_name: 'all',
         item_clicked: action,
         result_count: 7,
+        query_length: 11,
       });
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
