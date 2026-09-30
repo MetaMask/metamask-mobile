@@ -79,6 +79,10 @@ const styleSheet = (params: { theme: Theme }) =>
       opacity: 0,
       pointerEvents: 'none',
     } as ViewStyle,
+    /** Spacer matching IndicatorBar / Skeleton height so mode switches don't shift buttons */
+    indicatorBarSpacer: {
+      height: 37,
+    } as ViewStyle,
   });
 
 export default styleSheet;

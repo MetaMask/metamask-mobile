@@ -1286,7 +1286,13 @@ const PriceAdvanced = ({
       {(() => {
         if (isLineMode) {
           if (isTechnicalIndicatorsEnabled) {
-            return <Box twClassName="pb-4" />;
+            // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+            return (
+              <Box
+                twClassName="w-full mt-4 mb-6"
+                style={styles.indicatorBarSpacer}
+              />
+            );
           }
           return (
             <View style={styles.timeRangeContainer}>
@@ -1305,7 +1311,13 @@ const PriceAdvanced = ({
         }
 
         if (showCandleEmptyState && isTechnicalIndicatorsEnabled) {
-          return <Box twClassName="pb-4" />;
+          // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+          return (
+            <Box
+              twClassName="w-full mt-4 mb-6"
+              style={styles.indicatorBarSpacer}
+            />
+          );
         }
 
         if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {

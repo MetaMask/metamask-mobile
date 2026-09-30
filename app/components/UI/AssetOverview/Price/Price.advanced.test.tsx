@@ -250,6 +250,18 @@ jest.mock('./Price.legacy', () => {
   };
 });
 
+jest.mock('../NoDataOverlay/NoDataOverlay', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => (
+      <View testID="price-chart-no-data">
+        <Text>No chart data</Text>
+      </View>
+    ),
+  };
+});
+
 /** Enough points to stay on the advanced path (see CHART_DATA_THRESHOLD in Price.advanced). */
 const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
   String(1000 + i),
@@ -367,7 +379,7 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
   });
 
-  it('falls back to legacy chart when hasEmptyData is true', () => {
+  it('shows candle empty state when hasEmptyData is true', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: false,
@@ -378,10 +390,10 @@ describe('PriceAdvanced', () => {
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
-  it('falls back to legacy when only one OHLCV candle (insufficient for advanced chart)', () => {
+  it('shows candle empty state when only one OHLCV candle (insufficient for advanced chart)', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -395,10 +407,10 @@ describe('PriceAdvanced', () => {
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
-  it('falls back to legacy chart on OHLCV error', () => {
+  it('shows candle empty state on OHLCV error', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: false,
@@ -409,11 +421,11 @@ describe('PriceAdvanced', () => {
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    // Should fallback to legacy chart when there's an error
-    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    // Should show empty state when there's an error
+    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
-  it('falls back to legacy chart when OHLCV has fewer than 5 candles', () => {
+  it('shows candle empty state when OHLCV has fewer than 5 candles', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -429,7 +441,7 @@ describe('PriceAdvanced', () => {
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
   it('tracks chart_interacted with timeframe_changed when a different time range is selected', () => {
@@ -571,7 +583,7 @@ describe('PriceAdvanced', () => {
     expect(getByText(/5\.00%/)).toBeOnTheScreen();
   });
 
-  it('falls back to legacy when OHLCV data is empty', () => {
+  it('shows candle empty state when OHLCV data is empty', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: false,
@@ -584,7 +596,7 @@ describe('PriceAdvanced', () => {
 
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-    expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
   });
 
   it('updates percentage when time range changes and new OHLCV data loads', () => {
@@ -827,7 +839,7 @@ describe('PriceAdvanced', () => {
   });
 
   describe('custom network support', () => {
-    it('falls back to legacy chart when formatAddressToAssetId throws for unsupported chain', () => {
+    it('shows candle empty state when formatAddressToAssetId throws for unsupported chain', () => {
       // useOHLCVChart should receive empty assetId and skip fetch
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [],
@@ -849,8 +861,8 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced {...baseProps} asset={customNetworkAsset} />,
       );
 
-      // Should fallback to legacy chart instead of crashing
-      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+      // Should show empty state instead of crashing
+      expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
     });
 
     it('handles formatAddressToAssetId error for Linea Sepolia testnet', () => {
@@ -874,7 +886,7 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced {...baseProps} asset={lineaSepoliaAsset} />,
       );
 
-      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+      expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
     });
 
     it('still renders advanced chart for supported networks', () => {
@@ -898,7 +910,7 @@ describe('PriceAdvanced', () => {
 
       // Should render advanced chart for supported networks
       expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
-      expect(queryByTestId('price-legacy-fallback')).not.toBeOnTheScreen();
+      expect(queryByTestId('price-chart-no-data')).not.toBeOnTheScreen();
     });
 
     it('passes empty assetId to useOHLCVChart when formatAddressToAssetId fails', () => {
@@ -982,7 +994,7 @@ describe('PriceAdvanced', () => {
       );
     });
 
-    it('falls back to legacy when TradingView init fails while OHLCV data is available', () => {
+    it('shows candle empty state when TradingView init fails while OHLCV data is available', () => {
       // AdvancedChart renders from useOHLCVChart (ohlcvData), not `prices`.
       // CDN/library failure is the common case: OHLCV succeeded, WebView init did not.
       expect(mockUseOHLCVChart).toBeDefined();
@@ -995,7 +1007,7 @@ describe('PriceAdvanced', () => {
         );
       });
 
-      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+      expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
     });
 
     it('keeps TimeRangeSelector loading until advanced chart is revealed', () => {
@@ -1058,7 +1070,7 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('mock-indicator-bar')).toBeOnTheScreen();
     });
 
-    it('falls back to legacy without flashing interval or indicator bars when init fails', () => {
+    it('shows candle empty state without indicator bar when init fails', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
@@ -1074,17 +1086,13 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced {...baseProps} />,
       );
 
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
-      expect(queryByTestId('mock-indicator-bar')).toBeNull();
-
       act(() => {
         getByTestId('mock-advanced-chart').props.onInitFailed?.(
           'Failed to load TradingView library',
         );
       });
 
-      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
       expect(queryByTestId('mock-indicator-bar')).toBeNull();
     });
 
@@ -2117,7 +2125,7 @@ describe('PriceAdvanced', () => {
       expect(mockSetTimePeriod).toHaveBeenCalledWith('1d');
     });
 
-    it('falls back to PriceLegacy when OHLCV data is empty in line mode', () => {
+    it('shows line chart when OHLCV data is empty in line mode', () => {
       enableLineMode();
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [],
@@ -2129,7 +2137,7 @@ describe('PriceAdvanced', () => {
       });
 
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+      expect(getByTestId('mock-price-chart')).toBeOnTheScreen();
     });
 
     it('calls onPriceDirectionChange based on parent priceDiff in line mode', () => {
