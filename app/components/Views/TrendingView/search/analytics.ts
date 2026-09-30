@@ -41,7 +41,8 @@ export type SearchInteractionType =
   | 'result_clicked'
   | 'scrolled'
   | 'tab_switched'
-  | 'searched';
+  | 'searched'
+  | 'paste';
 
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
@@ -52,7 +53,7 @@ export type SearchEntryPoint = 'home' | 'explore' | 'deeplink' | 'nav_bar';
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
-  /** Only set on `opened`. */
+  /** Set on `opened` and paste interactions initiated from a known surface. */
   entry_point?: SearchEntryPoint;
   /**
    * Only set on result_clicked: the feed section when tab_name is 'all', or
@@ -218,11 +219,13 @@ export const trackExploreSearchOpened = (
  */
 export const useInstrumentedSearchEffect = ({
   searchQuery,
+  redactSearchQuery = false,
   isLoading,
   getPill,
   getSections,
 }: {
   searchQuery: string;
+  redactSearchQuery?: boolean;
   isLoading: boolean;
   getPill: () => SearchFeedPill;
   getSections: () => SearchFeedSection[];
@@ -242,13 +245,13 @@ export const useInstrumentedSearchEffect = ({
 
     trackExploreSearchEvent({
       interaction_type: 'searched',
-      search_query: searchQuery,
+      search_query: redactSearchQuery ? '' : searchQuery,
       tab_name: pill,
       result_count: resultCount,
       query_length: getSearchQueryLength(searchQuery),
     });
     instrumentedQueryRef.current = searchQuery;
-  }, [searchQuery, isLoading, getPill, getSections]);
+  }, [searchQuery, redactSearchQuery, isLoading, getPill, getSections]);
 };
 
 /**
