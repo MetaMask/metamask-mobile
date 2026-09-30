@@ -829,8 +829,8 @@ describe('BuildQuote View', () => {
 
       fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       fireEvent.press(getByRoleButton('1'));
-      fireEvent.press(getByRoleButton('0'));
-      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.KEYPAD_0_BUTTON));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.KEYPAD_0_BUTTON));
       fireEvent.press(getByRoleButton('Done'));
 
       expect(
@@ -1391,8 +1391,8 @@ describe('BuildQuote View', () => {
 
       fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       fireEvent.press(getByRoleButton('1'));
-      fireEvent.press(getByRoleButton('0'));
-      fireEvent.press(getByRoleButton('0'));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.KEYPAD_0_BUTTON));
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.KEYPAD_0_BUTTON));
       fireEvent.press(getByRoleButton('Done'));
 
       expect(

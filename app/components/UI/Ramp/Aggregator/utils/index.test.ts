@@ -62,6 +62,45 @@ describe('timeToDescription', () => {
 });
 
 describe('formatAmount', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('preserves comma grouping when integer parts are requested', () => {
+    const formatterSpy = jest
+      .spyOn(IntlModule, 'getIntlNumberFormatter')
+      .mockReturnValue({
+        formatToParts: jest.fn().mockReturnValue([
+          { type: 'integer', value: '1' },
+          { type: 'group', value: ',' },
+          { type: 'integer', value: '234' },
+          { type: 'decimal', value: '.' },
+          { type: 'fraction', value: '56' },
+        ]),
+      } as unknown as Intl.NumberFormat);
+
+    const result = formatAmount(1234.56, true);
+
+    expect(result).toBe('1,234');
+    formatterSpy.mockRestore();
+  });
+
+  it('preserves dot grouping for decimal-comma locales', () => {
+    jest.spyOn(IntlModule, 'getIntlNumberFormatter').mockReturnValue({
+      formatToParts: jest.fn().mockReturnValue([
+        { type: 'integer', value: '1' },
+        { type: 'group', value: '.' },
+        { type: 'integer', value: '234' },
+        { type: 'decimal', value: ',' },
+        { type: 'fraction', value: '56' },
+      ]),
+    } as unknown as Intl.NumberFormat);
+
+    const result = formatAmount(1234.56, true);
+
+    expect(result).toBe('1.234');
+  });
+
   it('should format amount', () => {
     jest.spyOn(Intl, 'NumberFormat').mockImplementation(
       () =>

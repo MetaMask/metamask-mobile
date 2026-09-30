@@ -847,7 +847,7 @@ const BuildQuote = () => {
   // If the current view is for Sell the amount (crypto) is displayed as is
   let displayAmount = `${amount} ${selectedAsset?.symbol ?? ''}`;
 
-  // If the current ivew is for Buy we will format the amount
+  // Buy amounts use localized grouping when displayed.
   if (isBuy) {
     // Split the amount to detect if it has decimals
     const splitAmount = amount.split(/(\.)|(,)/);
@@ -860,7 +860,8 @@ const BuildQuote = () => {
 
     displayAmount =
       isBuy && amountFocused
-        ? // If the amount is focused (being edited) the amount integer part will be shown in groups separated by spaces
+        ? // Keep localized integer grouping while preserving the separator and
+          // decimal digits exactly as entered.
           `${formatAmount(Math.trunc(amountNumber), true)}${
             // If the amount has decimals the decimal part will be shown
             // using the separator and the decimal part
