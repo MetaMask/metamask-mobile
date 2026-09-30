@@ -134,12 +134,17 @@ describeForPlatforms('CollectorCrypt buyback recovery', () => {
       );
       expect(screen.getByTestId(DisplayIds.NAME)).toHaveTextContent(CARD.name);
       expect(screen.getByTestId(DisplayIds.GRADE)).toHaveTextContent(
-        'PSA GEM-MT 10',
+        view === 'card' ? 'GEM-MT 10' : 'PSA GEM-MT 10',
       );
       expect(screen.getByTestId(DisplayIds.RARITY)).toHaveTextContent(
         strings('gacha.rarity.rare'),
       );
-      expect(screen.getByTestId(DisplayIds.VALUE)).toHaveTextContent('$120');
+      if (view === 'card') {
+        expect(
+          screen.getByTestId(DisplayIds.GRADING_COMPANY),
+        ).toHaveTextContent('PSA');
+      }
+      expect(screen.getByTestId(DisplayIds.VALUE)).toHaveTextContent('120');
       expect(controller.refreshBuyback).toHaveBeenCalledTimes(2);
       expect(controller.refreshBuyback).toHaveBeenLastCalledWith({
         account: MOCK_ACCOUNT,

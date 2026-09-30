@@ -1,6 +1,11 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
@@ -12,6 +17,7 @@ import {
   GachaCardTileTestIds,
   GachaCardViewTestIds,
   GachaHomeTestIds,
+  GachaInteractiveCardTestIds,
   GachaPacksTestIds,
 } from '../../../../UI/Gacha/Gacha.testIds';
 import GachaScreenStack from '../../../../UI/Gacha/routes';
@@ -24,7 +30,10 @@ import {
 import GachaSection from './GachaSection';
 import { GachaSectionTestIds } from './GachaSection.testIds';
 
-const CARD = createCard();
+const CARD = createCard({
+  image: 'https://example.com/card-front.png',
+  backImage: 'https://example.com/card-back.png',
+});
 const HomepageGachaSection = () => (
   <GachaSection sectionIndex={3} totalSectionsLoaded={6} />
 );
@@ -73,13 +82,30 @@ describeForPlatforms('Gacha homepage navigation', () => {
   it('returns from a homepage card to My Collection, then to the homepage', async () => {
     renderHomepageJourney();
 
-    fireEvent.press(
-      await screen.findByTestId(GachaSectionTestIds.CARD_TILE(CARD.mint)),
+    const homeTile = await screen.findByTestId(
+      GachaSectionTestIds.CARD_TILE(CARD.mint),
     );
+    expect(
+      within(homeTile).getByTestId(GachaCardTileTestIds.NAME(CARD.mint)),
+    ).toHaveTextContent(CARD.name);
+    expect(
+      within(homeTile).getByTestId(GachaCardTileTestIds.VALUE(CARD.mint)),
+    ).toHaveTextContent('120 USDC');
+
+    fireEvent.press(homeTile);
 
     expect(
       await screen.findByTestId(GachaCardDisplayTestIds.NAME),
     ).toHaveTextContent(CARD.name);
+    const card = screen.getByTestId(GachaInteractiveCardTestIds.CONTAINER);
+    await waitFor(() => expect(card).toHaveProp('accessibilityRole', 'button'));
+
+    fireEvent.press(card);
+
+    expect(card).toHaveProp(
+      'accessibilityLabel',
+      strings('gacha.card.back_label', { name: CARD.name }),
+    );
     fireEvent.press(screen.getByTestId(GachaCardViewTestIds.BACK_BUTTON));
 
     const collection = await screen.findByTestId(GachaHomeTestIds.CONTAINER);
@@ -87,6 +113,9 @@ describeForPlatforms('Gacha homepage navigation', () => {
       within(collection).getByTestId(GachaCardTileTestIds.TILE(CARD.mint)),
     ).toBeOnTheScreen();
     expect(within(collection).getByText(CARD.name)).toBeOnTheScreen();
+    expect(
+      within(collection).getByTestId(GachaCardTileTestIds.VALUE(CARD.mint)),
+    ).toHaveTextContent('120 USDC');
     expect(screen.queryByTestId(GachaPacksTestIds.LIST)).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(GachaCardViewTestIds.CONTAINER),

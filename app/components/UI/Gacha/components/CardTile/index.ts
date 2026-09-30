@@ -1,2 +1,2 @@
-export { default, getCardTileSubtitle } from './CardTile';
+export { default } from './CardTile';
 export type { CardTileProps } from './CardTile';

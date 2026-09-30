@@ -3373,10 +3373,8 @@
   },
   "gacha": {
     "title": "Gacha",
-    "powered_by": "Powered by Collector Crypt",
     "usdc": "USDC",
     "usdc_amount": "{{amount}} USDC",
-    "balance": "Balance",
     "balance_available": "{{amount}} USDC available",
     "no_solana_account": "Select an account with a Solana address to open packs.",
     "tabs": {
@@ -3433,6 +3431,22 @@
     },
     "card": {
       "title": "Card",
+      "front_label": "{{name}}, front",
+      "back_label": "{{name}}, back",
+      "drag_hint": "Drag left or right to rotate, or tap to turn over",
+      "value": "Value",
+      "asking_price": "Asking price",
+      "insured_value": "Insured value",
+      "details": "Details",
+      "owner": "Owner",
+      "year": "Year",
+      "grade": "Grade",
+      "grading_company": "Grading company",
+      "grading_id": "Grading ID",
+      "metadata": "Metadata",
+      "collection": "Collection",
+      "set": "Set",
+      "rarity": "Rarity",
       "view_on_collector_crypt": "View on Collector Crypt",
       "sell_for": "Sell for {{amount}} USDC",
       "not_found": "This card is no longer in your wallet.",
@@ -3440,9 +3454,12 @@
       "sale_status_error": "We couldn't check the sale status. Try again."
     },
     "cards": {
+      "total_value": "Total value",
+      "all_cards": "Cards ({{count}})",
+      "sell_available": "Sell available",
+      "no_sell_available": "No cards available to sell",
       "empty": "You don't have any cards yet. Open a pack to get your first one.",
       "open_pack": "Open a pack",
-      "sell_tag": "Sell {{amount}}",
       "selling_tag": "Selling",
       "sync_error": "We couldn't refresh your cards.",
       "retry": "Try again"

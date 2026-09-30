@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, Image, RefreshControl } from 'react-native';
 import {
   Box,
@@ -8,6 +8,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
   Skeleton,
   TabEmptyState,
   Text,
@@ -21,15 +24,15 @@ import emptyStateNftsLight from '../../../../../images/empty-state-nfts-light.pn
 import emptyStateNftsDark from '../../../../../images/empty-state-nfts-dark.png';
 import { GachaCardsTestIds } from '../../Gacha.testIds';
 import CardTile from '../../components/CardTile';
-import { CARD_ASPECT_RATIO } from '../../components/CardImage';
 import ErrorPanel from '../../components/ErrorPanel';
 import type { UseCollectorCryptCardsResult } from '../../providers/collector-crypt/hooks/useCollectorCryptCards';
 import type { CollectorCryptCard } from '../../providers/collector-crypt/types';
+import { getCardValue } from '../../providers/collector-crypt/utils/cards';
 import { getCollectorCryptErrorMessage } from '../../providers/collector-crypt/utils/errorMessages';
+import { formatUsd } from '../../providers/collector-crypt/utils/format';
 
 const COLUMNS = 2;
 const SKELETON_ROWS = [0, 1];
-const SKELETON_STYLE = { aspectRatio: CARD_ASPECT_RATIO };
 
 /** First-load placeholder: two rows of card tiles. */
 const CardsSkeleton = () => (
@@ -38,7 +41,7 @@ const CardsSkeleton = () => (
       <Box key={row} flexDirection={BoxFlexDirection.Row} gap={3}>
         {[0, 1].map((column) => (
           <Box key={column} twClassName="flex-1" gap={2}>
-            <Skeleton twClassName="w-full rounded-xl" style={SKELETON_STYLE} />
+            <Skeleton twClassName="aspect-square w-full rounded-2xl" />
             <Skeleton height={16} width="80%" />
             <Skeleton height={14} width="50%" />
           </Box>
@@ -105,7 +108,7 @@ const SyncError = ({ onRetry }: { onRetry: () => void }) => (
   </Box>
 );
 
-const RowSeparator = () => <Box twClassName="h-4" />;
+const RowSeparator = () => <Box twClassName="h-6" />;
 
 export interface CardsTabProps {
   cardsState: Pick<
@@ -116,11 +119,25 @@ export interface CardsTabProps {
   onOpenPack: () => void;
 }
 
-/** "My cards" tab: 2-column grid, pull to refresh, sync error, empty state. */
+/** Collection value and a two-column grid, optionally limited to sellable cards. */
 const CardsTab = ({ cardsState, onCardPress, onOpenPack }: CardsTabProps) => {
   const tw = useTailwind();
   const { cards, isLoading, error, refetch } = cardsState;
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filter, setFilter] = useState('all');
+  const visibleCards = useMemo(
+    () =>
+      filter === 'sell'
+        ? cards.filter(
+            (card) => card.buyback.status === 'available' && !card.sale,
+          )
+        : cards,
+    [cards, filter],
+  );
+  const totalValue = cards.reduce(
+    (total, card) => total + (getCardValue(card) ?? 0),
+    0,
+  );
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -145,26 +162,77 @@ const CardsTab = ({ cardsState, onCardPress, onOpenPack }: CardsTabProps) => {
     return <CardsSkeleton />;
   }
 
-  const emptyContent = error ? (
-    <ErrorPanel
-      title={strings('gacha.cards.sync_error')}
-      description={getCollectorCryptErrorMessage(error.code)}
-      onRetry={handleRetry}
-    />
-  ) : (
-    <CardsEmptyState onOpenPack={onOpenPack} />
-  );
+  const emptyContent =
+    cards.length > 0 ? (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="py-8 text-center"
+        testID={GachaCardsTestIds.NO_SELL_AVAILABLE}
+      >
+        {strings('gacha.cards.no_sell_available')}
+      </Text>
+    ) : error ? (
+      <ErrorPanel
+        title={strings('gacha.cards.sync_error')}
+        description={getCollectorCryptErrorMessage(error.code)}
+        onRetry={handleRetry}
+      />
+    ) : (
+      <CardsEmptyState onOpenPack={onOpenPack} />
+    );
 
   return (
     <FlatList
-      data={cards}
+      data={visibleCards}
       keyExtractor={(card) => card.mint}
       renderItem={renderCard}
       numColumns={COLUMNS}
       columnWrapperStyle={tw.style('-mx-1.5')}
       ItemSeparatorComponent={RowSeparator}
       ListHeaderComponent={
-        error && cards.length > 0 ? <SyncError onRetry={handleRetry} /> : null
+        <Box paddingTop={3} paddingBottom={6} gap={6}>
+          {error && cards.length > 0 && <SyncError onRetry={handleRetry} />}
+          <Box gap={1}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('gacha.cards.total_value')}
+            </Text>
+            <Text
+              variant={TextVariant.DisplayMd}
+              testID={GachaCardsTestIds.TOTAL_VALUE}
+            >
+              {formatUsd(totalValue)}
+            </Text>
+          </Box>
+          <FilterButtonGroup
+            value={filter}
+            onChange={setFilter}
+            twClassName="gap-2"
+            testID={GachaCardsTestIds.FILTERS}
+          >
+            <FilterButton
+              value="all"
+              size={FilterButtonSize.Sm}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: filter === 'all' }}
+              testID={GachaCardsTestIds.ALL_FILTER}
+            >
+              {strings('gacha.cards.all_cards', { count: cards.length })}
+            </FilterButton>
+            <FilterButton
+              value="sell"
+              size={FilterButtonSize.Sm}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: filter === 'sell' }}
+              testID={GachaCardsTestIds.SELL_AVAILABLE_FILTER}
+            >
+              {strings('gacha.cards.sell_available')}
+            </FilterButton>
+          </FilterButtonGroup>
+        </Box>
       }
       ListEmptyComponent={emptyContent}
       contentContainerStyle={tw.style(

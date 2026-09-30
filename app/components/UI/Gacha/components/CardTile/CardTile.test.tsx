@@ -6,32 +6,64 @@ import {
   GachaCardTileTestIds,
 } from '../../Gacha.testIds';
 import { createCard } from '../../views/testUtils';
-import CardTile, { getCardTileSubtitle } from './CardTile';
+import CardTile from './CardTile';
 
 const CARD = createCard({ mint: 'MintA' });
 
 describe('CardTile', () => {
-  it('renders the name and the grade and value subtitle', () => {
+  it('renders the name and insured value below the card', () => {
     renderWithProvider(<CardTile card={CARD} onPress={jest.fn()} />);
 
-    expect(screen.getByText('Charizard Holo')).toBeOnTheScreen();
-    expect(screen.getByText('PSA GEM-MT 10 · $120')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(GachaCardTileTestIds.NAME('MintA')),
+    ).toHaveTextContent('Charizard Holo');
+    expect(
+      screen.getByTestId(GachaCardTileTestIds.VALUE('MintA')),
+    ).toHaveTextContent('120 USDC');
   });
 
-  it('renders the card image', async () => {
+  it('shows the reflection only after the card image loads', async () => {
     renderWithProvider(
       <CardTile
-        card={createCard({ image: 'https://example.com/card.png' })}
+        card={createCard({
+          mint: 'MintA',
+          image: 'https://example.com/card.png',
+        })}
         onPress={jest.fn()}
       />,
     );
 
+    expect(
+      screen.queryByTestId(GachaCardTileTestIds.REFLECTION('MintA'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
     await waitFor(() =>
       expect(
-        screen.queryByTestId(GachaCardImageTestIds.SKELETON),
-      ).not.toBeOnTheScreen(),
+        screen.getByTestId(GachaCardTileTestIds.REFLECTION('MintA'), {
+          includeHiddenElements: true,
+        }),
+      ).toBeOnTheScreen(),
     );
     expect(screen.getByTestId(GachaCardImageTestIds.IMAGE)).toBeOnTheScreen();
+  });
+
+  it('uses the medium photograph in lists when both resolutions are available', () => {
+    const mediumImage = 'https://example.com/card-medium.webp';
+    renderWithProvider(
+      <CardTile
+        card={createCard({
+          image: 'https://example.com/card-original.jpg',
+          mediumImage,
+        })}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(GachaCardImageTestIds.IMAGE)).toHaveProp(
+      'source',
+      { uri: mediumImage },
+    );
   });
 
   it('calls onPress with the mint', () => {
@@ -43,7 +75,27 @@ describe('CardTile', () => {
     expect(onPress).toHaveBeenCalledWith('MintA');
   });
 
-  it('uses the provided testID', () => {
+  it('uses the original only if the medium photograph fails', () => {
+    const image = 'https://example.com/card-original.jpg';
+    renderWithProvider(
+      <CardTile
+        card={createCard({
+          image,
+          mediumImage: 'https://example.com/card-medium.webp',
+        })}
+        onPress={jest.fn()}
+      />,
+    );
+
+    fireEvent(screen.getByTestId(GachaCardImageTestIds.IMAGE), 'error');
+
+    expect(screen.getByTestId(GachaCardImageTestIds.IMAGE)).toHaveProp(
+      'source',
+      { uri: image },
+    );
+  });
+
+  it('uses the provided homepage testID', () => {
     const onPress = jest.fn();
     renderWithProvider(
       <CardTile card={CARD} onPress={onPress} testID="home-tile" />,
@@ -54,7 +106,7 @@ describe('CardTile', () => {
     expect(onPress).toHaveBeenCalledWith('MintA');
   });
 
-  it('shows the buyback offer tag', () => {
+  it('keeps the insured value when a buyback offer is available', () => {
     renderWithProvider(
       <CardTile
         card={createCard({
@@ -66,16 +118,29 @@ describe('CardTile', () => {
     );
 
     expect(
-      screen.getByTestId(GachaCardTileTestIds.BUYBACK_TAG('MintA')),
-    ).toHaveTextContent('Sell 102.00 USDC');
+      screen.getByTestId(GachaCardTileTestIds.VALUE('MintA')),
+    ).toHaveTextContent('120 USDC');
+    expect(screen.queryByText('Sell 102.00 USDC')).toBeNull();
   });
 
-  it('shows the selling tag while a sale is pending', () => {
+  it('shows the higher listing value without substituting the buyback offer', () => {
+    renderWithProvider(
+      <CardTile
+        card={createCard({ mint: 'MintA', listedPriceUsd: 150 })}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(GachaCardTileTestIds.VALUE('MintA')),
+    ).toHaveTextContent('150 USDC');
+  });
+
+  it('indicates a pending sale', () => {
     renderWithProvider(
       <CardTile
         card={createCard({
           mint: 'MintA',
-          buyback: { status: 'available', amount: '102000000' },
           sale: { status: 'pending', amount: '102000000', updatedAt: 1 },
         })}
         onPress={jest.fn()}
@@ -85,38 +150,31 @@ describe('CardTile', () => {
     expect(
       screen.getByTestId(GachaCardTileTestIds.SELLING_TAG('MintA')),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(GachaCardTileTestIds.BUYBACK_TAG('MintA')),
-    ).not.toBeOnTheScreen();
   });
 
-  it('shows the image fallback when the card has no image', () => {
-    renderWithProvider(<CardTile card={createCard()} onPress={jest.fn()} />);
+  it('omits an unknown insured value', () => {
+    renderWithProvider(
+      <CardTile
+        card={createCard({ mint: 'MintA', insuredValue: undefined })}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(GachaCardTileTestIds.VALUE('MintA')),
+    ).toBeNull();
+  });
+
+  it('uses the fallback without reflecting it when the card has no image', () => {
+    renderWithProvider(<CardTile card={CARD} onPress={jest.fn()} />);
 
     expect(
       screen.getByTestId(GachaCardImageTestIds.FALLBACK),
     ).toBeOnTheScreen();
-  });
-});
-
-describe('getCardTileSubtitle', () => {
-  it('joins the known parts', () => {
     expect(
-      getCardTileSubtitle(
-        createCard({ gradingCompany: undefined, insuredValue: 45 }),
-      ),
-    ).toBe('GEM-MT 10 · $45');
-  });
-
-  it('returns an empty string without grade or value', () => {
-    expect(
-      getCardTileSubtitle(
-        createCard({
-          grade: undefined,
-          gradingCompany: undefined,
-          insuredValue: undefined,
-        }),
-      ),
-    ).toBe('');
+      screen.queryByTestId(GachaCardTileTestIds.REFLECTION('MintA'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
   });
 });

@@ -131,7 +131,7 @@ export const CcAttributeStruct = type({
 export const CcNftFileStruct = type({
   uri: maybe(string()),
   cdn_uri: maybe(string()),
-  /** Preferred image URL (CloudFront). `files[0]` is the front. */
+  /** Optimized CDN image. `files[0]` is the front; `uri` is the original. */
   cc_cdn: maybe(string()),
   mime: maybe(string()),
 });
@@ -270,6 +270,13 @@ export const CcWalletCardStruct = type({
   nftStatus: maybe(string()),
   /** Whole USD, usually a string. */
   insuredValue: maybe(NumberOrStringStruct),
+  listing: maybe(
+    type({
+      price: maybe(NumberOrStringStruct),
+      currency: maybe(string()),
+      status: maybe(string()),
+    }),
+  ),
   grade: maybe(string()),
   gradeNum: maybe(NumberOrStringStruct),
   gradingCompany: maybe(string()),

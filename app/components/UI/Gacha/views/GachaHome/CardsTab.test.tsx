@@ -69,6 +69,87 @@ describe('CardsTab', () => {
     expect(onOpenPack).toHaveBeenCalledTimes(1);
   });
 
+  it('totals the highest available value of each card, including cards without a sell offer', () => {
+    renderCardsTab({
+      cards: [
+        createCard({ mint: 'MintA', insuredValue: 160, listedPriceUsd: 170 }),
+        createCard({ mint: 'MintB', insuredValue: 40, listedPriceUsd: 30 }),
+        createCard({ mint: 'MintC', insuredValue: undefined }),
+      ],
+    });
+
+    expect(screen.getByTestId(GachaCardsTestIds.TOTAL_VALUE)).toHaveTextContent(
+      '$210',
+    );
+    expect(screen.getByTestId(GachaCardsTestIds.ALL_FILTER)).toHaveTextContent(
+      'Cards (3)',
+    );
+  });
+
+  it('filters sellable cards without changing the collection total', () => {
+    renderCardsTab({
+      cards: [
+        createCard({
+          mint: 'available',
+          insuredValue: 160,
+          buyback: { status: 'available' },
+        }),
+        createCard({ mint: 'unknown', insuredValue: 20 }),
+        createCard({
+          mint: 'selling',
+          insuredValue: 20,
+          buyback: { status: 'available' },
+          sale: { status: 'pending', amount: '17000000', updatedAt: 1 },
+        }),
+      ],
+    });
+
+    fireEvent.press(
+      screen.getByTestId(GachaCardsTestIds.SELL_AVAILABLE_FILTER),
+    );
+
+    expect(
+      screen.getByTestId(GachaCardTileTestIds.TILE('available')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(GachaCardTileTestIds.TILE('unknown')),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(GachaCardTileTestIds.TILE('selling')),
+    ).toBeNull();
+    expect(screen.getByTestId(GachaCardsTestIds.TOTAL_VALUE)).toHaveTextContent(
+      '$200',
+    );
+    expect(
+      screen.getByTestId(GachaCardsTestIds.SELL_AVAILABLE_FILTER),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ selected: true }),
+    );
+
+    fireEvent.press(screen.getByTestId(GachaCardsTestIds.ALL_FILTER));
+
+    expect(
+      screen.getByTestId(GachaCardTileTestIds.TILE('unknown')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(GachaCardTileTestIds.TILE('selling')),
+    ).toBeOnTheScreen();
+  });
+
+  it('explains an empty sell filter without inviting the owner to buy more cards', () => {
+    renderCardsTab({ cards: [createCard()] });
+
+    fireEvent.press(
+      screen.getByTestId(GachaCardsTestIds.SELL_AVAILABLE_FILTER),
+    );
+
+    expect(
+      screen.getByTestId(GachaCardsTestIds.NO_SELL_AVAILABLE),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(GachaCardsTestIds.EMPTY_CTA)).toBeNull();
+  });
+
   it('keeps cached cards visible under an inline sync error with retry', () => {
     const { refetch } = renderCardsTab({
       cards: [createCard({ mint: 'MintA' })],

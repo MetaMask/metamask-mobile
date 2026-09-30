@@ -6,6 +6,7 @@ import {
   type RouteProp,
   useNavigation,
   useRoute,
+  useIsFocused,
 } from '@react-navigation/native';
 import {
   Box,
@@ -29,6 +30,7 @@ import type { RootState } from '../../../../../reducers';
 import { GachaCardViewTestIds } from '../../Gacha.testIds';
 import BuybackOffer from '../../components/BuybackOffer';
 import CardDisplay from '../../components/CardDisplay';
+import CardBackdrop from '../../components/CardBackdrop';
 import CtaButton from '../../components/CtaButton';
 import { getCollectorCryptCardUrl } from '../../providers/collector-crypt/constants';
 import { useCollectorCryptAccount } from '../../providers/collector-crypt/hooks/useCollectorCryptAccount';
@@ -46,6 +48,7 @@ import { formatUsdcAmount } from '../../providers/collector-crypt/utils/format';
 /** Card detail: card info, buyback offer, sell and Collector Crypt link. */
 const GachaCardView = () => {
   const tw = useTailwind();
+  const isFocused = useIsFocused();
   const navigation = useNavigation<AppNavigationProp>();
   const {
     params: { mint },
@@ -110,6 +113,7 @@ const GachaCardView = () => {
       style={tw.style('flex-1 bg-default')}
       testID={GachaCardViewTestIds.CONTAINER}
     >
+      <CardBackdrop />
       <HeaderStandard
         includesTopInset
         title={strings('gacha.card.title')}
@@ -125,7 +129,11 @@ const GachaCardView = () => {
             )}
             showsVerticalScrollIndicator={false}
           >
-            <CardDisplay card={card} />
+            <CardDisplay
+              card={card}
+              isActive={isFocused}
+              owner={account?.address}
+            />
             <BuybackOffer
               display={buyback}
               onRetry={retry}

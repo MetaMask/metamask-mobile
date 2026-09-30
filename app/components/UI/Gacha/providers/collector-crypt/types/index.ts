@@ -84,12 +84,22 @@ export type CollectorCryptCard = {
   name: string;
   /** Front image URL. */
   image?: string;
+  /** Optimized front image for lists and the initial detail preview. */
+  mediumImage?: string;
+  /** Back image URL, when provided by CollectorCrypt. */
+  backImage?: string;
+  /** Optimized back image for the initial detail preview. */
+  mediumBackImage?: string;
   /** Grade label, e.g. "GEM-MT 10". */
   grade?: string;
   /** Grading company, e.g. "PSA". */
   gradingCompany?: string;
+  /** Certificate identifier issued by the grading company. */
+  gradingId?: string;
   /** Insured value in whole USD. */
   insuredValue?: number;
+  /** Active listing price in whole USD/USDC, not a market appraisal. */
+  listedPriceUsd?: number;
   rarity?: CollectorCryptRarity;
   category?: string;
   year?: string;

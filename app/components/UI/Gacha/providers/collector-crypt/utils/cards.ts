@@ -24,9 +24,14 @@ type CardDetails = Partial<
     CollectorCryptCard,
     | 'name'
     | 'image'
+    | 'mediumImage'
+    | 'backImage'
+    | 'mediumBackImage'
     | 'grade'
     | 'gradingCompany'
+    | 'gradingId'
     | 'insuredValue'
+    | 'listedPriceUsd'
     | 'category'
     | 'year'
     | 'set'
@@ -97,6 +102,7 @@ const detailsFromAttributes = (read: AttributeReader): CardDetails =>
   compact({
     grade: read('The Grade'),
     gradingCompany: read('Grading Company'),
+    gradingId: read('Grading ID'),
     insuredValue: parseInsuredValue(read('Insured Value')),
     category: read('Category'),
     year: read('Year'),
@@ -104,20 +110,35 @@ const detailsFromAttributes = (read: AttributeReader): CardDetails =>
   });
 
 /**
- * Front image of an `openPack` NFT: CollectorCrypt CDN first.
+ * Original photographs and optimized previews from an `openPack` NFT.
+ * Only a typed image in the second file is treated as the back.
  *
  * @param nft - `nftWon` payload.
- * @returns The image URL, or undefined.
+ * @returns The image URLs supplied by CollectorCrypt.
  */
-const getNftWonImage = (nft: CcNftWon): string | undefined => {
+const getNftWonImages = (
+  nft: CcNftWon,
+): Pick<
+  CollectorCryptCard,
+  'image' | 'mediumImage' | 'backImage' | 'mediumBackImage'
+> => {
   const front = nft.content.files?.[0];
-  return (
-    toText(front?.cc_cdn) ??
-    toText(front?.cdn_uri) ??
-    toText(front?.uri) ??
-    toText(nft.content.links?.image) ??
-    toText(nft.image)
-  );
+  const secondFile = nft.content.files?.[1];
+  const back = toText(secondFile?.mime)?.toLowerCase().startsWith('image/')
+    ? secondFile
+    : undefined;
+  const mediumImage = toText(front?.cc_cdn) ?? toText(front?.cdn_uri);
+  const mediumBackImage = toText(back?.cc_cdn) ?? toText(back?.cdn_uri);
+  return {
+    image:
+      toText(front?.uri) ??
+      toText(nft.content.links?.image) ??
+      mediumImage ??
+      toText(nft.image),
+    mediumImage,
+    backImage: toText(back?.uri) ?? mediumBackImage,
+    mediumBackImage,
+  };
 };
 
 /**
@@ -157,13 +178,13 @@ export const cardFromOpenPack = (
   const details = detailsFromAttributes(read);
   return compact({
     ...details,
+    ...getNftWonImages(result.nft),
     mint: result.mint,
     name:
       toText(metadata.json_name) ??
       toText(metadata.name) ??
       read('Card Name') ??
       operation.packName,
-    image: getNftWonImage(result.nft),
     insuredValue:
       details.insuredValue ?? parseInsuredValue(metadata.insuredValue),
     rarity: result.rarity,
@@ -214,6 +235,39 @@ export const cardFromNftItem = (item: SolanaNftItem): CollectorCryptCard => {
 };
 
 /**
+ * Reads a full-size wallet photograph before any medium-size fallback.
+ *
+ * @param walletCard - Wallet card.
+ * @param side - Side of the card.
+ * @returns The original image URL, when provided.
+ */
+const getOriginalWalletImage = (
+  walletCard: CcWalletCard,
+  side: 'front' | 'back',
+): string | undefined =>
+  toText(walletCard.images?.[side]) ??
+  toText(side === 'front' ? walletCard.frontImage : walletCard.backImage);
+
+/**
+ * Reads an active listing denominated in USD/USDC without currency conversion.
+ *
+ * @param walletCard - Wallet card with its current listing.
+ * @returns The asking price, when available.
+ */
+const getWalletListedPrice = ({
+  listing,
+}: CcWalletCard): number | undefined => {
+  if (
+    listing?.status !== 'Active' ||
+    (listing.currency !== 'USD' && listing.currency !== 'USDC')
+  ) {
+    return undefined;
+  }
+  const price = Number(toText(listing.price));
+  return Number.isFinite(price) && price >= 0 ? price : undefined;
+};
+
+/**
  * Card details from the CollectorCrypt cards API.
  *
  * @param walletCard - Wallet card.
@@ -223,12 +277,17 @@ const detailsFromWalletCard = (walletCard: CcWalletCard): CardDetails =>
   compact({
     name: toText(walletCard.itemName),
     image:
-      toText(walletCard.images?.frontM) ??
-      toText(walletCard.images?.front) ??
-      toText(walletCard.frontImage),
+      getOriginalWalletImage(walletCard, 'front') ??
+      toText(walletCard.images?.frontM),
+    mediumImage: toText(walletCard.images?.frontM),
+    backImage:
+      getOriginalWalletImage(walletCard, 'back') ??
+      toText(walletCard.images?.backM),
+    mediumBackImage: toText(walletCard.images?.backM),
     grade: toText(walletCard.grade),
     gradingCompany: toText(walletCard.gradingCompany),
     insuredValue: parseInsuredValue(walletCard.insuredValue),
+    listedPriceUsd: getWalletListedPrice(walletCard),
     category: toText(walletCard.category),
     year: toText(walletCard.year),
     set: toText(walletCard.set),
@@ -236,7 +295,7 @@ const detailsFromWalletCard = (walletCard: CcWalletCard): CardDetails =>
 
 /**
  * Enriches an indexed card with the CollectorCrypt cards API. CollectorCrypt
- * wins for grading and value, the card keeps its own name and image.
+ * supplies original photographs, grading and value; the card keeps its name.
  *
  * @param card - Card from the NFT API.
  * @param walletCard - Same mint from the CollectorCrypt cards API.
@@ -246,13 +305,17 @@ export const enrichWithWalletCard = (
   card: CollectorCryptCard,
   walletCard: CcWalletCard,
 ): CollectorCryptCard => {
-  const { name, image, ...details } = detailsFromWalletCard(walletCard);
+  const { name, image, backImage, ...details } =
+    detailsFromWalletCard(walletCard);
   const hasOwnName = card.name.length > 0 && card.name !== card.mint;
   return compact({
     ...card,
     ...details,
+    listedPriceUsd: details.listedPriceUsd,
     name: hasOwnName ? card.name : (name ?? card.name),
-    image: card.image ?? image,
+    image: getOriginalWalletImage(walletCard, 'front') ?? card.image ?? image,
+    backImage:
+      getOriginalWalletImage(walletCard, 'back') ?? card.backImage ?? backImage,
   });
 };
 
@@ -278,6 +341,24 @@ export const cardFromWalletCard = (
 };
 
 /**
+ * Highest available insured value or active asking price; not a market estimate.
+ *
+ * @param card - Card values supplied by CollectorCrypt.
+ * @returns The display value, or undefined when neither value is known.
+ */
+export const getCardValue = ({
+  insuredValue,
+  listedPriceUsd,
+}: Pick<CollectorCryptCard, 'insuredValue' | 'listedPriceUsd'>):
+  | number
+  | undefined => {
+  if (insuredValue === undefined) {
+    return listedPriceUsd;
+  }
+  return Math.max(insuredValue, listedPriceUsd ?? 0);
+};
+
+/**
  * Buyback cache entry from a `buyback/available` response.
  *
  * @param availability - API response.
@@ -295,7 +376,7 @@ export const buybackFromAvailability = (
 /**
  * Stores a freshly awarded card over an existing entry for the same mint.
  * A sold (tombstoned) mint won again is replaced; otherwise the existing
- * metadata is kept and the pack bookkeeping updated.
+ * metadata is kept, images refreshed and the pack bookkeeping updated.
  *
  * @param existing - Card already in state, if any.
  * @param awarded - Card from `openPack`.
@@ -310,6 +391,11 @@ export const mergeAwardedCard = (
   }
   return compact({
     ...existing,
+    image: awarded.image ?? existing.image,
+    mediumImage: awarded.mediumImage ?? existing.mediumImage,
+    backImage: awarded.backImage ?? existing.backImage,
+    mediumBackImage: awarded.mediumBackImage ?? existing.mediumBackImage,
+    gradingId: existing.gradingId ?? awarded.gradingId,
     memo: awarded.memo,
     packCode: awarded.packCode,
     rarity: awarded.rarity ?? existing.rarity,
@@ -334,6 +420,11 @@ const mergeIndexedCard = (
     ...indexed,
     name: indexed.name !== indexed.mint ? indexed.name : local.name,
     image: indexed.image ?? local.image,
+    mediumImage: indexed.mediumImage ?? local.mediumImage,
+    backImage: indexed.backImage ?? local.backImage,
+    mediumBackImage: indexed.mediumBackImage ?? local.mediumBackImage,
+    gradingId: indexed.gradingId ?? local.gradingId,
+    listedPriceUsd: indexed.listedPriceUsd,
     memo: local.memo ?? indexed.memo,
     packCode: local.packCode ?? indexed.packCode,
     rarity: local.rarity ?? indexed.rarity,

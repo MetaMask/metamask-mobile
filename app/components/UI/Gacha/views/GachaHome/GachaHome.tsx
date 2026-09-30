@@ -6,10 +6,12 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   HeaderStandard,
   Text,
   TextColor,
@@ -25,7 +27,8 @@ import {
 } from '../../../../../component-library/components-temp/Tabs';
 import { GachaHomeTestIds } from '../../Gacha.testIds';
 import AttentionBanner from '../../components/AttentionBanner';
-import UsdcAmount from '../../components/UsdcAmount';
+import { UsdcIcon } from '../../components/UsdcAmount';
+import { USDC_DECIMALS } from '../../providers/collector-crypt/constants';
 import { useAttentionOperations } from '../../providers/collector-crypt/hooks/useCollectorCryptOperation';
 import { useCollectorCryptCards } from '../../providers/collector-crypt/hooks/useCollectorCryptCards';
 import { useUsdcBalance } from '../../providers/collector-crypt/hooks/useUsdcBalance';
@@ -34,26 +37,31 @@ import CardsTab from './CardsTab';
 import PacksTab from './PacksTab';
 import { HOME_TABS, shouldStayOnPacks } from './GachaHome.utils';
 
-/** Balance of the selected Solana account and the partner caption. */
-const BalanceRow = ({ amount }: { amount: string }) => (
-  <Box gap={2}>
+/** USDC balance; integer division floors the display without losing purchase precision. */
+const BalanceDisplay = ({ baseUnits }: { baseUnits: bigint }) => {
+  const amount = (baseUnits / 10n ** BigInt(USDC_DECIMALS)).toString();
+  return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="rounded-xl bg-section px-4 py-3"
-      testID={GachaHomeTestIds.BALANCE}
+      paddingHorizontal={2}
+      twClassName="mr-2 h-9 max-w-28 gap-1.5 rounded-full border border-muted bg-muted"
+      accessible
+      accessibilityLabel={strings('gacha.usdc_amount', { amount })}
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('gacha.balance')}
+      <UsdcIcon size={AvatarTokenSize.Sm} />
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        numberOfLines={1}
+        twClassName="shrink"
+        testID={GachaHomeTestIds.BALANCE}
+      >
+        {amount}
       </Text>
-      <UsdcAmount amount={amount} />
     </Box>
-    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-      {strings('gacha.powered_by')}
-    </Text>
-  </Box>
-);
+  );
+};
 
 /** Module home: balance, attention banner, Packs | My cards tabs. */
 const GachaHome = () => {
@@ -145,18 +153,20 @@ const GachaHome = () => {
         title={strings('gacha.title')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: GachaHomeTestIds.BACK_BUTTON }}
+        endAccessory={
+          account ? <BalanceDisplay baseUnits={balance.baseUnits} /> : undefined
+        }
       />
       {account ? (
         <>
-          <Box twClassName="px-4 pb-3" gap={3}>
-            <BalanceRow amount={balance.formatted} />
-            {attentionOperation && (
+          {attentionOperation && (
+            <Box twClassName="px-4 pb-3">
               <AttentionBanner
                 operation={attentionOperation}
                 onView={openReveal}
               />
-            )}
-          </Box>
+            </Box>
+          )}
           <TabsBar
             tabs={tabs}
             activeIndex={HOME_TABS.indexOf(tab)}

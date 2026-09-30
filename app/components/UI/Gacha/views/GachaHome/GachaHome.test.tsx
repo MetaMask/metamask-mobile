@@ -104,7 +104,7 @@ describe('GachaHome', () => {
   });
 
   it('shows the USDC balance, collection filters and packs by price', async () => {
-    renderHome();
+    renderHome({ usdcAmount: '100.999999' });
 
     expect(
       await screen.findByTestId(GachaPacksTestIds.FILTERS),
@@ -119,9 +119,12 @@ describe('GachaHome', () => {
       screen.getByTestId(GachaPacksTestIds.COLLECTION_FILTER('Pokemon')),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(GachaHomeTestIds.BALANCE)).toHaveTextContent(
-      /100\.00 USDC/u,
+      /^100$/u,
     );
-    expect(screen.getByText('Powered by Collector Crypt')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Powered by Collector Crypt'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Balance')).not.toBeOnTheScreen();
   });
 
   it('filters packs to one collection at a time', async () => {

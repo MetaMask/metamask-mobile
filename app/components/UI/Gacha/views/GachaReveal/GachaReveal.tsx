@@ -6,6 +6,7 @@ import {
   StackActions,
   useNavigation,
   useRoute,
+  useIsFocused,
 } from '@react-navigation/native';
 import {
   Box,
@@ -32,6 +33,7 @@ import type { AppStackNavigationProp } from '../../../../../core/NavigationServi
 import { GachaRevealTestIds } from '../../Gacha.testIds';
 import BuybackOffer from '../../components/BuybackOffer';
 import CardDisplay from '../../components/CardDisplay';
+import CardBackdrop from '../../components/CardBackdrop';
 import { CARD_ASPECT_RATIO } from '../../components/CardImage';
 import CtaButton from '../../components/CtaButton';
 import { showErrorToast } from '../../hooks/toasts';
@@ -187,6 +189,7 @@ const ErrorState = ({
  */
 const GachaReveal = () => {
   const tw = useTailwind();
+  const isFocused = useIsFocused();
   const navigation = useNavigation<AppStackNavigationProp>();
   const {
     params: { memo },
@@ -425,6 +428,7 @@ const GachaReveal = () => {
       style={tw.style('flex-1 bg-default')}
       testID={GachaRevealTestIds.CONTAINER}
     >
+      {revealState.kind === 'revealed' && <CardBackdrop variant="reveal" />}
       <HeaderStandard
         includesTopInset
         onClose={handleClose}
@@ -460,7 +464,11 @@ const GachaReveal = () => {
             >
               {strings('gacha.reveal.you_got')}
             </Text>
-            <CardDisplay card={revealState.card} />
+            <CardDisplay
+              card={revealState.card}
+              isActive={isFocused}
+              variant="reveal"
+            />
             <BuybackOffer
               display={buyback}
               onRetry={retry}

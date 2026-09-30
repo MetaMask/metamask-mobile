@@ -44,11 +44,18 @@ export const GachaCardsTestIds = {
   EMPTY_CTA: 'gacha-cards-empty-cta',
   SYNC_ERROR: 'gacha-cards-sync-error',
   SYNC_RETRY: 'gacha-cards-sync-retry',
+  TOTAL_VALUE: 'gacha-cards-total-value',
+  FILTERS: 'gacha-cards-filters',
+  ALL_FILTER: 'gacha-cards-filter-all',
+  SELL_AVAILABLE_FILTER: 'gacha-cards-filter-sell-available',
+  NO_SELL_AVAILABLE: 'gacha-cards-no-sell-available',
 } as const;
 
 export const GachaCardTileTestIds = {
   TILE: (mint: string) => `gacha-card-tile-${mint}`,
-  BUYBACK_TAG: (mint: string) => `gacha-card-tile-${mint}-buyback`,
+  NAME: (mint: string) => `gacha-card-tile-${mint}-name`,
+  VALUE: (mint: string) => `gacha-card-tile-${mint}-value`,
+  REFLECTION: (mint: string) => `gacha-card-tile-${mint}-reflection`,
   SELLING_TAG: (mint: string) => `gacha-card-tile-${mint}-selling`,
 } as const;
 
@@ -64,6 +71,23 @@ export const GachaCardDisplayTestIds = {
   GRADE: 'gacha-card-display-grade',
   RARITY: 'gacha-card-display-rarity',
   VALUE: 'gacha-card-display-value',
+  DETAILS: 'gacha-card-display-details',
+  GRADING: 'gacha-card-display-grading',
+  METADATA: 'gacha-card-display-metadata',
+  OWNER: 'gacha-card-display-owner',
+  YEAR: 'gacha-card-display-year',
+  GRADING_COMPANY: 'gacha-card-display-grading-company',
+  GRADING_ID: 'gacha-card-display-grading-id',
+  COLLECTION: 'gacha-card-display-collection',
+  SET: 'gacha-card-display-set',
+} as const;
+
+export const GachaInteractiveCardTestIds = {
+  PAN_GESTURE: 'gacha-interactive-card-pan',
+  CONTAINER: 'gacha-interactive-card',
+  FRONT: 'gacha-interactive-card-front',
+  BACK: 'gacha-interactive-card-back',
+  EDGE: 'gacha-interactive-card-edge',
 } as const;
 
 export const GachaBuybackOfferTestIds = {
