@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.13.2]
+
+### Changed
+
+- Updated ramps checkout on iOS 16 and later so Apple Pay stays available while checkout messages and in-page navigation events are delivered (#36393)
+
+### Fixed
+
+- Fixed the Crossmint checkout showing a non-functional Apple Pay or Google Pay button when a token is temporarily unavailable for purchase; the reason is now shown and the Continue button is restored (#36542)
+
 ## [8.13.0]
 
 ### Added
@@ -14076,7 +14086,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.2...HEAD
+[8.13.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.2
 [8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.13.0
 [8.12.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...v8.12.0
 [8.11.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.2...v8.11.0
