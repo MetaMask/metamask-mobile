@@ -3,7 +3,11 @@ import {
   useSearchFooterBrowserNavigation,
   type SearchFooterAction,
 } from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
-import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import {
+  getSearchQueryLength,
+  trackExploreSearchEvent,
+  type SearchFeedPill,
+} from './analytics';
 
 /**
  * Footer press handler for Explore Search: fires `result_clicked`, then opens
@@ -29,6 +33,7 @@ export const useExploreSearchFooterPress = ({
         tab_name: tabName,
         item_clicked: action,
         result_count: resultCount,
+        query_length: getSearchQueryLength(searchQuery),
       });
       navigateToBrowser(url);
     },
