@@ -2178,7 +2178,7 @@ describe('PerpsOrderView', () => {
       });
 
       useTradeSheetRoute();
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { unmount } = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       const submit = () =>
         act(async () => {
@@ -2211,6 +2211,7 @@ describe('PerpsOrderView', () => {
         settleConfirm,
         confirmDepositOnChain,
         dismissSheet,
+        unmount,
       };
     };
 
@@ -2301,7 +2302,7 @@ describe('PerpsOrderView', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('still leaves when the confirmation settles after the sheet was swiped away mid-confirm', async () => {
+    it('does not navigate again when the confirmation settles after the sheet was swiped away mid-confirm', async () => {
       const {
         placeOrder,
         submit,
@@ -2314,16 +2315,27 @@ describe('PerpsOrderView', () => {
       dismissSheet();
       await settleConfirm();
 
-      // The dismiss flag is snapshotted before confirm. A swipe while confirm
-      // is in flight sets the same flag as the unmount that follows deleting
-      // the approval, so settling still navigates. Only a dismiss that was
-      // already true before confirm started skips this second leave.
-      expect(mockGoBack).toHaveBeenCalledTimes(2);
+      // Only the dismissal itself navigated; the settled confirmation must not
+      // pop the screen the user already landed on.
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(placeOrder).not.toHaveBeenCalled();
 
       await confirmDepositOnChain();
 
       expect(placeOrder).toHaveBeenCalledTimes(1);
+    });
+
+    // Confirming deletes the approval request, which unmounts this view while
+    // the user is still looking at the sheet. That unmount is not a dismissal:
+    // the user has not left and the settled confirmation must still leave.
+    it('still leaves when the view unmounts during the confirmation without the sheet being closed', async () => {
+      const { submit, settleConfirm, unmount } = arrangeDepositFlow();
+
+      await submit();
+      unmount();
+      await settleConfirm();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
