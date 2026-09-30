@@ -25,28 +25,18 @@ import type {
   SocialV1FeedItem,
   SocialV1TokenFeedState,
 } from '../SocialV1View/feed/types';
+import Routes from '../../../../constants/navigation/Routes';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_ERROR_TEST_ID,
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
   SOCIAL_V1_FEED_RETRY_TEST_ID,
 } from './EmptyShellTabPage';
 
-const mockNavigateToOrder = jest.fn();
+const mockNavigate = jest.fn();
 
-jest.mock('../../../UI/Perps/hooks/usePerpsNavigation', () => ({
-  usePerpsNavigation: () => ({ navigateToOrder: mockNavigateToOrder }),
-}));
-
-const mockQuickBuyRoot = jest.fn();
-
-jest.mock('../../../UI/QuickBuy', () => ({
-  QuickBuy: {
-    Root: (props: unknown) => {
-      mockQuickBuyRoot(props);
-      return null;
-    },
-  },
-  TOP_TRADERS_QUICK_BUY_FEATURES: {},
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
@@ -159,8 +149,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
     jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
-    mockNavigateToOrder.mockClear();
-    mockQuickBuyRoot.mockClear();
+    mockNavigate.mockClear();
     resetSocialV1ComposedFeedStore();
   });
 
@@ -226,7 +215,7 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the direct Perps sheet with the feed direction and market', () => {
+  it('enters the Perps order flow through the redirect screen', () => {
     const item = MOCK_SOCIAL_V1_FEED_ITEMS[0];
 
     renderWithProvider(
@@ -240,16 +229,19 @@ describe('EmptyShellTabPage', () => {
 
     fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
 
-    expect(mockNavigateToOrder).toHaveBeenCalledWith({
-      direction: 'short',
-      asset: 'BTC',
-      source: 'trader_feed',
-      useBottomSheet: true,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.ORDER_REDIRECT,
+      params: {
+        direction: 'short',
+        asset: 'BTC',
+        source: 'trader_feed',
+      },
     });
   });
 
-  it('opens QuickBuy in buy mode for an open spot feed item', () => {
+  it('requests a QuickBuy target for an open spot feed item', () => {
     const item = MOCK_SOCIAL_V1_FEED_ITEMS[1];
+    const onQuickBuy = jest.fn();
 
     renderWithProvider(
       <EmptyShellTabPage
@@ -257,33 +249,18 @@ describe('EmptyShellTabPage', () => {
         isActive
         containerTestID="following-page-content"
         scrollTestID="following-page-scroll"
+        onQuickBuy={onQuickBuy}
       />,
     );
 
     fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
 
-    const quickBuyProps = mockQuickBuyRoot.mock.calls.at(-1)?.[0] as {
-      isVisible: boolean;
-      target: {
-        tokenAddress: string;
-        tokenSymbol: string;
-        tokenName: string;
-        chain: string;
-      } | null;
-      initialTradeMode: string;
-    };
-    expect(quickBuyProps).toEqual(
-      expect.objectContaining({
-        isVisible: true,
-        initialTradeMode: 'buy',
-        target: {
-          tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-          tokenSymbol: 'PUMP',
-          tokenName: 'PUMP',
-          chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-      }),
-    );
+    expect(onQuickBuy).toHaveBeenCalledWith({
+      tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+      tokenSymbol: 'PUMP',
+      tokenName: 'PUMP',
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
   });
 
   it('shows the posting banner then prepends the composed post on Trending', () => {

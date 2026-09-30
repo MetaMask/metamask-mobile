@@ -28,16 +28,14 @@ import {
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
-import {
-  QuickBuy,
-  TOP_TRADERS_QUICK_BUY_FEATURES,
-  type QuickBuyTarget,
-} from '../../../UI/QuickBuy';
-import { usePerpsNavigation } from '../../../UI/Perps/hooks/usePerpsNavigation';
+import { type QuickBuyTarget } from '../../../UI/QuickBuy';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
@@ -113,6 +111,11 @@ export interface EmptyShellTabPageProps {
   scrollTestID: string;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /**
+   * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
+   * hosted by the parent view, outside the pager — see `SocialV1View`.
+   */
+  onQuickBuy?: (target: QuickBuyTarget) => void;
 }
 
 /**
@@ -128,6 +131,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   scrollTestID,
   onOpenFilters,
   isFilterActive = false,
+  onQuickBuy,
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
@@ -143,10 +147,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     refresh,
   } = useSocialV1Feed(tab);
   const { isEntryHidden } = useSocialEntryModeration();
-  const { navigateToOrder } = usePerpsNavigation();
-  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
-    null,
-  );
+  const navigation = useNavigation<AppNavigationProp>();
   const visiblePosts = useMemo(
     () =>
       posts.filter(
@@ -406,11 +407,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const handleCopyTrade = useCallback(
     (item: SocialV1FeedItem) => {
       if (item.variant === 'perpsOpen') {
-        navigateToOrder({
-          direction: item.direction,
-          asset: item.tradeSymbol,
-          source: 'trader_feed',
-          useBottomSheet: true,
+        // The feed lives outside the Perps stack, so the order flow has to be
+        // entered through `PerpsOrderRedirect`: it waits for the Perps socket
+        // to connect before creating the pending transaction, then replaces
+        // itself with the trade sheet.
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: {
+            direction: item.direction,
+            asset: item.tradeSymbol,
+            source: 'trader_feed',
+          },
         });
         return;
       }
@@ -425,14 +432,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         return;
       }
 
-      setQuickBuyTarget({
+      onQuickBuy?.({
         tokenAddress,
         tokenSymbol: item.asset.symbol,
         tokenName: item.asset.name ?? item.asset.symbol,
         chain,
       });
     },
-    [navigateToOrder],
+    [navigation, onQuickBuy],
   );
 
   const renderPost = useCallback(
@@ -458,14 +465,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
-      <QuickBuy.Root
-        isVisible={quickBuyTarget !== null}
-        target={quickBuyTarget}
-        onClose={() => setQuickBuyTarget(null)}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        initialTradeMode="buy"
-        analyticsContext={{ source: 'trader_feed' }}
-      />
       <Animated.ScrollView
         ref={scrollRef}
         style={tw.style('flex-1')}
