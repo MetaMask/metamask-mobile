@@ -106,77 +106,83 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   let endedByAbort = false;
   // Defer the body so another caller in this turn can still queue a takeover
   // before an already-aborted run settles and clears the in-flight entry.
-  Promise.resolve().then(async () => {
-    try {
-      const { MoneyAccountUpgradeController } = Engine.context;
-      const accountKey = address.toLowerCase() as Hex;
-      const recordedBefore = Boolean(
-        MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-      );
-      Logger.log(LOG_PREFIX, 'starting upgrade', {
-        address,
-        recordedBefore,
-      });
-
-      await upgradeAccountWithRetry(
-        (upgradeAddress) =>
-          MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
-        address,
-        {
-          signal,
-          // Failures that end the run are reported by the catch below.
-          // Retried failures are reported here so they reach Sentry even
-          // when a later attempt succeeds — but capped per run, so a
-          // persistent outage cannot flood Sentry from the unbounded
-          // retry loop. Beyond the cap they are only logged locally.
-          onRetry: (error, attempt) => {
-            Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
-              address,
-              attempt,
-            });
-            if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
-              reportUpgradeError(error, {
-                attempt,
-                willRetry: true,
-                ...(attempt === MAX_REPORTED_RETRIED_FAILURES
-                  ? { furtherRetryReportsSuppressed: true }
-                  : {}),
-              });
-            }
-          },
-        },
-      );
-
-      Logger.log(LOG_PREFIX, 'upgrade succeeded', {
-        address,
-        recordedBefore,
-        durationMs: Date.now() - startedAt,
-        recorded:
+  // Expected failures are reported inside the task; this catch covers anything
+  // that still rejects the detached promise.
+  Promise.resolve()
+    .then(async () => {
+      try {
+        const { MoneyAccountUpgradeController } = Engine.context;
+        const accountKey = address.toLowerCase() as Hex;
+        const recordedBefore = Boolean(
           MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-      });
-    } catch (error: unknown) {
-      // Reached only for errors thrown by upgradeAccountWithRetry itself.
-      // An aborted run (screen lost focus) is a normal way for the retry
-      // loop to end, not a failure worth reporting. Match the abort
-      // rejection itself rather than `signal.aborted`, so a genuine failure
-      // that lands just after the user navigates away is still reported.
-      if (isMoneyAccountUpgradeAbortedError(error)) {
-        endedByAbort = true;
-        Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
-        return;
-      }
-      reportUpgradeError(error);
-    } finally {
-      upgradesInFlight.delete(address);
-      const { takeoverSignal } = entry;
-      if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
-        Logger.log(LOG_PREFIX, 'restarting upgrade for takeover signal', {
+        );
+        Logger.log(LOG_PREFIX, 'starting upgrade', {
           address,
+          recordedBefore,
         });
-        startUpgradeRun(address, takeoverSignal);
+
+        await upgradeAccountWithRetry(
+          (upgradeAddress) =>
+            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
+          address,
+          {
+            signal,
+            // Failures that end the run are reported by the catch below.
+            // Retried failures are reported here so they reach Sentry even
+            // when a later attempt succeeds — but capped per run, so a
+            // persistent outage cannot flood Sentry from the unbounded
+            // retry loop. Beyond the cap they are only logged locally.
+            onRetry: (error, attempt) => {
+              Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
+                address,
+                attempt,
+              });
+              if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
+                reportUpgradeError(error, {
+                  attempt,
+                  willRetry: true,
+                  ...(attempt === MAX_REPORTED_RETRIED_FAILURES
+                    ? { furtherRetryReportsSuppressed: true }
+                    : {}),
+                });
+              }
+            },
+          },
+        );
+
+        Logger.log(LOG_PREFIX, 'upgrade succeeded', {
+          address,
+          recordedBefore,
+          durationMs: Date.now() - startedAt,
+          recorded:
+            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+        });
+      } catch (error: unknown) {
+        // Reached only for errors thrown by upgradeAccountWithRetry itself.
+        // An aborted run (screen lost focus) is a normal way for the retry
+        // loop to end, not a failure worth reporting. Match the abort
+        // rejection itself rather than `signal.aborted`, so a genuine failure
+        // that lands just after the user navigates away is still reported.
+        if (isMoneyAccountUpgradeAbortedError(error)) {
+          endedByAbort = true;
+          Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
+          return;
+        }
+        reportUpgradeError(error);
+      } finally {
+        upgradesInFlight.delete(address);
+        const { takeoverSignal } = entry;
+        if (endedByAbort && takeoverSignal && !takeoverSignal.aborted) {
+          Logger.log(LOG_PREFIX, 'restarting upgrade for takeover signal', {
+            address,
+          });
+          startUpgradeRun(address, takeoverSignal);
+        }
       }
-    }
-  });
+    })
+    .catch((error: unknown) => {
+      reportUpgradeError(error);
+    });
 }
 
 export const upgradeMoneyAccount =

@@ -53,8 +53,7 @@ interface BenefitsProps {
 const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
   const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
-  const { startSubscription, isSubmitting, errorMessage } =
-    useStartProSubscription();
+  const { startSubscription, isSubmitting } = useStartProSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );

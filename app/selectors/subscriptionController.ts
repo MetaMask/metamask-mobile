@@ -4,7 +4,6 @@ import {
   MoneyAccountFeature,
   PRODUCT_TYPES,
   selectHasEntitlement,
-  selectIsActiveSubscriber,
   SUBSCRIPTION_STATUSES,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
