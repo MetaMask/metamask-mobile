@@ -426,7 +426,7 @@
     "@metamask/utils": "^11.12.1",
     "@metamask/wallet": "^14.0.1",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@nktkas/hyperliquid": "^0.33.1",
+    "@nktkas/hyperliquid": "^0.33.3",
     "@noble/curves": "1.9.7",
     "@noble/hashes": "1.8.0",
     "@notifee/react-native": "^9.1.8",
@@ -920,5 +920,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/perps-controller": {
+      "type": "breaking",
+      "previewVersion": "18.0.1-preview-2848be6"
+    }
   }
 }
