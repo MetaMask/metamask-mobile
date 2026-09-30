@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { GeolocationRequestStatus } from '@metamask/geolocation-controller';
 import {
-  isBrazilNeobankGeoBypassEnabled,
+  isVbaGeoBypassEnabled,
   selectMoneyMovementBrazilNeobankEnabled,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import {
@@ -23,7 +23,7 @@ export interface VbaEligibility {
   isFlagEnabled: boolean;
   /** IP geolocation resolves to a supported VBA region. */
   isRegionEligible: boolean;
-  /** `MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS=true` in `.js.env`. */
+  /** `MM_MONEY_VBA_GEO_BYPASS=true` in `.js.env`. */
   isDevBypassEnabled: boolean;
   /** IP location code from GeolocationController, such as `BR` or `US-CA`. */
   location: string | undefined;
@@ -86,7 +86,7 @@ export function useVbaEligibility(): VbaEligibility {
         isFlagEnabled,
         location,
         geolocationStatus,
-        isDevBypassEnabled: isBrazilNeobankGeoBypassEnabled(),
+        isDevBypassEnabled: isVbaGeoBypassEnabled(),
       }),
     [isFlagEnabled, location, geolocationStatus],
   );

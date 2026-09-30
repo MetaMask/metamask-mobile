@@ -76,7 +76,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
-  // Flag, min version, Brazil IP geolocation, and the dev bypass.
+  // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
   const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit

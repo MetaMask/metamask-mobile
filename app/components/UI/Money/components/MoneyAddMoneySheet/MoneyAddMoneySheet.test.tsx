@@ -171,7 +171,7 @@ describe('MoneyAddMoneySheet', () => {
       selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
     ).mockReturnValue(true);
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
-    delete process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS;
+    delete process.env.MM_MONEY_VBA_GEO_BYPASS;
     mockOpenVbaOnboarding.mockResolvedValue(undefined);
     mockUseOpenVbaOnboarding.mockReturnValue(mockOpenVbaOnboarding);
   });
@@ -277,7 +277,7 @@ describe('MoneyAddMoneySheet', () => {
 
   it('enables the Bank account row outside Brazil when the dev geo bypass is on', () => {
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
-    process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS = 'true';
+    process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
 
     const { getByTestId, getByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -296,7 +296,7 @@ describe('MoneyAddMoneySheet', () => {
       selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
     ).mockReturnValue(false);
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
-    process.env.MM_MONEY_BRAZIL_NEOBANK_GEO_BYPASS = 'true';
+    process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
 
     const { getAllByText, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
