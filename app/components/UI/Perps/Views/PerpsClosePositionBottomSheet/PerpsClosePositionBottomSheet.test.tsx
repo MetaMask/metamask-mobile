@@ -698,6 +698,20 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveLength(1);
     });
 
+    it('opens the size keypad when the amount display is pressed in market mode', () => {
+      const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } =
+        renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+
+      expect(queryByTestId('mock-keypad')).toBeOnTheScreen();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(0);
+    });
+
     it('shows the slider when the close size is pressed on a limit view', () => {
       const utils = renderSheet();
       const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } = utils;
