@@ -6,13 +6,10 @@ import {
 import performance from 'react-native-performance';
 import { getClient } from '@sentry/react-native';
 import {
-  endTrace,
   getCachedConsent,
   getPerformanceTimestampOffset,
-  trace,
   TraceName,
   TraceOperation,
-  type TraceContext,
 } from '../../util/trace';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
@@ -22,6 +19,7 @@ import Routes from '../../constants/navigation/Routes';
 import type { CredentialReadTimings } from '../SecureKeychain';
 import type { SeedlessPasswordCheckTimings } from '../Authentication/Authentication';
 import type { PersistedStateReadStats } from '../../store/persistConfig';
+import { sendFinishedTransaction } from './finishedTransaction';
 
 /**
  * Records the startup of this JS runtime as timestamps, and emits it once as
@@ -34,7 +32,6 @@ import type { PersistedStateReadStats } from '../../store/persistConfig';
 
 /** Bump when the stage layout changes, so dashboards can split by it. */
 const STARTUP_SCHEMA = '1';
-const STARTUP_TRACE_ID = 'startup';
 /** A read still pending this long after the request is waiting on a prompt. */
 const CREDENTIAL_READ_GRACE_MS = 2_000;
 /** How long after splash gone the app may take to start waiting on the user. */
@@ -85,7 +82,7 @@ export type StartupStage =
   | 'splash_reveal_tax'
   | 'unlock_prompt_delay';
 
-/** Numbers belong in span data: `trace` turns numeric tags into measurements. */
+/** Numbers belong in span data, where Sentry can chart them. */
 export type StartupTagValue = string | boolean;
 
 type NativeStartupMark =
@@ -348,48 +345,31 @@ const emitPayload = ({
 }: StartupPayload) => {
   // Read now rather than at startup: uptime stops while the phone sleeps.
   const offset = getPerformanceTimestampOffset();
-  const rootName = TraceName.StartupColdStartToUnlockReady;
-  const rootSpan = trace({
-    name: rootName,
-    op: TraceOperation.StartupColdStart,
-    id: STARTUP_TRACE_ID,
-    forceTransaction: true,
-    startTime: anchorAt + offset,
-    tags,
-    data: {
-      ...data,
-      'startup.clock_drift_ms': round(offset - startOffset),
+  const stageIndexes = new Map(
+    stages.map(({ stage }, index) => [stage, index]),
+  );
+  sendFinishedTransaction(
+    {
+      name: TraceName.StartupColdStartToUnlockReady,
+      op: TraceOperation.StartupColdStart,
+      startTime: anchorAt + offset,
+      endTime: endAt + offset,
+      tags,
+      data: {
+        ...data,
+        'startup.clock_drift_ms': round(offset - startOffset),
+      },
     },
-  });
-  if (rootSpan) {
-    const spans = new Map<StartupStage, TraceContext>();
-    for (const stage of stages) {
-      spans.set(
-        stage.stage,
-        trace({
-          name: getStageTraceName(stage.stage),
-          op: TraceOperation.StartupStage,
-          id: STARTUP_TRACE_ID,
-          parentContext: (stage.parent && spans.get(stage.parent)) ?? rootSpan,
-          startTime: stage.start + offset,
-          tags: stage.tags,
-          data: stage.data,
-        }),
-      );
-    }
-    for (const stage of [...stages].reverse()) {
-      endTrace({
-        name: getStageTraceName(stage.stage),
-        id: STARTUP_TRACE_ID,
-        timestamp: stage.end + offset,
-      });
-    }
-  }
-  endTrace({
-    name: rootName,
-    id: STARTUP_TRACE_ID,
-    timestamp: endAt + offset,
-  });
+    stages.map((stage) => ({
+      name: getStageTraceName(stage.stage),
+      op: TraceOperation.StartupStage,
+      startTime: stage.start + offset,
+      endTime: stage.end + offset,
+      tags: stage.tags,
+      data: stage.data,
+      parent: stage.parent && stageIndexes.get(stage.parent),
+    })),
+  );
 };
 
 /**
@@ -907,9 +887,10 @@ const setDeadline = (at: number | undefined) => {
 };
 
 /**
- * Emits once both splash gone and awaiting user are known. The emit starts a
- * root span, which would stop the profile of the Homepage Ready an unlock is
- * running, so it waits for Unlock To Homepage Ready, which ends right after it.
+ * Emits once both splash gone and awaiting user are known. While an unlock is
+ * on its way to the homepage it waits for it, so the emit has the hand-back
+ * and its work is not part of what Unlock To Homepage Ready and Homepage
+ * Ready measure.
  *
  * @param deadlineAt - The deadline whose timer called this. It counts as
  * reached even if the clock reads slightly earlier, so the timer is not set again.

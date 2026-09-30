@@ -2,19 +2,17 @@ import { AppState, type AppStateStatus } from 'react-native';
 import performance from 'react-native-performance';
 import { getClient } from '@sentry/react-native';
 import {
-  endTrace,
   getCachedConsent,
   getPerformanceTimestampOffset,
-  trace,
   TraceName,
   TraceOperation,
-  type TraceContext,
 } from '../../util/trace';
 import Logger from '../../util/Logger';
 import StorageWrapper from '../../store/storage-wrapper';
 import Routes from '../../constants/navigation/Routes';
 import { STARTUP_JS_RELOAD } from '../../constants/storage';
 import type { CredentialReadTimings } from '../SecureKeychain';
+import { sendFinishedTransaction } from './finishedTransaction';
 import {
   flagNextStartupAsJsReload,
   flushStartupStageSpans,
@@ -53,10 +51,12 @@ jest.mock('react-native-performance', () => ({
 
 jest.mock('../../util/trace', () => ({
   ...jest.requireActual('../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
   getCachedConsent: jest.fn(),
   getPerformanceTimestampOffset: jest.fn(),
+}));
+
+jest.mock('./finishedTransaction', () => ({
+  sendFinishedTransaction: jest.fn(),
 }));
 
 jest.mock('../redux', () => ({
@@ -73,8 +73,7 @@ jest.mock('../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
-const mockTrace = jest.mocked(trace);
-const mockEndTrace = jest.mocked(endTrace);
+const mockSend = jest.mocked(sendFinishedTransaction);
 const mockGetCachedConsent = jest.mocked(getCachedConsent);
 const mockGetOffset = jest.mocked(getPerformanceTimestampOffset);
 const mockGetClient = jest.mocked(getClient);
@@ -249,12 +248,7 @@ const runLoginStartup = () => {
   routeAt(Routes.ONBOARDING.LOGIN, 3_400);
 };
 
-const getTraceRequests = () => mockTrace.mock.calls.map(([request]) => request);
-const getEndRequests = () =>
-  mockEndTrace.mock.calls.map(([request]) => request);
-const isRoot = ({ name }: { name: TraceName }) =>
-  name === TraceName.StartupColdStartToUnlockReady;
-const findRoot = () => getTraceRequests().find(isRoot);
+const findRoot = () => mockSend.mock.calls[0]?.[0];
 const getRoot = () => {
   const root = findRoot();
   if (!root) {
@@ -262,11 +256,9 @@ const getRoot = () => {
   }
   return root;
 };
-const getRootEnd = () => getEndRequests().find(isRoot);
-const getStages = () =>
-  getTraceRequests().filter(({ op }) => op === TraceOperation.StartupStage);
+const getStages = () => mockSend.mock.calls[0]?.[1] ?? [];
 const getStage = (name: TraceName) =>
-  getStages().find((request) => request.name === name);
+  getStages().find((stage) => stage.name === name);
 
 describe('startupStageSpans', () => {
   beforeEach(() => {
@@ -284,9 +276,6 @@ describe('startupStageSpans', () => {
         appStateListener = listener;
         return { remove: mockRemoveAppStateListener };
       });
-    mockTrace.mockImplementation(
-      ({ name }) => ({ name }) as unknown as TraceContext,
-    );
     mockGetCachedConsent.mockReturnValue(true);
     mockGetOffset.mockReturnValue(OFFSET);
     mockGetClient.mockReturnValue(createClient(true));
@@ -308,9 +297,8 @@ describe('startupStageSpans', () => {
       expect(getRoot()).toEqual({
         name: TraceName.StartupColdStartToUnlockReady,
         op: TraceOperation.StartupColdStart,
-        id: 'startup',
-        forceTransaction: true,
         startTime: OFFSET + 100,
+        endTime: OFFSET + SPLASH_GONE_AT,
         tags: {
           ...SEGMENT_TAGS,
           'startup.end_bound_by': 'splash',
@@ -346,45 +334,28 @@ describe('startupStageSpans', () => {
           'startup.clock_drift_ms': 0,
         },
       });
-      expect(getRootEnd()).toEqual({
-        name: TraceName.StartupColdStartToUnlockReady,
-        id: 'startup',
-        timestamp: OFFSET + SPLASH_GONE_AT,
-      });
     });
 
-    it('sends one child span per stage, nested under its parent stage', () => {
+    it('sends one child span per stage between its marks, nested under its parent stage', () => {
       runKeychainUnlock();
 
+      const storeInitializationIndex = COLD_START_STAGES.findIndex(
+        ([name]) => name === TraceName.StartupStoreInitialization,
+      );
       expect(getStages()).toEqual(
-        COLD_START_STAGES.map(([name, start]) => ({
+        COLD_START_STAGES.map(([name, start, end]) => ({
           name,
           op: TraceOperation.StartupStage,
-          id: 'startup',
-          parentContext: {
-            name:
-              name === TraceName.StartupReduxPersistRehydration
-                ? TraceName.StartupStoreInitialization
-                : TraceName.StartupColdStartToUnlockReady,
-          },
           startTime: OFFSET + start,
+          endTime: OFFSET + end,
           tags: SEGMENT_TAGS,
           data: {},
+          parent:
+            name === TraceName.StartupReduxPersistRehydration
+              ? storeInitializationIndex
+              : undefined,
         })),
       );
-    });
-
-    it('ends every stage at its end mark before ending the root', () => {
-      runKeychainUnlock();
-
-      expect(
-        getEndRequests().map(({ name, timestamp }) => [name, timestamp]),
-      ).toEqual([
-        ...[...COLD_START_STAGES]
-          .reverse()
-          .map(([name, , end]) => [name, OFFSET + end]),
-        [TraceName.StartupColdStartToUnlockReady, OFFSET + SPLASH_GONE_AT],
-      ]);
     });
 
     it('converts the marks with the trace clock offset read when it sends the startup', () => {
@@ -396,30 +367,15 @@ describe('startupStageSpans', () => {
       expect(getRoot()).toEqual(
         expect.objectContaining({
           startTime: OFFSET + 40 + 100,
+          endTime: OFFSET + 40 + 3_400,
           data: expect.objectContaining({ 'startup.clock_drift_ms': 40 }),
         }),
       );
-      expect(getRootEnd()?.timestamp).toBe(OFFSET + 40 + 3_400);
-    });
-
-    it('ends the root without stages when the root span did not start', () => {
-      mockTrace.mockReturnValue(undefined);
-
-      runKeychainUnlock();
-
-      expect(mockTrace).toHaveBeenCalledTimes(1);
-      expect(getEndRequests()).toEqual([
-        {
-          name: TraceName.StartupColdStartToUnlockReady,
-          id: 'startup',
-          timestamp: OFFSET + SPLASH_GONE_AT,
-        },
-      ]);
     });
 
     it('sends the startup once and ignores later calls', () => {
       runKeychainUnlock();
-      mockTrace.mockClear();
+      mockSend.mockClear();
 
       runAt(5_000, () => markStartup('splashGone'));
       routeAt(Routes.ONBOARDING.HOME_NAV, 5_100);
@@ -429,7 +385,7 @@ describe('startupStageSpans', () => {
       flushStartupStageSpans();
       advanceTo(60_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
       expect(jest.getTimerCount()).toBe(0);
       expect(mockRemoveAppStateListener).toHaveBeenCalledTimes(1);
     });
@@ -462,7 +418,7 @@ describe('startupStageSpans', () => {
       expect(getStage(TraceName.StartupUnlockPromptDelay)?.startTime).toBe(
         OFFSET + SPLASH_GONE_AT,
       );
-      expect(getRootEnd()?.timestamp).toBe(OFFSET + 3_600);
+      expect(getRoot().endTime).toBe(OFFSET + 3_600);
     });
 
     it('ends at the route that follows an empty keychain read', () => {
@@ -578,7 +534,7 @@ describe('startupStageSpans', () => {
         }),
       );
       expect(getRoot().data).not.toHaveProperty('startup.awaiting_user_ms');
-      expect(getRootEnd()?.timestamp).toBe(OFFSET + SPLASH_GONE_AT);
+      expect(getRoot().endTime).toBe(OFFSET + SPLASH_GONE_AT);
     });
 
     it('sends the startup when its deadline fires even if the clock reads earlier', () => {
@@ -644,7 +600,7 @@ describe('startupStageSpans', () => {
       expect(getRoot().tags).toEqual(
         expect.objectContaining({ 'startup.leg2': 'started' }),
       );
-      expect(getRootEnd()?.timestamp).toBe(OFFSET + SPLASH_GONE_AT);
+      expect(getRoot().endTime).toBe(OFFSET + SPLASH_GONE_AT);
     });
 
     it.each([
@@ -689,7 +645,7 @@ describe('startupStageSpans', () => {
         'startup.stage.splash_reveal_tax_ms',
       );
       expect(getStage(TraceName.StartupSplashRevealTax)).toBeUndefined();
-      expect(getRootEnd()?.timestamp).toBe(OFFSET + 3_100);
+      expect(getRoot().endTime).toBe(OFFSET + 3_100);
       expect(mockRemoveAppStateListener).toHaveBeenCalledTimes(1);
     });
 
@@ -722,7 +678,7 @@ describe('startupStageSpans', () => {
         }),
       );
       expect(getRoot().tags).not.toHaveProperty('startup.backgrounded_during');
-      expect(getRootEnd()?.timestamp).toBe(OFFSET + 3_400);
+      expect(getRoot().endTime).toBe(OFFSET + 3_400);
     });
 
     it('keeps waiting while the app is inactive behind a biometric prompt', () => {
@@ -1023,13 +979,13 @@ describe('startupStageSpans', () => {
       mockGetCachedConsent.mockReturnValue(null);
       runKeychainUnlock();
       flushStartupStageSpans();
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
 
       mockGetCachedConsent.mockReturnValue(true);
       flushStartupStageSpans();
       flushStartupStageSpans();
 
-      expect(getTraceRequests().filter(isRoot)).toHaveLength(1);
+      expect(mockSend).toHaveBeenCalledTimes(1);
     });
 
     it('drops the startup when consent is declined', () => {
@@ -1039,7 +995,7 @@ describe('startupStageSpans', () => {
       mockGetCachedConsent.mockReturnValue(true);
       flushStartupStageSpans();
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -1048,7 +1004,7 @@ describe('startupStageSpans', () => {
     ])('holds the startup while the Sentry client is $state', ({ client }) => {
       mockGetClient.mockReturnValue(client);
       runKeychainUnlock();
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
 
       mockGetClient.mockReturnValue(createClient(true));
       flushStartupStageSpans();
@@ -1060,7 +1016,7 @@ describe('startupStageSpans', () => {
   describe('failures', () => {
     it('logs instead of throwing when sending the startup fails', () => {
       const error = new Error('Sentry failed');
-      mockTrace.mockImplementation(() => {
+      mockSend.mockImplementation(() => {
         throw error;
       });
 

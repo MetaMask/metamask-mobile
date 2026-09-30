@@ -5,10 +5,7 @@ import {
 } from 'react-native';
 import performance from 'react-native-performance';
 import {
-  endTrace,
-  getCachedConsent,
   getPerformanceTimestampOffset,
-  trace,
   TraceName,
   TraceOperation,
   type TraceValue,
@@ -17,6 +14,7 @@ import Logger from '../../util/Logger';
 import { AppStateEventProcessor } from '../AppStateEventListener';
 import type { CredentialReadTimings } from '../SecureKeychain';
 import type { HomepageReadyContentState } from './HomepageReady';
+import { sendFinishedTransaction } from './finishedTransaction';
 import {
   getStartupKind,
   noteStartupHandBack,
@@ -30,8 +28,8 @@ import {
  * docs/performance/startup-telemetry.md.
  *
  * Every call is synchronous and never throws. The spans are built from
- * `performance.now()` marks once the homepage is ready, right after
- * `Homepage Ready` ends, so no transaction starts while that one runs. An
+ * `performance.now()` marks once the homepage is ready, and sent right after
+ * `Homepage Ready` ends, so sending them is not part of what it measures. An
  * unlock that waits on something other than the app is dropped, not sent.
  */
 
@@ -84,8 +82,6 @@ const STAGES: readonly UnlockStage[] = [
   'home_visible',
   'homepage_content',
 ];
-
-const TRACE_ID = 'unlock';
 
 let stageTraceNames: Record<UnlockStage, TraceName> | undefined;
 
@@ -426,31 +422,23 @@ const emitPayload = ({
   stages,
 }: UnlockPayload) => {
   const offset = getPerformanceTimestampOffset();
-  const rootName = TraceName.UnlockToHomepageReady;
-  const rootSpan = trace({
-    name: rootName,
-    op: TraceOperation.UnlockHomepageReady,
-    id: TRACE_ID,
-    forceTransaction: true,
-    startTime: handBackAt + offset,
-    tags,
-    data,
-  });
-  if (rootSpan) {
-    for (const { stage, start, end } of stages) {
-      const name = getStageTraceName(stage);
-      trace({
-        name,
-        op: TraceOperation.UnlockStage,
-        id: TRACE_ID,
-        parentContext: rootSpan,
-        startTime: start + offset,
-        tags,
-      });
-      endTrace({ name, id: TRACE_ID, timestamp: end + offset });
-    }
-  }
-  endTrace({ name: rootName, id: TRACE_ID, timestamp: endAt + offset });
+  sendFinishedTransaction(
+    {
+      name: TraceName.UnlockToHomepageReady,
+      op: TraceOperation.UnlockHomepageReady,
+      startTime: handBackAt + offset,
+      endTime: endAt + offset,
+      tags,
+      data,
+    },
+    stages.map(({ stage, start, end }) => ({
+      name: getStageTraceName(stage),
+      op: TraceOperation.UnlockStage,
+      startTime: start + offset,
+      endTime: end + offset,
+      tags,
+    })),
+  );
 };
 
 /**
@@ -480,10 +468,7 @@ export const finishUnlockToHomepageReady = ({
       contentState,
     );
     logSummary(payload);
-    // Spans started before consent is known are buffered without their parent.
-    if (getCachedConsent() === true) {
-      emitPayload(payload);
-    }
+    emitPayload(payload);
   });
 
 export const resetUnlockToHomepageReadyForTesting = () => {

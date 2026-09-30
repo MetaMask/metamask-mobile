@@ -53,7 +53,7 @@ export const useHomepageReady = ({
   useEffect(() => {
     if (isFocused && contentReady) {
       endHomepageReadyTrace({ contentState });
-      // Only after Homepage Ready ends: a new transaction would stop its profile.
+      // After Homepage Ready ends, so sending the unlock is not part of it.
       finishUnlockToHomepageReady({ contentState });
     }
   }, [contentReady, contentState, foregroundSequence, isFocused]);

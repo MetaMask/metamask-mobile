@@ -1,14 +1,8 @@
 import { AppState, type AppStateStatus } from 'react-native';
-import {
-  endTrace,
-  getCachedConsent,
-  trace,
-  TraceName,
-  TraceOperation,
-  type TraceContext,
-} from '../../util/trace';
+import { TraceName, TraceOperation } from '../../util/trace';
 import Logger from '../../util/Logger';
 import { AppStateEventProcessor } from '../AppStateEventListener';
+import { sendFinishedTransaction } from './finishedTransaction';
 import { noteStartupHandBack, noteStartupLeg2Ended } from './startupStageSpans';
 import {
   dropUnlockToHomepageReady,
@@ -36,10 +30,11 @@ jest.mock('react-native-performance', () => ({
 
 jest.mock('../../util/trace', () => ({
   ...jest.requireActual('../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
-  getCachedConsent: jest.fn(),
   getPerformanceTimestampOffset: () => MOCK_OFFSET,
+}));
+
+jest.mock('./finishedTransaction', () => ({
+  sendFinishedTransaction: jest.fn(),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -57,9 +52,7 @@ jest.mock('./startupStageSpans', () => ({
   noteStartupLeg2Ended: jest.fn(),
 }));
 
-const mockTrace = jest.mocked(trace);
-const mockEndTrace = jest.mocked(endTrace);
-const mockGetCachedConsent = jest.mocked(getCachedConsent);
+const mockSend = jest.mocked(sendFinishedTransaction);
 const mockLoggerError = jest.mocked(Logger.error);
 const mockLoggerLog = jest.mocked(Logger.log);
 const mockNoteHandBack = jest.mocked(noteStartupHandBack);
@@ -71,9 +64,6 @@ const mockRemoveAppStateListener = jest.fn();
 
 let appStateListener: ((state: AppStateStatus) => void) | undefined;
 
-const ROOT_SPAN = {
-  name: TraceName.UnlockToHomepageReady,
-} as unknown as TraceContext;
 const COLD_TAGS = {
   app_start_type: 'cold',
   'unlock.before_navigate': false,
@@ -118,10 +108,9 @@ const reachHome = () => {
 const finishAt = (time: number, contentState: 'filled' | 'error' = 'filled') =>
   runAt(time, () => finishUnlockToHomepageReady({ contentState }));
 
-const getRootData = () =>
-  mockTrace.mock.calls.find(
-    ([request]) => request.name === TraceName.UnlockToHomepageReady,
-  )?.[0].data;
+const getSentTransaction = () => mockSend.mock.calls[0]?.[0];
+
+const getRootData = () => getSentTransaction()?.data;
 
 describe('unlockToHomepageReady', () => {
   beforeEach(() => {
@@ -129,10 +118,6 @@ describe('unlockToHomepageReady', () => {
     resetUnlockToHomepageReadyForTesting();
     mockNow = 1_000;
     mockAppStateEventProcessor.pendingDeeplink = null;
-    mockGetCachedConsent.mockReturnValue(true);
-    mockTrace.mockImplementation(
-      ({ name }) => ({ name }) as unknown as TraceContext,
-    );
     appStateListener = undefined;
     jest
       .spyOn(AppState, 'addEventListener')
@@ -151,25 +136,6 @@ describe('unlockToHomepageReady', () => {
 
       finishAt(2_400);
 
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.UnlockToHomepageReady,
-        op: TraceOperation.UnlockHomepageReady,
-        id: 'unlock',
-        forceTransaction: true,
-        startTime: MOCK_OFFSET + 1_000,
-        tags: COLD_TAGS,
-        data: {
-          success: true,
-          content_state: 'filled',
-          'unlock.duration_ms': 1_400,
-          'unlock.stage.credential_decrypt_ms': 40,
-          'unlock.stage.vault_unlock_ms': 460,
-          'unlock.stage.unlock_finalize_ms': 80,
-          'unlock.stage.home_visible_ms': 300,
-          'unlock.stage.homepage_content_ms': 500,
-          'unlock.unattributed_ms': 20,
-        },
-      });
       const stages: [TraceName, number, number][] = [
         [TraceName.UnlockCredentialDecrypt, 1_000, 1_040],
         [TraceName.UnlockVaultUnlock, 1_040, 1_500],
@@ -177,28 +143,34 @@ describe('unlockToHomepageReady', () => {
         [TraceName.UnlockHomeVisible, 1_600, 1_900],
         [TraceName.UnlockHomepageContent, 1_900, 2_400],
       ];
-      expect(mockTrace.mock.calls.slice(1).map(([request]) => request)).toEqual(
-        stages.map(([name, start]) => ({
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        {
+          name: TraceName.UnlockToHomepageReady,
+          op: TraceOperation.UnlockHomepageReady,
+          startTime: MOCK_OFFSET + 1_000,
+          endTime: MOCK_OFFSET + 2_400,
+          tags: COLD_TAGS,
+          data: {
+            success: true,
+            content_state: 'filled',
+            'unlock.duration_ms': 1_400,
+            'unlock.stage.credential_decrypt_ms': 40,
+            'unlock.stage.vault_unlock_ms': 460,
+            'unlock.stage.unlock_finalize_ms': 80,
+            'unlock.stage.home_visible_ms': 300,
+            'unlock.stage.homepage_content_ms': 500,
+            'unlock.unattributed_ms': 20,
+          },
+        },
+        stages.map(([name, start, end]) => ({
           name,
           op: TraceOperation.UnlockStage,
-          id: 'unlock',
-          parentContext: ROOT_SPAN,
           startTime: MOCK_OFFSET + start,
+          endTime: MOCK_OFFSET + end,
           tags: COLD_TAGS,
         })),
       );
-      expect(mockEndTrace.mock.calls.map(([request]) => request)).toEqual([
-        ...stages.map(([name, , end]) => ({
-          name,
-          id: 'unlock',
-          timestamp: MOCK_OFFSET + end,
-        })),
-        {
-          name: TraceName.UnlockToHomepageReady,
-          id: 'unlock',
-          timestamp: MOCK_OFFSET + 2_400,
-        },
-      ]);
     });
 
     it('marks an error homepage as unsuccessful', () => {
@@ -226,25 +198,11 @@ describe('unlockToHomepageReady', () => {
       startUnlockToHomepageReady(keychainUnlock());
       reachHome();
       finishAt(2_000);
-      mockTrace.mockClear();
+      mockSend.mockClear();
 
       finishAt(2_500);
 
-      expect(mockTrace).not.toHaveBeenCalled();
-    });
-
-    it.each([
-      { consent: 'unknown', value: null },
-      { consent: 'declined', value: false },
-    ])('sends nothing while consent is $consent', ({ value }) => {
-      mockGetCachedConsent.mockReturnValue(value);
-      startUnlockToHomepageReady(keychainUnlock());
-      reachHome();
-
-      finishAt(2_000);
-
-      expect(mockTrace).not.toHaveBeenCalled();
-      expect(mockNoteLeg2Ended).toHaveBeenCalledTimes(1);
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('does nothing when no unlock is in flight', () => {
@@ -256,12 +214,12 @@ describe('unlockToHomepageReady', () => {
       runAt(1_500, stop);
       finishAt(2_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('logs instead of throwing when sending fails', () => {
       const error = new Error('Sentry failed');
-      mockTrace.mockImplementation(() => {
+      mockSend.mockImplementation(() => {
         throw error;
       });
       startUnlockToHomepageReady(keychainUnlock());
@@ -283,12 +241,12 @@ describe('unlockToHomepageReady', () => {
       runAt(1_600, markUnlockNavigate);
       finishAt(1_700);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
 
       runAt(1_800, markUnlockHomeFocused);
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalled();
     });
 
     it('counts the homepage as focused only once the unlock navigated, keeping the first marks', () => {
@@ -332,12 +290,7 @@ describe('unlockToHomepageReady', () => {
 
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.UnlockToHomepageReady,
-          startTime: MOCK_OFFSET + 900,
-        }),
-      );
+      expect(getSentTransaction()?.startTime).toBe(MOCK_OFFSET + 900);
       expect(getRootData()).toEqual(
         expect.objectContaining({
           'unlock.duration_ms': 1_100,
@@ -373,11 +326,10 @@ describe('unlockToHomepageReady', () => {
 
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tags: { ...COLD_TAGS, 'unlock.before_navigate': true },
-        }),
-      );
+      expect(getSentTransaction()?.tags).toEqual({
+        ...COLD_TAGS,
+        'unlock.before_navigate': true,
+      });
     });
 
     it('tags later unlocks in the same JS runtime warm, without the startup kind', () => {
@@ -388,11 +340,10 @@ describe('unlockToHomepageReady', () => {
 
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tags: { app_start_type: 'warm', 'unlock.before_navigate': false },
-        }),
-      );
+      expect(getSentTransaction()?.tags).toEqual({
+        app_start_type: 'warm',
+        'unlock.before_navigate': false,
+      });
     });
 
     it('keeps the next attempt cold after a failed unlock', () => {
@@ -403,9 +354,7 @@ describe('unlockToHomepageReady', () => {
 
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({ tags: COLD_TAGS }),
-      );
+      expect(getSentTransaction()?.tags).toEqual(COLD_TAGS);
     });
 
     it('does not record rehydrating a wallet onto a new device', () => {
@@ -417,7 +366,7 @@ describe('unlockToHomepageReady', () => {
       finishAt(2_000);
 
       expect(token).toBeNull();
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
       expect(mockNoteHandBack).toHaveBeenCalledWith(1_000, {
         leg2Started: false,
         leg2InFlight: false,
@@ -507,7 +456,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
       expect(mockNoteLeg2Ended).toHaveBeenCalledTimes(1);
       expect(mockRemoveAppStateListener).toHaveBeenCalledTimes(1);
     });
@@ -522,7 +471,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalled();
     });
 
     it('drops the unlock when the focused homepage is left before its content is usable', () => {
@@ -532,7 +481,7 @@ describe('unlockToHomepageReady', () => {
       dropUnlockToHomepageReady('navigated_away', token);
       finishAt(2_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('drops the unlock when the app goes to the background', () => {
@@ -542,7 +491,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
       expect(mockRemoveAppStateListener).toHaveBeenCalledTimes(1);
     });
 
@@ -554,7 +503,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalled();
     });
 
     it('drops the unlock when a deeplink was pending at the hand-back', () => {
@@ -568,7 +517,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('drops the unlock when a deeplink arrived after the hand-back', () => {
@@ -580,7 +529,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('keeps the unlock when no deeplink is pending', () => {
@@ -590,7 +539,7 @@ describe('unlockToHomepageReady', () => {
       reachHome();
       finishAt(2_000);
 
-      expect(mockTrace).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalled();
     });
   });
 
