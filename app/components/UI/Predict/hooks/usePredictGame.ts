@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
+import { LIVE_GAME_CACHE_TTL_MS } from '../constants/sports';
 import { predictQueries } from '../queries';
 import type { GameUpdate, PredictMarket, PredictMarketGame } from '../types';
 import { parseScore } from '../utils/gameParser';
@@ -17,15 +18,6 @@ export interface UsePredictGameResult {
 }
 
 const liveGameUpdateTimes = new Map<string, number>();
-
-/**
- * How long a received WebSocket update stays trusted over newer REST data.
- * The sports WS pushes updates every few seconds for live games, so a healthy
- * socket keeps entries fresh. If the socket dies, an unbounded preference for
- * the cached live state would mask newer REST snapshots until the app was
- * fully restarted (PRED-1334), so stale entries yield to REST instead.
- */
-const LIVE_GAME_CACHE_TTL_MS = 60_000;
 
 export const __resetPredictGameCacheForTest = () => {
   liveGameUpdateTimes.clear();
