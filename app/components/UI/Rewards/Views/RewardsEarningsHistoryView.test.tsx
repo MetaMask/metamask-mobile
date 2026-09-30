@@ -35,6 +35,9 @@ jest.mock('../../../Views/ErrorBoundary', () => {
 });
 
 jest.mock('../hooks/useEarningsHistory');
+jest.mock('../hooks/useInFlightClaims', () => ({
+  useInFlightClaims: () => ({ claims: [], refresh: jest.fn() }),
+}));
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
