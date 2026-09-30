@@ -27,7 +27,7 @@ import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAtten
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ExploreSearchBar from '../../../TrendingView/components/ExploreSearchBar/ExploreSearchBar';
-import type { SearchOrigin } from '../../../../../../util/homepageSearchTransition';
+import type { SearchOrigin } from '../../../../../util/homepageSearchTransition';
 
 interface TouchAreaSlop {
   top: number;
