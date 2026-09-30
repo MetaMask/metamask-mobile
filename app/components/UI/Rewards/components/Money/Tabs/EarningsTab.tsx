@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -8,12 +8,16 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonSize,
+  ButtonVariant,
   IconColor,
   IconName,
   SectionDivider,
   SectionHeader,
   Skeleton,
+  TabEmptyState,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -58,6 +62,7 @@ export const EARNINGS_TAB_TEST_IDS = {
   BREAKDOWN_ROW: 'rewards-money-earnings-breakdown-row',
   HISTORY: 'rewards-money-earnings-history',
   HISTORY_HEADER: 'rewards-money-earnings-history-header',
+  HISTORY_EMPTY: 'rewards-money-earnings-history-empty',
 } as const;
 
 interface BreakdownRow {
@@ -151,6 +156,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   onViewPerformance,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const openTradeActions = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
+  }, [navigation]);
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
@@ -192,12 +202,14 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       ? 'rewards.trading_activity_error'
       : 'rewards.referral_details_error';
   const showCard = summaryLoading || summary !== null;
-  const showBreakdown = rows.length > 0 && (summaryLoading || summary !== null);
+  // Disable the breakdown for this pilot until the section is ready to show.
+  const showBreakdown = false; // rows.length > 0 && (summaryLoading || summary !== null);
   const showHistory = !(
     historyError &&
     previewHistory.length === 0 &&
     !historyLoading
   );
+  const historyListEmpty = !historyLoading && previewHistory.length === 0;
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
@@ -316,12 +328,15 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           ) : null}
           <SectionHeader
             title={localizedText.history}
-            isInteractive
-            onPress={() =>
-              navigateToRewardsRoute(
-                navigation,
-                Routes.REWARDS_EARNINGS_HISTORY_VIEW,
-              )
+            isInteractive={!historyListEmpty}
+            onPress={
+              historyListEmpty
+                ? undefined
+                : () =>
+                    navigateToRewardsRoute(
+                      navigation,
+                      Routes.REWARDS_EARNINGS_HISTORY_VIEW,
+                    )
             }
             twClassName={showCard || showBreakdown ? 'pt-0 pb-4' : 'pt-6 pb-4'}
             testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
@@ -331,6 +346,33 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               <TradingActivityListSkeleton
                 rows={EARNINGS_HISTORY_PREVIEW_COUNT}
               />
+            ) : historyListEmpty ? (
+              <Box twClassName="items-center py-4">
+                <TabEmptyState
+                  icon={
+                    <AvatarIcon
+                      iconName={IconName.Activity}
+                      size={AvatarIconSize.Xl}
+                      severity={AvatarIconSeverity.Neutral}
+                      iconProps={{ color: IconColor.IconDefault }}
+                    />
+                  }
+                  description={localizedText.tradingActivityEmptyDescription}
+                  descriptionProps={{
+                    variant: TextVariant.BodyMd,
+                    color: TextColor.TextAlternative,
+                  }}
+                  actionButtonText={localizedText.tradingActivityEmptyAction}
+                  actionButtonProps={{
+                    variant: ButtonVariant.Primary,
+                    size: ButtonSize.Lg,
+                    twClassName: 'mt-3 self-stretch',
+                    testID: `${EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY}-action`,
+                  }}
+                  onAction={openTradeActions}
+                  testID={EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY}
+                />
+              </Box>
             ) : (
               <Box twClassName="gap-4" testID={EARNINGS_TAB_TEST_IDS.HISTORY}>
                 {previewHistory.map((item) => (
