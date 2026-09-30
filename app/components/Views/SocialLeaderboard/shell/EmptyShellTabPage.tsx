@@ -12,6 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   Fragment,
   useCallback,
@@ -30,9 +31,13 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
+import { playSelection } from '../../../../util/haptics';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+import { useMyProfile } from '../MyProfileView/hooks';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
@@ -123,6 +128,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   isFilterActive = false,
 }) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { profile: myProfile } = useMyProfile();
   const scrollRef = useRef<ScrollView>(null);
   const {
     posts,
@@ -392,13 +399,30 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     return blocks;
   }, [showPopularTraders, sortedPosts]);
 
+  const handleAuthorPress = useCallback(
+    (post: SocialV1FeedPost) => {
+      playSelection().catch(() => undefined);
+      navigateToSocialV1Profile(navigation, {
+        traderId: post.item.author.id,
+        traderName: post.authorHandle,
+        traderAddress: post.item.author.address,
+        traderAvatarUri:
+          post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
+        source: 'trader_feed',
+        viewerProfileId: myProfile?.profileId ?? undefined,
+        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+      });
+    },
+    [myProfile, navigation],
+  );
+
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
-        <SocialFeedPostShell post={post} />
+        <SocialFeedPostShell post={post} onAuthorPress={handleAuthorPress} />
       </SocialFeedPostEntrance>
     ),
-    [seenPostIds],
+    [handleAuthorPress, seenPostIds],
   );
 
   const showInitialFeedSkeletons = activeTokenFeed
