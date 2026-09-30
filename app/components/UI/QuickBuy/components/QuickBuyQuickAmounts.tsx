@@ -5,9 +5,7 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo } from 'react';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../util/haptics';
 import { useQuickBuyContext } from '../useQuickBuyContext';
@@ -52,8 +50,6 @@ const QUICK_AMOUNT_PILL_PROPS = {
 } as const;
 
 const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
-const QUICK_AMOUNT_PILL_COUNT = 4;
-const QUICK_AMOUNT_PILL_SKELETON_LABEL = 'quick-buy-quick-amount-pill-skeleton';
 
 export interface QuickBuyQuickAmountsProps {
   /** When true, appends a primary Done pill (keyboard-open row above the keypad). */
@@ -65,14 +61,12 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
   showDone = false,
   onDonePress,
 }) => {
-  const tw = useTailwind();
   const { playImpact } = useHaptics();
   const {
     tradeMode,
     currentCurrency,
     buyQuickAmounts,
     sellQuickPercentages,
-    isQuickAmountPreferencesLoaded,
     hasSourcePrice,
     isSliderDisabled,
     handleQuickAmountPress,
@@ -144,40 +138,6 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
         Done
       </Button>
     ) : null;
-
-  const renderPillSkeletonLabel = () => (
-    <Skeleton
-      width={32}
-      height={14}
-      style={tw.style('rounded-sm')}
-      testID={QUICK_AMOUNT_PILL_SKELETON_LABEL}
-    />
-  );
-
-  if (!isQuickAmountPreferencesLoaded) {
-    const loadingTestIdPrefix =
-      tradeMode === 'sell'
-        ? 'quick-buy-sell-pill-loading'
-        : 'quick-buy-buy-pill-loading';
-
-    return (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
-        {Array.from({ length: QUICK_AMOUNT_PILL_COUNT }, (_, index) => (
-          <Button
-            key={index}
-            {...QUICK_AMOUNT_PILL_PROPS}
-            onPress={() => undefined}
-            isDisabled
-            twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
-            testID={`${loadingTestIdPrefix}-${index}`}
-          >
-            {renderPillSkeletonLabel()}
-          </Button>
-        ))}
-        {doneButton}
-      </Box>
-    );
-  }
 
   if (tradeMode === 'sell') {
     return (
