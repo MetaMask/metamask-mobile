@@ -1,19 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text as RNText } from 'react-native';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 
 const styles = StyleSheet.create({
+  container: {
+    maxWidth: '100%',
+  },
   amountText: {
     fontSize: 48,
     flexShrink: 1,
-    maxWidth: '95%',
+    minWidth: 0,
   },
   cursor: {
     flexShrink: 0,
@@ -38,67 +36,22 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
   cursorTwClassName = 'ml-1 h-10 w-0.5 bg-primary-default',
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [fadeAnim]);
-
-  const cursor = (
-    <Animated.View
-      style={[
-        tw.style(cursorTwClassName),
-        styles.cursor,
-        { opacity: fadeAnim },
-      ]}
-    />
-  );
-
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="w-full"
+    <AnimatedAmountDisplay
+      amountTestID={`${testID}-amount`}
+      color={hasInput ? TextColor.TextDefault : TextColor.TextAlternative}
+      containerStyle={[tw.style('w-full justify-center'), styles.container]}
+      cursor={{
+        style: [tw.style(cursorTwClassName), styles.cursor],
+        testID: `${testID}-cursor`,
+      }}
+      fitToWidth
+      prefix={prefix}
+      style={[tw.style('font-medium'), styles.amountText]}
+      suffix={suffix}
       testID={testID}
-    >
-      {prefix}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="items-baseline max-w-[95%] shrink"
-      >
-        <RNText
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.4}
-          style={[
-            tw.style('font-medium'),
-            styles.amountText,
-            { color: hasInput ? colors.text.default : colors.text.alternative },
-          ]}
-        >
-          {text}
-        </RNText>
-        {cursor}
-        {suffix}
-      </Box>
-    </Box>
+      value={text}
+    />
   );
 };
 
