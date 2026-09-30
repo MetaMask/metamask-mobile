@@ -4,6 +4,11 @@ import { getVersion } from 'react-native-device-info';
 import type {
   ClaimDto,
   ClaimHistoryPageDto,
+  ClaimInitiateDto,
+  ClaimProofRequiredDto,
+  ClaimRouteSlug,
+  InitiateClaimBody,
+  InitiateClaimResult,
   CommissionsPageDto,
   EarningOriginType,
   EarningsLedgerPageDto,
@@ -52,6 +57,24 @@ export class RewardsMoneyAuthorizationError extends Error {
  * on. Register refuses a referee with a 403 or 409 that carries the product
  * reason, so the status cannot be flattened into a generic Error.
  */
+/**
+ * A claim route refused the request. `reason` is the server's refusal code
+ * (`BELOW_MINIMUM`, `UNDER_REVIEW`, and the rest). A `428` is not this: the
+ * proof challenge is returned from `initiateClaim`.
+ */
+export class RewardsMoneyClaimRefusalError extends Error {
+  readonly status: number;
+
+  readonly reason: string;
+
+  constructor(status: number, reason: string) {
+    super(reason);
+    this.name = 'RewardsMoneyClaimRefusalError';
+    this.status = status;
+    this.reason = reason;
+  }
+}
+
 export class RewardsMoneyHttpError extends Error {
   readonly status: number;
 
@@ -117,6 +140,11 @@ export interface RewardsMoneyDataServiceGetClaimByIdAction {
   handler: RewardsMoneyDataService['getClaimById'];
 }
 
+export interface RewardsMoneyDataServiceInitiateClaimAction {
+  type: `${typeof SERVICE_NAME}:initiateClaim`;
+  handler: RewardsMoneyDataService['initiateClaim'];
+}
+
 export interface RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyDataService['getRewardsMoneyEnvUrl'];
@@ -148,6 +176,7 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
+  | RewardsMoneyDataServiceInitiateClaimAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -166,6 +195,24 @@ export type RewardsMoneyDataServiceMessenger = Messenger<
  * Strips trailing slashes without a regex. `/\/+$/` backtracks super-linearly
  * on a long run of slashes; a scan from the end is linear.
  */
+function claimRefusalReason(bodyText: string): string {
+  try {
+    const parsed = JSON.parse(bodyText) as {
+      reason?: unknown;
+      message?: unknown;
+    };
+    if (typeof parsed.reason === 'string' && parsed.reason.length > 0) {
+      return parsed.reason;
+    }
+    if (typeof parsed.message === 'string' && parsed.message.length > 0) {
+      return parsed.message;
+    }
+  } catch {
+    // A non-JSON body still refuses the claim; the toast stays generic.
+  }
+  return 'UNKNOWN';
+}
+
 function trimTrailingSlashes(url: string): string {
   let end = url.length;
   while (end > 0 && url[end - 1] === '/') {
@@ -255,6 +302,10 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClaimById`,
       this.getClaimById.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:initiateClaim`,
+      this.initiateClaim.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsMoneyEnvUrl`,
@@ -488,6 +539,36 @@ export class RewardsMoneyDataService {
     }
 
     return (await response.json()) as ClaimHistoryPageDto;
+  }
+
+  async initiateClaim(
+    route: ClaimRouteSlug,
+    body: InitiateClaimBody,
+  ): Promise<InitiateClaimResult> {
+    const response = await this.#makeRequest(`/wr/earnings/claim/${route}`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    const bodyText = await response.text();
+
+    if (response.status === 428) {
+      return {
+        kind: 'proof_required',
+        body: JSON.parse(bodyText) as ClaimProofRequiredDto,
+      };
+    }
+
+    if (!response.ok) {
+      throw new RewardsMoneyClaimRefusalError(
+        response.status,
+        claimRefusalReason(bodyText),
+      );
+    }
+
+    return {
+      kind: 'authorized',
+      body: JSON.parse(bodyText) as ClaimInitiateDto,
+    };
   }
 
   async getClaimById(claimId: string): Promise<ClaimDto> {

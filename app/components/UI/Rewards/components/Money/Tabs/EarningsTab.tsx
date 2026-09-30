@@ -30,6 +30,7 @@ import {
   selectReferralMeLocalizedText,
 } from '../../../../../../reducers/rewardsMoney/selectors';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   LedgerEntryDto,
   ReferralLocalizedText,
@@ -42,6 +43,14 @@ import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPagin
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
+import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
+import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
+import {
+  canClaimEarnings,
+  isPendingClaimRow,
+  mergeInFlightClaims,
+  type EarningsHistoryListItem,
+} from '../../../utils/claimEarnings';
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
@@ -100,7 +109,7 @@ function deriveSummarySection(
 }
 
 interface HistorySectionState {
-  items: LedgerEntryDto[];
+  items: EarningsHistoryListItem[];
   loading: boolean;
   error: boolean;
   show: boolean;
@@ -109,8 +118,12 @@ interface HistorySectionState {
 
 function deriveHistorySection(
   list: UseCursorPaginatedListResult<LedgerEntryDto>,
+  claims: ClaimDto[],
 ): HistorySectionState {
-  const items = (list.items ?? []).slice(0, EARNINGS_HISTORY_PREVIEW_COUNT);
+  const items = (mergeInFlightClaims(list.items, claims) ?? []).slice(
+    0,
+    EARNINGS_HISTORY_PREVIEW_COUNT,
+  );
   const loading = list.isLoading && !list.items;
   const error = Boolean(list.error);
   return {
@@ -378,7 +391,11 @@ const HistorySection: React.FC<{
       <Box twClassName="gap-4" testID={EARNINGS_TAB_TEST_IDS.HISTORY}>
         {items.map((item) => (
           <EarningsHistoryRow
-            key={`${item.type}-${item.id}`}
+            key={
+              isPendingClaimRow(item)
+                ? `pending-${item.id}`
+                : `${item.type}-${item.id}`
+            }
             item={item}
             localizedText={localizedText}
           />
@@ -438,13 +455,23 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   }, [fetchEarningsSummary]);
   const last7 = useLast7DaysEarnings(profileId);
   const historyList = useEarningsHistory(profileId);
+  const inFlight = useInFlightClaims(profileId);
+  const { claim, isClaiming } = useClaimEarnings(profileId, {
+    variant,
+    onOpened: () => {
+      inFlight.refresh().catch(() => undefined);
+    },
+    onSubmitted: () => {
+      fetchEarningsSummary({ forceFresh: true }).catch(() => undefined);
+    },
+  });
 
   if (!localizedText) {
     return null;
   }
 
   const summary = deriveSummarySection(earningsSummaryEntry);
-  const history = deriveHistorySection(historyList);
+  const history = deriveHistorySection(historyList, inFlight.claims);
   const last7Loading = last7.isLoading && !last7.data;
   const last7Amount = last7.data ? musdAmount(last7.data.lifetime_total) : null;
   const errorSource = deriveErrorSource(
@@ -455,6 +482,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // Disable the breakdown for this pilot until the section is ready to show.
   const showBreakdown = false; // summary.show && rows.length > 0
   const rows = breakdownRows(variant, summary.data, localizedText);
+  const claimEnabled = canClaimEarnings(summary.data, variant);
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
@@ -476,12 +504,27 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             <ClaimableRewardsCard
               localizedText={localizedText}
               claimable={summary.data?.claimable}
-              claimed={summary.data?.claimed}
+              claimed={
+                variant === 'REFEREE' ? summary.data?.claimed : undefined
+              }
               claimableAmount={musdAmount(summary.data?.claimable)}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
+              canClaim={claimEnabled}
+              isClaiming={isClaiming}
+              onClaim={
+                summary.data
+                  ? () => {
+                      const summaryData = summary.data;
+                      if (!summaryData) {
+                        return;
+                      }
+                      claim(summaryData).catch(() => undefined);
+                    }
+                  : undefined
+              }
             />
           ) : null}
         </Box>

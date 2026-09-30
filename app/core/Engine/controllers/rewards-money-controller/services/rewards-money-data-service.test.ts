@@ -3,6 +3,7 @@ import {
   RewardsMoneyDataService,
   RewardsMoneyAuthorizationError,
   RewardsMoneyHttpError,
+  RewardsMoneyClaimRefusalError,
   buildEarningsSummaryQuery,
   buildOriginTypeQuery,
   type RewardsMoneyDataServiceMessenger,
@@ -111,6 +112,7 @@ describe('RewardsMoneyDataService', () => {
         'getClaimHistory',
         'getCommissions',
         'getClaimById',
+        'initiateClaim',
         'getRewardsMoneyEnvUrl',
         'canChangeRewardsMoneyEnvUrl',
         'setRewardsMoneyEnvUrl',
@@ -687,6 +689,64 @@ describe('RewardsMoneyDataService', () => {
       ).toBe(
         '?earning_origin_type=SWAPS_FEE_CASHBACK&from=2026-09-22&to=2026-09-28&include_claimable=false',
       );
+    });
+  });
+
+  describe('initiateClaim', () => {
+    const textResponse = (status: number, body: unknown): Response =>
+      ({
+        ok: status >= 200 && status < 300,
+        status,
+        text: async () => JSON.stringify(body),
+      }) as Response;
+
+    it('returns a 428 challenge instead of throwing', async () => {
+      const challenge = {
+        reason: 'PROOF_REQUIRED',
+        claim_intent_id: 'intent-1',
+        expires_at: '2026-09-29T00:00:00.000Z',
+        challenges: [
+          {
+            earning_address: 'eip155:1:0xabc',
+            amount_musd_base_units: '1000000',
+            message: 'sign me',
+          },
+        ],
+      };
+      mockFetch.mockResolvedValue(textResponse(428, challenge));
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toEqual({ kind: 'proof_required', body: challenge });
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toContain('/wr/earnings/claim/referral-trade-fee-cashback');
+      expect(init).toEqual(
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ money_account_address: '0xmoney' }),
+        }),
+      );
+    });
+
+    it('throws a typed refusal for a 422', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(422, { message: 'UNDER_REVIEW' }),
+      );
+
+      await expect(
+        service.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toBeInstanceOf(RewardsMoneyClaimRefusalError);
+
+      await expect(
+        service.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({ reason: 'UNDER_REVIEW', status: 422 });
     });
   });
 });

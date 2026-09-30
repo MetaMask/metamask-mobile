@@ -15,9 +15,12 @@ import {
 } from '@metamask/design-system-react-native';
 import type {
   EarningOriginType,
-  LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import {
+  isPendingClaimRow,
+  type EarningsHistoryListItem,
+} from '../../utils/claimEarnings';
 import {
   formatMusdBaseUnits,
   formatRewardsRelativeTime,
@@ -68,19 +71,32 @@ function claimDebit(netAmount: string): string | null {
 }
 
 export const EarningsHistoryRow: React.FC<{
-  item: LedgerEntryDto;
+  item: EarningsHistoryListItem;
   localizedText: ReferralLocalizedText;
 }> = ({ item, localizedText }) => {
-  const isClaim = item.type === 'claim';
-  const title = isClaim
+  const pending = isPendingClaimRow(item);
+  const isClaim = pending || item.type === 'claim';
+  const title = pending
     ? localizedText.historyClaimed
-    : earningTitle(item.earning_origin_type, localizedText);
-  const amount = isClaim
+    : item.type === 'claim'
+      ? localizedText.historyClaimed
+      : earningTitle(item.earning_origin_type, localizedText);
+  const amount = pending
     ? claimDebit(item.net_amount)
-    : formatMusdBaseUnits(item.musd_amount, {
-        signed: true,
-        maximumFractionDigits: 2,
-      });
+    : item.type === 'claim'
+      ? claimDebit(item.net_amount)
+      : formatMusdBaseUnits(item.musd_amount, {
+          signed: true,
+          maximumFractionDigits: 2,
+        });
+  const subtitle = pending
+    ? localizedText.historyClaimPending
+    : formatRewardsRelativeTime(new Date(item.ledger_timestamp));
+  const iconName = pending
+    ? IconName.Arrow2UpRight
+    : item.type === 'claim'
+      ? IconName.Arrow2UpRight
+      : earningIcon(item.earning_origin_type);
 
   return (
     <Box
@@ -90,11 +106,7 @@ export const EarningsHistoryRow: React.FC<{
       testID={`${EARNINGS_HISTORY_TEST_IDS.ROW}-${item.id}`}
     >
       <AvatarIcon
-        iconName={
-          isClaim
-            ? IconName.Arrow2UpRight
-            : earningIcon(item.earning_origin_type)
-        }
+        iconName={iconName}
         size={AvatarIconSize.Md}
         severity={AvatarIconSeverity.Neutral}
         iconProps={{ color: IconColor.IconDefault }}
@@ -104,7 +116,7 @@ export const EarningsHistoryRow: React.FC<{
           {title}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
+          {subtitle}
         </Text>
       </Box>
       <Text

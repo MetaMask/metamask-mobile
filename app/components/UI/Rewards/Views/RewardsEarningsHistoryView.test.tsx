@@ -26,6 +26,9 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../hooks/useEarningsHistory');
 jest.mock('../hooks/useReferralMe');
+jest.mock('../hooks/useInFlightClaims', () => ({
+  useInFlightClaims: () => ({ claims: [], refresh: jest.fn() }),
+}));
 
 const PROFILE_ID = 'profile-a';
 const LOCALIZED_TEXT = {

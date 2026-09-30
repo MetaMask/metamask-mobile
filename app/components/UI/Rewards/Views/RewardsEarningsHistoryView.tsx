@@ -1,15 +1,19 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
-import type { LedgerEntryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  mergeInFlightClaims,
+  type EarningsHistoryListItem,
+} from '../utils/claimEarnings';
 import { EarningsHistoryRow } from '../components/Money/EarningsHistoryRows';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
+import { useInFlightClaims } from '../hooks/useInFlightClaims';
 
 export const REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS = {
   CONTAINER: 'rewards-earnings-history-view',
@@ -29,9 +33,14 @@ const RewardsEarningsHistoryView: React.FC = () => {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
   }, [navigation]);
+  const inFlight = useInFlightClaims(profileId);
+  const items = useMemo(
+    () => mergeInFlightClaims(list.items, inFlight.claims),
+    [list.items, inFlight.claims],
+  );
 
   const renderItem = useCallback(
-    (item: LedgerEntryDto) =>
+    (item: EarningsHistoryListItem) =>
       localizedText ? (
         <EarningsHistoryRow item={item} localizedText={localizedText} />
       ) : null,
@@ -43,7 +52,7 @@ const RewardsEarningsHistoryView: React.FC = () => {
       view="RewardsEarningsHistoryView"
       title={localizedText?.history ?? ''}
       testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
-      list={list}
+      list={{ ...list, items }}
       renderItem={renderItem}
       emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
       emptyActionLabel={localizedText?.tradingActivityEmptyAction}
