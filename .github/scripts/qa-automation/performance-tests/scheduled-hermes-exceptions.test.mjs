@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   BASELINE_PREVIOUS_RUNS,
   MIN_BASELINE_RUNS,
+  buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
   buildScheduledExceptionSlack,
@@ -156,9 +157,21 @@ test('a finding links the GitHub issue that tracks it', () => {
     url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
     created: true,
   };
+  const opened = buildScheduledExceptionSlack(exception);
+  assert.match(opened, /Possible regression/);
+  assert.match(opened, /owner mm-perps-engineering-team/);
+  assert.match(opened, /#501> opened/);
+  assert.doesNotMatch(opened, /subteam|bug opened for review/);
+  const performance = buildPerformanceChannelSlack(exception);
+  assert.match(performance, /\*App profiling: bug opened for review\*/);
+  assert.match(performance, /A bug is open for the owning team/);
   assert.match(
-    buildScheduledExceptionSlack(exception),
-    /owner mm-perps-engineering-team · <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\|#501> opened/,
+    performance,
+    /Owner: <!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/,
+  );
+  assert.match(
+    performance,
+    /Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\|#501>/,
   );
   assert.match(
     buildScheduledExceptionMarkdown(exception),
@@ -166,16 +179,16 @@ test('a finding links the GitHub issue that tracks it', () => {
   );
 
   exception.findings[0].issue.created = false;
-  assert.match(
-    buildScheduledExceptionSlack(exception),
-    /#501> already open, referenced/,
-  );
+  const referenced = buildScheduledExceptionSlack(exception);
+  assert.match(referenced, /already open, referenced/);
+  assert.equal(buildPerformanceChannelSlack(exception), null);
 
   exception.findings[0].issue = { error: 'HTTP 403' };
   assert.match(
     buildScheduledExceptionSlack(exception),
     /GitHub issue not created \(HTTP 403\)/,
   );
+  assert.equal(buildPerformanceChannelSlack(exception), null);
 });
 
 test('a slow run links its single run-level issue', () => {
@@ -198,15 +211,52 @@ test('a slow run links its single run-level issue', () => {
 
   const slack = buildScheduledExceptionSlack(exception);
 
-  assert.match(
-    slack,
-    /_GitHub issue:_ <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/600\|#600> already open for slow runs, referenced/,
-  );
-  assert.doesNotMatch(slack, /owner mm-perps-engineering-team · </);
+  assert.match(slack, /one run-level anomaly, not 2 regressions/);
+  assert.match(slack, /already open for slow runs, referenced/);
+  assert.doesNotMatch(slack, /subteam/);
+  assert.equal(buildPerformanceChannelSlack(exception), null);
   assert.match(
     buildScheduledExceptionMarkdown(exception),
     /GitHub issue: \[#600\]\(.*\/600\) already open for slow runs, referenced/,
   );
+
+  exception.meta.slowRunIssue.created = true;
+  const performance = buildPerformanceChannelSlack(exception);
+  assert.match(
+    performance,
+    /\*App profiling: slow run, one bug opened for review\*/,
+  );
+  assert.match(performance, /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/);
+  assert.match(performance, /<!subteam\^S052NJFKX6Y\|mm-earn-team>/);
+  assert.match(
+    buildScheduledExceptionSlack(exception),
+    /opened for this slow run/,
+  );
+});
+
+test('a team without a Slack group is named without a mention', () => {
+  const current = report('4', [
+    scenario('Rewards tab time-to-content: onboarding or dashboard', 300),
+  ]);
+  const baseline = [1, 2].map((runId) =>
+    report(String(runId), [
+      scenario('Rewards tab time-to-content: onboarding or dashboard', 100),
+    ]),
+  );
+  const exception = buildScheduledException(current, baseline);
+  exception.findings[0].issue = {
+    number: 700,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/700',
+    created: true,
+  };
+
+  const slack = buildScheduledExceptionSlack(exception);
+  const performance = buildPerformanceChannelSlack(exception);
+
+  assert.match(slack, /owner performance-team/);
+  assert.doesNotMatch(slack, /subteam|<!/);
+  assert.match(performance, /Owner: performance-team/);
+  assert.doesNotMatch(performance, /subteam/);
 });
 
 test('fewer than two observations only extends the baseline', () => {

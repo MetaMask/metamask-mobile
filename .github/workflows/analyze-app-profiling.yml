@@ -20,14 +20,17 @@
 #   `.cpuprofile` attached. A finding whose issue is still open is added to
 #   it as a comment, with the new capture attached, and linked from Slack
 #   instead of being opened again. Several scenarios crossing in one run
-#   open one run-level issue with no team label.
+#   open one run-level issue with no team label. The 6-hour digest itself
+#   stays in #mm-qa-legends-ai-alerts. Only a newly opened bug also posts
+#   the short review message to #metamask-performance, mentioning each
+#   owning team's Slack group.
 # - After a *manually dispatched* performance run: full digest + Slack
-#   (#metamask-performance on main; personal DM on a branch).
+#   (#mm-qa-legends-ai-alerts on main; personal DM on a branch).
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
 #   week vs the week before). Slack lists only regressions / spikes / new
 #   hot frames, plus the GitHub issues opened during that week with a
 #   one-line brief and link each. Stable scenarios are omitted. On main
-#   this posts to #metamask-performance.
+#   this posts to #mm-qa-legends-ai-alerts.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -84,7 +87,7 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Send the analysis summary to Slack (#metamask-performance on main)'
+        description: 'Send the analysis summary to Slack (#mm-qa-legends-ai-alerts on main)'
         required: false
         type: boolean
         default: true
@@ -100,10 +103,14 @@ env:
   # A workflow_run listener always runs from the default branch, so
   # `github.ref` would route a chained branch run to the channel. The branch
   # that actually produced the profiles is the one that decides.
+  # C0C3WSWNKS5 is #mm-qa-legends-ai-alerts.
   SLACK_TARGET: >-
     ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
         && 'C0C3WSWNKS5'
         || 'UEYQL2PEV' }}
+  # #metamask-performance. Posted only when slack-performance.md exists,
+  # which is when this run opened a GitHub bug.
+  SLACK_PERFORMANCE_TARGET: C07KB8HRZ4J
 
 concurrency:
   # Weekly jobs share one group. Per-run collection keys on the performance
@@ -425,6 +432,11 @@ jobs:
         run: |
           node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
             /tmp/analyze-app-profiling/slack.md
+          if [ -s /tmp/analyze-app-profiling/slack-performance.md ]; then
+            SLACK_TARGET="${SLACK_PERFORMANCE_TARGET}" SLACK_PLAIN=1 \
+              node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+              /tmp/analyze-app-profiling/slack-performance.md
+          fi
 
   report-scenario-upload-failure:
     name: Report scenario artifact upload failure

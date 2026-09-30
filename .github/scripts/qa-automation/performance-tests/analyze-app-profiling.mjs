@@ -50,6 +50,7 @@ import {
 } from './profiling-regression-issues.mjs';
 import {
   SCHEDULED_BASELINE_HOURS,
+  buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
   buildScheduledExceptionSlack,
@@ -2135,6 +2136,13 @@ function writeScheduledExceptionNotification(outputDirectory, exception) {
     path.join(outputDirectory, 'slack.md'),
     `${buildScheduledExceptionSlack(exception)}\n`,
   );
+  const performancePath = path.join(outputDirectory, 'slack-performance.md');
+  const performanceSlack = buildPerformanceChannelSlack(exception);
+  if (performanceSlack) {
+    fs.writeFileSync(performancePath, `${performanceSlack}\n`);
+  } else if (fs.existsSync(performancePath)) {
+    fs.unlinkSync(performancePath);
+  }
 }
 
 function writeScheduledExceptionOutputs(

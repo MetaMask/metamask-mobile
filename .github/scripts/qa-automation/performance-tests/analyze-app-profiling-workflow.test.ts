@@ -266,6 +266,14 @@ describe('Analyze App Profiling triggers', () => {
 
     expect(target).toContain('C0C3WSWNKS5');
     expect(target).toContain('UEYQL2PEV');
+    expect(workflow.env?.SLACK_PERFORMANCE_TARGET).toBe('C07KB8HRZ4J');
+    const publish = workflow.jobs['publish-summary'];
+    const summary = publish.steps.find(
+      (step) => step.name === 'Post Slack summary',
+    );
+    expect(summary?.run).toContain('slack-performance.md');
+    expect(summary?.run).toContain('SLACK_PERFORMANCE_TARGET');
+    expect(summary?.run).toContain('SLACK_PLAIN=1');
     // A workflow_run listener always runs from the default branch, so
     // github.ref would send a chained branch run to the channel.
     expect(target).toContain('github.event.workflow_run.head_branch');

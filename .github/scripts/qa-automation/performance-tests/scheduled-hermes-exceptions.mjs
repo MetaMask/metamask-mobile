@@ -163,6 +163,80 @@ function slowRunIssueSlackLine(meta) {
   return `_GitHub issue:_ <${issue.url}|#${issue.number}> ${issue.created ? 'opened for this slow run' : 'already open for slow runs, referenced'}`;
 }
 
+/**
+ * Slack user-group mention for the scenario's owning team. A team with no
+ * group id stays plain text, so the message does not invent a ping.
+ */
+function slackOwnerMention(scenario) {
+  const team = scenarioTeam(displayName(scenario));
+  if (!team.id) {
+    return team.handle;
+  }
+  return `<!subteam^${team.id}|${team.handle}>`;
+}
+
+function linkedBug(exception) {
+  const issue =
+    exception.findings.length > 1
+      ? exception.meta.slowRunIssue
+      : exception.findings[0]?.issue;
+  return issue?.url ? issue : null;
+}
+
+function findingComparison(finding) {
+  const [current, baseline] = formatDurationsAlike([
+    finding.jsWorkMs,
+    finding.baselineMedianJsWorkMs,
+  ]);
+  return `${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs)`;
+}
+
+/**
+ * Message for #metamask-performance when this run opened a bug. The owning
+ * team is mentioned. A referenced issue, or a run with no issue, returns
+ * null so that channel stays quiet.
+ */
+export function buildPerformanceChannelSlack(exception) {
+  const issue = linkedBug(exception);
+  if (!issue?.created) {
+    return null;
+  }
+  const bug = `<${issue.url}|#${issue.number}>`;
+  const { meta } = exception;
+  const lines = [];
+  if (exception.findings.length > 1) {
+    lines.push(
+      '*App profiling: slow run, one bug opened for review*',
+      '',
+      `${exception.findings.length} scenarios exceeded ${meta.thresholdRatio}× their recent median JS work in the same run. One bug is open for review.`,
+      '',
+    );
+    for (const finding of exception.findings) {
+      lines.push(
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)}`,
+      );
+    }
+    lines.push('', `• Bug: ${bug}`);
+  } else {
+    const finding = exception.findings[0];
+    lines.push(
+      '*App profiling: bug opened for review*',
+      '',
+      `*${displayName(finding.scenario)}* is over ${meta.thresholdRatio}× its recent median JS work. A bug is open for the owning team.`,
+      '',
+      `• JS work: ${findingComparison(finding)}`,
+      `• Owner: ${slackOwnerMention(finding.scenario)}`,
+      `• Bug: ${bug}`,
+    );
+  }
+  lines.push(
+    '',
+    `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
+    '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
+  );
+  return lines.join('\n');
+}
+
 function slowRunIssueMarkdownLine(meta) {
   const issue = meta.slowRunIssue;
   if (!issue) {
