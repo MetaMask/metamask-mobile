@@ -25,16 +25,18 @@ export const GachaPacksTestIds = {
 
 export const GachaPackCardTestIds = {
   CARD: (code: string) => `gacha-pack-${code}`,
+  IMAGE: (code: string) => `gacha-pack-${code}-image`,
   OPEN_BUTTON: (code: string) => `gacha-pack-${code}-open`,
-  INSUFFICIENT: (code: string) => `gacha-pack-${code}-insufficient`,
 } as const;
 
 export const GachaPurchaseSheetTestIds = {
   SHEET: 'gacha-purchase-sheet',
+  CONTENT: 'gacha-purchase-sheet-content',
+  ODDS: 'gacha-purchase-sheet-odds',
+  IMAGE: 'gacha-purchase-sheet-image',
   CLOSE_BUTTON: 'gacha-purchase-sheet-close',
   CONFIRM_BUTTON: 'gacha-purchase-sheet-confirm',
   ERROR: 'gacha-purchase-sheet-error',
-  BALANCE_AFTER: 'gacha-purchase-sheet-balance-after',
 } as const;
 
 export const GachaCardsTestIds = {

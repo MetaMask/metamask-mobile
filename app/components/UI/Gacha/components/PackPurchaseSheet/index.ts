@@ -1,2 +1,2 @@
-export { default, shortenAddress } from './PackPurchaseSheet';
+export { default } from './PackPurchaseSheet';
 export type { PackPurchaseSheetProps } from './PackPurchaseSheet';

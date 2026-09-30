@@ -1,11 +1,17 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import { GachaPurchaseSheetTestIds } from '../../Gacha.testIds';
 import { createCollectorCryptError } from '../../providers/collector-crypt/services/errors';
 import { MOCK_ACCOUNT, createPack } from '../../views/testUtils';
-import PackPurchaseSheet, { shortenAddress } from './PackPurchaseSheet';
+import PackPurchaseSheet from './PackPurchaseSheet';
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -13,6 +19,10 @@ jest.mock('../../../../../core/Engine', () => ({
     context: { GachaController: { generatePack: jest.fn() } },
   },
 }));
+
+// Match Metro's numeric asset sources rather than Jest's filename strings.
+jest.mock('../../assets/packs/artwork/pokemon-50-spark/pack.webp', () => 21);
+jest.mock('../../assets/packs/artwork/default-origin/pack.webp', () => 31);
 
 const controller = jest.mocked(Engine.context.GachaController);
 const PACK = createPack();
@@ -40,24 +50,88 @@ describe('PackPurchaseSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the pack, price, balance after and account', () => {
+  it('shows the artwork with its display name and essential purchase details', () => {
     renderSheet();
 
-    expect(screen.getByText('Open a pack')).toBeOnTheScreen();
-    expect(screen.getByText('Elite Pokemon Pack')).toBeOnTheScreen();
+    expect(screen.getByText('Pokémon Spark')).toBeOnTheScreen();
+    expect(screen.getByTestId(GachaPurchaseSheetTestIds.IMAGE)).toHaveProp(
+      'source',
+      21,
+    );
     expect(screen.getByText('50.00 USDC')).toBeOnTheScreen();
-    expect(screen.getByText('120.00 USDC available')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(GachaPurchaseSheetTestIds.BALANCE_AFTER),
-    ).toHaveTextContent('70.00 USDC');
+      screen.getByTestId(GachaPurchaseSheetTestIds.CONFIRM_BUTTON),
+    ).toHaveTextContent('Buy and Open');
+  });
+
+  it('omits the account row and signing explanation', () => {
+    renderSheet();
+
+    expect(screen.queryByText('Account')).not.toBeOnTheScreen();
+    expect(screen.queryByText(MOCK_ACCOUNT.address)).not.toBeOnTheScreen();
     expect(
-      screen.getByText(shortenAddress(MOCK_ACCOUNT.address)),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        'Sell the card back instantly for 85% of its value, within 72 hours.',
+      screen.queryByText(
+        'MetaMask signs the payment for you once you confirm. No other approval is needed.',
       ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the pack odds for all four rarities', () => {
+    renderSheet();
+
+    const odds = within(screen.getByTestId(GachaPurchaseSheetTestIds.ODDS));
+    expect(odds.getByText(strings('gacha.rarity.common'))).toBeOnTheScreen();
+    expect(odds.getByText('80%')).toBeOnTheScreen();
+    expect(odds.getByText(strings('gacha.rarity.uncommon'))).toBeOnTheScreen();
+    expect(odds.getByText('15%')).toBeOnTheScreen();
+    expect(odds.getByText(strings('gacha.rarity.rare'))).toBeOnTheScreen();
+    expect(odds.getByText('4%')).toBeOnTheScreen();
+    expect(odds.getByText(strings('gacha.rarity.epic'))).toBeOnTheScreen();
+    expect(odds.getByText('1%')).toBeOnTheScreen();
+  });
+
+  it('preserves fractional percentages in the pack odds', () => {
+    const pack = createPack({
+      odds: { common: 0.7525, uncommon: 0.2, rare: 0.04, epic: 0.0075 },
+    });
+
+    renderSheet({ pack });
+
+    const odds = within(screen.getByTestId(GachaPurchaseSheetTestIds.ODDS));
+    expect(odds.getByText('75.25%')).toBeOnTheScreen();
+    expect(odds.getByText('20%')).toBeOnTheScreen();
+    expect(odds.getByText('4%')).toBeOnTheScreen();
+    expect(odds.getByText('0.75%')).toBeOnTheScreen();
+  });
+
+  it('keeps the artwork and odds in scrollable content below the fixed header', () => {
+    renderSheet();
+
+    const content = within(
+      screen.getByTestId(GachaPurchaseSheetTestIds.CONTENT),
+    );
+    expect(
+      content.getByTestId(GachaPurchaseSheetTestIds.IMAGE),
     ).toBeOnTheScreen();
+    expect(
+      content.getByTestId(GachaPurchaseSheetTestIds.ODDS),
+    ).toBeOnTheScreen();
+    expect(content.queryByText('Pokémon Spark')).not.toBeOnTheScreen();
+    expect(
+      content.queryByTestId(GachaPurchaseSheetTestIds.CONFIRM_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps an unknown pack API name with the default artwork', () => {
+    const pack = createPack({ code: 'new-pack', name: 'New Collector Pack' });
+
+    renderSheet({ pack });
+
+    expect(screen.getByText(pack.name)).toBeOnTheScreen();
+    expect(screen.getByTestId(GachaPurchaseSheetTestIds.IMAGE)).toHaveProp(
+      'source',
+      31,
+    );
   });
 
   it('generates the pack, closes and hands over the memo on confirm', async () => {
@@ -110,8 +184,11 @@ describe('PackPurchaseSheet', () => {
 
     expect(controller.generatePack).not.toHaveBeenCalled();
     expect(
-      screen.getByTestId(GachaPurchaseSheetTestIds.BALANCE_AFTER),
-    ).toHaveTextContent('0.00 USDC');
+      screen.getByTestId(GachaPurchaseSheetTestIds.CONFIRM_BUTTON),
+    ).toBeDisabled();
+    expect(
+      screen.getByText(strings('gacha.packs.insufficient_usdc')),
+    ).toBeOnTheScreen();
   });
 
   it('closes through the header control', async () => {
@@ -120,17 +197,5 @@ describe('PackPurchaseSheet', () => {
     fireEvent.press(screen.getByTestId(GachaPurchaseSheetTestIds.CLOSE_BUTTON));
 
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-  });
-});
-
-describe('shortenAddress', () => {
-  it('keeps the first and last four characters', () => {
-    expect(shortenAddress('5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp')).toBe(
-      '5eyk…Kvdp',
-    );
-  });
-
-  it('returns short addresses unchanged', () => {
-    expect(shortenAddress('abc')).toBe('abc');
   });
 });

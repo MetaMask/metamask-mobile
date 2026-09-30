@@ -207,6 +207,46 @@ describe('InteractiveCard', () => {
     expect(back).toHaveProp('source', { uri: PREVIEWS.backPreviewImage });
   });
 
+  it('keeps the original images through dragging and flipping after both previews upgrade', async () => {
+    renderWithProvider(<InteractiveCard {...CARD} {...PREVIEWS} />);
+    const front = screen.getByTestId(GachaInteractiveCardTestIds.FRONT, {
+      includeHiddenElements: true,
+    });
+    const back = screen.getByTestId(GachaInteractiveCardTestIds.BACK, {
+      includeHiddenElements: true,
+    });
+    fireEvent(front, 'load', { source: { width: 600, height: 1000 } });
+    fireEvent(back, 'load', { source: { width: 600, height: 1000 } });
+    fireEvent(front, 'load', { source: { width: 1200, height: 2000 } });
+    fireEvent(back, 'load', { source: { width: 1200, height: 2000 } });
+    await measureCard();
+    const pan = getPan();
+    expect(front).toHaveProp('source', { uri: CARD.frontImage });
+    expect(back).toHaveProp('source', { uri: CARD.backImage });
+
+    act(() => {
+      pan.handlers.onStart?.(panEvent(0));
+      pan.handlers.onUpdate?.(panEvent(130));
+    });
+
+    expect(front).toHaveProp('source', { uri: CARD.frontImage });
+    expect(back).toHaveProp('source', { uri: CARD.backImage });
+
+    await act(async () => {
+      pan.handlers.onFinalize?.(panEvent(130), true);
+    });
+
+    expect(cardButton()).toHaveProp('accessibilityLabel', backLabel());
+    expect(front).toHaveProp('source', { uri: CARD.frontImage });
+    expect(back).toHaveProp('source', { uri: CARD.backImage });
+
+    fireEvent.press(cardButton());
+
+    expect(cardButton()).toHaveProp('accessibilityLabel', frontLabel());
+    expect(front).toHaveProp('source', { uri: CARD.frontImage });
+    expect(back).toHaveProp('source', { uri: CARD.backImage });
+  });
+
   it('preserves the original images, proportions and displayed face when previews arrive later', () => {
     const { rerender } = renderWithProvider(<InteractiveCard {...CARD} />);
     const front = screen.getByTestId(GachaInteractiveCardTestIds.FRONT, {

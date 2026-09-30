@@ -1,4 +1,4 @@
-import { getGachaHeaderTab, toRows } from './GachaSection.utils';
+import { toRows } from './GachaSection.utils';
 
 describe('toRows', () => {
   it('splits items into full rows and a shorter last row', () => {
@@ -22,15 +22,5 @@ describe('toRows', () => {
     const rows = toRows(['a', 'b'], 0);
 
     expect(rows).toStrictEqual([['a'], ['b']]);
-  });
-});
-
-describe('getGachaHeaderTab', () => {
-  it('returns the cards tab when the account has cards', () => {
-    expect(getGachaHeaderTab(true)).toBe('cards');
-  });
-
-  it('returns the packs tab when the account has no card', () => {
-    expect(getGachaHeaderTab(false)).toBe('packs');
   });
 });

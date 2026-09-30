@@ -5,22 +5,47 @@ import { GachaPackCardTestIds } from '../../Gacha.testIds';
 import { createPack } from '../../views/testUtils';
 import PackCard from './PackCard';
 
+jest.mock(
+  '../../assets/packs/artwork/pokemon-25-ember/pack-list.webp',
+  () => 12,
+);
+jest.mock(
+  '../../assets/packs/artwork/pokemon-50-spark/pack-list.webp',
+  () => 22,
+);
+jest.mock('../../assets/packs/artwork/default-origin/pack-list.webp', () => 32);
+
 const PACK = createPack();
 
 describe('PackCard', () => {
-  it('renders the pack details and the Open CTA with its price', () => {
+  it('renders the artwork, title, numeric price and Open CTA', () => {
     renderWithProvider(
       <PackCard pack={PACK} isAffordable onOpen={jest.fn()} />,
     );
 
-    expect(screen.getByText('Elite Pokemon Pack')).toBeOnTheScreen();
-    expect(screen.getByText('Pokemon')).toBeOnTheScreen();
-    expect(screen.getByText('85% instant buyback')).toBeOnTheScreen();
-    expect(screen.getByText('Cards up to $1,500')).toBeOnTheScreen();
+    expect(screen.getByText('Pokémon Spark')).toBeOnTheScreen();
     expect(
-      screen.getByText('Common 80% · Uncommon 15% · Rare 4% · Epic 1%'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Open · 50')).toBeOnTheScreen();
+      screen.getByTestId(GachaPackCardTestIds.IMAGE(PACK.code)),
+    ).toHaveProp('source', 22);
+    expect(screen.getByText('50')).toBeOnTheScreen();
+    expect(screen.getByLabelText('50 USDC')).toBeOnTheScreen();
+    expect(screen.queryByText('50 USDC')).not.toBeOnTheScreen();
+    expect(screen.getByText('Open')).toBeOnTheScreen();
+    expect(screen.queryByText(/instant buyback/u)).not.toBeOnTheScreen();
+    expect(screen.queryByText(/Cards up to/u)).not.toBeOnTheScreen();
+    expect(screen.queryByText(/Common/u)).not.toBeOnTheScreen();
+  });
+
+  it('uses Origin and the API name for an unknown pack', () => {
+    const pack = createPack({ code: 'new-pack', name: 'New Collector Pack' });
+    renderWithProvider(
+      <PackCard pack={pack} isAffordable onOpen={jest.fn()} />,
+    );
+
+    expect(screen.getByText(pack.name)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(GachaPackCardTestIds.IMAGE(pack.code)),
+    ).toHaveProp('source', 32);
   });
 
   it('calls onOpen with the pack when affordable', () => {
@@ -32,12 +57,9 @@ describe('PackCard', () => {
     );
 
     expect(onOpen).toHaveBeenCalledWith(PACK);
-    expect(
-      screen.queryByTestId(GachaPackCardTestIds.INSUFFICIENT(PACK.code)),
-    ).not.toBeOnTheScreen();
   });
 
-  it('disables the CTA and explains why when the balance is too low', () => {
+  it('disables the CTA when the balance is too low', () => {
     const onOpen = jest.fn();
     renderWithProvider(
       <PackCard pack={PACK} isAffordable={false} onOpen={onOpen} />,
@@ -50,28 +72,30 @@ describe('PackCard', () => {
 
     expect(button).toBeDisabled();
     expect(onOpen).not.toHaveBeenCalled();
-    expect(
-      screen.getByTestId(GachaPackCardTestIds.INSUFFICIENT(PACK.code)),
-    ).toHaveTextContent('Not enough USDC');
+    expect(screen.queryByText('Not enough USDC')).not.toBeOnTheScreen();
   });
 
-  it('omits the optional lines when the data is missing', () => {
-    renderWithProvider(
-      <PackCard
-        pack={createPack({
-          category: null,
-          instantBuybackPercent: 0,
-          maxValue: 0,
-          odds: { common: 0, uncommon: 0, rare: 0, epic: 0 },
-        })}
-        isAffordable
-        onOpen={jest.fn()}
-      />,
+  it('updates the artwork and purchase callback when a cell is recycled', () => {
+    const onOpen = jest.fn();
+    const nextOnOpen = jest.fn();
+    const nextPack = createPack({ code: 'pokemon_25', price: 25 });
+    const { rerender } = renderWithProvider(
+      <PackCard pack={PACK} isAffordable onOpen={onOpen} />,
     );
 
-    expect(screen.queryByText('Pokemon')).not.toBeOnTheScreen();
-    expect(screen.queryByText(/instant buyback/u)).not.toBeOnTheScreen();
-    expect(screen.queryByText(/Cards up to/u)).not.toBeOnTheScreen();
-    expect(screen.queryByText(/Common/u)).not.toBeOnTheScreen();
+    rerender(<PackCard pack={nextPack} isAffordable onOpen={nextOnOpen} />);
+    fireEvent.press(
+      screen.getByTestId(GachaPackCardTestIds.OPEN_BUTTON(nextPack.code)),
+    );
+
+    expect(screen.getByText('Pokémon Ember')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(GachaPackCardTestIds.IMAGE(nextPack.code)),
+    ).toHaveProp('source', 12);
+    expect(
+      screen.queryByTestId(GachaPackCardTestIds.IMAGE(PACK.code)),
+    ).not.toBeOnTheScreen();
+    expect(nextOnOpen).toHaveBeenCalledWith(nextPack);
+    expect(onOpen).not.toHaveBeenCalled();
   });
 });

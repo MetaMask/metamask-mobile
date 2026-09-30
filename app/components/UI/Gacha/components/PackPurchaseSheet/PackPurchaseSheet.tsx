@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Modal, useWindowDimensions } from 'react-native';
+import {
+  GestureHandlerRootView,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -8,18 +11,21 @@ import {
   BottomSheetHeader,
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
+  FontWeight,
+  ImageOrSvg,
   KeyValueRow,
   Text,
-  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { GachaPurchaseSheetTestIds } from '../../Gacha.testIds';
+import { getCollectorCryptPackArtwork } from '../../assets/packs';
+import { COLLECTOR_CRYPT_RARITIES } from '../../providers/collector-crypt/constants';
 import type {
   CollectorCryptPack,
   SolanaAccountRef,
@@ -27,15 +33,11 @@ import type {
 import { formatUsdcAmount } from '../../providers/collector-crypt/utils/format';
 import { getErrorMessageFromUnknown } from '../../providers/collector-crypt/utils/errorMessages';
 import CtaButton from '../CtaButton';
-import UsdcAmount, { UsdcIcon } from '../UsdcAmount';
+import UsdcAmount from '../UsdcAmount';
 import {
   canAffordPack,
   getPackPriceBaseUnits,
 } from '../PackCard/PackCard.utils';
-
-/** "5eyk…Kvdp". */
-export const shortenAddress = (address: string): string =>
-  address.length > 10 ? `${address.slice(0, 4)}…${address.slice(-4)}` : address;
 
 export interface PackPurchaseSheetProps {
   pack: CollectorCryptPack;
@@ -60,13 +62,20 @@ const PackPurchaseSheet = ({
   onPurchased,
 }: PackPurchaseSheetProps) => {
   const tw = useTailwind();
+  const { height } = useWindowDimensions();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const price = getPackPriceBaseUnits(pack.price);
-  const balanceAfter = balance > price ? balance - price : 0n;
   const isAffordable = canAffordPack(balance, pack.price);
+  const artwork = getCollectorCryptPackArtwork(pack.code);
+  const displayName = artwork.name ?? pack.name;
+  const imageHeight = Math.min(300, height * 0.32);
+  const oddsFormatter = getIntlNumberFormatter(I18n.locale, {
+    style: 'percent',
+    maximumSignificantDigits: 4,
+  });
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
@@ -110,6 +119,8 @@ const PackPurchaseSheet = ({
               isInteractable={!isSubmitting}
               testID={GachaPurchaseSheetTestIds.SHEET}
             >
+              {/* Keep the header still when submitting hides the drag handle. */}
+              {isSubmitting && <Box twClassName="h-3" />}
               <BottomSheetHeader
                 onClose={handleClose}
                 closeButtonProps={{
@@ -117,67 +128,67 @@ const PackPurchaseSheet = ({
                   isDisabled: isSubmitting,
                 }}
               >
-                {strings('gacha.purchase.title')}
+                {displayName}
               </BottomSheetHeader>
-              <Box twClassName="px-4 pb-4" gap={4}>
-                <Box>
-                  <KeyValueRow
-                    keyLabel={strings('gacha.purchase.pack')}
-                    value={pack.name}
-                  />
-                  <KeyValueRow
-                    keyLabel={strings('gacha.purchase.price')}
-                    value={<UsdcAmount amount={formatUsdcAmount(price)} />}
-                  />
-                  <KeyValueRow
-                    keyLabel={strings('gacha.purchase.pay_with')}
-                    value={
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        gap={1}
-                      >
-                        <UsdcIcon />
-                        <Text variant={TextVariant.BodyMd}>
-                          {strings('gacha.balance_available', {
-                            amount: formatUsdcAmount(balance),
-                          })}
-                        </Text>
-                      </Box>
-                    }
-                  />
-                  <KeyValueRow
-                    keyLabel={strings('gacha.purchase.balance_after')}
-                    value={strings('gacha.usdc_amount', {
-                      amount: formatUsdcAmount(balanceAfter),
-                    })}
-                    valueTextProps={{
-                      testID: GachaPurchaseSheetTestIds.BALANCE_AFTER,
-                    }}
-                  />
-                  <KeyValueRow
-                    keyLabel={strings('gacha.purchase.account')}
-                    value={shortenAddress(account.address)}
-                  />
-                </Box>
-                <Box gap={2}>
-                  {pack.instantBuybackPercent > 0 && (
+              <ScrollView
+                style={tw.style('grow-0 shrink min-h-0')}
+                bounces
+                alwaysBounceVertical={false}
+                decelerationRate="normal"
+                showsVerticalScrollIndicator={false}
+                testID={GachaPurchaseSheetTestIds.CONTENT}
+              >
+                <Box paddingHorizontal={4} paddingBottom={4} gap={4}>
+                  <Box alignItems={BoxAlignItems.Center}>
+                    <ImageOrSvg
+                      src={artwork.image}
+                      width={imageHeight / 2}
+                      height={imageHeight}
+                      imageProps={{
+                        contentFit: 'contain',
+                        accessibilityLabel: displayName,
+                        testID: GachaPurchaseSheetTestIds.IMAGE,
+                      }}
+                    />
+                  </Box>
+                  <Box>
+                    <KeyValueRow
+                      keyLabel={strings('gacha.purchase.price')}
+                      value={
+                        <UsdcAmount
+                          amount={formatUsdcAmount(price)}
+                          variant={TextVariant.BodyLg}
+                        />
+                      }
+                    />
+                  </Box>
+                  <Box gap={2} testID={GachaPurchaseSheetTestIds.ODDS}>
                     <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      accessibilityRole="header"
                     >
-                      {strings('gacha.purchase.buyback_info', {
-                        percent: pack.instantBuybackPercent,
-                      })}
+                      {strings('gacha.purchase.odds')}
                     </Text>
-                  )}
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('gacha.purchase.signing_info')}
-                  </Text>
+                    <Box twClassName="rounded-xl border border-muted overflow-hidden">
+                      {COLLECTOR_CRYPT_RARITIES.map((rarity, index) => (
+                        <KeyValueRow
+                          key={rarity}
+                          keyLabel={strings(`gacha.rarity.${rarity}`)}
+                          value={oddsFormatter.format(pack.odds[rarity])}
+                          twClassName={`h-auto min-h-10 py-2${index > 0 ? ' border-t border-muted' : ''}`}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
                 </Box>
+              </ScrollView>
+              <Box
+                paddingHorizontal={4}
+                paddingTop={3}
+                paddingBottom={4}
+                gap={3}
+              >
                 {errorMessage ? (
                   <BannerAlert
                     severity={BannerAlertSeverity.Danger}
@@ -186,7 +197,11 @@ const PackPurchaseSheet = ({
                   />
                 ) : null}
                 <CtaButton
-                  label={strings('gacha.purchase.confirm')}
+                  label={strings(
+                    isAffordable
+                      ? 'gacha.purchase.confirm'
+                      : 'gacha.packs.insufficient_usdc',
+                  )}
                   loadingText={strings('gacha.purchase.generating')}
                   isLoading={isSubmitting}
                   isDisabled={!isAffordable}

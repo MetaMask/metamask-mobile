@@ -6,15 +6,26 @@ import {
 } from './GachaHome.utils';
 
 describe('GachaHome.utils', () => {
-  it('returns unique collection labels in alphabetical order', () => {
+  it('returns unique collection labels in the requested display order', () => {
     const pokemon = createPack({ code: 'a', category: 'Pokemon' });
     const onePiece = createPack({ code: 'b', category: 'One Piece' });
     const pokemonBig = createPack({ code: 'c', category: 'Pokemon' });
     const other = createPack({ code: 'd', category: null });
+    const sports = createPack({ code: 'e', category: 'Sports' });
+    const others = createPack({ code: 'f', category: 'Others' });
+    const newCollection = createPack({ code: 'g', category: 'Anime' });
 
     expect(
-      getPackCollections([pokemon, onePiece, pokemonBig, other]),
-    ).toStrictEqual(['One Piece', 'Pokemon']);
+      getPackCollections([
+        others,
+        onePiece,
+        pokemon,
+        sports,
+        pokemonBig,
+        other,
+        newCollection,
+      ]),
+    ).toStrictEqual(['Pokemon', 'One Piece', 'Sports', 'Others', 'Anime']);
   });
 
   it('filters a collection and sorts visible packs by ascending price', () => {

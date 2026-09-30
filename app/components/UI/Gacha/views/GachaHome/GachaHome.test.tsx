@@ -31,6 +31,10 @@ import GachaHome from './GachaHome';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+jest.mock('@shopify/flash-list', () =>
+  jest.requireActual('../../../../../util/test/mockFlashList').flashListMock(),
+);
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -147,6 +151,25 @@ describe('GachaHome', () => {
     ).toBe(true);
     expect(
       screen.getByTestId(GachaPacksTestIds.COLLECTION_FILTER('')).props
+        .accessibilityState?.selected,
+    ).toBe(false);
+
+    fireEvent.press(
+      screen.getByTestId(GachaPacksTestIds.COLLECTION_FILTER('')),
+    );
+
+    expect(
+      screen.getByTestId(GachaPackCardTestIds.CARD(ONE_PIECE_PACK.code)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(GachaPackCardTestIds.CARD(POKEMON_PACK.code)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(GachaPacksTestIds.COLLECTION_FILTER('')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+    expect(
+      screen.getByTestId(GachaPacksTestIds.COLLECTION_FILTER('One Piece')).props
         .accessibilityState?.selected,
     ).toBe(false);
   });

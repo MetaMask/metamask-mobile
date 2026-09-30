@@ -32,14 +32,12 @@ import type { CollectorCryptCard } from '../../../../UI/Gacha/providers/collecto
 import type {
   GachaCardParams,
   GachaHomeParams,
-  GachaHomeTab,
 } from '../../../../UI/Gacha/types/navigation';
 import { useGachaCardsForHomepage } from './hooks';
 import { GachaSectionTestIds } from './GachaSection.testIds';
 import {
   GACHA_CARDS_PER_ROW,
   MAX_GACHA_CARDS_DISPLAYED,
-  getGachaHeaderTab,
   toRows,
 } from './GachaSection.utils';
 
@@ -89,22 +87,12 @@ const GachaSection = forwardRef<SectionRefreshHandle, GachaSectionProps>(
     const title = strings('gacha.title');
     const rows = useMemo(() => toRows(cards, GACHA_CARDS_PER_ROW), [cards]);
 
-    const openHome = useCallback(
-      (initialTab: GachaHomeTab) => {
-        navigation.navigate(Routes.GACHA.ROOT, {
-          screen: Routes.GACHA.HOME,
-          params: { initialTab },
-        });
-      },
-      [navigation],
-    );
-
-    const handleHeaderPress = useCallback(
-      () => openHome(getGachaHeaderTab(cards.length > 0)),
-      [openHome, cards.length],
-    );
-
-    const handleOpenPack = useCallback(() => openHome('packs'), [openHome]);
+    const handleOpenPack = useCallback(() => {
+      navigation.navigate(Routes.GACHA.ROOT, {
+        screen: Routes.GACHA.HOME,
+        params: { initialTab: 'packs' },
+      });
+    }, [navigation]);
 
     const handleCardPress = useCallback(
       (mint: string) => {
@@ -215,7 +203,7 @@ const GachaSection = forwardRef<SectionRefreshHandle, GachaSectionProps>(
         <SectionHeader
           title={title}
           isInteractive
-          onPress={handleHeaderPress}
+          onPress={handleOpenPack}
           testID={homepageSectionTitleTestId(HomeSectionNames.GACHA)}
         />
         <Box gap={3}>

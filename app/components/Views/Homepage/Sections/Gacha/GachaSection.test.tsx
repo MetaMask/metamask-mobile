@@ -215,7 +215,7 @@ describe('GachaSection', () => {
     });
   });
 
-  it('opens the cards tab from the header when the account has cards', () => {
+  it('opens the packs tab from the header even when the account has cards', () => {
     arrange({ cards: [createCard('mint-1')] });
     renderSection();
 
@@ -223,7 +223,7 @@ describe('GachaSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.GACHA.ROOT, {
       screen: Routes.GACHA.HOME,
-      params: { initialTab: 'cards' },
+      params: { initialTab: 'packs' },
     });
   });
 

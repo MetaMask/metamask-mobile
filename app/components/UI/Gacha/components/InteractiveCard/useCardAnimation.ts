@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo, AppState } from 'react-native';
+import { AccessibilityInfo, AppState, PixelRatio } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -29,6 +29,7 @@ export const useCardAnimation = ({
   width: number;
   resetKey: string;
 }) => {
+  const pixelRatio = PixelRatio.get();
   const [foreground, setForeground] = useState(
     AppState.currentState === 'active',
   );
@@ -171,14 +172,17 @@ export const useCardAnimation = ({
   ]);
 
   const floatingStyle = useAnimatedStyle(() => ({
+    // Idle rotation/scale resamples the image; float on physical pixels instead.
     transform: [
-      { translateY: dragging.value ? 0 : -3.6 * float.value },
-      { rotateZ: `${dragging.value ? 0 : float.value * 0.35}deg` },
-      { scale: dragging.value ? 1 : 1 + float.value * 0.004 },
+      {
+        translateY: dragging.value
+          ? 0
+          : Math.round(-3.6 * float.value * pixelRatio) / pixelRatio,
+      },
     ],
   }));
   const frontStyle = useAnimatedStyle(() => {
-    const angle = flip.value + (dragging.value ? 0 : float.value * 2.5);
+    const angle = flip.value;
     return {
       backfaceVisibility: 'hidden',
       opacity: Math.cos((angle * Math.PI) / 180) >= 0 ? 1 : 0,
@@ -186,7 +190,7 @@ export const useCardAnimation = ({
     };
   });
   const backStyle = useAnimatedStyle(() => {
-    const angle = flip.value + (dragging.value ? 0 : float.value * 2.5);
+    const angle = flip.value;
     return {
       backfaceVisibility: 'hidden',
       opacity: Math.cos((angle * Math.PI) / 180) < 0 ? 1 : 0,
@@ -198,8 +202,7 @@ export const useCardAnimation = ({
   });
   // Project the thin side of the slab: it remains visible when both faces are edge-on.
   const edgeStyle = useAnimatedStyle(() => {
-    const radians =
-      ((flip.value + (dragging.value ? 0 : float.value * 2.5)) * Math.PI) / 180;
+    const radians = (flip.value * Math.PI) / 180;
     const sine = Math.sin(radians);
     const edgeX = ((sine >= 0 ? -1 : 1) * width) / 2;
     const scale = 1 / (1 + (edgeX * sine) / PERSPECTIVE);

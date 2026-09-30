@@ -1,102 +1,96 @@
-import React, { useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
+import { useWindowDimensions } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  Tag,
-  TagSeverity,
+  ButtonSize,
+  FontWeight,
+  ImageOrSvg,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { GachaPackCardTestIds } from '../../Gacha.testIds';
+import { getCollectorCryptPackArtwork, type PackArtwork } from '../../assets/packs';
 import type { CollectorCryptPack } from '../../providers/collector-crypt/types';
 import CtaButton from '../CtaButton';
 import { UsdcIcon } from '../UsdcAmount';
-import {
-  formatOddsLine,
-  formatPackPrice,
-  formatWholeNumber,
-} from './PackCard.utils';
+import { formatPackPrice } from './PackCard.utils';
 
 export interface PackCardProps {
   pack: CollectorCryptPack;
   isAffordable: boolean;
   onOpen: (pack: CollectorCryptPack) => void;
+  artwork?: PackArtwork;
 }
 
-/** One pack: category, buyback, name, max value, odds and the lime "Open" CTA. */
-const PackCard = ({ pack, isAffordable, onOpen }: PackCardProps) => {
+/** Intrinsic height and reserved text slots keep recycled grid cells equal-sized. */
+const PackCard = ({ pack, isAffordable, onOpen, artwork: customArtwork }: PackCardProps) => {
+  const { fontScale } = useWindowDimensions();
   const handleOpen = useCallback(() => onOpen(pack), [onOpen, pack]);
-  const oddsLine = formatOddsLine(pack.odds);
+  const artwork = customArtwork ?? getCollectorCryptPackArtwork(pack.code);
+  const displayName = artwork.name ?? pack.name;
+  const price = formatPackPrice(pack.price);
 
   return (
     <Box
       gap={3}
-      twClassName="rounded-2xl bg-section p-4"
+      padding={3}
+      twClassName="rounded-2xl border border-muted bg-muted overflow-hidden"
       testID={GachaPackCardTestIds.CARD(pack.code)}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        gap={2}
-      >
-        {pack.category ? (
-          <Tag severity={TagSeverity.Neutral}>{pack.category}</Tag>
-        ) : (
-          <Box />
-        )}
-        {pack.instantBuybackPercent > 0 && (
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {strings('gacha.packs.instant_buyback', {
-              percent: pack.instantBuybackPercent,
-            })}
-          </Text>
-        )}
-      </Box>
+      <ImageOrSvg
+        src={artwork.thumbnail}
+        width="100%"
+        height={208}
+        imageProps={{
+          contentFit: 'contain',
+          cachePolicy: 'memory-disk',
+          recyclingKey: pack.code,
+          accessibilityLabel: displayName,
+          testID: GachaPackCardTestIds.IMAGE(pack.code),
+        }}
+      />
       <Box gap={1}>
-        <Text variant={TextVariant.HeadingSm} numberOfLines={2}>
-          {pack.name}
-        </Text>
-        {pack.maxValue > 0 && (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('gacha.packs.up_to', {
-              value: formatWholeNumber(pack.maxValue),
-            })}
-          </Text>
-        )}
-      </Box>
-      {oddsLine ? (
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {oddsLine}
-        </Text>
-      ) : null}
-      <Box gap={2}>
-        <CtaButton
-          label={strings('gacha.packs.open_price', {
-            price: formatPackPrice(pack.price),
-          })}
-          endAccessory={<UsdcIcon />}
-          isDisabled={!isAffordable}
-          onPress={handleOpen}
-          testID={GachaPackCardTestIds.OPEN_BUTTON(pack.code)}
-        />
-        {!isAffordable && (
+        <Box style={{ height: 48 * fontScale }} twClassName="justify-end">
           <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={GachaPackCardTestIds.INSUFFICIENT(pack.code)}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            numberOfLines={2}
           >
-            {strings('gacha.packs.insufficient_usdc')}
+            {displayName}
           </Text>
-        )}
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+          style={{ height: 24 * fontScale }}
+          accessible
+          accessibilityLabel={strings('gacha.usdc_amount', { amount: price })}
+        >
+          <UsdcIcon />
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            twClassName="shrink"
+          >
+            {price}
+          </Text>
+        </Box>
       </Box>
+      <CtaButton
+        size={ButtonSize.Md}
+        label={strings('gacha.packs.open')}
+        isDisabled={!isAffordable}
+        onPress={handleOpen}
+        testID={GachaPackCardTestIds.OPEN_BUTTON(pack.code)}
+      />
     </Box>
   );
 };
 
-export default PackCard;
+export default memo(PackCard);

@@ -1,5 +1,3 @@
-import type { GachaHomeTab } from '../../../../UI/Gacha/types/navigation';
-
 /** Max cards shown on the homepage. */
 export const MAX_GACHA_CARDS_DISPLAYED = 6;
 
@@ -18,12 +16,3 @@ export const toRows = <T>(items: readonly T[], size: number): T[][] => {
     items.slice(i * rowSize, (i + 1) * rowSize),
   );
 };
-
-/**
- * Module tab opened by the section header: the user's cards when there are
- * any, the packs otherwise.
- * @param hasCards - Whether the account owns at least one card.
- * @returns The CollectorCrypt home tab to open.
- */
-export const getGachaHeaderTab = (hasCards: boolean): GachaHomeTab =>
-  hasCards ? 'cards' : 'packs';
