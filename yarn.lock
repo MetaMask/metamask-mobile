@@ -10846,7 +10846,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-balance-service@npm:^3.0.0, @metamask/money-account-balance-service@npm:^3.1.1":
+"@metamask/money-account-balance-service@npm:^3.0.0, @metamask/money-account-balance-service@npm:^3.1.2":
   version: 3.1.2
   resolution: "@metamask/money-account-balance-service@npm:3.1.2"
   dependencies:
@@ -39281,7 +39281,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-api-data-service": "npm:^2.1.0"
-    "@metamask/money-account-balance-service": "npm:^3.1.1"
+    "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^1.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^3.0.0"
     "@metamask/money-account-utils": "npm:^1.0.0"
