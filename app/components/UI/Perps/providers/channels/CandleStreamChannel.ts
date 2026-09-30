@@ -238,6 +238,14 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
+   * Whether a cached candle series is still the live chart price.
+   * Allows one missed candle plus transport jitter before treating it as stale.
+   */
+  public isChartCacheFresh(data: CandleData, nowMs = Date.now()): boolean {
+    return CandleStreamChannel.isCacheFresh(data, nowMs);
+  }
+
+  /**
    * @param getIsInitialized - Getter for connection initialized state.
    * Injected to avoid circular dependency:
    * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
