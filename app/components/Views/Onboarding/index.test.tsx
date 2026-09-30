@@ -385,9 +385,10 @@ const mockRequestIdleCallback = jest.fn((callback: () => void) => {
   callback();
   return 0;
 });
-const idleHost = globalThis as typeof globalThis & {
+interface IdleCallbackHost {
   requestIdleCallback?: (callback: () => void) => number;
-};
+}
+const idleHost = globalThis as unknown as IdleCallbackHost;
 const originalRequestIdleCallback = idleHost.requestIdleCallback;
 idleHost.requestIdleCallback = mockRequestIdleCallback;
 

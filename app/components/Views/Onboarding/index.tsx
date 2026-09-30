@@ -222,12 +222,12 @@ async function isDeviceOffline(): Promise<boolean> {
   return !netState.isConnected || netState.isInternetReachable === false;
 }
 
-type IdleCallbackHost = typeof globalThis & {
+interface IdleCallbackHost {
   requestIdleCallback?: (callback: () => void) => number;
-};
+}
 
 const scheduleIdleTask = (task: () => void): void => {
-  const idleHost = globalThis as IdleCallbackHost;
+  const idleHost = globalThis as unknown as IdleCallbackHost;
 
   if (typeof idleHost.requestIdleCallback === 'function') {
     idleHost.requestIdleCallback(task);
