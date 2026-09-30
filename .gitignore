@@ -271,8 +271,3 @@ sourcemaps/**/*.js.map
 
 # Regenerated from tests/tags.js and tests/tags.performance.js before Smart E2E analysis
 .ai-pr-analyzer/modes/smart-e2e/catalog.json
-
-# Gacha pack authoring previews (rebuildable; source PNGs and WebPs stay tracked)
-/app/components/UI/Gacha/assets/packs/artwork/*/pack.png
-/app/components/UI/Gacha/assets/packs/templates/template.png
-/app/components/UI/Gacha/assets/packs/previews/
