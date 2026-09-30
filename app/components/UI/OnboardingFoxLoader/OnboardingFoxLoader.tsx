@@ -48,7 +48,7 @@ const OnboardingFoxLoader = forwardRef<OnboardingFoxLoaderRef>(
       ref,
       () => ({
         stop: () => {
-          riveRef.current?.pause();
+          void riveRef.current?.pause();
         },
       }),
       [riveRef],
@@ -64,8 +64,9 @@ const OnboardingFoxLoader = forwardRef<OnboardingFoxLoaderRef>(
 
     useEffect(() => {
       if (hasTestOverrides || !riveViewRef) return;
-      riveViewRef.triggerInput('Loader2');
-    }, [riveViewRef]);
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy SM input; fox_loading.riv is not View Model–bound
+      riveRef.current?.triggerInput('Loader2'); // NOSONAR
+    }, [riveRef, riveViewRef]);
 
     const backgroundColor =
       getOnboardingFoxLoaderBackgroundColor(themeAppearance);
