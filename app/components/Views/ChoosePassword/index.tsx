@@ -540,7 +540,7 @@ const ChoosePassword = () => {
           ...(accountType && { accountType }),
         });
       } else {
-        await onContinueNavigation();
+        onContinueNavigation();
       }
     },
     [
@@ -736,7 +736,7 @@ const ChoosePassword = () => {
 
   const onConfirmWarningSheet = useCallback(() => {
     setIsWarningSheetVisible(false);
-    startWalletCreation();
+    void startWalletCreation();
   }, [startWalletCreation]);
 
   const onPasswordChange = useCallback(
@@ -1009,12 +1009,17 @@ const ChoosePassword = () => {
           onConfirm={onConfirmWarningSheet}
           onDismiss={onDismissWarningSheet}
         />
-        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );
   };
 
-  return renderContent();
+  // Stays mounted for the whole screen, including the wallet-creation loader.
+  return (
+    <>
+      {renderContent()}
+      <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
+    </>
+  );
 };
 
 export default ChoosePassword;

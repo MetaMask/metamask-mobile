@@ -63,7 +63,6 @@ jest.mock('react-native-device-info', () => ({
 
 import React from 'react';
 import {
-  InteractionManager,
   BackHandler,
   Animated,
   AppState,
@@ -366,18 +365,19 @@ jest.mock('@react-navigation/native-stack', () => ({
   }),
 }));
 
-const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
-  cb();
-  return {
-    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
-    done: (onfulfilled: () => void, onrejected: () => void) =>
-      Promise.resolve().then(onfulfilled, onrejected),
-    cancel: jest.fn(),
-  };
+const mockRequestIdleCallback = jest.fn((callback: () => void) => {
+  callback();
+  return 0;
 });
-jest
-  .spyOn(InteractionManager, 'runAfterInteractions')
-  .mockImplementation(mockRunAfterInteractions);
+const idleHost = globalThis as typeof globalThis & {
+  requestIdleCallback?: (callback: () => void) => number;
+};
+const originalRequestIdleCallback = idleHost.requestIdleCallback;
+idleHost.requestIdleCallback = mockRequestIdleCallback;
+
+afterAll(() => {
+  idleHost.requestIdleCallback = originalRequestIdleCallback;
+});
 
 // Mock React Navigation hooks
 const mockRoute = {

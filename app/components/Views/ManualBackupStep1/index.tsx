@@ -267,7 +267,7 @@ const ManualBackupStep1 = () => {
 
   const tryUnlock = useCallback(() => {
     if (password) {
-      tryUnlockWithPassword(password);
+      void tryUnlockWithPassword(password);
     }
   }, [password, tryUnlockWithPassword]);
 
