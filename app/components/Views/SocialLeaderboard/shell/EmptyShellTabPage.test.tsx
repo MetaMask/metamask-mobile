@@ -21,19 +21,52 @@ import { FeedSortFilterSelectorsIDs } from '../components/Filters';
 import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
-import type { SocialV1TokenFeedState } from '../SocialV1View/feed/types';
+import type {
+  SocialV1FeedItem,
+  SocialV1TokenFeedState,
+} from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_ERROR_TEST_ID,
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
   SOCIAL_V1_FEED_RETRY_TEST_ID,
 } from './EmptyShellTabPage';
 
+const mockNavigateToOrder = jest.fn();
+
+jest.mock('../../../UI/Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({ navigateToOrder: mockNavigateToOrder }),
+}));
+
+const mockQuickBuyRoot = jest.fn();
+
+jest.mock('../../../UI/QuickBuy', () => ({
+  QuickBuy: {
+    Root: (props: unknown) => {
+      mockQuickBuyRoot(props);
+      return null;
+    },
+  },
+  TOP_TRADERS_QUICK_BUY_FEATURES: {},
+}));
+
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
+  const { Pressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { item: { id: string } } }) => (
-      <View testID={`social-v1-feed-card-${post.item.id}`} />
+    default: ({
+      post,
+      onCopyTrade,
+    }: {
+      post: { item: SocialV1FeedItem };
+      onCopyTrade?: (item: SocialV1FeedItem) => void;
+    }) => (
+      <View>
+        <Pressable
+          testID={`social-v1-feed-card-${post.item.id}`}
+          onPress={() => onCopyTrade?.(post.item)}
+        />
+      </View>
     ),
   };
 });
@@ -126,6 +159,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
     jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
+    mockNavigateToOrder.mockClear();
+    mockQuickBuyRoot.mockClear();
     resetSocialV1ComposedFeedStore();
   });
 
@@ -189,6 +224,66 @@ describe('EmptyShellTabPage', () => {
         `social-v1-feed-card-${MOCK_SOCIAL_V1_FEED_ITEMS[0].id}`,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the direct Perps sheet with the feed direction and market', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[0];
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    expect(mockNavigateToOrder).toHaveBeenCalledWith({
+      direction: 'short',
+      asset: 'BTC',
+      source: 'trader_feed',
+      useBottomSheet: true,
+    });
+  });
+
+  it('opens QuickBuy in buy mode for an open spot feed item', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[1];
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    const quickBuyProps = mockQuickBuyRoot.mock.calls.at(-1)?.[0] as {
+      isVisible: boolean;
+      target: {
+        tokenAddress: string;
+        tokenSymbol: string;
+        tokenName: string;
+        chain: string;
+      } | null;
+      initialTradeMode: string;
+    };
+    expect(quickBuyProps).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        initialTradeMode: 'buy',
+        target: {
+          tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+          tokenSymbol: 'PUMP',
+          tokenName: 'PUMP',
+          chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      }),
+    );
   });
 
   it('shows the posting banner then prepends the composed post on Trending', () => {

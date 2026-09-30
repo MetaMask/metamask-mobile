@@ -32,6 +32,12 @@ import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../../UI/QuickBuy';
+import { usePerpsNavigation } from '../../../UI/Perps/hooks/usePerpsNavigation';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
@@ -53,11 +59,13 @@ import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
 import type {
+  SocialV1FeedItem,
   SocialV1FeedPost,
   SocialV1FeedTab,
   SocialV1HotToken,
   SocialV1TokenFeedState,
 } from '../SocialV1View/feed/types';
+import { chainNameToId } from '../utils/chainMapping';
 
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
@@ -135,6 +143,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     refresh,
   } = useSocialV1Feed(tab);
   const { isEntryHidden } = useSocialEntryModeration();
+  const { navigateToOrder } = usePerpsNavigation();
+  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
+    null,
+  );
   const visiblePosts = useMemo(
     () =>
       posts.filter(
@@ -391,13 +403,45 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     return blocks;
   }, [showPopularTraders, sortedPosts]);
 
+  const handleCopyTrade = useCallback(
+    (item: SocialV1FeedItem) => {
+      if (item.variant === 'perpsOpen') {
+        navigateToOrder({
+          direction: item.direction,
+          asset: item.tradeSymbol,
+          source: 'trader_feed',
+          useBottomSheet: true,
+        });
+        return;
+      }
+
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+
+      setQuickBuyTarget({
+        tokenAddress,
+        tokenSymbol: item.asset.symbol,
+        tokenName: item.asset.name ?? item.asset.symbol,
+        chain,
+      });
+    },
+    [navigateToOrder],
+  );
+
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
-        <SocialFeedPostShell post={post} />
+        <SocialFeedPostShell post={post} onCopyTrade={handleCopyTrade} />
       </SocialFeedPostEntrance>
     ),
-    [seenPostIds],
+    [handleCopyTrade, seenPostIds],
   );
 
   const showInitialFeedSkeletons = activeTokenFeed
@@ -414,6 +458,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
+      <QuickBuy.Root
+        isVisible={quickBuyTarget !== null}
+        target={quickBuyTarget}
+        onClose={() => setQuickBuyTarget(null)}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        initialTradeMode="buy"
+        analyticsContext={{ source: 'trader_feed' }}
+      />
       <Animated.ScrollView
         ref={scrollRef}
         style={tw.style('flex-1')}

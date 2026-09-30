@@ -31,9 +31,13 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
+  onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
 }
 
-const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
+const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
+  post,
+  onCopyTrade,
+}) => {
   const tw = useTailwind();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -121,7 +125,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} />
+      <PositionCardBody item={post.item} onCopyTrade={onCopyTrade} />
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">

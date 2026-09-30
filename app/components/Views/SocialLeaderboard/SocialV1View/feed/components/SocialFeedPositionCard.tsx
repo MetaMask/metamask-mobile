@@ -25,6 +25,7 @@ export interface SocialFeedPositionCardProps {
 
 export interface PositionCardBodyProps {
   item: SocialV1FeedItem;
+  onCopyTrade?: (item: SocialV1FeedItem) => void;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -74,7 +75,10 @@ const closedStats = (item: {
  * A closed card also takes the tone of its realized P&L, so a win and a loss
  * are distinguishable while scrolling past at speed.
  */
-export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
+export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
+  item,
+  onCopyTrade,
+}) => {
   if (
     item.variant === 'perpsOpen' ||
     item.variant === 'spotOpen' ||
@@ -142,6 +146,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
         {showCopyTrade ? (
           <CopyTradeButton
             testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+            onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
           />
         ) : null}
       </PositionCardShell>
