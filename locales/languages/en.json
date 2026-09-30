@@ -1194,9 +1194,16 @@
       "button": "Try again"
     },
     "vba_details": {
-      "title": "Virtual bank account",
-      "description": "Your account is ready. Details for adding and receiving money will appear here.",
-      "button": "Done"
+      "title": "Add Brazilian real",
+      "description": "Send BRL with PIX. It converts to mUSD on your Money Account. This screen checks for the deposit every few seconds.",
+      "button": "Done",
+      "autoramp_status": "Account status: {{status}}",
+      "waiting_for_pix": "PIX instructions appear here once the account is approved.",
+      "br_code": "PIX code",
+      "pix_key": "PIX key",
+      "transaction_status": "Deposit: {{status}}",
+      "transaction_completed": "Completed. mUSD is on its way to your Money Account.",
+      "load_error": "Couldn't refresh the deposit. We'll try again."
     }
   },
   "social_leaderboard": {
