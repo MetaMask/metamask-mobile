@@ -26,11 +26,13 @@ export interface PredictGameChartContentProps {
   timeframe?: ChartTimeframe;
   onTimeframeChange?: (timeframe: ChartTimeframe) => void;
   disabledTimeframeSelector?: boolean;
+  timeframeSelectorTwClassName?: string;
   testID?: string;
 }
 
 export interface PredictGameChartProps {
   market: PredictMarket;
+  timeframeSelectorTwClassName?: string;
   testID?: string;
 }
 
@@ -44,6 +46,8 @@ export interface TimeframeSelectorProps {
   onSelect: (timeframe: ChartTimeframe) => void;
   /** Whether selector is disabled */
   disabled?: boolean;
+  /** Optional layout classes supplied by the chart container */
+  twClassName?: string;
 }
 
 /**

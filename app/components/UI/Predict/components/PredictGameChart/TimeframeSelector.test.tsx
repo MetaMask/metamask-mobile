@@ -3,46 +3,48 @@ import { render, fireEvent } from '@testing-library/react-native';
 import TimeframeSelector from './TimeframeSelector';
 import { ChartTimeframe } from './PredictGameChart.types';
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (...classes: (string | boolean | undefined)[]) => ({
-      testStyle: classes.filter(Boolean).join(' '),
-    }),
-  }),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const ReactMock = jest.requireActual('react');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  const FilterButtonGroupContext = ReactMock.createContext(undefined);
+
   return {
-    Box: ({
+    FilterButtonGroup: ({
       children,
-      twClassName,
+      onChange,
       ...props
     }: {
       children?: React.ReactNode;
-      twClassName?: string;
+      onChange?: (value: string) => void;
     }) => (
-      <View testID="box" {...props}>
-        {children}
-      </View>
+      <FilterButtonGroupContext.Provider value={onChange}>
+        <View testID="filter-button-group" {...props}>
+          {children}
+        </View>
+      </FilterButtonGroupContext.Provider>
     ),
-    BoxFlexDirection: { Row: 'row' },
-    Text: ({
+    FilterButton: ({
       children,
-      variant,
-      color,
-      ...props
+      value,
+      isDisabled,
     }: {
       children?: React.ReactNode;
-      variant?: string;
-      color?: string;
-    }) => (
-      <Text testID="text" {...props}>
-        {children}
-      </Text>
-    ),
-    TextVariant: { BodySm: 'body-sm' },
-    TextColor: { TextDefault: 'text-default', TextAlternative: 'text-alt' },
+      value: string;
+      isDisabled?: boolean;
+    }) => {
+      const onChange = ReactMock.useContext(FilterButtonGroupContext);
+
+      return (
+        <Pressable
+          disabled={isDisabled}
+          onPress={() => !isDisabled && onChange?.(value)}
+        >
+          <Text>{children}</Text>
+        </Pressable>
+      );
+    },
+    FilterButtonSize: { Sm: 'sm' },
+    FilterButtonVariant: { Secondary: 'secondary' },
   };
 });
 
@@ -65,6 +67,16 @@ describe('TimeframeSelector', () => {
       expect(getByText('6H')).toBeTruthy();
       expect(getByText('1D')).toBeTruthy();
       expect(getByText('Max')).toBeTruthy();
+    });
+
+    it('accepts layout classes from its container', () => {
+      const { getByTestId } = render(
+        <TimeframeSelector {...defaultProps} twClassName="px-4" />,
+      );
+
+      expect(getByTestId('filter-button-group').props.twClassName).toBe(
+        'w-full justify-between pt-2 px-4',
+      );
     });
 
     it('renders with selected state for live timeframe', () => {

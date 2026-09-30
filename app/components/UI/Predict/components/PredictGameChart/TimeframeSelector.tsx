@@ -1,13 +1,10 @@
 import React from 'react';
-import { Pressable } from 'react-native';
 import {
-  Box,
-  BoxFlexDirection,
-  Text,
-  TextVariant,
-  TextColor,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   ChartTimeframe,
   TimeframeSelectorProps,
@@ -24,45 +21,25 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
   selected,
   onSelect,
   disabled = false,
-}) => {
-  const tw = useTailwind();
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      twClassName="justify-center gap-2 pt-2 px-4"
-    >
-      {TIMEFRAMES.map(({ value, label }) => {
-        const isSelected = selected === value;
-
-        return (
-          <Pressable
-            key={value}
-            onPress={() => !disabled && onSelect(value)}
-            disabled={disabled}
-            style={({ pressed }) =>
-              tw.style(
-                'px-4 py-2 rounded-full flex-1',
-                isSelected ? 'bg-background-pressed' : 'bg-transparent',
-                disabled && 'opacity-50',
-                pressed && !isSelected && 'bg-background-hover',
-              )
-            }
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={
-                isSelected ? TextColor.TextDefault : TextColor.TextAlternative
-              }
-              style={tw.style('text-center', isSelected && 'font-medium')}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </Box>
-  );
-};
+  twClassName,
+}) => (
+  <FilterButtonGroup
+    value={selected}
+    onChange={(value) => onSelect(value as ChartTimeframe)}
+    variant={FilterButtonVariant.Secondary}
+    twClassName={`w-full justify-between pt-2 ${twClassName ?? ''}`}
+  >
+    {TIMEFRAMES.map(({ value, label }) => (
+      <FilterButton
+        key={value}
+        value={value}
+        size={FilterButtonSize.Sm}
+        isDisabled={disabled}
+      >
+        {label}
+      </FilterButton>
+    ))}
+  </FilterButtonGroup>
+);
 
 export default TimeframeSelector;

@@ -71,6 +71,7 @@ const getDefaultTimeframe = (
 
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
+  timeframeSelectorTwClassName,
   testID,
 }) => {
   const { game } = usePredictGame(market, { live: false });
@@ -308,6 +309,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       timeframe={timeframe}
       onTimeframeChange={handleTimeframeChange}
       disabledTimeframeSelector={disabledTimeframeSelector}
+      timeframeSelectorTwClassName={timeframeSelectorTwClassName}
       testID={testID}
     />
   );
