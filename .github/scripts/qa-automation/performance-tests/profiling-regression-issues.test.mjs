@@ -30,6 +30,14 @@ import {
   weeklyIssueBrief,
 } from './profiling-regression-issues.mjs';
 
+function uploadsAttachmentRequest(args) {
+  const endpoint = args.at(-1);
+  if (typeof endpoint !== 'string' || !endpoint.startsWith('https://')) {
+    return false;
+  }
+  return new URL(endpoint).hostname === 'uploads.github.com';
+}
+
 const BUG_REPORT_SECTIONS = [
   '### Describe the bug',
   '### Expected behavior',
@@ -718,10 +726,14 @@ test('uploadGitHubAttachment posts the file to the issue attachment store', () =
     name: 'hermes-profile-Warm_Start.cpuprofile',
     bytes: fs.statSync(filePath).size,
   });
-  const endpoint = calls[0].at(-1);
-  assert.match(endpoint, /^https:\/\/uploads\.github\.com\/user-attachments\/assets\?/);
-  assert.match(endpoint, /repository_id=42/);
-  assert.match(endpoint, /name=hermes-profile-Warm_Start\.cpuprofile/);
+  const endpoint = new URL(calls[0].at(-1));
+  assert.equal(endpoint.origin, 'https://uploads.github.com');
+  assert.equal(endpoint.pathname, '/user-attachments/assets');
+  assert.equal(endpoint.searchParams.get('repository_id'), '42');
+  assert.equal(
+    endpoint.searchParams.get('name'),
+    'hermes-profile-Warm_Start.cpuprofile',
+  );
   assert.equal(calls[0][calls[0].indexOf('--input') + 1], filePath);
   fs.rmSync(directory, { recursive: true, force: true });
 });
@@ -795,10 +807,7 @@ test('sync uploads the scenario profile onto the issue it opens', () => {
     issueBody,
     /Hermes CPU profile: \[hermes-profile-Measure_Warm_Start__Warm_Start_to_Login_Screen\.cpuprofile\]\(https:\/\/github\.com\/user-attachments\/assets\/profile\)/,
   );
-  assert.equal(
-    calls.some((args) => String(args.at(-1)).includes('uploads.github.com')),
-    true,
-  );
+  assert.equal(calls.some(uploadsAttachmentRequest), true);
   fs.rmSync(directory, { recursive: true, force: true });
 });
 
