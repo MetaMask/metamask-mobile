@@ -373,6 +373,36 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     jest.useRealTimers();
   });
 
+  it('joins the refresh already running for the same address', async () => {
+    let resolveFirstRead: (value: typeof CHANGED_BALANCE) => void = () =>
+      undefined;
+    mockRefreshMoneyAccountBalanceFresh.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFirstRead = resolve;
+      }),
+    );
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler(makeTx(TransactionType.moneyAccountDeposit));
+    handler({
+      ...makeTx(TransactionType.moneyAccountWithdraw),
+      id: 'tx-2',
+    });
+    resolveFirstRead(CHANGED_BALANCE);
+    // Let the joined run settle so the next confirmation starts a new one.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
+    handler({
+      ...makeTx(TransactionType.moneyAccountDeposit),
+      id: 'tx-3',
+    });
+
+    await waitFor(() => {
+      expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('logs the last fetch error when every fresh read throws', async () => {
     jest.useFakeTimers();
     const errorSpy = jest

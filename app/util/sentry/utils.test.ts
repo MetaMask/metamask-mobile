@@ -1231,6 +1231,23 @@ describe('rewriteReport', () => {
     );
   });
 
+  it('leaves amounts in place when the upstream Money balance message wording changes', () => {
+    // The amount patterns match exact upstream text, and the EVM address
+    // pattern does not match plain integers. If this fails, the wording
+    // drifted and MONEY_BALANCE_AMOUNT_PATTERNS needs updating.
+    const message =
+      'Invalid balance invariant: totalBalance=1500000 must equal musdBalance=1000000';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toContain('1500000');
+  });
+
   it('removes balance amounts from breadcrumbs already attached to the report', () => {
     const message =
       'Invalid balance invariant: totalBalance (1500000) must equal musdBalance (1000000) + vmusdValueInMusd (400000)';

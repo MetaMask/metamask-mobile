@@ -124,6 +124,32 @@ const refreshMoneyBalanceQueries = async (
   );
 };
 
+// Concurrent loops for one address bust each other's source caches and compare
+// against a baseline the other has already moved.
+const inFlightRefreshByAddress = new Map<string, Promise<void>>();
+
+/**
+ * Joins the refresh already running for this address, or starts one.
+ *
+ * @param address - Primary Money account address.
+ * @param minBlock - Confirmed transaction block the API result must reach.
+ * @returns The in-flight refresh for the address.
+ */
+const refreshMoneyBalanceQueriesOnce = (
+  address: string,
+  minBlock?: number,
+): Promise<void> => {
+  const existing = inFlightRefreshByAddress.get(address);
+  if (existing) {
+    return existing;
+  }
+  const run = refreshMoneyBalanceQueries(address, minBlock).finally(() => {
+    inFlightRefreshByAddress.delete(address);
+  });
+  inFlightRefreshByAddress.set(address, run);
+  return run;
+};
+
 export const useRefreshMoneyBalanceOnTxConfirm = () => {
   useEffect(() => {
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
@@ -154,7 +180,7 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
         }),
       );
 
-      refreshMoneyBalanceQueries(address, minBlock).catch((error) => {
+      refreshMoneyBalanceQueriesOnce(address, minBlock).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
       });
     };
