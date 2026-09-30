@@ -80,8 +80,7 @@ const CancelMembership = () => {
       setCancelledSubscription({
         timing,
         endDate:
-          formatSubscriptionPeriodEnd(subscription.currentPeriodEnd) ??
-          subscription.currentPeriodEnd,
+          formatSubscriptionPeriodEnd(currentPeriodEnd) ?? currentPeriodEnd,
       });
       setStep('success');
     } catch (error) {

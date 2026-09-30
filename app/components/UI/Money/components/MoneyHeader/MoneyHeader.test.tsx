@@ -4,13 +4,10 @@ import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
-jest.mock('../../../../../hooks/useProSubscriptionEnabled');
 jest.mock('../../../../../hooks/useIsProSubscriber');
 
-const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
 const mockUseIsProSubscriber = jest.mocked(useIsProSubscriber);
 
 const sharedValue = (value: number): SharedValue<number> =>
@@ -30,11 +27,6 @@ const proButton = {
 
 describe('MoneyHeader', () => {
   beforeEach(() => {
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
-    });
     mockUseIsProSubscriber.mockReturnValue(false);
   });
 
@@ -141,15 +133,9 @@ describe('MoneyHeader', () => {
   });
 
   describe('Pro button', () => {
-    it('is not shown when the Pro subscription flag is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
-      });
-
-      const { queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+    it('is not shown when the page does not provide one', () => {
+      const { queryByTestId, getByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} />,
       );
 
       expect(
@@ -158,62 +144,29 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
-    it('invites the user to join when they are not subscribed', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUseIsProSubscriber.mockReturnValue(false);
-
+    it('shows the label the page provides', () => {
       const { getByTestId, getByLabelText } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+        <MoneyHeader onMenuPress={jest.fn()} proButton={proButton} />,
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        'Pro',
+        proButton.label,
       );
-      expect(
-        getByLabelText(strings('pro_subscription.join_pro')),
-      ).toBeOnTheScreen();
+      expect(getByLabelText(proButton.label)).toBeOnTheScreen();
     });
 
-    it('shows the Pro label when the user is already subscribed', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUseIsProSubscriber.mockReturnValue(true);
-
-      const { getByTestId, getByLabelText } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.pro'),
-      );
-      expect(getByLabelText(strings('pro_subscription.pro'))).toBeOnTheScreen();
-    });
-
-    it('calls onGetProPress when pressed', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-
-      const mockOnGetProPress = jest.fn();
+    it('calls the page handler when pressed', () => {
+      const onPress = jest.fn();
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress: mockOnPress }}
+          proButton={{ label: 'Pro', onPress }}
         />,
       );
 
       fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
 
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 });

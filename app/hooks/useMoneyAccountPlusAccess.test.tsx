@@ -144,7 +144,7 @@ describe('useMoneyAccountPlusAccessState', () => {
       variantName: 'treatment',
       isActive: true,
     });
-    mockSubscriptionState({ isSubscriber: true });
+    mockSubscriptionState({ hasExistingSubscription: true });
   });
 
   it.each([

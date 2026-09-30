@@ -310,15 +310,6 @@ jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
   useIsProSubscriber: () => mockUseIsProSubscriber(),
 }));
 
-const mockUseProSubscriptionEnabled = jest.fn(() => ({
-  isProSubscriptionEnabled: false,
-  variantName: 'control',
-  isActive: false,
-}));
-jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
-  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
-}));
-
 const mockUsePlusAccess = jest.fn(() => ({
   isPlusSubscriber: false,
   isPlusAccessUnknown: false,
