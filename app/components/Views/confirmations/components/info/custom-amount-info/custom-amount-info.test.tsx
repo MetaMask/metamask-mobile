@@ -898,9 +898,7 @@ describe('CustomAmountInfo', () => {
         getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
       ).toBe('none');
       // The amount stays pressable so preparation can never strand the user.
-      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(getByTestId('custom-amount-input')).toBeEnabled();
     });
 
     it('keeps the amount visually enabled during preparation', () => {
@@ -911,9 +909,6 @@ describe('CustomAmountInfo', () => {
 
       fireEvent.press(getByTestId('deposit-keyboard-done-button'));
 
-      expect(getByTestId('custom-amount-input')).toHaveStyle({
-        color: mockTheme.colors.text.default,
-      });
       expect(getByTestId('custom-amount-symbol')).toHaveStyle({
         color: mockTheme.colors.text.default,
       });
@@ -953,9 +948,7 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
       ).toBe('auto');
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(view.getByTestId('custom-amount-input')).toBeEnabled();
     });
 
     it('keeps the loading review until Redux observes controller loading', async () => {
@@ -1185,9 +1178,7 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(view.getByTestId('custom-amount-input')).toBeEnabled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
@@ -1209,9 +1200,7 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
 
       expect(view.queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(view.getByTestId('custom-amount-input')).toBeEnabled();
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
       mockTransactionPayControllerState.transactionData[nonMoneyTransactionId] =
@@ -1333,9 +1322,7 @@ describe('CustomAmountInfo', () => {
     );
     // Keyboard stays open: Done button and amount editing remain available.
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
-    expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-      expect.any(Function),
-    );
+    expect(getByTestId('custom-amount-input')).toBeEnabled();
   });
 
   it('does not show toast when the transaction was removed before updateTokenAmount rejects', async () => {
@@ -2797,9 +2784,7 @@ describe('CustomAmountInfo', () => {
 
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
-      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
-      );
+      expect(getByTestId('custom-amount-input')).toBeEnabled();
     });
 
     it('hides keyboard when deposit prefill is enabled and tokens are available', () => {

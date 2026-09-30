@@ -11,6 +11,7 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { isNetworkTestnet } from './useNetworkFilter';
+import { formatAmountWithCommas } from '../../components/send/amount/amount.utils';
 import {
   convertCurrency,
   isValidPositiveNumericString,
@@ -58,7 +59,7 @@ export const getFiatDisplayValueFn = ({
         exchangeRate,
       })
     : '0.00';
-  return `${getCurrencySymbol(currentCurrency)} ${amt}`;
+  return `${getCurrencySymbol(currentCurrency)} ${formatAmountWithCommas(amt)}`;
 };
 
 export const getNativeValueFn = ({

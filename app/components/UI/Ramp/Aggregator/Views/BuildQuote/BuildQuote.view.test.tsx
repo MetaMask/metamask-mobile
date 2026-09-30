@@ -130,12 +130,12 @@ describe('Aggregator BuildQuote', () => {
 
   describe('sell mode', () => {
     it('initializes sell amount from deeplink intent params', async () => {
-      const { findByText } = renderBuildQuoteView({
+      const { findAllByLabelText } = renderBuildQuoteView({
         rampType: RampType.SELL,
         initialParams: { amount: '50', assetId: ETH_MAINNET_ASSET_ID },
       });
 
-      expect(await findByText('50 ETH')).toBeOnTheScreen();
+      expect((await findAllByLabelText('50 ETH'))[0]).toBeOnTheScreen();
     });
 
     it('selects mUSD, shows France defaults, enforces sell limits, then accepts a valid amount', async () => {
@@ -168,7 +168,11 @@ describe('Aggregator BuildQuote', () => {
         'mUSD',
       );
 
-      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+          '0 mUSD',
+        );
+      });
       expect(await findByText(RAMPS_FRANCE_REGION.emoji)).toBeOnTheScreen();
 
       const overMaxAmount = String(RAMPS_SDK_LIMITS.maxAmount + 1);
@@ -424,7 +428,11 @@ describe('Aggregator BuildQuote', () => {
       );
 
       // Amount should reset to 0
-      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          renderApi.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+        ).toHaveTextContent('0 mUSD');
+      });
     });
 
     it('changes payment method via "Send cash to" selector in sell mode', async () => {

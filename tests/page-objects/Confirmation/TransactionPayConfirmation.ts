@@ -79,6 +79,13 @@ class TransactionPayConfirmation {
     );
   }
 
+  getCustomAmount(amount: string): Promise<AppiumElement> {
+    return Matchers.getElementByIDAndLabel(
+      TransactionPayComponentIDs.KEYBOARD_CONTAINER,
+      `$${amount}`,
+    );
+  }
+
   get payWithRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH);
   }
@@ -356,7 +363,7 @@ class TransactionPayConfirmation {
           elemDescription: 'Keypad delete button (long-press clears amount)',
           timeout: 15000,
         });
-        await Assertions.expectElementToHaveText(this.keyboardContainer, '0', {
+        await Assertions.expectElementToBeVisible(this.getCustomAmount('0'), {
           description: 'Amount should be 0 after keypad long-press clear',
           timeout: 2000,
         });
@@ -459,7 +466,7 @@ class TransactionPayConfirmation {
   }
 
   async verifyCustomAmount(amount: string, description: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+    await Assertions.expectElementToBeVisible(this.getCustomAmount(amount), {
       description,
     });
   }

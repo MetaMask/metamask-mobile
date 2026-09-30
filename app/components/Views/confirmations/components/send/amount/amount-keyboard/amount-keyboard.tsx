@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -12,8 +12,6 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
-import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
@@ -38,26 +36,35 @@ const ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX = [
 
 export const AmountKeyboard = ({
   amount,
+  amountError,
   fiatMode,
+  getFiatValue,
+  getNativeValue,
   updateAmount,
+  validateNonEvmAmountAsync,
 }: {
   amount: string;
+  amountError?: string;
   fiatMode: boolean;
+  getFiatValue: (amount: string) => string;
+  getNativeValue: (amount: string) => string;
   updateAmount: (value: string) => void;
+  validateNonEvmAmountAsync: () => Promise<string | undefined>;
 }) => {
-  const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
   const { alert: unreliableNetworkAlert } = useUnreliableNetworkAlert();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
-  const { styles } = useStyles(styleSheet, {
-    amountError: Boolean(amountError),
-    submitDisabled: isNFT && !amount,
-  });
+  const hasAmountError = Boolean(amountError);
+  const submitDisabled = isNFT && !amount;
+  const styleVars = useMemo(
+    () => ({ amountError: hasAmountError, submitDisabled }),
+    [hasAmountError, submitDisabled],
+  );
+  const { styles } = useStyles(styleSheet, styleVars);
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
 

@@ -8,33 +8,24 @@ import {
 } from '../../../../../UI/Box/box.types';
 
 export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength <= 10) {
-    return 60;
-  }
-  if (contentLength <= 12) {
-    return 48;
-  }
+  if (contentLength <= 10) return 60;
+
   if (contentLength <= 18) {
-    return 32;
+    return Math.round(60 - (contentLength - 10) * 3.5);
   }
-  if (contentLength <= 24) {
-    return 24;
-  }
-  if (contentLength <= 32) {
-    return 18;
-  }
-  return 12;
+
+  return Math.max(14, Math.round(32 - (contentLength - 18) * 1.5));
 };
 
 export const styleSheet = (params: {
   theme: Theme;
   vars: {
-    contentLength: number;
+    inputFontSize: number;
   };
 }) => {
   const {
     theme,
-    vars: { contentLength },
+    vars: { inputFontSize },
   } = params;
   return StyleSheet.create({
     balanceText: {
@@ -59,17 +50,21 @@ export const styleSheet = (params: {
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
+      paddingHorizontal: 24,
       width: '100%',
     },
     inputText: {
-      fontSize: getFontSizeForInputLength(contentLength),
+      fontSize: inputFontSize,
       lineHeight: 75,
       fontFamily: 'Inter-Medium',
     },
     inputWrapper: {
       alignItems: 'center',
+      flexShrink: 1,
       justifyContent: 'center',
       flexDirection: 'row',
+      maxWidth: '100%',
+      width: '100%',
     },
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {
