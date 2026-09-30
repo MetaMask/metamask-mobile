@@ -1138,7 +1138,7 @@ index 10b857cec38fdfe407304af090910286e187c0c4..3f24e0a7a045105de8d721ccb5e45e42
  export declare function adaptFillFromLighterTrade(trade: LighterRestTrade | LighterWsTrade, symbol: string, accountIndex: number): OrderFill;
  /**
 diff --git a/dist/utils/lighterAdapter.js b/dist/utils/lighterAdapter.js
-index 4894b39738fcca97eeabb3875f64ef751d493d1e..594a0e20fb3019f649a0afab39af30f89e78d42a 100644
+index 4894b39738fcca97eeabb3875f64ef751d493d1e..7197cadd5f2a3db3163e8cf12b2ace78beab87c3 100644
 --- a/dist/utils/lighterAdapter.js
 +++ b/dist/utils/lighterAdapter.js
 @@ -199,18 +199,24 @@ export function adaptAccountStateFromLighterUserStats(stats) {
@@ -1193,7 +1193,7 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..594a0e20fb3019f649a0afab39af30f8
      const positionBeforeRaw = accountIsMaker
          ? trade.makerPositionSizeBefore
          : trade.takerPositionSizeBefore;
-@@ -317,17 +323,17 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -317,17 +323,16 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
      if (positionBefore === null ||
          !Number.isFinite(positionBefore) ||
          positionBefore < 0 ||
@@ -1210,17 +1210,16 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..594a0e20fb3019f649a0afab39af30f8
 -        parsedPnl === null ||
 -        !Number.isFinite(parsedPnl)) {
 +    const pnl = accountIsAsk ? trade.askAccountPnl : trade.bidAccountPnl;
-+    // Omitted amounts remain unknown. A changed sign on an existing position
-+    // proves reduction, so its realized PnL must be supplied by the venue.
++    // Omitted amounts remain unknown, including closes and flips. Position
++    // context can establish direction without establishing the realized amount.
 +    const parsedPnl = pnl === undefined ? undefined : parseLighterStrictDecimal(pnl);
 +    if (parsedPnl === null ||
-+        (pnl === undefined && positionBefore !== 0 && signChanged === true) ||
 +        (pnl !== undefined &&
 +            (typeof pnl !== 'string' || !Number.isFinite(parsedPnl)))) {
          throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} trade ${trade.tradeId} is missing valid account pnl`);
      }
      const direction = deriveLighterFillDirection({
-@@ -360,7 +366,7 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -360,7 +365,7 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
          size: trade.size,
          price: trade.price,
          // The venue reports realized pnl per side of the trade.

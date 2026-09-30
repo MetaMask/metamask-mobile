@@ -372,16 +372,16 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        Hyperliquid is the source-based comparison baseline; its flows were not
-        re-proved in this Lighter run. The historical Core references below use
-        #10187 at <code>2617b5880</code>. Core #10187 has since merged, and the
-        current Mobile checkout consumes
-        <code>@metamask/perps-controller@18.0.1</code> with a local Yarn patch.
-        The September 30 comparison uses Mobile <code>41eca4fb248e</code> plus
-        working changes and Core <code>d156a27a9cf7</code> plus the local
-        recovery changes. These are inspected source versions, not release or
-        live-proof claims. Advanced capability declarations are not a promise of
-        end-to-end validation in Mobile.
+        The September 30 comparison uses Core
+        <code>2e6a4d94532653c40dba4de6d586911fa7b2adfa</code> and Mobile
+        <code>d00b308c1e865903962d034e189c2f152ef2bb8d</code> with the matching
+        closing-fill PnL patch. Mobile was rebased after #37025 merged and
+        consumes <code>@metamask/perps-controller@19.0.0</code> and Hyperliquid
+        SDK 0.33.3. Market and passive-limit controller lifecycles were
+        re-proved on both testnets with the same funded <code>dev1</code>
+        account. Advanced capabilities remain source findings until separately
+        validated. These local proofs do not certify a published release or
+        mainnet financial execution.
         <a href="#core-sources">[C1–C4]</a>
       </p>
       <p class="note">
@@ -424,10 +424,16 @@
         <code>perps.pro-order-setup</code> with <code>--describe</code>, then
         expand callers with <code>--plan</code>. The library has separate Scale,
         Chase and TWAP recipes. Their provider/network parameters select a
-        context; they do not establish parity. New local
-        <code>perps.order-start-state</code> and <code>perps.market-order</code>
-        compositions have plan checks for Hyperliquid/Lighter, mainnet/testnet
-        and Pro/Lite, but no live certification yet.
+        context; they do not establish parity. Shared
+        <code>perps.order-receipt</code> and
+        <code>perps.order-lifecycle</code> compose provider, network, market and
+        Pro/Lite setup. Account selection defaults to the current wallet;
+        <code>account=dev1</code> or an EVM address overrides it. Receipts bind
+        the resolved address. All 48 provider/network/mode/order plans pass.
+        Testnet market/limit proofs match exact venue receipts and restore only
+        owned state. Mainnet examples require explicit confirmation and leave
+        state for the operator. Standalone trigger and linked protection support
+        remain unfinished.
       </p>
       <div class="table-wrap">
         <table>
@@ -486,8 +492,9 @@
                 signer.
               </td>
               <td>
-                Testnet BTC long market/open/close and Pro limit/cancel
-                validated. Short entry exists; no separate short cycle claimed.
+                Testnet ETH long market/fill/close and passive limit/cancel
+                validated on controller 19.0.0 with dev1. Same flows also passed
+                on Hyperliquid. No separate short cycle claimed.
               </td>
             </tr>
             <tr>
@@ -703,7 +710,8 @@
           <a href="https://github.com/MetaMask/metamask-mobile/pull/34865"
             >Mobile #34865</a
           >
-          is open and feature-gated. Source inspected at
+          merged on September 23 and remains feature-gated. Historical source
+          inspected at
           <code>1876414683</code>. It includes the hidden signer WebView, strict
           request/result validation, SecureKeychain-backed venue keys,
           external-navigation blocking, Android new-window containment, funded
@@ -711,22 +719,25 @@
         </li>
         <li>
           <a href="https://github.com/MetaMask/core/pull/10187">Core #10187</a>
-          merged on September 16. Mobile consumes the resulting published
-          <code>@metamask/perps-controller@17.2.0</code>.
+          merged on September 16. The initial integration consumed published
+          17.2.0; the current checkout consumes controller 19.0.0 after Mobile
+          #37025 merged.
         </li>
         <li>
-          The dependency migration is complete: <code>package.json</code> and
-          <code>yarn.lock</code> resolve published 17.2.0 with a narrow Yarn
-          patch for Lighter filled-size normalization. Remove that patch when
-          the correction is available upstream. No <code>.yalc</code> package or
-          <code>yalc.lock</code> is part of the PR.
+          The current <code>package.json</code> and
+          <code>yarn.lock</code> resolve controller 19.0.0 with a local Yarn
+          patch for wallet-key recovery, stream failures/history and unknown
+          closing-fill PnL. Core #10605 is merged; recovery #10618 remains a
+          follow-up. Remove the patch after all corrections are published
+          upstream. No <code>.yalc</code> package or <code>yalc.lock</code> is
+          committed.
         </li>
         <li>
-          The September 19 CI snapshot is not green. TypeScript, lint, format,
-          unit, integration, security, bundle-size and Android smoke checks
-          pass. Component-view shards and the intentional PR max-lines policy
-          remain red; the branch is labeled <code>size-XL</code> and requires
-          the normal review/policy approvals.
+          The historical September 19 CI snapshot was not green. TypeScript,
+          lint, format, unit, integration, security, bundle-size and Android
+          smoke checks pass. Component-view shards and the intentional PR
+          max-lines policy were red; the branch was labeled
+          <code>size-XL</code> and requires the normal review/policy approvals.
         </li>
         <li>
           An automated Bugbot finding about Android new-window navigation was
@@ -736,7 +747,7 @@
         </li>
       </ul>
       <p class="note">
-        Before rollout: resolve CI, size and review gates; agree the signer
+        Before rollout: assess current CI and review gates; agree the signer
         trust model; validate mainnet financial compatibility; and decide
         whether zero MetaMask fee is acceptable for the initial release. Fee
         monetization is separate unfinished work, not an already-proven
@@ -746,6 +757,21 @@
 
     <section id="evidence">
       <h2>Retained validation evidence</h2>
+      <p>
+        September 30 mm-3 validation on controller 19.0.0 uses dev1
+        <code>0x8dc623e964475d4d669da601fd15ea9125469003</code> on both
+        protocols. Lighter recovery passed two local key-loss cycles and
+        reconnect with zero additional venue registrations. Market and
+        passive-limit recipes match exact fills or orders and end flat.
+        Hyperliquid collateral is in spot USDC under unified-account mode; its
+        zero perps margin summary alone does not indicate missing funding. Retry
+        proof injects presentation failures and then verifies real snapshots.
+        Closing-fill validation now preserves omitted PnL as unknown rather than
+        rejecting the fill. Core has 403 passing affected tests; Mobile has 439
+        across 10 affected suites. Application diagnostics are retained. No
+        advanced-order or mainnet financial pass is claimed.
+      </p>
+
       <p>
         September 21 revalidation on commit <code>9f31932280</code>, iOS
         <code>mm-1</code>, Runway <code>35154767219</code>, and published
@@ -863,34 +889,35 @@
         </li>
       </ul>
       <p id="core-sources">
-        Core snapshot: <code>2617b5880a1420c4f802f439d768834601db819f</code>.
-        Links pin the inspected revision; later changes require a new audit.
+        Core snapshot: <code>2e6a4d94532653c40dba4de6d586911fa7b2adfa</code>.
+        Links pin the September 30 inspected revision; later changes require a
+        new audit.
       </p>
       <ul>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/providers/LighterProvider.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/providers/LighterProvider.ts"
             >C1 · LighterProvider</a
           >: account tier guard, place/cancel/edit/close, TP/SL, margin, fee
           quote, subscriptions and asset routes.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/providers/HyperLiquidProvider.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/providers/HyperLiquidProvider.ts"
             >C2 · HyperLiquidProvider</a
           >: builder approval, builder payload, strategy exceptions and fee
           calculation.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/constants/hyperLiquidConfig.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/constants/hyperLiquidConfig.ts"
             >C3 · Hyperliquid configuration</a
           >: builder fee units, maximum and strategy declaration. Defaults are
           not proof of the recipient configured in a deployed app.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/PerpsController.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/PerpsController.ts"
             >C4 · PerpsController</a
           >: unavailable capability result when a provider lacks the optional
           strategy API.
