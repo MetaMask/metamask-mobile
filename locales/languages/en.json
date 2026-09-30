@@ -9625,6 +9625,7 @@
     "fee_includes": "Includes",
     "fee_percentage": "{{feePercentage}}%",
     "fee_percentage_meta_mask": "{{feePercentage}}% MetaMask fee",
+    "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
     "discount_badge_promo": "Promo",
     "discount_badge_dao": "DAO",

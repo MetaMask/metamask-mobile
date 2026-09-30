@@ -39,6 +39,18 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+// RewardsVipBadge reads subscriptions through React Query. These tests only
+// care that the order view renders, so keep the badge from requiring a client.
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View: MockView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(MockView, { testID: 'rewards-vip-badge' }),
+  };
+});
+
 import {
   PerpsOrderViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,

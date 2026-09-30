@@ -60,14 +60,21 @@ export const useFeeDisclaimer = ({
       };
     }
 
+    if (discountType === DiscountType.SUBSCRIPTION) {
+      return { type: DiscountType.SUBSCRIPTION };
+    }
+
     return {
       type: DiscountType.PROMO,
       label: strings('bridge.discount_badge_promo'),
     };
   }, [discountType, hasDiscountType]);
 
+  const isSubscriptionDiscount = discountType === DiscountType.SUBSCRIPTION;
+  const showDiscountedFee = Boolean(isDiscounted) || isSubscriptionDiscount;
+
   const infoText = useMemo(() => {
-    if (isDiscounted) {
+    if (showDiscountedFee) {
       return;
     }
 
@@ -84,17 +91,19 @@ export const useFeeDisclaimer = ({
     return strings('bridge.no_mm_fee_disclaimer', {
       destTokenSymbol: activeQuote.quote.dest.asset.symbol,
     });
-  }, [isDiscounted, hasFee, activeQuote, feePercentage]);
+  }, [showDiscountedFee, hasFee, activeQuote, feePercentage]);
 
   return {
     discountBadge,
     infoText,
-    infoSuffix: isDiscounted
-      ? strings('bridge.fee_percentage_meta_mask', {
-          feePercentage,
-        })
-      : undefined,
-    baseFeePercentage: isDiscounted
+    infoSuffix: isSubscriptionDiscount
+      ? strings('bridge.no_fees_with_orange')
+      : isDiscounted
+        ? strings('bridge.fee_percentage_meta_mask', {
+            feePercentage,
+          })
+        : undefined,
+    baseFeePercentage: showDiscountedFee
       ? strings('bridge.fee_percentage', {
           feePercentage: baseFeePercentage,
         })
