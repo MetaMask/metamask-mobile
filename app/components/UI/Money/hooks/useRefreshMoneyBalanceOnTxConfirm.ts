@@ -8,7 +8,10 @@ import type { CanonicalMoneyAccountBalanceResponse } from '@metamask/money-accou
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
-import { setLastLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
+import {
+  setLastLocalMoneyFlow,
+  type PersistedLocalMoneyFlow,
+} from '../../../../core/redux/slices/moneyBalance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
@@ -16,7 +19,10 @@ import {
   isPerpsPredictMoneyActivity,
 } from '../utils/moneyTransactionGuards';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
-import { getMoneyAccountBalanceQueryKey } from '../utils/moneyAccountBalanceQueryKey';
+import {
+  getFreshMoneyBalanceOptionsFromLocalFlow,
+  getMoneyAccountBalanceQueryKey,
+} from '../utils/moneyAccountBalanceQueryKey';
 import Logger from '../../../../util/Logger';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 
@@ -36,6 +42,51 @@ const readBalanceSnapshot = (address: string) =>
     MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
     address,
   ]);
+
+/**
+ * Balance currently on screen. After a confirm the UI observes the fresh
+ * query key, and interval polls update that key rather than the plain one.
+ *
+ * @param address - Primary Money account address.
+ * @returns The displayed balance, or the plain cache when no fresh key applies.
+ */
+const readDisplayedBalance = (address: string): MoneyBalanceSnapshot => {
+  const marker = (
+    store.getState() as {
+      moneyBalance?: {
+        lastLocalFlowConfirmedAt?: PersistedLocalMoneyFlow | number | null;
+      };
+    }
+  ).moneyBalance?.lastLocalFlowConfirmedAt;
+  const freshOptions = getFreshMoneyBalanceOptionsFromLocalFlow(
+    marker,
+    address,
+  );
+  if (freshOptions) {
+    const displayed =
+      ReactQueryService.queryClient.getQueryData<MoneyBalanceSnapshot>(
+        getMoneyAccountBalanceQueryKey(address, freshOptions),
+      );
+    if (displayed !== undefined) {
+      return displayed;
+    }
+  }
+  return readBalanceSnapshot(address);
+};
+
+const writeFreshBalanceQuery = (
+  address: string,
+  minBlock: number | undefined,
+  balance: CanonicalMoneyAccountBalanceResponse,
+) => {
+  ReactQueryService.queryClient.setQueryData(
+    getMoneyAccountBalanceQueryKey(address, {
+      fresh: true,
+      ...(minBlock !== undefined && { minBlock }),
+    }),
+    balance,
+  );
+};
 
 const didBalanceChange = (
   before: MoneyBalanceSnapshot,
@@ -83,7 +134,8 @@ const highestMinBlock = (
  * Copy the balance the UI is already showing onto the fresh query key it is
  * about to observe. The key changes as soon as the confirm marker is stored,
  * and an empty key is not loading once its fetch is cancelled, which renders
- * as $0.00.
+ * as $0.00. The source is the fresh key on screen when one is active, because
+ * interval polls do not update the plain key.
  *
  * @param address - Primary Money account address.
  * @param minBlock - Confirmed block the upcoming UI query will require.
@@ -92,17 +144,11 @@ const seedFreshBalanceQuery = (
   address: string,
   minBlock: number | undefined,
 ) => {
-  const cached = readBalanceSnapshot(address);
+  const cached = readDisplayedBalance(address);
   if (cached === undefined) {
     return;
   }
-  ReactQueryService.queryClient.setQueryData(
-    getMoneyAccountBalanceQueryKey(address, {
-      fresh: true,
-      ...(minBlock !== undefined && { minBlock }),
-    }),
-    cached,
-  );
+  writeFreshBalanceQuery(address, minBlock, cached);
 };
 
 /**
@@ -154,6 +200,9 @@ const refreshMoneyBalanceQueries = async (
       Logger.log(`${LOG_PREFIX} attempt ${attempt} result`, { changed, next });
 
       if (flight.minBlock !== minBlock) {
+        // The UI has already moved to the newer block. Keep that key filled
+        // with this read if the follow-up fetches fail.
+        writeFreshBalanceQuery(address, flight.minBlock, next);
         attempt = 0;
         continue;
       }

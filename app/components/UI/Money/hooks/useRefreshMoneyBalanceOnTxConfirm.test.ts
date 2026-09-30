@@ -376,6 +376,81 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     jest.useRealTimers();
   });
 
+  it('seeds the next fresh key from the balance already on screen', () => {
+    const displayedBalance = {
+      ...CHANGED_BALANCE,
+      totalBalance: '4500000',
+    };
+    const mockGetState = store.getState as unknown as jest.Mock;
+    mockGetState.mockReturnValue({
+      moneyBalance: {
+        lastLocalFlowConfirmedAt: {
+          address: MOCK_ADDRESS,
+          confirmedAt: Date.now(),
+          minBlock: 16,
+        },
+      },
+    });
+    mockGetQueryData.mockImplementation((key: unknown[]) => {
+      const options = key[2] as { minBlock?: number } | undefined;
+      if (options?.minBlock === 16) {
+        return displayedBalance;
+      }
+      return BASELINE_BALANCE;
+    });
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+    try {
+      getConfirmedHandler()({
+        ...makeTx(TransactionType.moneyAccountDeposit),
+        blockNumber: '0x20',
+      });
+
+      expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+        getMoneyAccountBalanceQueryKey(MOCK_ADDRESS, {
+          fresh: true,
+          minBlock: 32,
+        }),
+        displayedBalance,
+      );
+    } finally {
+      mockGetState.mockReturnValue({});
+    }
+  });
+
+  it('copies a finished read onto the newer fresh key when minBlock is raised', async () => {
+    let resolveFirstRead: (value: typeof CHANGED_BALANCE) => void = () =>
+      undefined;
+    mockRefreshMoneyAccountBalanceFresh.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFirstRead = resolve;
+      }),
+    );
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.moneyAccountDeposit),
+      blockNumber: '0x10',
+    });
+    handler({
+      ...makeTx(TransactionType.moneyAccountWithdraw),
+      id: 'tx-2',
+      blockNumber: '0x20',
+    });
+    resolveFirstRead(CHANGED_BALANCE);
+
+    await waitFor(() => {
+      expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+        getMoneyAccountBalanceQueryKey(MOCK_ADDRESS, {
+          fresh: true,
+          minBlock: 32,
+        }),
+        CHANGED_BALANCE,
+      );
+    });
+  });
+
   it('copies the cached balance onto the fresh query key before the UI switches', () => {
     renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
 
