@@ -1002,7 +1002,11 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
-  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  /**
+   * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
+   * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
+   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   */
   SocialLeaderboardTab: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {

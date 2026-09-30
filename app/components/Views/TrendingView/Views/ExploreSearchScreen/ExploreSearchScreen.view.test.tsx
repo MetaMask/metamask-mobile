@@ -391,6 +391,47 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('tracks exactly one footer result_clicked and opens the browser when the search footer is pressed', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } =
+        renderExploreSearchScreenWithRoutes();
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      const footerLink = await findByTestId(
+        'trending-search-footer-search-link',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(footerLink);
+
+      const resultClickedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'result_clicked',
+      );
+      expect(resultClickedEvents).toHaveLength(1);
+      expect(resultClickedEvents[0][0]).toEqual(
+        expect.objectContaining({
+          name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+          properties: expect.objectContaining({
+            search_query: 'eth',
+            section_name: 'search_footer',
+            item_clicked: 'engine_search',
+            tab_name: 'all',
+          }),
+        }),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
   it('"All" pill is selected by default and pill row is present on mount', async () => {
     const { getByTestId } = renderExploreSearchScreenWithRoutes();
 
