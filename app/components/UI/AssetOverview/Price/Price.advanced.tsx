@@ -59,10 +59,10 @@ import type {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import PriceLegacy from './Price.legacy';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
+import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import {
   endTrace,
   trace,
@@ -923,15 +923,21 @@ const PriceAdvanced = ({
     return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
 
-  const shouldFallbackToLegacy =
+  /**
+   * True when in candlestick mode and the advanced chart cannot display data.
+   * Shows the empty state UI while keeping the chart toggle visible so the
+   * user can switch to line chart.
+   */
+  const showCandleEmptyState =
+    chartType === ChartType.Candles &&
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD ||
       hasEmptyData ||
       chartError ||
       chartInitFailed === true);
 
-  /** Line mode: chartType is Line AND we are NOT in the OHLCV-fallback path. */
-  const isLineMode = chartType === ChartType.Line && !shouldFallbackToLegacy;
+  /** Line mode: chartType is Line (always available via chart toggle). */
+  const isLineMode = chartType === ChartType.Line;
 
   /** Distributed price data for the line chart (memoised per `realtimePrices`). */
   const distributedRealtimePrices = useMemo(() => {
@@ -974,10 +980,10 @@ const PriceAdvanced = ({
   }, [lineAmbientColor, isLightMode, lineTitleDiff]);
 
   useLayoutEffect(() => {
-    if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
+    if (initialPriceDiff !== null && !showCandleEmptyState) {
       onPriceDirectionChange?.(initialPriceDiff >= 0);
     }
-  }, [initialPriceDiff, onPriceDirectionChange, shouldFallbackToLegacy]);
+  }, [initialPriceDiff, onPriceDirectionChange, showCandleEmptyState]);
 
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
@@ -993,11 +999,11 @@ const PriceAdvanced = ({
     return undefined;
   };
 
-  const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
-  shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
+  const showCandleEmptyStateRef = useRef(showCandleEmptyState);
+  showCandleEmptyStateRef.current = showCandleEmptyState;
 
   useEffect(() => {
-    if (!shouldFallbackToLegacy) {
+    if (!showCandleEmptyState) {
       return;
     }
     const pendingId = visibilityTraceStartedRef.current;
@@ -1014,10 +1020,10 @@ const PriceAdvanced = ({
       activeVisibilityTraceRef.current = null;
     }
     visibilityTraceStartedRef.current = null;
-  }, [shouldFallbackToLegacy]);
+  }, [showCandleEmptyState]);
 
   useEffect(() => {
-    if (shouldFallbackToLegacyRef.current) {
+    if (showCandleEmptyStateRef.current) {
       return;
     }
     if (visibilityTraceStartedRef.current === ohlcvSeriesKey) {
@@ -1072,24 +1078,7 @@ const PriceAdvanced = ({
     [],
   );
 
-  if (shouldFallbackToLegacy) {
-    return (
-      <PriceLegacy
-        prices={prices}
-        timePeriod={timePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        onTimePeriodChange={setTimePeriod}
-        priceDiff={priceDiff}
-        currentPrice={currentPrice}
-        currentCurrency={currentCurrency}
-        comparePrice={comparePrice}
-        isLoading={isLoading}
-        onPriceDirectionChange={onPriceDirectionChange}
-        useAmbientColor={useAmbientColor}
-        hasInsufficientCoverage={hasInsufficientCoverage}
-      />
-    );
-  }
+  // No more PriceLegacy fallback — empty state is rendered inline with chart toggle visible.
 
   // Extract preset values to avoid react-compiler false positive on `useSubscriptPriceFormat`
   const chartPresets = advancedChartLineChromePresets.tokenOverview;
@@ -1157,7 +1146,7 @@ const PriceAdvanced = ({
 
       {/* ── IntervalBar (flag ON) ──────────────────────────────────────── */}
       {isTechnicalIndicatorsEnabled &&
-        (isLineMode || shouldShowTechnicalIndicators) &&
+        (isLineMode || shouldShowTechnicalIndicators || showCandleEmptyState) &&
         (() => {
           const intervalsValue = isLineMode
             ? LINE_CHART_TIME_RANGES
@@ -1191,9 +1180,10 @@ const PriceAdvanced = ({
         <Box
           twClassName={
             isTechnicalIndicatorsEnabled
-              ? 'w-full overflow-hidden mb-4'
+              ? 'w-full overflow-hidden'
               : 'mt-3 w-full overflow-hidden'
           }
+          style={{ height: chartHeight }}
         >
           <PriceChart
             prices={distributedRealtimePrices}
@@ -1209,10 +1199,27 @@ const PriceAdvanced = ({
         </Box>
       )}
 
-      {/* Keep AdvancedChart mounted but hidden in line mode to avoid re-initialization */}
+      {/* ── Candle empty state (no OHLCV data / chart error / init failed) ── */}
+      {showCandleEmptyState && (
+        <Box
+          twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+          style={{ height: chartHeight }}
+        >
+          <NoDataOverlay
+            chartHeight={chartHeight}
+            chartPlaceholderFill={theme.colors.border.muted}
+          />
+        </Box>
+      )}
+
+      {/* Keep AdvancedChart mounted but hidden in line mode or candle empty state */}
       <Box
         twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
-        style={isLineMode ? styles.hiddenChartContainer : undefined}
+        style={
+          isLineMode || showCandleEmptyState
+            ? styles.hiddenChartContainer
+            : undefined
+        }
       >
         <View
           testID="advanced-chart-touch-container"
@@ -1295,6 +1302,10 @@ const PriceAdvanced = ({
               </View>
             </View>
           );
+        }
+
+        if (showCandleEmptyState && isTechnicalIndicatorsEnabled) {
+          return <Box twClassName="pb-4" />;
         }
 
         if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {
