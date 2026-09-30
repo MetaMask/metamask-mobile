@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -7,6 +14,7 @@ import {
   type PerpsActiveProviderMode,
   type PerpsOrderCapabilities,
   type SwitchProviderResult,
+  type TriggerOrderType,
 } from '@metamask/perps-controller';
 import {
   selectPerpsInitializationState,
@@ -117,6 +125,13 @@ export function usePerpsProvider(
       : undefined;
   const [orderCapabilitiesState, setOrderCapabilitiesState] =
     useState<OrderCapabilitiesState>(EMPTY_ORDER_CAPABILITIES_STATE);
+  const capabilityRequestRef = useRef({ key: capabilityRequestKey });
+  useLayoutEffect(() => {
+    capabilityRequestRef.current = { key: capabilityRequestKey };
+    return () => {
+      capabilityRequestRef.current = { key: undefined };
+    };
+  }, [capabilityRequestKey]);
   const isCurrentCapabilityRequest =
     capabilityRequestKey !== undefined &&
     orderCapabilitiesState.requestKey === capabilityRequestKey;
@@ -225,6 +240,57 @@ export function usePerpsProvider(
   const supportsChaseOrders =
     orderCapabilities?.status === 'ready' &&
     orderCapabilities.supportedStrategies.includes('chase');
+  const expectedCapabilityProviderId =
+    orderCapabilitiesParams?.providerId ??
+    (activeProvider === 'aggregated' ? undefined : activeProvider);
+  const supportedTriggerOrderTypes = useMemo<readonly TriggerOrderType[]>(
+    () =>
+      orderCapabilities?.status === 'ready' &&
+      (!expectedCapabilityProviderId ||
+        orderCapabilities.providerId === expectedCapabilityProviderId)
+        ? (orderCapabilities.supportedTriggerOrderTypes ?? [])
+        : [],
+    [expectedCapabilityProviderId, orderCapabilities],
+  );
+  const checkTriggerOrderSupport = useCallback(
+    async (
+      type: TriggerOrderType,
+      expectedProviderId: OrderCapabilityProviderId,
+    ): Promise<boolean> => {
+      const request = capabilityRequestRef.current;
+      const symbol = orderCapabilitiesParams?.symbol;
+      if (
+        !symbol ||
+        !capabilityRequestKey ||
+        request.key !== capabilityRequestKey ||
+        (expectedCapabilityProviderId &&
+          expectedCapabilityProviderId !== expectedProviderId)
+      ) {
+        return false;
+      }
+      try {
+        const capabilities =
+          await Engine.context.PerpsController.getOrderCapabilities({
+            symbol,
+            providerId: orderCapabilitiesParams?.providerId,
+          });
+        return (
+          capabilityRequestRef.current === request &&
+          capabilities.status === 'ready' &&
+          capabilities.providerId === expectedProviderId &&
+          capabilities.supportedTriggerOrderTypes?.includes(type) === true
+        );
+      } catch {
+        return false;
+      }
+    },
+    [
+      capabilityRequestKey,
+      expectedCapabilityProviderId,
+      orderCapabilitiesParams?.providerId,
+      orderCapabilitiesParams?.symbol,
+    ],
+  );
   const checkOrderCapability = useCallback(
     async (
       strategy: SupportedOrderStrategy,
@@ -284,6 +350,8 @@ export function usePerpsProvider(
     supportsTwapOrders,
     supportsScaleOrders,
     supportsChaseOrders,
+    supportedTriggerOrderTypes,
+    checkTriggerOrderSupport,
     checkOrderCapability,
     isProviderSelectorEnabled,
     isMultiProviderEnabled,

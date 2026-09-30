@@ -20,6 +20,7 @@ import {
   type PerpsMarketData,
   type PerpsProviderType,
   type Position,
+  type TriggerOrderType,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -462,6 +463,12 @@ export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
   /** Feature-gate trigger order placement as well as the type picker. */
   isTriggeredOrdersEnabled: boolean;
+  /** Standalone types explicitly declared by the selected provider route. */
+  supportedTriggerOrderTypes: readonly TriggerOrderType[];
+  /** Concrete route whose standalone trigger declaration authorizes placement. */
+  resolvedTriggerProviderId: PerpsProviderType | undefined;
+  /** Refresh the selected route immediately before sending a trigger order. */
+  checkTriggerOrderSupport: (type: TriggerOrderType) => Promise<boolean>;
   /** Gate Hyperliquid TWAP placement as well as the type picker. */
   isTwapEnabled: boolean;
   /** True while a rollout-enabled market capability query is unresolved. */
@@ -585,6 +592,9 @@ export interface UsePerpsProOrderFormResult {
 export const usePerpsProOrderForm = ({
   market,
   isTriggeredOrdersEnabled,
+  supportedTriggerOrderTypes,
+  resolvedTriggerProviderId,
+  checkTriggerOrderSupport,
   isTwapEnabled,
   isTwapAvailabilityPending,
   resolvedTwapProviderId,
@@ -722,6 +732,25 @@ export const usePerpsProOrderForm = ({
   const isChaseAvailabilityPendingRef = useRef(isChaseAvailabilityPending);
   const chaseProviderIdRef = useRef(chaseProviderId);
   const refreshChaseCapabilityRef = useRef(refreshChaseCapability);
+  const triggerGateRef = useRef({
+    enabled: isTriggeredOrdersEnabled,
+    types: supportedTriggerOrderTypes,
+    checkSupport: checkTriggerOrderSupport,
+    providerId: resolvedTriggerProviderId,
+  });
+  useLayoutEffect(() => {
+    triggerGateRef.current = {
+      enabled: isTriggeredOrdersEnabled,
+      types: supportedTriggerOrderTypes,
+      checkSupport: checkTriggerOrderSupport,
+      providerId: resolvedTriggerProviderId,
+    };
+  }, [
+    checkTriggerOrderSupport,
+    isTriggeredOrdersEnabled,
+    supportedTriggerOrderTypes,
+    resolvedTriggerProviderId,
+  ]);
   useLayoutEffect(() => {
     isScaleOrdersEnabledRef.current = isScaleOrdersEnabled;
     isScaleOrderSupportPendingRef.current = isScaleOrderSupportPending;
@@ -1141,7 +1170,9 @@ export const usePerpsProOrderForm = ({
       ? scaleProviderId
       : isChaseOrder
         ? (chaseProviderId ?? undefined)
-        : market.providerId;
+        : isTriggerOrderType(orderForm.type)
+          ? resolvedTriggerProviderId
+          : market.providerId;
   const isTwapEnabledRef = useRef(isTwapEnabled);
   const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
   const checkTwapOrderSupportRef = useRef(checkTwapOrderSupport);
@@ -1619,12 +1650,31 @@ export const usePerpsProOrderForm = ({
           marginModeContextKey,
           isCrossMarginUnsupported,
         })
-      : JSON.stringify({
-          type: orderForm.type,
-          marginMode,
-          marginModeContextKey,
-          isCrossMarginUnsupported,
-        });
+      : isTriggerOrderType(orderForm.type)
+        ? JSON.stringify({
+            type: orderForm.type,
+            asset: orderForm.asset,
+            direction: orderForm.direction,
+            amount: orderForm.amount,
+            leverage: orderForm.leverage,
+            reduceOnly,
+            triggerPrice: normalizedTriggerPrice,
+            limitPrice: normalizedLimitPrice,
+            maxSlippageBps: resolvedMaxSlippageBps,
+            selectedAddress: normalizedSelectedAddress,
+            providerId: orderProviderId,
+            marketProviderId: market.providerId,
+            network,
+            marginMode,
+            marginModeContextKey,
+            isCrossMarginUnsupported,
+          })
+        : JSON.stringify({
+            type: orderForm.type,
+            marginMode,
+            marginModeContextKey,
+            isCrossMarginUnsupported,
+          });
   const currentComplianceState =
     orderForm.type === 'chase'
       ? JSON.stringify({
@@ -2216,7 +2266,12 @@ export const usePerpsProOrderForm = ({
         : {}),
     });
 
-    if (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type)) {
+    if (
+      isTriggerOrderType(orderForm.type) &&
+      (!isTriggeredOrdersEnabled ||
+        !supportedTriggerOrderTypes.includes(orderForm.type) ||
+        !resolvedTriggerProviderId)
+    ) {
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.order.validation.trigger_orders_unavailable'),
@@ -2855,6 +2910,31 @@ export const usePerpsProOrderForm = ({
         }),
       });
 
+      if (isTriggerOrderType(placementOrderForm.type)) {
+        const triggerGate = triggerGateRef.current;
+        const isSupported =
+          triggerGate.enabled &&
+          triggerGate.providerId !== undefined &&
+          triggerGate.types.includes(placementOrderForm.type) &&
+          (await triggerGate.checkSupport(placementOrderForm.type));
+        if (
+          !isSupported ||
+          triggerGateRef.current !== triggerGate ||
+          !isCurrentSubmission() ||
+          selectedAddressRef.current !== expectedSelectedAddress ||
+          networkRef.current !== expectedNetwork
+        ) {
+          if (isCurrentLifecycle()) {
+            showToast(
+              PerpsToastOptions.formValidation.orderForm.validationError(
+                strings('perps.order.validation.trigger_orders_unavailable'),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
       isChaseExecutionRef.current = isChaseSubmission;
       const submittedToast = isTwapOrder
@@ -3106,7 +3186,12 @@ export const usePerpsProOrderForm = ({
   const onOrderTypeSelect = useCallback(
     (type: OrderType) => {
       guardScaleMutation(() => {
-        if (!isTriggeredOrdersEnabled && isTriggerOrderType(type)) {
+        if (
+          isTriggerOrderType(type) &&
+          (!isTriggeredOrdersEnabled ||
+            !supportedTriggerOrderTypes.includes(type) ||
+            !resolvedTriggerProviderId)
+        ) {
           setIsOrderTypeVisible(false);
           return;
         }
@@ -3143,6 +3228,8 @@ export const usePerpsProOrderForm = ({
     },
     [
       isTriggeredOrdersEnabled,
+      supportedTriggerOrderTypes,
+      resolvedTriggerProviderId,
       isScaleOrdersEnabled,
       isTwapEnabled,
       isChaseEnabled,
@@ -3184,7 +3271,10 @@ export const usePerpsProOrderForm = ({
   }, [isInitialized, spendableBalance]);
 
   const isTriggerOrderUnavailable =
-    !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
+    isTriggerOrderType(orderForm.type) &&
+    (!isTriggeredOrdersEnabled ||
+      !supportedTriggerOrderTypes.includes(orderForm.type) ||
+      !resolvedTriggerProviderId);
 
   const farFromMarketWarning = useMemo(() => {
     // Wait for start/end blur. Change-time interaction is too early:
