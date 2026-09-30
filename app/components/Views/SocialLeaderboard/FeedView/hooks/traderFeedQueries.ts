@@ -22,11 +22,18 @@ export const PREFETCH_FEED_AUDIENCES: readonly FeedAudience[] = [
 export const toFeedScope = (audience: FeedAudience): FeedScope =>
   audience === 'following' ? 'following' : 'leaderboard';
 
+/**
+ * Same shape as `buildSocialFeedQueryKey` for an `all` source at
+ * {@link FEED_PAGE_LIMIT}, so this feed and `useSocialFeed` share one cache.
+ */
 export const buildTraderFeedQueryKey = (
   scope: FeedScope,
-): [string, { scope: FeedScope; chains: typeof FEED_CAIP2_CHAINS }] => [
+): [
+  string,
+  { scope: FeedScope; chains: typeof FEED_CAIP2_CHAINS; limit: number },
+] => [
   'SocialService:fetchFeed',
-  { scope, chains: FEED_CAIP2_CHAINS },
+  { scope, chains: FEED_CAIP2_CHAINS, limit: FEED_PAGE_LIMIT },
 ];
 
 /**
