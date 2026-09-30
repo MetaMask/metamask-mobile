@@ -97,6 +97,8 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   resultCount,
   onQuickTrade,
 }) => {
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
   const analyticsSearchQueryRef = useRef(analyticsSearchQuery);
   analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
