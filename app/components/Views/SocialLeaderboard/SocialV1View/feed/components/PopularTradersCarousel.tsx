@@ -72,6 +72,7 @@ const PopularTradersCarousel: React.FC = () => {
         traderId,
         traderName,
         traderAddress: trader?.address,
+        traderAvatarUri: trader?.avatarUri,
         source: 'trending_carousel',
         traderRank: trader?.rank,
       });

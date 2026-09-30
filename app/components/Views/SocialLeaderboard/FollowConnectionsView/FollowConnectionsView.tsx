@@ -92,6 +92,7 @@ const FollowConnectionsView: React.FC = () => {
         traderId: trader.id,
         traderName: trader.username,
         traderAddress: trader.address,
+        traderAvatarUri: trader.avatarUri,
       });
     },
     [navigation],

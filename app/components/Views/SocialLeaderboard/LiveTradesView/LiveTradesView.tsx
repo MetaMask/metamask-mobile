@@ -114,6 +114,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         traderId: item.traderId,
         traderName: item.authorHandle,
         traderAddress: item.traderAddress,
+        traderAvatarUri: item.authorImageUrl ?? undefined,
         source: 'trader_feed',
       });
     },

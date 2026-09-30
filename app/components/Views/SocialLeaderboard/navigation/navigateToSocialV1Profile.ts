@@ -39,6 +39,9 @@ export const navigateToSocialV1Profile = (
       traderId: params.traderId,
       traderName: params.traderName,
       traderAddress: params.traderAddress,
+      ...(params.traderAvatarUri
+        ? { traderAvatarUri: params.traderAvatarUri }
+        : {}),
       source: params.source,
       traderRank: params.traderRank,
     },

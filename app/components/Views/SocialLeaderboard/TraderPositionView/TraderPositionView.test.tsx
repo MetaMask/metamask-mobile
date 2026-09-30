@@ -533,6 +533,7 @@ describe('TraderPositionView', () => {
       {
         traderId: 'trader-1',
         traderName: 'trader1',
+        traderAddress: '0xabc',
       },
       {},
     );

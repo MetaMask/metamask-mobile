@@ -138,6 +138,7 @@ describe('FollowConnectionsView', () => {
         traderId: 'trader-1',
         traderName: 'Signal Scout',
         traderAddress: '0x1111111111111111111111111111111111111111',
+        traderAvatarUri: 'https://example.com/scout.png',
       },
       {},
     );

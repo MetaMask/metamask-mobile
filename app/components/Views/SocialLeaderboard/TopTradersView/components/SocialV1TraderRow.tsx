@@ -160,6 +160,7 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
             <SocialGradientCardSurface
               testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT}
               gradientTestID={SocialGradientCardSurfaceSelectorsIDs.GRADIENT}
+              twClassName="-mx-2 pr-3"
             >
               {rowBody}
             </SocialGradientCardSurface>

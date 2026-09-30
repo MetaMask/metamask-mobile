@@ -26,7 +26,12 @@ const mockFollowWithSetup = jest.fn(
   },
 );
 let mockProfileRouteParams:
-  | { traderId?: string; traderName?: string; traderAddress?: string }
+  | {
+      traderId?: string;
+      traderName?: string;
+      traderAddress?: string;
+      traderAvatarUri?: string;
+    }
   | undefined;
 const mockUseMyProfileAddress = jest.fn<string | undefined, []>(
   () => '0xselected',
@@ -572,6 +577,8 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
     ).toBeOnTheScreen();
+    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.queryByText('Your feed starts here')).toBeNull();
 
     fireEvent.press(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),

@@ -52,4 +52,16 @@ describe('traderProfileResponseToMySocialProfile', () => {
       linkedAccountAddress: '0xabc',
     });
   });
+
+  it('keeps a list snapshot photo when the live profile has no image', () => {
+    const result = traderProfileResponseToMySocialProfile(
+      {
+        ...live,
+        profile: { ...live.profile, imageUrl: null },
+      },
+      { imageUrl: 'https://example.com/list.png' },
+    );
+
+    expect(result.imageUrl).toBe('https://example.com/list.png');
+  });
 });

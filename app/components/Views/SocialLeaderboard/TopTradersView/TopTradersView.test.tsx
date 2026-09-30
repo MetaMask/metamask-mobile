@@ -915,6 +915,7 @@ describe('TopTradersView', () => {
           traderId: fixtureTraders[0].id,
           traderName: fixtureTraders[0].username,
           traderAddress: fixtureTraders[0].address,
+          traderAvatarUri: fixtureTraders[0].avatarUri,
           source: 'leaderboard',
           traderRank: 1,
         },

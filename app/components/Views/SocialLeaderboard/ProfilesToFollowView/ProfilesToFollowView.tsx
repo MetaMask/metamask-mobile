@@ -59,6 +59,7 @@ const ProfilesToFollowView: React.FC = () => {
         traderId: trader.id,
         traderName: trader.username,
         traderAddress: trader.address,
+        traderAvatarUri: trader.avatarUri,
         source: 'profiles_to_follow',
         traderRank: trader.rank,
       });

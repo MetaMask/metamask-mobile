@@ -210,6 +210,9 @@ describe('LiveTradesView', () => {
         traderId: firstItem.traderId,
         traderName: firstItem.authorHandle,
         traderAddress: firstItem.traderAddress,
+        ...(firstItem.authorImageUrl
+          ? { traderAvatarUri: firstItem.authorImageUrl }
+          : {}),
         source: 'trader_feed',
       },
       {},

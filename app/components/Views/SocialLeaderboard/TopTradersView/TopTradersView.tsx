@@ -702,10 +702,11 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           traderId,
           traderName,
           traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
           source: 'leaderboard',
           traderRank: trader?.rank,
-          viewerProfileId: myProfile?.profileId,
-          viewerAddress: myProfile?.linkedAccountAddress,
+          viewerProfileId: myProfile?.profileId ?? undefined,
+          viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
         });
         return;
       }
@@ -722,8 +723,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   const handleViewerPress = useCallback(() => {
     navigateToSocialV1Profile(navigation, {
-      viewerProfileId: myProfile?.profileId,
-      viewerAddress: myProfile?.linkedAccountAddress,
+      viewerProfileId: myProfile?.profileId ?? undefined,
+      viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
     });
   }, [myProfile, navigation]);
 

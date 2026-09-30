@@ -1547,6 +1547,8 @@
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "other_empty_title": "No posts yet",
+      "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
       "no_profile_title": "Create your profile",

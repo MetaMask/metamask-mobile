@@ -37,71 +37,92 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
       paddingBottom={4}
       testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
     >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        twClassName="relative w-full h-52"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        <Text
-          twClassName="absolute left-8 top-6"
-          variant={TextVariant.HeadingLg}
-        >
-          🦊
-        </Text>
-        <Text
-          twClassName="absolute right-8 top-4"
-          variant={TextVariant.HeadingLg}
-        >
-          🦊
-        </Text>
-        <Text
-          twClassName="absolute right-7 bottom-4"
-          variant={TextVariant.HeadingLg}
-        >
-          🦊
-        </Text>
-        <Box
-          twClassName="rounded-full bg-primary-default px-5 py-2"
-          marginBottom={2}
-        >
-          <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryInverse}
+      {isOwner ? (
+        <>
+          <Box
+            alignItems={BoxAlignItems.Center}
+            twClassName="relative w-full h-52"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
           >
-            {strings('social_leaderboard.my_profile.first_trade_prompt')}
-          </Text>
-        </Box>
-        <Box twClassName="rounded-full border-4 border-primary-default p-1">
-          <Image
-            source={superheroAvatar}
-            style={tw.style('w-24 h-24 rounded-full')}
-          />
-        </Box>
-      </Box>
+            <Text
+              twClassName="absolute left-8 top-6"
+              variant={TextVariant.HeadingLg}
+            >
+              🦊
+            </Text>
+            <Text
+              twClassName="absolute right-8 top-4"
+              variant={TextVariant.HeadingLg}
+            >
+              🦊
+            </Text>
+            <Text
+              twClassName="absolute right-7 bottom-4"
+              variant={TextVariant.HeadingLg}
+            >
+              🦊
+            </Text>
+            <Box
+              twClassName="rounded-full bg-primary-default px-5 py-2"
+              marginBottom={2}
+            >
+              <Text
+                variant={TextVariant.BodyLg}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.PrimaryInverse}
+              >
+                {strings('social_leaderboard.my_profile.first_trade_prompt')}
+              </Text>
+            </Box>
+            <Box twClassName="rounded-full border-4 border-primary-default p-1">
+              <Image
+                source={superheroAvatar}
+                style={tw.style('w-24 h-24 rounded-full')}
+              />
+            </Box>
+          </Box>
 
-      <Text
-        variant={TextVariant.HeadingLg}
-        fontWeight={FontWeight.Bold}
-        twClassName="text-center"
-      >
-        {strings('social_leaderboard.my_profile.empty_title')}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        twClassName="text-center pt-2"
-      >
-        {strings('social_leaderboard.my_profile.empty_description')}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        twClassName="text-center pt-5"
-      >
-        {strings('social_leaderboard.my_profile.empty_fee_description')}
-      </Text>
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.empty_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center pt-2"
+          >
+            {strings('social_leaderboard.my_profile.empty_description')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center pt-5"
+          >
+            {strings('social_leaderboard.my_profile.empty_fee_description')}
+          </Text>
+        </>
+      ) : (
+        <>
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.other_empty_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center pt-2"
+          >
+            {strings('social_leaderboard.my_profile.other_empty_description')}
+          </Text>
+        </>
+      )}
 
       {isOwner && onShareFirstTrade ? (
         <Button

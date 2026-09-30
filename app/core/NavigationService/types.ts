@@ -478,6 +478,8 @@ export interface SocialV1ProfileViewParams {
   traderId?: string;
   traderName?: string;
   traderAddress?: string;
+  /** List/feed snapshot; live `profile.imageUrl` wins once the profile loads. */
+  traderAvatarUri?: string;
   source?: string;
   traderRank?: number;
 }

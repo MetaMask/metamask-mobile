@@ -47,6 +47,9 @@ import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfileAvatar from './components/ProfileAvatar';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
+/* eslint-enable import-x/no-restricted-paths */
 import {
   useMyOpenPerpsPositionCount,
   useMyProfile,
@@ -77,6 +80,7 @@ const MyProfileView: React.FC = () => {
   const traderId = route.params?.traderId;
   const traderName = route.params?.traderName;
   const traderAddress = route.params?.traderAddress;
+  const traderAvatarUri = route.params?.traderAvatarUri;
   const tw = useTailwind();
   const { colors } = useTheme();
   const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
@@ -106,6 +110,7 @@ const MyProfileView: React.FC = () => {
     if (liveProfile.profile) {
       return traderProfileResponseToMySocialProfile(liveProfile.profile, {
         handle: traderName,
+        imageUrl: traderAvatarUri,
       });
     }
     if (!traderId) {
@@ -117,12 +122,14 @@ const MyProfileView: React.FC = () => {
       handle: traderName ?? traderId,
       shareUrl: '',
       linkedAccountAddress: traderAddress,
+      imageUrl: traderAvatarUri,
     };
   }, [
     isOwner,
     liveProfile.profile,
     myProfile,
     traderAddress,
+    traderAvatarUri,
     traderId,
     traderName,
   ]);
@@ -318,6 +325,7 @@ const MyProfileView: React.FC = () => {
             profile={displayProfile}
             overlayedStats={overlayedStats}
             followingCount={following.length}
+            isOwner={isOwner}
             onFollowersPress={handleFollowersPress}
             onFollowingPress={handleFollowingPress}
             onStatsPress={() => setIsStatsSheetOpen(true)}
@@ -496,12 +504,22 @@ const MyProfileView: React.FC = () => {
           profileAgeLabel={overlayedStats.profileAgeLabel}
           copySuccessRateLabel={overlayedStats.copySuccessRateLabel}
           headerAvatar={
-            <ProfileAvatar
-              imageUrl={displayProfile.imageUrl}
-              avatarPresetId={displayProfile.avatarPresetId}
-              size="sm"
-              testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
-            />
+            isOwner ? (
+              <ProfileAvatar
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                size="sm"
+                testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+              />
+            ) : (
+              <TraderAvatar
+                imageUrl={displayProfile.imageUrl}
+                address={displayProfile.linkedAccountAddress ?? undefined}
+                size={40}
+                recyclingKey={displayProfile.profileId}
+                testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+              />
+            )
           }
           onClose={() => setIsStatsSheetOpen(false)}
         />

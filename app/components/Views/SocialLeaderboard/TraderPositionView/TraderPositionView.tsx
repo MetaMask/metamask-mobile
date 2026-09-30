@@ -230,6 +230,8 @@ const TraderPositionView = () => {
       navigateToSocialV1Profile(navigation, {
         traderId,
         traderName,
+        traderAddress,
+        traderAvatarUri: traderImageUrl,
       });
       return;
     }
@@ -237,7 +239,7 @@ const TraderPositionView = () => {
       traderId,
       traderName,
     });
-  }, [navigation, traderId, traderName]);
+  }, [navigation, traderAddress, traderId, traderImageUrl, traderName]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!displayPosition?.tokenAddress) {
