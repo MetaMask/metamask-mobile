@@ -26,11 +26,15 @@ jest.mock('../../../../../core/Engine', () => ({
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();
+const mockRetryOrderStreams = jest.fn();
+const mockGetError = jest.fn((): Error | null => null);
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
+    retryOrderStreams: mockRetryOrderStreams,
     orders: {
       subscribe: mockSubscribe,
+      getError: mockGetError,
       getSnapshot: () => mockChannelOrdersSnapshot,
     },
   })),
@@ -54,6 +58,7 @@ describe('usePerpsLiveOrders', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetError.mockReturnValue(null);
     jest.useFakeTimers();
     mockCachedUserData = null;
     mockChannelOrdersSnapshot = undefined;
@@ -62,6 +67,27 @@ describe('usePerpsLiveOrders', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('retains the failed provider error while healthy data renders', () => {
+    mockSubscribe.mockReturnValue(jest.fn());
+    const { result } = renderHook(() => usePerpsLiveOrders());
+    const subscription = mockSubscribe.mock.calls[0][0];
+    const failure = new Error('Lighter authentication failed');
+    mockGetError.mockReturnValue(failure);
+    act(() => subscription.onError(failure));
+    act(() => subscription.callback([mockOrder]));
+    expect(result.current.orders).toHaveLength(1);
+    expect(result.current.error).toBe(failure);
+    mockGetError.mockReturnValue(null);
+    act(() => subscription.callback([]));
+    expect(result.current.error).toBeNull();
+  });
+
+  it('retries both authenticated channels from Orders', () => {
+    const { result } = renderHook(() => usePerpsLiveOrders());
+    act(() => result.current.retry());
+    expect(mockRetryOrderStreams).toHaveBeenCalledTimes(1);
   });
 
   it('subscribes to orders on mount', () => {

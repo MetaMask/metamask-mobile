@@ -74,7 +74,7 @@ export function usePerpsLiveOrders(
         setIsInitialLoading(false);
       },
       callback: (newOrders) => {
-        setError(null);
+        setError(stream.orders.getError());
         acceptedDeliveryRef.current = false;
         if (newOrders === null || newOrders === undefined) {
           // Cleared on account switch — show skeleton until first update for new account
@@ -123,8 +123,7 @@ export function usePerpsLiveOrders(
   }, [selectedAddress, stream, throttleMs]);
 
   const retry = useCallback(() => {
-    stream.orders.clearCache();
-    stream.orders.reconnect();
+    stream.retryOrderStreams();
   }, [stream]);
 
   // Filter orders based on requested display options
