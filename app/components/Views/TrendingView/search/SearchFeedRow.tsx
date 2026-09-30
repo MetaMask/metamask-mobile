@@ -14,6 +14,7 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import {
+  getSearchQueryLength,
   trackExploreSearchEvent,
   type ExploreSearchInteractedProperties,
   type SearchFeedPill,
@@ -96,6 +97,8 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   resultCount,
   onQuickTrade,
 }) => {
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
   const analyticsSearchQueryRef = useRef(analyticsSearchQuery);
   analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
@@ -110,6 +113,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       item_clicked: getItemId(feedId, item),
       position: index,
       result_count: resultCountRef.current,
+      query_length: getSearchQueryLength(searchQueryRef.current),
       ...getTokenIdentityProperties(feedId, item),
       ...getPredictMarketProperties(feedId, item),
     });
