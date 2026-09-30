@@ -215,6 +215,34 @@ describe('seedlessPasswordChangeCoordinator', () => {
       expect(controller.completePasswordChange).toHaveBeenCalledTimes(1);
     });
 
+    it('unlocks the keyring before exporting its key when instruction is sync-key', async () => {
+      setSeedlessController({
+        storeKeyringEncryptionKey: jest.fn().mockResolvedValue(undefined),
+        loadKeyringEncryptionKey: jest.fn().mockResolvedValue('enc-key'),
+        resolvePasswordSyncState: jest
+          .fn()
+          .mockResolvedValue(PasswordSyncInstruction.SyncKey),
+        reconcilePassword: jest
+          .fn()
+          .mockResolvedValue(PasswordSyncInstruction.SyncKey),
+        markPasswordChangeKeySyncPending: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        completePasswordChange: jest.fn().mockResolvedValue(undefined),
+      });
+      const { submitPassword, exportEncryptionKey } =
+        mockEngine.context.KeyringController;
+
+      await applySeedlessUnlockRecovery('new-password');
+
+      expect(submitPassword).toHaveBeenCalledWith('new-password');
+      expect(
+        jest.mocked(submitPassword).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        jest.mocked(exportEncryptionKey).mock.invocationCallOrder[0],
+      );
+    });
+
     it('stores the keyring encryption key when instruction is sync-key', async () => {
       const controller = setSeedlessController({
         storeKeyringEncryptionKey: jest.fn().mockResolvedValue(undefined),

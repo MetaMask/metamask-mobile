@@ -85,6 +85,9 @@ export const applySeedlessUnlockRecovery = async (
       await reconcileLocalKeyring(password);
       break;
     case PasswordSyncInstruction.SyncKey:
+      // The Keyring already uses the new password, but it is still locked
+      // at unlock, and exporting its encryption key needs it unlocked.
+      await Engine.context.KeyringController.submitPassword(password);
       await completeSeedlessPasswordChangeKeySync();
       break;
     case PasswordSyncInstruction.PasswordOutdated:
