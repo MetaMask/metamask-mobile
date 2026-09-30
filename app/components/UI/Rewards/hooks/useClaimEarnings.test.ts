@@ -201,10 +201,12 @@ describe('useClaimEarnings', () => {
       return 0;
     };
     (selectReferralMeLocalizedText as jest.Mock).mockReturnValue(localizedText);
-    (selectPrimaryMoneyAccount as jest.Mock).mockReturnValue({
+    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
       address: MONEY_ACCOUNT,
     });
-    (selectMoneyAccountVaultConfig as jest.Mock).mockReturnValue(vaultConfig);
+    (selectMoneyAccountVaultConfig as unknown as jest.Mock).mockReturnValue(
+      vaultConfig,
+    );
     (getGasFeesSponsoredNetworkEnabled as unknown as jest.Mock).mockReturnValue(
       () => true,
     );
@@ -269,7 +271,9 @@ describe('useClaimEarnings', () => {
   });
 
   it('shows the generic failure toast and does not open a claim when there is no money account', async () => {
-    (selectPrimaryMoneyAccount as jest.Mock).mockReturnValue(undefined);
+    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
     const { result } = renderClaim();
 
     await act(async () => {
@@ -435,7 +439,9 @@ describe('useClaimEarnings', () => {
   });
 
   it('shows the generic failure toast without opening confirmation when the vault is missing', async () => {
-    (selectMoneyAccountVaultConfig as jest.Mock).mockReturnValue(undefined);
+    (selectMoneyAccountVaultConfig as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
     const { result } = renderClaim();
 
     await act(async () => {

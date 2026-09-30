@@ -463,8 +463,12 @@ describe('submitClaimVoucher', () => {
       }
     });
     mockAddTransactionBatch.mockImplementation(async (request) => {
-      onConfirmed?.({ batchId: request.batchId });
-      return { batchId: request.batchId };
+      const batchId = request.batchId;
+      if (!batchId) {
+        throw new Error('batchId is required');
+      }
+      onConfirmed?.({ batchId });
+      return { batchId };
     });
   });
 
@@ -520,7 +524,9 @@ describe('submitClaimVoucher', () => {
   });
 
   it('throws before building a batch when the chain has no provider', async () => {
-    mockGetProviderByChainId.mockReturnValue(undefined);
+    mockGetProviderByChainId.mockReturnValue(
+      undefined as unknown as ReturnType<typeof getProviderByChainId>,
+    );
 
     await expect(submitLive()).rejects.toThrow(
       'No provider available for chain 0x8f',
@@ -530,7 +536,9 @@ describe('submitClaimVoucher', () => {
   });
 
   it('throws before submitting when the chain has no network client', async () => {
-    mockFindNetworkClientIdByChainId.mockReturnValue(undefined);
+    mockFindNetworkClientIdByChainId.mockReturnValue(
+      undefined as unknown as string,
+    );
 
     await expect(submitLive()).rejects.toThrow(
       'Network client not found for chain 0x8f',
@@ -569,11 +577,15 @@ describe('submitClaimVoucher', () => {
 
   it('rejects when the batch reverts instead of reporting success', async () => {
     mockAddTransactionBatch.mockImplementation(async (request) => {
+      const batchId = request.batchId;
+      if (!batchId) {
+        throw new Error('batchId is required');
+      }
       onFailed?.({
         error: 'reverted',
-        transactionMeta: { batchId: request.batchId },
+        transactionMeta: { batchId },
       });
-      return { batchId: request.batchId };
+      return { batchId };
     });
 
     await expect(submitLive()).rejects.toThrow('reverted');
@@ -581,9 +593,13 @@ describe('submitClaimVoucher', () => {
 
   it('rejects when the batch is still unconfirmed after the voucher window', async () => {
     jest.useFakeTimers();
-    mockAddTransactionBatch.mockImplementation(async (request) => ({
-      batchId: request.batchId,
-    }));
+    mockAddTransactionBatch.mockImplementation(async (request) => {
+      const batchId = request.batchId;
+      if (!batchId) {
+        throw new Error('batchId is required');
+      }
+      return { batchId };
+    });
 
     try {
       const pending = submitLive();
