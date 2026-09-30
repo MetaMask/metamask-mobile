@@ -7,11 +7,12 @@ import {
   type RenderAPI,
 } from '@testing-library/react-native';
 import {
+  DiscountType,
   FeatureId,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
-import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   QUICK_BUY_QUOTE_TOTAL_FOR_10_USD,
@@ -20,7 +21,10 @@ import {
   setupQuickBuyApiMock,
 } from '../../../../tests/component-view/api-mocking/quickBuy';
 import { renderQuickBuySheet } from '../../../../tests/component-view/renderers/quickBuy';
-import { getRouteProbeTestId } from '../../../../tests/component-view/render';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+} from '../../../../tests/component-view/render';
 import {
   quickBuySellableUsdcOverrides,
   quickBuyUsdtPayWithOverrides,
@@ -30,7 +34,10 @@ import {
   USDC_DEST,
   USDT_DEST,
 } from '../Bridge/_mocks_/bridgeViewTestConstants';
+import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import Routes from '../../../constants/navigation/Routes';
+import { KeypadTestIds } from '../../Base/Keypad/Keypad.testIds';
+import { QuoteViewSelectorIDs } from '../../../../tests/selectors/Bridge/QuoteView.selectors';
 import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
   getQuickBuyBuyPillTestId,
@@ -39,6 +46,44 @@ import {
 } from './QuickBuySheet.testIds';
 
 const USDT_PICKER_ROW = getAssetTestId(`${USDT_DEST.chainId}-USDT`);
+const BASE_NETWORK_OPTION = 'network-option-eip155:8453';
+const SLIPPAGE_ROUTE = {
+  name: Routes.BRIDGE.MODALS.ROOT,
+  Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+};
+
+const findTextColor = (
+  screen: Pick<RenderAPI, 'UNSAFE_getAllByType'>,
+  amountPattern: RegExp,
+): TextColor | undefined => {
+  const amountText = screen.UNSAFE_getAllByType(Text).find((node) => {
+    const { children } = node.props;
+    return typeof children === 'string' && amountPattern.test(children);
+  });
+  return amountText?.props.color as TextColor | undefined;
+};
+
+const typeAmount = (screen: Pick<RenderAPI, 'getByTestId'>, digits: string) => {
+  for (const digit of digits) {
+    const keyTestId =
+      KeypadTestIds[`KEY_${digit}` as keyof typeof KeypadTestIds];
+    fireEvent.press(screen.getByTestId(keyTestId));
+  }
+};
+
+const expectSlippageModal = async (
+  screen: Pick<RenderAPI, 'findByTestId'>,
+  sourceChainId: string,
+  destChainId: string,
+) => {
+  const paramsNode = await screen.findByTestId(
+    getRouteParamsProbeTestId(Routes.BRIDGE.MODALS.ROOT),
+  );
+  expect(JSON.parse(String(paramsNode.props.children))).toEqual({
+    screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+    params: { sourceChainId, destChainId },
+  });
+};
 
 const WAIT_MS = 8000;
 
@@ -364,7 +409,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PRICE_IMPACT_DESCRIPTION,
     );
-    fireEvent.press(await screen.findByText(strings('bridge.proceed')));
+    fireEvent.press(await screen.findByText('Proceed'));
 
     await waitFor(() => {
       expect(submitSpy).toHaveBeenCalled();
@@ -420,6 +465,11 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
+    const pickerHeader = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.PAY_WITH_HEADER,
+    );
+    expect(within(pickerHeader).getByText('Receive')).toBeOnTheScreen();
+    // USDT is not in the balance fixture, so its row proves Receive is not balance-only.
     const usdtRow = await screen.findByTestId(USDT_PICKER_ROW);
     expect(
       screen.queryByTestId(getAssetTestId(`${USDC_DEST.chainId}-USDC`)),
@@ -489,7 +539,7 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.NETWORK_LIST_HEADER),
     ).toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId('network-option-eip155:8453'));
+    fireEvent.press(screen.getByTestId(BASE_NETWORK_OPTION));
 
     expect(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_HEADER),
@@ -501,7 +551,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
   it('opens the slippage modal from the settings button', async () => {
     const screen = renderQuickBuySheet({
-      extraRoutes: [{ name: Routes.BRIDGE.MODALS.ROOT }],
+      extraRoutes: [SLIPPAGE_ROUTE],
     });
 
     await waitForSheetReady(screen);
@@ -509,9 +559,100 @@ describeForPlatforms('QuickBuySheet', () => {
       screen.getByTestId(QuickBuySheetSelectorsIDs.SETTINGS_BUTTON),
     );
 
+    await expectSlippageModal(screen, '0x1', '0x1');
+  });
+
+  it('omits chains without a balance from the buy network filter', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
+    );
+    await screen.findByTestId(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
+
+    // One held chain fits in the pills, so the in-sheet list is not offered.
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
+      screen.queryByTestId('network-pills-more-button'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Base')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Optimism')).not.toBeOnTheScreen();
+  });
+
+  it('keeps the network filter on back and clears it from All networks', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: quickBuySellableUsdcOverrides(),
+    });
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
+    );
+    fireEvent.press(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
+    );
+    await screen.findByTestId(USDT_PICKER_ROW);
+    fireEvent.press(screen.getByTestId('network-pills-more-button'));
+    fireEvent.press(await screen.findByTestId(BASE_NETWORK_OPTION));
+
+    await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_HEADER);
+    await waitFor(() => {
+      expect(screen.queryByTestId(USDT_PICKER_ROW)).not.toBeOnTheScreen();
+    });
+
+    fireEvent.press(screen.getByTestId('network-pills-more-button'));
+    fireEvent.press(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.NETWORK_LIST_BACK),
+    );
+
+    expect(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_HEADER),
     ).toBeOnTheScreen();
+    expect(screen.queryByTestId(USDT_PICKER_ROW)).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('network-pills-more-button'));
+    fireEvent.press(await screen.findByTestId('network-option-all'));
+
+    expect(await screen.findByTestId(USDT_PICKER_ROW)).toBeOnTheScreen();
+  });
+
+  it('hides the trade mode toggle when the position token has no balance', async () => {
+    const screen = renderQuickBuySheet();
+
+    await waitForSheetReady(screen);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('Buy USDC')).toBeOnTheScreen();
+  });
+
+  it('hides the trade mode toggle when sell is not enabled', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: quickBuySellableUsdcOverrides(),
+      features: { ...TOP_TRADERS_QUICK_BUY_FEATURES, tradeModes: ['buy'] },
+    });
+
+    await waitForSheetReady(screen);
+
+    expect(
+      screen.queryByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens in sell mode when initialTradeMode is sell', async () => {
+    const screen = renderQuickBuySheet({
+      initialTradeMode: 'sell',
+      overrides: quickBuySellableUsdcOverrides(),
+    });
+
+    expect(
+      await screen.findByTestId(getQuickBuySellPillTestId(25)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getQuickBuyBuyPillTestId(10)),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('Sell USDC')).toBeOnTheScreen();
   });
 
   it('keeps the keypad inert and shows Add funds when the wallet is empty', async () => {
@@ -533,7 +674,7 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(
       within(
         screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON),
-      ).getByText(strings('social_leaderboard.quick_buy.add_funds')),
+      ).getByText('Add funds'),
     ).toBeOnTheScreen();
   });
 
@@ -550,14 +691,48 @@ describeForPlatforms('QuickBuySheet', () => {
     const amountArea = screen.getByTestId(
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
-    expect(
-      await within(amountArea).findByText(
-        strings('social_leaderboard.quick_buy.add_funds'),
-      ),
-    ).toBeOnTheScreen();
+    expect(await within(amountArea).findByText('Add funds')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.EST_RECEIVE_LOADING),
     ).not.toBeOnTheScreen();
+
+    const confirm = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+    expect(within(confirm).getByText('Add funds')).toBeOnTheScreen();
+    expect(confirm).toBeEnabled();
+  });
+
+  it('keeps Sell disabled without relabelling when the typed amount exceeds the balance', async () => {
+    const screen = renderQuickBuySheet({
+      overrides: quickBuySellableUsdcOverrides(),
+    });
+
+    await waitForSheetReady(screen);
+    fireEvent.press(
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
+    );
+    await screen.findByTestId(getQuickBuySellPillTestId(25));
+    // balanceOf is mocked as 2 ETH wei for every token, so USDC's live balance
+    // is 2e12 units. Type past that.
+    typeAmount(screen, '3000000000000');
+
+    const amountArea = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.AMOUNT_AREA,
+    );
+    expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
+    expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(findTextColor(screen, /^3000000000000$/)).toBe(
+        TextColor.ErrorDefault,
+      );
+    });
+
+    const confirm = screen.getByTestId(
+      QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+    expect(within(confirm).getByText('Sell')).toBeOnTheScreen();
+    expect(confirm).toBeDisabled();
   });
 
   it('shows the available balance in sell mode', async () => {
@@ -597,11 +772,19 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(screen.getAllByText(/USDC/).length).toBeGreaterThan(0);
   });
 
-  const openQuoteDetails = async (gasIncluded: boolean) => {
+  const openQuoteDetails = async (
+    gasIncluded: boolean,
+    metabridgeFee?: {
+      quoteBpsFee: number;
+      baseBpsFee: number;
+      discountType: string;
+    },
+  ) => {
     mockFetchQuotes((params) => [
       createQuickBuyFetchedQuote(String(params.srcTokenAmount ?? '0'), {
         destAddress: params.destTokenAddress,
         gasIncluded,
+        metabridgeFee,
       }),
     ]);
     const screen = renderQuickBuySheet();
@@ -628,17 +811,27 @@ describeForPlatforms('QuickBuySheet', () => {
   it('hides the fee token chip in quote details for regular quotes', async () => {
     const screen = await openQuoteDetails(false);
 
-    expect(
-      screen.getByText(strings('social_leaderboard.quick_buy.metamask_fee')),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
     ).not.toBeOnTheScreen();
   });
 
+  it('shows a discounted MetaMask fee with its badge and struck-through base fee', async () => {
+    const screen = await openQuoteDetails(true, {
+      quoteBpsFee: 0,
+      baseBpsFee: 87.5,
+      discountType: DiscountType.PROMO,
+    });
+
+    expect(screen.getByText('Promo')).toBeOnTheScreen();
+    expect(screen.getByText('0.875%')).toBeOnTheScreen();
+    expect(screen.getByText('0%')).toBeOnTheScreen();
+  });
+
   it('opens the slippage modal from quote details', async () => {
     const screen = renderQuickBuySheet({
-      extraRoutes: [{ name: Routes.BRIDGE.MODALS.ROOT }],
+      extraRoutes: [SLIPPAGE_ROUTE],
     });
 
     await selectTenDollarBuy(screen);
@@ -650,9 +843,7 @@ describeForPlatforms('QuickBuySheet', () => {
       await screen.findByTestId(QuickBuySheetSelectorsIDs.EDIT_SLIPPAGE),
     );
 
-    expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
-    ).toBeOnTheScreen();
+    await expectSlippageModal(screen, '0x1', '0x1');
   });
 
   it('maps token details analytics source to QUICK_BUY_TOKEN_DETAILS on fetchQuotes', async () => {
@@ -698,7 +889,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PRICE_IMPACT_DESCRIPTION,
     );
-    fireEvent.press(await screen.findByText(strings('bridge.cancel')));
+    fireEvent.press(await screen.findByText('Cancel'));
 
     expect(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),

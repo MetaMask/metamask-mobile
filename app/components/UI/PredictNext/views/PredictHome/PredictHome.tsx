@@ -181,6 +181,7 @@ export const PredictHome = () => {
   const openOrder = useCallback(
     (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
       openOrderFlow({
+        action: 'buy',
         venueId: event.venueId,
         marketId: market.id,
         side: outcome.side,
