@@ -17,7 +17,6 @@ describe('trackHomepageSearchPaste', () => {
         name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
         properties: {
           interaction_type: 'paste',
-          search_query: '',
           entry_point: 'home',
         },
       }),

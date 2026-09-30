@@ -10,7 +10,6 @@ export const trackHomepageSearchPaste = (): void => {
     )
       .addProperties({
         interaction_type: SearchInteractionType.Paste,
-        search_query: '',
         entry_point: 'home',
       })
       .build(),
