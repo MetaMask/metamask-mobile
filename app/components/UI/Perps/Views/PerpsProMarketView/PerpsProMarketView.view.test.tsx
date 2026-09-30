@@ -2531,6 +2531,41 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'shows all four native Lighter trigger types when the provider declares support',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter', {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: [
+          'stop_market',
+          'stop_limit',
+          'take_profit_market',
+          'take_profit_limit',
+        ],
+      });
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      );
+
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.getByTestId(testID)).toBeOnTheScreen();
+      }
+      expect(
+        Engine.context.PerpsController.getOrderCapabilities,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
+      );
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
     'keeps Basic orders available while trigger capabilities are pending',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(
