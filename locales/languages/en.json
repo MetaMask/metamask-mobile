@@ -9455,7 +9455,16 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "activity_title_filled": "Swapped {{source}} to {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Date created",
+      "order_type": "Order type",
+      "order_type_limit": "Limit",
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
