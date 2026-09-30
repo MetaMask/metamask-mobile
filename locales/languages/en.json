@@ -2207,7 +2207,8 @@
         "difference_from_market": "Difference from market:",
         "limit_price_above": "Limit price is above current price",
         "limit_price_below": "Limit price is below current price",
-        "limit_price_too_far": "Price can't be more than 95% away from the market price"
+        "limit_price_too_far": "Price can't be more than 95% away from the market price",
+        "limit_price_too_far_range": "Enter a price between {{min}} and {{max}}."
       },
       "leverage_modal": {
         "title": "Leverage",
