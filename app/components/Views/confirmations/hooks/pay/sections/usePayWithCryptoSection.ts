@@ -156,11 +156,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const showNoFeeRowTags = isMoneyDeposit || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
-    clearPaymentOverride();
+    // Do not clear the payment override here: the user has only opened the
+    // token picker and may close it without choosing anything. PayWithModal
+    // clears the override once a token is actually selected.
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
     });
-  }, [clearPaymentOverride, navigation]);
+  }, [navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (isPreferredTokenSelected) {

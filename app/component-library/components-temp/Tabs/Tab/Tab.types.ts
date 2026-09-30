@@ -1,4 +1,5 @@
 // Third party dependencies.
+import { ReactNode } from 'react';
 import { PressableProps, LayoutChangeEvent } from 'react-native';
 
 /**
@@ -26,10 +27,9 @@ export interface TabProps extends PressableProps {
    */
   onLayout?: (event: LayoutChangeEvent) => void;
   /**
-   * Whether to render a dot after the label, for tabs holding something the
-   * user has not seen or acted on yet
+   * Optional content rendered after the label (indicator, tag, icon, etc.)
    */
-  showsIndicatorDot?: boolean;
+  endAccessory?: ReactNode;
   /**
    * Whether the tab stretches to share the row's width with its siblings
    * instead of hugging its label

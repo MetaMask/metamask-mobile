@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabsBar,
   type TabItem,
@@ -25,6 +27,7 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
   showEarningsDot,
   onChangeTab,
 }) => {
+  const tw = useTailwind();
   // `content` is unused: the dashboard renders each tab's sections inside its
   // own scroll view, so TabsBar renders the bar only.
   const tabs = useMemo<TabItem[]>(
@@ -40,7 +43,12 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
         label: strings('rewards.kol.earnings_tab'),
         content: null,
         testID: KOL_DASHBOARD_SELECTORS.TAB_EARNINGS,
-        showsIndicatorDot: showEarningsDot,
+        endAccessory: showEarningsDot ? (
+          <View
+            testID={KOL_DASHBOARD_SELECTORS.TAB_EARNINGS_DOT}
+            style={tw.style('h-1.5 w-1.5 rounded-full bg-success-default')}
+          />
+        ) : undefined,
       },
       {
         key: 'performance',
@@ -49,7 +57,7 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
         testID: KOL_DASHBOARD_SELECTORS.TAB_PERFORMANCE,
       },
     ],
-    [showEarningsDot],
+    [showEarningsDot, tw],
   );
 
   return (

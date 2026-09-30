@@ -384,7 +384,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsFundingLimits: false,
     fundingChains: ['eip155:8453', 'eip155:84532'],
     supportsFreeze: true,
-    supportsPushProvisioning: false,
+    pushProvisioning: { applePay: false, googlePay: false },
     onboarding: { type: 'webview', url: '' },
     supportsPinView: false,
     supportsPinSet: true,

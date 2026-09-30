@@ -27,10 +27,9 @@ export interface TabItem {
   isDisabled?: boolean;
   testID?: string;
   /**
-   * Renders a dot after the label, for a tab holding something the user has
-   * not seen or acted on yet
+   * Optional content rendered after the label (indicator, tag, icon, etc.)
    */
-  showsIndicatorDot?: boolean;
+  endAccessory?: React.ReactNode;
 }
 
 /**
@@ -40,6 +39,10 @@ export interface TabViewProps {
   tabLabel: string;
   key?: string;
   isDisabled?: boolean;
+  /**
+   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   */
+  endAccessory?: React.ReactNode;
 }
 
 /**

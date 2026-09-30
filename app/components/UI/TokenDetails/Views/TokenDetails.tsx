@@ -53,6 +53,11 @@ import {
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
+import {
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
+} from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
@@ -120,6 +125,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         | 'swap'
         | 'money_swap'
         | 'money'
+        | 'buy_sell'
         | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
@@ -198,7 +204,7 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (
-    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null,
+    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | 'buy_sell' | null,
   ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
@@ -219,7 +225,12 @@ const TokenDetails: React.FC<{
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
-  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+  const { variant: quickBuyEntrypointVariant } = useABTest(
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
+  );
+  const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
   });
@@ -706,6 +717,8 @@ const TokenDetails: React.FC<{
         onBuyPress={onCtaClicked}
         onQuickBuyPress={onQuickBuyPress}
         quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+        quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+        onOpenQuickBuy={openQuickBuy}
       />
 
       {isInsightsDisclaimerVisible && (
@@ -748,7 +761,14 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null | undefined
+    | 'both'
+    | 'buy'
+    | 'swap'
+    | 'money_swap'
+    | 'money'
+    | 'buy_sell'
+    | null
+    | undefined
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
