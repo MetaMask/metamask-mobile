@@ -3,7 +3,6 @@ import {
   type CaipAccountId,
   type CaipChainId,
 } from '@metamask/utils';
-import type { Address } from '@solana/addresses';
 import { getTransactionDecoder } from '@solana/transactions';
 import { base58 } from 'ethers/lib/utils';
 import type { RpcRequest } from '../types';
@@ -91,7 +90,7 @@ export function mapSignTransactionResponse({
   const { signatures } = getTransactionDecoder().decode(
     Buffer.from(transaction, 'base64'),
   );
-  const signature = signatures[signerAddress as Address];
+  const signature = signatures[signerAddress as keyof typeof signatures];
   if (!signature) {
     throw new Error('Solana snap did not sign the transaction for the signer');
   }
