@@ -1,11 +1,11 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -40,33 +40,25 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   isSelected = false,
   trailing,
 }) => {
-  const tw = useTailwind();
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
 
   return (
-    <Pressable
+    <Button
       onPress={onPress}
       testID={testID}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
-      style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
+      size={ButtonSize.Md}
+      variant={ButtonVariant.Secondary}
+      startAccessory={leading}
+      endAccessory={trailing}
+      twClassName={`shrink${isSelected ? ' border-default' : ''}`}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        backgroundColor={
-          isSelected
-            ? BoxBackgroundColor.BackgroundSection
-            : BoxBackgroundColor.BackgroundMuted
-        }
-        paddingHorizontal={2}
-        paddingVertical={2}
-        twClassName={
-          isSelected ? 'rounded-full border border-default' : 'rounded-full'
-        }
       >
-        {leading}
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -85,9 +77,8 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
             {changeLabel}
           </Text>
         ) : null}
-        {trailing}
       </Box>
-    </Pressable>
+    </Button>
   );
 };
 

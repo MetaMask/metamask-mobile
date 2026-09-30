@@ -71,9 +71,9 @@ describe('ExplorePill', () => {
       />,
     );
 
-    expect(getByTestId('pill').props.accessibilityState).toEqual({
-      selected: true,
-    });
+    expect(getByTestId('pill').props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
   });
 
   it('renders a trailing accessory after the label', () => {
