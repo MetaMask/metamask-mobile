@@ -128,55 +128,30 @@ const SearchEndAccessory = ({
   );
 };
 
-const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
+const noop = () => undefined;
+
+interface ResolvedPlaceholder {
+  resolvedPlaceholder: string;
+}
+
+const ExploreSearchBarButton = ({
+  onPress,
+  showPastePill,
+  onPastePress,
+  clipboardButtonTestID,
+  rowTwClassName = 'flex-1 gap-2',
+  resolvedPlaceholder,
+}: ExploreSearchBarButtonProps & ResolvedPlaceholder) => {
   const tw = useTailwind();
-  const theme = useTheme();
-  // Left unset, the input keeps the system keyboard, which stays light in dark mode.
-  const keyboardAppearance = theme === Theme.Dark ? 'dark' : 'light';
-
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
-  const isButtonMode = props.type === 'button';
-  const rowTwClassName =
-    props.rowTwClassName ?? (isButtonMode ? 'flex-1 gap-2' : 'gap-2');
-  const shouldFocus = props.type === 'interactive' && (props.autoFocus ?? true);
-  const isBackVariant =
-    props.type === 'interactive' && props.dismissVariant === 'back';
-  const inputRef = useRef<TextInput>(null);
-
-  const dismissSearch = () => {
-    if (props.type !== 'interactive') {
-      return;
-    }
-    props.onSearchChange('');
-    props.onCancel();
-  };
-
-  // `autoFocus` only applies on mount, so callers turning it on later need this.
-  useEffect(() => {
-    if (shouldFocus) {
-      inputRef.current?.focus();
-    }
-  }, [shouldFocus]);
-
-  const placeholder =
-    props.placeholder ??
-    (isBasicFunctionalityEnabled
-      ? strings('trending.search_placeholder')
-      : strings('trending.search_sites'));
-
   const buttonPastePill =
-    props.type === 'button' && props.showPastePill && props.onPastePress ? (
+    showPastePill && onPastePress ? (
       <Animated.View entering={FadeInDown.duration(180)}>
         <ButtonIcon
           iconName={IconName.Clipboard}
           size={ButtonIconSize.Md}
-          onPress={props.onPastePress}
+          onPress={onPastePress}
           accessibilityLabel={strings('send.paste')}
-          testID={
-            props.clipboardButtonTestID ?? 'explore-search-clipboard-button'
-          }
+          testID={clipboardButtonTestID ?? 'explore-search-clipboard-button'}
         />
       </Animated.View>
     ) : null;
@@ -194,42 +169,10 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
         numberOfLines={1}
         twClassName="flex-1"
       >
-        {placeholder}
+        {resolvedPlaceholder}
       </Text>
     </>
   );
-
-  // Button mode: tappable faux search bar (no text input).
-  const searchBarStatic = (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="h-10 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
-    >
-      <TouchableOpacity
-        onPress={props.type === 'button' ? props.onPress : undefined}
-        testID="explore-view-search-button"
-        activeOpacity={0.7}
-        style={tw.style('flex-1 flex-row items-center gap-3')}
-      >
-        {searchBarContent}
-      </TouchableOpacity>
-      {buttonPastePill}
-    </Box>
-  );
-
-  const hasSearchQuery =
-    props.type === 'interactive' && props.searchQuery.length > 0;
-  const showPastePill =
-    props.type === 'interactive' &&
-    Boolean(props.showPastePill) &&
-    !hasSearchQuery;
-  const onPastePress =
-    props.type === 'interactive' ? props.onPastePress : undefined;
-  const shouldRenderEndAccessory =
-    props.type === 'interactive' &&
-    Boolean(props.showPastePill) &&
-    (showPastePill || hasSearchQuery);
 
   return (
     <Box
@@ -237,73 +180,155 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       alignItems={BoxAlignItems.Center}
       twClassName={rowTwClassName}
     >
-      {isButtonMode ? (
-        searchBarStatic
-      ) : (
-        <>
-          <Box
-            twClassName="flex-1"
-            testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="h-10 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
+      >
+        <TouchableOpacity
+          onPress={onPress}
+          testID="explore-view-search-button"
+          activeOpacity={0.7}
+          style={tw.style('flex-1 flex-row items-center gap-3')}
+        >
+          {searchBarContent}
+        </TouchableOpacity>
+        {buttonPastePill}
+      </Box>
+    </Box>
+  );
+};
+
+const ExploreSearchBarInteractive = ({
+  searchQuery,
+  onSearchChange,
+  onCancel,
+  startAccessory,
+  showPastePill: showPastePillProp,
+  onPastePress,
+  clipboardButtonTestID,
+  rowTwClassName = 'gap-2',
+  autoFocus = true,
+  dismissVariant,
+  resolvedPlaceholder,
+}: ExploreSearchBarInteractiveProps & ResolvedPlaceholder) => {
+  const tw = useTailwind();
+  const theme = useTheme();
+  // Left unset, the input keeps the system keyboard, which stays light in dark mode.
+  const keyboardAppearance = theme === Theme.Dark ? 'dark' : 'light';
+  const inputRef = useRef<TextInput>(null);
+  const isBackVariant = dismissVariant === 'back';
+  const hasSearchQuery = searchQuery.length > 0;
+  const showPastePill = Boolean(showPastePillProp) && !hasSearchQuery;
+  const shouldRenderEndAccessory =
+    Boolean(showPastePillProp) && (showPastePill || hasSearchQuery);
+
+  const dismissSearch = () => {
+    onSearchChange('');
+    onCancel();
+  };
+
+  // `autoFocus` only applies on mount, so callers turning it on later need this.
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus]);
+
+  const endAccessory = shouldRenderEndAccessory ? (
+    <SearchEndAccessory
+      showPastePill={showPastePill}
+      hasSearchQuery={hasSearchQuery}
+      onPastePress={onPastePress ?? noop}
+      onClearPress={() => onSearchChange('')}
+      clipboardButtonTestID={clipboardButtonTestID}
+    />
+  ) : undefined;
+
+  let resolvedStartAccessory = startAccessory;
+  if (resolvedStartAccessory == null && isBackVariant) {
+    resolvedStartAccessory = (
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
+        size={ButtonIconSize.Md}
+        onPress={dismissSearch}
+        accessibilityLabel={strings('navigation.back')}
+        testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON}
+      />
+    );
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName={rowTwClassName}
+    >
+      <Box
+        twClassName="flex-1"
+        testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT}
+      >
+        <TextFieldSearch
+          twClassName="h-10"
+          endAccessory={endAccessory}
+          value={searchQuery}
+          onChangeText={onSearchChange}
+          placeholder={resolvedPlaceholder}
+          autoFocus={autoFocus}
+          inputRef={inputRef}
+          onPressClearButton={() => {
+            onSearchChange('');
+          }}
+          clearButtonProps={{ testID: 'explore-search-clear-button' }}
+          startAccessory={resolvedStartAccessory}
+          inputProps={{
+            autoCapitalize: 'none',
+            keyboardAppearance,
+            testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+          }}
+        />
+      </Box>
+      {!isBackVariant && (
+        <TouchableOpacity
+          onPress={dismissSearch}
+          testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            style={tw.style('text-default font-medium')}
           >
-            <TextFieldSearch
-              twClassName="h-10"
-              {...(shouldRenderEndAccessory
-                ? {
-                    endAccessory: (
-                      <SearchEndAccessory
-                        showPastePill={showPastePill}
-                        hasSearchQuery={hasSearchQuery}
-                        onPastePress={onPastePress ?? (() => undefined)}
-                        onClearPress={() => props.onSearchChange('')}
-                        clipboardButtonTestID={props.clipboardButtonTestID}
-                      />
-                    ),
-                  }
-                : {})}
-              value={props.searchQuery}
-              onChangeText={props.onSearchChange}
-              placeholder={placeholder}
-              autoFocus={shouldFocus}
-              inputRef={inputRef}
-              onPressClearButton={() => {
-                props.onSearchChange('');
-              }}
-              clearButtonProps={{ testID: 'explore-search-clear-button' }}
-              startAccessory={
-                props.startAccessory ??
-                (isBackVariant ? (
-                  <ButtonIcon
-                    iconName={IconName.Arrow2Left}
-                    size={ButtonIconSize.Md}
-                    onPress={dismissSearch}
-                    accessibilityLabel={strings('navigation.back')}
-                    testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON}
-                  />
-                ) : undefined)
-              }
-              inputProps={{
-                autoCapitalize: 'none',
-                keyboardAppearance,
-                testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
-              }}
-            />
-          </Box>
-          {!isBackVariant && (
-            <TouchableOpacity
-              onPress={dismissSearch}
-              testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                style={tw.style('text-default font-medium')}
-              >
-                {strings('transaction.cancel')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </>
+            {strings('transaction.cancel')}
+          </Text>
+        </TouchableOpacity>
       )}
     </Box>
+  );
+};
+
+const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const resolvedPlaceholder =
+    props.placeholder ??
+    (isBasicFunctionalityEnabled
+      ? strings('trending.search_placeholder')
+      : strings('trending.search_sites'));
+
+  if (props.type === 'button') {
+    return (
+      <ExploreSearchBarButton
+        {...props}
+        resolvedPlaceholder={resolvedPlaceholder}
+      />
+    );
+  }
+
+  return (
+    <ExploreSearchBarInteractive
+      {...props}
+      resolvedPlaceholder={resolvedPlaceholder}
+    />
   );
 };
 

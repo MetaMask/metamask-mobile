@@ -10,11 +10,13 @@ import {
   Keyboard,
   Platform,
   ScrollView,
+  type ViewStyle,
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
   Easing,
   interpolate,
+  type AnimatedStyle,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -398,21 +400,19 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   );
 };
 
-const ExploreSearchScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
-  const navigation = useNavigation<AppNavigationProp>();
-  const route =
-    useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
-  const routeParams = route.params;
-  const [searchQuery, setSearchQuery] = useState(() =>
-    getTrimmedInitialQuery(routeParams?.initialQuery),
-  );
-  const [isClipboardQuery, setIsClipboardQuery] = useState(
-    () => routeParams?.initialQuerySource === 'clipboard',
-  );
-  const isHomepageSearch = routeParams?.entryPoint === 'home';
-  const searchOrigin = routeParams?.searchOrigin;
+type SearchOrigin = NonNullable<ExploreSearchRouteParams['searchOrigin']>;
+
+interface UseHomepageSearchHandoffOptions {
+  isHomepageSearch: boolean;
+  screenWidth: number;
+  searchOrigin?: SearchOrigin;
+}
+
+const useHomepageSearchHandoff = ({
+  isHomepageSearch,
+  screenWidth,
+  searchOrigin,
+}: UseHomepageSearchHandoffOptions) => {
   const homeSearchTransition = useSharedValue(0);
   const homeSearchTransitionStarted = useRef(false);
   const isHomeSearchHandoff = isHomepageSearch && Boolean(searchOrigin);
@@ -420,47 +420,28 @@ const ExploreSearchScreen: React.FC = () => {
     useState(!isHomepageSearch || isHomeSearchHandoff);
   const [isHomeSearchAnimationComplete, setIsHomeSearchAnimationComplete] =
     useState(!isHomeSearchHandoff);
-  const homeSearchAnimatedStyle = useAnimatedStyle(
-    () =>
-      searchOrigin
-        ? {
-            height: searchOrigin.height,
-            left: interpolate(
-              homeSearchTransition.value,
-              [0, 1],
-              [searchOrigin.x, 16],
-            ),
-            position: 'absolute',
-            right: interpolate(
-              homeSearchTransition.value,
-              [0, 1],
-              [screenWidth - searchOrigin.x - searchOrigin.width, 16],
-            ),
-            top: searchOrigin.y,
-            zIndex: 10,
-          }
-        : {},
-    [screenWidth, searchOrigin],
-  );
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
-    setIsClipboardQuery(false);
-  }, []);
-  const handleHomepagePaste = useCallback((query: string) => {
-    setSearchQuery(query);
-    setIsClipboardQuery(true);
-  }, []);
-  const { showPastePill, handlePastePress } = useHomepageSearchPaste({
-    enabled: isHomepageSearch,
-    initiallyAvailable: routeParams?.pastePillVisible,
-    onPaste: handleHomepagePaste,
-  });
-  // Gates the keyboard, which iOS paints dark grey mid-push, and the results
-  // subtree, whose mount blocks the JS thread while the screen slides in.
-  const isTransitionComplete = useScreenTransitionComplete();
-  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
-  const browserTabsCount = useSelector(selectBrowserTabCount);
-  const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
+  const homeSearchAnimatedStyle = useAnimatedStyle(() => {
+    if (!searchOrigin) {
+      return {};
+    }
+
+    return {
+      height: searchOrigin.height,
+      left: interpolate(
+        homeSearchTransition.value,
+        [0, 1],
+        [searchOrigin.x, 16],
+      ),
+      position: 'absolute',
+      right: interpolate(
+        homeSearchTransition.value,
+        [0, 1],
+        [screenWidth - searchOrigin.x - searchOrigin.width, 16],
+      ),
+      top: searchOrigin.y,
+      zIndex: 10,
+    };
+  }, [screenWidth, searchOrigin]);
 
   useEffect(() => {
     if (!isHomepageSearch || isHomeSearchHandoff) {
@@ -505,12 +486,157 @@ const ExploreSearchScreen: React.FC = () => {
         }
       },
     );
-  }, [
-    homeSearchTransition,
-    isHomepageSearch,
+  }, [homeSearchTransition, isHomepageSearch, searchOrigin]);
+
+  return {
+    homeSearchAnimatedStyle,
+    isHomeSearchAnimationComplete,
+    isHomepageSearchContentReady,
     isHomeSearchHandoff,
+  };
+};
+
+interface ExploreSearchHeaderProps {
+  browserTabsCount: number;
+  exploreSearchBar: React.ReactNode;
+  homeSearchAnimatedStyle: AnimatedStyle<ViewStyle>;
+  isHomepageSearch: boolean;
+  onBrowserTabsPress: () => void;
+  searchOrigin?: SearchOrigin;
+  showBrowserTabsButton: boolean;
+}
+
+const ExploreSearchHeader = ({
+  browserTabsCount,
+  exploreSearchBar,
+  homeSearchAnimatedStyle,
+  isHomepageSearch,
+  onBrowserTabsPress,
+  searchOrigin,
+  showBrowserTabsButton,
+}: ExploreSearchHeaderProps) => {
+  if (isHomepageSearch && searchOrigin) {
+    return (
+      <>
+        <Animated.View style={homeSearchAnimatedStyle}>
+          {exploreSearchBar}
+        </Animated.View>
+        <Box twClassName="h-12" />
+      </>
+    );
+  }
+
+  if (isHomepageSearch) {
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="h-12 px-4"
+      >
+        <Box twClassName="flex-1">{exploreSearchBar}</Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2 px-4 pb-3"
+    >
+      <Box twClassName="flex-1">{exploreSearchBar}</Box>
+      {showBrowserTabsButton && (
+        <BrowserTabsButton
+          tabCount={browserTabsCount}
+          onPress={onBrowserTabsPress}
+          testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
+        />
+      )}
+    </Box>
+  );
+};
+
+const getSearchDismissVariant = (
+  isHomepageSearch: boolean,
+  isHeaderRefreshEnabled: boolean,
+): 'back' | 'cancel' => {
+  if (isHomepageSearch || isHeaderRefreshEnabled) {
+    return 'back';
+  }
+
+  return 'cancel';
+};
+
+interface ShouldMountSearchContentOptions {
+  isHomeSearchAnimationComplete: boolean;
+  isHomepageSearch: boolean;
+  isHomepageSearchContentReady: boolean;
+  isHomeSearchHandoff: boolean;
+  isTransitionComplete: boolean;
+}
+
+const shouldMountExploreSearchContent = ({
+  isHomeSearchAnimationComplete,
+  isHomepageSearch,
+  isHomepageSearchContentReady,
+  isHomeSearchHandoff,
+  isTransitionComplete,
+}: ShouldMountSearchContentOptions): boolean => {
+  if (!isHomepageSearch) {
+    return isTransitionComplete;
+  }
+
+  if (isHomeSearchHandoff) {
+    return isHomeSearchAnimationComplete;
+  }
+
+  return isHomepageSearchContentReady;
+};
+
+const ExploreSearchScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
+  const routeParams = route.params;
+  const [searchQuery, setSearchQuery] = useState(() =>
+    getTrimmedInitialQuery(routeParams?.initialQuery),
+  );
+  const [isClipboardQuery, setIsClipboardQuery] = useState(
+    () => routeParams?.initialQuerySource === 'clipboard',
+  );
+  const isHomepageSearch = routeParams?.entryPoint === 'home';
+  const searchOrigin = routeParams?.searchOrigin;
+  const {
+    homeSearchAnimatedStyle,
+    isHomeSearchAnimationComplete,
+    isHomepageSearchContentReady,
+    isHomeSearchHandoff,
+  } = useHomepageSearchHandoff({
+    isHomepageSearch,
+    screenWidth,
     searchOrigin,
-  ]);
+  });
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    setIsClipboardQuery(false);
+  }, []);
+  const handleHomepagePaste = useCallback((query: string) => {
+    setSearchQuery(query);
+    setIsClipboardQuery(true);
+  }, []);
+  const { showPastePill, handlePastePress } = useHomepageSearchPaste({
+    enabled: isHomepageSearch,
+    initiallyAvailable: routeParams?.pastePillVisible,
+    onPaste: handleHomepagePaste,
+  });
+  // Gates the keyboard, which iOS paints dark grey mid-push, and the results
+  // subtree, whose mount blocks the JS thread while the screen slides in.
+  const isTransitionComplete = useScreenTransitionComplete();
+  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
+  const browserTabsCount = useSelector(selectBrowserTabCount);
+  const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
 
   const goBack = useCallback(() => {
     navigation.goBack();
@@ -552,24 +678,25 @@ const ExploreSearchScreen: React.FC = () => {
     });
   }, [navigation]);
 
+  const searchPlaceholder = isHomepageSearch
+    ? strings('wallet.homepage_search_placeholder')
+    : undefined;
+  const dismissVariant = getSearchDismissVariant(
+    isHomepageSearch,
+    isHeaderRefreshEnabled,
+  );
   const exploreSearchBar = (
     <ExploreSearchBar
       type="interactive"
       searchQuery={searchQuery}
       onSearchChange={handleSearchChange}
       onCancel={handleSearchCancel}
-      placeholder={
-        routeParams?.entryPoint === 'home'
-          ? strings('wallet.homepage_search_placeholder')
-          : undefined
-      }
+      placeholder={searchPlaceholder}
       autoFocus={
         (isHomepageSearch || isTransitionComplete) &&
         isHomeSearchAnimationComplete
       }
-      dismissVariant={
-        isHomepageSearch ? 'back' : isHeaderRefreshEnabled ? 'back' : 'cancel'
-      }
+      dismissVariant={dismissVariant}
       showPastePill={showPastePill}
       onPastePress={handlePastePress}
       clipboardButtonTestID="homepage-search-clipboard-button"
@@ -577,12 +704,13 @@ const ExploreSearchScreen: React.FC = () => {
     />
   );
 
-  const shouldMountSearchContent = isHomepageSearch
-    ? isHomeSearchHandoff
-      ? isHomeSearchAnimationComplete
-      : isHomepageSearchContentReady
-    : isTransitionComplete &&
-      (!isHomeSearchHandoff || isHomeSearchAnimationComplete);
+  const shouldMountSearchContent = shouldMountExploreSearchContent({
+    isHomeSearchAnimationComplete,
+    isHomepageSearch,
+    isHomepageSearchContentReady,
+    isHomeSearchHandoff,
+    isTransitionComplete,
+  });
 
   return (
     <Box twClassName="flex-1">
@@ -592,38 +720,15 @@ const ExploreSearchScreen: React.FC = () => {
         }}
         twClassName="flex-1 bg-default"
       >
-        {isHomepageSearch && searchOrigin ? (
-          <>
-            <Animated.View style={homeSearchAnimatedStyle}>
-              {exploreSearchBar}
-            </Animated.View>
-            <Box twClassName="h-12" />
-          </>
-        ) : isHomepageSearch ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="h-12 px-4"
-          >
-            <Box twClassName="flex-1">{exploreSearchBar}</Box>
-          </Box>
-        ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 px-4 pb-3"
-          >
-            <Box twClassName="flex-1">{exploreSearchBar}</Box>
-
-            {showBrowserTabsButton ? (
-              <BrowserTabsButton
-                tabCount={browserTabsCount}
-                onPress={handleBrowserTabsPress}
-                testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
-              />
-            ) : null}
-          </Box>
-        )}
+        <ExploreSearchHeader
+          browserTabsCount={browserTabsCount}
+          exploreSearchBar={exploreSearchBar}
+          homeSearchAnimatedStyle={homeSearchAnimatedStyle}
+          isHomepageSearch={isHomepageSearch}
+          onBrowserTabsPress={handleBrowserTabsPress}
+          searchOrigin={searchOrigin}
+          showBrowserTabsButton={showBrowserTabsButton}
+        />
 
         <PerpsSectionProvider>
           {shouldMountSearchContent ? (

@@ -41,23 +41,24 @@ export const useHomepageSearchPaste = ({
   const [clipboardContentAvailable, setClipboardContentAvailable] =
     useState(initiallyAvailable);
 
-  const refreshClipboardAvailability = useCallback(async () => {
+  const refreshClipboardAvailability = useCallback(() => {
     if (!enabled || !isSearchHeaderEnabled) {
       setClipboardContentAvailable(false);
       return;
     }
 
-    try {
-      const hasClipboardString = await ClipboardManager.hasString();
-      setClipboardContentAvailable(
-        isNewHomepageClipboardRevision(
-          hasClipboardString,
-          ClipboardManager.getRevision(),
-        ),
-      );
-    } catch {
-      setClipboardContentAvailable(false);
-    }
+    ClipboardManager.hasString()
+      .then((hasClipboardString) => {
+        setClipboardContentAvailable(
+          isNewHomepageClipboardRevision(
+            hasClipboardString,
+            ClipboardManager.getRevision(),
+          ),
+        );
+      })
+      .catch(() => {
+        setClipboardContentAvailable(false);
+      });
   }, [enabled, isSearchHeaderEnabled]);
 
   useFocusEffect(
