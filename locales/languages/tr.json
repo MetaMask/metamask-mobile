@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Cüzdan",
     "search_accessibility_label": "Ara",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Ara",
     "rewards_accessibility_label": "Ödüller",
     "tokens": "Token'lar",
     "view_all_nfts": "Tüm NFT'leri görüntüle",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Pay",
+    "stake": "Stake",
     "earn": "Kazan",
     "tron": {
       "stake_completed": "Stake işlemi tamamlandı",

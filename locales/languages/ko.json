@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "지갑",
     "search_accessibility_label": "Search",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "검색",
     "rewards_accessibility_label": "보상",
     "tokens": "토큰",
     "view_all_nfts": "모든 NFT 보기",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "스테이크",
     "earn": "수익 창출",
     "tron": {
       "stake_completed": "스테이킹 완료",
