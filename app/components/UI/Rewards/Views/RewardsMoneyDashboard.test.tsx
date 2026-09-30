@@ -545,7 +545,7 @@ describe('RewardsMoneyDashboard', () => {
               },
             },
           },
-        } as EarningsSummaryDto,
+        } as unknown as EarningsSummaryDto,
       },
     });
 
@@ -572,7 +572,7 @@ describe('RewardsMoneyDashboard', () => {
               },
             },
           },
-        } as EarningsSummaryDto,
+        } as unknown as EarningsSummaryDto,
       },
     });
 
