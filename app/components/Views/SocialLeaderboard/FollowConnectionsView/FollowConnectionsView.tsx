@@ -26,6 +26,7 @@ import {
 } from '../../../../component-library/components-temp/Tabs';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
 import { formatAddress } from '../../../../util/address';
 import {
@@ -87,10 +88,11 @@ const FollowConnectionsView: React.FC = () => {
 
   const handleFollowingRowPress = useCallback(
     (trader: FollowedTrader) => {
-      navigation.navigate(Routes.SOCIAL.PROFILE, {
+      navigateToSocialV1Profile(navigation, {
         traderId: trader.id,
         traderName: trader.username,
         traderAddress: trader.address,
+        traderAvatarUri: trader.avatarUri,
       });
     },
     [navigation],

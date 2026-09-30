@@ -1291,6 +1291,10 @@ const MainNavigator = () => {
             component={MyProfileView}
           />
           <NativeStack.Screen
+            name={Routes.SOCIAL.V1_PROFILE}
+            component={MyProfileView}
+          />
+          <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
           />

@@ -607,11 +607,15 @@
     "create_password_cta": "Create password",
     "new_password_placeholder": "New password",
     "confirm_password_placeholder": "Re-enter new password",
-    "acknowledgement_error": "Confirm that you understand MetaMask cannot recover this password.",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "password_warning_title": "MetaMask can’t reset your password",
+    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_srp": "Secret Recovery Phrase",
+    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_confirm": "I understand",
+    "password_warning_cancel": "Cancel"
   },
   "wallet_creation_error": {
     "title": "Something went wrong",
@@ -1543,6 +1547,8 @@
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "other_empty_title": "No posts yet",
+      "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
       "no_profile_title": "Create your profile",
@@ -5279,7 +5285,7 @@
       },
       "identity": {
         "title": "Identity",
-        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
       "notifications": {
@@ -9451,7 +9457,16 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "activity_title_filled": "Swapped {{source}} to {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Date created",
+      "order_type": "Order type",
+      "order_type_limit": "Limit",
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",

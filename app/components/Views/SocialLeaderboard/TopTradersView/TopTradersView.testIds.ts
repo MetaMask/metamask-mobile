@@ -6,4 +6,5 @@ export const TopTradersViewSelectorsIDs = {
   COHORT_SELECTOR: 'top-traders-view-cohort-selector',
   RANKING_SELECTOR: 'top-traders-view-ranking-selector',
   FILTER_BUTTON: 'top-traders-view-filter-button',
+  VIEWER_CARD: 'top-traders-view-viewer-card',
 } as const;

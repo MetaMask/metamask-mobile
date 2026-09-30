@@ -348,6 +348,7 @@ const Routes = {
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
     RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
+    SWAPS_LIMIT_ORDER_ACTIVITY: 'SwapsLimitOrderActivity',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -442,6 +443,7 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    V1_PROFILE: 'SocialV1ProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
     PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
