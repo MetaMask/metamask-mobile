@@ -203,7 +203,7 @@ index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..c27ee4a606d4230bc43e513ec1f4eb2b
      getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
      getPositions(_params?: GetPositionsParams): Promise<Position[]>;
 diff --git a/dist/providers/LighterProvider.js b/dist/providers/LighterProvider.js
-index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e270afc0b6a 100644
+index 59c846b66d11a19ab27d86571cbe435db4f83363..a696e553f1efa276f37793cfde22ea8130c04f63 100644
 --- a/dist/providers/LighterProvider.js
 +++ b/dist/providers/LighterProvider.js
 @@ -13,7 +13,7 @@
@@ -885,7 +885,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
 +                return true;
 +            }, generation, apiKeyIndex, async () => {
 +                const nonceResponse = await this.#clientService.getNextNonce(accountIndex, apiKeyIndex);
-                 this.#assertSession(generation);
++                this.#assertSession(generation);
 +                candidateNonce = nonceResponse.nonce;
 +                const created = await bridge.createClient({
 +                    chainId,
@@ -904,7 +904,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
 +                bridgeClientOwners.set(this.#rawSignerBridge(), this.#signerIdentity);
 +                changePubKeyBody = created.body;
 +                const status = await this.#venueKeyStatus(accountIndex);
-+                this.#assertSession(generation);
+                 this.#assertSession(generation);
 +                if (status === 'occupied') {
 +                    this.#clearBridgeOwnership();
 +                    if (!bridge.getRecoverableKeyIndices &&
@@ -1097,7 +1097,22 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          });
          if (recreated.error || !recreated.success) {
              throw new Error(`Lighter signer client re-establishment failed: ${recreated.error ?? 'unknown'}`);
-@@ -3451,6 +3734,45 @@ export class LighterProvider {
+@@ -3442,15 +3725,58 @@ export class LighterProvider {
+         this.#authToken = { token: token.token, deadline: token.deadline };
+         return token.token;
+     };
+-    #ensureMarkets = async () => {
+-        if (this.#marketsBySymbol.size === 0) {
+-            await this.initialize();
++    #ensureMarkets = async (forceRefresh = false) => {
++        if (forceRefresh || this.#marketsBySymbol.size === 0) {
++            const result = await this.initialize();
++            if (forceRefresh && !result.success) {
++                throw new Error(result.error ?? 'Lighter market metadata unavailable');
++            }
+         }
+         return this.#marketsBySymbol;
+     };
      // ============================================================================
      // Market Data Operations (Public Reads)
      // ============================================================================
@@ -1120,13 +1135,14 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
 +        if (this.#isDisconnected) {
 +            return unavailable('provider_unavailable');
 +        }
-+        if (this.#marketsBySymbol.size === 0) {
-+            const initialized = await this.initialize();
-+            if (!initialized.success) {
-+                return unavailable('provider_unavailable');
-+            }
++        let markets;
++        try {
++            markets = await this.#ensureMarkets(true);
 +        }
-+        const market = this.#marketsBySymbol.get(params.symbol);
++        catch {
++            return unavailable('provider_unavailable');
++        }
++        const market = markets.get(params.symbol);
 +        if (!market) {
 +            return unavailable('market_not_found');
 +        }
@@ -1143,7 +1159,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
      async getMarkets(_params) {
          try {
              const markets = await this.#clientService.getOrderBooks();
-@@ -3759,9 +4081,15 @@ export class LighterProvider {
+@@ -3759,9 +4085,15 @@ export class LighterProvider {
                      error: PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED,
                  };
              }
@@ -1160,7 +1176,16 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              // User intent is never silently dropped: fields this venue path does
              // not execute are rejected so the caller can adapt, not surprised.
              if (params.takeProfitPrice || params.stopLossPrice) {
-@@ -3799,7 +4127,13 @@ export class LighterProvider {
+@@ -3791,7 +4123,7 @@ export class LighterProvider {
+             // and account setup are deferred until it passes so invalid intent
+             // causes zero bridge calls (no client creation or key registration
+             // side effects).
+-            const markets = await this.#ensureMarkets();
++            const markets = await this.#ensureMarkets(isTriggerOrderType(params.orderType));
+             const market = markets.get(params.symbol);
+             if (!market) {
+                 return {
+@@ -3799,7 +4131,13 @@ export class LighterProvider {
                      error: `Unknown Lighter market: ${params.symbol}`,
                  };
              }
@@ -1175,7 +1200,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                  return { success: false, error: 'Limit order requires a price' };
              }
              if (params.leverage !== undefined) {
-@@ -3830,7 +4164,13 @@ export class LighterProvider {
+@@ -3830,7 +4168,13 @@ export class LighterProvider {
              // separate so usdAmount sizing is never distorted by the protection
              // offset.
              let referencePrice;
@@ -1190,7 +1215,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                  // STRICT full-string parse: '90000USD' prefix-parses under
                  // parseFloat and must never become signed intent.
                  const parsedLimitPrice = parseFinitePositive(params.price ?? '');
-@@ -3845,7 +4185,7 @@ export class LighterProvider {
+@@ -3845,7 +4189,7 @@ export class LighterProvider {
              else {
                  referencePrice = parseFloat(params.price ?? String(params.currentPrice ?? 0));
              }
@@ -1199,7 +1224,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              if (params.orderType === 'market') {
                  const resolved = await this.#resolveMarketReferencePrice(params.symbol, slippageFraction, params.priceAtCalculation);
                  if (resolved.error !== null) {
-@@ -3913,7 +4253,10 @@ export class LighterProvider {
+@@ -3913,7 +4257,10 @@ export class LighterProvider {
                  // extra exposure results and dust positions stay closable. The
                  // isFullClose flag is a hint, never trusted — a partial close
                  // bumped to the minimum would close more than the caller asked.
@@ -1211,7 +1236,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                      ? await this.#isVerifiedFullClose(params.symbol, requestedSize)
                      : false;
                  if (!verifiedFullClose) {
-@@ -3928,6 +4271,13 @@ export class LighterProvider {
+@@ -3928,6 +4275,13 @@ export class LighterProvider {
              // sub-tick rejections throw here, still with zero bridge calls.
              const priceInt = toSignerWirePriceInteger(executionPrice, market.supportedPriceDecimals);
              const sizeInt = toSignerWireInteger(size, market.supportedSizeDecimals);
@@ -1225,7 +1250,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              const leverageImfHundredths = await this.#resolveLeverageIntent(params);
              // Margin mode is sent only with an explicit leverage update. An
              // omitted leverage leaves both leverage and margin mode unchanged;
-@@ -3980,17 +4330,16 @@ export class LighterProvider {
+@@ -3980,17 +4334,17 @@ export class LighterProvider {
                          String(sizeInt),
                          String(priceInt),
                          params.isBuy ? 0 : 1,
@@ -1244,13 +1269,43 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
 -                        params.orderType === 'limit' && params.timeInForce !== 'IOC'
 +                        String(triggerPrices?.triggerPriceInt ?? LIGHTER_NO_TRIGGER_PRICE),
 +                        // Triggers remain pending even when they execute as IOC.
-+                        // Only ordinary immediate orders use a zero expiry.
++                        // The signer expands -1 to its 28-day default expiry;
++                        // only ordinary immediate orders use a zero expiry.
 +                        isTriggerOrderType(params.orderType) ||
 +                            isLighterMakerOrder(params)
                              ? LIGHTER_ORDER_EXPIRY_NONE
                              : 0,
                          await nextNonce(),
-@@ -5196,9 +5545,15 @@ export class LighterProvider {
+@@ -4488,11 +4842,23 @@ export class LighterProvider {
+                 const rawOrders = await readActiveRaw();
+                 const openOrders = rawOrders.map((order) => adaptOrderFromLighter(order, this.#marketsById.get(order.marketIndex)?.symbol ??
+                     String(order.marketIndex)));
+-                const staleTriggers = openOrders.filter((order) => order.symbol === params.symbol &&
+-                    order.reduceOnly &&
+-                    (Boolean(order.orderType?.includes('stop')) ||
+-                        Boolean(order.orderType?.includes('take')) ||
+-                        order.isTrigger === true));
++                const staleTriggers = openOrders.filter((order) => {
++                    const raw = rawOrders.find((row) => String(row.orderIndex) === order.orderId);
++                    // Position protection is a full-quantity trigger-market close.
++                    // Independent partial orders and trigger limits retain their
++                    // separate execution and quantity intent during update/removal.
++                    const isPositionProtection = order.symbol === params.symbol &&
++                        order.reduceOnly &&
++                        (raw?.type === 'stop-loss' || raw?.type === 'take-profit') &&
++                        order.side === (Number(position.size) > 0 ? 'sell' : 'buy') &&
++                        parseFinitePositive(order.size) ===
++                            Math.abs(Number(position.size));
++                    if (isPositionProtection &&
++                        raw?.timeInForce !== 'immediate-or-cancel') {
++                        throw new Error(`Lighter TP/SL update for ${params.symbol} refused: existing trigger order ${order.orderId} cannot be faithfully restored as position protection (unsupported time-in-force), so it will not be cancelled`);
++                    }
++                    return isPositionProtection;
++                });
+                 // The prior triggers' EXACT wire intents ride along with the
+                 // journal: a crash can still restore/rollback faithfully. A
+                 // stale trigger that CANNOT be faithfully restored (unknown
+@@ -5196,9 +5562,15 @@ export class LighterProvider {
          }
          // Mirrors placeOrder's own rejections so validation never approves an
          // order shape the placement path would refuse.
@@ -1267,7 +1322,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          if (params.takeProfitPrice || params.stopLossPrice) {
              return {
                  isValid: false,
-@@ -5211,10 +5566,11 @@ export class LighterProvider {
+@@ -5211,10 +5583,11 @@ export class LighterProvider {
                  error: 'Lighter placement does not support post-only (ALO) yet',
              };
          }
@@ -1281,7 +1336,16 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              // Strict finite parity with placement, LIMIT ONLY: 'Infinity' and
              // prefix-numeric strings ('90000USD') both parse under a bare
              // parseFloat check but placement refuses them. Market placement
-@@ -5254,6 +5610,12 @@ export class LighterProvider {
+@@ -5246,7 +5619,7 @@ export class LighterProvider {
+         if (!hasUsdSizing && parseFinitePositive(params.size) === null) {
+             return { isValid: false, error: 'Order size must be positive' };
+         }
+-        const markets = await this.#ensureMarkets();
++        const markets = await this.#ensureMarkets(isTriggerOrderType(params.orderType));
+         const market = markets.get(params.symbol);
+         if (!market) {
+             return {
+@@ -5254,6 +5627,12 @@ export class LighterProvider {
                  error: `Unknown Lighter market: ${params.symbol}`,
              };
          }
@@ -1294,7 +1358,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          if (params.leverage !== undefined) {
              // Same authoritative-metadata requirement as placement.
              const maxLeverage = await this.#requireMarketMaxLeverage(params.symbol);
-@@ -5279,7 +5641,12 @@ export class LighterProvider {
+@@ -5279,7 +5658,12 @@ export class LighterProvider {
          // the wire-range check below inspects the exact signed value.
          let referencePrice;
          let executionPrice;
@@ -1308,7 +1372,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              const slippageFraction = params.maxSlippageBps === undefined
                  ? (params.slippage ?? 0.05)
                  : params.maxSlippageBps / 10_000;
-@@ -5338,7 +5705,7 @@ export class LighterProvider {
+@@ -5338,7 +5722,7 @@ export class LighterProvider {
                  // can THROW (capability gates, venue-data integrity): a validator
                  // must resolve to an explicit invalid result, never reject.
                  let verifiedFullClose = false;
@@ -1317,7 +1381,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                      try {
                          verifiedFullClose = await this.#isVerifiedFullClose(params.symbol, requestedSize);
                      }
-@@ -5827,7 +6194,7 @@ export class LighterProvider {
+@@ -5827,7 +6211,7 @@ export class LighterProvider {
              return NOOP_UNSUBSCRIBE;
          }
          this.#orderSubscribers.add(params);
@@ -1326,7 +1390,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              params.callback([...this.#wsOrders.values()]);
          }
          this.#ensureAccountChannels();
-@@ -5842,6 +6209,20 @@ export class LighterProvider {
+@@ -5842,6 +6226,20 @@ export class LighterProvider {
          }
          this.#fillSubscribers.add(params);
          this.#ensureAccountChannels();
@@ -1347,7 +1411,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          return () => {
              this.#fillSubscribers.delete(params);
              this.#releaseChannelIfUnused();
-@@ -5867,7 +6248,9 @@ export class LighterProvider {
+@@ -5867,7 +6265,9 @@ export class LighterProvider {
          }
          const generation = this.#sessionGeneration;
          let channelsRequested = false;
@@ -1358,7 +1422,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              try {
                  // Warm the margin cache before any WS position frame is adapted.
                  await this.#ensureMarketMargins().catch(() => undefined);
-@@ -5883,6 +6266,7 @@ export class LighterProvider {
+@@ -5883,6 +6283,7 @@ export class LighterProvider {
                  this.#requestChannel(`account_all_positions/${accountIndex}`);
                  this.#requestChannel(`account_all_trades/${accountIndex}`);
                  channelsRequested = true;
@@ -1366,7 +1430,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                  try {
                      const auth = await this.#getAuthToken();
                      this.#assertSession(generation);
-@@ -5890,6 +6274,20 @@ export class LighterProvider {
+@@ -5890,6 +6291,20 @@ export class LighterProvider {
                  }
                  catch (error) {
                      this.#deps.debugLogger.log('[LighterProvider] orders channel skipped (no auth token)', { error: String(error) });
@@ -1387,7 +1451,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                      // Setup failures are not authoritative empty order state. Account
                      // switches and deselection already emit their synchronous reset.
                      channelsRequested = false;
-@@ -5907,6 +6305,17 @@ export class LighterProvider {
+@@ -5907,6 +6322,17 @@ export class LighterProvider {
                      generation === this.#sessionGeneration) {
                      this.#emitAccountBindingReset();
                  }
@@ -1405,7 +1469,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                  // An aborted previous-account setup has no authority over the new
                  // session. Current-session failures also preserve the last known data.
                  // Transport, auth, capability, and integrity failures are not
-@@ -5924,7 +6333,6 @@ export class LighterProvider {
+@@ -5924,7 +6350,6 @@ export class LighterProvider {
                  this.#accountChannelsPromise === setupPromise) {
                  this.#accountChannelsPromise = null;
              }
@@ -1413,7 +1477,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          })
              .catch(() => undefined);
          this.#ensureStream();
-@@ -6017,7 +6425,6 @@ export class LighterProvider {
+@@ -6017,7 +6442,6 @@ export class LighterProvider {
                          }
                          this.#wsWantedChannels.set(channel, { auth: freshToken });
                          this.#sendSubscribe(channel, freshToken);
@@ -1421,7 +1485,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
                      })
                          .catch((error) => {
                          this.#deps.debugLogger.log('[LighterProvider] auth channel resubscribe failed', { channel, error: String(error) });
-@@ -6173,6 +6580,9 @@ export class LighterProvider {
+@@ -6173,6 +6597,9 @@ export class LighterProvider {
                      }
                  }
              }
@@ -1431,7 +1495,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
              this.#wsOrders.clear();
              for (const [orderId, order] of nextOrders) {
                  this.#wsOrders.set(orderId, order);
-@@ -6338,9 +6748,6 @@ export class LighterProvider {
+@@ -6338,9 +6765,6 @@ export class LighterProvider {
       * @param message - Camelized account_all_trades payload.
       */
      #handleTradesMessage = (message) => {
@@ -1441,7 +1505,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          const isSnapshot = (message.type ?? '').startsWith('subscribed');
          const fills = [];
          let droppedUnsupportedFill = false;
-@@ -6361,6 +6768,11 @@ export class LighterProvider {
+@@ -6361,6 +6785,11 @@ export class LighterProvider {
                  }
              }
          }
@@ -1453,7 +1517,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          if (fills.length === 0 && !isSnapshot) {
              return;
          }
-@@ -6372,6 +6784,21 @@ export class LighterProvider {
+@@ -6372,6 +6801,21 @@ export class LighterProvider {
              this.#deps.debugLogger.log('[LighterProvider] withholding partial fills snapshot (unsupported fills present)');
              return;
          }
@@ -1475,7 +1539,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          for (const subscriber of this.#fillSubscribers) {
              try {
                  subscriber.callback(fills, isSnapshot);
-@@ -6499,6 +6926,8 @@ export class LighterProvider {
+@@ -6499,6 +6943,8 @@ export class LighterProvider {
          this.#wsWantedChannels.clear();
          this.#accountChannelsPromise = null;
          this.#wsPositions.clear();
@@ -1484,7 +1548,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          this.#wsOrders.clear();
          this.#orderBookState.clear();
          this.#candleSeries.clear();
-@@ -6555,7 +6984,6 @@ export class LighterProvider {
+@@ -6555,7 +7001,6 @@ export class LighterProvider {
              params.callback(seeded);
              this.#requestChannel(`candle/${market.marketId}/${resolution}`);
              this.#ensureStream();
@@ -1492,7 +1556,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e27
          })
              .catch((error) => {
              this.#deps.debugLogger.log('[LighterProvider] candle seed failed', {
-@@ -6625,7 +7053,6 @@ export class LighterProvider {
+@@ -6625,7 +7070,6 @@ export class LighterProvider {
              subscribers.add(params);
              this.#requestChannel(`order_book/${marketId}`);
              this.#ensureStream();
@@ -1516,7 +1580,7 @@ index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615
  const ResponseStructs = {
      orderBooks: type({
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index 3924c0be2cb8eb6dac463a8d2273203d72140a00..cb6e4517c4e38cc4977b93f42dda1a02a41a1acf 100644
+index 3924c0be2cb8eb6dac463a8d2273203d72140a00..6e120944dfff4337caf62f6f57b8b00c6972cddb 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
 @@ -564,6 +564,8 @@ export type DisconnectResult = {
@@ -1580,6 +1644,15 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..cb6e4517c4e38cc4977b93f42dda1a02
      /**
       * Margin modes the market accepts for `OrderParams.marginMode`. Omitted
       * means the provider does not report it, and clients should not offer an
+@@ -1423,7 +1436,7 @@ export type PerpsOrderCapabilities = ReadyPerpsOrderCapabilities | Readonly<{
+     reason: OrderCapabilitiesUnavailableReason;
+ }>;
+ /** Reasons a direct provider cannot produce a Scale price ladder. */
+-export type DirectProviderScalePriceLadderUnavailableReason = Exclude<DirectProviderOrderCapabilitiesUnavailableReason, 'strategy_market_unsupported'>;
++export type DirectProviderScalePriceLadderUnavailableReason = Exclude<DirectProviderOrderCapabilitiesUnavailableReason, 'strategy_market_unsupported' | 'order_market_unsupported'>;
+ /** Reasons a provider-routed Scale price ladder cannot be produced. */
+ export type ScalePriceLadderUnavailableReason = DirectProviderScalePriceLadderUnavailableReason | RoutedOrderCapabilitiesUnavailableReason;
+ /** Result of provider-routed Scale price normalization. */
 @@ -1629,7 +1642,7 @@ export type PerpsProvider = {
      /** Whether this provider routes individual requests by `providerId`. */
      readonly routesOrdersByProviderId?: boolean;
