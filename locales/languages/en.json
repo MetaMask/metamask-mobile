@@ -3373,11 +3373,116 @@
   },
   "gacha": {
     "title": "Gacha",
+    "powered_by": "Powered by Collector Crypt",
+    "usdc": "USDC",
+    "usdc_amount": "{{amount}} USDC",
+    "balance": "Balance",
+    "balance_available": "{{amount}} USDC available",
+    "no_solana_account": "Select an account with a Solana address to open packs.",
     "tabs": {
       "packs": "Packs",
       "cards": "My cards"
     },
+    "rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "epic": "Epic"
+    },
+    "packs": {
+      "all_collections": "All",
+      "open": "Open",
+      "open_price": "Open · {{price}}",
+      "open_for": "Open for {{price}} USDC",
+      "insufficient_usdc": "Not enough USDC",
+      "up_to": "Cards up to ${{value}}",
+      "instant_buyback": "{{percent}}% instant buyback",
+      "empty": "No packs are available right now. Check back soon.",
+      "error": "We couldn't load the packs."
+    },
+    "purchase": {
+      "title": "Open a pack",
+      "pack": "Pack",
+      "price": "Price",
+      "pay_with": "Pay with",
+      "balance_after": "Balance after",
+      "account": "Account",
+      "odds": "Odds",
+      "buyback_info": "Sell the card back instantly for {{percent}}% of its value, within 72 hours.",
+      "signing_info": "MetaMask signs the payment for you once you confirm. No other approval is needed.",
+      "confirm": "Confirm and open",
+      "generating": "Preparing your pack"
+    },
+    "reveal": {
+      "signing": "Signing the payment",
+      "paying": "Confirming the payment",
+      "opening": "Opening your pack",
+      "pending_hint": "This usually takes a few seconds.",
+      "you_got": "You got",
+      "value": "Value",
+      "grade": "Grade",
+      "buyback_offer": "Instant buyback offer",
+      "buyback_unavailable": "No buyback offer for this card.",
+      "buyback_checking": "Checking the buyback offer",
+      "buyback_error": "We couldn't check the buyback offer. Try again.",
+      "sell_for": "Sell for {{amount}} USDC",
+      "sell_and_open": "Sell and open another",
+      "keep": "Keep card",
+      "selling": "Selling",
+      "close": "Close"
+    },
+    "card": {
+      "title": "Card",
+      "view_on_collector_crypt": "View on Collector Crypt",
+      "sell_for": "Sell for {{amount}} USDC",
+      "not_found": "This card is no longer in your wallet.",
+      "check_sale_status": "Check sale status",
+      "sale_status_error": "We couldn't check the sale status. Try again."
+    },
+    "cards": {
+      "empty": "You don't have any cards yet. Open a pack to get your first one.",
+      "open_pack": "Open a pack",
+      "sell_tag": "Sell {{amount}}",
+      "selling_tag": "Selling",
+      "sync_error": "We couldn't refresh your cards.",
+      "retry": "Try again"
+    },
+    "pending": {
+      "processing_title": "A pack is being opened",
+      "processing_description": "We'll show your card as soon as it's ready.",
+      "unrevealed_title": "You have a card to reveal",
+      "unrevealed_description": "Your pack was opened. Tap to reveal your card.",
+      "attention_title": "A pack needs your attention",
+      "attention_description": "Tap to see what happened.",
+      "view": "View"
+    },
+    "toast": {
+      "sold": "Sold for {{amount}} USDC",
+      "sell_failed": "The sale didn't go through",
+      "open_failed": "We couldn't open your pack",
+      "retry": "Try again"
+    },
+    "errors": {
+      "title": "Something went wrong",
+      "retry": "Try again",
+      "start_over": "Start over",
+      "network_error": "Connection problem. Check your network and try again.",
+      "rate_limited": "Too many requests. Wait a moment and try again.",
+      "machine_unavailable": "This pack is not available right now. Try another pack.",
+      "invalid_response": "Collector Crypt returned an unexpected response.",
+      "signing_rejected": "MetaMask couldn't sign the transaction. Unlock your wallet and try again.",
+      "snap_unsupported": "Your Solana wallet needs an update to open packs.",
+      "submit_failed": "The transaction couldn't be sent. You were not charged if the payment isn't confirmed.",
+      "pack_expired": "This pack expired before the payment went through. You were not charged.",
+      "pack_failed": "This pack couldn't be opened. Collector Crypt refunds unopened packs automatically within about 2 hours.",
+      "open_pending": "Your payment is confirmed but the pack is still being processed. Try again in a moment.",
+      "buyback_unavailable": "This card can't be sold back anymore.",
+      "sale_pending": "The sale was sent but isn't confirmed yet. We'll update your cards shortly.",
+      "not_found": "We couldn't find this item.",
+      "unknown": "An unexpected error occurred."
+    },
     "home_section": {
+      "empty_description": "Open a pack and collect graded trading cards.",
       "open_pack": "Open a pack"
     }
   },

@@ -1,47 +1,138 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   type RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { TabsBar } from '../../../../../component-library/components-temp/Tabs';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../../component-library/components-temp/Tabs';
 import { GachaHomeTestIds } from '../../Gacha.testIds';
-import type { GachaStackParamList } from '../../types/navigation';
+import AttentionBanner from '../../components/AttentionBanner';
+import UsdcAmount from '../../components/UsdcAmount';
+import { useAttentionOperations } from '../../providers/collector-crypt/hooks/useCollectorCryptOperation';
+import { useCollectorCryptCards } from '../../providers/collector-crypt/hooks/useCollectorCryptCards';
+import { useUsdcBalance } from '../../providers/collector-crypt/hooks/useUsdcBalance';
+import type { GachaHomeTab, GachaStackParamList } from '../../types/navigation';
 import CardsTab from './CardsTab';
 import PacksTab from './PacksTab';
+import { HOME_TABS, shouldStayOnPacks } from './GachaHome.utils';
 
-/** Gacha entry screen with Packs and My cards tabs. */
+/** Balance of the selected Solana account and the partner caption. */
+const BalanceRow = ({ amount }: { amount: string }) => (
+  <Box gap={2}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="rounded-xl bg-section px-4 py-3"
+      testID={GachaHomeTestIds.BALANCE}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('gacha.balance')}
+      </Text>
+      <UsdcAmount amount={amount} />
+    </Box>
+    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      {strings('gacha.powered_by')}
+    </Text>
+  </Box>
+);
+
+/** Module home: balance, attention banner, Packs | My cards tabs. */
 const GachaHome = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<RouteProp<GachaStackParamList, 'GachaHome'>>();
-  const [activeIndex, setActiveIndex] = useState(
-    params?.initialTab === 'cards' ? 1 : 0,
+  const cardsState = useCollectorCryptCards();
+  const { account, cards, isLoading } = cardsState;
+  const balance = useUsdcBalance();
+  const attentionOperations = useAttentionOperations(account?.address);
+  const hasCards = cards.length > 0;
+
+  const [tab, setTab] = useState<GachaHomeTab>(params?.initialTab ?? 'packs');
+  // A "cards" request (param or press) resolves to Packs once the first
+  // sync is done and the account has no card.
+  const [isResolvingCards, setIsResolvingCards] = useState(
+    params?.initialTab === 'cards',
   );
 
   useEffect(() => {
-    setActiveIndex(params?.initialTab === 'cards' ? 1 : 0);
+    const initialTab = params?.initialTab;
+    if (!initialTab) {
+      return;
+    }
+    setTab(initialTab);
+    setIsResolvingCards(initialTab === 'cards');
   }, [params]);
 
-  const tabs = [
-    {
-      key: 'packs',
-      label: strings('gacha.tabs.packs'),
-      content: null,
-      testID: GachaHomeTestIds.PACKS_TAB,
+  useEffect(() => {
+    if (!isResolvingCards || isLoading) {
+      return;
+    }
+    setIsResolvingCards(false);
+    if (!hasCards) {
+      setTab('packs');
+    }
+  }, [isResolvingCards, isLoading, hasCards]);
+
+  const handleTabPress = useCallback(
+    (index: number) => {
+      const nextTab = HOME_TABS[index] ?? 'packs';
+      if (nextTab === 'cards' && shouldStayOnPacks({ hasCards, isLoading })) {
+        setTab('packs');
+        return;
+      }
+      setTab(nextTab);
+      setIsResolvingCards(nextTab === 'cards' && !hasCards);
     },
-    {
-      key: 'cards',
-      label: strings('gacha.tabs.cards'),
-      content: null,
-      testID: GachaHomeTestIds.CARDS_TAB,
-    },
-  ];
+    [hasCards, isLoading],
+  );
+
+  const tabs = useMemo<TabItem[]>(
+    () => [
+      {
+        key: 'packs',
+        label: strings('gacha.tabs.packs'),
+        content: null,
+        testID: GachaHomeTestIds.PACKS_TAB,
+      },
+      {
+        key: 'cards',
+        label: strings('gacha.tabs.cards'),
+        content: null,
+        testID: GachaHomeTestIds.CARDS_TAB,
+      },
+    ],
+    [],
+  );
+
+  const openReveal = useCallback(
+    (memo: string) => navigation.navigate(Routes.GACHA.REVEAL, { memo }),
+    [navigation],
+  );
+  const openCard = useCallback(
+    (mint: string) => navigation.navigate(Routes.GACHA.CARD, { mint }),
+    [navigation],
+  );
+  const showPacks = useCallback(() => setTab('packs'), []);
+  const attentionOperation = attentionOperations[0];
 
   return (
     <SafeAreaView
@@ -55,15 +146,55 @@ const GachaHome = () => {
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: GachaHomeTestIds.BACK_BUTTON }}
       />
-      <TabsBar
-        tabs={tabs}
-        activeIndex={activeIndex}
-        onTabPress={setActiveIndex}
-        testID={GachaHomeTestIds.TABS}
-      />
-      <Box twClassName="flex-1" paddingTop={3}>
-        {activeIndex === 0 ? <PacksTab /> : <CardsTab />}
-      </Box>
+      {account ? (
+        <>
+          <Box twClassName="px-4 pb-3" gap={3}>
+            <BalanceRow amount={balance.formatted} />
+            {attentionOperation && (
+              <AttentionBanner
+                operation={attentionOperation}
+                onView={openReveal}
+              />
+            )}
+          </Box>
+          <TabsBar
+            tabs={tabs}
+            activeIndex={HOME_TABS.indexOf(tab)}
+            onTabPress={handleTabPress}
+            testID={GachaHomeTestIds.TABS}
+          />
+          <Box twClassName="flex-1 pt-3">
+            {tab === 'packs' ? (
+              <PacksTab
+                account={account}
+                balance={balance.baseUnits}
+                onPurchased={openReveal}
+              />
+            ) : (
+              <CardsTab
+                cardsState={cardsState}
+                onCardPress={openCard}
+                onOpenPack={showPacks}
+              />
+            )}
+          </Box>
+        </>
+      ) : (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1 px-8"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={GachaHomeTestIds.NO_ACCOUNT}
+          >
+            {strings('gacha.no_solana_account')}
+          </Text>
+        </Box>
+      )}
     </SafeAreaView>
   );
 };

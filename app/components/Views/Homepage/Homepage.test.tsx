@@ -207,6 +207,15 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 jest.mock('../../UI/Gacha', () => ({
   selectGachaEnabledFlag: jest.fn(() => false),
+  useCollectorCryptCards: jest.fn(() => ({
+    account: undefined,
+    cards: [],
+    isLoading: false,
+    isSyncing: false,
+    error: undefined,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  })),
+  CardTile: () => null,
 }));
 
 const mockGachaSection = (enabled: boolean) => {

@@ -473,6 +473,8 @@ const Routes = {
   GACHA: {
     ROOT: 'Gacha',
     HOME: 'GachaHome',
+    REVEAL: 'GachaReveal',
+    CARD: 'GachaCard',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
