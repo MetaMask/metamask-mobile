@@ -4,7 +4,10 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  renderHookWithProvider,
+  type ProviderValues,
+} from '../../../../util/test/renderWithProvider';
 import type { MoneyActivityItem } from '../types/moneyActivity';
 import {
   resolveEffectiveMoneyActivityStatus,
@@ -44,7 +47,7 @@ const getOrderMock = jest.mocked(Engine.context.RampsController.getOrder);
 
 const MONEY_ACCOUNT_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 
-function engineState(): { engine: { backgroundState: unknown } } {
+function engineState(): ProviderValues['state'] {
   return {
     engine: {
       backgroundState: {
@@ -68,7 +71,7 @@ function engineState(): { engine: { backgroundState: unknown } } {
         },
       },
     },
-  };
+  } as ProviderValues['state'];
 }
 
 function makeVaultFailureTx(

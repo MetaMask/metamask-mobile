@@ -87,7 +87,12 @@ export function useEffectiveStatusOverrides(
   const candidates = useMemo(
     () =>
       items.filter(
-        (item) =>
+        (
+          item,
+        ): item is MoneyActivityItem & {
+          kind: 'onchain';
+          tx: TransactionMeta;
+        } =>
           item.kind === 'onchain' && isRestartInterruptedFiatDeposit(item.tx),
       ),
     [items],
