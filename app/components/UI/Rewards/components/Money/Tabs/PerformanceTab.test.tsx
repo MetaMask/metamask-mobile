@@ -51,6 +51,9 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
+  tradingActivityEmptyDescription:
+    'Your activity is empty now. Start trading to earn today!',
+  tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
@@ -205,6 +208,49 @@ describe('PerformanceTab', () => {
     expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
     });
+  });
+
+  it('shows an empty message in commissions and rebates when neither has rows', () => {
+    const { getAllByText, getByTestId, queryByRole, queryByTestId } = renderTab(
+      'REFEREE',
+      {
+        commissions: [],
+        rebates: [],
+      },
+    );
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
+    ).toBeOnTheScreen();
+    expect(
+      getAllByText('Your activity is empty now. Start trading to earn today!'),
+    ).toHaveLength(2);
+    expect(
+      queryByTestId(`${PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY}-action`),
+    ).toBeNull();
+    expect(
+      getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+
+    fireEvent.press(
+      getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    });
+    expect(queryByRole('button', { name: 'Trading commissions' })).toBeNull();
+    expect(queryByRole('button', { name: 'Trading rebates' })).toBeNull();
+
+    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER));
+    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
+
+    expect(navigateToRewardsRoute).not.toHaveBeenCalled();
   });
 
   it('caps the commissions preview at five rows', () => {
