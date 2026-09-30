@@ -1134,15 +1134,18 @@ const PriceAdvanced = ({
         })()}
 
       {/* ── Skeleton bar (flag ON, candle mode only) ───────────────────── */}
-      {isTechnicalIndicatorsEnabled && !isLineMode && isInitialChartPending && (
-        <View style={styles.intervalBarContainer}>
-          <View style={styles.timeRangeSelectorWrap}>
-            <Box twClassName="w-full px-4">
-              <Skeleton height={29} width="100%" />
-            </Box>
+      {isTechnicalIndicatorsEnabled &&
+        !isLineMode &&
+        !showCandleEmptyState &&
+        isInitialChartPending && (
+          <View style={styles.intervalBarContainer}>
+            <View style={styles.timeRangeSelectorWrap}>
+              <Box twClassName="w-full px-4">
+                <Skeleton height={29} width="100%" />
+              </Box>
+            </View>
           </View>
-        </View>
-      )}
+        )}
 
       {/* ── IntervalBar (flag ON) ──────────────────────────────────────── */}
       {isTechnicalIndicatorsEnabled &&
