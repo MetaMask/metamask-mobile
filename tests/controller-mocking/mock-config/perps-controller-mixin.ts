@@ -788,6 +788,10 @@ export function buildE2EMockStreamManagerPlain(): Record<
         setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
+      // PerpsOrderView reads the cached chart close synchronously for the
+      // trade sheet header; no cached chart exists in E2E mocks.
+      getCachedData: (): null => null,
+      isChartCacheFresh: (): boolean => false,
       fetchHistoricalCandles: async (
         _symbol: string,
         _interval: unknown,

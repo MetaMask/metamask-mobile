@@ -288,6 +288,18 @@ function focusedPriceChannel() {
   };
 }
 
+/** Candles channel: PerpsOrderView reads the cached chart close for the trade sheet header */
+function candlesChannel() {
+  return {
+    subscribe: (): (() => void) => noopUnsubscribe,
+    getSnapshot: () => null,
+    getCachedData: () => null,
+    isChartCacheFresh: () => false,
+    refresh: async (): Promise<void> => undefined,
+    clearCache: (): void => undefined,
+  };
+}
+
 /** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
 const pricesChannel = (initialPrices: Record<string, PriceUpdate> = {}) => {
   const channel =
@@ -399,7 +411,7 @@ function createTestStreamManager(
     oiCaps: noopChannel(),
     topOfBook: topOfBookChannel(),
     focusedPrice: focusedPriceChannel(),
-    candles: noopChannel(),
+    candles: candlesChannel(),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;
 
