@@ -35,7 +35,7 @@ import { getMembershipDetails } from './Membership.utils';
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const SectionDivider = () => (
-  <Box twClassName="border-b border-border-muted my-6" />
+  <Box twClassName="border-b border-border-muted my-5" />
 );
 
 interface InfoRowProps {
@@ -50,13 +50,18 @@ const InfoRow = ({ label, value, testID }: InfoRowProps) => (
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
+    twClassName="py-4"
   >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+    <Text
+      variant={TextVariant.BodyMd}
+      color={TextColor.TextAlternative}
+      fontWeight={FontWeight.Medium}
+    >
       {label}
     </Text>
     <Text
       variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Bold}
+      fontWeight={FontWeight.Medium}
       color={TextColor.TextDefault}
     >
       {value}
@@ -80,8 +85,13 @@ const ManageRow = ({ label, onPress, testID }: ManageRowProps) => (
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
+      twClassName="py-4"
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
+      >
         {label}
       </Text>
       <Icon
@@ -148,17 +158,17 @@ const Membership = () => {
       >
         {/* Title */}
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="mb-6"
           testID={MembershipTestIds.TITLE}
+          twClassName="mb-2"
         >
           {strings('pro_hub.membership.title')}
         </Text>
 
         {/* ── Stats ─────────────────────────────────────────────────────── */}
-        <Box twClassName="gap-y-6" testID={MembershipTestIds.STATS_SECTION}>
+        <Box testID={MembershipTestIds.STATS_SECTION}>
           <InfoRow
             label={strings('pro_hub.membership.plan')}
             value={membershipDetails.plan}
@@ -179,21 +189,23 @@ const Membership = () => {
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            twClassName="mb-4"
+            twClassName="mb-2"
           >
             {strings('pro_hub.membership.payment_details')}
           </Text>
 
-          <Box twClassName="gap-y-4">
+          <Box>
             {/* Total row — strikethrough original + discounted price */}
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               testID={MembershipTestIds.TOTAL_ROW}
+              twClassName="py-4"
             >
               <Text
                 variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >
                 {strings('pro_hub.membership.total')}
@@ -214,7 +226,7 @@ const Membership = () => {
                 ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
                   {membershipDetails.total}
@@ -236,10 +248,12 @@ const Membership = () => {
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               testID={MembershipTestIds.PAYING_WITH_ROW}
+              twClassName="py-4"
             >
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('pro_hub.membership.paying_with')}
               </Text>
@@ -248,16 +262,16 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-2"
               >
-                <Box twClassName="w-8 h-8 bg-background-section rounded-lg flex items-center justify-center">
+                <Box twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center">
                   <Icon
-                    name={IconName.Wallet}
+                    name={IconName.AttachMoney}
                     size={IconSize.Sm}
-                    color={IconColor.IconDefault}
+                    twClassName="text-accent04-dark font-bold"
                   />
                 </Box>
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
                   {membershipDetails.payingWith}
@@ -279,12 +293,13 @@ const Membership = () => {
         {/* ── Manage ───────────────────────────────────────────────────────── */}
         <Box
           testID={MembershipTestIds.MANAGE_SECTION}
-          twClassName="flex flex-col gap-y-6"
+          twClassName="flex flex-col"
         >
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
+            twClassName="mb-2"
           >
             {strings('pro_hub.membership.manage')}
           </Text>
