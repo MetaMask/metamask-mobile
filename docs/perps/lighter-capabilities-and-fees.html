@@ -390,25 +390,29 @@
         inspected at <code>64e799fab9aaee5c9198d71fe9731aa7ed915b4e</code>,
         stacked on recovery
         <code>797e923865a03c997b34b298995bbd0c8396d19d</code>. This Mobile
-        branch backports it into controller 19.0.0. Hyperliquid declares its
-        four existing standalone types; Lighter still reports unavailable. This
-        fixes discovery and submission guards and does not implement native
-        Lighter triggers, attached/partial TP/SL or strategies. Published
-        release availability remains separate from local validation.
+        branch backported it into controller 19.0.0. That completed stage
+        declared Hyperliquid's four standalone types and kept Lighter
+        unavailable. Native standalone Lighter support now follows in
+        <a href="https://github.com/MetaMask/core/pull/10638">Core #10638</a>,
+        inspected at <code>76a86aefc391b2313e2d19df157aa256e731f41d</code>
+        and transported through the local controller 19.0.0 patch. Active-market
+        capability declarations expose all four native trigger types; strategies
+        remain empty. Attached and partial TP/SL are still refused. Published
+        release availability remains separate from local proof.
       </p>
       <p class="note">
         September 30 source audit: Hyperliquid has advanced strategies that the
         Lighter integration does not implement. Lighter's controller capability
-        response is <code>unavailable / not_implemented</code>. Mobile must keep
-        that distinct from an implemented feature awaiting validation. The
-        wallet-key recovery patch passed two local key-loss cycles and reconnect
-        on September 30, with no additional registrations and unchanged existing
-        testnet and mainnet keys. Its testnet trading recipe passed exact
-        receipt matching for limit placement/cancellation and market
-        placement/close. The orders and activity Retry recipe also passed
-        against real subsequent channel snapshots. These are local patch proofs;
-        they do not certify a published release, hardware-wallet recovery or
-        mainnet trading.
+        response at that audit was <code>unavailable / not_implemented</code>.
+        The native follow-up changes standalone trigger support; it does not add
+        strategies. The wallet-key recovery patch passed two local key-loss
+        cycles and reconnect on September 30, with no additional registrations
+        and unchanged existing testnet and mainnet keys. Its testnet trading
+        recipe passed exact receipt matching for limit placement/cancellation
+        and market placement/close. The orders and activity Retry recipe also
+        passed against real subsequent channel snapshots. These are local patch
+        proofs; they do not certify a published release, hardware-wallet
+        recovery or mainnet trading.
       </p>
       <p>
         Current audit paths:
@@ -444,8 +448,11 @@
         the resolved address. All 48 provider/network/mode/order plans pass.
         Testnet market/limit proofs match exact venue receipts and restore only
         owned state. Mainnet examples require explicit confirmation and leave
-        state for the operator. Standalone trigger and linked protection support
-        remain unfinished.
+        state for the operator. Native standalone trigger receipt proof checks
+        exact type, side, quantity, prices, reduce-only, time-in-force and
+        future expiry. Lighter offsets round to declared price precision before
+        sizing; explicit off-grid prices refuse. Linked protection remains
+        unfinished.
       </p>
       <div class="table-wrap">
         <table>
@@ -581,9 +588,16 @@
               <td>Implemented.</td>
               <td>
                 <code>updatePositionTPSL</code> implemented for full-position
-                protection; partial TP/SL sizes refused.
+                protection; partial TP/SL sizes refused. Core-created protection
+                retains durable client/venue IDs after resizing, restart and
+                key-slot recovery. Legacy full-quantity closing triggers use an
+                in-lock position read.
               </td>
-              <td>Not revalidated; advanced protection deferred.</td>
+              <td>
+                Growth/shrink/removal, lost-response, restart, storage-failure
+                and key-slot regressions pass. Live advanced protection proof
+                remains pending; standalone receipts do not prove this path.
+              </td>
             </tr>
             <tr>
               <th scope="row">
@@ -594,17 +608,22 @@
                 take_profit_market and take_profit_limit.
               </td>
               <td>
-                Unavailable: placement and validation accept only market/limit.
-                Existing-position TP/SL is a separate path.
+                Implemented in local Core #10638 source for active markets:
+                stop_market, stop_limit, take_profit_market and
+                take_profit_limit. Trigger markets use IOC execution; trigger
+                limits use GTT. Pending triggers retain the signer's 28-day
+                default expiry. Existing-position TP/SL is a separate path.
               </td>
               <td>
                 Fixed in this branch: Pro mode and rollout now require an
                 explicit standalone type declaration. Omitted, unavailable and
                 pending declarations offer only Basic choices. Fresh placement
                 checks bind the declared provider and current wallet/network.
-                Actual-rollout iOS recipes passed Lighter Basic-only and
-                Hyperliquid's four trigger choices on the same dev1 account.
-                Native Lighter placement remains unfinished.
+                The completed capability stage passed Lighter Basic-only and
+                Hyperliquid's four trigger choices. Native Lighter follow-up
+                passed all eight type/side combinations through exact controller
+                receipt, resting venue intent, cancellation and flat cleanup.
+                Activation/fills and Pro form submission remain unproved.
               </td>
             </tr>
             <tr>
@@ -614,8 +633,8 @@
                 Mobile additionally requires its rollout flag and Hyperliquid.
               </td>
               <td>
-                Unavailable: no getOrderCapabilities or TWAP strategy
-                implementation.
+                Unavailable: no TWAP strategy implementation. Ready standalone
+                capabilities advertise an empty strategy list.
               </td>
               <td>
                 No Lighter placement proof. A parameterized recipe cannot add
@@ -629,7 +648,8 @@
                 Mobile requires rollout and Hyperliquid capability checks.
               </td>
               <td>
-                Unavailable: no Scale strategy or ready capability declaration.
+                Unavailable: no Scale strategy in the ready capability
+                declaration.
               </td>
               <td>
                 Ordinary limit-order support does not establish Scale execution,
@@ -741,11 +761,11 @@
         <li>
           The current <code>package.json</code> and
           <code>yarn.lock</code> resolve controller 19.0.0 with a local Yarn
-          patch for wallet-key recovery, stream failures/history and unknown
-          closing-fill PnL. Core #10605 is merged; recovery #10618 remains a
-          follow-up. Remove the patch after all corrections are published
-          upstream. No <code>.yalc</code> package or <code>yalc.lock</code> is
-          committed.
+          patch for wallet-key recovery, stream failures/history, unknown
+          closing-fill PnL, capability gating and native standalone triggers.
+          Core #10605 is merged; #10618, #10629 and #10638 are follow-ups.
+          Remove the patch after all corrections are published upstream. No
+          <code>.yalc</code> package or <code>yalc.lock</code> is committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,
@@ -816,6 +836,29 @@
         retain warnings and unrelated type diagnostics; no warning-free or
         full-project TypeScript pass is claimed. Native advanced-order execution
         and mainnet financial validation remain unfinished.
+      </p>
+      <p>
+        October 1 native standalone proof uses Core <code>1ef6e190</code>,
+        Mobile <code>205575ce</code> and Perps library <code>e834ff6f</code>.
+        The eight <code>goal/native-orders/*-02</code> runs pass on Lighter
+        testnet with dev1, four types on both sides, exact client-to-venue IDs,
+        native intent, exact cancellation and flat cleanup. The first case uses
+        the selected-account default. The pinned embedded WASM signs all 16
+        type/side/reduce-only combinations offline. This proves pending orders
+        and cancellation, not activation, fills or form submission. Core's
+        subsequent ownership/disconnect regressions passed 635 tests across five
+        affected suites, followed by 22 passing expiry/restart regressions after
+        test-type corrections. Ownership records retain the exact signed order
+        expiry. Missing records can be reclaimed after expiry plus clock slack,
+        even when old terminal history is unavailable; live and uncertain
+        records remain conservative. Legacy records with no expiry proof still
+        require exact terminal evidence, and new protection creation refuses at
+        the 256-record cap when verified cleanup cannot make room. The recipe
+        precision/slippage follow-up passes 51 tests, with both independent
+        reviews complete at library <code>c3154d6b</code>. Fresh runtime proof
+        for the revised Core patch is tracked separately in the task's transport
+        manifest and run artifacts. Money Account and Terminal diagnostics are
+        retained separately.
       </p>
       <p>
         September 21 revalidation on commit <code>9f31932280</code>, iOS
