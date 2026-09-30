@@ -2,8 +2,11 @@
  * Shared formatting utilities for Perps components
  */
 import { BigNumber } from 'bignumber.js';
-import { strings } from '../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import I18n, { strings } from '../../../../../locales/i18n';
+import {
+  getIntlDateTimeFormatter,
+  getIntlNumberFormatter,
+} from '../../../../util/intl';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
@@ -25,6 +28,512 @@ export {
   formatFundingRate,
 } from '@metamask/perps-controller';
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
+
+const DEFAULT_PERPS_LOCALE = 'en-US';
+
+interface PerpsLocaleSeparators {
+  grouping: string;
+  decimal: string;
+}
+
+const getCurrentPerpsLocale = (locale?: string): string =>
+  locale || I18n?.locale || DEFAULT_PERPS_LOCALE;
+
+const getPerpsNumberFormatter = (
+  locale: string | undefined,
+  options: Intl.NumberFormatOptions,
+): Intl.NumberFormat => {
+  try {
+    return getIntlNumberFormatter(getCurrentPerpsLocale(locale), options);
+  } catch {
+    return getIntlNumberFormatter(DEFAULT_PERPS_LOCALE, options);
+  }
+};
+
+interface PerpsLocaleGrouping {
+  groupingSeparator: string;
+  primaryGroupSize: number;
+  secondaryGroupSize: number;
+  localizedDigits: readonly string[];
+}
+
+const perpsLocaleGroupingCache = new Map<string, PerpsLocaleGrouping>();
+
+/**
+ * Reads locale grouping rules from a safe integer without relying on BigInt or
+ * NumberFormat.formatToParts, which is not available in every app runtime.
+ */
+const getPerpsLocaleGrouping = (locale?: string): PerpsLocaleGrouping => {
+  const currentLocale = getCurrentPerpsLocale(locale);
+  const cachedGrouping = perpsLocaleGroupingCache.get(currentLocale);
+
+  if (cachedGrouping) {
+    return cachedGrouping;
+  }
+
+  const groupingFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: true,
+    maximumFractionDigits: 0,
+  });
+  const digitFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: false,
+    maximumFractionDigits: 0,
+  });
+  const localizedDigits = Array.from({ length: 10 }, (_, digitValue) =>
+    digitFormatter.format(digitValue),
+  );
+  const localizedDigitEntries = localizedDigits
+    .map((formattedDigit, digitValue) => ({
+      formattedDigit,
+      digitValue: String(digitValue),
+    }))
+    .sort(
+      (leftEntry, rightEntry) =>
+        rightEntry.formattedDigit.length - leftEntry.formattedDigit.length,
+    );
+  const formattedSample = groupingFormatter.format(1234567890123);
+  const groupSizes: number[] = [];
+  let currentGroupSize = 0;
+  let pendingSeparator = '';
+  let groupingSeparator = '';
+  let position = 0;
+
+  while (position < formattedSample.length) {
+    let matchedDigit: (typeof localizedDigitEntries)[number] | undefined;
+
+    for (const localizedDigitEntry of localizedDigitEntries) {
+      if (
+        formattedSample.startsWith(localizedDigitEntry.formattedDigit, position)
+      ) {
+        matchedDigit = localizedDigitEntry;
+        break;
+      }
+    }
+
+    if (matchedDigit) {
+      if (pendingSeparator) {
+        if (currentGroupSize > 0) {
+          groupSizes.push(currentGroupSize);
+          groupingSeparator = pendingSeparator;
+          currentGroupSize = 0;
+        }
+
+        pendingSeparator = '';
+      }
+
+      currentGroupSize += 1;
+      position += matchedDigit.formattedDigit.length;
+      continue;
+    }
+
+    pendingSeparator += formattedSample.charAt(position);
+    position += 1;
+  }
+
+  if (currentGroupSize > 0) {
+    groupSizes.push(currentGroupSize);
+  }
+
+  const primaryGroupSize = groupSizes[groupSizes.length - 1] || 3;
+  const secondaryGroupSize =
+    groupSizes[groupSizes.length - 2] || primaryGroupSize;
+  const localeGrouping = {
+    groupingSeparator,
+    primaryGroupSize,
+    secondaryGroupSize,
+    localizedDigits,
+  };
+
+  perpsLocaleGroupingCache.set(currentLocale, localeGrouping);
+
+  return localeGrouping;
+};
+
+const getPerpsLocaleSeparators = (locale?: string): PerpsLocaleSeparators => {
+  const localeGrouping = getPerpsLocaleGrouping(locale);
+  const groupingFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: true,
+    maximumFractionDigits: 0,
+  });
+  const decimalFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: false,
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  const groupedInteger = Array.from(groupingFormatter.format(1000));
+  const formattedDecimal = Array.from(decimalFormatter.format(1.1));
+  const localizedDigits = new Set(localeGrouping.localizedDigits);
+  const decimalSeparators = formattedDecimal.filter(
+    (character) => !localizedDigits.has(character),
+  );
+
+  return {
+    grouping:
+      localeGrouping.groupingSeparator ||
+      groupedInteger.slice(1, -3).join('') ||
+      ',',
+    decimal: decimalSeparators.join('') || '.',
+  };
+};
+
+const normalizePerpsLocalizedDigits = (
+  value: string,
+  localeGrouping: PerpsLocaleGrouping,
+): string => {
+  const localizedDigitEntries = localeGrouping.localizedDigits.map(
+    (localizedDigit, digitValue) => ({
+      localizedDigit,
+      digitValue: String(digitValue),
+    }),
+  );
+  let normalizedValue = '';
+
+  for (let position = 0; position < value.length; ) {
+    const localizedDigitEntry = localizedDigitEntries.find(
+      ({ localizedDigit }) => value.startsWith(localizedDigit, position),
+    );
+
+    if (localizedDigitEntry) {
+      normalizedValue += localizedDigitEntry.digitValue;
+      position += localizedDigitEntry.localizedDigit.length;
+    } else {
+      normalizedValue += value[position];
+      position += 1;
+    }
+  }
+
+  return normalizedValue;
+};
+
+/**
+ * Groups and localizes an integer string without converting its value to a
+ * JavaScript number.
+ */
+const formatIntegerWithLocaleGrouping = (
+  integerPart: string,
+  localeGrouping: PerpsLocaleGrouping,
+): string => {
+  const integerGroups: string[] = [];
+  let remainingDigits = integerPart;
+  let nextGroupSize = localeGrouping.primaryGroupSize;
+
+  while (
+    localeGrouping.groupingSeparator &&
+    remainingDigits.length > nextGroupSize
+  ) {
+    integerGroups.unshift(remainingDigits.slice(-nextGroupSize));
+    remainingDigits = remainingDigits.slice(0, -nextGroupSize);
+    nextGroupSize = localeGrouping.secondaryGroupSize;
+  }
+
+  integerGroups.unshift(remainingDigits);
+
+  return integerGroups
+    .map((integerGroup) =>
+      Array.from(integerGroup, (digit) => {
+        const digitIndex = digit.charCodeAt(0) - 48;
+        return localeGrouping.localizedDigits[digitIndex] ?? digit;
+      }).join(''),
+    )
+    .join(localeGrouping.groupingSeparator);
+};
+
+/**
+ * Localizes a canonical decimal string without converting the fractional part
+ * to a number. This preserves precision and trailing zeros in editable values.
+ */
+const formatNumericStringWithLocale = (
+  value: string,
+  locale?: string,
+): string => {
+  const match = value.match(/^([+-]?)(\d*)(?:\.(\d*))?$/);
+
+  if (!match || (match[2] === '' && match[3] === undefined)) {
+    return value;
+  }
+
+  const sign = match[1] ?? '';
+  const integerPart = match[2] || '0';
+  const decimalPart = match[3];
+  const localeGrouping = getPerpsLocaleGrouping(locale);
+  const separators = getPerpsLocaleSeparators(locale);
+  const formattedInteger = formatIntegerWithLocaleGrouping(
+    integerPart,
+    localeGrouping,
+  );
+
+  return `${sign}${formattedInteger}${
+    decimalPart === undefined ? '' : `${separators.decimal}${decimalPart}`
+  }`;
+};
+
+/**
+ * Normalizes a user-entered perps number to the canonical `.` decimal form.
+ *
+ * The active locale determines the meaning of a single separator. When both
+ * comma and period are present, the last one is treated as the decimal
+ * separator so both locale-formatted and controller-formatted values can be
+ * parsed safely.
+ * The locale-blind `normalizeToDotDecimal` utility cannot distinguish a
+ * grouping separator from a decimal separator for inputs such as `1,200`.
+ */
+export const normalizePerpsNumericInput = (
+  value: string,
+  locale?: string,
+): string => {
+  if (!value) {
+    return value;
+  }
+
+  const localeGrouping = getPerpsLocaleGrouping(locale);
+  const separators = getPerpsLocaleSeparators(locale);
+  const localizedValue = normalizePerpsLocalizedDigits(
+    value.trim().replace(/\$/g, '').replace(/\s/g, ''),
+    localeGrouping,
+  );
+  const commaIndex = localizedValue.lastIndexOf(',');
+  const periodIndex = localizedValue.lastIndexOf('.');
+  let decimalSeparator: string | undefined;
+
+  if (commaIndex >= 0 && periodIndex >= 0) {
+    decimalSeparator = commaIndex > periodIndex ? ',' : '.';
+  } else if (commaIndex >= 0 && separators.decimal === ',') {
+    decimalSeparator = ',';
+  } else if (periodIndex >= 0 && separators.decimal === '.') {
+    decimalSeparator = '.';
+  } else if (localizedValue.includes(separators.decimal)) {
+    decimalSeparator = separators.decimal;
+  }
+
+  let sanitizedValue = '';
+
+  for (const character of localizedValue) {
+    if (
+      (character === separators.grouping && character !== decimalSeparator) ||
+      ((character === ',' || character === '.') &&
+        character !== decimalSeparator)
+    ) {
+      continue;
+    }
+
+    sanitizedValue += character === decimalSeparator ? '.' : character;
+  }
+
+  if (!/^[+-]?[\d.,]*$/.test(sanitizedValue)) {
+    return value;
+  }
+
+  const sign = /^[+-]/.test(sanitizedValue) ? sanitizedValue.slice(0, 1) : '';
+  const unsignedValue = sign ? sanitizedValue.slice(1) : sanitizedValue;
+  let normalizedValue = '';
+  let hasDecimalSeparator = false;
+
+  for (const character of unsignedValue) {
+    if (character !== '.') {
+      normalizedValue += character;
+      continue;
+    }
+
+    if (!hasDecimalSeparator) {
+      normalizedValue += '.';
+      hasDecimalSeparator = true;
+    }
+  }
+
+  return `${sign}${normalizedValue}`;
+};
+
+/**
+ * Formats a canonical editable value for the current locale.
+ */
+export const formatPerpsInput = (value: string, locale?: string): string => {
+  if (!value) {
+    return value;
+  }
+
+  if (/^[+-]?\d*(?:\.\d*)?$/.test(value)) {
+    return formatNumericStringWithLocale(value, locale);
+  }
+
+  return formatNumericStringWithLocale(
+    normalizePerpsNumericInput(value, locale),
+    locale,
+  );
+};
+
+export interface PerpsInputSelection {
+  start: number;
+  end: number;
+}
+
+const clampInputCursor = (cursor: number, length: number): number =>
+  Math.min(Math.max(cursor, 0), length);
+
+const isPerpsDecimalSeparatorMatch = (
+  canonicalCharacter: string,
+  formattedCharacter: string,
+) => canonicalCharacter === '.' && /\D/u.test(formattedCharacter);
+
+const mapFormattedPerpsCursorToCanonical = ({
+  canonicalValue,
+  formattedValue,
+  formattedCursor,
+}: {
+  canonicalValue: string;
+  formattedValue: string;
+  formattedCursor: number;
+}): number => {
+  const boundedCursor = clampInputCursor(
+    formattedCursor,
+    formattedValue.length,
+  );
+  let canonicalIndex = 0;
+
+  for (
+    let formattedIndex = 0;
+    formattedIndex < boundedCursor && canonicalIndex < canonicalValue.length;
+    formattedIndex += 1
+  ) {
+    const canonicalCharacter = canonicalValue[canonicalIndex];
+    const formattedCharacter = formattedValue[formattedIndex];
+
+    if (
+      canonicalCharacter === formattedCharacter ||
+      isPerpsDecimalSeparatorMatch(canonicalCharacter, formattedCharacter)
+    ) {
+      canonicalIndex += 1;
+    }
+  }
+
+  return canonicalIndex;
+};
+
+const mapCanonicalPerpsCursorToFormatted = ({
+  canonicalValue,
+  formattedValue,
+  canonicalCursor,
+}: {
+  canonicalValue: string;
+  formattedValue: string;
+  canonicalCursor: number;
+}): number => {
+  const boundedCursor = clampInputCursor(
+    canonicalCursor,
+    canonicalValue.length,
+  );
+  let canonicalIndex = 0;
+  let formattedIndex = 0;
+
+  while (
+    formattedIndex < formattedValue.length &&
+    canonicalIndex < boundedCursor
+  ) {
+    const canonicalCharacter = canonicalValue[canonicalIndex];
+    const formattedCharacter = formattedValue[formattedIndex];
+
+    if (
+      canonicalCharacter === formattedCharacter ||
+      isPerpsDecimalSeparatorMatch(canonicalCharacter, formattedCharacter)
+    ) {
+      canonicalIndex += 1;
+    }
+
+    formattedIndex += 1;
+  }
+
+  return formattedIndex;
+};
+
+const getPerpsDisplayCursorAfterEdit = (
+  previousDisplayValue: string,
+  nextDisplayValue: string,
+  previousSelection: PerpsInputSelection,
+): number => {
+  const selectionStart = clampInputCursor(
+    previousSelection.start,
+    previousDisplayValue.length,
+  );
+  const selectionEnd = clampInputCursor(
+    Math.max(previousSelection.end, selectionStart),
+    previousDisplayValue.length,
+  );
+
+  if (selectionEnd > selectionStart) {
+    const insertedLength =
+      nextDisplayValue.length -
+      (previousDisplayValue.length - (selectionEnd - selectionStart));
+
+    return clampInputCursor(
+      selectionStart + insertedLength,
+      nextDisplayValue.length,
+    );
+  }
+
+  let sharedPrefixLength = 0;
+
+  while (
+    sharedPrefixLength < previousDisplayValue.length &&
+    sharedPrefixLength < nextDisplayValue.length &&
+    previousDisplayValue[sharedPrefixLength] ===
+      nextDisplayValue[sharedPrefixLength]
+  ) {
+    sharedPrefixLength += 1;
+  }
+
+  let sharedSuffixLength = 0;
+
+  while (
+    sharedSuffixLength < previousDisplayValue.length - sharedPrefixLength &&
+    sharedSuffixLength < nextDisplayValue.length - sharedPrefixLength &&
+    previousDisplayValue[
+      previousDisplayValue.length - sharedSuffixLength - 1
+    ] === nextDisplayValue[nextDisplayValue.length - sharedSuffixLength - 1]
+  ) {
+    sharedSuffixLength += 1;
+  }
+
+  return nextDisplayValue.length - sharedSuffixLength;
+};
+
+export const getPerpsFormattedInputSelection = ({
+  previousDisplayValue,
+  nextDisplayValue,
+  nextFormattedValue,
+  previousSelection,
+  locale,
+}: {
+  previousDisplayValue: string;
+  nextDisplayValue: string;
+  nextFormattedValue: string;
+  previousSelection?: PerpsInputSelection;
+  locale?: string;
+}): PerpsInputSelection | undefined => {
+  if (!previousSelection) {
+    return undefined;
+  }
+
+  const nextCanonicalValue = normalizePerpsNumericInput(
+    nextDisplayValue,
+    locale,
+  );
+  const nextDisplayCursor = getPerpsDisplayCursorAfterEdit(
+    previousDisplayValue,
+    nextDisplayValue,
+    previousSelection,
+  );
+  const nextCanonicalCursor = mapFormattedPerpsCursorToCanonical({
+    canonicalValue: nextCanonicalValue,
+    formattedValue: nextDisplayValue,
+    formattedCursor: nextDisplayCursor,
+  });
+  const formattedCursor = mapCanonicalPerpsCursorToFormatted({
+    canonicalValue: nextCanonicalValue,
+    formattedValue: nextFormattedValue,
+    canonicalCursor: nextCanonicalCursor,
+  });
+
+  return { start: formattedCursor, end: formattedCursor };
+};
 
 /**
  * Formats a perps market price for display using Hyperliquid price precision
