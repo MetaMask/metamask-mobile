@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "您的会员资格",
       "plan": "会员资格",
-      "earned_this_month": "本月赚取",
       "payment_details": "付款详情",
       "total": "总额",
       "paying_with": "支付方式",
@@ -12041,15 +12040,7 @@
       "manage": "管理",
       "invoices": "发票",
       "contact_support": "联系支持团队",
-      "cancel_membership": "取消会员资格",
-      "earned_info": {
-        "title": "本月赚取",
-        "description": "您作为 Pro 会员在 APY 和 mUSD 返现中获得的金额。"
-      },
-      "saved_info": {
-        "title": "本月节省",
-        "description": "您作为 Pro 会员在 MetaMask 兑换、永续合约和预测交易中节省的费用，以及 ATM 和外汇费用。"
-      }
+      "cancel_membership": "取消会员资格"
     },
     "cancel_membership": {
       "title": "您为什么要取消？",

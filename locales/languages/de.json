@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "Ihre Mitgliedschaft",
       "plan": "Mitgliedschaft",
-      "earned_this_month": "In diesem Monat verdient",
       "payment_details": "Zahlungsdetails",
       "total": "Insgesamt",
       "paying_with": "Bezahlen mit",
@@ -12041,15 +12040,7 @@
       "manage": "Verwalten",
       "invoices": "Rechnungen",
       "contact_support": "Support kontaktieren",
-      "cancel_membership": "Mitgliedschaft kündigen",
-      "earned_info": {
-        "title": "In diesem Monat verdient",
-        "description": "Der von Ihnen als Pro-Mitglied erzielte Betrag in Form von APY und mUSD."
-      },
-      "saved_info": {
-        "title": "In diesem Monat gespart",
-        "description": "Der von Ihnen als Pro-Mitglied in diesem Monat bei MetaMask-Gebühren für Swaps, Perps und Prognosen sowie bei Geldautomaten- und Devisengebühren eingesparte Betrag."
-      }
+      "cancel_membership": "Mitgliedschaft kündigen"
     },
     "cancel_membership": {
       "title": "Warum stornieren Sie?",

@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "メンバーシップ",
       "plan": "メンバーシップ",
-      "earned_this_month": "今月の収益",
       "payment_details": "支払いの詳細",
       "total": "合計",
       "paying_with": "支払方法",
@@ -12041,15 +12040,7 @@
       "manage": "管理",
       "invoices": "請求書",
       "contact_support": "サポートへのお問い合わせ",
-      "cancel_membership": "メンバーシップの解約",
-      "earned_info": {
-        "title": "今月の収益",
-        "description": "ProメンバーとしてAPYおよびmUSDの還元で得られた金額。"
-      },
-      "saved_info": {
-        "title": "今月の節約額",
-        "description": "Proメンバーとして、今月スワップ、パーペチュアル、予測のMetaMask手数料のほか、ATM手数料およびFX手数料で節約できた金額。"
-      }
+      "cancel_membership": "メンバーシップの解約"
     },
     "cancel_membership": {
       "title": "解約理由を教えていただけませんか？",

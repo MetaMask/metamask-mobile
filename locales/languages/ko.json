@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "내 멤버십",
       "plan": "멤버십",
-      "earned_this_month": "이번 달 적립액",
       "payment_details": "결제 세부 정보",
       "total": "총액",
       "paying_with": "결제 수단:",
@@ -12041,15 +12040,7 @@
       "manage": "관리",
       "invoices": "인보이스",
       "contact_support": "지원팀에 문의",
-      "cancel_membership": "멤버십 취소",
-      "earned_info": {
-        "title": "이번 달 적립액",
-        "description": "Pro 멤버로서 APY 및 mUSD 캐시백으로 적립한 금액입니다."
-      },
-      "saved_info": {
-        "title": "이번 달 절감액",
-        "description": "Pro 멤버로서 이번 달에 스왑, 무기한 선물 및 예측 관련 MetaMask 수수료와 ATM 및 FX 수수료에서 절감한 금액입니다."
-      }
+      "cancel_membership": "멤버십 취소"
     },
     "cancel_membership": {
       "title": "취소 이유는 무엇인가요?",

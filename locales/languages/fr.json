@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "Votre abonnement",
       "plan": "Abonnement",
-      "earned_this_month": "Montant gagné ce mois-ci",
       "payment_details": "Détails du paiement",
       "total": "Total",
       "paying_with": "Payer avec",
@@ -12041,15 +12040,7 @@
       "manage": "Gérer",
       "invoices": "Factures",
       "contact_support": "Contacter le service d’assistance",
-      "cancel_membership": "Résilier l'abonnement",
-      "earned_info": {
-        "title": "Montant gagné ce mois-ci",
-        "description": "Le montant que vous avez gagné en taux de rendement annuel et en mUSD en tant que membre Pro."
-      },
-      "saved_info": {
-        "title": "Économies réalisées ce mois-ci",
-        "description": "Le montant que vous avez économisé ce mois-ci en tant que membre Pro sur les frais MetaMask liés aux swaps, aux contrats à terme perpétuels et aux prédictions, ainsi que sur les frais de retrait aux distributeurs automatiques et de change."
-      }
+      "cancel_membership": "Résilier l'abonnement"
     },
     "cancel_membership": {
       "title": "Pourquoi résiliez-vous votre abonnement ?",

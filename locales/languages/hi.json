@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "आपकी मेंबरशिप",
       "plan": "मेंबरशिप",
-      "earned_this_month": "इस महीने कमाया",
       "payment_details": "पेमेंट डिटेल्स",
       "total": "कुल",
       "paying_with": "के साथ भुगतान किया जा रहा है",
@@ -12041,15 +12040,7 @@
       "manage": "मैनेज करें",
       "invoices": "इनवॉइसेज़",
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें",
-      "cancel_membership": "मेंबरशिप कैंसिल करें",
-      "earned_info": {
-        "title": "इस महीने कमाया",
-        "description": "प्रो मेंबर के तौर पर आपने APY और mUSD में जो रकम वापस कमाई।"
-      },
-      "saved_info": {
-        "title": "इस महीने बचाया",
-        "description": "इस महीने स्वैप, पर्प्स और प्रेडिक्शन में MetaMask फीस, साथ ही ATM और FX फीस पर प्रो मेंबर के तौर पर आपने जो रकम बचाई।"
-      }
+      "cancel_membership": "मेंबरशिप कैंसिल करें"
     },
     "cancel_membership": {
       "title": "आप कैंसिल क्यों कर रहे हैं?",

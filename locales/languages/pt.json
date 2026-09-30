@@ -12033,7 +12033,6 @@
     "membership": {
       "title": "Sua assinatura",
       "plan": "Assinatura",
-      "earned_this_month": "Ganhos este mês",
       "payment_details": "Detalhes do pagamento",
       "total": "Total",
       "paying_with": "Pagando com",
@@ -12041,15 +12040,7 @@
       "manage": "Gerenciar",
       "invoices": "Faturas",
       "contact_support": "Falar com o suporte",
-      "cancel_membership": "Cancelar assinatura",
-      "earned_info": {
-        "title": "Ganhos este mês",
-        "description": "O valor que você ganhou em APY e mUSD de volta como assinante Pro."
-      },
-      "saved_info": {
-        "title": "Economia neste mês",
-        "description": "O valor que você economizou como assinante Pro nas taxas da MetaMask em trocas, perps e previsões este mês, além de taxas de caixa eletrônico e de transações internacionais."
-      }
+      "cancel_membership": "Cancelar assinatura"
     },
     "cancel_membership": {
       "title": "Por que você está cancelando?",
