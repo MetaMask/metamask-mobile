@@ -761,11 +761,9 @@ abstract class StreamChannel<T> {
     this.providerErrors.set(sourceProviderId ?? 'default', error);
     this.streamError = error;
     this.endOpenFirstDataTrace();
+    // A queued delivery can contain healthy-provider data. Keep its throttle
+    // order; hooks read getError() so delivery cannot erase the provider error.
     for (const subscriber of this.subscribers.values()) {
-      if (subscriber.timer) clearTimeout(subscriber.timer);
-      subscriber.timer = undefined;
-      subscriber.pendingUpdate = undefined;
-      subscriber.hasReceivedFirstFreshUpdate = false;
       subscriber.onError?.(error);
     }
   }

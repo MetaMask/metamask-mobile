@@ -974,7 +974,7 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenLastCalledWith(null);
     });
 
-    it('discards queued order deliveries after authentication fails', () => {
+    it('delivers queued data while retaining the authentication error', () => {
       const callback = jest.fn();
       const onError = jest.fn();
       testStreamManager.orders.subscribe({
@@ -994,13 +994,46 @@ describe('PerpsStreamManager', () => {
       testStreamManager.orders.publish([], 'optimistic');
 
       expect(onError).toHaveBeenCalledWith(error);
-      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledTimes(3);
       expect(testStreamManager.orders.getError()).toBe(error);
       callback.mockClear();
 
       source.callback([]);
+      jest.advanceTimersByTime(1000);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith([]);
+    });
+
+    it('retains a throttled healthy-provider delivery when Lighter fails', () => {
+      const callback = jest.fn();
+      const failure = new Error('Lighter authentication failed');
+      testStreamManager.orders.subscribe({ callback, throttleMs: 1000 });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const healthy: Order[] = [
+        {
+          orderId: 'queued-hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          originalSize: '1',
+          size: '1',
+          remainingSize: '1',
+          filledSize: '0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp: Date.now(),
+          providerId: 'hyperliquid',
+        },
+      ];
+      source.callback([], 'hyperliquid');
+      source.callback(healthy, 'hyperliquid');
+      callback.mockClear();
+
+      source.onError(failure, 'lighter');
+      jest.advanceTimersByTime(1000);
+
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
     });
 
     it('delivers healthy Hyperliquid orders and cache while retaining a Lighter error', () => {
