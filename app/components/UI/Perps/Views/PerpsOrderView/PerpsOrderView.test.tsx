@@ -60,6 +60,7 @@ import {
   useMinimumOrderAmount,
 } from '../../hooks';
 import {
+  usePerpsLiveAccount as usePerpsLiveAccountStream,
   usePerpsLivePositions,
   usePerpsLivePrices,
   usePerpsTopOfBook,
@@ -541,10 +542,12 @@ jest.mock(
   }),
 );
 
+const mockUseMoneyAccountDepositAndOrder = jest.fn();
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder',
   () => ({
-    useMoneyAccountDepositAndOrder: jest.fn(),
+    useMoneyAccountDepositAndOrder: (...args: unknown[]) =>
+      mockUseMoneyAccountDepositAndOrder(...args),
   }),
 );
 
@@ -5681,6 +5684,59 @@ describe('PerpsOrderView', () => {
       expect(
         queryByTestId('perps-order-view-place-order-button'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Money Account selection', () => {
+    const mockEmptyPerpsBalance = (isInitialLoading: boolean) => {
+      jest.mocked(usePerpsLiveAccountStream).mockReturnValue({
+        ...defaultMockHooks.usePerpsLiveAccount,
+        account: {
+          ...defaultMockHooks.usePerpsLiveAccount.account,
+          spendableBalance: '0',
+        },
+        isInitialLoading,
+      } as unknown as ReturnType<typeof usePerpsLiveAccountStream>);
+    };
+
+    // clearAllMocks keeps return values, so the funded default the rest of the
+    // file relies on has to be put back by hand.
+    afterEach(() => {
+      jest
+        .mocked(usePerpsLiveAccountStream)
+        .mockReturnValue(
+          defaultMockHooks.usePerpsLiveAccount as unknown as ReturnType<
+            typeof usePerpsLiveAccountStream
+          >,
+        );
+    });
+
+    it('holds back money account selection while the Perps balance can fund the order', () => {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
+        disable: true,
+      });
+    });
+
+    it('holds back money account selection while the account is still loading', () => {
+      mockEmptyPerpsBalance(true);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
+        disable: true,
+      });
+    });
+
+    it('allows money account selection once the Perps balance is known to be empty', () => {
+      mockEmptyPerpsBalance(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
+        disable: false,
+      });
     });
   });
 
