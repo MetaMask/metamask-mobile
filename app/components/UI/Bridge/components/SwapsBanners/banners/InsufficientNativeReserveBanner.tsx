@@ -15,6 +15,7 @@ import { WARNING_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { useSwapsBannersContext } from '../SwapsBannersContext';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { isArcTokenUSDC } from '../../../../../../enablement/assets/arc';
 
 /**
  * Warns when the entered amount would spend the native balance that has to stay
@@ -41,7 +42,9 @@ export const InsufficientNativeReserveBanner = () => {
     activeQuote,
   });
 
-  if (!insufficientNativeReserveError || hasInsufficientBalance) {
+  const isArcUSDC = sourceToken ? isArcTokenUSDC(sourceToken) : false;
+
+  if (!insufficientNativeReserveError || hasInsufficientBalance || isArcUSDC) {
     return null;
   }
 

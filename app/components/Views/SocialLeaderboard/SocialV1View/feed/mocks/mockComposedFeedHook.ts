@@ -53,3 +53,16 @@ export const mockUseSocialV1Feed = (
     ...pagination,
   };
 };
+
+/** First-page load with no rows yet — for skeleton chrome tests. */
+export const mockUseSocialV1FeedLoading = (): UseSocialV1FeedResult => ({
+  posts: [],
+  pendingPost: null,
+  pendingStartedAtMs: null,
+  isLoading: true,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  loadMore: () => undefined,
+  error: null,
+  refresh: () => Promise.resolve(),
+});

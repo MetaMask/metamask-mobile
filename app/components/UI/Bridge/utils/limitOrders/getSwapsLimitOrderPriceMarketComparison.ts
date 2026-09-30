@@ -1,28 +1,20 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
 
 interface Params {
   limitFiat: string | undefined;
   marketFiat: number | undefined;
-  executionType: LimitOrderExecutionType;
-  threshold: number;
 }
 
 /**
- * Returns the market-comparison label for a quoted-token unit limit price.
+ * Returns the signed market-comparison label for a quoted-token unit limit
+ * price, whether the limit is above or below market.
  *
- * Hidden when the displayed percent rounds to 0.00. Buy: shown only when the
- * limit is at least X% below the quoted token's market fiat. Sell: shown only
- * when the limit is more than X% above market.
- *
- * X = threshold
+ * Hidden when the displayed percent rounds to 0.00.
  */
 export const getSwapsLimitOrderPriceMarketComparison = ({
   limitFiat,
   marketFiat,
-  executionType,
-  threshold,
 }: Params): { label: string; isNegative: boolean } | undefined => {
   if (!limitFiat || !marketFiat) {
     return undefined;
@@ -45,27 +37,15 @@ export const getSwapsLimitOrderPriceMarketComparison = ({
     return undefined;
   }
 
-  if (executionType === LimitOrderExecutionType.SELL) {
-    if (percent.lte(threshold)) {
-      return undefined;
-    }
-
-    return {
-      label: strings('bridge.limit.from_market_above', {
-        percent: displayPercent,
-      }),
-      isNegative: false,
-    };
-  }
-
-  if (percent.gt(-threshold)) {
-    return undefined;
-  }
+  const isNegative = percent.isNegative();
 
   return {
-    label: strings('bridge.limit.from_market', {
-      percent: displayPercent,
-    }),
-    isNegative: true,
+    label: strings(
+      isNegative
+        ? 'bridge.limit.from_market'
+        : 'bridge.limit.from_market_above',
+      { percent: displayPercent },
+    ),
+    isNegative,
   };
 };

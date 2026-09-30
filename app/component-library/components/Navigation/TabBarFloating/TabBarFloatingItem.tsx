@@ -5,7 +5,6 @@ import {
   Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -13,6 +12,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import {
+  TAB_BAR_FLOATING_ICON_SIZE,
   TAB_BAR_FLOATING_LABEL_FONT_SIZE,
   TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
 } from './TabBarFloating.constants';
@@ -49,7 +49,7 @@ const TabBarFloatingItem = ({
     >
       <Icon
         name={iconName}
-        size={IconSize.Md}
+        size={TAB_BAR_FLOATING_ICON_SIZE}
         color={isActive ? IconColor.IconDefault : IconColor.IconAlternative}
       />
       <Text

@@ -289,18 +289,20 @@ describe('useMoneyCtaVisibility', () => {
       expect(mockUseMoneyDepositTokens).not.toHaveBeenCalled();
     });
 
-    it('marks footer CTA eligible for an allowlisted token that is not held', () => {
+    it('hides both CTAs for an allowlisted token with balance below the deposit minimum', () => {
       const { result } = renderHook(() =>
         useMoneyAssetOverviewCtaVisibility(ctaToken, false, undefined),
       );
 
-      expect(result.current.isFooterCtaEligible).toBe(true);
+      expect(result.current.isFooterCtaEligible).toBe(false);
       expect(result.current.isBalanceCtaEligible).toBe(false);
     });
 
-    it('marks balance CTA eligible only when the allowlisted token has a balance above the deposit minimum', () => {
+    it('marks both CTAs eligible when the balance meets the deposit minimum', () => {
+      setupSelectors({ minDepositBalanceUsd: 5 });
+
       const { result } = renderHook(() =>
-        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 100),
+        useMoneyAssetOverviewCtaVisibility(ctaToken, true, 5),
       );
 
       expect(result.current.isBalanceCtaEligible).toBe(true);
@@ -315,8 +317,7 @@ describe('useMoneyCtaVisibility', () => {
       );
 
       expect(result.current.isBalanceCtaEligible).toBe(false);
-      // Footer CTA does not depend on the deposit minimum.
-      expect(result.current.isFooterCtaEligible).toBe(true);
+      expect(result.current.isFooterCtaEligible).toBe(false);
     });
 
     it('hides balance CTA when the token is blocked for money account deposits', () => {

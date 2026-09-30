@@ -10,6 +10,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -80,10 +81,7 @@ import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
-import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
-import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
-import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
-
+import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -91,9 +89,12 @@ import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDe
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabBarFloating, {
   FloatingTabBarInsetContext,
 } from '../../../component-library/components/Navigation/TabBarFloating';
+import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import {
   HEADER_NAV_BAR_AB_KEY,
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
@@ -105,7 +106,13 @@ import {
 } from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
-import { toJsTabOptions } from './HomeTabs/homeTabs.mappers';
+import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
+import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
+import {
+  TAB_BAR_VISIBLE_STYLE,
+  toJsTabOptions,
+  toNativeTabOptions,
+} from './HomeTabs/homeTabs.mappers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -178,6 +185,7 @@ import {
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
+  SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -218,6 +226,7 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
+const NativeTab = createNativeBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
@@ -582,10 +591,10 @@ const HOME_TAB_COMPONENTS = {
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   rewards: RewardsHomeUnmountOnTabBlur,
-  social: SocialV0View,
 };
 
 const HomeTabs = () => {
+  const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
@@ -596,11 +605,27 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_VARIANTS,
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_ASSIGNMENT_OPTIONS,
+  );
   const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const isNativeTabBar = useIsNativeTabBar();
+  const safeAreaInsets = useSafeAreaInsets();
+  const nativeTabBarInset =
+    getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
+    TAB_BAR_FLOATING_HEIGHT;
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
+  // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
+  // treatment, legacy V0 for control. Exposure is recorded when the surface
+  // itself mounts, not when the tab slot is registered.
+  const socialTabComponent = socialV1Variant.useSocialV1
+    ? SocialV1View
+    : SocialV0View;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -611,11 +636,15 @@ const HomeTabs = () => {
     trackMoneyTabPressRef.current?.();
   }, []);
 
-  const { tabs, trackBottomNavPress } = useHomeTabDefinitions({
-    isMoneyAccountVisible,
-    showSocialTab,
-    trackMoneyTabPress,
-  });
+  const { tabs, trackBottomNavPress, getNativeTabListeners } =
+    useHomeTabDefinitions({
+      isMoneyAccountVisible,
+      showSocialTab,
+      trackMoneyTabPress,
+    });
+  const systemSlotTab = useNativeSystemSlotTab(
+    headerNavBarVariant.trailingNavBarAction,
+  );
 
   // Control only: a modal trigger the bar handles itself.
   const tradeOptions = {
@@ -679,6 +708,9 @@ const HomeTabs = () => {
     return null;
   };
 
+  const tabComponentFor = (tab) =>
+    tab.key === 'social' ? socialTabComponent : HOME_TAB_COMPONENTS[tab.key];
+
   const renderJsTabScreen = (tab) => (
     <JsTab.Screen
       key={tab.name}
@@ -688,7 +720,21 @@ const HomeTabs = () => {
         // `TabBar` fires the Navigation Drawer event itself.
         isFloatingTabBar ? { trackBottomNavPress } : undefined,
       )}
-      component={HOME_TAB_COMPONENTS[tab.key]}
+      component={tabComponentFor(tab)}
+    />
+  );
+
+  const renderNativeTabScreen = (tab) => (
+    <NativeTab.Screen
+      key={tab.name}
+      name={tab.name}
+      options={
+        tab.hidesTabBarFor
+          ? ({ route }) => toNativeTabOptions(tab, route)
+          : toNativeTabOptions(tab)
+      }
+      listeners={getNativeTabListeners(tab)}
+      component={tabComponentFor(tab)}
     />
   );
 
@@ -705,6 +751,42 @@ const HomeTabs = () => {
    * the innermost (most recently mounted) provider active for state-based
    * Retry toasts so we don't double-fire when both are mounted.
    */
+  if (isNativeTabBar) {
+    return (
+      <PredictPreviewSheetProvider>
+        <TrendingQuickBuySheetProvider>
+          {isMoneyAccountEnabled ? (
+            <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+          ) : null}
+          <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                tabBarMinimizeBehavior: 'onScrollDown',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
+              }}
+            >
+              {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+          </FloatingTabBarInsetContext.Provider>
+        </TrendingQuickBuySheetProvider>
+      </PredictPreviewSheetProvider>
+    );
+  }
+
   return (
     <PredictPreviewSheetProvider>
       <TrendingQuickBuySheetProvider>
@@ -715,7 +797,13 @@ const HomeTabs = () => {
           <JsTab.Navigator
             initialRouteName={Routes.WALLET.HOME}
             tabBar={renderTabBar}
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+              headerShown: false,
+              // Never suspend blurred tabs: react-native-screens' delayed freeze
+              // can drop the activityState commit when a tab is left mid-mount,
+              // leaving the old screen (usually Money) stuck on top.
+              freezeOnBlur: false,
+            }}
           >
             {tabs.slice(0, 3).map(renderJsTabScreen)}
 
@@ -1028,21 +1116,11 @@ const MainNavigator = () => {
       <NativeStack.Screen name={Routes.RAMP.SELL}>
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      {/* Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak. */}
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_KYC_EMAIL}
-          component={KycEmail}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.GET_PIX_KEY}
-          component={GetPixKey}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_VERIFY_IDENTITY}
-          component={VbaVerifyIdentity}
-        />
-      </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_ONBOARDING}
+        component={VbaOnboardingNavigator}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
@@ -1160,6 +1238,14 @@ const MainNavigator = () => {
             name={Routes.PERPS.FUNDING_TRANSACTION}
             component={PerpsFundingTransactionView}
           />
+          <NativeStack.Screen
+            name={Routes.PERPS.PRICE_ALERTS}
+            component={ManagePriceAlertsView}
+          />
+          <NativeStack.Screen
+            name={Routes.PERPS.CREATE_PRICE_ALERT}
+            component={CreatePriceAlertView}
+          />
         </>
       )}
       {isPredictEnabled && (
@@ -1205,6 +1291,10 @@ const MainNavigator = () => {
             component={MyProfileView}
           />
           <NativeStack.Screen
+            name={Routes.SOCIAL.V1_PROFILE}
+            component={MyProfileView}
+          />
+          <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
           />
@@ -1228,6 +1318,10 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
             component={ManageProfileLinkedAccountView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.PROFILE_ONBOARDING}
+            component={SocialProfileOnboardingView}
           />
         </NativeStack.Group>
       )}
@@ -1263,6 +1357,12 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
+          options={({ route }) => ({
+            headerShown: false,
+            ...(route.params?.entryPoint === 'home'
+              ? { animation: 'none' }
+              : slideFromRightNativeOptions),
+          })}
         />
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}

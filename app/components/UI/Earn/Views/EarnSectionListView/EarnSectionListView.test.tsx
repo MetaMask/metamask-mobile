@@ -37,6 +37,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import {
+  COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+} from '../../../Money/constants/moneyEvents';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
 
@@ -491,18 +496,41 @@ describe('EarnSectionListView', () => {
     render(<EarnSectionListView />);
 
     fireEvent.press(
-      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED),
+      screen.getByTestId(
+        EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED_BUTTON,
+      ),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
-    expect(mockTrackMoneyTooltipClicked).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tooltip_name: 'earn_on_your_crypto',
-        component_name: 'money_balance_projection',
-      }),
+  });
+
+  it('tracks the Earn crypto info tooltip when the projection is pressed', () => {
+    const moneyAsset = createTrackedAsset('USDC', 1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ assets: [moneyAsset] }),
     );
+    mockUseProjectedEarnings.mockReturnValue(
+      createProjectionResult({ totalAssetsFiat: 100, projectedAmount: 4.2 }),
+    );
+
+    render(<EarnSectionListView />);
+
+    fireEvent.press(
+      screen.getByTestId(
+        EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED_BUTTON,
+      ),
+    );
+
+    expect(mockTrackMoneyTooltipClicked).toHaveBeenCalledWith({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name:
+        MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT,
+    });
   });
 
   it('renders all Money rows and projects all derived Money assets in ranked order', () => {

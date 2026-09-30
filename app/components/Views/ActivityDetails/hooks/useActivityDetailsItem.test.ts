@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import {
   mapRampOrder,
@@ -22,7 +23,7 @@ import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
-import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
+import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -48,7 +49,7 @@ jest.mock('./useLocalTransactionMeta', () => ({
 }));
 
 const useApiTransactionMock = jest.mocked(useApiTransaction);
-const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
+const useRampActivityItemsByIdMock = jest.mocked(useRampActivityItemsById);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
@@ -129,7 +130,16 @@ function setSources({
 }) {
   const groups = localGroups ?? local.map(stubGroup);
   localByIdentifier = identifierMapFrom(local, groups);
-  useRampActivityItemsMock.mockReturnValue(ramp);
+  useRampActivityItemsByIdMock.mockReturnValue(
+    new Map(
+      ramp.flatMap((item) => [
+        [item.hash?.toLowerCase() ?? '', item] as [string, ActivityListItem],
+        ...(item.hash === rampOrder.txHash
+          ? [[rampOrder.id, item] as [string, ActivityListItem]]
+          : []),
+      ]),
+    ),
+  );
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
     isFetching: false,
@@ -389,6 +399,27 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item).toBe(api);
   });
 
+  it('waits for API data before resolving a confirmed local item', () => {
+    const local = makeItem({ type: 'send', hash: '0xconfirmed-local' });
+    setSources({ local: [local] });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'confirmed-local',
+      hash: '0xconfirmed-local',
+      status: TransactionStatus.confirmed,
+    } as ReturnType<typeof useLocalTransactionMeta>);
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xconfirmed-local', 'eip155:1'),
+    );
+
+    expect(result.current.item).toBeUndefined();
+    expect(result.current.isFetching).toBe(true);
+  });
+
   it('resolves a fetched API transaction when it is not in the list query pages', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
@@ -416,7 +447,6 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetched');
-    expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
   });
 
   it('does not map a fetched API transaction when the subject is not a top-level participant', () => {

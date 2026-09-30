@@ -15,5 +15,6 @@ export { default as FeedView } from './FeedView';
 export { default as TraderProfileView } from './TraderProfileView';
 export { default as TraderPositionView } from './TraderPositionView';
 export { default as SocialLeaderboardOnboarding } from './Onboarding';
+export { default as SocialProfileOnboardingView } from './ProfileOnboarding';
 
 export { default as TradingSignalsSetupBottomSheet } from './components/TradingSignalsSetupBottomSheet';

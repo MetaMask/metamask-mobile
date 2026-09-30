@@ -1,6 +1,10 @@
 import { RootState } from '../reducers';
 
-import { selectPrimaryCurrency, selectShowFiatInTestnets } from './settings';
+import {
+  selectHasLinkedSocialLoginProfile,
+  selectPrimaryCurrency,
+  selectShowFiatInTestnets,
+} from './settings';
 
 describe('selectShowFiatInTestnets', () => {
   it('returns showFiatOnTestnets from state', () => {
@@ -23,5 +27,19 @@ describe('selectPrimaryCurrency', () => {
     };
 
     expect(selectPrimaryCurrency(mockState as RootState)).toBe('USD');
+  });
+});
+
+describe('selectHasLinkedSocialLoginProfile', () => {
+  it('returns the linked social profile marker from state', () => {
+    const mockState = {
+      settings: {
+        hasLinkedSocialLoginProfile: true,
+      },
+    };
+
+    expect(selectHasLinkedSocialLoginProfile(mockState as RootState)).toBe(
+      true,
+    );
   });
 });

@@ -17,8 +17,12 @@ import RecurringOrderDetailsView from '../../../app/components/UI/Bridge/Views/R
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import type { RecurringOrderDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import RecurringSwapDetailsView from '../../../app/components/UI/Bridge/Views/RecurringSwapDetailsView';
+import SwapsLimitOrderActivityPage from '../../../app/components/UI/Bridge/Views/SwapsLimitOrderActivityPage';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import BlockExplorersModal from '../../../app/components/UI/Bridge/components/TransactionDetails/BlockExplorersModal';
+import { OpenLimitOrderDetailsModalScreen } from '../../../app/components/UI/Bridge/components/OpenLimitOrderDetailsModal/OpenLimitOrderDetailsModalScreen';
+import { LimitOrderTabRow } from '../../../app/components/UI/Bridge/components/LimitOrderTabRow';
+import type { LimitOrder } from '../../../app/components/UI/Bridge/api/limitOrders/getLimitOrders/types';
 import { initialStateBridge } from '../presets/bridge';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
@@ -30,6 +34,12 @@ const BridgeSessionTree = ({ children }: { children: React.ReactNode }) => (
   <BridgeSessionProvider>
     <BridgeQuoteDataProvider>{children}</BridgeQuoteDataProvider>
   </BridgeSessionProvider>
+);
+
+const RecurringOrderDetailsWithSession = () => (
+  <BridgeSessionTree>
+    <RecurringOrderDetailsView />
+  </BridgeSessionTree>
 );
 
 export const withBridgeSession = (Component: React.ComponentType) =>
@@ -222,8 +232,7 @@ export function renderRecurringOrderDetailsView({
     [
       {
         name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
-        Component:
-          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+        Component: RecurringOrderDetailsWithSession,
       },
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
@@ -234,6 +243,77 @@ export function renderRecurringOrderDetailsView({
         name: Routes.BRIDGE.ROOT,
         Component:
           BridgeNavigatorProbe as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.WEBVIEW.MAIN,
+        Component: createRouteParamsProbe(
+          Routes.WEBVIEW.MAIN,
+        ) as React.ComponentType<object>,
+      },
+    ],
+    { state },
+  );
+}
+
+interface RenderOpenLimitOrderDetailsModalOptions
+  extends RenderBridgeViewOptions {
+  order: LimitOrder;
+}
+
+export function renderOpenLimitOrderDetailsModal({
+  order,
+  overrides,
+  deterministicFiat,
+}: RenderOpenLimitOrderDetailsModalOptions): ReturnType<
+  typeof renderScreenWithRoutes
+> {
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    OpenLimitOrderDetailsModalScreen,
+    { name: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL },
+    [
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+      },
+    ],
+    { state },
+    { order },
+  );
+}
+
+interface RenderLimitOrderTabRowOptions extends RenderBridgeViewOptions {
+  order: LimitOrder;
+}
+
+export function renderLimitOrderTabRow({
+  order,
+  overrides,
+  deterministicFiat,
+}: RenderLimitOrderTabRowOptions): ReturnType<typeof renderScreenWithRoutes> {
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    () => React.createElement(LimitOrderTabRow, { order }),
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    [
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        Component:
+          SwapsLimitOrderActivityPage as unknown as React.ComponentType<object>,
       },
       {
         name: Routes.WEBVIEW.MAIN,

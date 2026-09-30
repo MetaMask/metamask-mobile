@@ -45,6 +45,27 @@ describe('PerpsMarketIdentity', () => {
     expect(getByTestId('identity-name')).toHaveTextContent('ETH');
   });
 
+  it('strips the dex prefix from a HIP-3 name that fell back to the raw symbol', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsMarketIdentity
+        symbol="xyz:XYZ100"
+        name="xyz:XYZ100"
+        maxLeverage="30x"
+        testIDs={{
+          assetName: 'identity-name',
+          subtitle: 'identity-subtitle',
+        }}
+      />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('identity-name')).toHaveTextContent('XYZ100');
+    expect(getByTestId('identity-name')).not.toHaveTextContent('xyz:');
+    expect(getByTestId('identity-subtitle')).toHaveTextContent(
+      'XYZ100-USD perp',
+    );
+  });
+
   it('fires onPress from the market-list pressable', () => {
     const onPress = jest.fn();
     const { getByTestId } = renderWithProvider(
