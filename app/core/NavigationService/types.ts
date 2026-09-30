@@ -899,6 +899,7 @@ export type RootStackParamList = {
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
   RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
+  SwapsLimitOrderActivity: BridgeScreensStackParamList['SwapsLimitOrderActivity'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
