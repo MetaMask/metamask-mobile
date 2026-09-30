@@ -74,7 +74,7 @@ export const PERFORMANCE_TAB_TEST_IDS = {
 // ---------------------------------------------------------------------------
 
 interface FunnelSectionState {
-  data: ReferralFunnelDto | undefined;
+  data: ReferralFunnelDto | null | undefined;
   loading: boolean;
   refreshing: boolean;
   error: boolean;
