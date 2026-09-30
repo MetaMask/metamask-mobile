@@ -2,11 +2,10 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   HeaderStandardAnimated,
+  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -73,6 +72,7 @@ import {
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
 import { SocialEntryOptionsProvider } from '../components/SocialEntryOptionsBottomSheet';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
@@ -355,6 +355,10 @@ const SocialV1View: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
 
+  const handleOpenRewards = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_VIEW);
+  }, [navigation]);
+
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
   // appears on that hand-off, never on normal tab visits.
@@ -492,26 +496,35 @@ const SocialV1View: React.FC = () => {
                 'social_leaderboard.my_profile.open_profile',
               )}
             >
-              <ProfileAvatar
-                imageUrl={myProfile?.imageUrl}
-                avatarPresetId={myProfile?.avatarPresetId}
-                size="sm"
-              />
+              <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+                <ProfileAvatar
+                  imageUrl={myProfile?.imageUrl}
+                  avatarPresetId={myProfile?.avatarPresetId}
+                  size="sm"
+                />
+              </SocialHeaderGlassSurface>
             </Pressable>
           }
           endAccessory={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
+            <SocialHeaderGlassSurface twClassName="gap-1 px-1">
               <ButtonIcon
-                iconName={IconName.Add}
+                iconName={IconName.Gift}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleOpenRewards}
+                accessibilityLabel={strings(
+                  'wallet.rewards_accessibility_label',
+                )}
+                testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+              />
+              <ButtonIcon
+                iconName={IconName.Edit}
+                iconProps={{ color: IconColor.IconDefault }}
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
               />
-            </Box>
+            </SocialHeaderGlassSurface>
           }
           testID={SocialV1ViewSelectorsIDs.HEADER}
         />
