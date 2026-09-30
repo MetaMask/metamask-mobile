@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { StyleSheet, Text } from 'react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import QuickBuyAmountSection, {
   formatAmountDigitsForDisplay,
 } from './QuickBuyAmountSection';
@@ -19,6 +21,34 @@ jest.mock('../../Bridge/utils/currencyUtils', () => ({
     return '$';
   }),
 }));
+
+const getElementChildren = (node: ReactTestInstance) =>
+  node.children.filter(
+    (child): child is ReactTestInstance => typeof child !== 'string',
+  );
+
+const getNumericContainer = (amountRow: ReactTestInstance) => {
+  const numericContainer = getElementChildren(amountRow).find(
+    (child) => child.props.accessible === false,
+  );
+
+  expect(numericContainer).toBeDefined();
+  return numericContainer as ReactTestInstance;
+};
+
+const expectPrimaryAmountTypography = (amountRow: ReactTestInstance) => {
+  const glyphs = getNumericContainer(amountRow).findAllByType(Text);
+
+  expect(glyphs).not.toHaveLength(0);
+  glyphs.forEach((glyph) => {
+    expect(StyleSheet.flatten(glyph.props.style)).toEqual(
+      expect.objectContaining({
+        fontSize: 54,
+        lineHeight: 70,
+      }),
+    );
+  });
+};
 
 describe('formatAmountDigitsForDisplay', () => {
   it('keeps dot decimals when the currency uses a dot separator', () => {
@@ -43,22 +73,21 @@ describe('QuickBuyAmountSection', () => {
     isQuoteLoading: false,
   };
 
-  it('renders the primary amount with DisplayLg', () => {
-    const { UNSAFE_getAllByType } = render(
-      <QuickBuyAmountSection {...baseProps} />,
-    );
+  it('renders the primary amount with 54px typography', () => {
+    render(<QuickBuyAmountSection {...baseProps} />);
 
-    const primaryAmount = UNSAFE_getAllByType(Text).find(
-      (el) => el.props.children === '$2.55',
-    );
-
-    expect(primaryAmount?.props.variant).toBe(TextVariant.DisplayLg);
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_AREA),
+    ).toHaveTextContent(/\$2\.55/);
+    expectPrimaryAmountTypography(screen.getByRole('text', { name: '$2.55' }));
   });
 
   it('renders the secondary amount label when not loading', () => {
     render(<QuickBuyAmountSection {...baseProps} />);
 
-    expect(screen.getByText('$2.55')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_AREA),
+    ).toHaveTextContent(/\$2\.55/);
     expect(screen.getByText('≈ 56.52037 GIGA')).toBeOnTheScreen();
     expect(
       screen.queryByTestId('quick-buy-amount-loading'),
@@ -68,7 +97,9 @@ describe('QuickBuyAmountSection', () => {
   it('shows skeleton and token symbol while quote is loading', () => {
     render(<QuickBuyAmountSection {...baseProps} isQuoteLoading />);
 
-    expect(screen.getByText('$2.55')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_AREA),
+    ).toHaveTextContent(/\$2\.55/);
     expect(screen.getByTestId('quick-buy-amount-loading')).toBeOnTheScreen();
     expect(
       screen.getByTestId('quick-buy-amount-loading-skeleton'),
@@ -114,9 +145,16 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
 
-    expect(screen.getByText('$')).toBeOnTheScreen();
-    expect(screen.getByText('12.5')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+    const amountRow = screen.getByRole('text', { name: '$12.5' });
+    const [prefix, numericAmount, cursor] = getElementChildren(amountRow);
+
+    expect(prefix.props.children).toBe('$');
+    expect(numericAmount.props.value).toBe('12.5');
+    expect(cursor.props.testID).toBe('quick-buy-amount-cursor');
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toHaveStyle({
+      height: 48,
+    });
+    expectPrimaryAmountTypography(amountRow);
   });
 
   it('places the caret before a suffix currency and uses its decimal separator', () => {
@@ -130,9 +168,16 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
 
-    expect(screen.getByText('12,5')).toBeOnTheScreen();
-    expect(screen.getByText(' €')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+    const amountRow = screen.getByRole('text', { name: '12,5 €' });
+    const [numericAmount, cursor, suffix] = getElementChildren(amountRow);
+
+    expect(numericAmount.props.value).toBe('12,5');
+    expect(cursor.props.testID).toBe('quick-buy-amount-cursor');
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toHaveStyle({
+      height: 48,
+    });
+    expect(suffix.props.children).toBe(' €');
+    expectPrimaryAmountTypography(amountRow);
   });
 
   it('places the caret before the token symbol for unpriced sources', () => {
@@ -146,9 +191,16 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
 
-    expect(screen.getByText('1.25')).toBeOnTheScreen();
-    expect(screen.getByText(' CAKE')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+    const amountRow = screen.getByRole('text', { name: '1.25 CAKE' });
+    const [numericAmount, cursor, suffix] = getElementChildren(amountRow);
+
+    expect(numericAmount.props.value).toBe('1.25');
+    expect(cursor.props.testID).toBe('quick-buy-amount-cursor');
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toHaveStyle({
+      height: 48,
+    });
+    expect(suffix.props.children).toBe(' CAKE');
+    expectPrimaryAmountTypography(amountRow);
   });
 
   it('hides the cursor when showCursor is false', () => {
