@@ -28,6 +28,8 @@ Work lands in the PR stages below. Tick items off as they merge.
 | Posts from the composer                                     | Only prepended to Trending. Filtered feeds show server data only.                                                                                                                |
 | Analytics                                                   | `<SocialFeed>` takes a `location` prop that is attached to every feed event.                                                                                                     |
 | Host page layout                                            | Preview (a few posts plus "See all"). Host pages already own a scroll container; the full infinite list lives on a dedicated screen.                                             |
+| Native assets (ETH, SOL) on Token details                   | The global feed filtered to the asset's chain (`/feed?scope=leaderboard&chains=<CAIP-2>`), read from the CAIP-19 asset id.                                                       |
+| Perp sources built from feed rows                           | Keyed on `tokenSymbol` (the raw market id), because global-feed perp rows can have an empty `tokenAddress`.                                                                      |
 
 ## API facts the design relies on
 
@@ -62,7 +64,7 @@ export type SocialFeedSource =
   | { kind: 'trader'; addressOrId: string; commentedOnly?: boolean };
 ```
 
-- `token` takes a CAIP-19 asset id because Token details already has one, and it carries chain, address and the Solana form in one value. Native assets (`slip44`) and unsupported chains have no feed.
+- `token` takes a CAIP-19 asset id because Token details already has one, and it carries chain, address and the Solana form in one value. A native asset (`slip44`) resolves to the global feed filtered to its chain; unsupported chains have no feed.
 - `perp` is separate from `token` for caller ergonomics (the Perps page has a symbol, not a chain); internally it becomes a token-route request on `hyperliquid`.
 - The union is plain JSON, so it doubles as a navigation param for the "See all" screen.
 
@@ -80,10 +82,10 @@ Layers, top to bottom:
 
 No UI change. Lands in `app/components/Views/SocialLeaderboard/SocialFeed/`; PR 2 moves the folder to `app/components/UI/SocialFeed/` together with the mappers it depends on.
 
-- [x] `SocialFeedSource` type and `toSocialFeedRequest(source)` with the identifier rules above (CAIP-19 parsing, EVM lowercase, Solana/perp exact, unsupported chain or native asset → `null`).
+- [x] `SocialFeedSource` type and `toSocialFeedRequest(source)` with the identifier rules above (CAIP-19 parsing, EVM lowercase, Solana/perp exact, native asset → chain-filtered global feed, unsupported chain → `null`).
 - [x] `socialFeedQueries`: one query-key rule (`[messengerAction, { ...requestOptions, limit }]`) and one typed fetcher per messenger action.
 - [x] `useSocialFeed(source | null, { enabled, pageSize })` returning `{ posts, rows, isLoading, isFetchingNextPage, hasNextPage, loadMore, error, refresh, dataUpdatedAt }`, with the unlock gate, no focus/reconnect refetch, refresh-to-first-page and Sentry telemetry in one place.
-- [x] `socialFeedSourceFromAsset(chain, tokenAddress)` so any feed row or hot-token chip can build its own source.
+- [x] `socialFeedSourceFromAsset({ chain, tokenAddress, tokenSymbol })` so any feed row or hot-token chip can build its own source (perps key on `tokenSymbol`).
 - [x] Rebuild `useSocialV1TokenFeed` and `useMyProfilePosts` on `useSocialFeed` (public signatures unchanged); remove the per-surface query helpers they replaced.
 - [x] `patchFeedCommentEngagementInCache` patches every feed cache (global, token, trader). It used to skip token-feed caches, so a reaction made in a token-filtered view went stale.
 - [x] Global feed key includes the page size so it stays shared between V0, V1 and `useSocialFeed`.
@@ -111,7 +113,7 @@ Mostly file moves; no behaviour change.
 - [ ] `<SocialFeed source location maxItems title />` (preview; requests `pageSize = maxItems`).
 - [ ] `SocialFeedScreen` route with `{ source, location }` params; FlashList + `onEndReached` + pull-to-refresh.
 - [ ] Rewrite `EmptyShellTabPage` as a composition on `useSocialFeed`: the selected hot-token chip becomes a `source`, and `HotTokensCarousel` becomes selection-only (drops `onTokenFeedChange` and the page's manual state syncing).
-- [ ] Perp chips use the server feed through the `perp` source, instead of filtering loaded posts on the client (confirm first that `/feed` perp rows carry the symbol in `tokenAddress`).
+- [ ] Perp chips use the server feed through the `perp` source, instead of filtering loaded posts on the client. Chips need the row's `tokenSymbol` passed through to `socialFeedSourceFromAsset`.
 - [ ] Move `useSocialV1Feed` onto `useSocialFeed({ kind: 'all' })`; composed posts stay a Trending-only layer.
 
 ### PR 5 — Related perp markets
@@ -128,11 +130,10 @@ Mostly file moves; no behaviour change.
 ### PR 6 — Host integrations
 
 - [ ] Perps market details: `<SocialFeed source={{ kind: 'perp', symbol }} location="perps_market_details" />`, behind the social and perps feature flags.
-- [ ] Token details: `<SocialFeed source={{ kind: 'token', assetId }} location="token_details" />`, behind the social feature flag. Renders nothing for unsupported chains and native assets.
+- [ ] Token details: `<SocialFeed source={{ kind: 'token', assetId }} location="token_details" />`, behind the social feature flag. Native assets show their chain's feed; unsupported chains show nothing. The section title for a native asset should read as the chain's activity, since posts are not specific to ETH or SOL.
 - [ ] Trader profile: `<SocialFeed source={{ kind: 'trader', addressOrId }} location="trader_profile" />`.
 - [ ] Component view tests on each host covering loading, empty, error and populated states.
 
 ## Open questions
 
-- Native assets on Token details (ETH, SOL): no feed, or the wrapped token's feed?
-- Do `/feed` perp rows always carry the market symbol in `tokenAddress`? (The token and trader routes do.) Needed before PR 4 moves perp chips to the server feed.
+- Related perp markets: where the HIP-3 DEX list comes from (see PR 5).
