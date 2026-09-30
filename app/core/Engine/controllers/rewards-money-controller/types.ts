@@ -109,6 +109,12 @@ export type ReferralLocalizedTextKey =
   | 'claim'
   | 'claimed'
   | 'claimSuccessToast'
+  | 'claimFailureToast'
+  | 'claimFailureRetryToast'
+  | 'claimFailureWaitToast'
+  | 'claimFailureMinimumToast'
+  | 'claimFailureAddressBlockedToast'
+  | 'historyClaimPending'
   | 'last7Days'
   | 'recordedEarningsLabel'
   | 'breakdown'
@@ -404,6 +410,62 @@ export type ClaimHistoryPageDto = {
   has_more: boolean;
   cursor: string | null;
 };
+
+/** Last path segment of `POST /wr/earnings/claim/<slug>`. */
+export type ClaimRouteSlug =
+  | 'referral-trade-fee-cashback'
+  | 'referral-rev-share';
+
+export interface ClaimVoucherDto {
+  claim_id: string;
+  from: string;
+  to: string;
+  value: string;
+  valid_after: number;
+  valid_before: number;
+  nonce: string;
+  signature: string;
+}
+
+export interface ClaimExcludedDto {
+  type: string;
+  reason: string;
+}
+
+export interface ClaimInitiateDto {
+  claim: ClaimDto;
+  voucher: ClaimVoucherDto | null;
+  excluded: ClaimExcludedDto[];
+  status: 'LIVE_VOUCHER' | 'AWAITING_RELEASE' | 'OPENED';
+}
+
+export interface ClaimProofChallengeDto {
+  earning_address: string;
+  amount_musd_base_units: string;
+  message: string;
+}
+
+export interface ClaimProofRequiredDto {
+  reason: 'PROOF_REQUIRED';
+  claim_intent_id: string;
+  expires_at: string;
+  challenges: ClaimProofChallengeDto[];
+}
+
+export interface ClaimProofSubmissionDto {
+  earning_address: string;
+  signature: string;
+}
+
+export interface InitiateClaimBody {
+  money_account_address: string;
+  claim_intent_id?: string;
+  proofs?: ClaimProofSubmissionDto[];
+}
+
+export type InitiateClaimResult =
+  | { kind: 'authorized'; body: ClaimInitiateDto }
+  | { kind: 'proof_required'; body: ClaimProofRequiredDto };
 
 /**
  * The mechanisms `GET /referral/me/commissions` serves.

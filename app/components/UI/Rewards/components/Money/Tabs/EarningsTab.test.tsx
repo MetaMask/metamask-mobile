@@ -38,6 +38,12 @@ jest.mock('../../../utils', () => ({
 jest.mock('../../../hooks/useEarningsSummary');
 jest.mock('../../../hooks/useLast7DaysEarnings');
 jest.mock('../../../hooks/useEarningsHistory');
+jest.mock('../../../hooks/useClaimEarnings', () => ({
+  useClaimEarnings: () => ({ claim: jest.fn(), isClaiming: false }),
+}));
+jest.mock('../../../hooks/useInFlightClaims', () => ({
+  useInFlightClaims: () => ({ claims: [], refresh: jest.fn() }),
+}));
 
 const PROFILE_ID = 'profile-a';
 
@@ -250,9 +256,23 @@ describe('EarningsTab', () => {
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeOnTheScreen();
   });
 
-  it('renders Claim when claimable is positive', () => {
-    const { getByTestId, queryByTestId } = renderTab('REFERRER', {
-      summary: { ...SUMMARY, claimable: '50', claimed: '50' },
+  it('renders Claim when a referee has cashback of at least $1', () => {
+    const { getByTestId, queryByTestId } = renderTab('REFEREE', {
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        claimed: '50',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
     });
 
     expect(
@@ -263,8 +283,8 @@ describe('EarningsTab', () => {
     ).toBeNull();
   });
 
-  it('renders a disabled Claimed button when only claimed is positive', () => {
-    const { getByTestId, queryByTestId } = renderTab('REFERRER', {
+  it('renders a disabled Claimed button when a referee has only claimed', () => {
+    const { getByTestId, queryByTestId } = renderTab('REFEREE', {
       summary: { ...SUMMARY, claimable: '0', claimed: '50' },
     });
 
@@ -274,6 +294,33 @@ describe('EarningsTab', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('hides Claim and Claimed for a referrer with cashback of at least $1', () => {
+    const { queryByTestId } = renderTab('REFERRER', {
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        claimed: '50',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
   });
 
   it('hides the button when nothing is claimable or claimed', () => {
