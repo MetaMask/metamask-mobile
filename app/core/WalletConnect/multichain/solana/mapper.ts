@@ -1,4 +1,10 @@
-import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
+import {
+  parseCaipAccountId,
+  type CaipAccountId,
+  type CaipChainId,
+} from '@metamask/utils';
+import type { Address } from '@solana/addresses';
+import { getTransactionDecoder } from '@solana/transactions';
 import { base58 } from 'ethers/lib/utils';
 import type { RpcRequest } from '../types';
 import type { SolanaSnapSpec, SolanaWalletConnectSpec } from './types';
@@ -55,50 +61,53 @@ export function mapSignMessageRequest({
 export function mapSignTransactionRequest({
   params,
   connectedAddresses,
+  scope,
 }: {
   params: SolanaWalletConnectSpec['solana_signTransaction']['params'];
   connectedAddresses: CaipAccountId[];
+  scope: CaipChainId;
 }): RpcRequest<SolanaSnapSpec, 'signTransaction'> {
   const { pubkey, transaction } = params;
   const address = resolveSignerAddress({ pubkey, connectedAddresses });
 
   return {
     method: 'signTransaction',
-    params: { account: { address }, transaction },
+    params: { account: { address }, transaction, scope },
   };
 }
 
 /**
- * Prefer the signed transaction when the snap returns it so versioned
- * transactions reach the dapp intact.
+ * The snap only returns the signed transaction; WalletConnect also requires
+ * the signer's base58 signature, which older clients rely on.
  */
-export function mapSignTransactionResponse(
-  result: SolanaSnapSpec['signTransaction']['response'],
-): SolanaWalletConnectSpec['solana_signTransaction']['response'] {
-  const response: SolanaWalletConnectSpec['solana_signTransaction']['response'] =
-    {};
-
-  if (typeof result.transaction === 'string') {
-    response.transaction = result.transaction;
+export function mapSignTransactionResponse({
+  result,
+  signerAddress,
+}: {
+  result: SolanaSnapSpec['signTransaction']['response'];
+  signerAddress: string;
+}): SolanaWalletConnectSpec['solana_signTransaction']['response'] {
+  const transaction = extractSignedTransaction(result);
+  const { signatures } = getTransactionDecoder().decode(
+    Buffer.from(transaction, 'base64'),
+  );
+  const signature = signatures[signerAddress as Address];
+  if (!signature) {
+    throw new Error('Solana snap did not sign the transaction for the signer');
   }
-  if (typeof result.signature === 'string') {
-    response.signature = result.signature;
-  }
 
-  if (!response.transaction && !response.signature) {
-    throw new Error('Snap returned neither a transaction nor a signature');
-  }
-
-  return response;
+  return { signature: base58.encode(signature), transaction };
 }
 
 /** Map `solana_signAndSendTransaction` onto the snap method of the same name. */
 export function mapSignAndSendTransactionRequest({
   params,
   connectedAddresses,
+  scope,
 }: {
   params: SolanaWalletConnectSpec['solana_signAndSendTransaction']['params'];
   connectedAddresses: CaipAccountId[];
+  scope: CaipChainId;
 }): RpcRequest<SolanaSnapSpec, 'signAndSendTransaction'> {
   const { pubkey, transaction, sendOptions } = params;
   const address = resolveSignerAddress({ pubkey, connectedAddresses });
@@ -108,6 +117,7 @@ export function mapSignAndSendTransactionRequest({
     params: {
       account: { address },
       transaction,
+      scope,
       // Solana JSON-RPC sendTransaction defaults preflight to `finalized`,
       // which commonly stalls dapps (e.g. Jupiter) past 10s. Prefer
       // `confirmed` unless the dapp set sendOptions.
@@ -139,11 +149,9 @@ export function mapGetAccountsResponse(
 export function extractSignedTransaction(
   result: SolanaSnapSpec['signTransaction']['response'],
 ): string {
-  if (typeof result.transaction === 'string') {
-    return result.transaction;
+  if (typeof result.signedTransaction === 'string') {
+    return result.signedTransaction;
   }
 
-  throw new Error(
-    'Solana snap did not return a signed transaction for solana_signAllTransactions',
-  );
+  throw new Error('Solana snap did not return a signed transaction');
 }

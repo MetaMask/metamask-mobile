@@ -251,6 +251,7 @@ describe('multichain/solana', () => {
             params: {
               account: { address: 'AddrA' },
               transaction: 'base64tx',
+              scope: SOLANA_MAINNET,
               options: { preflightCommitment: 'confirmed' },
             },
           },
@@ -261,8 +262,8 @@ describe('multichain/solana', () => {
 
     it('handles solana_signAllTransactions by signing each transaction', async () => {
       mockedCallSolanaSnap
-        .mockResolvedValueOnce({ transaction: 'signed-a' })
-        .mockResolvedValueOnce({ transaction: 'signed-b' });
+        .mockResolvedValueOnce({ signedTransaction: 'signed-a' })
+        .mockResolvedValueOnce({ signedTransaction: 'signed-b' });
 
       const result = await solanaAdapter.handleRequest({
         ...BASE_REQUEST,
@@ -273,7 +274,17 @@ describe('multichain/solana', () => {
 
       expect(mockedCallSolanaSnap).toHaveBeenCalledTimes(2);
       expect(mockedCallSolanaSnap).toHaveBeenLastCalledWith(
-        expect.objectContaining({ requestId: 11 }),
+        expect.objectContaining({
+          requestId: 11,
+          request: {
+            method: 'signTransaction',
+            params: {
+              account: { address: 'AddrA' },
+              transaction: 'tx-b',
+              scope: SOLANA_MAINNET,
+            },
+          },
+        }),
       );
       expect(result).toStrictEqual({ transactions: ['signed-a', 'signed-b'] });
     });
@@ -290,7 +301,7 @@ describe('multichain/solana', () => {
     });
 
     it('folds legacy-mainnet session accounts onto Mainnet before routing', async () => {
-      mockedCallSolanaSnap.mockResolvedValue({ transaction: 'signed' });
+      mockedCallSolanaSnap.mockResolvedValue({ signedTransaction: 'signed' });
       const connectedAddresses = [SOLANA_ACCOUNT, LEGACY_SOLANA_ACCOUNT];
 
       const accounts = await solanaAdapter.handleRequest({
@@ -302,8 +313,8 @@ describe('multichain/solana', () => {
       await solanaAdapter.handleRequest({
         ...BASE_REQUEST,
         connectedAddresses,
-        method: 'solana_signTransaction',
-        params: { transaction: 'base64tx' },
+        method: 'solana_signAllTransactions',
+        params: { transactions: ['base64tx'] },
       });
 
       expect(accounts).toStrictEqual([{ pubkey: 'AddrA' }]);

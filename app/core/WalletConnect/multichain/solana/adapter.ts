@@ -187,18 +187,27 @@ export async function handleRequest({
   }
 
   if (method === 'solana_signTransaction') {
-    const result = await callSolanaSnap({
-      ...envelope,
-      request: mapSignTransactionRequest({ params, connectedAddresses }),
+    const request = mapSignTransactionRequest({
+      params,
+      connectedAddresses,
+      scope,
     });
+    const result = await callSolanaSnap({ ...envelope, request });
 
-    return mapSignTransactionResponse(result);
+    return mapSignTransactionResponse({
+      result,
+      signerAddress: request.params.account.address,
+    });
   }
 
   if (method === 'solana_signAndSendTransaction') {
     const result = await callSolanaSnap({
       ...envelope,
-      request: mapSignAndSendTransactionRequest({ params, connectedAddresses }),
+      request: mapSignAndSendTransactionRequest({
+        params,
+        connectedAddresses,
+        scope,
+      }),
     });
 
     return mapSignatureResponse(result);
@@ -214,6 +223,7 @@ export async function handleRequest({
         request: mapSignTransactionRequest({
           params: { transaction },
           connectedAddresses,
+          scope,
         }),
       });
       signedTransactions.push(extractSignedTransaction(result));

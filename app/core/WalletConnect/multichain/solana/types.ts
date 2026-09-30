@@ -1,3 +1,5 @@
+import type { CaipChainId } from '@metamask/utils';
+
 /**
  * WalletConnect Solana RPC contract.
  *
@@ -30,7 +32,7 @@ export interface SolanaWalletConnectSpec {
   };
   solana_signTransaction: {
     params: { transaction: string; pubkey?: string };
-    response: { signature?: string; transaction?: string };
+    response: { signature: string; transaction: string };
   };
   solana_signAllTransactions: {
     params: { transactions: string[] };
@@ -57,13 +59,18 @@ export interface SolanaSnapSpec {
     response: { signature: string };
   };
   signTransaction: {
-    params: { account: { address: string }; transaction: string };
-    response: { signature?: string; transaction?: string };
+    params: {
+      account: { address: string };
+      transaction: string;
+      scope: CaipChainId;
+    };
+    response: { signedTransaction: string };
   };
   signAndSendTransaction: {
     params: {
       account: { address: string };
       transaction: string;
+      scope: CaipChainId;
       options?: SolanaWalletConnectSendOptions;
     };
     response: { signature: string };

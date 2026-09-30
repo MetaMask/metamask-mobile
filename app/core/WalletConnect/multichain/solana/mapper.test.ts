@@ -1,5 +1,5 @@
 import { base58 } from 'ethers/lib/utils';
-import type { CaipAccountId } from '@metamask/utils';
+import type { CaipAccountId, CaipChainId } from '@metamask/utils';
 import {
   extractSignedTransaction,
   mapGetAccountsResponse,
@@ -12,12 +12,28 @@ import {
   walletConnectMessageToSnapBase64,
 } from './mapper';
 
+const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
 const CONNECTED_ADDRESSES = [
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:AddrA',
 ] as CaipAccountId[];
 
 const HELLO_BASE58 = base58.encode(Buffer.from('hello', 'utf8'));
 const HELLO_BASE64 = Buffer.from('hello', 'utf8').toString('base64');
+
+const FEE_PAYER = base58.encode(Buffer.alloc(32, 1));
+const CO_SIGNER = base58.encode(Buffer.alloc(32, 2));
+const CO_SIGNER_SIGNATURE = Buffer.alloc(64, 7);
+// Legacy wire format: fee payer slot unsigned, co-signer slot signed.
+const SIGNED_TX = Buffer.concat([
+  Buffer.from([2]),
+  Buffer.alloc(64),
+  CO_SIGNER_SIGNATURE,
+  Buffer.from([2, 0, 0, 2]),
+  Buffer.alloc(32, 1),
+  Buffer.alloc(32, 2),
+  Buffer.alloc(32),
+  Buffer.from([0]),
+]).toString('base64');
 
 describe('multichain/solana - mapper', () => {
   describe('resolveSignerAddress', () => {
@@ -65,10 +81,15 @@ describe('multichain/solana - mapper', () => {
         mapSignTransactionRequest({
           params: { transaction: 'base64tx', pubkey: 'AddrA' },
           connectedAddresses: CONNECTED_ADDRESSES,
+          scope: SOLANA_MAINNET,
         }),
       ).toStrictEqual({
         method: 'signTransaction',
-        params: { account: { address: 'AddrA' }, transaction: 'base64tx' },
+        params: {
+          account: { address: 'AddrA' },
+          transaction: 'base64tx',
+          scope: SOLANA_MAINNET,
+        },
       });
     });
 
@@ -77,12 +98,14 @@ describe('multichain/solana - mapper', () => {
         mapSignAndSendTransactionRequest({
           params: { transaction: 'base64tx', pubkey: 'AddrA' },
           connectedAddresses: CONNECTED_ADDRESSES,
+          scope: SOLANA_MAINNET,
         }),
       ).toStrictEqual({
         method: 'signAndSendTransaction',
         params: {
           account: { address: 'AddrA' },
           transaction: 'base64tx',
+          scope: SOLANA_MAINNET,
           options: { preflightCommitment: 'confirmed' },
         },
       });
@@ -100,12 +123,14 @@ describe('multichain/solana - mapper', () => {
             },
           },
           connectedAddresses: CONNECTED_ADDRESSES,
+          scope: SOLANA_MAINNET,
         }),
       ).toStrictEqual({
         method: 'signAndSendTransaction',
         params: {
           account: { address: 'AddrA' },
           transaction: 'base64tx',
+          scope: SOLANA_MAINNET,
           options: { preflightCommitment: 'processed', skipPreflight: true },
         },
       });
@@ -121,19 +146,25 @@ describe('multichain/solana - mapper', () => {
       });
     });
 
-    it('prefers the signed transaction when the snap returns both fields', () => {
+    it('returns the signed transaction and the signer signature', () => {
       expect(
         mapSignTransactionResponse({
-          transaction: 'signedTx',
-          signature: 'sig',
+          result: { signedTransaction: SIGNED_TX },
+          signerAddress: CO_SIGNER,
         }),
-      ).toStrictEqual({ transaction: 'signedTx', signature: 'sig' });
+      ).toStrictEqual({
+        transaction: SIGNED_TX,
+        signature: base58.encode(CO_SIGNER_SIGNATURE),
+      });
     });
 
-    it('throws when the snap returns neither a transaction nor a signature', () => {
-      expect(() => mapSignTransactionResponse({})).toThrow(
-        'Snap returned neither a transaction nor a signature',
-      );
+    it('throws when the signer slot is unsigned', () => {
+      expect(() =>
+        mapSignTransactionResponse({
+          result: { signedTransaction: SIGNED_TX },
+          signerAddress: FEE_PAYER,
+        }),
+      ).toThrow('Solana snap did not sign the transaction for the signer');
     });
 
     it('maps connected accounts to WalletConnect pubkey objects', () => {
@@ -143,15 +174,17 @@ describe('multichain/solana - mapper', () => {
     });
 
     it('extracts the signed transaction for signAllTransactions', () => {
-      expect(extractSignedTransaction({ transaction: 'signedTx' })).toBe(
+      expect(extractSignedTransaction({ signedTransaction: 'signedTx' })).toBe(
         'signedTx',
       );
     });
 
     it('throws when the snap omits the signed transaction', () => {
-      expect(() => extractSignedTransaction({ signature: 'sig' })).toThrow(
-        'Solana snap did not return a signed transaction for solana_signAllTransactions',
-      );
+      expect(() =>
+        extractSignedTransaction(
+          {} as Parameters<typeof extractSignedTransaction>[0],
+        ),
+      ).toThrow('Solana snap did not return a signed transaction');
     });
   });
 });
