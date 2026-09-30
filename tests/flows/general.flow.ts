@@ -204,9 +204,12 @@ export const dismissAndroidSystemOverlaysPlaywright =
       return;
     }
 
-    // adb is not reachable on BrowserStack — the command would always fail.
+    // adb is not reachable on BrowserStack (cloud or local tunnel).
+    // Perf CI sets BROWSERSTACK_USERNAME but not BROWSERSTACK_LOCAL; local
+    // tunnel runs set BROWSERSTACK_LOCAL=true.
     const isBrowserStack =
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true' ||
+      Boolean(process.env.BROWSERSTACK_USERNAME?.trim());
     if (isBrowserStack) {
       return;
     }

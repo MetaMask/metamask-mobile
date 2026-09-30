@@ -2,9 +2,7 @@ import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { AppiumAssertions } from '../../../framework';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
-import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
@@ -38,6 +36,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
 
+      await ToastModal.waitForToastToDismiss();
       await WalletView.scrollAndTapPredictionsSection();
 
       await timer1.measure(async () => {

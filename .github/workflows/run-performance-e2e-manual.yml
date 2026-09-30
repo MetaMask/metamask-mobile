@@ -144,6 +144,8 @@ jobs:
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
       browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
       performance_tags: ${{ inputs.performance_tags }}
-      reuse_main_builds: ${{ needs.detect-changes.outputs.reuse_main_builds == 'true' }}
+      # Latest-main APK reuse is e2e-only; exp/rc still need a fingerprint so
+      # fingerprint-based reuse (and fresh-build fallback) can run.
+      reuse_main_builds: ${{ needs.detect-changes.outputs.reuse_main_builds == 'true' && inputs.build_variant == 'e2e' }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
     secrets: inherit
