@@ -19,7 +19,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { useComposerSharePositions } from './useComposerSharePositions';
+import { useTraderPositions } from '../TraderProfileView/hooks';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../utils/perp';
@@ -46,6 +46,8 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
   const address =
     useSelector(selectSelectedInternalAccountFormattedAddress) ?? '';
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  // Wallet-only PerpsController rows are not included — they have no
+  // `positionUid` and cannot be posted.
   const {
     openPositions,
     closedPositions,
@@ -53,7 +55,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     isLoadingClosed,
     error,
     refetch,
-  } = useComposerSharePositions(address);
+  } = useTraderPositions(address);
 
   const isLoading = tab === 'open' ? isLoadingOpen : isLoadingClosed;
   const positions = tab === 'open' ? openPositions : closedPositions;
