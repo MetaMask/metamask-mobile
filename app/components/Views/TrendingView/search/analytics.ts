@@ -269,10 +269,12 @@ export const trackExploreSearchOpened = (
  * Fires `abandoned` when the user leaves search without clicking a result.
  * One-shot per session: later calls are ignored until the next `opened`.
  * `result_count` is only sent when it belongs to the query being abandoned.
+ * `redactSearchQuery` blanks `search_query` for clipboard-pasted queries.
  */
 export const trackExploreSearchAbandoned = (
   reason: SearchAbandonReason,
   searchQuery: string,
+  redactSearchQuery = false,
 ): void => {
   if (searchSession.hasResultClick || searchSession.hasEnded) {
     return;
@@ -285,14 +287,15 @@ export const trackExploreSearchAbandoned = (
     lastSearchedQuery,
     lastSearchedResultCount,
   } = searchSession;
+  const sentSearchQuery = redactSearchQuery ? '' : searchQuery;
   trackExploreSearchEvent({
     interaction_type: 'abandoned',
-    search_query: searchQuery,
+    search_query: sentSearchQuery,
     query_length: getSearchQueryLength(searchQuery),
     abandon_reason: reason,
     ...(entryPoint ? { entry_point: entryPoint } : {}),
     ...(lastTabName ? { tab_name: lastTabName } : {}),
-    ...(lastSearchedQuery === searchQuery &&
+    ...(lastSearchedQuery === sentSearchQuery &&
     lastSearchedResultCount !== undefined
       ? { result_count: lastSearchedResultCount }
       : {}),

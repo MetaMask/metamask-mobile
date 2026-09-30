@@ -112,6 +112,46 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     }
   });
 
+  it('redacts a clipboard-prefilled query from the abandoned event', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId } = renderExploreSearchScreenWithBackStack({
+        initialParams: {
+          entryPoint: 'home',
+          initialQuery: 'clipboard-secret',
+          initialQuerySource: 'clipboard',
+        },
+      });
+
+      await actButtonPress(
+        await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'abandoned',
+              search_query: '',
+              query_length: 16,
+            }),
+          }),
+        );
+      });
+      expect(trackEventSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            search_query: 'clipboard-secret',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
   it('cancels the homepage search handoff and returns to the previous route', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
       renderExploreSearchScreenWithBackStack({

@@ -332,6 +332,29 @@ describe('Explore search analytics', () => {
       });
     });
 
+    it('redacts a clipboard query but keeps its length and result count', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: '',
+        tab_name: 'all',
+        result_count: 4,
+      });
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('back', 'clipboard-secret', true);
+
+      expect(lastEventProperties()).toEqual({
+        interaction_type: 'abandoned',
+        search_query: '',
+        query_length: 16,
+        abandon_reason: 'back',
+        entry_point: 'home',
+        tab_name: 'all',
+        result_count: 4,
+      });
+    });
+
     it('fires with an empty query when the user leaves without searching', () => {
       trackExploreSearchOpened('explore');
       mockTrackEvent.mockClear();

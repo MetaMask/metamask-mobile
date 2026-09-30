@@ -654,6 +654,8 @@ const ExploreSearchScreen: React.FC = () => {
   const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const isClipboardQueryRef = useRef(isClipboardQuery);
+  isClipboardQueryRef.current = isClipboardQuery;
   const isCancelPressedRef = useRef(false);
 
   useEffect(() => {
@@ -668,6 +670,7 @@ const ExploreSearchScreen: React.FC = () => {
         trackExploreSearchAbandoned(
           isCancelPressedRef.current ? 'cancel' : 'back',
           searchQueryRef.current,
+          isClipboardQueryRef.current,
         );
       },
     );
@@ -675,6 +678,7 @@ const ExploreSearchScreen: React.FC = () => {
       trackExploreSearchAbandoned(
         isCancelPressedRef.current ? 'cancel' : 'navigate_away',
         searchQueryRef.current,
+        isClipboardQueryRef.current,
       );
     });
     return () => {
