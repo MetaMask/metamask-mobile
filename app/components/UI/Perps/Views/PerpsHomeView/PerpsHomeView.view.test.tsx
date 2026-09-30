@@ -133,6 +133,7 @@ describe('PerpsHomeView', () => {
     ).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId(PerpsHomeViewSelectorsIDs.ORDERS_RETRY));
     expect(stream.getOrdersReconnectCount()).toBe(1);
+    expect(stream.getFillsReconnectCount()).toBe(1);
     act(() => {
       stream.emitOrders([]);
     });
@@ -162,6 +163,7 @@ describe('PerpsHomeView', () => {
       screen.getByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
     );
     expect(stream.getFillsReconnectCount()).toBe(1);
+    expect(stream.getOrdersReconnectCount()).toBe(1);
     act(() => {
       stream.emitFills([]);
     });

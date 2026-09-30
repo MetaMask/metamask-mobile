@@ -994,59 +994,93 @@ describe('PerpsStreamManager', () => {
       testStreamManager.orders.publish([], 'optimistic');
 
       expect(onError).toHaveBeenCalledWith(error);
-      expect(callback).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(testStreamManager.orders.getError()).toBe(error);
+      callback.mockClear();
 
       source.callback([]);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith([]);
     });
 
-    it('keeps a Lighter order error while Hyperliquid delivers an empty snapshot', () => {
+    it('delivers healthy Hyperliquid orders and cache while retaining a Lighter error', () => {
       const callback = jest.fn();
       const onError = jest.fn();
       testStreamManager.orders.subscribe({ callback, onError, throttleMs: 0 });
-      const source = mockSubscribeToOrders.mock.calls[0][0] as {
-        onError: (error: Error, providerId?: string) => void;
-        callback: (orders: Order[], providerId?: string) => void;
-      };
+      const source = mockSubscribeToOrders.mock.calls[0][0];
       const failure = new Error('Lighter authentication failed');
+      const healthy: Order[] = [
+        {
+          orderId: 'hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          originalSize: '1',
+          size: '1',
+          remainingSize: '1',
+          filledSize: '0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp: Date.now(),
+          providerId: 'hyperliquid',
+        },
+      ];
 
       callback.mockClear();
       source.onError(failure, 'lighter');
-      source.callback([], 'hyperliquid');
-
-      expect(onError).toHaveBeenCalledWith(failure);
-      expect(callback).not.toHaveBeenCalled();
+      source.callback(healthy, 'hyperliquid');
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+      const late = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback: late,
+        onError,
+        throttleMs: 0,
+      });
+      expect(late).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
 
       source.callback([], 'lighter');
-      expect(callback).toHaveBeenCalledWith([]);
+      expect(testStreamManager.orders.getError()).toBeNull();
     });
 
-    it('keeps a Lighter fill error while Hyperliquid delivers an empty snapshot', () => {
+    it('delivers healthy Hyperliquid fills while retaining a Lighter error', () => {
       const callback = jest.fn();
       const onError = jest.fn();
       const subscribe = jest.fn((_params: unknown) => jest.fn());
       mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
       testStreamManager.fills.subscribe({ callback, onError, throttleMs: 0 });
       const source = subscribe.mock.calls[0][0] as {
-        onError: (error: Error, providerId?: string) => void;
+        onError: (error: Error, provider?: string) => void;
         callback: (
           fills: OrderFill[],
           snapshot?: boolean,
-          providerId?: string,
+          provider?: string,
         ) => void;
       };
       const failure = new Error('Lighter authentication failed');
+      const healthy: OrderFill[] = [
+        {
+          orderId: 'hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1',
+          price: '50000',
+          timestamp: Date.now(),
+          fee: '0',
+          feeToken: 'USDC',
+          direction: 'Open Long',
+          providerId: 'hyperliquid',
+        },
+      ];
 
       callback.mockClear();
       source.onError(failure, 'lighter');
-      source.callback([], true, 'hyperliquid');
-
-      expect(onError).toHaveBeenCalledWith(failure);
-      expect(callback).not.toHaveBeenCalled();
-
+      source.callback(healthy, true, 'hyperliquid');
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.fills.getError()).toBe(failure);
       source.callback([], true, 'lighter');
-      expect(callback).toHaveBeenCalledWith([]);
+      expect(testStreamManager.fills.getError()).toBeNull();
     });
 
     it('notifies position subscriber with null when clearCache is called (account switch)', () => {
@@ -5210,6 +5244,30 @@ describe('PerpsStreamManager', () => {
       topOfBookDisconnect.mockRestore();
       focusedPriceDisconnect.mockRestore();
       candlesDisconnect.mockRestore();
+    });
+
+    it('retries orders and fills together after one authenticated channel fails', () => {
+      const ordersReconnect = jest.spyOn(testStreamManager.orders, 'reconnect');
+      const fillsReconnect = jest.spyOn(testStreamManager.fills, 'reconnect');
+      const fillsSubscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = fillsSubscribe;
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      const orderSource = mockSubscribeToOrders.mock.calls[0][0];
+      const fillSource = fillsSubscribe.mock.calls[0][0] as {
+        onError: (error: Error, provider?: string) => void;
+      };
+      orderSource.onError(new Error('Trading key rejected'), 'lighter');
+      fillSource.onError(new Error('Trading key rejected'), 'lighter');
+
+      testStreamManager.retryOrderStreams();
+
+      expect(ordersReconnect).toHaveBeenCalledTimes(1);
+      expect(fillsReconnect).toHaveBeenCalledTimes(1);
+      expect(testStreamManager.orders.getError()).toBeNull();
+      expect(testStreamManager.fills.getError()).toBeNull();
+      ordersReconnect.mockRestore();
+      fillsReconnect.mockRestore();
     });
 
     it('clears WebSocket subscriptions from all channels', () => {

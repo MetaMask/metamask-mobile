@@ -52,7 +52,7 @@ export function usePerpsLiveFills(
         setIsInitialLoading(false);
       },
       callback: (newFills) => {
-        setError(null);
+        setError(stream.fills.getError());
         if (
           newFills === null ||
           newFills === undefined ||
@@ -101,8 +101,7 @@ export function usePerpsLiveFills(
   }, [stream, throttleMs]);
 
   const retry = useCallback(() => {
-    stream.fills.clearCache();
-    stream.fills.reconnect();
+    stream.retryOrderStreams();
   }, [stream]);
 
   return {

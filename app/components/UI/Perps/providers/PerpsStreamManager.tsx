@@ -254,7 +254,6 @@ abstract class StreamChannel<T> {
       this.providerErrors.delete(sourceProviderId ?? 'default');
       this.streamError = this.providerErrors.values().next().value ?? null;
     }
-    if (this.streamError) return;
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
@@ -285,6 +284,11 @@ abstract class StreamChannel<T> {
    */
   public getLastDeliveredAt(): number | null {
     return this.lastDeliveredAt;
+  }
+
+  /** Current provider failure, retained while other providers keep delivering. */
+  public getError(): Error | null {
+    return this.streamError;
   }
 
   public getDeliveryRevision(): number {
@@ -477,7 +481,7 @@ abstract class StreamChannel<T> {
 
     // Give immediate cached data if available
     const cached = this.getCachedDataForSubscription(params);
-    if (cached != null && !this.streamError) {
+    if (cached != null) {
       params.callback(cached);
       params.onDelivery?.('cache');
       // Cached data renders immediately but must not consume the first fresh
@@ -3044,6 +3048,14 @@ export class PerpsStreamManager {
     )?.catch(() => {
       /* fire-and-forget */
     });
+  }
+
+  /** Retry both authenticated order channels after a trading-key failure. */
+  public retryOrderStreams(): void {
+    this.orders.clearCache();
+    this.fills.clearCache();
+    this.orders.reconnect();
+    this.fills.reconnect();
   }
 
   /**

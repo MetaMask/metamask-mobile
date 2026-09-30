@@ -5,17 +5,17 @@ import { type OrderFill } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();
+const mockRetryOrderStreams = jest.fn();
+const mockGetError = jest.fn((): Error | null => null);
 const mockGetSnapshot = jest.fn((): OrderFill[] | null => []);
-const mockClearCache = jest.fn();
-const mockReconnect = jest.fn();
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
+    retryOrderStreams: mockRetryOrderStreams,
     fills: {
       subscribe: mockSubscribe,
+      getError: mockGetError,
       getSnapshot: mockGetSnapshot,
-      clearCache: mockClearCache,
-      reconnect: mockReconnect,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -38,12 +38,28 @@ describe('usePerpsLiveFills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetError.mockReturnValue(null);
     mockGetSnapshot.mockReturnValue([]);
     jest.useFakeTimers();
   });
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('retains the failed provider error while healthy data renders', () => {
+    mockSubscribe.mockReturnValue(jest.fn());
+    const { result } = renderHook(() => usePerpsLiveFills());
+    const subscription = mockSubscribe.mock.calls[0][0];
+    const failure = new Error('Lighter authentication failed');
+    mockGetError.mockReturnValue(failure);
+    act(() => subscription.onError(failure));
+    act(() => subscription.callback([mockFill]));
+    expect(result.current.fills).toHaveLength(1);
+    expect(result.current.error).toBe(failure);
+    mockGetError.mockReturnValue(null);
+    act(() => subscription.callback([]));
+    expect(result.current.error).toBeNull();
   });
 
   it('subscribes to fills on mount', () => {
@@ -70,7 +86,7 @@ describe('usePerpsLiveFills', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  it('settles loading with an error and retries the fill channel', () => {
+  it('settles loading with an error and retries both authenticated channels', () => {
     const { result } = renderHook(() => usePerpsLiveFills());
     const failure = new Error('Trading key rejected');
 
@@ -81,8 +97,7 @@ describe('usePerpsLiveFills', () => {
 
     act(() => result.current.retry());
 
-    expect(mockClearCache).toHaveBeenCalledTimes(1);
-    expect(mockReconnect).toHaveBeenCalledTimes(1);
+    expect(mockRetryOrderStreams).toHaveBeenCalledTimes(1);
   });
 
   it('updates fills when callback is invoked', async () => {

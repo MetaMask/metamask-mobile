@@ -201,6 +201,7 @@ interface MutableStreamChannel<T> {
     onError?: (error: Error) => void;
   }) => () => void;
   getSnapshot: () => T | null;
+  getError: () => Error | null;
   getLastDeliveredAt: () => number | null;
   emit: (data: T | null) => void;
   emitError: (error: Error) => void;
@@ -230,10 +231,12 @@ function mutableChannelWithInitialValue<T>(
   let snapshot: T | null = initialValue;
   let lastDeliveredAt: number | null = null;
   let reconnectCount = 0;
+  let streamError: Error | null = null;
   const subscribers = new Set<StreamCallback<T>>();
   const errorSubscribers = new Set<(error: Error) => void>();
 
   const emit = (data: T | null) => {
+    streamError = null;
     snapshot = data;
     lastDeliveredAt = Date.now();
     subscribers.forEach((callback) => callback(snapshot));
@@ -260,9 +263,11 @@ function mutableChannelWithInitialValue<T>(
       };
     },
     getSnapshot: () => snapshot,
+    getError: () => streamError,
     getLastDeliveredAt: () => lastDeliveredAt,
     emit,
     emitError: (error: Error) => {
+      streamError = error;
       errorSubscribers.forEach((callback) => callback(error));
     },
     refresh: async (): Promise<void> => undefined,
@@ -431,6 +436,12 @@ function createTestStreamManager(
     topOfBook: topOfBookChannel(),
     focusedPrice: focusedPriceChannel(),
     candles: noopChannel(),
+    retryOrderStreams: (): void => {
+      orders.clearCache();
+      fills.clearCache();
+      orders.reconnect();
+      fills.reconnect();
+    },
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;
 
