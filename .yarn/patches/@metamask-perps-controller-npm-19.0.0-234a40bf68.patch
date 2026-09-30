@@ -106,10 +106,65 @@ index db5ca7244653febc762834bbd1398ebc3b9e33de..cda424c5100bafa13af1cdeaf237a716
  });
  // Referral code configuration
  export const REFERRAL_CONFIG = {
+diff --git a/dist/constants/lighterConfig.d.ts b/dist/constants/lighterConfig.d.ts
+index 1e4efa58a9d434d09ac81754c89dbb30bb3259b2..ab48850967e70017e65892c334434847993a7805 100644
+--- a/dist/constants/lighterConfig.d.ts
++++ b/dist/constants/lighterConfig.d.ts
+@@ -73,7 +73,9 @@ export declare function getLighterTransactionOutcome(status: unknown): LighterTr
+ export declare const LIGHTER_ORDER_TYPE_LIMIT = 0;
+ export declare const LIGHTER_ORDER_TYPE_MARKET = 1;
+ export declare const LIGHTER_ORDER_TYPE_STOP_LOSS = 2;
++export declare const LIGHTER_ORDER_TYPE_STOP_LOSS_LIMIT = 3;
+ export declare const LIGHTER_ORDER_TYPE_TAKE_PROFIT = 4;
++export declare const LIGHTER_ORDER_TYPE_TAKE_PROFIT_LIMIT = 5;
+ /** Grouped-orders grouping type: one-cancels-the-other (OCO). */
+ export declare const LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER = 2;
+ /** L2 transaction type: CreateGroupedOrders (e.g. OCO TP/SL pairs). */
+@@ -85,7 +87,7 @@ export declare const LIGHTER_TX_TYPE_UPDATE_LEVERAGE = 20;
+ export declare const LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL = 0;
+ export declare const LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME = 1;
+ export declare const LIGHTER_TIME_IN_FORCE_POST_ONLY = 2;
+-/** Sentinel for "no expiry" on GTT orders (per lighter SDKs). */
++/** Default pending expiry for GTT and trigger orders (per lighter SDKs). */
+ export declare const LIGHTER_ORDER_EXPIRY_NONE = -1;
+ /** Sentinel for "no trigger price". */
+ export declare const LIGHTER_NO_TRIGGER_PRICE = 0;
+diff --git a/dist/constants/lighterConfig.js b/dist/constants/lighterConfig.js
+index d93326fe53589c810b7e125d496936455ab974ab..c4b9705d022e1f7575eeafceb49df61d97a654cf 100644
+--- a/dist/constants/lighterConfig.js
++++ b/dist/constants/lighterConfig.js
+@@ -131,7 +131,9 @@ export function getLighterTransactionOutcome(status) {
+ export const LIGHTER_ORDER_TYPE_LIMIT = 0;
+ export const LIGHTER_ORDER_TYPE_MARKET = 1;
+ export const LIGHTER_ORDER_TYPE_STOP_LOSS = 2;
++export const LIGHTER_ORDER_TYPE_STOP_LOSS_LIMIT = 3;
+ export const LIGHTER_ORDER_TYPE_TAKE_PROFIT = 4;
++export const LIGHTER_ORDER_TYPE_TAKE_PROFIT_LIMIT = 5;
+ /** Grouped-orders grouping type: one-cancels-the-other (OCO). */
+ export const LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER = 2;
+ /** L2 transaction type: CreateGroupedOrders (e.g. OCO TP/SL pairs). */
+@@ -143,7 +145,7 @@ export const LIGHTER_TX_TYPE_UPDATE_LEVERAGE = 20;
+ export const LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL = 0;
+ export const LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME = 1;
+ export const LIGHTER_TIME_IN_FORCE_POST_ONLY = 2;
+-/** Sentinel for "no expiry" on GTT orders (per lighter SDKs). */
++/** Default pending expiry for GTT and trigger orders (per lighter SDKs). */
+ export const LIGHTER_ORDER_EXPIRY_NONE = -1;
+ /** Sentinel for "no trigger price". */
+ export const LIGHTER_NO_TRIGGER_PRICE = 0;
 diff --git a/dist/providers/LighterProvider.d.ts b/dist/providers/LighterProvider.d.ts
-index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..7b3eb7e9a5eef55a1d3c0f610660909aff13bd0f 100644
+index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..c27ee4a606d4230bc43e513ec1f4eb2bab380921 100644
 --- a/dist/providers/LighterProvider.d.ts
 +++ b/dist/providers/LighterProvider.d.ts
+@@ -17,7 +17,7 @@ import type { CaipAccountId } from '@metamask/utils';
+ import type { CandlePeriod } from '../constants/chartConfig.js';
+ import type { PerpsControllerMessenger } from '../PerpsController.js';
+ import { WebSocketConnectionState } from '../types/index.js';
+-import type { AccountState, AssetRoute, CandleData, CancelOrderParams, CancelOrderResult, ClosePositionParams, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarginModeLockParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarginModeLock, PerpsMarketData, PerpsPlatformDependencies, PerpsProvider, PerpsReadOptions, Position, PositionModifyPreviewParams, PositionModifyPreviewResult, RawLedgerUpdate, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult } from '../types/index.js';
++import type { AccountState, AssetRoute, CandleData, CancelOrderParams, CancelOrderResult, ClosePositionParams, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, DirectProviderOrderCapabilities, GetOrderCapabilitiesParams, GetAccountStateParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarginModeLockParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarginModeLock, PerpsMarketData, PerpsPlatformDependencies, PerpsProvider, PerpsReadOptions, Position, PositionModifyPreviewParams, PositionModifyPreviewResult, RawLedgerUpdate, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult } from '../types/index.js';
+ import type { LighterAuthConfig, LighterSignerBridge, LighterWebSocketCtor } from '../types/lighter-types.js';
+ /**
+  * Identity of the position the journalled protection belonged to. A
 @@ -81,8 +81,8 @@ export declare class LighterProvider implements PerpsProvider {
       * List TP/SL obligations parked in DURABLE manual-recovery state: the
       * venue removed (or rejected) protection in a way that cannot be
@@ -132,11 +187,52 @@ index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..7b3eb7e9a5eef55a1d3c0f610660909a
       *
       * @returns The pending recovered-dispatch outcomes.
       */
+@@ -114,6 +118,14 @@ export declare class LighterProvider implements PerpsProvider {
+      * @param recoveryId - Stable id from {@link getRecoveredDispatches}.
+      */
+     acknowledgeRecoveredDispatch(recoveryId: string): Promise<void>;
++    /**
++     * Report native standalone triggers for an active, known market. Explicit
++     * margin modes and strategies remain unreported until their write paths exist.
++     *
++     * @param params - Market route to inspect.
++     * @returns Native trigger types or the reason the market is unavailable.
++     */
++    getOrderCapabilities(params: GetOrderCapabilitiesParams): Promise<DirectProviderOrderCapabilities>;
+     getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]>;
+     getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
+     getPositions(_params?: GetPositionsParams): Promise<Position[]>;
 diff --git a/dist/providers/LighterProvider.js b/dist/providers/LighterProvider.js
-index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628db6e5e4bf 100644
+index 59c846b66d11a19ab27d86571cbe435db4f83363..fadd2c00504d8c8cb0399ce817364e270afc0b6a 100644
 --- a/dist/providers/LighterProvider.js
 +++ b/dist/providers/LighterProvider.js
-@@ -225,7 +225,6 @@ const withProcessMutex = async (key, operation) => {
+@@ -13,7 +13,7 @@
+  * - REST reads plus WebSocket market, account, position, order, fill,
+  *   order-book, and candle streams, with price polling as a fallback.
+  */
+-import { computeLighterMinOrderSize, fromLighterInteger, getLighterChainId, getLighterTransactionOutcome, LIGHTER_RESOLUTION_MS, LIGHTER_SUPPORTED_RESOLUTIONS, LIGHTER_DEFAULT_API_KEY_INDEX, LIGHTER_NO_TRIGGER_PRICE, LIGHTER_ORDER_EXPIRY_NONE, LIGHTER_ORDER_TYPE_LIMIT, LIGHTER_ORDER_TYPE_MARKET, LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME, getLighterWsEndpoint, LIGHTER_PRICE_POLLING_INTERVAL_MS, LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL, LIGHTER_BRIDGE_CONFIG, LIGHTER_TX_TYPE_CANCEL_ORDER, LIGHTER_TX_TYPE_CHANGE_PUB_KEY, LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER, LIGHTER_ORDER_TYPE_STOP_LOSS, LIGHTER_ORDER_TYPE_TAKE_PROFIT, LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS, LIGHTER_TX_TYPE_CREATE_ORDER, LIGHTER_TX_TYPE_UPDATE_LEVERAGE, LIGHTER_TX_TYPE_UPDATE_MARGIN, LIGHTER_TX_TYPE_WITHDRAW, LIGHTER_MARGIN_MODE_CROSS, LIGHTER_MARGIN_MODE_ISOLATED, LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX, LIGHTER_USDC_ASSET_INDEX, LIGHTER_DATA_INTEGRITY_PREFIX, LIGHTER_MARGIN_METADATA_TTL_MS, parseLighterStrictDecimal, toLighterInteger, } from '../constants/lighterConfig.js';
++import { computeLighterMinOrderSize, fromLighterInteger, getLighterChainId, getLighterTransactionOutcome, LIGHTER_RESOLUTION_MS, LIGHTER_SUPPORTED_RESOLUTIONS, LIGHTER_DEFAULT_API_KEY_INDEX, LIGHTER_NO_TRIGGER_PRICE, LIGHTER_ORDER_EXPIRY_NONE, LIGHTER_ORDER_TYPE_LIMIT, LIGHTER_ORDER_TYPE_MARKET, LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME, getLighterWsEndpoint, LIGHTER_PRICE_POLLING_INTERVAL_MS, LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL, LIGHTER_BRIDGE_CONFIG, LIGHTER_TX_TYPE_CANCEL_ORDER, LIGHTER_TX_TYPE_CHANGE_PUB_KEY, LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER, LIGHTER_ORDER_TYPE_STOP_LOSS, LIGHTER_ORDER_TYPE_STOP_LOSS_LIMIT, LIGHTER_ORDER_TYPE_TAKE_PROFIT, LIGHTER_ORDER_TYPE_TAKE_PROFIT_LIMIT, LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS, LIGHTER_TX_TYPE_CREATE_ORDER, LIGHTER_TX_TYPE_UPDATE_LEVERAGE, LIGHTER_TX_TYPE_UPDATE_MARGIN, LIGHTER_TX_TYPE_WITHDRAW, LIGHTER_MARGIN_MODE_CROSS, LIGHTER_MARGIN_MODE_ISOLATED, LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX, LIGHTER_USDC_ASSET_INDEX, LIGHTER_DATA_INTEGRITY_PREFIX, LIGHTER_MARGIN_METADATA_TTL_MS, parseLighterStrictDecimal, toLighterInteger, } from '../constants/lighterConfig.js';
+ import { PERPS_CONSTANTS } from '../constants/perpsConfig.js';
+ import { PERPS_ERROR_CODES } from '../perpsErrorCodes.js';
+ import { hasErrorInCauseChain } from '../services/causeChain.js';
+@@ -22,6 +22,7 @@ import { LighterWalletService } from '../services/LighterWalletService.js';
+ import { WebSocketConnectionState } from '../types/index.js';
+ import { ensureError, isKeyringLockedError } from '../utils/errorUtils.js';
+ import { adaptAccountStateFromLighter, adaptAccountStateFromLighterUserStats, adaptFillFromLighterTrade, adaptMarketDataFromLighter, adaptMarketFromLighter, adaptOrderFromLighter, adaptPositionFromLighter, adaptPriceUpdateFromLighter, adaptPriceUpdateFromLighterWsStat, } from '../utils/lighterAdapter.js';
++import { isLimitExecutionOrderType, isTriggerOrderType, TRIGGER_ORDER_TYPES, } from '../utils/orderTypes.js';
+ const NOOP_UNSUBSCRIBE = () => undefined;
+ const LIGHTER_INACTIVE_HISTORY_ROW_LIMIT = 10_000;
+ const deriveLighterMaxLeverage = (minInitialMarginFraction, market) => {
+@@ -119,7 +120,7 @@ const snapToLighterSizeGrid = (size, supportedSizeDecimals) => {
+  * @param params - Order intent to classify.
+  * @returns Whether the order rests as a maker order.
+  */
+-const isLighterMakerOrder = (params) => params.orderType === 'limit' && params.timeInForce !== 'IOC';
++const isLighterMakerOrder = (params) => isLimitExecutionOrderType(params.orderType) && params.timeInForce !== 'IOC';
+ /**
+  * Parse a candle field without JavaScript's null/boolean/blank coercions.
+  *
+@@ -225,7 +226,6 @@ const withProcessMutex = async (key, operation) => {
          if (processMutexTails.get(key) === settled) {
              processMutexTails.delete(key);
          }
@@ -144,7 +240,115 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      })
          .catch(() => undefined);
      return await run;
-@@ -567,6 +566,7 @@ export class LighterProvider {
+@@ -493,10 +493,10 @@ const lighterLeverageError = (leverage) => {
+ };
+ /**
+  * Derive the protection/execution price a market order signs from its
+- * reference price — shared by placement and both validators so wire-range
++ * reference price, either a live price or a trigger level. Shared by placement and both validators so wire-range
+  * checks always inspect the exact value the signer receives.
+  *
+- * @param referencePrice - Fresh venue reference price.
++ * @param referencePrice - Fresh venue price or validated trigger level.
+  * @param isBuy - Order side; buys protect above, sells below.
+  * @param slippageFraction - Slippage tolerance (validated < 1).
+  * @returns The slippage-adjusted execution price.
+@@ -508,6 +508,94 @@ const LIGHTER_NOT_SUPPORTED_ERROR = 'Lighter operation not yet supported';
+ const LIGHTER_SIGNER_UNAVAILABLE_ERROR = 'Lighter signer bridge not configured';
+ const LIGHTER_MAINNET_EXPLORER_URL = 'https://scan.lighter.xyz';
+ const LIGHTER_TESTNET_EXPLORER_URL = 'https://testnet.zklighter.elliot.ai';
++const LIGHTER_TRIGGER_WIRE_TYPES = Object.freeze({
++    stop_market: LIGHTER_ORDER_TYPE_STOP_LOSS,
++    stop_limit: LIGHTER_ORDER_TYPE_STOP_LOSS_LIMIT,
++    take_profit_market: LIGHTER_ORDER_TYPE_TAKE_PROFIT,
++    take_profit_limit: LIGHTER_ORDER_TYPE_TAKE_PROFIT_LIMIT,
++});
++/**
++ * Refuse trigger fields that the native standalone transaction cannot carry.
++ *
++ * @param params - Caller order intent.
++ * @returns A validation error, or null when the shape is supported.
++ */
++const getLighterTriggerIntentError = (params) => {
++    if (!isTriggerOrderType(params.orderType)) {
++        return params.triggerPrice === undefined
++            ? null
++            : PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_NOT_SUPPORTED;
++    }
++    if (params.timeInForce !== undefined) {
++        return PERPS_ERROR_CODES.ORDER_TIME_IN_FORCE_NOT_SUPPORTED;
++    }
++    if (params.takeProfitPrice !== undefined ||
++        params.stopLossPrice !== undefined) {
++        return PERPS_ERROR_CODES.ORDER_TRIGGER_TPSL_UNSUPPORTED;
++    }
++    const unsupportedFields = [
++        'takeProfitSize',
++        'stopLossSize',
++        'tpslLinkage',
++        'grouping',
++        'clientOrderId',
++        'twapDuration',
++        'twapRandomize',
++        'scaleMinPrice',
++        'scaleMaxPrice',
++        'scaleNumOrders',
++        'scaleSkew',
++        'chaseIntervalMs',
++        'chaseMaxDurationMs',
++        'chaseMaxRepricings',
++        'chaseMaxDistanceBps',
++    ];
++    const unsupported = unsupportedFields.find((field) => params[field] !== undefined);
++    return unsupported
++        ? `Lighter standalone triggers do not support ${unsupported}`
++        : null;
++};
++/**
++ * Resolve the native trigger prices before any signer or account mutation.
++ *
++ * @param params - Standalone trigger intent.
++ * @param market - Venue price precision.
++ * @returns Sizing reference, execution protection and the exact trigger wire value.
++ */
++const resolveLighterTriggerPrices = (params, market) => {
++    if (params.triggerPrice === undefined || params.triggerPrice === '') {
++        throw new Error(PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_REQUIRED);
++    }
++    const triggerPrice = parseFinitePositive(params.triggerPrice);
++    if (triggerPrice === null) {
++        throw new Error(PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_POSITIVE);
++    }
++    const triggerPriceInt = toSignerWirePriceInteger(triggerPrice, market.supportedPriceDecimals);
++    if (fromLighterInteger(triggerPriceInt, market.supportedPriceDecimals) !==
++        triggerPrice) {
++        throw new Error('Trigger price does not align with the Lighter price grid');
++    }
++    if (isLimitExecutionOrderType(params.orderType)) {
++        const price = parseFinitePositive(params.price ?? '');
++        if (price === null) {
++            throw new Error(`Invalid limit price ${params.price}: must be a positive number`);
++        }
++        return { referencePrice: price, executionPrice: price, triggerPriceInt };
++    }
++    const slippageFraction = params.maxSlippageBps === undefined
++        ? (params.slippage ?? 0.05)
++        : params.maxSlippageBps / 10_000;
++    if (!Number.isFinite(slippageFraction) ||
++        slippageFraction < 0 ||
++        slippageFraction >= 1) {
++        throw new Error(`Invalid slippage tolerance ${slippageFraction * 10_000} bps: must be at least 0 and below 10000`);
++    }
++    return {
++        referencePrice: triggerPrice,
++        executionPrice: deriveLighterExecutionPrice(triggerPrice, params.isBuy, slippageFraction),
++        triggerPriceInt,
++    };
++};
+ /** A definitive venue response that the selected wallet has no account. */
+ class LighterAccountNotFoundError extends Error {
+     constructor(address) {
+@@ -567,6 +655,7 @@ export class LighterProvider {
      #signerResetUnsubscribe = null;
      #isTestnet;
      #apiKeyIndex;
@@ -152,7 +356,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      #configuredAccountIndex;
      /** Markets cache keyed by symbol (freshness delegated to client service). */
      #marketsBySymbol = new Map();
-@@ -618,6 +618,9 @@ export class LighterProvider {
+@@ -618,6 +707,9 @@ export class LighterProvider {
      #wsPositions = new Map();
      /** Merged live open orders from account_all_orders (keyed orderId). */
      #wsOrders = new Map();
@@ -162,7 +366,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      #oiCapSubscribers = new Set();
      #accountSubscribers = new Set();
      #positionSubscribers = new Set();
-@@ -653,6 +656,7 @@ export class LighterProvider {
+@@ -653,6 +745,7 @@ export class LighterProvider {
                  : options.webSocketCtor;
          this.#apiKeyIndex =
              options.lighterAuthConfig?.apiKeyIndex ?? LIGHTER_DEFAULT_API_KEY_INDEX;
@@ -170,7 +374,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          this.#configuredAccountIndex = options.lighterAuthConfig?.accountIndex;
          this.#clientService = new LighterClientService(this.#deps, {
              isTestnet: this.#isTestnet,
-@@ -856,6 +860,8 @@ export class LighterProvider {
+@@ -856,6 +949,8 @@ export class LighterProvider {
          // client, drop the cached session so the next call re-runs setup
          // instead of failing forever against a resolved-but-dead session.
          return {
@@ -179,7 +383,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              createClient: async (params) => {
                  try {
                      const result = await bridge.createClient(params);
-@@ -978,6 +984,7 @@ export class LighterProvider {
+@@ -978,6 +1073,7 @@ export class LighterProvider {
          // instead of caching results for the wrong account.
          this.#sessionGeneration += 1;
          this.#accountIndex = null;
@@ -187,7 +391,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          this.#signerReadyPromise = null;
          this.#authToken = null;
          this.#replaceSignerResetListener();
-@@ -1172,23 +1179,25 @@ export class LighterProvider {
+@@ -1172,23 +1268,25 @@ export class LighterProvider {
       * whose outcome is unknown, and a proven never-landed dispatch can
       * release its nonce for the venue to consume.
       *
@@ -216,7 +420,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          }
          catch (error) {
              throw new Error(`Lighter nonce ledger read failed; refusing writes: ${ensureError(error, 'LighterProvider.#readNonceLedger').message}`);
-@@ -1277,13 +1286,14 @@ export class LighterProvider {
+@@ -1277,13 +1375,14 @@ export class LighterProvider {
      /**
       * Persist the dispatch ledger document.
       *
@@ -233,7 +437,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      };
      /**
       * Resolve one dispatch entry as CONSUMED: remove it and advance the
-@@ -1305,11 +1315,12 @@ export class LighterProvider {
+@@ -1305,11 +1404,12 @@ export class LighterProvider {
       * dispatch entry. Lock order is always venueWrite → bridge → ledger
       * (the ack path takes only the ledger mutex), so no cycle exists.
       *
@@ -247,7 +451,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      /**
       * Append a recovered dispatch without ever sacrificing a blocking
       * succeeded/unknown outcome to bounded storage. Retry-safe failures may
-@@ -1350,14 +1361,16 @@ export class LighterProvider {
+@@ -1350,14 +1450,16 @@ export class LighterProvider {
       * are consumed without quarantine in both cases (their machine
       * reconciles the intent by exact hash).
       *
@@ -267,7 +471,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          if (at >= 0) {
              doc.entries.splice(at, 1);
          }
-@@ -1373,8 +1386,8 @@ export class LighterProvider {
+@@ -1373,8 +1475,8 @@ export class LighterProvider {
                  evidence: 'post-dispatch-session-cancelled',
              });
          }
@@ -278,7 +482,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      /**
       * Resolve every unresolved dispatch before a write section may issue
       * nonces. Consumption is proven by REST-nonce advance or an exact tx
-@@ -1385,17 +1398,19 @@ export class LighterProvider {
+@@ -1385,17 +1487,19 @@ export class LighterProvider {
       * blocking until the venue advances. Ambiguity blocks the write.
       * Runs under the account+slot ledger lock.
       *
@@ -302,7 +506,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          // The durable consumed watermark always seeds the memory floor.
          if (doc.consumedFloor > 0) {
              const floor = this.#nonceReservations.get(reservationKey) ?? 0;
-@@ -1433,7 +1448,7 @@ export class LighterProvider {
+@@ -1433,7 +1537,7 @@ export class LighterProvider {
                  evidence,
              });
          };
@@ -311,7 +515,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          const remaining = [];
          for (const entry of doc.entries) {
              if (entry.txHash === null && nonceResponse.nonce > entry.nonce) {
-@@ -1461,7 +1476,7 @@ export class LighterProvider {
+@@ -1461,7 +1565,7 @@ export class LighterProvider {
                          lookedUp.hash.toLowerCase().replace(/^0x/u, '') ===
                              entry.txHash.toLowerCase().replace(/^0x/u, '') &&
                          lookedUp.accountIndex === accountIndex &&
@@ -320,7 +524,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                          lookedUp.nonce === entry.nonce &&
                          typeof lookedUp.status === 'number';
                      if (matchesIdentity) {
-@@ -1510,7 +1525,7 @@ export class LighterProvider {
+@@ -1510,7 +1614,7 @@ export class LighterProvider {
                      // never landed — the venue still expects this nonce (unless a
                      // later dispatch already consumed it: consumedFloor guards).
                      if (entry.nonce >= doc.consumedFloor) {
@@ -329,7 +533,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                      }
                      continue;
                  }
-@@ -1522,7 +1537,7 @@ export class LighterProvider {
+@@ -1522,7 +1626,7 @@ export class LighterProvider {
              consumedFloor: doc.consumedFloor,
              entries: remaining,
              recovered: doc.recovered,
@@ -338,7 +542,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          if (remaining.length > 0) {
              throw new Error('A previous Lighter submission has an unresolved outcome; writes are blocked until it can be proven consumed or never-landed');
          }
-@@ -1536,19 +1551,32 @@ export class LighterProvider {
+@@ -1536,19 +1640,32 @@ export class LighterProvider {
       * List TP/SL obligations parked in DURABLE manual-recovery state: the
       * venue removed (or rejected) protection in a way that cannot be
       * safely re-established automatically. Surfaced to callers/UI; each
@@ -377,7 +581,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          // Storage errors PROPAGATE — a corrupt index degrading to "nothing
          // pending" would hide a naked position.
          const manualIndex = await this.#readTpslManualIndex();
-@@ -1565,7 +1593,7 @@ export class LighterProvider {
+@@ -1565,7 +1682,7 @@ export class LighterProvider {
                      reason: doc.reason,
                      priorIntent: doc.priorIntent,
                      survivingOrderIds: doc.survivingOrderIds,
@@ -386,7 +590,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                  });
              }
          }
-@@ -1578,18 +1606,30 @@ export class LighterProvider {
+@@ -1578,18 +1695,30 @@ export class LighterProvider {
                  continue;
              }
              const journal = await this.#loadTpslJournal(settlementKey);
@@ -420,7 +624,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          return pending;
      }
      /**
-@@ -1597,13 +1637,20 @@ export class LighterProvider {
+@@ -1597,13 +1726,20 @@ export class LighterProvider {
       * (previously ambiguous submissions later resolved). Never mutates the
       * ledger — acknowledgment is a separate, per-outcome call so a crash
       * between reading and acting can never silently drop an outcome.
@@ -441,7 +645,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          return doc.recovered.map((outcome) => ({ ...outcome }));
      }
      /**
-@@ -1619,10 +1666,13 @@ export class LighterProvider {
+@@ -1619,10 +1755,13 @@ export class LighterProvider {
          this.#ensureSessionBinding();
          const generation = this.#sessionGeneration;
          const accountIndex = await this.#ensureAccountIndex();
@@ -457,7 +661,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              const remaining = doc.recovered.filter((outcome) => outcome.recoveryId !== recoveryId);
              if (remaining.length === doc.recovered.length) {
                  throw new Error(`No pending recovered Lighter dispatch matches id ${recoveryId}; refresh and re-read before acknowledging`);
-@@ -1631,7 +1681,7 @@ export class LighterProvider {
+@@ -1631,7 +1770,7 @@ export class LighterProvider {
                  consumedFloor: doc.consumedFloor,
                  entries: doc.entries,
                  recovered: remaining,
@@ -466,7 +670,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          });
      }
      /**
-@@ -1639,15 +1689,16 @@ export class LighterProvider {
+@@ -1639,15 +1778,16 @@ export class LighterProvider {
       * refused when the durable consumed watermark shows a later dispatch
       * (e.g. a retry) already consumed the nonce.
       *
@@ -486,7 +690,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      };
      /**
       * Durable TP/SL journal key (network + address + accountIndex + symbol
-@@ -1818,7 +1869,10 @@ export class LighterProvider {
+@@ -1818,7 +1958,10 @@ export class LighterProvider {
              Number.isSafeInteger(parsed.recordedAt) &&
              parsed.recordedAt >= 0 &&
              // The journal is bound to ONE api-key slot: nonces are per slot.
@@ -498,7 +702,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              typeof parsed.operationId === 'string' &&
              parsed.operationId.length >= 1 &&
              parsed.operationId.length <= 64 &&
-@@ -2781,6 +2835,7 @@ export class LighterProvider {
+@@ -2781,6 +2924,7 @@ export class LighterProvider {
       * ACCEPTED mutation is still not visible.
       */
      #reconcilePriorTpsl = async (readActiveRaw, readInactive, accountIndex, entry) => {
@@ -506,7 +710,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          // Per-attempt reconciliation, authoritative and never time-guessed:
          // 1. Books first — a create is resolved when its ids are all
          //    active/terminal, a cancel when its target left the active book.
-@@ -2851,7 +2906,7 @@ export class LighterProvider {
+@@ -2851,7 +2995,7 @@ export class LighterProvider {
                      lookedUp.hash.toLowerCase().replace(/^0x/u, '') ===
                          attempt.txHash.toLowerCase().replace(/^0x/u, '') &&
                      lookedUp.accountIndex === accountIndex &&
@@ -515,7 +719,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                      lookedUp.nonce === attempt.nonce;
                  if (!matchesIdentity) {
                      this.#deps.debugLogger.log('[LighterProvider] TP/SL tx lookup identity mismatch; failing closed', { txHash: attempt.txHash });
-@@ -2881,7 +2936,7 @@ export class LighterProvider {
+@@ -2881,7 +3025,7 @@ export class LighterProvider {
              // Expired and venue-confirmed absent: authoritatively never landed —
              // its reserved nonce may be released UNLESS a later dispatch (a
              // retry) already consumed it (durable consumed watermark guards).
@@ -524,7 +728,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          }
          return 'resolved';
      };
-@@ -2890,11 +2945,12 @@ export class LighterProvider {
+@@ -2890,11 +3034,12 @@ export class LighterProvider {
       * PROVEN never-landed. Only the topmost reservation can be safely
       * lowered; anything else stays reserved until proven in turn.
       *
@@ -539,7 +743,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          if (this.#nonceReservations.get(reservationKey) === nonce + 1) {
              this.#nonceReservations.set(reservationKey, nonce);
          }
-@@ -3048,6 +3104,7 @@ export class LighterProvider {
+@@ -3048,6 +3193,7 @@ export class LighterProvider {
          this.#sessionGeneration += 1;
          this.#boundAddress = null;
          this.#accountIndex = null;
@@ -547,7 +751,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          this.#signerReadyPromise = null;
          this.#authToken = null;
          this.#clearBridgeOwnership();
-@@ -3081,70 +3138,186 @@ export class LighterProvider {
+@@ -3081,70 +3227,186 @@ export class LighterProvider {
              throw error;
          }
      };
@@ -784,7 +988,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
      };
      #registerVenueKey = async (accountIndex, changePubKeyBody, generation, nextNonce, submit) => {
          const bridge = this.#getSignerBridge();
-@@ -3236,16 +3409,32 @@ export class LighterProvider {
+@@ -3236,16 +3498,32 @@ export class LighterProvider {
       * provided helper (each call returns the next fresh nonce).
       * @param generationAtIntent - Session generation captured when the
       * caller's intent was formed (defaults to now).
@@ -819,7 +1023,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              this.#assertSession(generationAtIntent);
              // Monotonic nonce reservation: the venue's nextNonce endpoint can
              // LAG accepted submissions. The floor is SESSION-GLOBAL per
-@@ -3255,14 +3444,14 @@ export class LighterProvider {
+@@ -3255,14 +3533,14 @@ export class LighterProvider {
              // response was lost. Reservation advances at DISPATCH (a signing
              // failure never burns a nonce the venue still expects); a proven
              // never-landed submission releases it again via reconciliation.
@@ -836,7 +1040,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                  this.#assertSession(generationAtIntent);
                  const reservedFloor = this.#nonceReservations.get(reservationKey);
                  const issued = reservedFloor === undefined
-@@ -3310,7 +3499,7 @@ export class LighterProvider {
+@@ -3310,7 +3588,7 @@ export class LighterProvider {
                      };
                      const appendedEntry = ledgerEntry;
                      await this.#withLedgerLock(accountIndex, async () => {
@@ -845,7 +1049,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                          if (doc.entries.length >= 16) {
                              throw new Error('Too many unresolved Lighter dispatches; refusing further writes until they resolve');
                          }
-@@ -3318,8 +3507,8 @@ export class LighterProvider {
+@@ -3318,8 +3596,8 @@ export class LighterProvider {
                              consumedFloor: doc.consumedFloor,
                              entries: [...doc.entries, appendedEntry],
                              recovered: doc.recovered,
@@ -856,7 +1060,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                      // Only AFTER the durable append: reserve in memory — from this
                      // point the venue may consume the nonce even if the response
                      // never arrives.
-@@ -3328,6 +3517,10 @@ export class LighterProvider {
+@@ -3328,6 +3606,10 @@ export class LighterProvider {
                  // EVERY error path below keeps the durable entry — a coded venue
                  // or HTTP error can mask a commit, so nothing short of an exact
                  // authoritative reconciliation may release the nonce.
@@ -867,7 +1071,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                  const response = await this.#clientService.sendTx(txType, txInfo);
                  // Acceptance bookkeeping runs SYNCHRONOUSLY before anything can
                  // fail: a switch during network submission must cancel the
-@@ -3349,7 +3542,7 @@ export class LighterProvider {
+@@ -3349,7 +3631,7 @@ export class LighterProvider {
                      fenceError = error;
                  }
                  if (ledgerEntry !== null) {
@@ -876,7 +1080,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                  }
                  if (fenceError !== null) {
                      throw ensureError(fenceError, 'LighterProvider.submit');
-@@ -3362,7 +3555,7 @@ export class LighterProvider {
+@@ -3362,7 +3644,7 @@ export class LighterProvider {
          // serialized PROCESS-WIDE per network+account+api-key slot: the
          // instance chain alone cannot stop a second live provider from
          // issuing the same nonce or interleaving ledger writes.
@@ -885,7 +1089,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          // INNERMOST: the bridge mutex — the WASM client is a singleton
          // per bridge, so ensure-correct-client + every sign of a section
          // are serialized across ALL providers sharing the bridge.
-@@ -3392,6 +3585,7 @@ export class LighterProvider {
+@@ -3392,6 +3674,7 @@ export class LighterProvider {
              accountIndex: recreateParams.accountIndex,
              nonce,
              apiKeyIndex: this.#apiKeyIndex,
@@ -893,7 +1097,227 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          });
          if (recreated.error || !recreated.success) {
              throw new Error(`Lighter signer client re-establishment failed: ${recreated.error ?? 'unknown'}`);
-@@ -5827,7 +6021,7 @@ export class LighterProvider {
+@@ -3451,6 +3734,45 @@ export class LighterProvider {
+     // ============================================================================
+     // Market Data Operations (Public Reads)
+     // ============================================================================
++    /**
++     * Report native standalone triggers for an active, known market. Explicit
++     * margin modes and strategies remain unreported until their write paths exist.
++     *
++     * @param params - Market route to inspect.
++     * @returns Native trigger types or the reason the market is unavailable.
++     */
++    async getOrderCapabilities(params) {
++        const unavailable = (reason) => Object.freeze({
++            status: 'unavailable',
++            providerId: this.protocolId,
++            reason,
++        });
++        if (!params.symbol.trim()) {
++            return unavailable('invalid_symbol');
++        }
++        if (this.#isDisconnected) {
++            return unavailable('provider_unavailable');
++        }
++        if (this.#marketsBySymbol.size === 0) {
++            const initialized = await this.initialize();
++            if (!initialized.success) {
++                return unavailable('provider_unavailable');
++            }
++        }
++        const market = this.#marketsBySymbol.get(params.symbol);
++        if (!market) {
++            return unavailable('market_not_found');
++        }
++        if (market.status !== 'active') {
++            return unavailable('order_market_unsupported');
++        }
++        return Object.freeze({
++            status: 'ready',
++            providerId: this.protocolId,
++            supportedStrategies: Object.freeze([]),
++            supportedTriggerOrderTypes: Object.freeze([...TRIGGER_ORDER_TYPES]),
++        });
++    }
+     async getMarkets(_params) {
+         try {
+             const markets = await this.#clientService.getOrderBooks();
+@@ -3759,9 +4081,15 @@ export class LighterProvider {
+                     error: PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED,
+                 };
+             }
+-            if (params.orderType !== 'limit' && params.orderType !== 'market') {
++            if (params.orderType !== 'limit' &&
++                params.orderType !== 'market' &&
++                !isTriggerOrderType(params.orderType)) {
+                 return { success: false, error: LIGHTER_NOT_SUPPORTED_ERROR };
+             }
++            const triggerIntentError = getLighterTriggerIntentError(params);
++            if (triggerIntentError) {
++                return { success: false, error: triggerIntentError };
++            }
+             // User intent is never silently dropped: fields this venue path does
+             // not execute are rejected so the caller can adapt, not surprised.
+             if (params.takeProfitPrice || params.stopLossPrice) {
+@@ -3799,7 +4127,13 @@ export class LighterProvider {
+                     error: `Unknown Lighter market: ${params.symbol}`,
+                 };
+             }
+-            if (params.orderType === 'limit' && !params.price) {
++            if (isTriggerOrderType(params.orderType) && market.status !== 'active') {
++                return {
++                    success: false,
++                    error: 'Lighter standalone triggers require an active market',
++                };
++            }
++            if (isLimitExecutionOrderType(params.orderType) && !params.price) {
+                 return { success: false, error: 'Limit order requires a price' };
+             }
+             if (params.leverage !== undefined) {
+@@ -3830,7 +4164,13 @@ export class LighterProvider {
+             // separate so usdAmount sizing is never distorted by the protection
+             // offset.
+             let referencePrice;
+-            if (params.orderType === 'limit') {
++            const triggerPrices = isTriggerOrderType(params.orderType)
++                ? resolveLighterTriggerPrices(params, market)
++                : undefined;
++            if (triggerPrices) {
++                referencePrice = triggerPrices.referencePrice;
++            }
++            else if (params.orderType === 'limit') {
+                 // STRICT full-string parse: '90000USD' prefix-parses under
+                 // parseFloat and must never become signed intent.
+                 const parsedLimitPrice = parseFinitePositive(params.price ?? '');
+@@ -3845,7 +4185,7 @@ export class LighterProvider {
+             else {
+                 referencePrice = parseFloat(params.price ?? String(params.currentPrice ?? 0));
+             }
+-            let executionPrice = referencePrice;
++            let executionPrice = triggerPrices?.executionPrice ?? referencePrice;
+             if (params.orderType === 'market') {
+                 const resolved = await this.#resolveMarketReferencePrice(params.symbol, slippageFraction, params.priceAtCalculation);
+                 if (resolved.error !== null) {
+@@ -3913,7 +4253,10 @@ export class LighterProvider {
+                 // extra exposure results and dust positions stay closable. The
+                 // isFullClose flag is a hint, never trusted — a partial close
+                 // bumped to the minimum would close more than the caller asked.
+-                const verifiedFullClose = params.reduceOnly
++                // A dormant trigger must retain its quantity even if the position
++                // grows before activation; today's full-close proof cannot authorize
++                // a larger future close.
++                const verifiedFullClose = params.reduceOnly && !triggerPrices
+                     ? await this.#isVerifiedFullClose(params.symbol, requestedSize)
+                     : false;
+                 if (!verifiedFullClose) {
+@@ -3928,6 +4271,13 @@ export class LighterProvider {
+             // sub-tick rejections throw here, still with zero bridge calls.
+             const priceInt = toSignerWirePriceInteger(executionPrice, market.supportedPriceDecimals);
+             const sizeInt = toSignerWireInteger(size, market.supportedSizeDecimals);
++            let orderTypeInt = LIGHTER_ORDER_TYPE_MARKET;
++            if (isTriggerOrderType(params.orderType)) {
++                orderTypeInt = LIGHTER_TRIGGER_WIRE_TYPES[params.orderType];
++            }
++            else if (params.orderType === 'limit') {
++                orderTypeInt = LIGHTER_ORDER_TYPE_LIMIT;
++            }
+             const leverageImfHundredths = await this.#resolveLeverageIntent(params);
+             // Margin mode is sent only with an explicit leverage update. An
+             // omitted leverage leaves both leverage and margin mode unchanged;
+@@ -3980,17 +4330,16 @@ export class LighterProvider {
+                         String(sizeInt),
+                         String(priceInt),
+                         params.isBuy ? 0 : 1,
+-                        params.orderType === 'limit'
+-                            ? LIGHTER_ORDER_TYPE_LIMIT
+-                            : LIGHTER_ORDER_TYPE_MARKET,
+-                        params.orderType === 'limit' && params.timeInForce !== 'IOC'
++                        orderTypeInt,
++                        isLighterMakerOrder(params)
+                             ? LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME
+                             : LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL,
+                         params.reduceOnly ? 1 : 0,
+-                        String(LIGHTER_NO_TRIGGER_PRICE),
+-                        // GTT orders auto-expire in 28 days (signer sentinel -1);
+-                        // IOC orders must carry a zero expiry.
+-                        params.orderType === 'limit' && params.timeInForce !== 'IOC'
++                        String(triggerPrices?.triggerPriceInt ?? LIGHTER_NO_TRIGGER_PRICE),
++                        // Triggers remain pending even when they execute as IOC.
++                        // Only ordinary immediate orders use a zero expiry.
++                        isTriggerOrderType(params.orderType) ||
++                            isLighterMakerOrder(params)
+                             ? LIGHTER_ORDER_EXPIRY_NONE
+                             : 0,
+                         await nextNonce(),
+@@ -5196,9 +5545,15 @@ export class LighterProvider {
+         }
+         // Mirrors placeOrder's own rejections so validation never approves an
+         // order shape the placement path would refuse.
+-        if (params.orderType !== 'limit' && params.orderType !== 'market') {
++        if (params.orderType !== 'limit' &&
++            params.orderType !== 'market' &&
++            !isTriggerOrderType(params.orderType)) {
+             return { isValid: false, error: LIGHTER_NOT_SUPPORTED_ERROR };
+         }
++        const triggerIntentError = getLighterTriggerIntentError(params);
++        if (triggerIntentError) {
++            return { isValid: false, error: triggerIntentError };
++        }
+         if (params.takeProfitPrice || params.stopLossPrice) {
+             return {
+                 isValid: false,
+@@ -5211,10 +5566,11 @@ export class LighterProvider {
+                 error: 'Lighter placement does not support post-only (ALO) yet',
+             };
+         }
+-        if (params.orderType === 'limit' && !params.price) {
++        if (isLimitExecutionOrderType(params.orderType) && !params.price) {
+             return { isValid: false, error: 'Limit order requires a price' };
+         }
+-        if (params.orderType === 'limit' && params.price !== undefined) {
++        if (isLimitExecutionOrderType(params.orderType) &&
++            params.price !== undefined) {
+             // Strict finite parity with placement, LIMIT ONLY: 'Infinity' and
+             // prefix-numeric strings ('90000USD') both parse under a bare
+             // parseFloat check but placement refuses them. Market placement
+@@ -5254,6 +5610,12 @@ export class LighterProvider {
+                 error: `Unknown Lighter market: ${params.symbol}`,
+             };
+         }
++        if (isTriggerOrderType(params.orderType) && market.status !== 'active') {
++            return {
++                isValid: false,
++                error: 'Lighter standalone triggers require an active market',
++            };
++        }
+         if (params.leverage !== undefined) {
+             // Same authoritative-metadata requirement as placement.
+             const maxLeverage = await this.#requireMarketMaxLeverage(params.symbol);
+@@ -5279,7 +5641,12 @@ export class LighterProvider {
+         // the wire-range check below inspects the exact signed value.
+         let referencePrice;
+         let executionPrice;
+-        if (params.orderType === 'market') {
++        if (isTriggerOrderType(params.orderType)) {
++            const resolved = resolveLighterTriggerPrices(params, market);
++            referencePrice = resolved.referencePrice;
++            executionPrice = resolved.executionPrice;
++        }
++        else if (params.orderType === 'market') {
+             const slippageFraction = params.maxSlippageBps === undefined
+                 ? (params.slippage ?? 0.05)
+                 : params.maxSlippageBps / 10_000;
+@@ -5338,7 +5705,7 @@ export class LighterProvider {
+                 // can THROW (capability gates, venue-data integrity): a validator
+                 // must resolve to an explicit invalid result, never reject.
+                 let verifiedFullClose = false;
+-                if (params.reduceOnly) {
++                if (params.reduceOnly && !isTriggerOrderType(params.orderType)) {
+                     try {
+                         verifiedFullClose = await this.#isVerifiedFullClose(params.symbol, requestedSize);
+                     }
+@@ -5827,7 +6194,7 @@ export class LighterProvider {
              return NOOP_UNSUBSCRIBE;
          }
          this.#orderSubscribers.add(params);
@@ -902,7 +1326,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              params.callback([...this.#wsOrders.values()]);
          }
          this.#ensureAccountChannels();
-@@ -5842,6 +6036,20 @@ export class LighterProvider {
+@@ -5842,6 +6209,20 @@ export class LighterProvider {
          }
          this.#fillSubscribers.add(params);
          this.#ensureAccountChannels();
@@ -923,7 +1347,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          return () => {
              this.#fillSubscribers.delete(params);
              this.#releaseChannelIfUnused();
-@@ -5867,7 +6075,9 @@ export class LighterProvider {
+@@ -5867,7 +6248,9 @@ export class LighterProvider {
          }
          const generation = this.#sessionGeneration;
          let channelsRequested = false;
@@ -934,7 +1358,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              try {
                  // Warm the margin cache before any WS position frame is adapted.
                  await this.#ensureMarketMargins().catch(() => undefined);
-@@ -5883,6 +6093,7 @@ export class LighterProvider {
+@@ -5883,6 +6266,7 @@ export class LighterProvider {
                  this.#requestChannel(`account_all_positions/${accountIndex}`);
                  this.#requestChannel(`account_all_trades/${accountIndex}`);
                  channelsRequested = true;
@@ -942,7 +1366,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                  try {
                      const auth = await this.#getAuthToken();
                      this.#assertSession(generation);
-@@ -5890,6 +6101,20 @@ export class LighterProvider {
+@@ -5890,6 +6274,20 @@ export class LighterProvider {
                  }
                  catch (error) {
                      this.#deps.debugLogger.log('[LighterProvider] orders channel skipped (no auth token)', { error: String(error) });
@@ -963,7 +1387,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                      // Setup failures are not authoritative empty order state. Account
                      // switches and deselection already emit their synchronous reset.
                      channelsRequested = false;
-@@ -5907,6 +6132,17 @@ export class LighterProvider {
+@@ -5907,6 +6305,17 @@ export class LighterProvider {
                      generation === this.#sessionGeneration) {
                      this.#emitAccountBindingReset();
                  }
@@ -981,7 +1405,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                  // An aborted previous-account setup has no authority over the new
                  // session. Current-session failures also preserve the last known data.
                  // Transport, auth, capability, and integrity failures are not
-@@ -5924,7 +6160,6 @@ export class LighterProvider {
+@@ -5924,7 +6333,6 @@ export class LighterProvider {
                  this.#accountChannelsPromise === setupPromise) {
                  this.#accountChannelsPromise = null;
              }
@@ -989,7 +1413,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          })
              .catch(() => undefined);
          this.#ensureStream();
-@@ -6017,7 +6252,6 @@ export class LighterProvider {
+@@ -6017,7 +6425,6 @@ export class LighterProvider {
                          }
                          this.#wsWantedChannels.set(channel, { auth: freshToken });
                          this.#sendSubscribe(channel, freshToken);
@@ -997,7 +1421,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
                      })
                          .catch((error) => {
                          this.#deps.debugLogger.log('[LighterProvider] auth channel resubscribe failed', { channel, error: String(error) });
-@@ -6173,6 +6407,9 @@ export class LighterProvider {
+@@ -6173,6 +6580,9 @@ export class LighterProvider {
                      }
                  }
              }
@@ -1007,7 +1431,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
              this.#wsOrders.clear();
              for (const [orderId, order] of nextOrders) {
                  this.#wsOrders.set(orderId, order);
-@@ -6338,9 +6575,6 @@ export class LighterProvider {
+@@ -6338,9 +6748,6 @@ export class LighterProvider {
       * @param message - Camelized account_all_trades payload.
       */
      #handleTradesMessage = (message) => {
@@ -1017,7 +1441,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          const isSnapshot = (message.type ?? '').startsWith('subscribed');
          const fills = [];
          let droppedUnsupportedFill = false;
-@@ -6361,6 +6595,11 @@ export class LighterProvider {
+@@ -6361,6 +6768,11 @@ export class LighterProvider {
                  }
              }
          }
@@ -1029,7 +1453,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          if (fills.length === 0 && !isSnapshot) {
              return;
          }
-@@ -6372,6 +6611,21 @@ export class LighterProvider {
+@@ -6372,6 +6784,21 @@ export class LighterProvider {
              this.#deps.debugLogger.log('[LighterProvider] withholding partial fills snapshot (unsupported fills present)');
              return;
          }
@@ -1051,7 +1475,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          for (const subscriber of this.#fillSubscribers) {
              try {
                  subscriber.callback(fills, isSnapshot);
-@@ -6499,6 +6753,8 @@ export class LighterProvider {
+@@ -6499,6 +6926,8 @@ export class LighterProvider {
          this.#wsWantedChannels.clear();
          this.#accountChannelsPromise = null;
          this.#wsPositions.clear();
@@ -1060,7 +1484,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          this.#wsOrders.clear();
          this.#orderBookState.clear();
          this.#candleSeries.clear();
-@@ -6555,7 +6811,6 @@ export class LighterProvider {
+@@ -6555,7 +6984,6 @@ export class LighterProvider {
              params.callback(seeded);
              this.#requestChannel(`candle/${market.marketId}/${resolution}`);
              this.#ensureStream();
@@ -1068,7 +1492,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..90806b963ebeb67956137b7d99bf628d
          })
              .catch((error) => {
              this.#deps.debugLogger.log('[LighterProvider] candle seed failed', {
-@@ -6625,7 +6880,6 @@ export class LighterProvider {
+@@ -6625,7 +7053,6 @@ export class LighterProvider {
              subscribers.add(params);
              this.#requestChannel(`order_book/${marketId}`);
              this.#ensureStream();
@@ -1092,10 +1516,19 @@ index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615
  const ResponseStructs = {
      orderBooks: type({
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index 3924c0be2cb8eb6dac463a8d2273203d72140a00..92f3cad6e90019c362a950307098403876cb74a8 100644
+index 3924c0be2cb8eb6dac463a8d2273203d72140a00..cb6e4517c4e38cc4977b93f42dda1a02a41a1acf 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
-@@ -998,7 +998,8 @@ export type OrderFill = {
+@@ -564,6 +564,8 @@ export type DisconnectResult = {
+ export type MarketInfo = {
+     name: string;
+     szDecimals: number;
++    /** Fixed decimal price grid, when the venue declares one. */
++    priceDecimals?: number;
+     maxLeverage: number;
+     marginTableId: number;
+     marginMode?: 'strictIsolated' | 'noCross';
+@@ -998,7 +1000,8 @@ export type OrderFill = {
      side: string;
      size: string;
      price: string;
@@ -1105,7 +1538,7 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..92f3cad6e90019c362a9503070984038
      direction: string;
      fee: string;
      feeToken: string;
-@@ -1136,12 +1137,16 @@ export type SubscribePositionsParams = {
+@@ -1136,12 +1139,16 @@ export type SubscribePositionsParams = {
      includeHistory?: boolean;
  };
  export type SubscribeOrderFillsParams = {
@@ -1124,7 +1557,17 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..92f3cad6e90019c362a9503070984038
      accountId?: CaipAccountId;
      includeHistory?: boolean;
  };
-@@ -1405,6 +1410,12 @@ type ReadyPerpsOrderCapabilities = Readonly<{
+@@ -1397,14 +1404,20 @@ export type GetScalePriceLadderParams = {
+     /** Optional explicit route; omitted uses the active/default provider. */
+     providerId?: PerpsProviderType;
+ };
+-/** Provider-owned strategy capabilities for the selected market route. */
+-export type DirectProviderOrderCapabilitiesUnavailableReason = 'provider_unavailable' | 'invalid_symbol' | 'market_not_found' | 'strategy_market_unsupported';
++/** Reasons provider-owned order capabilities are unavailable for a market. */
++export type DirectProviderOrderCapabilitiesUnavailableReason = 'provider_unavailable' | 'invalid_symbol' | 'market_not_found' | 'order_market_unsupported' | 'strategy_market_unsupported';
+ export type RoutedOrderCapabilitiesUnavailableReason = 'provider_not_found' | 'provider_not_routable' | 'not_implemented';
+ export type OrderCapabilitiesUnavailableReason = DirectProviderOrderCapabilitiesUnavailableReason | RoutedOrderCapabilitiesUnavailableReason;
+ type ReadyPerpsOrderCapabilities = Readonly<{
      status: 'ready';
      providerId: PerpsProviderType;
      supportedStrategies: readonly StrategyOrderType[];
@@ -1137,6 +1580,15 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..92f3cad6e90019c362a9503070984038
      /**
       * Margin modes the market accepts for `OrderParams.marginMode`. Omitted
       * means the provider does not report it, and clients should not offer an
+@@ -1629,7 +1642,7 @@ export type PerpsProvider = {
+     /** Whether this provider routes individual requests by `providerId`. */
+     readonly routesOrdersByProviderId?: boolean;
+     /**
+-     * Return strategy capabilities for the provider/market route. Providers may
++     * Return order capabilities for the provider/market route. Providers may
+      * omit this hook; the controller then reports capabilities as unavailable.
+      */
+     getOrderCapabilities?(params: GetOrderCapabilitiesParams): Promise<PerpsOrderCapabilities>;
 diff --git a/dist/types/lighter-types.d.ts b/dist/types/lighter-types.d.ts
 index 9f212d4edfa0141522a868fb006a8d02621bed96..df63db4afe0d5f07b82013d207cd2d86395191af 100644
 --- a/dist/types/lighter-types.d.ts
@@ -1245,10 +1697,18 @@ index 10b857cec38fdfe407304af090910286e187c0c4..3f24e0a7a045105de8d721ccb5e45e42
  export declare function adaptFillFromLighterTrade(trade: LighterRestTrade | LighterWsTrade, symbol: string, accountIndex: number): OrderFill;
  /**
 diff --git a/dist/utils/lighterAdapter.js b/dist/utils/lighterAdapter.js
-index 4894b39738fcca97eeabb3875f64ef751d493d1e..7197cadd5f2a3db3163e8cf12b2ace78beab87c3 100644
+index 4894b39738fcca97eeabb3875f64ef751d493d1e..27aae8b99046863d93c446d8086705bf8d989e8a 100644
 --- a/dist/utils/lighterAdapter.js
 +++ b/dist/utils/lighterAdapter.js
-@@ -199,18 +199,24 @@ export function adaptAccountStateFromLighterUserStats(stats) {
+@@ -62,6 +62,7 @@ export function adaptMarketFromLighter(market, maxLeverage) {
+     return {
+         name: market.symbol,
+         szDecimals: market.supportedSizeDecimals,
++        priceDecimals: market.supportedPriceDecimals,
+         maxLeverage,
+         marginTableId: 0, // Lighter does not use margin tables
+         minimumOrderSize: parseFloat(market.minQuoteAmount),
+@@ -199,18 +200,24 @@ export function adaptAccountStateFromLighterUserStats(stats) {
   * @param context.size - Trade size (base units, absolute).
   * @param context.positionBefore - Our side's absolute position size before.
   * @param context.signChanged - Whether our side's position sign changed.
@@ -1276,7 +1736,7 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..7197cadd5f2a3db3163e8cf12b2ace78
          // Crossed past zero → flipped; landed exactly on zero → full close.
          if (size > positionBefore * 1.000001) {
              return isBuy ? 'Short > Long' : 'Long > Short';
-@@ -218,10 +224,10 @@ export function deriveLighterFillDirection(context) {
+@@ -218,10 +225,10 @@ export function deriveLighterFillDirection(context) {
          return isBuy ? 'Close Short' : 'Close Long';
      }
      // Partial fill on an existing position: realized pnl proves it reduced.
@@ -1289,7 +1749,7 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..7197cadd5f2a3db3163e8cf12b2ace78
      // payload (a break-even partial close and an add both fit): fall back to
      // the side-only vocabulary instead of asserting Open without evidence.
      return isBuy ? 'Buy' : 'Sell';
-@@ -305,8 +311,8 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -305,8 +312,8 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
      const fee = '0';
      const isBuy = !accountIsAsk;
      // The account's maker/taker role selects the matching pre-trade position
@@ -1300,7 +1760,7 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..7197cadd5f2a3db3163e8cf12b2ace78
      const positionBeforeRaw = accountIsMaker
          ? trade.makerPositionSizeBefore
          : trade.takerPositionSizeBefore;
-@@ -317,17 +323,16 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -317,17 +324,16 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
      if (positionBefore === null ||
          !Number.isFinite(positionBefore) ||
          positionBefore < 0 ||
@@ -1326,7 +1786,7 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..7197cadd5f2a3db3163e8cf12b2ace78
          throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} trade ${trade.tradeId} is missing valid account pnl`);
      }
      const direction = deriveLighterFillDirection({
-@@ -360,7 +365,7 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
+@@ -360,7 +366,7 @@ export function adaptFillFromLighterTrade(trade, symbol, accountIndex) {
          size: trade.size,
          price: trade.price,
          // The venue reports realized pnl per side of the trade.
