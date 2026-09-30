@@ -139,6 +139,11 @@ describeForPlatforms('Wallet', () => {
                 sortCallback: 'stringNumeric',
               },
             },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                homeSearchABTest: 'treatment',
+              },
+            },
           },
         },
       } as unknown as Record<string, unknown>,
@@ -182,11 +187,6 @@ describeForPlatforms('Wallet', () => {
               key: 'tokenFiatAmount',
               order: 'dsc',
               sortCallback: 'stringNumeric',
-            },
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              homeSearchABTest: 'treatment',
             },
           },
         },

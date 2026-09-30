@@ -13,18 +13,18 @@ export const HOMEPAGE_SEARCH_VARIANTS: Record<
   { showHomepageSearchBar: boolean }
 > = {
   [HomepageSearchVariant.Control]: {
-    showHomepageSearchBar: true,
+    showHomepageSearchBar: false,
   },
   [HomepageSearchVariant.Treatment]: {
-    showHomepageSearchBar: false,
+    showHomepageSearchBar: true,
   },
 };
 
 export const HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS = {
   experimentName: 'Homepage search bar',
   variationNames: {
-    control: 'Show homepage search bar',
-    treatment: 'Hide homepage search bar',
+    control: 'Hide homepage search bar',
+    treatment: 'Show homepage search bar',
   },
 } as const;
 
