@@ -152,6 +152,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed grammar in the inaccurate network fee warning (#35975)
 - Fixed Immersve identity verification hanging on a black spinner on Android when camera or microphone access was missing (#35830)
 
+## [8.12.1]
+
+### Added
+
+- Added a Money Account signature when binding a Money Account for the sweepstakes (#36816)
+
 ## [8.12.0]
 
 ### Added
@@ -14084,7 +14090,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...HEAD
 [8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1
-[8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.13.0
+[8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.1...v8.13.0
+[8.12.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.12.1
 [8.12.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...v8.12.0
 [8.11.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.2...v8.11.0
 [8.10.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.10.1...v8.10.2
