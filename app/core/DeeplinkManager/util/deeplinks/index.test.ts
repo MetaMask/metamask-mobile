@@ -29,6 +29,12 @@ describe('deeplinks utils', () => {
       expect(
         isMetaMaskUniversalLink('https://link-test.metamask.io/send'),
       ).toBe(true);
+      expect(isMetaMaskUniversalLink('https://link.metamask.com/perps')).toBe(
+        true,
+      );
+      expect(
+        isMetaMaskUniversalLink('https://link.metamask.com/swap?from=ETH'),
+      ).toBe(true);
     });
 
     it('does NOT match custom-scheme URLs', () => {
@@ -83,6 +89,11 @@ describe('deeplinks utils', () => {
       expect(
         isInternalDeepLink('https://link.metamask.io/dapp/uniswap.org'),
       ).toBe(true);
+    });
+
+    it('identifies MetaMask .com universal links', () => {
+      expect(isInternalDeepLink('https://link.metamask.com/swap')).toBe(true);
+      expect(isInternalDeepLink('https://link.metamask.com/perps')).toBe(true);
     });
 
     it('identifies MetaMask test universal links', () => {
@@ -168,6 +179,8 @@ describe('deeplinks utils', () => {
       'https://link.metamask.io/connect?channelId=test-channel-id',
       'https://link.metamask.io/mmsdk?message=test-message',
       'https://link.metamask.io/bind?channelId=test-channel-id',
+      'https://link.metamask.com/wc?uri=wc%3Asession-topic',
+      'https://link.metamask.com/connect?channelId=test-channel-id',
     ])('returns true for %s', (deeplink) => {
       expect(isSDKServiceDeeplink(deeplink)).toBe(true);
     });
