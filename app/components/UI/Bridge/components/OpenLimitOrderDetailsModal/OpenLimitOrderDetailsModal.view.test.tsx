@@ -132,7 +132,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
   });
 
-  it('shows a USD trigger price in the display currency, with the USD price in a notice', async () => {
+  it('shows a USD trigger price in the display currency, with the USD exchange rate in a notice', async () => {
     const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
       order: MOCK_USD_PRICE_ORDER,
       deterministicFiat: true,
@@ -145,7 +145,10 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       within(getByTestId(TRIGGER_CONDITION)).getByText('€2000'),
     ).toBeOnTheScreen();
     expect(getByTestId(USD_PRICE_NOTICE)).toHaveTextContent(
-      strings('bridge.limit.usd_price_notice', { usdPrice: '$2160' }),
+      strings('bridge.limit.usd_price_notice', {
+        rate: '0.926',
+        currency: 'EUR',
+      }),
     );
   });
 

@@ -5,19 +5,24 @@ import type { BridgeToken } from '../../types';
 import { getCurrencySymbol } from '../../utils/currencyUtils';
 import { formatLimitOrderFiatPrice } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
+import { getLimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
 import type { TriggerPriceDisplay } from './types';
 
 /**
  * Formats a USD trigger price in the user's display currency. The order is
- * placed at a USD price, so the USD value comes along for the notice whenever
- * the row shows something else. Without a rate to convert with, the row shows
- * the USD price as is rather than a guessed one.
+ * placed at a USD price, so whenever the row shows something else the USD
+ * price comes along to be shown next to it, with the exchange rate for the
+ * notice. Without a rate to convert with, the row shows the USD price as is
+ * rather than a guessed one.
  */
 function getFiatTriggerPrice(
   usdPrice: string,
   currentCurrency: string,
   fiatToUsdRate: number | undefined,
-): Pick<TriggerPriceDisplay, 'triggerPrice' | 'usdTriggerPrice'> {
+): Pick<
+  TriggerPriceDisplay,
+  'triggerPrice' | 'usdTriggerPrice' | 'usdExchangeRate'
+> {
   const formattedUsdPrice = `${getCurrencySymbol('usd')}${
     formatLimitOrderQuickPrice(usdPrice) ?? usdPrice
   }`;
@@ -37,6 +42,10 @@ function getFiatTriggerPrice(
       formatLimitOrderQuickPrice(displayPrice) ?? displayPrice
     }`,
     usdTriggerPrice: formattedUsdPrice,
+    usdExchangeRate: getLimitOrderUsdExchangeRate(
+      currentCurrency,
+      fiatToUsdRate,
+    ),
   };
 }
 

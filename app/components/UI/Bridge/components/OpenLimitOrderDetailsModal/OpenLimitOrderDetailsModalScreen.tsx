@@ -20,13 +20,14 @@ export const OpenLimitOrderDetailsModalScreen = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
   const fiatToUsdRate = useFiatToUsdRate(sourceToken.chainId);
-  const { triggerPrice, triggerToken, usdTriggerPrice } = getTriggerPrice(
-    order,
-    sourceToken,
-    destinationToken,
-    currentCurrency,
-    fiatToUsdRate,
-  );
+  const { triggerPrice, triggerToken, usdTriggerPrice, usdExchangeRate } =
+    getTriggerPrice(
+      order,
+      sourceToken,
+      destinationToken,
+      currentCurrency,
+      fiatToUsdRate,
+    );
 
   const handleCancelOrder = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -52,6 +53,7 @@ export const OpenLimitOrderDetailsModalScreen = () => {
       triggerPrice={triggerPrice}
       triggerToken={triggerToken}
       usdTriggerPrice={usdTriggerPrice}
+      usdExchangeRate={usdExchangeRate}
       expiry={formatLimitOrderDate(order.timingData.expiresAt)}
       onCancelOrder={
         order.isCancellable === false ? undefined : handleCancelOrder

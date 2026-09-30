@@ -724,7 +724,7 @@ describe('BridgeLimitOrderView', () => {
     });
   });
 
-  it('navigates to the confirmation modal with a USD price trigger when the limit is quoted in fiat', () => {
+  it('navigates to the confirmation modal with the fiat limit price as entered', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
@@ -744,15 +744,21 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
         params: expect.objectContaining({
-          // The display currency is USD in this state, so the price is sent
-          // as typed.
-          trigger: { kind: 'src_price', threshold: 'above', price: '3000' },
+          // Handed over as entered: the confirmation sheet converts it to USD
+          // with the rate live when the order is created.
+          triggerInput: {
+            executionType: LimitOrderExecutionType.SELL,
+            isLimitFiatMode: true,
+            limitPrice: '3000',
+            priceComparisonDirection:
+              LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+          },
         }),
       }),
     );
   });
 
-  it('navigates to the confirmation modal with a ratio trigger when the limit is quoted in token units', () => {
+  it('navigates to the confirmation modal with a limit price quoted in token units', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
@@ -770,7 +776,12 @@ describe('BridgeLimitOrderView', () => {
       Routes.BRIDGE.MODALS.ROOT,
       expect.objectContaining({
         params: expect.objectContaining({
-          trigger: { kind: 'ratio', threshold: 'below', price: '0.04' },
+          triggerInput: expect.objectContaining({
+            isLimitFiatMode: false,
+            limitPrice: '0.04',
+            priceComparisonDirection:
+              LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+          }),
         }),
       }),
     );

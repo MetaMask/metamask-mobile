@@ -26,7 +26,7 @@ export const OpenLimitOrderDetailsModal = ({
   triggerPrice,
   triggerToken,
   triggerComparison,
-  usdTriggerPrice,
+  usdExchangeRate,
   expiry,
   onCancelOrder,
   onClose,
@@ -61,7 +61,7 @@ export const OpenLimitOrderDetailsModal = ({
           dest: destToken?.symbol ?? '',
         })}
       </BottomSheetHeader>
-      {usdTriggerPrice && (
+      {usdExchangeRate && (
         <Box paddingHorizontal={3} paddingBottom={2}>
           <BannerAlert
             descriptionProps={{
@@ -70,7 +70,8 @@ export const OpenLimitOrderDetailsModal = ({
             }}
             severity={BannerAlertSeverity.Info}
             description={strings('bridge.limit.usd_price_notice', {
-              usdPrice: usdTriggerPrice,
+              rate: usdExchangeRate.rate,
+              currency: usdExchangeRate.currency,
             })}
             testID={OpenLimitOrderDetailsModalSelectorsIDs.USD_PRICE_NOTICE}
           />
