@@ -69,18 +69,18 @@ const notifyKillReady = (hop: SeedlessPasswordChangeKillAfter): void => {
   killReadyListeners.forEach((listener) => listener(hop));
 };
 
-export const haltIfSeedlessPasswordChangeKillAfter = async (
+export const haltIfSeedlessPasswordChangeKillAfter = (
   hop: SeedlessPasswordChangeKillAfter,
 ): Promise<void> => {
   if (!isSeedlessPasswordChangeKillSwitchEnabled() || armedKillAfter !== hop) {
-    return;
+    return Promise.resolve();
   }
 
   notifyKillReady(hop);
 
   // Halt the spine after persist. ResetPassword keeps the loading
   // screen so Appium can terminate. Tests assert this error.
-  throw new SeedlessPasswordChangeKillHaltError(hop);
+  return Promise.reject(new SeedlessPasswordChangeKillHaltError(hop));
 };
 
 const stripKillScheme = (url: string): string => {
