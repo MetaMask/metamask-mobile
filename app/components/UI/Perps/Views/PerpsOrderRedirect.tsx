@@ -110,7 +110,9 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               source,
-              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              ...(useBottomSheet
+                ? { useBottomSheet: true, forceBottomSheet: true }
+                : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },

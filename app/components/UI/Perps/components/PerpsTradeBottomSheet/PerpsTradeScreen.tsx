@@ -85,6 +85,8 @@ interface PerpsTradeScreenProps {
   isLimitPriceFocused: boolean;
   payWithName: string;
   payWithBalance: string;
+  /** Asset icon for the selected payment source, matching the full-screen row. */
+  payWithIcon?: React.ReactNode;
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
@@ -113,6 +115,10 @@ interface PerpsTradeScreenProps {
     preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
   ) => void;
   onLimitPriceDonePress: () => void;
+  /**
+   * Fired before the sheet navigates to its inline `payWith` screen so the
+   * parent can record the picker being opened.
+   */
   onPayWithPress: () => void;
   onSubmit: () => void;
 }
@@ -272,6 +278,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isLimitPriceFocused,
   payWithName,
   payWithBalance,
+  payWithIcon,
   showPayWith,
   isPayWithDisabled,
   feePercentage,
@@ -305,6 +312,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       : strings('perps.order.button.short', { asset });
   const payWithLabel = `${payWithName} (${payWithBalance})`;
   const isEditing = isInputFocused || isLimitPriceFocused;
+  // The payment token picker replaces the sheet content instead of stacking
+  // another bottom sheet; the parent only records the press for analytics.
+  const handlePayWithPress = () => {
+    onPayWithPress();
+    navigateTo('payWith');
+  };
   const limitPriceDisplay = limitPrice
     ? isLimitPriceFocused
       ? `$${limitPrice}`
@@ -563,22 +576,30 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                           height={20}
                         />
                       ) : (
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
+                        <Box
+                          accessible={false}
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          gap={2}
                         >
-                          {payWithName}{' '}
+                          {payWithIcon}
                           <Text
                             variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
+                            fontWeight={FontWeight.Medium}
                           >
-                            ({payWithBalance})
+                            {payWithName}{' '}
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              color={TextColor.TextAlternative}
+                            >
+                              ({payWithBalance})
+                            </Text>
                           </Text>
-                        </Text>
+                        </Box>
                       )
                     }
                     isDisabled={isPayWithDisabled}
-                    onPress={onPayWithPress}
+                    onPress={handlePayWithPress}
                   />
                 ) : null}
                 <ActionRow

@@ -85,6 +85,12 @@ export type PerpsOrderRouteParams = {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
   useBottomSheet?: boolean;
+  /**
+   * Read by the shared `Confirm` screen: while the Trade sheet variant has no
+   * approval (before it attaches, and after Place order removes it), show the
+   * loader inside a bottom sheet instead of a full-screen spinner.
+   */
+  forceBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.

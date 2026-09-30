@@ -443,6 +443,7 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    V1_PROFILE: 'SocialV1ProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
     PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
