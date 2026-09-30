@@ -77,7 +77,7 @@ import { useHomepageSearchPaste } from '../../search/useHomepageSearchPaste';
 import {
   HOME_SEARCH_TRANSITION_DURATION,
   scheduleHomepageSearchReturnTransition,
-} from '../../search/homepageSearchTransition';
+} from '../../../../../util/homepageSearchTransition';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;

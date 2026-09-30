@@ -1,6 +1,13 @@
-import type { SearchOrigin } from './useHomepageSearchPaste';
-
 export const HOME_SEARCH_TRANSITION_DURATION = 220;
+
+export interface HomepageSearchOrigin {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type SearchOrigin = HomepageSearchOrigin;
 
 export interface HomepageSearchReturnTransition {
   origin: SearchOrigin;

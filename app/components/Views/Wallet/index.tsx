@@ -135,17 +135,14 @@ import {
 import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import {
-  type SearchOrigin,
-  useHomepageSearchPaste,
-} from '../TrendingView/search/useHomepageSearchPaste';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useHomepageSearchPaste } from '../TrendingView/search/useHomepageSearchPaste';
 import {
   consumeHomepageSearchReturnTransition,
   subscribeToHomepageSearchReturnTransition,
   type HomepageSearchReturnTransition as HomepageSearchReturnTransitionState,
-} from '../TrendingView/search/homepageSearchTransition';
-/* eslint-enable import-x/no-restricted-paths */
+  type SearchOrigin,
+} from '../../../util/homepageSearchTransition';
 import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog

@@ -18,11 +18,10 @@ import {
 } from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ExploreSearchBar from '../../../TrendingView/components/ExploreSearchBar/ExploreSearchBar';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   HOME_SEARCH_TRANSITION_DURATION,
   type HomepageSearchReturnTransition as HomepageSearchReturnTransitionState,
-} from '../../../../TrendingView/search/homepageSearchTransition';
+} from '../../../../../util/homepageSearchTransition';
 import { strings } from '../../../../../../locales/i18n';
 
 interface HomepageSearchReturnTransitionProps {

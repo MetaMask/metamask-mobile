@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useABTest } from '../../../../hooks/useABTest';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { trackHomepageSearchPaste } from '../../../../util/analytics/homepageSearchPasteTracking';
+import type { SearchOrigin } from '../../../../util/homepageSearchTransition';
 import {
   HOMEPAGE_SEARCH_AB_KEY,
   HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
@@ -15,12 +16,7 @@ interface UseHomepageSearchPasteOptions {
   initiallyAvailable?: boolean;
 }
 
-export interface SearchOrigin {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+export type { SearchOrigin };
 
 const consumedClipboardRevisions = new Set<number>();
 const consumedClipboardListeners = new Set<() => void>();

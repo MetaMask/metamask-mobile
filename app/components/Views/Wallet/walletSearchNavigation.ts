@@ -2,8 +2,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SearchOrigin } from '../TrendingView/search/useHomepageSearchPaste';
+import type { SearchOrigin } from '../../../util/homepageSearchTransition';
 
 export const navigateToExploreSearch = (
   navigation: AppNavigationProp,
