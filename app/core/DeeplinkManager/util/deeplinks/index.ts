@@ -8,6 +8,7 @@ const {
   MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
+  MM_COM_UNIVERSAL_LINK_HOST,
 } = AppConstants;
 
 export const METAMASK_DEEPLINK_HOSTS: readonly string[] = [
@@ -17,6 +18,7 @@ export const METAMASK_DEEPLINK_HOSTS: readonly string[] = [
       MM_UNIVERSAL_LINK_HOST_ALTERNATE,
       MM_IO_UNIVERSAL_LINK_HOST,
       MM_IO_UNIVERSAL_LINK_TEST_HOST,
+      MM_COM_UNIVERSAL_LINK_HOST,
       MM_UNIVERSAL_LINK_TEST_APP_HOST,
       MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
     ].filter(Boolean),
@@ -113,7 +115,8 @@ export const isSDKServiceDeeplink = (
  * within the app rather than passed to the OS.
  *
  * Matches both custom schemes (metamask:, ethereum:, dapp:, solana:) and
- * MetaMask universal link hosts (metamask.app.link, link.metamask.io, etc.).
+ * MetaMask universal link hosts (metamask.app.link, link.metamask.io,
+ * link.metamask.com, etc.).
  *
  * @param url - The URL to check
  * @returns true if the URL is a MetaMask internal deeplink

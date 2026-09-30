@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   HeaderNavBarVariant,
+  renderExploreSearchScreenWithBackStack,
   renderExploreSearchScreenWithRoutes,
 } from '../../../../../../tests/component-view/renderers/trending';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -73,6 +74,71 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(getByDisplayValue('Apple')).toBeOnTheScreen();
 
     expect(await findByText('Apple Token')).toBeOnTheScreen();
+  });
+
+  it('redacts a clipboard-prefilled query from the searched event', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderExploreSearchScreenWithRoutes({
+        initialParams: {
+          entryPoint: 'home',
+          initialQuery: 'clipboard-secret',
+          initialQuerySource: 'clipboard',
+        },
+      });
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'searched',
+              search_query: '',
+            }),
+          }),
+        );
+      });
+
+      expect(trackEventSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            search_query: 'clipboard-secret',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('cancels the homepage search handoff and returns to the previous route', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderExploreSearchScreenWithBackStack({
+        initialParams: {
+          entryPoint: 'home',
+          searchOrigin: { x: 48, y: 48, width: 220, height: 48 },
+        },
+      });
+
+    expect(
+      await findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+    ).toBeOnTheScreen();
+
+    await actButtonPress(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('attributes a deeplink search open to the deeplink entry point', async () => {
@@ -389,6 +455,47 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(
       queryByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('tracks exactly one footer result_clicked and opens the browser when the search footer is pressed', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } =
+        renderExploreSearchScreenWithRoutes();
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      const footerLink = await findByTestId(
+        'trending-search-footer-search-link',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(footerLink);
+
+      const resultClickedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'result_clicked',
+      );
+      expect(resultClickedEvents).toHaveLength(1);
+      expect(resultClickedEvents[0][0]).toEqual(
+        expect.objectContaining({
+          name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+          properties: expect.objectContaining({
+            search_query: 'eth',
+            section_name: 'search_footer',
+            item_clicked: 'engine_search',
+            tab_name: 'all',
+          }),
+        }),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+    } finally {
+      trackEventSpy.mockRestore();
+    }
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {

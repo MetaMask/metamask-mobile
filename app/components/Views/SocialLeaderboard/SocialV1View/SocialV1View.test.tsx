@@ -303,7 +303,18 @@ describe('SocialV1View', () => {
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
+  it('opens Rewards from the gift button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 
   it('consumes the focus-trending flag when the screen gains focus', () => {

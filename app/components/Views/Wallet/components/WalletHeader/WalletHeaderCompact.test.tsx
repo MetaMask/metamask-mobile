@@ -19,6 +19,9 @@ const defaultProps: WalletHeaderCompactProps = {
   displayName: 'Account 1',
   handleRewardsPress: jest.fn(),
   handleAccountHubPress: jest.fn(),
+  useSearchHeaderLayout: false,
+  showSearchPastePill: false,
+  handleSearchPastePress: jest.fn(),
   touchAreaSlop: { top: 8, bottom: 8, left: 8, right: 8 },
   scrollY: makeMutable(0),
   titleSectionHeight: makeMutable(0),
@@ -54,6 +57,22 @@ describe('WalletHeaderCompact', () => {
     );
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON));
+
+    expect(handleSearchPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the homepage search field when the search header is enabled', () => {
+    const handleSearchPress = jest.fn();
+
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact
+        {...defaultProps}
+        useSearchHeaderLayout
+        handleSearchPress={handleSearchPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON));
 
     expect(handleSearchPress).toHaveBeenCalledTimes(1);
   });
