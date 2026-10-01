@@ -273,7 +273,9 @@ describe('BrazeBanner', () => {
     fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+      campaign_name: 'campaign-xyz',
+    });
   });
 
   it('calls dismissBrazeBanner even when the banner has no campaign_name', () => {
@@ -284,7 +286,10 @@ describe('BrazeBanner', () => {
     fireBannerEvent([makeBanner()]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(
+      TEST_PLACEMENT_ID,
+      null,
+    );
   });
 
   it('ignores further bannerCardsUpdated events after dismiss', () => {

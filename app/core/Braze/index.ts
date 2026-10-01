@@ -4,7 +4,10 @@ import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
-import { BANNER_EVENT_DISPLAY } from '../../constants/engagement';
+import {
+  BANNER_EVENT_DISMISSED,
+  BANNER_EVENT_DISPLAY,
+} from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
 import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 
@@ -151,15 +154,25 @@ export function refreshBrazeBanners(
 }
 
 /**
- * Dismiss the cached banner for a placement via the Braze SDK.
+ * Dismiss the cached banner for a placement via the Braze SDK and log the
+ * `Banner Dismissed` custom event used for campaign targeting.
  *
- * Braze records the dismissal and applies campaign re-eligibility on the
- * backend. Safe to call more than once for the same banner.
+ * Braze records the SDK dismissal and applies campaign re-eligibility on the
+ * backend. The custom event is skipped when `properties` is null (no
+ * `campaign_name`). Safe to call more than once for the same banner.
  */
-export function dismissBrazeBanner(placementId: string): void {
+export function dismissBrazeBanner(
+  placementId: string,
+  properties: { [key: string]: unknown } | null,
+): void {
   try {
-    Logger.log('[Braze] Dismissing banner', { placementId });
+    Logger.log('[Braze] Dismissing banner', { placementId, properties });
     Braze.dismissBanner(placementId);
+
+    if (properties) {
+      Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
+      Braze.requestImmediateDataFlush();
+    }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to dismiss banner');
   }

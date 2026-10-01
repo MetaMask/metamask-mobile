@@ -42,7 +42,7 @@ Late first-time banners from `bannerCardsUpdated` events are ignored after the s
 
 ## Dismiss behaviour
 
-Tapping the close button hides the banner immediately for the current mount and calls `Braze.dismissBanner(placementId)`. Braze records the dismissal and applies campaign re-eligibility on the backend, so the same banner is not served again until the campaign allows it.
+Tapping the close button hides the banner immediately for the current mount and calls `Braze.dismissBanner(placementId)`. Braze records the dismissal and applies campaign re-eligibility on the backend, so the same banner is not served again until the campaign allows it. When the banner has a `campaign_name`, the `Banner Dismissed` custom event is also logged for next banner targeting.
 
 Test sends skip the SDK dismiss call so they can be shown again without waiting for re-eligibility.
 

@@ -83,7 +83,9 @@ function logBrazeBannerDebug(
  *
  * Dismissal behaviour:
  * - Hides immediately for this mount (in-memory).
- * - Calls `Braze.dismissBanner` so Braze records the close and applies campaign re-eligibility. Test sends skip the SDK call so they can be shown again without waiting for re-eligibility.
+ * - Calls `Braze.dismissBanner` so Braze records the close and applies campaign re-eligibility.
+ * - Logs the `Banner Dismissed` custom event when `campaign_name` is present, for next banner targeting.
+ * - Test sends skip the SDK call so they can be shown again without waiting for re-eligibility.
  */
 export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   const [status, setStatus] = useState<BrazeBannerStatus>('loading');
@@ -332,9 +334,9 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     setStatus('dismissed');
 
     if (!banner.isTestSend) {
-      dismissBrazeBanner(placementId);
+      dismissBrazeBanner(placementId, eventProperties);
     }
-  }, [banner, placementId]);
+  }, [banner, placementId, eventProperties]);
 
   return {
     status,

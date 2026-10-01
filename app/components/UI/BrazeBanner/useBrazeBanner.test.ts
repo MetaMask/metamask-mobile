@@ -333,10 +333,13 @@ describe('useBrazeBanner', () => {
         result.current.dismiss();
       });
 
-      expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
+      expect(mockDismissBrazeBanner).toHaveBeenCalledWith(
+        TEST_PLACEMENT_ID,
+        null,
+      );
     });
 
-    it('calls dismissBrazeBanner with the placement ID when campaign_name is set', () => {
+    it('calls dismissBrazeBanner with campaign properties when campaign_name is set', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
       fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
@@ -345,7 +348,9 @@ describe('useBrazeBanner', () => {
         result.current.dismiss();
       });
 
-      expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
+      expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-xyz',
+      });
     });
 
     it('does not call dismissBrazeBanner for a test send', () => {
