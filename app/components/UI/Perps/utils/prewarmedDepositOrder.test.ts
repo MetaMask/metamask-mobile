@@ -251,9 +251,7 @@ describe('prewarmedDepositOrder', () => {
         depositThatStashes('tx-1', Promise.resolve('tx-1'), emitted),
       );
       mockedEngine.rejectPendingApproval.mockImplementation((id: string) => {
-        hasRequest.mockImplementation(
-          (request: { id: string }) => request.id !== id,
-        );
+        hasRequest.mockImplementation((request) => request?.id !== id);
       });
 
       discardPrewarmedDepositOrder();
