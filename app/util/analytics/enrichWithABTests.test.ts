@@ -11,6 +11,8 @@ import { enrichWithABTests } from './enrichWithABTests';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
 import { PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY } from '../../components/UI/Perps/abTestConfig';
+import { EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY } from '../../components/UI/TokenDetails/components/abTestConfig';
+import { COMPONENT_NAMES } from '../../components/UI/Money/constants/moneyEventLocations';
 
 describe('enrichWithABTests', () => {
   it('injects one active assignment for a matching allowlisted event', () => {
@@ -155,6 +157,65 @@ describe('enrichWithABTests', () => {
     expect(result.properties).toEqual({
       source: 'test',
     });
+  });
+
+  it.each([
+    MetaMetricsEvents.MONEY_SURFACE_VIEWED,
+    MetaMetricsEvents.MONEY_TOOLTIP_CLICKED,
+    MetaMetricsEvents.MONEY_BUTTON_CLICKED,
+  ])(
+    'attributes %s to the Asset Overview balance CTA experiment',
+    (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName)
+        .addProperties({
+          component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+        })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    },
+  );
+
+  it.each([
+    MetaMetricsEvents.MONEY_SURFACE_VIEWED,
+    MetaMetricsEvents.MONEY_TOOLTIP_CLICKED,
+    MetaMetricsEvents.MONEY_BUTTON_CLICKED,
+  ])(
+    'does not attribute unrelated %s events to the balance CTA experiment',
+    (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName)
+        .addProperties({
+          component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+        })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    },
+  );
+
+  it('does not attribute Token Details Opened without balance CTA eligibility context', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toBeUndefined();
   });
 
   it('ignores missing and invalid flag values', () => {
