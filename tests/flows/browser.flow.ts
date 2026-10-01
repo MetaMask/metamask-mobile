@@ -19,27 +19,58 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 /** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
 const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
 const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
-const TEST_DAPP_LOAD_POLL_MS = 500;
 
 /**
  * Android WebView a11y often omits the heading text even after the page has
- * rendered. Prove load via CDP on `#logo-text` (fresh DOM query each poll).
+ * rendered. Prove load via CDP on `#logo-text`.
+ *
+ * Prefer a single CDP session (`waitForElementTextInWebView`) over polling
+ * `readTextByIdInWebView` every tick — each read opens a new session and can
+ * nest `waitForCdpTarget` (30s) inside the outer 30s budget, causing false
+ * "Condition not met within 30000ms" timeouts on token-approve smokes.
+ *
+ * If the heading is still missing after the first session, reload once (keeps
+ * `?contract=` / `scrollTo=` query params) and retry — same recovery shape as
+ * `waitForTestDappButtonReady` / BitcoinTestDapp. Do not require
+ * `navigation.type === 'reload'`.
  */
 const waitForAndroidTestDappHeadingViaCdp = async (
   pageUrl: string,
 ): Promise<void> => {
-  await Utilities.waitUntil(
-    async () => {
-      const text = await ChromeCdpHelpers.readTextByIdInWebView(
-        pageUrl,
-        TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
-      );
-      return text?.trim().includes(TEST_DAPP_LOAD_LABEL) ?? false;
-    },
-    {
-      timeout: TEST_DAPP_LOAD_TIMEOUT_MS,
-      interval: TEST_DAPP_LOAD_POLL_MS,
-    },
+  const headingId = TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE;
+  const headingOptions = { includes: TEST_DAPP_LOAD_LABEL };
+
+  let text = await ChromeCdpHelpers.waitForElementTextInWebView(
+    pageUrl,
+    headingId,
+    TEST_DAPP_LOAD_TIMEOUT_MS,
+    headingOptions,
+  );
+  if (text?.trim().includes(TEST_DAPP_LOAD_LABEL)) {
+    return;
+  }
+
+  await ChromeCdpHelpers.evaluateInWebView(
+    pageUrl,
+    '(() => { location.reload(); return true; })()',
+  );
+  // Drop stale webview_devtools_remote after reload so the next session
+  // re-resolves the CDP endpoint instead of probing a dead forward.
+  ChromeCdpHelpers.resetMetaMaskWebViewCache();
+  await sleep(1_000);
+
+  text = await ChromeCdpHelpers.waitForElementTextInWebView(
+    pageUrl,
+    headingId,
+    TEST_DAPP_LOAD_TIMEOUT_MS,
+    headingOptions,
+  );
+  if (text?.trim().includes(TEST_DAPP_LOAD_LABEL)) {
+    return;
+  }
+
+  throw new Error(
+    `Android test dapp heading #${headingId} did not include "${TEST_DAPP_LOAD_LABEL}" within ${TEST_DAPP_LOAD_TIMEOUT_MS}ms after reload (last text=${JSON.stringify(text)})`,
   );
 };
 

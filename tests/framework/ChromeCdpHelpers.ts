@@ -1050,7 +1050,8 @@ export default class ChromeCdpHelpers {
   }
 
   /**
-   * Poll until the element's `textContent` is non-empty (truthy).
+   * Poll until the element's `textContent` is non-empty (truthy), optionally
+   * requiring `includes` as a substring (trimmed).
    * Android: single CDP session held open for the full duration.
    * iOS: Appium WebView context held open for the full duration.
    */
@@ -1058,7 +1059,18 @@ export default class ChromeCdpHelpers {
     dappUrl: string,
     elementId: string,
     timeoutMs = 10_000,
+    options?: { includes?: string },
   ): Promise<string | null> {
+    const textMatches = (text: string | null): boolean => {
+      if (!text) {
+        return false;
+      }
+      if (!options?.includes) {
+        return true;
+      }
+      return text.trim().includes(options.includes);
+    };
+
     if (PlatformDetector.isAndroid()) {
       try {
         return await this.withMetaMaskWebViewSession(
@@ -1072,7 +1084,7 @@ export default class ChromeCdpHelpers {
                 return el ? (el.textContent ?? null) : null;
               })()`,
               );
-              if (text) return text;
+              if (textMatches(text)) return text;
               await new Promise<void>((r) => setTimeout(r, POLL_MS));
             }
             return null;
@@ -1091,7 +1103,7 @@ export default class ChromeCdpHelpers {
           const text = (await getDriver().execute(
             `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
           )) as string | null;
-          if (text) {
+          if (textMatches(text)) {
             await AppiumContextHelpers.switchToNativeContext();
             return text;
           }
