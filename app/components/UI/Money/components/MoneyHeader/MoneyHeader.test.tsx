@@ -4,11 +4,6 @@ import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
-
-jest.mock('../../../../../hooks/useIsProSubscriber');
-
-const mockUseIsProSubscriber = jest.mocked(useIsProSubscriber);
 
 const sharedValue = (value: number): SharedValue<number> =>
   ({ value }) as unknown as SharedValue<number>;
@@ -26,10 +21,6 @@ const proButton = {
 };
 
 describe('MoneyHeader', () => {
-  beforeEach(() => {
-    mockUseIsProSubscriber.mockReturnValue(false);
-  });
-
   it('renders the menu button', () => {
     const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 

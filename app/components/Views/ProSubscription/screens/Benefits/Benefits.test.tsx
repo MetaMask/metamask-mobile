@@ -1,6 +1,11 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, fireEvent, within } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  within,
+  waitFor,
+} from '@testing-library/react-native';
 import {
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
@@ -23,7 +28,6 @@ jest.mock('./hooks/useSubscriptionPricing', () => ({
   useSubscriptionPricing: jest.fn(),
 }));
 
-const mockStartSubscription = jest.fn();
 jest.mock('../../hooks/useStartProSubscription', () => ({
   useStartProSubscription: jest.fn(),
 }));
@@ -36,6 +40,7 @@ jest.mock('../../../../../util/environment', () => ({
 const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
 const mockUseStartProSubscription = jest.mocked(useStartProSubscription);
 const mockRetry = jest.fn();
+const mockStartSubscription = jest.fn<Promise<void>, [unknown]>();
 
 const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
   status: 'ready',
@@ -82,6 +87,20 @@ const mockPricingState = ({
   });
 };
 
+const mockStartSubscriptionState = ({
+  isSubmitting = false,
+  errorMessage = undefined,
+}: {
+  isSubmitting?: boolean;
+  errorMessage?: string;
+} = {}) => {
+  mockUseStartProSubscription.mockReturnValue({
+    startSubscription: mockStartSubscription,
+    isSubmitting,
+    errorMessage,
+  });
+};
+
 const renderBenefits = (initialPlan?: PlanId) =>
   render(
     <Benefits
@@ -98,13 +117,9 @@ describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsProduction.mockReturnValue(false);
-    mockPricingState();
     mockStartSubscription.mockResolvedValue(undefined);
-    mockUseStartProSubscription.mockReturnValue({
-      startSubscription: mockStartSubscription,
-      isSubmitting: false,
-      errorMessage: undefined,
-    });
+    mockPricingState();
+    mockStartSubscriptionState();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -268,6 +283,26 @@ describe('Benefits', () => {
   // ── Callbacks ─────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
+    const ANNUAL_CHECKOUT_PLAN = {
+      planId: 'annual',
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      interval: RECURRING_INTERVALS.year,
+      currency: 'usd',
+      unitAmount: 4999,
+      unitDecimals: 2,
+      amount: 49.99,
+    };
+
+    const MONTHLY_CHECKOUT_PLAN = {
+      planId: 'monthly',
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      interval: RECURRING_INTERVALS.month,
+      currency: 'usd',
+      unitAmount: 499,
+      unitDecimals: 2,
+      amount: 4.99,
+    };
+
     it('calls onCheckoutStart before starting the subscription', () => {
       const { getByTestId } = renderBenefits();
 
@@ -291,40 +326,75 @@ describe('Benefits', () => {
       expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
-    it('calls onSuccess with the annual checkout plan by default', async () => {
+    it('starts the subscription and calls onSuccess with the annual checkout plan by default', async () => {
       const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
-      await Promise.resolve();
 
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-      expect(mockOnSuccess).toHaveBeenCalledWith({
-        planId: 'annual',
-        product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-        interval: RECURRING_INTERVALS.year,
-        currency: 'usd',
-        unitAmount: 4999,
-        unitDecimals: 2,
-        amount: 49.99,
-      });
+      await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
+      expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
+      expect(mockOnSuccess).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
     });
 
-    it('calls onSuccess with the monthly checkout plan after Monthly is selected', async () => {
+    it('starts the subscription and calls onSuccess with the monthly checkout plan after Monthly is selected', async () => {
       const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
-      await Promise.resolve();
 
-      expect(mockOnSuccess).toHaveBeenCalledWith({
-        planId: 'monthly',
-        product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-        interval: RECURRING_INTERVALS.month,
-        currency: 'usd',
-        unitAmount: 499,
-        unitDecimals: 2,
-        amount: 4.99,
-      });
+      await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
+      expect(mockStartSubscription).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
+      expect(mockOnSuccess).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
+    });
+
+    it('does not call onSuccess when starting the subscription fails', async () => {
+      mockStartSubscription.mockRejectedValue(new Error('start failed'));
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() =>
+        expect(mockStartSubscription).toHaveBeenCalledTimes(1),
+      );
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('shows the join error banner when starting the subscription fails', () => {
+      const errorMessage = strings('pro_subscription.join_error');
+      mockStartSubscriptionState({ errorMessage });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.JOIN_ERROR)).toHaveTextContent(
+        errorMessage,
+      );
+    });
+
+    it('shows the insufficient balance message when the join fails on balance', () => {
+      const errorMessage = strings('pro_subscription.insufficient_balance');
+      mockStartSubscriptionState({ errorMessage });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.JOIN_ERROR)).toHaveTextContent(
+        errorMessage,
+      );
+    });
+
+    it('does not show the join error banner when there is no error', () => {
+      const { queryByTestId } = renderBenefits();
+
+      expect(queryByTestId(BenefitsTestIds.JOIN_ERROR)).toBeNull();
+    });
+
+    it('shows the CTA as busy while the subscription is submitting', () => {
+      mockStartSubscriptionState({ isSubmitting: true });
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ busy: true, disabled: true }),
+      );
     });
 
     it('pressing a benefit row opens the detail sheet', () => {

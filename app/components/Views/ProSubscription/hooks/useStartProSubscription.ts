@@ -158,6 +158,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         await SubscriptionDelegationService.startSubscriptionWithDelegation({
           ...subscriptionParams,
           chainId,
+          // Mobile does not host the subscription_delegation confirmation UI yet.
           skipApproval: true,
         });
       } catch (error) {

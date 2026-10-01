@@ -607,11 +607,15 @@
     "create_password_cta": "Create password",
     "new_password_placeholder": "New password",
     "confirm_password_placeholder": "Re-enter new password",
-    "acknowledgement_error": "Confirm that you understand MetaMask cannot recover this password.",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "password_warning_title": "MetaMask can’t reset your password",
+    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_srp": "Secret Recovery Phrase",
+    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_confirm": "I understand",
+    "password_warning_cancel": "Cancel"
   },
   "wallet_creation_error": {
     "title": "Something went wrong",
@@ -9451,7 +9455,16 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "activity_title_filled": "Swapped {{source}} to {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Date created",
+      "order_type": "Order type",
+      "order_type_limit": "Limit",
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
@@ -12242,6 +12255,8 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "join_error": "We couldn't start your Pro membership. Try again.",
+    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {

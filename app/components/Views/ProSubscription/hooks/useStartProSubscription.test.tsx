@@ -210,6 +210,7 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.join_error'),
     );
+    expect(result.current.errorMessage).not.toMatch(/missing/i);
   });
 
   it('logs the underlying subscription request error', async () => {
@@ -265,5 +266,6 @@ describe('useStartProSubscription', () => {
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.insufficient_balance'),
     );
+    expect(result.current.errorMessage).not.toMatch(/missing/i);
   });
 });

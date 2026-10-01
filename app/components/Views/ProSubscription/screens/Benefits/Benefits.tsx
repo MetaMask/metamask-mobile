@@ -291,6 +291,14 @@ const Benefits = ({
           />
         ) : null}
 
+        {errorMessage ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Danger}
+            description={errorMessage}
+            testID={BenefitsTestIds.JOIN_ERROR}
+          />
+        ) : null}
+
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
