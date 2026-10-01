@@ -90,7 +90,10 @@ const HotTokenChip: React.FC<{
   <Box twClassName="shrink-0">
     <ExplorePill
       testID={testID}
-      isSelected={isSelected}
+      buttonProps={{
+        accessibilityState: { selected: isSelected },
+        twClassName: isSelected ? 'border-default' : undefined,
+      }}
       leading={
         <PositionTokenAvatar
           position={token.avatar}

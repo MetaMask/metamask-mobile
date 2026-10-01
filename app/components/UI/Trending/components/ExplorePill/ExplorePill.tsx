@@ -10,6 +10,7 @@ import {
   TextColor,
   TextVariant,
   FontWeight,
+  type ButtonProps,
 } from '@metamask/design-system-react-native';
 
 export interface ExplorePillProps {
@@ -20,10 +21,10 @@ export interface ExplorePillProps {
   title: string;
   changeLabel?: string;
   changeTextColor?: TextColor;
-  /** Draws the pill as the active filter. */
-  isSelected?: boolean;
   /** Accessory after the label (e.g. a check on the active filter). */
   trailing?: React.ReactNode;
+  /** Optional Button overrides for callers with specialized accessibility or styling needs. */
+  buttonProps?: Pick<ButtonProps, 'accessibilityState' | 'twClassName'>;
 }
 
 /**
@@ -37,8 +38,8 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   title,
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
-  isSelected = false,
   trailing,
+  buttonProps,
 }) => {
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
 
@@ -46,13 +47,11 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
     <Button
       onPress={onPress}
       testID={testID}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
       size={ButtonSize.Md}
       variant={ButtonVariant.Secondary}
       startAccessory={leading}
       endAccessory={trailing}
-      twClassName={`shrink${isSelected ? ' border-default' : ''}`}
+      {...buttonProps}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
