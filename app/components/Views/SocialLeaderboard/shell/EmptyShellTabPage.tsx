@@ -27,6 +27,7 @@ import Logger from '../../../../util/Logger';
 import { playSelection } from '../../../../util/haptics';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+import { type QuickBuyTarget } from '../../../UI/QuickBuy';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
@@ -51,12 +52,16 @@ import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTok
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
-import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
+import type {
+  SocialV1FeedItem,
+  SocialV1FeedPost,
+} from '../../../UI/SocialFeed/types';
 import type {
   SocialV1FeedTab,
   SocialV1HotToken,
   SocialV1TokenFeedState,
 } from '../SocialV1View/feed/types';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
@@ -95,6 +100,11 @@ export interface EmptyShellTabPageProps {
   scrollTestID: string;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /**
+   * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
+   * hosted by the parent view, outside the pager — see `SocialV1View`.
+   */
+  onQuickBuy?: (target: QuickBuyTarget) => void;
 }
 
 /**
@@ -110,6 +120,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   scrollTestID,
   onOpenFilters,
   isFilterActive = false,
+  onQuickBuy,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -383,6 +394,28 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     return blocks;
   }, [showPopularTraders, sortedPosts]);
 
+  const handleCopyTrade = useCallback(
+    (item: SocialV1FeedItem) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+
+      onQuickBuy?.({
+        tokenAddress,
+        tokenSymbol: item.asset.symbol,
+        tokenName: item.asset.name ?? item.asset.symbol,
+        chain,
+      });
+    },
+    [onQuickBuy],
+  );
+
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
       playSelection().catch(() => undefined);
@@ -403,10 +436,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
-        <SocialFeedPostShell post={post} onAuthorPress={handleAuthorPress} />
+        <SocialFeedPostShell
+          post={post}
+          onCopyTrade={handleCopyTrade}
+          onAuthorPress={handleAuthorPress}
+        />
       </SocialFeedPostEntrance>
     ),
-    [handleAuthorPress, seenPostIds],
+    [handleAuthorPress, handleCopyTrade, seenPostIds],
   );
 
   const showInitialFeedSkeletons = activeTokenFeed
