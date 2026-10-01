@@ -109,6 +109,7 @@ jest.mock(
 describe('PerpsSelectModifyActionView', () => {
   const mockLongPosition: Position = {
     symbol: 'ETH',
+    providerId: 'lighter',
     size: '2.5',
     marginUsed: '500',
     entryPrice: '2000',
@@ -182,6 +183,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockLongPosition,
       hideTPSL: true,
       source: 'position_screen',
@@ -211,6 +213,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockShortPosition,
       hideTPSL: true,
       source: 'position_screen',
@@ -254,6 +257,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'short',
       asset: 'ETH',
+      providerId: 'lighter',
       amount: '2.5',
       leverage: 10,
       source: 'position_screen',
@@ -268,6 +272,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       amount: '2.5',
       leverage: 10,
       source: 'position_screen',
@@ -348,6 +353,7 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToOrder).toHaveBeenCalledWith({
       direction: 'long',
       asset: 'ETH',
+      providerId: 'lighter',
       existingPosition: mockLongPosition,
       hideTPSL: true,
       source: 'position_screen',

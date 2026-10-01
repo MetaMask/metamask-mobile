@@ -2,11 +2,6 @@
  * Shared TypeScript types for AI E2E Tags Selector
  */
 
-export interface PerformanceTestSelection {
-  selectedTags: string[];
-  reasoning: string;
-}
-
 /**
  * Risk level for test areas in test plan generation
  */
@@ -173,16 +168,7 @@ export interface Skill {
   content: string;
 }
 
-export interface SelectTagsAnalysis {
-  selectedTags: string[];
-  confidence: number;
-  riskLevel: 'low' | 'medium' | 'high';
-  reasoning: string;
-  performanceTests: PerformanceTestSelection;
-}
-
 export interface ModeAnalysisTypes {
-  'select-tags': SelectTagsAnalysis;
   'generate-test-plan': GenerateTestPlanAnalysis;
 }
 
@@ -230,20 +216,6 @@ export interface AnalysisContext {
   fromCommit?: string;
   /** End commit for cherry-pick range (alternative to buildNumber) */
   toCommit?: string;
-}
-
-/**
- * A hard rule that overrides AI analysis and returns a deterministic result.
- * If `check` returns non-null, AI analysis is skipped and the result is used directly.
- * Rules may return all tests (conservative) or a targeted subset.
- */
-export interface HardRule {
-  name: string;
-  description: string;
-  check: (
-    changedFiles: string[],
-    context: AnalysisContext,
-  ) => SelectTagsAnalysis | null;
 }
 
 export interface ParsedArgs {
@@ -297,16 +269,6 @@ export interface ToolInput {
 
   // load_skill
   skill_name?: string;
-
-  // finalize_tag_selection (select-tags mode)
-  selected_tags?: string[];
-  risk_level?: 'low' | 'medium' | 'high';
-  confidence?: number;
-  reasoning?: string;
-  performance_tests?: {
-    selected_tags: string[];
-    reasoning: string;
-  };
 
   // finalize_test_plan_generation (generate-test-plan mode)
   summary?: {

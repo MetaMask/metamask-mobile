@@ -8,11 +8,11 @@
  */
 
 import { Platform, PlatformOSType } from 'react-native';
+import type { IOSCardData } from '@expensify/react-native-wallet';
 import {
   WalletType,
   ProvisionCardParams,
   ProvisioningResult,
-  CardActivationEvent,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
 } from '../../types';
@@ -24,14 +24,6 @@ import {
   logAdapterError,
 } from './utils';
 import { strings } from '../../../../../../../locales/i18n';
-
-// Types from react-native-wallet for iOS
-interface IOSCardData {
-  network: string;
-  cardHolderName: string;
-  lastDigits: string;
-  cardDescription: string;
-}
 
 /**
  * Apple Wallet Provider Adapter
@@ -66,30 +58,6 @@ export class AppleWalletAdapter
 
   protected getExpectedPlatform(): PlatformOSType {
     return 'ios';
-  }
-
-  /**
-   * Handle activation event from native module
-   *
-   * iOS SDK sends events with 'state' property (the TS types incorrectly say 'actionStatus').
-   * Possible values: 'activated' (success), 'canceled' (error or user cancel).
-   * Note: The SDK never sends a 'failed' status - errors result in 'canceled'.
-   */
-  protected handleNativeActivationEvent(data: unknown): void {
-    const typedData = data as {
-      serialNumber?: string;
-      state?: string;
-    };
-    const event: CardActivationEvent = {
-      serialNumber: typedData.serialNumber,
-      status:
-        typedData.state === 'activated'
-          ? 'activated'
-          : typedData.state === 'canceled'
-            ? 'canceled'
-            : 'failed', // Defensive fallback for unknown statuses
-    };
-    this.notifyActivationListeners(event);
   }
 
   /**
@@ -132,6 +100,9 @@ export class AppleWalletAdapter
         cardDescription:
           params.cardDescription ||
           `MetaMask Card ending in ${params.lastFourDigits}`,
+        ...(params.primaryAccountIdentifier
+          ? { primaryAccountIdentifier: params.primaryAccountIdentifier }
+          : {}),
       };
 
       // Validate required fields before calling native code

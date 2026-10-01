@@ -4,6 +4,8 @@ import {
   parsePredictLiveDataServerFrame,
   type PredictGameLive,
   type PredictLiveDataServerFrame,
+  type PredictLiveDataTopic,
+  type PredictQuote,
 } from '../../contracts/v1/liveData';
 import type { PredictEntityId, PredictVenueId } from '../../types';
 
@@ -19,6 +21,35 @@ export const PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS = 4000;
 export const PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS = 20;
 export const PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION = 50;
 export const PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE = 100;
+export const PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION = 250;
+export const PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_MESSAGE = 100;
+
+/**
+ * Per-topic wire vocabulary: the key the subscribe frame carries its ids under,
+ * and the limits assumed until `welcome` says otherwise.
+ */
+const TOPICS = {
+  game: {
+    idsKey: 'events',
+    defaultMaxPerConnection: PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION,
+    defaultMaxPerMessage: PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE,
+  },
+  market: {
+    idsKey: 'markets',
+    defaultMaxPerConnection:
+      PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION,
+    defaultMaxPerMessage: PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_MESSAGE,
+  },
+} as const satisfies Record<
+  PredictLiveDataTopic,
+  {
+    idsKey: string;
+    defaultMaxPerConnection: number;
+    defaultMaxPerMessage: number;
+  }
+>;
+
+const TOPIC_NAMES = Object.keys(TOPICS) as PredictLiveDataTopic[];
 
 type WebSocketConstructor = typeof WebSocket;
 type TimerId = ReturnType<typeof setTimeout>;
@@ -30,6 +61,7 @@ export interface PredictLiveDataClientOptions {
   WebSocket?: WebSocketConstructor;
   AppState?: AppStateApi;
   onGameUpdate: (game: PredictGameLive) => void;
+  onQuoteUpdate: (quote: PredictQuote) => void;
 }
 
 const parseStreamUrl = (baseUrl?: string): string | undefined => {
@@ -56,15 +88,81 @@ const readPositiveInt = (value: unknown): number | undefined =>
 /** Subscription surface the live-data service depends on. */
 export interface PredictLiveDataTransport {
   subscribe(
+    topic: PredictLiveDataTopic,
     venueId: PredictVenueId,
-    eventIds: readonly PredictEntityId[],
+    ids: readonly PredictEntityId[],
   ): void;
-  /** Returns the Event ids no watcher holds anymore. */
+  /** Returns the ids no watcher holds anymore. */
   unsubscribe(
+    topic: PredictLiveDataTopic,
     venueId: PredictVenueId,
-    eventIds: readonly PredictEntityId[],
+    ids: readonly PredictEntityId[],
   ): readonly PredictEntityId[];
   destroy(): void;
+}
+
+/**
+ * One topic's bookkeeping. Screens watch overlapping ids, so each id is held
+ * until its last watcher releases it. `serverIds` are the ids the gateway has
+ * accepted on this connection; watchers may hold more than `maxPerConnection`,
+ * and the extras wait until a slot frees.
+ */
+class TopicState {
+  readonly topic: PredictLiveDataTopic;
+  readonly watchCounts = new Map<PredictEntityId, number>();
+  readonly serverIds = new Set<PredictEntityId>();
+  maxPerConnection: number;
+  maxPerMessage: number;
+
+  constructor(topic: PredictLiveDataTopic) {
+    this.topic = topic;
+    this.maxPerConnection = TOPICS[topic].defaultMaxPerConnection;
+    this.maxPerMessage = TOPICS[topic].defaultMaxPerMessage;
+  }
+
+  get idsKey(): string {
+    return TOPICS[this.topic].idsKey;
+  }
+
+  /** Records watchers; returns the ids nobody held before. */
+  watch(ids: readonly PredictEntityId[]): PredictEntityId[] {
+    const fresh: PredictEntityId[] = [];
+    ids.forEach((id) => {
+      const held = this.watchCounts.get(id) ?? 0;
+      this.watchCounts.set(id, held + 1);
+      if (held === 0) {
+        fresh.push(id);
+      }
+    });
+    return fresh;
+  }
+
+  /** Releases watchers; returns the ids nobody holds anymore. */
+  unwatch(ids: readonly PredictEntityId[]): PredictEntityId[] {
+    const released: PredictEntityId[] = [];
+    ids.forEach((id) => {
+      const held = this.watchCounts.get(id);
+      if (held === undefined) {
+        return;
+      }
+      if (held > 1) {
+        this.watchCounts.set(id, held - 1);
+        return;
+      }
+      this.watchCounts.delete(id);
+      released.push(id);
+    });
+    return released;
+  }
+
+  applyLimits(limits?: { maxPerConnection?: number; maxPerMessage?: number }) {
+    this.maxPerConnection =
+      readPositiveInt(limits?.maxPerConnection) ??
+      TOPICS[this.topic].defaultMaxPerConnection;
+    this.maxPerMessage =
+      readPositiveInt(limits?.maxPerMessage) ??
+      TOPICS[this.topic].defaultMaxPerMessage;
+  }
 }
 
 export class PredictLiveDataClient implements PredictLiveDataTransport {
@@ -72,12 +170,11 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   readonly #getBearerToken: () => Promise<string | undefined>;
   readonly #WebSocket: WebSocketConstructor;
   readonly #onGameUpdate: (game: PredictGameLive) => void;
-  // Screens watch overlapping Events, so each id is held until its last
-  // watcher releases it.
-  readonly #watchCounts = new Map<PredictEntityId, number>();
-  // Ids the gateway has accepted on this connection. Watchers may hold more
-  // than `maxPerConnection`; extras wait until a slot frees.
-  readonly #serverGameIds = new Set<PredictEntityId>();
+  readonly #onQuoteUpdate: (quote: PredictQuote) => void;
+  readonly #topics: Record<PredictLiveDataTopic, TopicState> = {
+    game: new TopicState('game'),
+    market: new TopicState('market'),
+  };
   #socket?: WebSocket;
   #venueId?: PredictVenueId;
   #welcomed = false;
@@ -95,8 +192,6 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #reconnectTimer?: TimerId;
   #lingerTimer?: TimerId;
   #appStateSubscription?: { remove: () => void };
-  #gameMaxPerConnection = PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION;
-  #gameMaxPerMessage = PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE;
 
   constructor({
     baseUrl,
@@ -104,11 +199,13 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     WebSocket: WebSocketImpl = global.WebSocket,
     AppState: AppStateImpl = AppState,
     onGameUpdate,
+    onQuoteUpdate,
   }: PredictLiveDataClientOptions) {
     this.#url = parseStreamUrl(baseUrl);
     this.#getBearerToken = getBearerToken;
     this.#WebSocket = WebSocketImpl;
     this.#onGameUpdate = onGameUpdate;
+    this.#onQuoteUpdate = onQuoteUpdate;
     this.#appStateSubscription = AppStateImpl.addEventListener(
       'change',
       this.#onAppStateChange,
@@ -116,19 +213,13 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   subscribe(
+    topic: PredictLiveDataTopic,
     venueId: PredictVenueId,
-    eventIds: readonly PredictEntityId[],
+    ids: readonly PredictEntityId[],
   ): void {
     this.#cancelLinger();
     this.#venueId = venueId;
-    const fresh: PredictEntityId[] = [];
-    eventIds.forEach((eventId) => {
-      const held = this.#watchCounts.get(eventId) ?? 0;
-      this.#watchCounts.set(eventId, held + 1);
-      if (held === 0) {
-        fresh.push(eventId);
-      }
-    });
+    const fresh = this.#topics[topic].watch(ids);
 
     if (this.#suspended) {
       return;
@@ -149,35 +240,22 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
 
     if (this.#welcomed) {
-      this.#sendSubscription('subscribe', venueId, fresh);
+      this.#sendSubscription('subscribe', topic, venueId, fresh);
     }
   }
 
   unsubscribe(
+    topic: PredictLiveDataTopic,
     venueId: PredictVenueId,
-    eventIds: readonly PredictEntityId[],
+    ids: readonly PredictEntityId[],
   ): readonly PredictEntityId[] {
-    const released: PredictEntityId[] = [];
-    eventIds.forEach((eventId) => {
-      const held = this.#watchCounts.get(eventId);
-      if (held === undefined) {
-        return;
-      }
-
-      if (held > 1) {
-        this.#watchCounts.set(eventId, held - 1);
-        return;
-      }
-
-      this.#watchCounts.delete(eventId);
-      released.push(eventId);
-    });
+    const released = this.#topics[topic].unwatch(ids);
 
     if (released.length > 0 && this.#welcomed) {
-      this.#sendSubscription('unsubscribe', venueId, released);
-      this.#flushUnsentWatches(venueId);
+      this.#sendSubscription('unsubscribe', topic, venueId, released);
+      this.#flushUnsentWatches(topic, venueId);
     }
-    if (this.#watchCounts.size === 0) {
+    if (this.#watchedCount() === 0) {
       this.#scheduleLinger();
     }
 
@@ -188,8 +266,10 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.#abandonConnect();
     this.#cancelReconnect();
     this.#cancelLinger();
-    this.#watchCounts.clear();
-    this.#serverGameIds.clear();
+    this.#forEachTopic((state) => {
+      state.watchCounts.clear();
+      state.serverIds.clear();
+    });
     this.#welcomed = false;
     this.#venueId = undefined;
     this.#reconnectAttempts = 0;
@@ -203,6 +283,17 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.#appStateSubscription?.remove();
     this.#appStateSubscription = undefined;
     this.disconnect();
+  }
+
+  #forEachTopic(visit: (state: TopicState) => void): void {
+    TOPIC_NAMES.forEach((topic) => visit(this.#topics[topic]));
+  }
+
+  #watchedCount(): number {
+    return TOPIC_NAMES.reduce(
+      (total, topic) => total + this.#topics[topic].watchCounts.size,
+      0,
+    );
   }
 
   #isSocketLive(): boolean {
@@ -231,7 +322,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.#cancelReconnect();
     this.#cancelLinger();
     this.#welcomed = false;
-    this.#serverGameIds.clear();
+    this.#forEachTopic((state) => state.serverIds.clear());
     const socket = this.#socket;
     this.#socket = undefined;
     socket?.close();
@@ -242,7 +333,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       return;
     }
     this.#suspended = false;
-    if (this.#watchCounts.size === 0 || this.#protocolRejected) {
+    if (this.#watchedCount() === 0 || this.#protocolRejected) {
       return;
     }
     this.#reconnectAttempts = 0;
@@ -282,7 +373,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
           this.#protocolRejected ||
           this.#suspended ||
           this.#isSocketLive() ||
-          this.#watchCounts.size === 0
+          this.#watchedCount() === 0
         ) {
           return;
         }
@@ -344,7 +435,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
       this.#socket = undefined;
       this.#welcomed = false;
-      if (this.#watchCounts.size > 0 && !this.#suspended) {
+      if (this.#watchedCount() > 0 && !this.#suspended) {
         this.#scheduleReconnect();
       }
     };
@@ -364,11 +455,13 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       this.#welcomed = true;
       this.#reconnectAttempts = 0;
       this.#loggedReconnectCap = false;
-      this.#applyWelcomeLimits(frame);
-      this.#serverGameIds.clear();
-      this.#sendSubscription('subscribe', venueId, [
-        ...this.#watchCounts.keys(),
-      ]);
+      this.#forEachTopic((state) => {
+        state.applyLimits(frame.limits?.[state.topic]);
+        state.serverIds.clear();
+        this.#sendSubscription('subscribe', state.topic, venueId, [
+          ...state.watchCounts.keys(),
+        ]);
+      });
       return;
     }
 
@@ -382,93 +475,94 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
 
     if (frame.type === 'game' || frame.type === 'game_snapshot') {
-      if (this.#watchCounts.has(frame.game.eventId)) {
+      if (this.#topics.game.watchCounts.has(frame.game.eventId)) {
         this.#onGameUpdate(frame.game);
+      }
+      return;
+    }
+
+    if (frame.type === 'quote' || frame.type === 'quote_snapshot') {
+      if (this.#topics.market.watchCounts.has(frame.quote.marketId)) {
+        this.#onQuoteUpdate(frame.quote);
       }
     }
   }
 
   #sendSubscription(
     type: 'subscribe' | 'unsubscribe',
+    topic: PredictLiveDataTopic,
     venueId: PredictVenueId,
-    eventIds: readonly PredictEntityId[],
+    requested: readonly PredictEntityId[],
   ): void {
     if (
       !this.#socket ||
       this.#socket.readyState !== 1 ||
-      eventIds.length === 0
+      requested.length === 0
     ) {
       return;
     }
 
-    let ids = [...eventIds];
+    const state = this.#topics[topic];
+    let ids = [...requested];
     if (type === 'subscribe') {
-      ids = ids.filter((eventId) => !this.#serverGameIds.has(eventId));
-      const remaining = this.#gameMaxPerConnection - this.#serverGameIds.size;
+      ids = ids.filter((id) => !state.serverIds.has(id));
+      const remaining = state.maxPerConnection - state.serverIds.size;
       if (remaining <= 0) {
         Logger.log(
-          'PredictLiveDataClient: game subscription limit reached',
+          `PredictLiveDataClient: ${topic} subscription limit reached`,
           ids.length,
-          this.#gameMaxPerConnection,
+          state.maxPerConnection,
         );
         return;
       }
       if (ids.length > remaining) {
         Logger.log(
-          'PredictLiveDataClient: truncating game subscribe to connection limit',
+          `PredictLiveDataClient: truncating ${topic} subscribe to connection limit`,
           ids.length,
           remaining,
-          this.#gameMaxPerConnection,
+          state.maxPerConnection,
         );
         ids = ids.slice(0, remaining);
       }
-      ids.forEach((eventId) => this.#serverGameIds.add(eventId));
+      ids.forEach((id) => state.serverIds.add(id));
     } else {
-      ids = ids.filter((eventId) => this.#serverGameIds.has(eventId));
-      ids.forEach((eventId) => this.#serverGameIds.delete(eventId));
+      ids = ids.filter((id) => state.serverIds.has(id));
+      ids.forEach((id) => state.serverIds.delete(id));
     }
 
     if (ids.length === 0) {
       return;
     }
 
-    for (let index = 0; index < ids.length; index += this.#gameMaxPerMessage) {
+    for (let index = 0; index < ids.length; index += state.maxPerMessage) {
       this.#socket.send(
         JSON.stringify({
           type,
-          topic: 'game',
+          topic,
           venueId,
-          events: ids.slice(index, index + this.#gameMaxPerMessage),
+          [state.idsKey]: ids.slice(index, index + state.maxPerMessage),
         }),
       );
     }
   }
 
-  #flushUnsentWatches(venueId: PredictVenueId): void {
+  #flushUnsentWatches(
+    topic: PredictLiveDataTopic,
+    venueId: PredictVenueId,
+  ): void {
+    const state = this.#topics[topic];
     const pending: PredictEntityId[] = [];
-    this.#watchCounts.forEach((_held, eventId) => {
-      if (!this.#serverGameIds.has(eventId)) {
-        pending.push(eventId);
+    state.watchCounts.forEach((_held, id) => {
+      if (!state.serverIds.has(id)) {
+        pending.push(id);
       }
     });
-    this.#sendSubscription('subscribe', venueId, pending);
-  }
-
-  #applyWelcomeLimits(
-    frame: Extract<PredictLiveDataServerFrame, { type: 'welcome' }>,
-  ): void {
-    const gameLimits = frame.limits?.game;
-    const maxPerConnection = readPositiveInt(gameLimits?.maxPerConnection);
-    const maxPerMessage = readPositiveInt(gameLimits?.maxPerMessage);
-    this.#gameMaxPerConnection =
-      maxPerConnection ?? PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION;
-    this.#gameMaxPerMessage =
-      maxPerMessage ?? PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE;
+    this.#sendSubscription('subscribe', topic, venueId, pending);
   }
 
   #scheduleReconnect(): void {
     this.#cancelReconnect();
-    if (this.#suspended || this.#watchCounts.size === 0) {
+    if (this.#suspended || this.#watchedCount() === 0) {
       return;
     }
 
@@ -476,8 +570,8 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     if (this.#reconnectAttempts > PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS) {
       // Keep retrying at the max delay while anyone is still watching.
       // Giving up here froze live scores on mounted screens: the hook only
-      // calls subscribe() for newly added Event ids, so Home/Feed/Event
-      // never reset this counter after a background socket drop.
+      // calls subscribe() for newly added ids, so Home/Feed/Event never
+      // reset this counter after a background socket drop.
       this.#reconnectAttempts = PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS;
       this.#logReconnectCapOnce();
     }
@@ -499,7 +593,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.#cancelLinger();
     this.#lingerTimer = setTimeout(() => {
       this.#lingerTimer = undefined;
-      if (this.#watchCounts.size === 0) {
+      if (this.#watchedCount() === 0) {
         this.disconnect();
       }
     }, PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);

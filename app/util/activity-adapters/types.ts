@@ -9,17 +9,7 @@ import type {
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
-import type { Transaction } from '@metamask/keyring-api';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { TriggerOrderType } from '@metamask/perps-controller';
-import type { TransactionGroup } from './adapters/transaction-group';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../components/UI/Predict/types';
-import type { RampsOrder } from '@metamask/ramps-controller';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
 export type {
   ActivityKind,
@@ -29,7 +19,6 @@ export type {
 } from '@metamask/client-utils';
 
 export type TokenAmount = ClientUtilsTokenAmount & {
-  isUnlimitedApproval?: boolean;
   /**
    * Keyring (non-EVM) amounts are already human-readable. Display/fiat must
    * not run `formatUnits` on them even when token metadata supplies decimals.
@@ -66,42 +55,51 @@ export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
   return PERPS_ORDER_KIND_SET.has(kind);
 }
 
-type ActivityRaw =
-  | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
-  | { type: 'keyringTransaction'; data: Transaction }
-  | { type: 'localTransaction'; data: TransactionGroup }
-  | { type: 'perpsTransaction'; data: PerpsTransaction }
-  | { type: 'predictActivity'; data: PredictActivity }
-  | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
-
-interface MobileFields {
-  isEarliestNonce?: boolean;
-  /** @deprecated Get raw transaction data directly as needed */
-  raw?: ActivityRaw;
-}
-
-type SplitByKind<T> = T extends { type: infer K }
-  ? K extends string
-    ? Omit<T, 'type'> & { type: K }
-    : never
-  : never;
-
 type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
   ? TokenAmount
   : T extends object
     ? { [P in keyof T]: WithMobileTokenAmount<T[P]> }
     : T;
 
-interface MobileDataExtras {
-  /** Semantic trigger type localized by the Activity presentation layer. */
-  perpsTriggerOrderType?: TriggerOrderType;
-  fees?: ActivityFee[];
+type PredictActivityKind =
+  | 'predictionPlaced'
+  | 'predictionCashedOut'
+  | 'predictionClaimWinnings';
+
+interface PredictDataExtras {
+  eventTitle?: string;
+  icon?: string;
 }
 
-type WithMobileDataTokens<T> = T extends { data: infer D }
-  ? Omit<T, 'data'> & { data: WithMobileTokenAmount<D> & MobileDataExtras }
-  : T;
+type ActivityDataExtras<ActivityType> = ActivityType extends PredictActivityKind
+  ? PredictDataExtras & ActivityDataExtrasCommon
+  : ActivityDataExtrasCommon;
 
-export type ActivityListItem = SplitByKind<
-  WithMobileDataTokens<ClientUtilsActivityItem & MobileFields>
+interface ActivityDataExtrasCommon {
+  fees?: ActivityFee[];
+  perpsTriggerOrderType?: TriggerOrderType;
+}
+
+type ActivityItemForKind<T, Kind extends ActivityKind> = T extends {
+  type: infer ActivityType;
+  data: infer D;
+}
+  ? Kind extends Extract<ActivityType, ActivityKind>
+    ? Omit<T, 'type' | 'data'> & {
+        type: Kind;
+        data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;
+      }
+    : never
+  : never;
+
+type SplitByKind<T> = {
+  [Kind in ActivityKind]: ActivityItemForKind<T, Kind>;
+}[ActivityKind];
+
+type WithMobileFields<T> = T extends unknown
+  ? T & { isEarliestNonce?: boolean }
+  : never;
+
+export type ActivityListItem = WithMobileFields<
+  SplitByKind<ClientUtilsActivityItem>
 >;

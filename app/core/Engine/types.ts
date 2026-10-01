@@ -360,6 +360,16 @@ import type {
   RewardsControllerEvents,
   RewardsControllerActions,
 } from './controllers/rewards-controller/types';
+import { RewardsMoneyController } from './controllers/rewards-money-controller/RewardsMoneyController';
+import {
+  RewardsMoneyDataService,
+  RewardsMoneyDataServiceActions,
+} from './controllers/rewards-money-controller/services/rewards-money-data-service';
+import type {
+  RewardsMoneyControllerState,
+  RewardsMoneyControllerEvents,
+  RewardsMoneyControllerActions,
+} from './controllers/rewards-money-controller/types';
 import {
   PredictController,
   PredictControllerState,
@@ -388,6 +398,21 @@ import {
   type PredictPortfolioServiceActions,
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictOrderService,
+  type PredictOrderServiceActions,
+  type PredictOrderServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderService';
+import {
+  RecurringOrdersDataService,
+  type RecurringOrdersDataServiceActions,
+  type RecurringOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/RecurringOrdersDataService';
+import {
+  LimitOrdersDataService,
+  type LimitOrdersDataServiceActions,
+  type LimitOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/LimitOrdersDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -589,6 +614,7 @@ type RequiredControllers = Omit<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'RewardsMoneyDataService'
   | 'StorageService'
   | 'SubscriptionService'
   | 'ShieldApiService'
@@ -606,6 +632,7 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'RewardsMoneyDataService'
   | 'StorageService'
   | 'SubscriptionService'
   | 'ShieldApiService'
@@ -617,6 +644,19 @@ type OptionalControllers = Pick<
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
+
+/**
+ * Declared structurally to match `PerpsControllerAllowedActions`, which lists
+ * this action so clients that do expose it can serve it. Our
+ * `SubscriptionController` does not, so nothing delegates it and
+ * `RewardsIntegrationService` keeps using its injected `subscription`
+ * dependency. Remove once `@metamask/subscription-controller` exposes the
+ * action itself.
+ */
+interface SubscriptionControllerRegisterAddressAction {
+  type: `SubscriptionController:registerAddress`;
+  handler: (caipAccountId: string) => Promise<void>;
+}
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
@@ -704,6 +744,9 @@ export type GlobalActions =
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
+  | PredictOrderServiceActions
+  | RecurringOrdersDataServiceActions
+  | LimitOrdersDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -711,12 +754,15 @@ export type GlobalActions =
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
+  | RewardsMoneyControllerActions
+  | RewardsMoneyDataServiceActions
   | AppMetadataControllerActions
   | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | SubscriptionControllerActions
+  | SubscriptionControllerRegisterAddressAction
   | SubscriptionServiceActions
   | ShieldControllerActions
   | ShieldApiServiceActions
@@ -824,11 +870,15 @@ export type GlobalEvents =
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
+  | PredictOrderServiceEvents
+  | RecurringOrdersDataServiceEvents
+  | LimitOrdersDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
+  | RewardsMoneyControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -984,6 +1034,9 @@ export type MessengerClients = {
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
+  PredictOrderService: PredictOrderService;
+  RecurringOrdersDataService: RecurringOrdersDataService;
+  LimitOrdersDataService: LimitOrdersDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -991,6 +1044,8 @@ export type MessengerClients = {
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
+  RewardsMoneyController: RewardsMoneyController;
+  RewardsMoneyDataService: RewardsMoneyDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
@@ -1091,6 +1146,7 @@ export type EngineState = {
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
+  RewardsMoneyController: RewardsMoneyControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesControllerState;
@@ -1194,6 +1250,9 @@ export type MessengerClientsToInitialize =
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
+  | 'PredictOrderService'
+  | 'RecurringOrdersDataService'
+  | 'LimitOrdersDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
@@ -1205,6 +1264,8 @@ export type MessengerClientsToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
+  | 'RewardsMoneyController'
+  | 'RewardsMoneyDataService'
   | 'RampsController'
   | 'RampsService'
   | 'TransakService'
