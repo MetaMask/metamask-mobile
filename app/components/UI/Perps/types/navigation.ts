@@ -373,6 +373,11 @@ export type PerpsStackParamList = {
     leverage?: number;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
+    /**
+     * Analytics source for the order. Token details omit this and the redirect
+     * defaults to the asset-detail screen. The Social feed passes `trader_feed`.
+     */
+    source?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
     /**
      * Forces the trade bottom sheet and renders the redirect transparent.

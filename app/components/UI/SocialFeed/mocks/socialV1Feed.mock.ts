@@ -39,6 +39,7 @@ export const mockOpenPerpsFeedItem = (
     },
   },
   direction: 'short',
+  tradeSymbol: 'BTC',
   markPriceLabel: '$104,213',
   valueLabel: '$212,000.00',
   pnlLabel: '+128.6%',

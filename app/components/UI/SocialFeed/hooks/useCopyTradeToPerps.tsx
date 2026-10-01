@@ -40,7 +40,7 @@ export const useCopyTradeToPerps = (
     if (item.variant !== 'perpsOpen') {
       return;
     }
-    const { direction, asset, leverage } = item;
+    const { direction, asset, leverage, tradeSymbol } = item;
     gate(async () => {
       if (!isEligible) {
         setIsGeoBlockVisible(true);
@@ -53,8 +53,9 @@ export const useCopyTradeToPerps = (
         screen: Routes.PERPS.ORDER_REDIRECT,
         params: {
           direction,
-          asset: asset.symbol,
+          asset: tradeSymbol,
           leverage,
+          source: 'trader_feed',
           useBottomSheet: true,
           stayOnCurrentScreen: true,
         },

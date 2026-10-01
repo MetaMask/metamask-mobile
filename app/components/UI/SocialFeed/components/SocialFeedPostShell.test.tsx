@@ -440,6 +440,7 @@ describe('SocialFeedPostShell', () => {
             direction: 'short',
             asset: 'BTC',
             leverage: 40,
+            source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
           },

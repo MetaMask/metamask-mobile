@@ -33,6 +33,9 @@ import {
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
+/** How long a sheet entry waits for the Perps websocket before giving up. */
+const SHEET_CONNECTION_TIMEOUT_MS = 15_000;
+
 /**
  * PerpsOrderRedirect
  *
@@ -57,7 +60,9 @@ const PerpsOrderRedirect: React.FC = () => {
     transactionActiveAbTests,
     useBottomSheet: useBottomSheetParam,
     stayOnCurrentScreen,
+    source,
   } = route.params;
+  const orderSource = source ?? PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
@@ -68,6 +73,29 @@ const PerpsOrderRedirect: React.FC = () => {
   const useBottomSheet = useBottomSheetParam ?? isBottomSheetExperiment;
 
   const hasStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (!useBottomSheetParam || isConnected) {
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      if (hasStartedRef.current) {
+        return;
+      }
+      showToast(
+        PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      );
+      navigation.goBack();
+    }, SHEET_CONNECTION_TIMEOUT_MS);
+    return () => clearTimeout(timeoutId);
+  }, [
+    isConnected,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+    useBottomSheetParam,
+  ]);
+
   useEffect(() => {
     // Wait for WebSocket to be ready
     if (!isConnected || !isInitialized) return;
@@ -81,7 +109,7 @@ const PerpsOrderRedirect: React.FC = () => {
         asset,
         leverage,
         fromTokenDetails,
-        source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        source: orderSource,
         transactionActiveAbTests,
         ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
       };
@@ -110,9 +138,7 @@ const PerpsOrderRedirect: React.FC = () => {
 
     const runDepositFlow = async (): Promise<void> => {
       if (useBottomSheet) {
-        startPerpsTradeSheetInteractiveTrace(
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-        );
+        startPerpsTradeSheetInteractiveTrace(orderSource);
       }
       try {
         await withPendingTransactionActiveAbTests(
@@ -131,7 +157,7 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               leverage,
               fromTokenDetails,
-              source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+              source: orderSource,
               ...(useBottomSheet
                 ? { useBottomSheet: true, forceBottomSheet: true }
                 : {}),
@@ -182,6 +208,7 @@ const PerpsOrderRedirect: React.FC = () => {
     leverage,
     fromTokenDetails,
     stayOnCurrentScreen,
+    orderSource,
     transactionActiveAbTests,
     useBottomSheet,
     useBottomSheetParam,
@@ -193,10 +220,16 @@ const PerpsOrderRedirect: React.FC = () => {
   ]);
 
   // An explicit sheet request arrives through the transparent Perps modal
-  // stack, so the calling page stays visible until the sheet replaces this
-  // screen. Painting the loader here would cover that page.
+  // stack. The pending indicator does not fill the page, and it does not take
+  // touches, so the feed stays usable until the sheet replaces this screen.
   if (useBottomSheetParam) {
-    return <Box twClassName="flex-1" />;
+    return (
+      <Box twClassName="flex-1 items-center pt-20" pointerEvents="box-none">
+        <Box pointerEvents="none">
+          <PerpsLoader message="Preparing order..." fullScreen={false} />
+        </Box>
+      </Box>
+    );
   }
 
   // Match PerpsLoader connecting layout so both loaders look the same: top-aligned, centered, pt-20

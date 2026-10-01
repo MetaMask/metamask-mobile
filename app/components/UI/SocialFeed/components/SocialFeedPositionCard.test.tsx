@@ -480,10 +480,41 @@ describe('SocialFeedPositionCard', () => {
             direction: 'short',
             asset: 'BTC',
             leverage: 40,
+            source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
           },
         });
+      });
+    });
+
+    it('opens copy trade with the HIP-3 market id, not the display ticker', async () => {
+      const item = mockOpenPerpsFeedItem({
+        tradeSymbol: 'xyz:TSLA',
+        asset: {
+          symbol: 'TSLA',
+          avatar: {
+            positionId: 'v1-pos-tsla-open',
+            chain: 'hyperliquid',
+            tokenAddress: '',
+            tokenImageUrl: null,
+            tokenSymbol: 'xyz:TSLA',
+          },
+        },
+      });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.objectContaining({ asset: 'xyz:TSLA' }),
+          }),
+        );
       });
     });
 

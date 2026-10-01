@@ -101,6 +101,37 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant === 'perpsOpen' && result.leverage).toBe(8);
     });
 
+    it('keeps the HIP-3 market id on an open perp and shows the stripped ticker', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          tokenSymbol: 'xyz:TSLA',
+          isOpen: true,
+          currentValueUSD: 60000,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50600,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xopen',
+              classification: 'perp',
+              perpPositionType: 'long',
+              perpLeverage: 8,
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant === 'perpsOpen' && result.tradeSymbol).toBe(
+        'xyz:TSLA',
+      );
+      expect(result.asset.symbol).toBe('TSLA');
+    });
+
     it('maps a closed perp row to the closed perps card', () => {
       const row = buildRow(mockPerpFeedItem({ isOpen: false }));
 
