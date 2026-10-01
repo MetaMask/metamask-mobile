@@ -354,6 +354,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { selectInterimHeaderNavBarEnabled } from '../../../selectors/featureFlagController/interimHeaderNavBar';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
@@ -2034,6 +2035,32 @@ describe('Header and Nav Bar refresh AB test', () => {
       WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
       WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
       WalletViewSelectorsIDs.ACCOUNT_ICON,
+    ]) {
+      expect(queryByTestId(removed)).not.toBeOnTheScreen();
+    }
+  });
+
+  it('renders the interim header over a treatment arm when the interim flag is on', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback === selectInterimHeaderNavBarEnabled
+          ? true
+          : callback(mockInitialState),
+      );
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+    for (const removed of [
+      WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON,
+      WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON,
+      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
+      WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING,
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }

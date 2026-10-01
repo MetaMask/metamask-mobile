@@ -116,9 +116,6 @@ import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
 import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  HEADER_NAV_BAR_VARIANTS,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
@@ -149,6 +146,8 @@ import { useABTest } from '../../../hooks';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -770,13 +769,8 @@ const Wallet = ({
       balanceBreakdownVariantName,
     );
 
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  );
-  const isCompactHeader = headerNavBarVariant.isCompactHeaderEnabled;
-  const isHeaderSearchEnabled = headerNavBarVariant.isHeaderSearchEnabled;
+  const { isCompactHeader, isInterimHeader, isHeaderSearchEnabled } =
+    useHomeNavBarConfig({ trackExposure: true });
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);
@@ -1306,6 +1300,7 @@ const Wallet = ({
                     styles.headerActionButtonsContainer
                   }
                   headerAccountPickerStyle={styles.headerAccountPickerStyle}
+                  isInterimLayout={isInterimHeader}
                 />
               )}
               <View

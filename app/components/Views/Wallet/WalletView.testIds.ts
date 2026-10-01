@@ -98,6 +98,8 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
   WALLET_ACTIVITY_BUTTON: 'wallet-activity-button',
+  WALLET_HEADER_GLASS_ACTIONS: 'wallet-header-glass-actions',
+  WALLET_HEADER_GLASS_ACCOUNT_PICKER: 'wallet-header-glass-account-picker',
   WALLET_SEARCH_BUTTON: 'wallet-search-button',
   HOMEPAGE_SEARCH_BUTTON: 'explore-view-search-button',
   HOMEPAGE_SEARCH_CLIPBOARD_BUTTON: 'homepage-search-clipboard-button',
