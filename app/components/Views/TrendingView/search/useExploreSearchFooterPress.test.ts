@@ -60,6 +60,7 @@ describe('useExploreSearchFooterPress', () => {
         params: expect.objectContaining({
           newTabUrl: url,
           fromTrending: true,
+          entryPoint: 'explore_search',
         }),
       });
     },
