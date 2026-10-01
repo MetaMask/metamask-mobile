@@ -196,6 +196,7 @@ export function buildLighterRecoveryHarness() {
     controller,
     requests,
     responses,
+    disk,
     accountFixture,
     mocks: { createClient, execute, signPersonalMessage },
     selectAccount: (address: `0x${string}`) => {

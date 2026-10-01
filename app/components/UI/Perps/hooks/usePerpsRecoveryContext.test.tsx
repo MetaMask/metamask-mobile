@@ -6,6 +6,7 @@ import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 import type { RootState } from '../../../../reducers';
 import { initialStatePerps } from '../../../../../tests/component-view/presets/perpsStatePreset';
 import { usePerpsRecoveryContext } from './usePerpsRecoveryContext';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 const ACCOUNT_A = '0x8Dc623E964475D4d669da601Fd15ea9125469003';
 const ACCOUNT_B = '0x1234567890123456789012345678901234567890';
@@ -57,6 +58,40 @@ const renderContext = (initialState = createState()) => {
 };
 
 describe('usePerpsRecoveryContext', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('retires an issuing capture synchronously on a same-selection reconnect', () => {
+    let generation = 10;
+    let notify: () => void = () => undefined;
+    const unsubscribe = jest.fn();
+    jest
+      .spyOn(PerpsConnectionManager, 'getConnectionGeneration')
+      .mockImplementation(() => generation);
+    jest
+      .spyOn(PerpsConnectionManager, 'subscribeToConnectionGeneration')
+      .mockImplementation((listener) => {
+        notify = listener;
+        return unsubscribe;
+      });
+    const { result, unmount } = renderContext();
+    const issued = result.current.capture();
+    const isCurrent = result.current.isCurrent;
+    let accepted: boolean | undefined;
+
+    act(() => {
+      generation += 1;
+      notify();
+      accepted = isCurrent(issued);
+    });
+
+    expect(accepted).toBe(false);
+    expect(result.current.capture()?.epoch).toBeGreaterThan(
+      issued?.epoch ?? -1,
+    );
+    expect(result.current.capture()?.address).toBe(ACCOUNT_A.toLowerCase());
+    unmount();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
   it('captures the normalized selected wallet, network and provider', () => {
     const { result } = renderContext();
 

@@ -8,16 +8,21 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type {
-  Order,
-  PerpsPendingManualRecovery,
-  PerpsProviderType,
-  PerpsRecoveredDispatch,
-  Position,
+import {
+  PERPS_CONSTANTS,
+  formatPerpsFiat,
+  formatPositionSize,
+  type Order,
+  type PerpsPendingManualRecovery,
+  type PerpsProviderType,
+  type PerpsRecoveredDispatch,
+  type Position,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import type { usePerpsRecovery } from '../../hooks/usePerpsRecovery';
 import { PerpsRecoveryPanelTestIds as IDs } from './PerpsRecoveryPanel.testIds';
+import { formatOrderTypeLabel } from '../../utils/orderUtils';
+import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
 
 export type PerpsRecoveryEntry =
   | PerpsRecoveredDispatch
@@ -59,11 +64,17 @@ export interface PerpsRecoveryPanelProps {
   readonly onRemoveProtection: (entry: PerpsPendingManualRecovery) => void;
 }
 
+/** Format validated venue quantities while retaining unknown data as unavailable. */
+const formatRecoverySize = (size: string): string =>
+  size.trim() !== '' && Number.isFinite(Number(size))
+    ? formatPositionSize(size)
+    : PERPS_CONSTANTS.FallbackDataDisplay;
+
 const VenueSnapshot = ({ review }: { review: PerpsRecoveryVenueSnapshot }) => (
   <Box gap={2} testID={IDs.VENUE}>
     <Text variant={TextVariant.BodyMd}>
       {strings('perps.recovery.venue_review', {
-        provider: review.providerId === 'lighter' ? 'Lighter' : 'Hyperliquid',
+        provider: PROVIDER_DISPLAY_INFO[review.providerId].name,
       })}
     </Text>
     <Text variant={TextVariant.BodySm}>
@@ -79,8 +90,8 @@ const VenueSnapshot = ({ review }: { review: PerpsRecoveryVenueSnapshot }) => (
       >
         {strings('perps.recovery.position_summary', {
           symbol: position.symbol,
-          size: position.size,
-          price: position.entryPrice,
+          size: formatRecoverySize(position.size),
+          price: formatPerpsFiat(position.entryPrice),
         })}
       </Text>
     ))}
@@ -92,9 +103,9 @@ const VenueSnapshot = ({ review }: { review: PerpsRecoveryVenueSnapshot }) => (
         {strings('perps.recovery.order_summary', {
           symbol: order.symbol,
           side: strings(`perps.recovery.${order.side}`),
-          type: order.detailedOrderType ?? order.orderType,
-          size: order.remainingSize,
-          price: order.triggerPrice ?? order.price,
+          type: formatOrderTypeLabel(order),
+          size: formatRecoverySize(order.remainingSize),
+          price: formatPerpsFiat(order.triggerPrice ?? order.price),
         })}
       </Text>
     ))}
@@ -108,7 +119,7 @@ const VenueSnapshot = ({ review }: { review: PerpsRecoveryVenueSnapshot }) => (
  * A failed refresh retains known rows, and pending dispatches cannot acknowledge.
  *
  * @param props - Current scoped activity and explicit recovery controls.
- * @returns Recovery controls, or no panel after an empty successful local read.
+ * @returns Recovery controls for known activity, or no panel for empty reads.
  */
 const PerpsRecoveryPanel = ({
   activity,
@@ -133,14 +144,7 @@ const PerpsRecoveryPanel = ({
   const isEmpty =
     activity.dispatches.length === 0 && activity.protections.length === 0;
 
-  if (
-    !unavailable &&
-    !busy &&
-    !failed &&
-    actionError === undefined &&
-    activity.hasLoaded &&
-    isEmpty
-  ) {
+  if (isEmpty && actionError === undefined) {
     return null;
   }
 
@@ -197,7 +201,7 @@ const PerpsRecoveryPanel = ({
         <Box key={entry.recoveryId} gap={2} testID={IDs.DISPATCH}>
           <Text variant={TextVariant.BodyMd}>
             {strings(
-              entry.acknowledgeable
+              entry.acknowledgeable !== false
                 ? `perps.recovery.outcome_${entry.outcome}`
                 : 'perps.recovery.pending',
             )}
@@ -213,7 +217,7 @@ const PerpsRecoveryPanel = ({
           {review?.entry === entry && (
             <>
               <VenueSnapshot review={review} />
-              {entry.acknowledgeable && (
+              {entry.acknowledgeable !== false && (
                 <Button
                   testID={IDs.ACKNOWLEDGE}
                   isDisabled={!actionsAvailable || !canReview(entry)}
@@ -253,6 +257,7 @@ const PerpsRecoveryPanel = ({
               {removal === entry ? (
                 <>
                   <BannerAlert
+                    testID={IDs.REMOVAL_WARNING}
                     severity={BannerAlertSeverity.Warning}
                     description={strings('perps.recovery.removal_warning')}
                   />

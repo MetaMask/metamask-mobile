@@ -639,9 +639,10 @@
                 protection; partial TP/SL sizes refused. Core-created protection
                 retains durable client/venue IDs across resizing and restart.
                 Pending submissions block conflicting writes. Manual obligations
-                from previous trading keys remain visible; their explicit
-                resolution is not yet implemented. Legacy full-quantity closing
-                triggers use an in-lock position read.
+                from previous trading keys remain visible. Explicit resolution
+                is implemented in the installed local Core candidate; final
+                Mobile integration and live validation remain pending. Legacy
+                full-quantity closing triggers use an in-lock position read.
               </td>
               <td>
                 Growth/shrink/removal, lost-response, restart, storage-failure

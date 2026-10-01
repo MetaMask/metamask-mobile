@@ -1,13 +1,17 @@
 import { useCallback, useRef, useState } from 'react';
-import type {
-  PerpsPendingManualRecovery,
-  PerpsProviderType,
-  PerpsRecoveredDispatch,
-  PerpsRecoveryVenueReview,
-  Position,
-  ResolveRecoveryProtectionParams,
+import {
+  PERPS_CONSTANTS,
+  type PerpsPendingManualRecovery,
+  type PerpsProviderType,
+  type PerpsRecoveredDispatch,
+  type PerpsRecoveryVenueReview,
+  type Position,
+  type ResolveRecoveryProtectionParams,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import type {
   PerpsRecoveryEntry,
   PerpsRecoveryPanelProps,
@@ -188,7 +192,18 @@ export function usePerpsRecoveryActions(
           venue,
         };
         return true;
-      } catch {
+      } catch (caught) {
+        if (ownsAction(action)) {
+          Logger.error(ensureError(caught, 'usePerpsRecoveryActions.review'), {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsRecoveryActions',
+              action: 'review',
+              provider: scope.providerId,
+              network: scope.snapshot.context.network,
+            },
+          });
+        }
         error = 'review';
         return false;
       } finally {
@@ -223,7 +238,7 @@ export function usePerpsRecoveryActions(
       const review = getReview(entry);
       if (
         review === undefined ||
-        entry.acknowledgeable !== true ||
+        entry.acknowledgeable === false ||
         entry.recoveryId === ''
       ) {
         return false;
@@ -249,7 +264,21 @@ export function usePerpsRecoveryActions(
           entry.recoveryId,
         );
         return ownsAction(action);
-      } catch {
+      } catch (caught) {
+        if (ownsAction(action)) {
+          Logger.error(
+            ensureError(caught, 'usePerpsRecoveryActions.acknowledge'),
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+                component: 'usePerpsRecoveryActions',
+                action: 'acknowledge',
+                provider: review.providerId,
+                network: review.activity.context.network,
+              },
+            },
+          );
+        }
         error = 'acknowledge';
         return false;
       } finally {
@@ -308,7 +337,18 @@ export function usePerpsRecoveryActions(
           return { success: false };
         }
         return { success: true };
-      } catch {
+      } catch (caught) {
+        if (ownsAction(action)) {
+          Logger.error(ensureError(caught, 'usePerpsRecoveryActions.resolve'), {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsRecoveryActions',
+              action: 'resolve',
+              provider: review.providerId,
+              network: review.activity.context.network,
+            },
+          });
+        }
         error = 'resolve';
         return { success: false };
       } finally {

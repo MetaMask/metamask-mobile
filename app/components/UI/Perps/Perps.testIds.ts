@@ -1446,3 +1446,4 @@ export const PerpsRecentActivityListSelectorsIDs = {
   LIST: 'perps-recent-activity-list',
   ROW: (index: number) => `perps-recent-activity-row-${index}`,
 } as const;
+export { PerpsRecoveryPanelTestIds } from './components/PerpsRecoveryPanel/PerpsRecoveryPanel.testIds';

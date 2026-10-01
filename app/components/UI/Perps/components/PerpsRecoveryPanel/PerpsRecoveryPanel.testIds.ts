@@ -15,6 +15,7 @@ export const PerpsRecoveryPanelTestIds = {
   ACKNOWLEDGE: 'perps-recovery-acknowledge',
   EDIT_PROTECTION: 'perps-recovery-edit-protection',
   REMOVE_PROTECTION: 'perps-recovery-remove-protection',
+  REMOVAL_WARNING: 'perps-recovery-removal-warning',
   CONFIRM_REMOVAL: 'perps-recovery-confirm-removal',
   CANCEL_REMOVAL: 'perps-recovery-cancel-removal',
 } as const;
