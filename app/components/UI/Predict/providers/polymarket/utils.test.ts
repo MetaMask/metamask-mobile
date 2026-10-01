@@ -23,6 +23,7 @@ import {
   buildMarketListQueryParams,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
+  calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -3117,6 +3118,100 @@ describe('polymarket utils', () => {
 
       expect(fee).toBe(0.25);
     });
+  });
+
+  it('waives only the MetaMask fee for a membership policy', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ tags: [] }),
+    });
+
+    await expect(
+      calculateFees({
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.03,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+        feePolicy: {
+          status: 'membership',
+          effectiveMetamaskFee: 0,
+          builderCode: 'predict-pro-builder',
+          isMetaMaskFeeWaived: true,
+          canPresentBenefit: true,
+        },
+        marketId: 'market-1',
+        userBetAmount: 10,
+      }),
+    ).resolves.toEqual({
+      metamaskFee: 0,
+      providerFee: 0.3,
+      totalFee: 0.3,
+      totalFeePercentage: 3,
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: false,
+    });
+  });
+
+  it('keeps the CLOB market fee in a membership preview', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        status: 'membership',
+        effectiveMetamaskFee: 0,
+        builderCode: 'predict-pro-builder',
+        isMetaMaskFeeWaived: true,
+        canPresentBenefit: true,
+      },
+    });
+
+    expect(preview.fees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0,
+        providerFee: 0.3,
+        totalFee: 0.3,
+        marketFee: 0.1,
+      }),
+    );
   });
 
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {

@@ -11,36 +11,30 @@ scope.
 - Keep Polymarket CLOB market fees and Pay-With-Any-Token deposit fees
   separate.
 - Treat `builderCode` as public attribution data, not as authorization.
-- The backend must validate the wallet subscription and atomically reserve or
-  consume the allowance at order submission.
+- Use `getBenefits()` only as the mobile eligibility/preflight signal.
+- Keep subscription validation, allowance metering, and the final fee decision
+  in the backend.
 
 ## Step 1: Confirm the backend contract
 
-Define:
+Confirm the small client-facing contract:
 
 - the client preflight: call
   `SubscriptionController:getBenefits` through `PredictControllerMessenger`
-  before preparing and placing the order;
-- the authoritative backend rule: only a confirmed taker trade consumes the
-  benefit;
-- how the backend polls or receives CLOB confirmation and validates the
-  `builderCode` before finalizing consumption;
-- the member builder code and effective fee response;
-- idempotency behavior for retries and duplicate order digests;
-- how a pre-order allowance reservation is released when no confirmed trade
-  occurs;
-- behavior for stale benefits, exhausted caps, inactive subscriptions, FAK
-  partial fills, and Pay-With-Any-Token orders.
+  before calculating the fee preview and before the balance/deposit decision;
+- the response fields that mean “fee waiver available”;
+- the member `builderCode` and the standard builder fallback;
+- the backend response for a stale, exhausted, or inactive benefit;
+- the backend-owned validation and allowance-metering behavior for direct
+  orders, retries, and Pay-With-Any-Token orders.
 
-The client `getBenefits()` result is a preflight hint and may be stale. The
-backend must atomically reserve an available allowance before forwarding a
-fee-free order, then finalize consumption only after confirming the taker
-trade. Otherwise, concurrent orders could all receive the fee waiver before
-the post-trade counter is updated.
+The mobile response is a hint and may be stale. Mobile must refresh it while
+the Predict page is active and immediately before preparing the order, but the
+backend remains authoritative for validation and metering.
 
 ## Step 2: Add one client-side Predict fee policy
 
-Build a Predict-specific policy around
+Build a small Predict-specific policy around
 [`app/selectors/subscriptionController.ts`](../../app/selectors/subscriptionController.ts).
 
 Expose the subscription action through
@@ -48,16 +42,19 @@ Expose the subscription action through
 and call it from `PredictController`; do not access `Engine.context` directly
 from the controller.
 
-The policy should use:
+The policy should:
 
-- the dedicated Predict entitlement;
-- `benefits.predict.builderCode`;
-- `remainingTxCount`;
-- `exhausted`;
-- a fail-closed loading or unknown state.
+- use the backend response to determine whether the current order can use the
+  waiver;
+- return the membership `builderCode` when the waiver is available;
+- set the effective MetaMask fee to zero when available, otherwise preserve
+  the configured standard fee;
+- fail closed for missing, stale, inactive, exhausted, or malformed benefits;
+- avoid implementing a client-side allowance counter or meter.
 
 Return the effective builder code, effective MetaMask fee, and whether the UI
-may present the benefit. Do not mutate the global
+may present the benefit. The benefit count is used only to choose the current
+UI/submission path; it is not part of fee arithmetic. Do not mutate the global
 [`protocol/definitions.ts`](../../app/components/UI/Predict/providers/polymarket/protocol/definitions.ts)
 environment value at runtime.
 
@@ -70,7 +67,12 @@ Update:
 - [`providers/polymarket/utils.ts`](../../app/components/UI/Predict/providers/polymarket/utils.ts)
 - [`utils/orders.ts`](../../app/components/UI/Predict/utils/orders.ts)
 
-Ensure the effective policy is used consistently for:
+Refresh benefits and the fee portion of the preview:
+
+- when the Predict page gains focus;
+- through the existing active-page preview refresh;
+
+Ensure the current policy is reflected consistently in:
 
 - BUY all-in cost;
 - SELL net proceeds;
@@ -79,8 +81,10 @@ Ensure the effective policy is used consistently for:
 - rewards display;
 - fee breakdown UI.
 
-Include the policy identity or version in preview query keys so a membership
-change cannot reuse an old fee-bearing preview.
+Do not add benefit counts or a fee-policy identity to preview query keys.
+Explicit benefits/preview refreshes handle stale fee displays. A benefit change
+only changes the MetaMask service-fee path and builder code; market and
+provider fees remain unchanged.
 
 Keep `marketFee` separate and non-waivable by this client policy.
 
@@ -95,7 +99,7 @@ Update
 [`PolymarketProvider.ts`](../../app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts)
 to:
 
-1. revalidate the effective fee policy immediately before signing;
+1. use the latest fee policy immediately before signing;
 2. pass the selected builder code into the order codec;
 3. include the code in the signed EIP-712 order;
 4. omit unnecessary Permit2 fee authorization when the effective service fee
@@ -106,14 +110,14 @@ to:
 
 Update
 [`PredictController.ts`](../../app/components/UI/Predict/controllers/PredictController.ts)
-to revalidate immediately before provider submission, including the
+to refresh benefits and use the resulting fee policy immediately before the
+BUY balance/deposit decision and provider submission, including the
 post-deposit retry path.
 
 Handle:
 
-- allowance unavailable;
+- stale or unavailable benefits;
 - backend rejection of the member route;
-- duplicate/retried orders;
 - direct BUY and SELL;
 - Pay-With-Any-Token BUY.
 
@@ -130,9 +134,10 @@ Add focused tests for:
 - active, inactive, loading, missing, and exhausted benefits;
 - only the intended MetaMask fee being waived;
 - market and deposit fees remaining intact;
+- benefits refresh while the Predict page is active;
+- fresh benefits before balance/deposit decisions;
 - builder code propagation into the signed order;
 - Permit2 omission for waived orders;
-- retries and idempotency;
 - post-deposit revalidation;
 - benefits refresh after order completion.
 

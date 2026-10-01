@@ -192,6 +192,27 @@ describe('orders utils', () => {
       expect(getPredictBuyAllInCost(preview)).toBe(10.34);
     });
 
+    it('keeps provider and market fees in a membership all-in cost', () => {
+      expect(
+        getPredictBuyAllInCost({
+          ...preview,
+          feePolicy: {
+            status: 'membership',
+            effectiveMetamaskFee: 0,
+            builderCode: 'predict-pro-builder',
+            isMetaMaskFeeWaived: true,
+            canPresentBenefit: true,
+          },
+          fees: {
+            ...preview.fees,
+            metamaskFee: 0,
+            totalFee: 0.222,
+            totalFeePercentage: 2.22,
+          },
+        }),
+      ).toBe(10.23);
+    });
+
     it('returns zero all-in cost when preview is missing', () => {
       expect(getPredictBuyAllInCost(null)).toBe(0);
     });
@@ -200,6 +221,28 @@ describe('orders utils', () => {
       const result = getPredictSellNetProceeds(preview);
 
       expect(result).toBe(19.66);
+    });
+
+    it('keeps provider and market fees in membership sell proceeds', () => {
+      expect(
+        getPredictSellNetProceeds({
+          ...preview,
+          side: Side.SELL,
+          feePolicy: {
+            status: 'membership',
+            effectiveMetamaskFee: 0,
+            builderCode: 'predict-pro-builder',
+            isMetaMaskFeeWaived: true,
+            canPresentBenefit: true,
+          },
+          fees: {
+            ...preview.fees,
+            metamaskFee: 0,
+            totalFee: 0.222,
+            totalFeePercentage: 2.22,
+          },
+        }),
+      ).toBe(19.77);
     });
 
     it('returns zero proceeds when preview is missing', () => {

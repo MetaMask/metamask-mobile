@@ -49,6 +49,7 @@ import type {
   PredictMarketListParams,
   PreviewMaxBuyOrderParams,
   PreviewOrderParams,
+  PredictFeePolicy,
   SearchMarketsParams,
 } from '../types';
 import {
@@ -2070,18 +2071,53 @@ async function waiveFees({
   return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
+/**
+ * Applies the client-side Predict fee policy to the MetaMask service fee only.
+ * Provider fees and CLOB market fees remain unchanged.
+ *
+ * @param feeCollection - Feature-flagged fee configuration.
+ * @param feePolicy - Current per-order Predict fee policy.
+ * @returns Fee configuration with the effective MetaMask fee.
+ */
+const getEffectiveFeeCollection = ({
+  feeCollection,
+  feePolicy,
+}: {
+  feeCollection?: PredictFeeCollection;
+  feePolicy?: PredictFeePolicy;
+}): PredictFeeCollection | undefined => {
+  if (!feeCollection || feePolicy?.status !== 'membership') {
+    return feeCollection;
+  }
+
+  return {
+    ...feeCollection,
+    metamaskFee: feePolicy.effectiveMetamaskFee,
+  };
+};
+
 export async function calculateFees({
   feeCollection,
+  feePolicy,
   marketId,
   userBetAmount,
 }: {
   feeCollection?: PredictFeeCollection;
+  feePolicy?: PredictFeePolicy;
   marketId: string;
   userBetAmount: number;
 }): Promise<PredictFees> {
+  const effectiveFeeCollection = getEffectiveFeeCollection({
+    feeCollection,
+    feePolicy,
+  });
+
   if (
-    !feeCollection?.enabled ||
-    (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
+    !effectiveFeeCollection?.enabled ||
+    (await waiveFees({
+      marketId,
+      waiveList: effectiveFeeCollection.waiveList,
+    }))
   ) {
     return {
       metamaskFee: 0,
@@ -2094,11 +2130,18 @@ export async function calculateFees({
     };
   }
 
-  const totalFeePercentage =
-    (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
+  const {
+    metamaskFee: metamaskFeeRate,
+    providerFee: providerFeeRate,
+    collector,
+    executors,
+    permit2Enabled,
+  } = effectiveFeeCollection;
 
-  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  const providerFee = userBetAmount * feeCollection.providerFee;
+  const totalFeePercentage = (metamaskFeeRate + providerFeeRate) * 100;
+
+  const metamaskFee = userBetAmount * metamaskFeeRate;
+  const providerFee = userBetAmount * providerFeeRate;
 
   // Rounded to 6 decimals
   const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
@@ -2108,9 +2151,9 @@ export async function calculateFees({
     providerFee,
     totalFee,
     totalFeePercentage,
-    collector: feeCollection.collector,
-    executors: feeCollection.executors ?? [],
-    permit2Enabled: feeCollection.permit2Enabled ?? false,
+    collector,
+    executors: executors ?? [],
+    permit2Enabled: permit2Enabled ?? false,
   };
 }
 
@@ -2573,6 +2616,7 @@ export const previewOrder = async (
     side,
     size,
     feeCollection,
+    feePolicy,
     isV2,
     clobBaseUrl,
   } = params;
@@ -2583,6 +2627,7 @@ export const previewOrder = async (
       outcomeId,
       outcomeTokenId,
       feeCollection,
+      feePolicy,
       isV2,
       clobBaseUrl,
     });
@@ -2639,6 +2684,7 @@ export const previewOrder = async (
   });
   const serviceFees = await calculateFees({
     feeCollection,
+    feePolicy,
     marketId,
     userBetAmount: takerAmount,
   });
@@ -2683,6 +2729,7 @@ async function getBuyPreviewContext({
   outcomeId,
   outcomeTokenId,
   feeCollection,
+  feePolicy,
   isV2,
   clobBaseUrl,
 }: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
@@ -2712,6 +2759,7 @@ async function getBuyPreviewContext({
 
   const serviceFeesPerDollar = await calculateFees({
     feeCollection,
+    feePolicy,
     marketId,
     userBetAmount: 1,
   });
