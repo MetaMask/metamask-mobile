@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import WinRateTag, { WIN_RATE_TAG_TROPHY_TEST_ID } from './WinRateTag';
 
 const TEST_ID = 'win-rate-tag';
@@ -36,6 +37,24 @@ describe('WinRateTag', () => {
     renderWithProvider(<WinRateTag winRatePercent={90} testID={TEST_ID} />);
 
     expect(screen.getByTestId(WIN_RATE_TAG_TROPHY_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('keeps an invented win-rate marker off until the surface opts in', () => {
+    renderWithProvider(
+      <WinRateTag winRatePercent={92} isMocked testID={TEST_ID} />,
+    );
+
+    expect(screen.getByTestId(TEST_ID)).toHaveTextContent(/^92% WR$/);
+  });
+
+  it('marks an invented win rate when the surface opts in', () => {
+    renderWithProvider(
+      <SocialFeedSurfaceProvider showMockedFields>
+        <WinRateTag winRatePercent={92} isMocked testID={TEST_ID} />
+      </SocialFeedSurfaceProvider>,
+    );
+
+    expect(screen.getByTestId(TEST_ID)).toHaveTextContent('92% WR*');
   });
 
   it('omits the trophy just below the elite threshold', () => {

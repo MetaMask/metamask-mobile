@@ -27,6 +27,7 @@ import { useTheme } from '../../../../util/theme';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
 import SocialFeedSkeleton from '../../../UI/SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
@@ -397,112 +398,117 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     : isFetchingNextPage;
 
   return (
-    <Box twClassName="flex-1 bg-default" testID={containerTestID}>
-      <Animated.ScrollView
-        ref={scrollRef}
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('flex-grow')}
-        showsVerticalScrollIndicator={false}
-        onScroll={onScroll}
-        onMomentumScrollEnd={handleScrollSettled}
-        onScrollEndDrag={handleScrollSettled}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-          />
-        }
-        testID={scrollTestID}
-      >
-        {showFollowingChrome ? (
-          <SocialTabFilterBar
-            onOpenFilters={onOpenFilters}
-            isFilterActive={isFilterActive}
-            filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
-          >
-            <FeedSortFilterSelector
-              value={feedSort}
-              onPress={() => setIsSortSheetOpen(true)}
+    <SocialFeedSurfaceProvider
+      location={tab === 'trending' ? 'social_trending' : 'social_following'}
+      showMockedFields
+    >
+      <Box twClassName="flex-1 bg-default" testID={containerTestID}>
+        <Animated.ScrollView
+          ref={scrollRef}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-grow')}
+          showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          onMomentumScrollEnd={handleScrollSettled}
+          onScrollEndDrag={handleScrollSettled}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
             />
-          </SocialTabFilterBar>
-        ) : null}
-        {hasBeenActive ? (
-          // No top padding: `SocialV1View` already offsets the pager from the
-          // tabs bar by 16, and adding another 16 here is what made the space
-          // above the carousel twice the `gap-4` below it. The carousel bleeds
-          // to both screen edges, so the horizontal padding sits on the posts
-          // rather than on the page.
-          <Box twClassName="pb-8 gap-6">
-            {showHotTokens ? (
-              <HotTokensCarousel
-                posts={visiblePosts}
-                isLoading={isLoading}
-                selectedTokenId={activeHotTokenId}
-                onTokenPress={handleHotTokenPress}
-                onTokenFeedChange={handleTokenFeedChange}
+          }
+          testID={scrollTestID}
+        >
+          {showFollowingChrome ? (
+            <SocialTabFilterBar
+              onOpenFilters={onOpenFilters}
+              isFilterActive={isFilterActive}
+              filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
+            >
+              <FeedSortFilterSelector
+                value={feedSort}
+                onPress={() => setIsSortSheetOpen(true)}
               />
-            ) : null}
-            {pendingPost ? (
-              <Box twClassName="px-4">
-                <SocialFeedPostingBanner
-                  authorHandle={pendingPost.authorHandle}
-                  authorImageUrl={pendingPost.authorImageUrl}
-                  startedAtMs={pendingStartedAtMs}
+            </SocialTabFilterBar>
+          ) : null}
+          {hasBeenActive ? (
+            // No top padding: `SocialV1View` already offsets the pager from the
+            // tabs bar by 16, and adding another 16 here is what made the space
+            // above the carousel twice the `gap-4` below it. The carousel bleeds
+            // to both screen edges, so the horizontal padding sits on the posts
+            // rather than on the page.
+            <Box twClassName="pb-8 gap-6">
+              {showHotTokens ? (
+                <HotTokensCarousel
+                  posts={visiblePosts}
+                  isLoading={isLoading}
+                  selectedTokenId={activeHotTokenId}
+                  onTokenPress={handleHotTokenPress}
+                  onTokenFeedChange={handleTokenFeedChange}
                 />
-              </Box>
-            ) : null}
-            {showInitialFeedSkeletons ? (
-              <SocialFeedSkeleton />
-            ) : (
-              feedBlocks.map((block, blockIndex) => (
-                <Fragment key={block.key}>
-                  {blockIndex > 0 ? (
-                    <SectionDivider
-                      marginVertical={1}
-                      testID={getSocialV1FeedEntryDividerTestId(
-                        `block-${block.key}`,
-                      )}
-                    />
-                  ) : null}
-                  {block.kind === 'posts' ? (
-                    <SocialV1FeedPostList
-                      posts={block.posts}
-                      dividerKeyPrefix={block.key}
-                      renderPost={renderPost}
-                    />
-                  ) : (
-                    <PopularTradersCarousel />
-                  )}
-                </Fragment>
-              ))
-            )}
-            {showNextPageSpinner ? (
-              <Box
-                alignItems={BoxAlignItems.Center}
-                twClassName="px-4"
-                testID={SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID}
-              >
-                <ActivityIndicator size="small" />
-              </Box>
-            ) : null}
-            {visibleError && visibleFeedEmpty ? (
-              <SocialFeedError onRetry={retryVisibleFeed} />
-            ) : null}
-          </Box>
+              ) : null}
+              {pendingPost ? (
+                <Box twClassName="px-4">
+                  <SocialFeedPostingBanner
+                    authorHandle={pendingPost.authorHandle}
+                    authorImageUrl={pendingPost.authorImageUrl}
+                    startedAtMs={pendingStartedAtMs}
+                  />
+                </Box>
+              ) : null}
+              {showInitialFeedSkeletons ? (
+                <SocialFeedSkeleton />
+              ) : (
+                feedBlocks.map((block, blockIndex) => (
+                  <Fragment key={block.key}>
+                    {blockIndex > 0 ? (
+                      <SectionDivider
+                        marginVertical={1}
+                        testID={getSocialV1FeedEntryDividerTestId(
+                          `block-${block.key}`,
+                        )}
+                      />
+                    ) : null}
+                    {block.kind === 'posts' ? (
+                      <SocialV1FeedPostList
+                        posts={block.posts}
+                        dividerKeyPrefix={block.key}
+                        renderPost={renderPost}
+                      />
+                    ) : (
+                      <PopularTradersCarousel />
+                    )}
+                  </Fragment>
+                ))
+              )}
+              {showNextPageSpinner ? (
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="px-4"
+                  testID={SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID}
+                >
+                  <ActivityIndicator size="small" />
+                </Box>
+              ) : null}
+              {visibleError && visibleFeedEmpty ? (
+                <SocialFeedError onRetry={retryVisibleFeed} />
+              ) : null}
+            </Box>
+          ) : null}
+        </Animated.ScrollView>
+        {showFollowingChrome ? (
+          <FeedSortFilterSheet
+            isOpen={isSortSheetOpen}
+            value={feedSort}
+            onChange={setFeedSort}
+            onClose={() => setIsSortSheetOpen(false)}
+          />
         ) : null}
-      </Animated.ScrollView>
-      {showFollowingChrome ? (
-        <FeedSortFilterSheet
-          isOpen={isSortSheetOpen}
-          value={feedSort}
-          onChange={setFeedSort}
-          onClose={() => setIsSortSheetOpen(false)}
-        />
-      ) : null}
-    </Box>
+      </Box>
+    </SocialFeedSurfaceProvider>
   );
 };
 

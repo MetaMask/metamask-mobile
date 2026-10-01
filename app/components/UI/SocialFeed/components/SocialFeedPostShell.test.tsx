@@ -9,6 +9,7 @@ import {
   mockOpenPerpsFeedItem,
 } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
@@ -71,13 +72,23 @@ const basePost = (
   ...overrides,
 });
 
-const renderShell = (post: SocialV1FeedPost) => {
+const renderShell = (
+  post: SocialV1FeedPost,
+  showMockedFields: boolean | null = true,
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  const shell = <SocialFeedPostShell post={post} />;
   return renderWithProvider(
     <QueryClientProvider client={queryClient}>
-      <SocialFeedPostShell post={post} />
+      {showMockedFields === null ? (
+        shell
+      ) : (
+        <SocialFeedSurfaceProvider showMockedFields={showMockedFields}>
+          {shell}
+        </SocialFeedSurfaceProvider>
+      )}
     </QueryClientProvider>,
   );
 };
@@ -268,6 +279,12 @@ describe('SocialFeedPostShell', () => {
       renderShell(basePost());
 
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('3 copies*');
+    });
+
+    it('hides the invented copy count when the surface has not opted in', () => {
+      renderShell(basePost(), null);
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
     });
 
     it('says copy in the singular for a single copy', () => {

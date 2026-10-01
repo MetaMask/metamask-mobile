@@ -19,6 +19,7 @@ import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import { markMocked } from '../mockMarker';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import { isCopyTradeable } from '../utils/copyTrade';
@@ -35,6 +36,7 @@ export interface SocialFeedPostShellProps {
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
+  const { showMockedFields } = useSocialFeedSurface();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const optionsTarget = useMemo(
@@ -178,7 +180,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
 
         {/* Inert on purpose: the count is context for the reactions next to it,
             not a way into a list of who copied. */}
-        {copyCount > 0 ? (
+        {showMockedFields && copyCount > 0 ? (
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
