@@ -144,6 +144,18 @@ describe('SocialFeedPositionCard', () => {
     expect(onCopyTrade).toHaveBeenCalledWith(item);
   });
 
+  it('omits copy trade for open perps when a feed handler is wired', () => {
+    const item = mockOpenPerpsFeedItem();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={jest.fn()} />,
+    );
+
+    expect(
+      screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    ).toBeNull();
+  });
+
   // One line, two figures: the title carries the leverage it qualifies, and the
   // right-hand column carries the percent over the USD.
   describe('open card header', () => {

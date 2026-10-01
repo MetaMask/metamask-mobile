@@ -14,3 +14,22 @@ export const isCopyTradeable = (item: SocialV1FeedItem): boolean => {
   }
   return item.variant === 'perpsOpen' || item.variant === 'spotOpen';
 };
+
+/**
+ * Whether to render the Copy trade CTA on a feed card. Standalone cards (no
+ * handler) still show the button for open positions. When a parent wires
+ * `onCopyTrade`, only spot variants are actionable until perps copy trade is
+ * handled in the feed shell (#37115).
+ */
+export const shouldShowCopyTradeCta = (
+  item: SocialV1FeedItem,
+  hasCopyTradeHandler: boolean,
+): boolean => {
+  if (!isCopyTradeable(item)) {
+    return false;
+  }
+  if (!hasCopyTradeHandler) {
+    return true;
+  }
+  return item.variant !== 'perpsOpen';
+};

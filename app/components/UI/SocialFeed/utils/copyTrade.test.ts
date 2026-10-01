@@ -4,7 +4,7 @@ import {
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../mocks/socialV1Feed.mock';
-import { isCopyTradeable } from './copyTrade';
+import { isCopyTradeable, shouldShowCopyTradeCta } from './copyTrade';
 
 describe('isCopyTradeable', () => {
   it('accepts an open perps position', () => {
@@ -22,6 +22,16 @@ describe('isCopyTradeable', () => {
 
   it('rejects a closed spot position', () => {
     expect(isCopyTradeable(mockClosedSpotFeedItem())).toBe(false);
+  });
+
+  it('hides perps when a feed handler is wired, still shows spot', () => {
+    const perps = mockOpenPerpsFeedItem();
+    const spot = mockOpenSpotFeedItem();
+
+    expect(shouldShowCopyTradeCta(perps, false)).toBe(true);
+    expect(shouldShowCopyTradeCta(spot, false)).toBe(true);
+    expect(shouldShowCopyTradeCta(perps, true)).toBe(false);
+    expect(shouldShowCopyTradeCta(spot, true)).toBe(true);
   });
 
   it('defers to the flag on a composer spot share', () => {

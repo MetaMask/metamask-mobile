@@ -21,10 +21,8 @@ import { FeedSortFilterSelectorsIDs } from '../components/Filters';
 import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
-import type {
-  SocialV1FeedItem,
-  SocialV1TokenFeedState,
-} from '../SocialV1View/feed/types';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import type { SocialV1TokenFeedState } from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
 } from './EmptyShellTabPage';
@@ -221,6 +219,25 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not request QuickBuy for an open perps feed item', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[0];
+    const onQuickBuy = jest.fn();
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+        onQuickBuy={onQuickBuy}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    expect(onQuickBuy).not.toHaveBeenCalled();
+  });
+
   it('requests a QuickBuy target for an open spot feed item', () => {
     const item = MOCK_SOCIAL_V1_FEED_ITEMS[1];
     const onQuickBuy = jest.fn();
@@ -247,44 +264,46 @@ describe('EmptyShellTabPage', () => {
 
   it('shows the posting banner then prepends the composed post on Trending', () => {
     jest.useFakeTimers();
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-      />,
-    );
+    try {
+      renderWithProvider(
+        <EmptyShellTabPage
+          tab="trending"
+          isActive
+          containerTestID="trending-page-content"
+          scrollTestID="trending-page-scroll"
+        />,
+      );
 
-    act(() => {
-      submitSocialV1ComposedPost({
-        id: 'composed-1',
-        authorHandle: 'giga-whale',
-        timestampMs: Date.now(),
-        reactions: [],
-        item: mockOpenPerpsFeedItem({
-          id: 'composed-item',
-          comment: 'this is alpha',
-        }),
+      act(() => {
+        submitSocialV1ComposedPost({
+          id: 'composed-1',
+          authorHandle: 'giga-whale',
+          timestampMs: Date.now(),
+          reactions: [],
+          item: mockOpenPerpsFeedItem({
+            id: 'composed-item',
+            comment: 'this is alpha',
+          }),
+        });
       });
-    });
 
-    expect(
-      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
 
-    act(() => {
-      jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
-    });
+      act(() => {
+        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+      });
 
-    expect(
-      screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeNull();
-    expect(
-      screen.getByTestId('social-v1-feed-card-composed-item'),
-    ).toBeOnTheScreen();
-
-    jest.useRealTimers();
+      expect(
+        screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId('social-v1-feed-card-composed-item'),
+      ).toBeOnTheScreen();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('inserts the Popular traders carousel after the first three Trending posts', () => {
@@ -542,106 +561,111 @@ describe('EmptyShellTabPage', () => {
         loadMore: mainLoadMore,
       }));
       jest.useFakeTimers();
+      try {
+        const loadMore = jest.fn();
+        const refresh = jest.fn().mockResolvedValue(undefined);
+        const posts = [tokenFeedPost];
+        const idle = {
+          posts,
+          isLoading: false,
+          isFetchingNextPage: false,
+          hasNextPage: false,
+          loadMore,
+          error: null,
+          refresh,
+        };
 
-      const loadMore = jest.fn();
-      const refresh = jest.fn().mockResolvedValue(undefined);
-      const posts = [tokenFeedPost];
-      const idle = {
-        posts,
-        isLoading: false,
-        isFetchingNextPage: false,
-        hasNextPage: false,
-        loadMore,
-        error: null,
-        refresh,
-      };
+        renderTrending();
+        // Nothing selected yet: a null report keeps the current feed state.
+        reportTokenFeed(null);
 
-      renderTrending();
-      // Nothing selected yet: a null report keeps the current feed state.
-      reportTokenFeed(null);
+        fireEvent.press(
+          screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
+        );
 
-      fireEvent.press(
-        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
-      );
+        expect(
+          screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId('popular-traders-carousel-section'),
+        ).toBeNull();
 
-      expect(
-        screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId('popular-traders-carousel-section'),
-      ).toBeNull();
+        await act(async () => {
+          const pending = screen
+            .getByTestId('trending-page-scroll')
+            .props.refreshControl.props.onRefresh();
+          await jest.advanceTimersByTimeAsync(1000);
+          await pending;
+        });
+        expect(mainRefresh).not.toHaveBeenCalled();
 
-      await act(async () => {
-        const pending = screen
-          .getByTestId('trending-page-scroll')
-          .props.refreshControl.props.onRefresh();
-        await jest.advanceTimersByTimeAsync(1000);
-        await pending;
-      });
-      expect(mainRefresh).not.toHaveBeenCalled();
+        reportTokenFeed(idle);
+        expect(
+          screen.getByTestId('social-v1-feed-card-token-feed-item'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(getSocialFeedPostSkeletonTestId(0)),
+        ).toBeNull();
 
-      reportTokenFeed(idle);
-      expect(
-        screen.getByTestId('social-v1-feed-card-token-feed-item'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId(getSocialFeedPostSkeletonTestId(0)),
-      ).toBeNull();
+        // Same state reference, then an equal copy, must not replace the feed.
+        reportTokenFeed(idle);
+        reportTokenFeed({ ...idle });
+        expect(
+          screen.getByTestId('social-v1-feed-card-token-feed-item'),
+        ).toBeOnTheScreen();
 
-      // Same state reference, then an equal copy, must not replace the feed.
-      reportTokenFeed(idle);
-      reportTokenFeed({ ...idle });
-      expect(
-        screen.getByTestId('social-v1-feed-card-token-feed-item'),
-      ).toBeOnTheScreen();
+        reportTokenFeed({ ...idle, posts: [] });
+        reportTokenFeed({ ...idle, isLoading: true });
+        reportTokenFeed({
+          ...idle,
+          isFetchingNextPage: true,
+          hasNextPage: true,
+        });
+        expect(
+          screen.getByTestId(SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID),
+        ).toBeOnTheScreen();
+        scrollNearEnd();
+        expect(loadMore).toHaveBeenCalledTimes(1);
+        expect(mainLoadMore).not.toHaveBeenCalled();
 
-      reportTokenFeed({ ...idle, posts: [] });
-      reportTokenFeed({ ...idle, isLoading: true });
-      reportTokenFeed({ ...idle, isFetchingNextPage: true, hasNextPage: true });
-      expect(
-        screen.getByTestId(SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID),
-      ).toBeOnTheScreen();
-      scrollNearEnd();
-      expect(loadMore).toHaveBeenCalledTimes(1);
-      expect(mainLoadMore).not.toHaveBeenCalled();
+        reportTokenFeed({ ...idle, hasNextPage: false });
+        scrollNearEnd();
+        expect(loadMore).toHaveBeenCalledTimes(1);
 
-      reportTokenFeed({ ...idle, hasNextPage: false });
-      scrollNearEnd();
-      expect(loadMore).toHaveBeenCalledTimes(1);
+        reportTokenFeed({ ...idle, error: 'token feed down', posts: [] });
+        expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
+        fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
+        expect(refresh).toHaveBeenCalledTimes(1);
+        expect(mainRefresh).not.toHaveBeenCalled();
 
-      reportTokenFeed({ ...idle, error: 'token feed down', posts: [] });
-      expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
-      expect(refresh).toHaveBeenCalledTimes(1);
-      expect(mainRefresh).not.toHaveBeenCalled();
+        const otherLoadMore = jest.fn();
+        const otherRefresh = jest.fn().mockResolvedValue(undefined);
+        reportTokenFeed({ ...idle, loadMore: otherLoadMore });
+        reportTokenFeed({ ...idle, refresh: otherRefresh });
+        reportTokenFeed(null);
 
-      const otherLoadMore = jest.fn();
-      const otherRefresh = jest.fn().mockResolvedValue(undefined);
-      reportTokenFeed({ ...idle, loadMore: otherLoadMore });
-      reportTokenFeed({ ...idle, refresh: otherRefresh });
-      reportTokenFeed(null);
-
-      fireEvent.press(
-        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
-      );
-      expect(
-        screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
-      ).toBeOnTheScreen();
-      reportTokenFeed({
-        ...idle,
-        posts: [tokenFeedPost],
-      });
-      expect(
-        screen.queryByTestId('social-v1-feed-card-token-feed-item'),
-      ).toBeNull();
-
-      jest.useRealTimers();
+        fireEvent.press(
+          screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
+        );
+        expect(
+          screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
+        ).toBeOnTheScreen();
+        reportTokenFeed({
+          ...idle,
+          posts: [tokenFeedPost],
+        });
+        expect(
+          screen.queryByTestId('social-v1-feed-card-token-feed-item'),
+        ).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('keeps the token feed when the asset leaves the main feed', () => {

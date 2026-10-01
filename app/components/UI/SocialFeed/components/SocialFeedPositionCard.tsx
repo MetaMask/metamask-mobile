@@ -3,7 +3,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedItem } from '../types';
 import { mockedFieldLabel } from '../utils/mockedFieldLabel';
-import { isCopyTradeable } from '../utils/copyTrade';
+import { shouldShowCopyTradeCta } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
@@ -139,7 +139,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             costRow,
           ];
 
-    const showCopyTrade = isCopyTradeable(item);
+    const showCopyTrade = shouldShowCopyTradeCta(item, Boolean(onCopyTrade));
 
     return (
       <PositionCardShell>
