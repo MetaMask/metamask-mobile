@@ -133,15 +133,16 @@ export const usePredictPrices = (
         setError(errorMessage);
       }
     } finally {
-      if (!isMountedRef.current || generation !== fetchGenerationRef.current) {
-        return;
-      }
+      const isCurrentFetch =
+        isMountedRef.current && generation === fetchGenerationRef.current;
 
-      setIsFetching(false);
-      if (pollingInterval && enabled) {
-        pollingTimeoutRef.current = setTimeout(() => {
-          fetchPrices();
-        }, pollingInterval);
+      if (isCurrentFetch) {
+        setIsFetching(false);
+        if (pollingInterval && enabled) {
+          pollingTimeoutRef.current = setTimeout(() => {
+            fetchPrices();
+          }, pollingInterval);
+        }
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
