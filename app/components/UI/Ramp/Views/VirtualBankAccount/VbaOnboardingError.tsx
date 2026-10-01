@@ -8,6 +8,10 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -16,37 +20,42 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 
-export type VbaOnboardingStubVariant = 'kyc_pending' | 'kyc_rejected';
+export type VbaOnboardingErrorVariant = 'account_provisioning_error' | 'error';
 
-export const VbaOnboardingStubSelectorsIDs = {
-  CONTAINER: 'vba-onboarding-stub-container',
-  BACK_BUTTON: 'vba-onboarding-stub-back-button',
-  CONTINUE_BUTTON: 'vba-onboarding-stub-continue-button',
+export const VbaOnboardingErrorSelectorsIDs = {
+  CONTAINER: 'vba-onboarding-error-container',
+  BACK_BUTTON: 'vba-onboarding-error-back-button',
+  RETRY_BUTTON: 'vba-onboarding-error-retry-button',
 } as const;
 
-interface VbaOnboardingStubProps {
-  variant: VbaOnboardingStubVariant;
-  onContinue: () => void | Promise<void>;
+interface VbaOnboardingErrorProps {
+  variant: VbaOnboardingErrorVariant;
+  onRetry: () => void | Promise<void>;
 }
 
-const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
+/**
+ * Shown when VBA onboarding cannot continue. Retry rehydrates so a recovered
+ * snapshot can leave this page. Account creation failure and the generic
+ * setup error share this screen.
+ */
+const VbaOnboardingError = ({ variant, onRetry }: VbaOnboardingErrorProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const [isContinuing, setIsContinuing] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(async () => {
-    if (isContinuing) {
+  const handleRetry = useCallback(async () => {
+    if (isRetrying) {
       return;
     }
-    setIsContinuing(true);
+    setIsRetrying(true);
     try {
-      await onContinue();
+      await onRetry();
     } finally {
-      setIsContinuing(false);
+      setIsRetrying(false);
     }
-  }, [isContinuing, onContinue]);
+  }, [isRetrying, onRetry]);
 
   return (
     <SafeAreaView
@@ -56,15 +65,21 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
       <HeaderStandard
         onBack={handleBack}
         backButtonProps={{
-          testID: VbaOnboardingStubSelectorsIDs.BACK_BUTTON,
+          testID: VbaOnboardingErrorSelectorsIDs.BACK_BUTTON,
         }}
         includesTopInset
       />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
-        testID={`${VbaOnboardingStubSelectorsIDs.CONTAINER}-${variant}`}
+        testID={`${VbaOnboardingErrorSelectorsIDs.CONTAINER}-${variant}`}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
+        <Icon
+          name={IconName.Danger}
+          size={IconSize.Xl}
+          color={IconColor.ErrorDefault}
+          twClassName="mt-6"
+        />
+        <Text variant={TextVariant.HeadingLg} twClassName="mt-4">
           {strings(`virtual_bank_account.${variant}.title`)}
         </Text>
         <Text
@@ -80,10 +95,10 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isLoading={isContinuing}
-          isDisabled={isContinuing}
-          onPress={handleContinue}
-          testID={VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON}
+          isLoading={isRetrying}
+          isDisabled={isRetrying}
+          onPress={handleRetry}
+          testID={VbaOnboardingErrorSelectorsIDs.RETRY_BUTTON}
         >
           {strings(`virtual_bank_account.${variant}.button`)}
         </Button>
@@ -92,4 +107,4 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
   );
 };
 
-export default VbaOnboardingStub;
+export default VbaOnboardingError;

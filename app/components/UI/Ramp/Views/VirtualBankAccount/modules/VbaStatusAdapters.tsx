@@ -1,4 +1,7 @@
 import React, { useCallback } from 'react';
+import VbaOnboardingError, {
+  type VbaOnboardingErrorVariant,
+} from '../VbaOnboardingError';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
@@ -15,6 +18,19 @@ const VbaStatusAdapter = ({ variant }: VbaStatusAdapterProps) => {
   return <VbaOnboardingStub variant={variant} onContinue={handleContinue} />;
 };
 
+interface VbaOnboardingErrorAdapterProps {
+  variant: VbaOnboardingErrorVariant;
+}
+
+const VbaOnboardingErrorAdapter = ({
+  variant,
+}: VbaOnboardingErrorAdapterProps) => {
+  const openOnboarding = useOpenVbaOnboarding(`${variant}-retry`);
+  const handleRetry = useCallback(() => openOnboarding(), [openOnboarding]);
+
+  return <VbaOnboardingError variant={variant} onRetry={handleRetry} />;
+};
+
 export const VbaKycPendingAdapter = () => (
   <VbaStatusAdapter variant="kyc_pending" />
 );
@@ -24,7 +40,9 @@ export const VbaKycRejectedAdapter = () => (
 );
 
 export const VbaAccountProvisioningErrorAdapter = () => (
-  <VbaStatusAdapter variant="account_provisioning_error" />
+  <VbaOnboardingErrorAdapter variant="account_provisioning_error" />
 );
 
-export const VbaErrorAdapter = () => <VbaStatusAdapter variant="error" />;
+export const VbaErrorAdapter = () => (
+  <VbaOnboardingErrorAdapter variant="error" />
+);
