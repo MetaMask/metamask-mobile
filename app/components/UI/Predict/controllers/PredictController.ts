@@ -1948,9 +1948,12 @@ export class PredictController extends BaseController<
       !!this.pendingOrderPreviews[params.transactionId];
 
     try {
+      const previewWithFeePolicy = await this.withPredictFeePolicy(
+        params.preview,
+      );
       await validateMarketBettable({
         provider: this.provider,
-        preview: params.preview,
+        preview: previewWithFeePolicy,
       });
     } catch (error) {
       const errorMessage =
@@ -2049,7 +2052,7 @@ export class PredictController extends BaseController<
       const transactionId = params.transactionId;
       if (transactionId) {
         this.pendingOrderPreviews[transactionId] = {
-          preview: params.preview,
+          preview: previewWithFeePolicy,
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
           activeAbTests: params.activeAbTests,
@@ -2072,7 +2075,7 @@ export class PredictController extends BaseController<
       try {
         await this.provider.createOptimisticPositionFromPreview({
           address: activeOrderAddress,
-          preview: params.preview,
+          preview: previewWithFeePolicy,
         });
       } catch (error) {
         DevLogger.log(
@@ -2140,14 +2143,14 @@ export class PredictController extends BaseController<
       : undefined;
 
     const startTime = performance.now();
-    const { analyticsProperties, preview } = params;
+    const { analyticsProperties } = params;
 
-    const sharePrice = preview?.sharePrice;
+    const sharePrice = previewWithFeePolicy?.sharePrice;
     const amountUsd =
       params.attempt?.amountUsd ??
-      (preview.side === Side.BUY
-        ? preview?.maxAmountSpent
-        : preview?.minAmountReceived);
+      (previewWithFeePolicy.side === Side.BUY
+        ? previewWithFeePolicy?.maxAmountSpent
+        : previewWithFeePolicy?.minAmountReceived);
 
     // Start Sentry trace for place order operation
     const traceId = `place-order-${Date.now()}`;
@@ -2162,7 +2165,7 @@ export class PredictController extends BaseController<
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         providerId: POLYMARKET_PROVIDER_ID,
-        side: preview.side,
+        side: previewWithFeePolicy.side,
       },
       data: {
         ...(analyticsProperties?.marketId && {
@@ -2175,7 +2178,6 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner(activeOrderAddress);
-      const previewWithFeePolicy = await this.withPredictFeePolicy(preview);
 
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
@@ -2183,7 +2185,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
-        orderType: preview.orderType,
+        orderType: previewWithFeePolicy.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
         attemptId: params.attempt?.attemptId,
@@ -2249,8 +2251,8 @@ export class PredictController extends BaseController<
       let realAmountUsd = amountUsd;
       let realSharePrice = sharePrice;
       try {
-        if (preview.side === Side.BUY) {
-          const totalFee = params.preview.fees?.totalFee ?? 0;
+        if (previewWithFeePolicy.side === Side.BUY) {
+          const totalFee = previewWithFeePolicy.fees?.totalFee ?? 0;
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
@@ -2269,8 +2271,8 @@ export class PredictController extends BaseController<
             });
           }
         } else {
-          const serviceFee = preview.fees?.totalFee ?? 0;
-          const marketFee = preview.fees?.marketFee ?? 0;
+          const serviceFee = previewWithFeePolicy.fees?.totalFee ?? 0;
+          const marketFee = previewWithFeePolicy.fees?.marketFee ?? 0;
           realAmountUsd = parseFloat(receivedAmount);
           realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
           const netAmountUsd = Math.max(
@@ -2310,7 +2312,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
-        orderType: preview.orderType,
+        orderType: previewWithFeePolicy.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
         tradeCompletedAmountUsd: realAmountUsd,
@@ -2328,7 +2330,7 @@ export class PredictController extends BaseController<
         this.trackPredictOrderEvent(successEvent);
       }
 
-      traceData = { success: true, side: preview.side };
+      traceData = { success: true, side: previewWithFeePolicy.side };
       return result as unknown as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
@@ -2342,7 +2344,7 @@ export class PredictController extends BaseController<
       const isPostDepositOrderFailure =
         isBuyWithAnyToken && pendingOrder !== undefined;
 
-      if (params.attempt && preview.side === Side.BUY) {
+      if (params.attempt && previewWithFeePolicy.side === Side.BUY) {
         const failure = classifyPredictBuyFailure(
           error,
           PredictEventValues.FAILURE_STAGE.ORDER,
@@ -2355,7 +2357,7 @@ export class PredictController extends BaseController<
           failureReason: failure.failureReason,
           failureStage: failure.failureStage,
           failureCategory: failure.failureCategory,
-          orderType: preview.orderType,
+          orderType: previewWithFeePolicy.orderType,
           paymentTokenAddress,
           paymentTokenSymbol,
           attemptId: params.attempt.attemptId,
@@ -2388,7 +2390,7 @@ export class PredictController extends BaseController<
           sharePrice,
           completionDuration,
           failureReason: errorMessage,
-          orderType: preview.orderType,
+          orderType: previewWithFeePolicy.orderType,
           paymentTokenAddress,
           paymentTokenSymbol,
           activeAbTests: params.activeAbTests,
@@ -2400,7 +2402,7 @@ export class PredictController extends BaseController<
           activeOrderAddress,
           errorMessage,
           pendingOrder,
-          preview,
+          preview: previewWithFeePolicy,
           marketId: analyticsProperties?.marketId,
         });
       } else {
@@ -2422,7 +2424,7 @@ export class PredictController extends BaseController<
         if (isBuyWithAnyToken) {
           this.provider.clearOptimisticPosition(
             activeOrderAddress,
-            preview.outcomeTokenId,
+            previewWithFeePolicy.outcomeTokenId,
           );
         }
       }

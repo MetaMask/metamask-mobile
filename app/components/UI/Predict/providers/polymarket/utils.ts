@@ -20,6 +20,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictMarketGame,
+  type PredictFeePolicy,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import {
@@ -49,7 +50,6 @@ import type {
   PredictMarketListParams,
   PreviewMaxBuyOrderParams,
   PreviewOrderParams,
-  PredictFeePolicy,
   SearchMarketsParams,
 } from '../types';
 import {

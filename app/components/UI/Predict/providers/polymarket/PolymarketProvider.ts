@@ -754,12 +754,13 @@ export class PolymarketProvider implements PredictProvider {
     let feeAuthorization: Permit2FeeAuthorization | undefined;
     let executor: string | undefined;
     let permit2FeeReady = false;
-    const hasEffectiveServiceFee =
-      preview.feePolicy?.status !== 'membership' &&
-      preview.fees !== undefined &&
-      preview.fees.totalFee > 0;
 
-    if (hasEffectiveServiceFee && shouldUsePermit2) {
+    if (
+      preview.feePolicy?.status !== 'membership' &&
+      shouldUsePermit2 &&
+      preview.fees &&
+      preview.fees.totalFee > 0
+    ) {
       const feeAmount = BigInt(
         parseUnits(preview.fees.totalFee.toString(), 6).toString(),
       );

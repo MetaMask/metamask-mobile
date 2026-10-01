@@ -21,16 +21,16 @@ Confirm the small client-facing contract:
 
 - the client preflight: call
   `SubscriptionController:getBenefits` through `PredictControllerMessenger`
-  before calculating the fee preview and before the balance/deposit decision;
+  before calculating the fee preview;
 - the response fields that mean “fee waiver available”;
 - the member `builderCode` and the standard builder fallback;
 - the backend response for a stale, exhausted, or inactive benefit;
 - the backend-owned validation and allowance-metering behavior for direct
   orders, retries, and Pay-With-Any-Token orders.
 
-The mobile response is a hint and may be stale. Mobile must refresh it while
-the Predict page is active and immediately before preparing the order, but the
-backend remains authoritative for validation and metering.
+The mobile response is a hint and may be stale. Refresh it through the existing
+Predict page preview lifecycle, but the backend remains authoritative for
+validation and metering.
 
 ## Step 2: Add one client-side Predict fee policy
 
@@ -99,20 +99,26 @@ Update
 [`PolymarketProvider.ts`](../../app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts)
 to:
 
-1. use the latest fee policy immediately before signing;
+1. use the per-order fee policy selected by `PredictController`;
 2. pass the selected builder code into the order codec;
 3. include the code in the signed EIP-712 order;
 4. omit unnecessary Permit2 fee authorization when the effective service fee
    is zero;
 5. preserve correct FAK/FOK behavior.
 
-## Step 5: Revalidate submission and refresh benefits
+## Step 5: Keep order submission lean
 
 Update
 [`PredictController.ts`](../../app/components/UI/Predict/controllers/PredictController.ts)
-to refresh benefits and use the resulting fee policy immediately before the
-BUY balance/deposit decision and provider submission, including the
-post-deposit retry path.
+to resolve the current fee policy once per `placeOrder` invocation, before
+market validation and provider submission. Reuse that preview for direct orders,
+Pay-With-Any-Token orders, and the existing retry attempt.
+
+Keep
+[`usePredictPlaceOrder.ts`](../../app/components/UI/Predict/hooks/usePredictPlaceOrder.ts)
+focused on balance, deposit, loading, and presentation behavior. It should use
+the preview already produced by the page instead of issuing another preview
+request when the user taps the order button.
 
 Handle:
 
@@ -121,11 +127,9 @@ Handle:
 - direct BUY and SELL;
 - Pay-With-Any-Token BUY.
 
-After a successful or definitively failed order, refresh or invalidate the
-SubscriptionController benefits snapshot so `remainingTxCount` does not stay
-stale. Use
-[`useMoneyAccountPlusBenefits.ts`](../../app/components/Views/ProHub/hooks/useMoneyAccountPlusBenefits.ts)
-as the existing benefits-refresh reference.
+Do not block order completion on a second benefits request after success or
+failure. The next active-page preview obtains the next benefits snapshot, while
+the backend remains responsible for consuming the allowance atomically.
 
 ## Step 6: Test and verify
 
@@ -135,11 +139,10 @@ Add focused tests for:
 - only the intended MetaMask fee being waived;
 - market and deposit fees remaining intact;
 - benefits refresh while the Predict page is active;
-- fresh benefits before balance/deposit decisions;
+- one fee-policy lookup per order submission;
 - builder code propagation into the signed order;
 - Permit2 omission for waived orders;
-- post-deposit revalidation;
-- benefits refresh after order completion.
+- post-deposit retry using the existing order preview.
 
 Run the focused Predict tests, TypeScript checks, and lint with Yarn.
 
@@ -154,3 +157,4 @@ Run the focused Predict tests, TypeScript checks, and lint with Yarn.
 - [`app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts`](../../app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts)
 - [`app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts`](../../app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts)
 - [`app/components/UI/Predict/controllers/PredictController.ts`](../../app/components/UI/Predict/controllers/PredictController.ts)
+- [`app/components/UI/Predict/hooks/usePredictPlaceOrder.ts`](../../app/components/UI/Predict/hooks/usePredictPlaceOrder.ts)

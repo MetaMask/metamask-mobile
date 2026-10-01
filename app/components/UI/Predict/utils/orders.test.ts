@@ -204,7 +204,7 @@ describe('orders utils', () => {
             canPresentBenefit: true,
           },
           fees: {
-            ...preview.fees,
+            ...(preview.fees ?? {}),
             metamaskFee: 0,
             totalFee: 0.222,
             totalFeePercentage: 2.22,
@@ -236,7 +236,7 @@ describe('orders utils', () => {
             canPresentBenefit: true,
           },
           fees: {
-            ...preview.fees,
+            ...(preview.fees ?? {}),
             metamaskFee: 0,
             totalFee: 0.222,
             totalFeePercentage: 2.22,
