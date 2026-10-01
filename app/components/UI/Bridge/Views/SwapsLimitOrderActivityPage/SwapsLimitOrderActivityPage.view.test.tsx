@@ -3,6 +3,8 @@ import { act, fireEvent, within } from '@testing-library/react-native';
 import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderShortAddress } from '../../../../../util/address';
 import { formatTimestampToDateTime } from '../../../../../util/date';
 import {
@@ -36,6 +38,9 @@ const {
   TRIGGER_CONDITION_ROW,
   NETWORK_ROW,
   TRANSACTION_ID_ROW,
+  FEES_AND_TOTAL,
+  NETWORK_FEE_ROW,
+  TOTAL_ROW,
 } = SwapsLimitOrderActivityPageSelectorsIDs;
 
 const FILL_TX_HASH = `0x${'ab'.repeat(32)}`;
@@ -65,17 +70,78 @@ const REVERTED_TRANSACTION: CreatedLimitOrderTransaction = {
   },
 };
 
-const DUPLICATE_ORDER_LABEL = strings('bridge.limit.duplicate_order');
+// The fill paid 0.0004 ETH of gas out of the swap, on top of the MetaMask fee.
+const FILL_NETWORK_FEE = {
+  amount: '400000000000000',
+  asset: MOCK_LIMIT_FILLED_ORDER.src.asset,
+  maxFeePerGas: '26702076',
+  maxPriorityFeePerGas: '1000004',
+};
+const FILL_METAMASK_FEE = {
+  amount: '31818781531961',
+  asset: MOCK_LIMIT_FILLED_ORDER.src.asset,
+  usd: '0.08696627586237457',
+  baseBpsFee: 87.5,
+  quoteBpsFee: 87.5,
+};
+
+// The same trade the other way round: 220 USDC for 0.1 ETH, which starts as a
+// buy of ETH, so its 2200 USDC per ETH ratio is quoted per unit of the
+// destination token.
+const MOCK_LIMIT_FILLED_BUY_ORDER: LimitOrder = {
+  ...MOCK_LIMIT_FILLED_ORDER,
+  src: {
+    asset: MOCK_LIMIT_FILLED_ORDER.dest.asset,
+    amount: MOCK_LIMIT_FILLED_ORDER.dest.amount,
+  },
+  dest: {
+    asset: MOCK_LIMIT_FILLED_ORDER.src.asset,
+    amount: MOCK_LIMIT_FILLED_ORDER.src.amount,
+    minAmount: MOCK_LIMIT_FILLED_ORDER.src.amount,
+  },
+};
+
 const BLOCK_EXPLORER_LABEL = strings('activity_details.view_on_block_explorer');
 
 const titleParams = { source: 'ETH', dest: 'USDC' };
 
+/**
+ * State where the display currency is EUR. With both rates given, 1 ETH is
+ * worth EUR 2000 and USD 2160.
+ */
+const EUR_DISPLAY_CURRENCY = {
+  engine: {
+    backgroundState: {
+      AssetsController: {
+        selectedCurrency: 'eur',
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2000,
+            usdPrice: 2160,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
 async function openActivityPage(
   order: LimitOrder,
   transactions: CreatedLimitOrderTransaction[] = [],
+  {
+    deterministicFiat,
+    overrides,
+  }: { deterministicFiat?: boolean; overrides?: DeepPartial<RootState> } = {},
 ) {
   setupGetLimitOrderApiMock({ order, transactions });
-  const renderResult = renderLimitOrderTabRow({ order });
+  const renderResult = renderLimitOrderTabRow({
+    order,
+    deterministicFiat,
+    overrides,
+  });
 
   await act(async () => {
     fireEvent.press(
@@ -144,6 +210,117 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     );
   });
 
+  it('quotes the trigger of an order that bought with a stablecoin in that stablecoin', async () => {
+    const { findByTestId, getByText } = await openActivityPage(
+      MOCK_LIMIT_FILLED_BUY_ORDER,
+    );
+
+    const triggerRow = await findByTestId(TRIGGER_CONDITION_ROW);
+
+    expect(
+      getByText(
+        strings('bridge.limit.activity_title_filled', {
+          source: 'USDC',
+          dest: 'ETH',
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(within(triggerRow).getByText('2200 USDC')).toBeOnTheScreen();
+  });
+
+  it('shows the network fee the fill paid from the swap, and what it sent in total', async () => {
+    const { findByTestId, getByTestId } = await openActivityPage(
+      MOCK_LIMIT_FILLED_ORDER,
+      [
+        {
+          ...FILL_TRANSACTION,
+          feeData: {
+            txFee: { ...FILL_NETWORK_FEE, usd: '1.23' },
+            metabridge: FILL_METAMASK_FEE,
+          },
+        },
+      ],
+      { deterministicFiat: true },
+    );
+
+    const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
+
+    expect(networkFeeRow).toHaveTextContent(
+      strings('activity_details.network_fee'),
+      { exact: false },
+    );
+    expect(within(networkFeeRow).getByText('$1.23')).toBeOnTheScreen();
+    expect(within(networkFeeRow).getByText('ETH')).toBeOnTheScreen();
+    // 0.1 ETH at $2000.
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$200.00', {
+      exact: false,
+    });
+  });
+
+  it('shows a fiat trigger, the network fee and the total in USD whatever the display currency', async () => {
+    const { findByTestId, getByTestId } = await openActivityPage(
+      {
+        ...MOCK_LIMIT_FILLED_ORDER,
+        trigger: { kind: 'src_price', threshold: 'above', price: '2160' },
+      },
+      [
+        {
+          ...FILL_TRANSACTION,
+          feeData: { txFee: { ...FILL_NETWORK_FEE, usd: '1.23' } },
+        },
+      ],
+      { deterministicFiat: true, overrides: EUR_DISPLAY_CURRENCY },
+    );
+
+    const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
+
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2160'),
+    ).toBeOnTheScreen();
+    expect(within(networkFeeRow).getByText('$1.23')).toBeOnTheScreen();
+    // 0.1 ETH at $2160.
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$216.00', {
+      exact: false,
+    });
+  });
+
+  it('shows the network fee as a token amount when the fill reports no USD value for it', async () => {
+    const { findByTestId } = await openActivityPage(
+      MOCK_LIMIT_FILLED_ORDER,
+      [{ ...FILL_TRANSACTION, feeData: { txFee: FILL_NETWORK_FEE } }],
+      { deterministicFiat: true },
+    );
+
+    const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
+
+    expect(within(networkFeeRow).getByText('0.0004')).toBeOnTheScreen();
+  });
+
+  it('shows only the total for a fill that reports no network fee', async () => {
+    const { findByTestId, queryByTestId } = await openActivityPage(
+      MOCK_LIMIT_FILLED_ORDER,
+      [{ ...FILL_TRANSACTION, feeData: { metabridge: FILL_METAMASK_FEE } }],
+      { deterministicFiat: true },
+    );
+
+    expect(await findByTestId(TOTAL_ROW)).toHaveTextContent('$200.00', {
+      exact: false,
+    });
+    expect(queryByTestId(NETWORK_FEE_ROW)).not.toBeOnTheScreen();
+  });
+
+  it('shows no costs for an order that did not fill', async () => {
+    const { findByTestId, queryByTestId } = await openActivityPage(
+      MOCK_LIMIT_FAILED_ORDER,
+      [{ ...REVERTED_TRANSACTION, feeData: { txFee: FILL_NETWORK_FEE } }],
+      { deterministicFiat: true },
+    );
+
+    await findByTestId(TRANSACTION_ID_ROW);
+
+    expect(queryByTestId(FEES_AND_TOTAL)).not.toBeOnTheScreen();
+  });
+
   it('opens the fill transaction in the block explorer', async () => {
     const { findByText, findByTestId } = await openActivityPage(
       MOCK_LIMIT_FILLED_ORDER,
@@ -195,19 +372,11 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
       status: strings('bridge.limit.canceled'),
     },
   ])(
-    'shows a $name order as sending nothing and offers to duplicate it',
+    'shows a $name order as sending nothing',
     async ({ order, title, status }) => {
-      const consoleLogSpy = jest
-        .spyOn(console, 'log')
-        .mockImplementation(() => undefined);
       const { getByTestId, getByText, queryByText, queryByTestId } =
         await openActivityPage(order);
 
-      await act(async () => {
-        fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
-      });
-
-      expect(consoleLogSpy).toHaveBeenCalledWith('Will duplicate order');
       expect(getByText(title)).toBeOnTheScreen();
       expect(
         within(getByTestId(STATUS_ROW)).getByText(status),
@@ -221,10 +390,7 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     },
   );
 
-  it('shows the reverted attempt of a failed order and offers to duplicate it', async () => {
-    const consoleLogSpy = jest
-      .spyOn(console, 'log')
-      .mockImplementation(() => undefined);
+  it('shows the reverted attempt of a failed order', async () => {
     const { getByTestId, getByText, queryByText, findByTestId } =
       await openActivityPage(MOCK_LIMIT_FAILED_ORDER, [REVERTED_TRANSACTION]);
 
@@ -232,12 +398,6 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
       renderShortAddress(FAILED_TX_HASH),
       { exact: false },
     );
-
-    await act(async () => {
-      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
-    });
-
-    expect(consoleLogSpy).toHaveBeenCalledWith('Will duplicate order');
     expect(
       getByText(strings('bridge.limit.activity_title_failed', titleParams)),
     ).toBeOnTheScreen();
