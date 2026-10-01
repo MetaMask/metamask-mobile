@@ -57,43 +57,63 @@ interface DescriptionSegment {
   link?: DescriptionLink;
 }
 
-interface DescriptionLinkLabel {
-  label: string;
-  link: DescriptionLink;
-}
+/**
+ * Sentinels passed as `{{faqLink}}` / `{{supportLink}}` interpolation values.
+ * Null bytes cannot appear in locale copy, so a match is the placeholder
+ * itself. Searching for the translated label would miss every locale that
+ * has not adopted the placeholders, and would break if a translator changed
+ * capitalisation inside the label.
+ */
+export const SERVICE_INTERRUPTION_LINK_PLACEHOLDERS = {
+  faq: '\u0000faqLink\u0000',
+  support: '\u0000supportLink\u0000',
+} as const;
+
+const LINK_PLACEHOLDERS: { token: string; link: DescriptionLink }[] = [
+  {
+    token: SERVICE_INTERRUPTION_LINK_PLACEHOLDERS.faq,
+    link: 'faq',
+  },
+  {
+    token: SERVICE_INTERRUPTION_LINK_PLACEHOLDERS.support,
+    link: 'support',
+  },
+];
 
 /**
- * Splits the translated description back into plain text and link segments.
- * The whole sentence goes through one `strings()` call so translators can
- * place both links anywhere; the link labels are then located in the result
- * and rendered as pressable text in place.
+ * Splits a description template into plain text and link segments.
+ * `template` is the `strings()` result after substituting
+ * {@link SERVICE_INTERRUPTION_LINK_PLACEHOLDERS} for `{{faqLink}}` and
+ * `{{supportLink}}`, so translators control link order. A link whose
+ * placeholder is absent is appended, which keeps both actions reachable in
+ * locales that still ship the previous sentence.
  */
 export const buildDescriptionSegments = (
-  sentence: string,
+  template: string,
   faqLabel: string,
   supportLabel: string,
 ): DescriptionSegment[] => {
-  const links: DescriptionLinkLabel[] = [
-    { label: faqLabel, link: 'faq' },
-    { label: supportLabel, link: 'support' },
-  ];
-  const presentLinks = links.filter(({ label }) => label.length > 0);
+  const labelByLink: Record<DescriptionLink, string> = {
+    faq: faqLabel,
+    support: supportLabel,
+  };
 
   const segments: DescriptionSegment[] = [];
-  let remaining = sentence;
+  const usedLinks = new Set<DescriptionLink>();
+  let remaining = template;
 
   while (remaining.length > 0) {
     let nextIndex = -1;
-    let nextLink: DescriptionLinkLabel | undefined;
-    for (const candidate of presentLinks) {
-      const index = remaining.indexOf(candidate.label);
+    let nextPlaceholder: (typeof LINK_PLACEHOLDERS)[number] | undefined;
+    for (const candidate of LINK_PLACEHOLDERS) {
+      const index = remaining.indexOf(candidate.token);
       if (index !== -1 && (nextIndex === -1 || index < nextIndex)) {
         nextIndex = index;
-        nextLink = candidate;
+        nextPlaceholder = candidate;
       }
     }
 
-    if (!nextLink) {
+    if (!nextPlaceholder) {
       segments.push({ text: remaining });
       break;
     }
@@ -101,8 +121,25 @@ export const buildDescriptionSegments = (
     if (nextIndex > 0) {
       segments.push({ text: remaining.slice(0, nextIndex) });
     }
-    segments.push({ text: nextLink.label, link: nextLink.link });
-    remaining = remaining.slice(nextIndex + nextLink.label.length);
+
+    const label = labelByLink[nextPlaceholder.link];
+    if (label.length > 0) {
+      segments.push({ text: label, link: nextPlaceholder.link });
+      usedLinks.add(nextPlaceholder.link);
+    }
+
+    remaining = remaining.slice(nextIndex + nextPlaceholder.token.length);
+  }
+
+  for (const { link } of LINK_PLACEHOLDERS) {
+    const label = labelByLink[link];
+    if (usedLinks.has(link) || label.length === 0) {
+      continue;
+    }
+    if (segments.length > 0) {
+      segments.push({ text: '\n' });
+    }
+    segments.push({ text: label, link });
   }
 
   return segments;
@@ -203,8 +240,8 @@ const PerpsServiceInterruptionBanner: React.FC<
     const supportLabel = strings('perps.service_interruption.contact_support');
     return buildDescriptionSegments(
       strings('perps.service_interruption.description', {
-        faqLink: faqLabel,
-        supportLink: supportLabel,
+        faqLink: SERVICE_INTERRUPTION_LINK_PLACEHOLDERS.faq,
+        supportLink: SERVICE_INTERRUPTION_LINK_PLACEHOLDERS.support,
       }),
       faqLabel,
       supportLabel,

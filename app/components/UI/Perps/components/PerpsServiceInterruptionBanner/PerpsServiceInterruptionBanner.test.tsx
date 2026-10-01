@@ -5,13 +5,14 @@ import PerpsServiceInterruptionBanner, {
   buildDescriptionSegments,
   SERVICE_INTERRUPTION_BANNER_COLLAPSE_SCROLL_PX,
   SERVICE_INTERRUPTION_BANNER_EXPAND_SCROLL_PX,
+  SERVICE_INTERRUPTION_LINK_PLACEHOLDERS,
 } from './PerpsServiceInterruptionBanner';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 import {
   SERVICE_INTERRUPTION_CONFIG,
   SUPPORT_CONFIG,
 } from '../../constants/perpsConfig';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 
@@ -91,6 +92,24 @@ describe('PerpsServiceInterruptionBanner', () => {
     expect(getByTestId(`${TEST_ID}-support-link`)).toHaveTextContent(
       'contact support',
     );
+  });
+
+  it('renders FAQ and support links when the translated description has no placeholders', () => {
+    const previousLocale = I18n.locale;
+    I18n.locale = 'es';
+
+    try {
+      const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
+
+      expect(getByTestId(`${TEST_ID}-faq-link`)).toHaveTextContent(
+        strings('perps.service_interruption.faq_link'),
+      );
+      expect(getByTestId(`${TEST_ID}-support-link`)).toHaveTextContent(
+        strings('perps.service_interruption.contact_support'),
+      );
+    } finally {
+      I18n.locale = previousLocale;
+    }
   });
 
   it('opens the Perps FAQ in the SimpleWebview when the FAQ link is pressed', () => {
@@ -260,10 +279,12 @@ describe('PerpsServiceInterruptionBanner', () => {
 });
 
 describe('buildDescriptionSegments', () => {
-  it('splits plain text around both links in sentence order', () => {
+  const { faq, support } = SERVICE_INTERRUPTION_LINK_PLACEHOLDERS;
+
+  it('splits plain text around both placeholder links in sentence order', () => {
     expect(
       buildDescriptionSegments(
-        'Down. See FAQs, or contact us.',
+        `Down. ${faq}, or ${support}.`,
         'See FAQs',
         'contact us',
       ),
@@ -276,10 +297,10 @@ describe('buildDescriptionSegments', () => {
     ]);
   });
 
-  it('honours translations that reorder the links', () => {
+  it('honours translations that reorder the placeholders', () => {
     expect(
       buildDescriptionSegments(
-        'contact us or See FAQs',
+        `${support} or ${faq}`,
         'See FAQs',
         'contact us',
       ),
@@ -290,15 +311,35 @@ describe('buildDescriptionSegments', () => {
     ]);
   });
 
-  it('returns the sentence as plain text when no link label is present', () => {
+  it('appends both links when the sentence has no placeholders', () => {
     expect(buildDescriptionSegments('Down.', 'See FAQs', 'contact us')).toEqual(
-      [{ text: 'Down.' }],
+      [
+        { text: 'Down.' },
+        { text: '\n' },
+        { text: 'See FAQs', link: 'faq' },
+        { text: '\n' },
+        { text: 'contact us', link: 'support' },
+      ],
     );
   });
 
+  it('appends only the link whose placeholder is missing', () => {
+    expect(
+      buildDescriptionSegments(`Down. ${faq}.`, 'See FAQs', 'contact us'),
+    ).toEqual([
+      { text: 'Down. ' },
+      { text: 'See FAQs', link: 'faq' },
+      { text: '.' },
+      { text: '\n' },
+      { text: 'contact us', link: 'support' },
+    ]);
+  });
+
   it('ignores empty link labels', () => {
-    expect(buildDescriptionSegments('Down. See FAQs.', 'See FAQs', '')).toEqual(
-      [{ text: 'Down. ' }, { text: 'See FAQs', link: 'faq' }, { text: '.' }],
-    );
+    expect(buildDescriptionSegments(`Down. ${faq}.`, 'See FAQs', '')).toEqual([
+      { text: 'Down. ' },
+      { text: 'See FAQs', link: 'faq' },
+      { text: '.' },
+    ]);
   });
 });
