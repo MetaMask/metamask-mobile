@@ -10,7 +10,7 @@ import {
 import { useAccountAvatarType } from '../../hooks/useAccountAvatarType';
 import { useSendContext } from '../../context/send-context/send-context';
 import { Recipient, type RecipientType } from '../UI/recipient';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { type AccountAvatarVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { strings } from '../../../../../../locales/i18n';
 
 interface RecipientListProps {
@@ -83,7 +83,7 @@ function FlatRecipientList({
 }: {
   data: RecipientType[];
   onRecipientSelected: (recipient: RecipientType) => void;
-  accountAvatarType: AvatarAccountType;
+  accountAvatarType: AccountAvatarVariant;
   to?: string;
   disabled?: boolean;
 }) {
@@ -111,7 +111,7 @@ function BIP44RecipientList({
 }: {
   data: RecipientType[];
   onRecipientSelected: (recipient: RecipientType) => void;
-  accountAvatarType: AvatarAccountType;
+  accountAvatarType: AccountAvatarVariant;
   to?: string;
   disabled?: boolean;
 }) {
