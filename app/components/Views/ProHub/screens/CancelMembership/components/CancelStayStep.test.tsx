@@ -2,11 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelStayStep from './CancelStayStep';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
-import {
-  CANCEL_REASONS,
-  MAX_STAY_FEEDBACK_LENGTH,
-  OTHER_REASON_ID,
-} from '../CancelMembership.constants';
+import { MAX_STAY_FEEDBACK_LENGTH } from '../CancelMembership.constants';
 import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
@@ -19,17 +15,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const NON_OTHER_REASON_ID = CANCEL_REASONS[0].id;
-
 const renderStep = (
   overrides: Partial<React.ComponentProps<typeof CancelStayStep>> = {},
 ) => {
   const props: React.ComponentProps<typeof CancelStayStep> = {
-    selectedReasonId: NON_OTHER_REASON_ID,
     stayFeedback: '',
-    otherReasonText: '',
     onStayFeedbackChange: jest.fn(),
-    onOtherReasonChange: jest.fn(),
     onBack: jest.fn(),
     onKeepMembership: jest.fn(),
     onCancelConfirm: jest.fn(),
@@ -113,63 +104,6 @@ describe('CancelStayStep', () => {
       );
 
       expect(props.onStayFeedbackChange).toHaveBeenCalledWith('Lower price');
-    });
-  });
-
-  // ── Other reason input ────────────────────────────────────────────────────
-
-  describe('other reason input', () => {
-    it('hides the other reason input when a non-other reason is selected', () => {
-      const { queryByTestId } = renderStep();
-
-      expect(
-        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toBeNull();
-    });
-
-    it('hides the other reason input when no reason is selected', () => {
-      const { queryByTestId } = renderStep({ selectedReasonId: null });
-
-      expect(
-        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toBeNull();
-    });
-
-    it('shows the other reason input when other is selected', () => {
-      const { getByTestId } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      expect(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toHaveProp(
-        'placeholder',
-        strings('pro_hub.cancel_membership.reason_other_placeholder'),
-      );
-    });
-
-    it('renders the current other reason value', () => {
-      const { getByTestId } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-        otherReasonText: 'Too many emails',
-      });
-
-      expect(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toHaveProp('value', 'Too many emails');
-    });
-
-    it('calls onOtherReasonChange when the other reason input text changes', () => {
-      const { getByTestId, props } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      fireEvent.changeText(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-        'Too many emails',
-      );
-
-      expect(props.onOtherReasonChange).toHaveBeenCalledWith('Too many emails');
     });
   });
 

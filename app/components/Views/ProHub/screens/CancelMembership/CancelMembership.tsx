@@ -33,7 +33,6 @@ const CancelMembership = () => {
   const [step, setStep] = useState<CancelStep>('reason');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
-  const [otherReasonText, setOtherReasonText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cancelledSubscription, setCancelledSubscription] = useState<{
@@ -115,10 +114,6 @@ const CancelMembership = () => {
 
   const handleStayFeedbackChange = useCallback((value: string) => {
     setStayFeedback(value);
-  }, []);
-
-  const handleOtherReasonChange = useCallback((value: string) => {
-    setOtherReasonText(value);
   }, []);
 
   const handleDone = useCallback(() => {
@@ -209,11 +204,8 @@ const CancelMembership = () => {
       )}
       {step === 'stay' && (
         <CancelStayStep
-          selectedReasonId={selectedReasonId}
           stayFeedback={stayFeedback}
-          otherReasonText={otherReasonText}
           onStayFeedbackChange={handleStayFeedbackChange}
-          onOtherReasonChange={handleOtherReasonChange}
           onBack={handleBack}
           onKeepMembership={handleKeepMembership}
           onCancelConfirm={handleCancelConfirm}

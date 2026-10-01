@@ -205,20 +205,15 @@ describe('CancelMembership', () => {
       expect(queryByTestId(CancelMembershipTestIds.REASONS_LIST)).toBeNull();
     });
 
-    it('shows the other reason input on the stay step only when other is selected', () => {
+    it('advances to the stay step when other is selected', () => {
       const { getByTestId, queryByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-      expect(
-        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toBeNull();
-
-      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
       fireEvent.press(getByTestId(getCancelReasonTestId('other')));
 
       expect(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
       ).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.TITLE)).toBeNull();
     });
 
     it('returns to the reason step with the selection preserved when back is pressed', () => {
@@ -235,22 +230,6 @@ describe('CancelMembership', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('keeps typed other reason text after going back and re-selecting other', () => {
-      const { getByTestId } = renderScreen();
-
-      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-      fireEvent.changeText(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-        'Too many emails',
-      );
-      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
-      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-
-      expect(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT).props.value,
-      ).toBe('Too many emails');
-    });
-
     it('keeps typed stay feedback after going back and selecting another reason', () => {
       const { getByTestId } = renderScreen();
 
@@ -260,7 +239,7 @@ describe('CancelMembership', () => {
         'Lower the price',
       );
       fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
-      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+      fireEvent.press(getByTestId(getCancelReasonTestId('not_using_benefits')));
 
       expect(
         getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT).props.value,
@@ -404,14 +383,10 @@ describe('CancelMembership', () => {
     );
   });
 
-  it('sends other as the reason code without typed other text', async () => {
+  it('sends other as the reason code', async () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.changeText(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      'Too many emails',
-    );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
     await waitFor(() =>

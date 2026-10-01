@@ -62,7 +62,7 @@ describe('CancelSurveyStep', () => {
       );
     });
 
-    it('does not render the stay question or its inputs', () => {
+    it('does not render the stay question', () => {
       const { queryByTestId } = renderStep({
         selectedReasonId: CANCEL_REASONS[0].id,
       });
@@ -70,9 +70,6 @@ describe('CancelSurveyStep', () => {
       expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
       expect(
         queryByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-      ).toBeNull();
-      expect(
-        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
       ).toBeNull();
     });
   });
