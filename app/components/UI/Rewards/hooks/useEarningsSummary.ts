@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
@@ -29,12 +29,19 @@ export const useEarningsSummary = (
   fetchEarningsSummary: (options?: { forceFresh?: boolean }) => Promise<void>;
 } => {
   const dispatch = useDispatch();
+  const isLoadingRef = useRef(false);
 
   const fetchEarningsSummary = useCallback(
     async ({ forceFresh }: { forceFresh?: boolean } = {}): Promise<void> => {
       if (!profileId) {
         return;
       }
+      // The Earnings tab stays mounted, so a second call on this instance
+      // waits until the in-flight one settles.
+      if (isLoadingRef.current) {
+        return;
+      }
+      isLoadingRef.current = true;
 
       dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
       dispatch(setEarningsSummaryError({ profileId, error: false }));
@@ -49,6 +56,7 @@ export const useEarningsSummary = (
       } catch (error) {
         dispatch(setEarningsSummaryError({ profileId, error: true }));
       } finally {
+        isLoadingRef.current = false;
         dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
       }
     },

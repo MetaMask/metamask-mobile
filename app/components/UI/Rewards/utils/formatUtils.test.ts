@@ -180,6 +180,24 @@ describe('formatUtils', () => {
         formatRewardsRelativeTime(new Date('2026-09-21T12:00:00.000Z'), now),
       ).toBe('4d ago');
     });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-18T12:00:00.000Z'), now),
+      ).toBe('1w ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-08-26T12:00:00.000Z'), now),
+      ).toBe('1mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-06-25T12:00:00.000Z'), now),
+      ).toBe('3mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2025-09-25T12:00:00.000Z'), now),
+      ).toBe('1y ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2024-09-25T12:00:00.000Z'), now),
+      ).toBe('2y ago');
+    });
   });
 
   describe('formatRewardsRelativeDay', () => {
@@ -198,6 +216,15 @@ describe('formatUtils', () => {
     it('counts whole UTC days', () => {
       expect(formatRewardsRelativeDay('2026-09-24', now)).toBe('1d ago');
       expect(formatRewardsRelativeDay('2026-09-21', now)).toBe('4d ago');
+    });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(formatRewardsRelativeDay('2026-09-18', now)).toBe('1w ago');
+      expect(formatRewardsRelativeDay('2026-08-27', now)).toBe('4w ago');
+      expect(formatRewardsRelativeDay('2026-08-26', now)).toBe('1mo ago');
+      expect(formatRewardsRelativeDay('2025-09-26', now)).toBe('12mo ago');
+      expect(formatRewardsRelativeDay('2025-09-25', now)).toBe('1y ago');
+      expect(formatRewardsRelativeDay('2024-09-25', now)).toBe('2y ago');
     });
   });
 

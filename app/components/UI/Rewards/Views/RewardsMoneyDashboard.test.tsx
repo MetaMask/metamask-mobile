@@ -82,6 +82,17 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
   };
 });
 
+jest.mock('../components/Money/Tabs/EarningsTab', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    EARNINGS_TAB_TEST_IDS: {
+      CONTAINER: 'rewards-money-earnings-tab',
+    },
+    default: () => <View testID="rewards-money-earnings-tab" />,
+  };
+});
+
 jest.mock('../components/Money/Tabs/PerformanceTab', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -525,7 +536,7 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('switches to an empty Earnings tab body', () => {
+  it('switches to the Earnings tab body', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB));
@@ -533,9 +544,24 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
     ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-earnings-tab')).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('hides the earnings indicator when only claimed balance is positive', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: { ...EARNINGS_SUMMARY, claimable: '0', claimed: '50' },
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
   });
 
   it('switches to the Performance tab body', () => {
@@ -559,6 +585,11 @@ describe('RewardsMoneyDashboard', () => {
 
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY, {
         includeHiddenElements: true,
       }),
     ).toBeTruthy();
