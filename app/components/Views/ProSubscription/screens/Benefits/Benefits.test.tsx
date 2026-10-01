@@ -207,7 +207,7 @@ describe('Benefits', () => {
     it('renders CTA button with join label by default', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -217,7 +217,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -227,7 +227,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -238,7 +238,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
   });
@@ -461,7 +461,7 @@ describe('Benefits', () => {
         getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
       ).toBeOnTheScreen();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
   });

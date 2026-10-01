@@ -24,9 +24,9 @@ import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profi
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
-import { useSocialEntryModeration } from '../components/SocialEntryOptionsBottomSheet';
+import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { useFeedNow } from '../FeedView/hooks/useFeedNow';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';

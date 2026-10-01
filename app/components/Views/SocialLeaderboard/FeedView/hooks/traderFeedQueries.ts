@@ -4,23 +4,19 @@ import type {
   FetchFeedOptions,
 } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
-import type { FeedAudience } from '../types';
-
-/** Feed scope the social API expects, derived from the audience toggle. */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']>;
-
-/** Page size requested per feed page. */
-export const FEED_PAGE_LIMIT = 30;
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
+import { FEED_PAGE_LIMIT } from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import {
+  toFeedScope,
+  type FeedScope,
+} from '../../../../UI/SocialFeed/data/socialFeedSource';
+import type { FeedAudience } from '../../../../UI/SocialFeed/types';
 
 /** Audiences whose first page is warmed when Follow Trading opens. */
 export const PREFETCH_FEED_AUDIENCES: readonly FeedAudience[] = [
   'following',
   'all',
 ];
-
-export const toFeedScope = (audience: FeedAudience): FeedScope =>
-  audience === 'following' ? 'following' : 'leaderboard';
 
 /**
  * Same shape as `buildSocialFeedQueryKey` for an `all` source at

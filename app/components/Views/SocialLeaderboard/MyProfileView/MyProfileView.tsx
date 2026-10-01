@@ -39,17 +39,17 @@ import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSaf
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderProfile } from '../TraderProfileView/hooks';
-import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
-import SocialFeedPostSkeleton from '../SocialV1View/feed/components/SocialFeedPostSkeleton';
-import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
+import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfileAvatar from './components/ProfileAvatar';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
-/* eslint-enable import-x/no-restricted-paths */
+
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
+
 import {
   useMyOpenPerpsPositionCount,
   useMyProfile,
