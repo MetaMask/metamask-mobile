@@ -344,6 +344,35 @@ function evidenceBlock({ exception, finding, frames }) {
   return lines.join('\n');
 }
 
+/**
+ * The proposal is one text for the whole run. A single finding keeps it.
+ * Several findings each keep the lines that name that scenario, so one
+ * team's bug does not carry the others. Lines that name no scenario are
+ * dropped. The Slack card is written earlier from the full text.
+ */
+function proposalForFinding(aiText, finding, findingCount) {
+  const text = String(aiText || '').trim();
+  if (!text) {
+    return null;
+  }
+  if (findingCount <= 1) {
+    return text;
+  }
+  const names = [displayName(finding.scenario), String(finding.scenario || '')]
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean);
+  return (
+    text
+      .split('\n')
+      .filter((line) => {
+        const lower = line.toLowerCase();
+        return names.some((name) => lower.includes(name));
+      })
+      .join('\n')
+      .trim() || null
+  );
+}
+
 function additionalContextLines({ exception, currentReport, aiText }) {
   const lines = [
     `- Performance run: ${exception.meta.runUrl}`,
@@ -805,7 +834,11 @@ export function syncProfilingRegressionIssues({
       exception,
       currentReport,
       frames,
-      aiText,
+      aiText: proposalForFinding(
+        aiText,
+        finding,
+        exception.findings.length,
+      ),
       appVersion,
       profileAttachment,
     });

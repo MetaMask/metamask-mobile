@@ -489,6 +489,94 @@ test('several findings in one run each open their own issue', () => {
   assert.match(bodies[1], /Perps add funds/);
 });
 
+test('several findings keep only the proposal lines that name that scenario', () => {
+  const bodies = [];
+  const { runGh } = fakeGh({
+    'issue list': trackedIssueJson([]),
+    'issue create': (args) => {
+      bodies.push(fs.readFileSync(args[args.indexOf('--body-file') + 1], 'utf8'));
+      return `https://github.com/MetaMask/metamask-mobile/issues/${bodies.length}\n`;
+    },
+  });
+  const proposal = [
+    '• Measure Warm Start: Warm Start to Login Screen — memoized dominates',
+    '• Perps add funds — usePerpsOrderForm dominates',
+    '• shared note that names no scenario',
+  ].join('\n');
+
+  syncProfilingRegressionIssues({
+    exception: exception([
+      finding(),
+      finding({
+        scenario: 'Perps_add_funds',
+        owner: 'mm-perps-engineering-team',
+        ratio: 2,
+      }),
+    ]),
+    currentReport: currentReport(),
+    aiText: proposal,
+    repo: 'MetaMask/metamask-mobile',
+    runGh,
+  });
+
+  assert.match(bodies[0], /memoized dominates/);
+  assert.doesNotMatch(bodies[0], /usePerpsOrderForm/);
+  assert.doesNotMatch(bodies[0], /shared note/);
+  assert.match(bodies[1], /usePerpsOrderForm/);
+  assert.doesNotMatch(bodies[1], /memoized dominates/);
+  assert.doesNotMatch(bodies[1], /shared note/);
+});
+
+test('a proposal that names no scenario is left off every issue in a multi-finding run', () => {
+  const bodies = [];
+  const { runGh } = fakeGh({
+    'issue list': trackedIssueJson([]),
+    'issue create': (args) => {
+      bodies.push(fs.readFileSync(args[args.indexOf('--body-file') + 1], 'utf8'));
+      return `https://github.com/MetaMask/metamask-mobile/issues/${bodies.length}\n`;
+    },
+  });
+
+  syncProfilingRegressionIssues({
+    exception: exception([
+      finding(),
+      finding({ scenario: 'Perps_add_funds', owner: 'mm-perps-engineering-team' }),
+    ]),
+    currentReport: currentReport(),
+    aiText: '• reselect is hot somewhere',
+    repo: 'MetaMask/metamask-mobile',
+    runGh,
+  });
+
+  assert.equal(bodies.length, 2);
+  assert.doesNotMatch(bodies[0], /AI proposal/);
+  assert.doesNotMatch(bodies[1], /AI proposal/);
+  assert.doesNotMatch(bodies[0], /reselect is hot/);
+  assert.doesNotMatch(bodies[1], /reselect is hot/);
+});
+
+test('one finding still gets the full proposal', () => {
+  let body = '';
+  const { runGh } = fakeGh({
+    'issue list': trackedIssueJson([]),
+    'issue create': (args) => {
+      body = fs.readFileSync(args[args.indexOf('--body-file') + 1], 'utf8');
+      return 'https://github.com/MetaMask/metamask-mobile/issues/501\n';
+    },
+  });
+
+  syncProfilingRegressionIssues({
+    exception: exception([finding()]),
+    currentReport: currentReport(),
+    aiText: '• reselect memoized dominates self time',
+    repo: 'MetaMask/metamask-mobile',
+    runGh,
+  });
+
+  assert.match(body, /AI proposal \(profiling evidence only; not a root cause\)/);
+  assert.match(body, /reselect memoized dominates self time/);
+});
+
 test('a failing GitHub call is recorded on the finding and does not throw', () => {
   const { runGh } = fakeGh({
     'issue list': trackedIssueJson([]),
