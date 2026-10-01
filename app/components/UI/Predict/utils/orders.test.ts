@@ -200,8 +200,6 @@ describe('orders utils', () => {
             status: 'membership',
             effectiveMetamaskFee: 0,
             builderCode: 'predict-pro-builder',
-            isMetaMaskFeeWaived: true,
-            canPresentBenefit: true,
           },
           fees: {
             ...(preview.fees ?? {}),
@@ -232,8 +230,6 @@ describe('orders utils', () => {
             status: 'membership',
             effectiveMetamaskFee: 0,
             builderCode: 'predict-pro-builder',
-            isMetaMaskFeeWaived: true,
-            canPresentBenefit: true,
           },
           fees: {
             ...(preview.fees ?? {}),

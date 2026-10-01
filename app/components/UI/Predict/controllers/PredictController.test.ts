@@ -9349,8 +9349,6 @@ describe('PredictController', () => {
                 status: 'membership',
                 effectiveMetamaskFee: 0,
                 builderCode: 'predict-pro-builder',
-                isMetaMaskFeeWaived: true,
-                canPresentBenefit: true,
               },
             }),
           );

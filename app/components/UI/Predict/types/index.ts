@@ -755,8 +755,6 @@ export interface PredictFeePolicy {
   status: PredictFeePolicyStatus;
   effectiveMetamaskFee: number;
   builderCode?: string;
-  isMetaMaskFeeWaived: boolean;
-  canPresentBenefit: boolean;
 }
 
 /**

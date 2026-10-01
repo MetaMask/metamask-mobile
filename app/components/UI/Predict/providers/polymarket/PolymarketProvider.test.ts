@@ -1587,8 +1587,6 @@ describe('PolymarketProvider', () => {
           status: 'membership',
           effectiveMetamaskFee: 0,
           builderCode: membershipBuilderCode,
-          isMetaMaskFeeWaived: true,
-          canPresentBenefit: true,
         },
       },
     });
@@ -1861,8 +1859,6 @@ describe('PolymarketProvider', () => {
           effectiveMetamaskFee: 0,
           builderCode:
             '0x4444444444444444444444444444444444444444444444444444444444444444',
-          isMetaMaskFeeWaived: true,
-          canPresentBenefit: true,
         },
       },
     });

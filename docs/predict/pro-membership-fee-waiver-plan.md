@@ -1,160 +1,102 @@
-# Predict Pro Membership Fee-Waiver Plan
+# Predict Pro membership in Predict
 
-This plan covers the legacy Polymarket Predict flow. `PredictNext` is out of
+This describes the legacy Polymarket Predict flow. `PredictNext` is out of
 scope.
 
-## Rules to preserve
+## Core rule
 
-- Use the dedicated Predict Pro entitlement and `benefits.predict` usage.
-- Waive only the MetaMask service fee unless the backend contract says
-  otherwise.
-- Keep Polymarket CLOB market fees and Pay-With-Any-Token deposit fees
-  separate.
-- Treat `builderCode` as public attribution data, not as authorization.
-- Use `getBenefits()` only as the mobile eligibility/preflight signal.
-- Keep subscription validation, allowance metering, and the final fee decision
-  in the backend.
+Predict Pro is a fee-waiver benefit, not a client-side permission system.
 
-## Step 1: Confirm the backend contract
+- `SubscriptionController:getBenefits()` tells mobile whether it may show and prepare the waiver.
+- Only the MetaMask service fee is waived.
+- Provider fees, market fees, and Pay-With-Any-Token deposit fees remain.
+- The `builderCode` is fetched from the Subscriptions Benefits API.
+- The backend validates the benefit and owns allowance consumption.
 
-Confirm the small client-facing contract:
+## End-to-end flow
 
-- the client preflight: call
-  `SubscriptionController:getBenefits` through `PredictControllerMessenger`
-  before calculating the fee preview;
-- the response fields that mean “fee waiver available”;
-- the member `builderCode` and the standard builder fallback;
-- the backend response for a stale, exhausted, or inactive benefit;
-- the backend-owned validation and allowance-metering behavior for direct
-  orders, retries, and Pay-With-Any-Token orders.
+### Order Preview
 
-The mobile response is a hint and may be stale. Refresh it through the existing
-Predict page preview lifecycle, but the backend remains authoritative for
-validation and metering.
+```mermaid
+flowchart TD
+  A[Predict screen] --> B[Request order preview]
+  B --> C[Get subscription benefits]
+  C --> D{Waiver appears available?}
+  D -->|Yes| E[Membership policy<br/>MetaMask fee = 0<br/>use member builderCode]
+  D -->|No or request fails| F[Standard policy<br/>use default fee and builder]
+  E --> G[Build preview]
+  F --> G
+  G --> H[Show fees and order totals]
+```
 
-## Step 2: Add one client-side Predict fee policy
+### Order Place
 
-Build a small Predict-specific policy around
-[`app/selectors/subscriptionController.ts`](../../app/selectors/subscriptionController.ts).
+```mermaid
+flowchart TD
+  A[User taps Place order] --> B[Use the current page preview]
+  B --> C{Balance covers preview total?}
+  C -->|No| D[Deposit or Pay-With-Any-Token]
+  D --> E[Submit after deposit]
+  C -->|Yes| E[Submit now]
+  E --> F[PredictController.placeOrder]
+  F --> G[Get benefits once for this submission]
+  G --> H{Current waiver available?}
+  H -->|Yes| I[Attach membership fee policy]
+  H -->|No or request fails| J[Use standard fee policy]
+  I --> K[Validate and sign the CLOB order]
+  J --> K
+  K --> L[Relayer receives the signed order]
+  L --> M[Backend validates and meters the benefit]
+  M --> N[Order accepted or rejected]
+```
 
-Expose the subscription action through
-[`app/core/Engine/messengers/predict-controller-messenger/index.ts`](../../app/core/Engine/messengers/predict-controller-messenger/index.ts)
-and call it from `PredictController`; do not access `Engine.context` directly
-from the controller.
+For Pay-With-Any-Token, the post-deposit submission is a separate
+`placeOrder` invocation and therefore gets its own benefits lookup. A retry
+within the same invocation reuses the already selected policy.
 
-The policy should:
+## Membership decision
 
-- use the backend response to determine whether the current order can use the
-  waiver;
-- return the membership `builderCode` when the waiver is available;
-- set the effective MetaMask fee to zero when available, otherwise preserve
-  the configured standard fee;
-- fail closed for missing, stale, inactive, exhausted, or malformed benefits;
-- avoid implementing a client-side allowance counter or meter.
+Mobile presents the waiver only when all of these are true:
 
-Return the effective builder code, effective MetaMask fee, and whether the UI
-may present the benefit. The benefit count is used only to choose the current
-UI/submission path; it is not part of fee arithmetic. Do not mutate the global
-[`protocol/definitions.ts`](../../app/components/UI/Predict/providers/polymarket/protocol/definitions.ts)
-environment value at runtime.
+```mermaid
+flowchart LR
+  A[getBenefits response] --> B{eligible = true}
+  B -->|No| S[Standard fee]
+  B -->|Yes| C{builderCode is present}
+  C -->|No| S
+  C -->|Yes| D{exhausted = false}
+  D -->|No| S
+  D -->|Yes| E{remainingTxCount > 0}
+  E -->|No| S
+  E -->|Yes| W[MetaMask fee waived]
+```
 
-## Step 3: Apply the policy to previews
+`remainingTxCount` is only a preflight signal. Mobile does not decrement it,
+reserve it, or decide whether a trade is ultimately entitled to the benefit.
 
-Update:
+## What is signed and submitted
 
-- [`usePredictOrderPreview.ts`](../../app/components/UI/Predict/hooks/usePredictOrderPreview.ts)
-- [`queries/orderPreview.ts`](../../app/components/UI/Predict/queries/orderPreview.ts)
-- [`providers/polymarket/utils.ts`](../../app/components/UI/Predict/providers/polymarket/utils.ts)
-- [`utils/orders.ts`](../../app/components/UI/Predict/utils/orders.ts)
+When the membership route is selected:
 
-Refresh benefits and the fee portion of the preview:
+1. Mobile builds the order with the member `builderCode`.
+2. The user signs that order using the normal CLOB EIP-712 flow.
+3. The relayer receives the signed order and submits it to the CLOB.
+4. The benefits backend validates the order and the current benefit state.
+5. The benefits backend consumes the allowance according to its contract and returns
+   the order result.
 
-- when the Predict page gains focus;
-- through the existing active-page preview refresh;
+The standard route uses the default builder code and normal MetaMask fee.
 
-Ensure the current policy is reflected consistently in:
+## Stale benefits and fees
 
-- BUY all-in cost;
-- SELL net proceeds;
-- balance checks;
-- deposit amounts;
-- rewards display;
-- fee breakdown UI.
+The preview can become stale while the user remains on the page. The next
+active-page preview refreshes the benefits snapshot. At submission, the
+controller obtains one current benefits response before validation and signing.
+The backend remains authoritative if the benefit changes between those steps.
 
-Do not add benefit counts or a fee-policy identity to preview query keys.
-Explicit benefits/preview refreshes handle stale fee displays. A benefit change
-only changes the MetaMask service-fee path and builder code; market and
-provider fees remain unchanged.
+The fee result is:
 
-Keep `marketFee` separate and non-waivable by this client policy.
-
-## Step 4: Add the member builder code to signed orders
-
-Update
-[`protocol/orderCodec.ts`](../../app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts)
-so `buildProtocolUnsignedOrder()` accepts an explicit per-order builder code,
-with the current protocol code as the default.
-
-Update
-[`PolymarketProvider.ts`](../../app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts)
-to:
-
-1. use the per-order fee policy selected by `PredictController`;
-2. pass the selected builder code into the order codec;
-3. include the code in the signed EIP-712 order;
-4. omit unnecessary Permit2 fee authorization when the effective service fee
-   is zero;
-5. preserve correct FAK/FOK behavior.
-
-## Step 5: Keep order submission lean
-
-Update
-[`PredictController.ts`](../../app/components/UI/Predict/controllers/PredictController.ts)
-to resolve the current fee policy once per `placeOrder` invocation, before
-market validation and provider submission. Reuse that preview for direct orders,
-Pay-With-Any-Token orders, and the existing retry attempt.
-
-Keep
-[`usePredictPlaceOrder.ts`](../../app/components/UI/Predict/hooks/usePredictPlaceOrder.ts)
-focused on balance, deposit, loading, and presentation behavior. It should use
-the preview already produced by the page instead of issuing another preview
-request when the user taps the order button.
-
-Handle:
-
-- stale or unavailable benefits;
-- backend rejection of the member route;
-- direct BUY and SELL;
-- Pay-With-Any-Token BUY.
-
-Do not block order completion on a second benefits request after success or
-failure. The next active-page preview obtains the next benefits snapshot, while
-the backend remains responsible for consuming the allowance atomically.
-
-## Step 6: Test and verify
-
-Add focused tests for:
-
-- active, inactive, loading, missing, and exhausted benefits;
-- only the intended MetaMask fee being waived;
-- market and deposit fees remaining intact;
-- benefits refresh while the Predict page is active;
-- one fee-policy lookup per order submission;
-- builder code propagation into the signed order;
-- Permit2 omission for waived orders;
-- post-deposit retry using the existing order preview.
-
-Run the focused Predict tests, TypeScript checks, and lint with Yarn.
-
-## Main files
-
-- [`app/selectors/subscriptionController.ts`](../../app/selectors/subscriptionController.ts)
-- [`app/core/Engine/messengers/predict-controller-messenger/index.ts`](../../app/core/Engine/messengers/predict-controller-messenger/index.ts)
-- [`app/components/UI/Predict/hooks/usePredictOrderPreview.ts`](../../app/components/UI/Predict/hooks/usePredictOrderPreview.ts)
-- [`app/components/UI/Predict/queries/orderPreview.ts`](../../app/components/UI/Predict/queries/orderPreview.ts)
-- [`app/components/UI/Predict/providers/polymarket/utils.ts`](../../app/components/UI/Predict/providers/polymarket/utils.ts)
-- [`app/components/UI/Predict/utils/orders.ts`](../../app/components/UI/Predict/utils/orders.ts)
-- [`app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts`](../../app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts)
-- [`app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts`](../../app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts)
-- [`app/components/UI/Predict/controllers/PredictController.ts`](../../app/components/UI/Predict/controllers/PredictController.ts)
-- [`app/components/UI/Predict/hooks/usePredictPlaceOrder.ts`](../../app/components/UI/Predict/hooks/usePredictPlaceOrder.ts)
+- eligible membership: MetaMask service fee waived;
+- inactive, exhausted, missing, malformed, or unavailable benefit: standard
+  MetaMask fee;
+- all cases: provider, market, and deposit fees remain separate.

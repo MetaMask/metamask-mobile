@@ -3141,8 +3141,6 @@ describe('polymarket utils', () => {
           status: 'membership',
           effectiveMetamaskFee: 0,
           builderCode: 'predict-pro-builder',
-          isMetaMaskFeeWaived: true,
-          canPresentBenefit: true,
         },
         marketId: 'market-1',
         userBetAmount: 10,
@@ -3199,8 +3197,6 @@ describe('polymarket utils', () => {
         status: 'membership',
         effectiveMetamaskFee: 0,
         builderCode: 'predict-pro-builder',
-        isMetaMaskFeeWaived: true,
-        canPresentBenefit: true,
       },
     });
 

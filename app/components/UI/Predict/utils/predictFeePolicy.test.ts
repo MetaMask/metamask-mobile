@@ -46,9 +46,27 @@ describe('Predict fee policy', () => {
       status: 'membership',
       effectiveMetamaskFee: 0,
       builderCode: 'predict-pro-builder',
-      isMetaMaskFeeWaived: true,
-      canPresentBenefit: true,
     });
+  });
+
+  it('uses membership status only when the benefit is not exhausted', () => {
+    const availablePolicy = resolvePredictFeePolicy({
+      benefits: createBenefits({
+        exhausted: false,
+        remainingTxCount: 1,
+      }),
+      standardMetamaskFee: STANDARD_METAMASK_FEE,
+    });
+    const exhaustedPolicy = resolvePredictFeePolicy({
+      benefits: createBenefits({
+        exhausted: true,
+        remainingTxCount: 1,
+      }),
+      standardMetamaskFee: STANDARD_METAMASK_FEE,
+    });
+
+    expect(availablePolicy.status).toBe('membership');
+    expect(exhaustedPolicy.status).toBe('standard');
   });
 
   it.each([
@@ -69,8 +87,6 @@ describe('Predict fee policy', () => {
     ).toMatchObject({
       status: 'standard',
       effectiveMetamaskFee: STANDARD_METAMASK_FEE,
-      isMetaMaskFeeWaived: false,
-      canPresentBenefit: false,
     });
   });
 
@@ -78,8 +94,6 @@ describe('Predict fee policy', () => {
     expect(getStandardPredictFeePolicy(STANDARD_METAMASK_FEE)).toEqual({
       status: 'standard',
       effectiveMetamaskFee: STANDARD_METAMASK_FEE,
-      isMetaMaskFeeWaived: false,
-      canPresentBenefit: false,
     });
   });
 
@@ -95,7 +109,6 @@ describe('Predict fee policy', () => {
     ).toMatchObject({
       status: 'standard',
       effectiveMetamaskFee: STANDARD_METAMASK_FEE,
-      isMetaMaskFeeWaived: false,
     });
   });
 });

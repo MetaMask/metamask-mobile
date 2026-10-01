@@ -12,8 +12,6 @@ export const getStandardPredictFeePolicy = (
 ): PredictFeePolicy => ({
   status: 'standard',
   effectiveMetamaskFee: standardMetamaskFee,
-  isMetaMaskFeeWaived: false,
-  canPresentBenefit: false,
 });
 
 /**
@@ -45,7 +43,11 @@ export function resolvePredictFeePolicy({
     Number.isInteger(remainingTxCount) &&
     remainingTxCount > 0;
 
-  if (!builderCode || predictBenefits.exhausted || !hasRemainingTransactions) {
+  if (
+    !builderCode ||
+    predictBenefits.exhausted !== false ||
+    !hasRemainingTransactions
+  ) {
     return getStandardPredictFeePolicy(standardMetamaskFee);
   }
 
@@ -53,7 +55,5 @@ export function resolvePredictFeePolicy({
     status: 'membership',
     effectiveMetamaskFee: 0,
     builderCode,
-    isMetaMaskFeeWaived: true,
-    canPresentBenefit: true,
   };
 }
