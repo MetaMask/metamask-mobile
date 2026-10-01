@@ -14,7 +14,6 @@ export const VbaIronCustomerDevChipSelectorsIDs = {
  */
 const VbaIronCustomerDevChip = () => {
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!__DEV__) {
@@ -45,11 +44,9 @@ const VbaIronCustomerDevChip = () => {
   }, []);
 
   const handleCopy = useCallback(() => {
-    if (!customerId) {
-      return;
+    if (customerId) {
+      Clipboard.setString(customerId);
     }
-    Clipboard.setString(customerId);
-    setCopied(true);
   }, [customerId]);
 
   if (!__DEV__ || !customerId) {
@@ -57,20 +54,15 @@ const VbaIronCustomerDevChip = () => {
   }
 
   return (
-    <Box twClassName="absolute inset-0 z-50" pointerEvents="box-none">
-      <Box twClassName="absolute top-14 right-3">
-        <Pressable
-          onPress={handleCopy}
-          hitSlop={12}
-          testID={VbaIronCustomerDevChipSelectorsIDs.CHIP}
-        >
-          <Box twClassName="rounded-full bg-muted px-3 py-1">
-            <Text variant={TextVariant.BodySm} selectable>
-              {copied ? 'Copied' : customerId}
-            </Text>
-          </Box>
-        </Pressable>
-      </Box>
+    <Box twClassName="absolute top-14 right-3 z-50">
+      <Pressable
+        onPress={handleCopy}
+        testID={VbaIronCustomerDevChipSelectorsIDs.CHIP}
+      >
+        <Box twClassName="rounded-full bg-muted px-3 py-1">
+          <Text variant={TextVariant.BodySm}>{`Iron ${customerId}`}</Text>
+        </Box>
+      </Pressable>
     </Box>
   );
 };
