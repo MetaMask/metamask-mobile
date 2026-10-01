@@ -81,7 +81,7 @@ describe('PerpsOrderRedirect', () => {
     expect(await screen.findByText('Preparing order...')).toBeOnTheScreen();
   });
 
-  it('paints nothing while preparing a forced sheet so the page beneath stays visible', async () => {
+  it('shows a non-blocking pending indicator while a forced sheet connects', async () => {
     jest
       .mocked(Engine.context.PerpsController.depositWithOrder)
       .mockReturnValue(new Promise<never>(() => undefined));
@@ -104,8 +104,11 @@ describe('PerpsOrderRedirect', () => {
         Engine.context.PerpsController.depositWithOrder,
       ).toHaveBeenCalled();
     });
-    expect(screen.queryByTestId(PerpsLoaderSelectorsIDs.INLINE)).toBeNull();
-    expect(screen.queryByText('Preparing order...')).toBeNull();
+    expect(
+      await screen.findByTestId(PerpsLoaderSelectorsIDs.INLINE),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(PerpsLoaderSelectorsIDs.FULLSCREEN)).toBeNull();
+    expect(screen.getByText('Preparing order...')).toBeOnTheScreen();
   });
 
   it('calls depositWithOrder once when connected and initialized', async () => {

@@ -14,6 +14,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
@@ -205,4 +206,12 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   );
 };
 
-export default SocialFeedPostShell;
+const SocialFeedPostShellWithCompliance: React.FC<
+  React.ComponentProps<typeof SocialFeedPostShell>
+> = (props) => (
+  <EnsureAccessRestricted>
+    <SocialFeedPostShell {...props} />
+  </EnsureAccessRestricted>
+);
+
+export default SocialFeedPostShellWithCompliance;
