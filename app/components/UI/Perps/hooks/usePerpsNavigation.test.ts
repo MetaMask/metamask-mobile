@@ -755,6 +755,7 @@ describe('usePerpsNavigation', () => {
           {
             ...params,
             useBottomSheet: true,
+            forceBottomSheet: true,
             showPerpsHeader: false,
           },
         );

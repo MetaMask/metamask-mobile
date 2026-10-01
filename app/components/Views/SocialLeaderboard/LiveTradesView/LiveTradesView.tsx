@@ -11,23 +11,31 @@ import React, {
   Fragment,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
+import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
-import FeedItemRow from '../FeedView/components/FeedItemRow';
+import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { useFeedNow } from '../FeedView/hooks/useFeedNow';
-import type { FeedItem } from '../FeedView/types';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import type { SocialShellFilters } from '../shell/filters/types';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import LiveStreamStatusDot from './components/LiveStreamStatusDot';
+import LiveTradeRow from './components/LiveTradeRow';
+import type { LiveTradeRowModel } from './types';
+import { filterLiveTrades } from './utils/filterLiveTrades';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 
 type AnimatedScrollHandler = React.ComponentProps<
@@ -41,23 +49,42 @@ export interface LiveTradesViewProps {
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  appliedFilters?: SocialShellFilters;
 }
 
 /**
- * Social Bundle V1 Live trades: compact V0 feed rows until the websocket
- * stream replaces the static fixtures.
+ * Social Bundle V1 Live trades: compact identity + gradient trade cards until
+ * the websocket stream replaces the static fixtures.
  */
 const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   onScroll,
   pageRef,
   onOpenFilters,
   isFilterActive = false,
+  appliedFilters = DEFAULT_FILTERS,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const scrollRef = useRef<ScrollView>(null);
   const now = useFeedNow({ enabled: true });
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
+  const followingProfileIds = useSelector(selectFollowingProfileIds);
+  const { isEntryHidden } = useSocialEntryModeration();
+  const visibleItems = useMemo(() => {
+    const filtered = filterLiveTrades(
+      MOCK_LIVE_TRADES_ITEMS,
+      appliedFilters,
+      followingProfileIds,
+    );
+    return filtered.filter(
+      (item) =>
+        !isEntryHidden({
+          postId: item.id,
+          authorId: item.traderId,
+          authorHandle: item.authorHandle,
+        }),
+    );
+  }, [appliedFilters, followingProfileIds, isEntryHidden]);
 
   useImperativeHandle(
     pageRef,
@@ -81,12 +108,13 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   }, []);
 
   const handleTraderPress = useCallback(
-    (item: FeedItem) => {
+    (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL.PROFILE, {
+      navigateToSocialV1Profile(navigation, {
         traderId: item.traderId,
-        traderName: item.username,
+        traderName: item.authorHandle,
         traderAddress: item.traderAddress,
+        traderAvatarUri: item.authorImageUrl ?? undefined,
         source: 'trader_feed',
       });
     },
@@ -94,10 +122,10 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   );
 
   const handlePositionPress = useCallback(
-    (item: FeedItem) => {
+    (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
       navigation.navigate(Routes.SOCIAL.POSITION, {
-        positionId: item.tokenAvatar.positionId,
+        positionId: item.positionId,
         traderId: item.traderId,
         traderAddress: item.traderAddress,
         source: 'trader_feed',
@@ -106,10 +134,6 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
     },
     [navigation],
   );
-
-  const handleTradePress = useCallback((_item: FeedItem) => {
-    // Trade CTA is hidden on Live trades rows; keep handler for API parity.
-  }, []);
 
   return (
     <Box
@@ -144,7 +168,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
             {streamLabel}
           </FilterButton>
         </SocialTabFilterBar>
-        {MOCK_LIVE_TRADES_ITEMS.map((item, index) => (
+        {visibleItems.map((item, index) => (
           <Fragment key={item.id}>
             {index > 0 ? (
               <SectionDivider
@@ -154,13 +178,9 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
                 )}
               />
             ) : null}
-            <FeedItemRow
+            <LiveTradeRow
               item={item}
               now={now}
-              showTradeButton={false}
-              showOptionsMenu
-              usePositionCardChrome
-              onTradePress={handleTradePress}
               onPositionPress={handlePositionPress}
               onTraderPress={handleTraderPress}
             />

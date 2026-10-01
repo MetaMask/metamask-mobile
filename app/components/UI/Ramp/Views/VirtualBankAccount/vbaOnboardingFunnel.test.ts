@@ -20,10 +20,25 @@ describe('getVbaDestinationForSnapshot', () => {
       ['empty', snapshot()],
       ['vendor terms done', snapshot({ vendorTermsAcceptedLocally: true })],
       [
+        'session exists without vendor disclaimers recorded',
+        snapshot({
+          sessionExists: true,
+          vendorTermsAcceptedLocally: true,
+        }),
+      ],
+      [
         'email and vendor terms done',
         snapshot({
           sessionExists: true,
           vendorDisclaimersComplete: true,
+        }),
+      ],
+      [
+        'session pending before provider terms',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          kycStatus: 'pending',
         }),
       ],
       [
@@ -40,6 +55,47 @@ describe('getVbaDestinationForSnapshot', () => {
           sessionExists: true,
           vendorDisclaimersComplete: true,
           sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+          kycStatus: 'pending',
+        }),
+      ],
+      [
+        'sumsub submitted before review',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+        }),
+      ],
+      [
+        'sumsub submitted but kyc retry',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+          kycStatus: 'retry',
+        }),
+      ],
+      [
+        'sumsub submitted and account ready',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+          kycStatus: 'approved',
+          autorampStatus: 'ready',
+        }),
+      ],
+      [
+        'sumsub abandoned',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'abandoned',
           kycStatus: 'pending',
         }),
       ],
@@ -103,7 +159,13 @@ describe('getVbaDestinationForSnapshot', () => {
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
         "provider done": "identityVerification",
+        "session exists without vendor disclaimers recorded": "identityVerification",
+        "session pending before provider terms": "identityVerification",
+        "sumsub abandoned": "identityVerification",
         "sumsub submitted": "kycPending",
+        "sumsub submitted and account ready": "complete",
+        "sumsub submitted before review": "kycPending",
+        "sumsub submitted but kyc retry": "identityVerification",
         "vendor terms done": "email",
       }
     `);

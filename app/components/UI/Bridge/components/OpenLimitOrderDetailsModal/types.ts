@@ -33,7 +33,8 @@ export interface OpenLimitOrderDetailsModalProps {
    */
   submittedAmount: string;
   /**
-   * Limit price the order triggers at, e.g. "2200 USDC".
+   * Limit price the order triggers at, e.g. "2200 USDC", or "$2200" for a
+   * fiat price.
    */
   triggerPrice: string;
   /**
@@ -51,9 +52,10 @@ export interface OpenLimitOrderDetailsModalProps {
   triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
    * Fired when the cancel order button is pressed. The host opens the cancel
-   * order sheet from here.
+   * order sheet from here. Without it, the button is not shown, e.g. for an
+   * order the API reports as not cancellable.
    */
-  onCancelOrder: () => void;
+  onCancelOrder?: () => void;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */
@@ -66,4 +68,9 @@ export interface OpenLimitOrderDetailsModalProps {
    * Optional test ID for the sheet container.
    */
   testID?: string;
+}
+
+export interface TriggerPriceDisplay {
+  triggerPrice: string;
+  triggerToken: BridgeToken;
 }

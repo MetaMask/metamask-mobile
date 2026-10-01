@@ -358,7 +358,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              ...(useBottomSheet
+                ? { useBottomSheet: true, forceBottomSheet: true }
+                : {}),
               showPerpsHeader: useBottomSheet
                 ? false
                 : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,

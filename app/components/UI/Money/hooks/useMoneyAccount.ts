@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -45,6 +47,8 @@ export {
 const LOG_TAG = '[Money Account]';
 
 export interface InitiateDepositOptions {
+  /** Initial editable deposit amount in USD, automatically quoted for token deposits. */
+  amount?: string;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
@@ -59,6 +63,7 @@ export interface InitiateDepositOptions {
    * land somewhere other than the Money tab — see `navigateOnConfirm`.
    */
   launchedFrom?: ConfirmationLaunchSource;
+  transactionType?: TransactionType;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -153,8 +158,20 @@ export function useMoneyAccountDeposit() {
         setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
+      const explicitAmount = new BigNumber(options?.amount ?? '0');
+      const shouldQuoteExplicitAmount =
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0) &&
+        options?.intent !== 'card' &&
+        !options?.autoSelectFiatPayment;
+
       const confirmationParams = {
-        loader: isDepositPrefillEnabled(options?.intent)
+        amount: options?.amount,
+        loader: (
+          options?.amount !== undefined
+            ? shouldQuoteExplicitAmount
+            : isDepositPrefillEnabled(options?.intent)
+        )
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
@@ -209,7 +226,10 @@ export function useMoneyAccountDeposit() {
             },
           ],
           skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
+          transactions: [
+            approveTx,
+            { ...depositTx, type: options?.transactionType ?? depositTx.type },
+          ],
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);

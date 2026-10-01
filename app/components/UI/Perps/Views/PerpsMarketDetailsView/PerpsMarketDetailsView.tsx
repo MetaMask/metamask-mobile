@@ -1688,8 +1688,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       assetId: market.symbol,
       mode: 'perps',
       marketId,
+      szDecimals: marketData?.szDecimals,
     });
-  }, [market, currentPrice, navigation]);
+  }, [market, marketData?.szDecimals, currentPrice, navigation]);
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);

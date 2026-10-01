@@ -300,6 +300,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
  */
 export const PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS = 10_000;
 
+/**
+ * Longest a pay-with-token order waits, after its deposit confirms on-chain,
+ * for HyperLiquid to credit the Perps balance before giving up on the order.
+ */
+export const PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS = 90_000;
+
 /** Extra capability requests after transient provider unavailability. */
 export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
 

@@ -183,6 +183,21 @@ describe('useMoneyAccountBalance', () => {
     );
   });
 
+  it('does not format a missing cache as $0.00', () => {
+    setupDefaultQueries({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.tokenTotal).toBeUndefined();
+    expect(result.current.totalFiatFormatted).toBeUndefined();
+    expect(result.current.isBalanceUnavailable).toBe(true);
+  });
+
   it('returns undefined tokenTotal when still loading', () => {
     setupDefaultQueries({
       data: undefined,

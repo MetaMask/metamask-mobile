@@ -69,6 +69,8 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       takingLonger: PerpsToastOptions;
       tradeCanceled: PerpsToastOptions;
+      /** Deposit credited to Perps but the pay-with-token order was not sent. */
+      orderNotPlaced: PerpsToastOptions;
       error: PerpsToastOptions;
     };
     oneClickTrade: {
@@ -517,6 +519,13 @@ const usePerpsToasts = (): {
             descriptionOptions: {
               description: strings('perps.deposit.funds_returned_to_account'),
             },
+          },
+          orderNotPlaced: {
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.order_not_placed'),
+              strings('perps.deposit.order_not_placed_description'),
+            ),
           },
           error: {
             ...perpsBaseToastOptions.error,
