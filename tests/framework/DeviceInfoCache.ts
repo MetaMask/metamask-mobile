@@ -35,6 +35,12 @@ function assertPositiveWindowSize(windowSize: {
   }
 }
 
+function assertDeviceInfoPopulated(): void {
+  if (!isPopulated) {
+    throw new Error(NOT_INITIALIZED_MESSAGE);
+  }
+}
+
 /**
  * Initialize the device info cache from the driver session.
  * Called once in the fixture at session creation.
@@ -66,9 +72,7 @@ export function resetDeviceInfo(): void {
  * @throws If the cache was never populated (e.g. resetDeviceInfo() without setDeviceInfo()).
  */
 export function getPlatform(): 'android' | 'ios' {
-  if (!isPopulated) {
-    throw new Error(NOT_INITIALIZED_MESSAGE);
-  }
+  assertDeviceInfoPopulated();
   return cachedPlatform;
 }
 
@@ -77,9 +81,7 @@ export function getPlatform(): 'android' | 'ios' {
  * @throws If the cache was never populated.
  */
 export function getPlatformVersion(): string {
-  if (!isPopulated) {
-    throw new Error(NOT_INITIALIZED_MESSAGE);
-  }
+  assertDeviceInfoPopulated();
   return cachedPlatformVersion;
 }
 
@@ -88,8 +90,6 @@ export function getPlatformVersion(): string {
  * @throws If the cache was never populated.
  */
 export function getWindowSize(): { width: number; height: number } {
-  if (!isPopulated) {
-    throw new Error(NOT_INITIALIZED_MESSAGE);
-  }
+  assertDeviceInfoPopulated();
   return cachedWindowSize;
 }
