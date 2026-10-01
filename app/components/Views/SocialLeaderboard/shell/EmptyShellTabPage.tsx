@@ -1,15 +1,7 @@
 import {
   Box,
   BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
   SectionDivider,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
@@ -29,16 +21,16 @@ import {
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
-import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
-import SocialFeedPostSkeleton from '../SocialV1View/feed/components/SocialFeedPostSkeleton';
-import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
+import SocialFeedSkeleton from '../../../UI/SocialFeed/components/SocialFeedSkeleton';
+import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import {
@@ -47,14 +39,14 @@ import {
   FeedSortFilterSheet,
   type FeedSort,
 } from '../components/Filters';
-import { useSocialEntryModeration } from '../components/SocialEntryOptionsBottomSheet';
+import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import type {
-  SocialV1FeedPost,
   SocialV1FeedTab,
   SocialV1HotToken,
   SocialV1TokenFeedState,
@@ -65,15 +57,6 @@ export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
 
 export const SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID =
   'social-v1-feed-footer-loading';
-export const SOCIAL_V1_FEED_ERROR_TEST_ID = 'social-v1-feed-error';
-export const SOCIAL_V1_FEED_RETRY_TEST_ID = 'social-v1-feed-retry';
-
-/** Placeholder rows while the first feed page loads (matches V0 feed). */
-const INITIAL_FEED_SKELETON_COUNT = 4;
-const INITIAL_FEED_SKELETON_KEYS = Array.from(
-  { length: INITIAL_FEED_SKELETON_COUNT },
-  (_, index) => `social-v1-feed-skeleton-${index}`,
-);
 
 /**
  * Hold the refresh spinner for a beat so a fast refetch does not flicker.
@@ -472,23 +455,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               </Box>
             ) : null}
             {showInitialFeedSkeletons ? (
-              <>
-                {INITIAL_FEED_SKELETON_KEYS.map((key, index) => (
-                  <Fragment key={key}>
-                    {index > 0 ? (
-                      <SectionDivider
-                        marginVertical={1}
-                        testID={getSocialV1FeedEntryDividerTestId(
-                          `loading-${index}`,
-                        )}
-                      />
-                    ) : null}
-                    <Box twClassName="px-4">
-                      <SocialFeedPostSkeleton index={index} />
-                    </Box>
-                  </Fragment>
-                ))}
-              </>
+              <SocialFeedSkeleton />
             ) : (
               feedBlocks.map((block, blockIndex) => (
                 <Fragment key={block.key}>
@@ -522,30 +489,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               </Box>
             ) : null}
             {visibleError && visibleFeedEmpty ? (
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="w-full px-4 py-16 gap-3"
-                testID={SOCIAL_V1_FEED_ERROR_TEST_ID}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="text-center"
-                >
-                  {strings('social_leaderboard.feed.error.title')}
-                </Text>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Sm}
-                  onPress={retryVisibleFeed}
-                  twClassName="self-center"
-                  testID={SOCIAL_V1_FEED_RETRY_TEST_ID}
-                >
-                  {strings('social_leaderboard.feed.error.retry')}
-                </Button>
-              </Box>
+              <SocialFeedError onRetry={retryVisibleFeed} />
             ) : null}
           </Box>
         ) : null}

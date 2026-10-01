@@ -93,13 +93,15 @@ No UI change. Lands in `app/components/Views/SocialLeaderboard/SocialFeed/`; PR 
 
 ### PR 2 — Move the feed into a shared module
 
-Mostly file moves; no behaviour change.
+Mostly file moves; no behaviour change. The move is its own commit so it can be reviewed separately from the new components.
 
-- [ ] Create `app/components/UI/SocialFeed/` with a public `index.ts`. Perps and Token details live under `app/components/UI/`, and ADR 0020 keeps routes from reaching into each other's internals.
-- [ ] Move the data layer, `mapFeedItem`, `toSocialV1FeedItem`, `wrapLiveFeedPosts` (rename to `toSocialFeedPosts`; it is the production mapper, not a mock), reactions, and the card components.
-- [ ] Move `TraderAvatar` out of `Views/Homepage` (removes the ADR-0020 lint suppression in `SocialFeedPostShell`).
-- [ ] Extract `SocialFeedSkeleton`, `SocialFeedError` and a new `SocialFeedEmpty` ("No trades yet") from `EmptyShellTabPage`.
-- [ ] Make `SocialEntryOptionsProvider` nest-safe (reuse an outer provider if one exists) so every feed gets working Hide / Block / Report.
+- [x] Create `app/components/UI/SocialFeed/` with a public `index.ts`. Perps and Token details live under `app/components/UI/`, and ADR 0020 keeps routes from reaching into each other's internals. The module imports nothing from `app/components/Views/`.
+- [x] Move the data layer, `mapFeedItem`, `toSocialV1FeedItem`, `wrapLiveFeedPosts` (renamed to `toSocialFeedPosts`; it is the production mapper, not a mock), reactions, the card components, the moderation sheet, `PositionTokenAvatar`, and their test fixtures.
+- [x] Move the shared social helpers the cards need (`formatters`, `chainMapping`, `perp`, `tradeAction`, `tradeTimestamp`, `klipyGifComment`) to `UI/SocialFeed/utils/`. They stay under `components/` rather than `app/util/` because `formatters` and `PositionTokenAvatar` depend on Perps and Bridge UI code.
+- [x] Move symbols the feed needed from route files into the module: `TraderFeedRow` and the mapped `FeedItem` types (`types.ts`), `FEED_PAGE_LIMIT` and `toFeedScope` (`data/`), and the trader-cohort constants (`utils/traderStats.ts`). Social V1 page-only types stay in `SocialV1View/feed/types.ts`.
+- [x] Move `TraderAvatar` out of `Views/Homepage`. Fourteen route-isolation suppressions that only covered these imports are gone.
+- [x] Extract `SocialFeedSkeleton`, `SocialFeedError` and a new `SocialFeedEmpty` ("No trades yet") from `EmptyShellTabPage`.
+- [x] Make `SocialEntryOptionsProvider` nest-safe (reuse an outer provider if one exists) so every feed gets working Hide / Block / Report.
 
 ### PR 3 — Surface context: mocked fields and analytics location
 
