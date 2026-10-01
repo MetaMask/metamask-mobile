@@ -88,7 +88,6 @@ const PerpsRecentlyViewedPill: React.FC<{
       }
       size={ButtonSize.Md}
       variant={ButtonVariant.Secondary}
-      twClassName="shrink"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
