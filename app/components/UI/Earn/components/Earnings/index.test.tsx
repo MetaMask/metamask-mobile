@@ -4,10 +4,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import {
-  selectPooledStakingServiceInterruptionBannerEnabledFlag,
-  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
-} from '../../selectors/featureFlags';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { EarnTokenDetails } from '../../types/lending.types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -67,13 +63,7 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 // Mock the feature flags selector
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
-  selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest
-    .fn()
-    .mockReturnValue(false),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
-  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
-    .fn()
-    .mockReturnValue(false),
 }));
 
 jest.mock('../../hooks/useEarnings', () => ({
@@ -202,38 +192,6 @@ describe('Earnings', () => {
     ).toHaveTextContent(/•/);
     expect(queryByText('$5000')).not.toBeOnTheScreen();
     expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
-  });
-
-  it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
-    (
-      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    const { getByText } = render();
-
-    expect(
-      getByText(
-        strings('earn.service_interruption_banner.maintenance_message'),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('displays lending maintenance banner when feature flag is enabled', () => {
-    (
-      selectStablecoinLendingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingServiceInterruptionBannerEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    const { getByText } = render();
-
-    expect(
-      getByText(
-        strings('earn.service_interruption_banner.maintenance_message'),
-      ),
-    ).toBeOnTheScreen();
   });
 
   it('renders lending title and action without earnings history', () => {
