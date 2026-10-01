@@ -10,6 +10,24 @@ import { selectOtaUpdatesEnabledFlag } from '../../selectors/featureFlagControll
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { navigateWithDetails } from '../../util/navigation/navUtils';
 import Routes from '../../constants/navigation/Routes';
+
+interface FocusableNavigationState {
+  index?: number;
+  routes: readonly { name: string; state?: FocusableNavigationState }[];
+}
+
+const isHomeFocused = (
+  state: FocusableNavigationState | undefined,
+): boolean => {
+  const route = state?.routes[state.index ?? state.routes.length - 1];
+  if (!route) {
+    return false;
+  }
+  return (
+    route.name === Routes.ONBOARDING.HOME_NAV || isHomeFocused(route.state)
+  );
+};
+
 /**
  * Hook to manage OTA updates based on a feature flag.
  *
@@ -18,7 +36,7 @@ import Routes from '../../constants/navigation/Routes';
  * - If the `otaUpdatesEnabled` flag is on and the app is not in development, checks for an OTA update via `checkForUpdateAsync`.
  * - When a new OTA update is downloaded (`fetchUpdateAsync().isNew === true`):
  * - If the user has not completed onboarding (e.g. fresh install, onboarding screen): the update is already fetched and will apply silently on next app launch (no reload, no modal).
- * - If the user has completed onboarding: navigates to the `OTAUpdatesModal` bottom sheet once Home is the focused root route; the modal calls `reloadAsync` when the user confirms.
+ * - If the user has completed onboarding: navigates to the `OTAUpdatesModal` bottom sheet once Home is on the focused route path; the modal calls `reloadAsync` when the user confirms.
  * - If no update is available or the fetched update is not new, logs and continues with the current version without blocking startup.
  */
 export const useOTAUpdates = () => {
@@ -35,8 +53,7 @@ export const useOTAUpdates = () => {
     }
 
     const showModalWhenHomeIsFocused = () => {
-      const state = navigation.getState();
-      if (state?.routes[state.index]?.name !== Routes.ONBOARDING.HOME_NAV) {
+      if (!isHomeFocused(navigation.getState())) {
         return;
       }
       setIsUpdateReady(false);

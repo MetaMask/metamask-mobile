@@ -33,8 +33,19 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-const homeState = { index: 0, routes: [{ name: 'HomeNav' }] };
-const loginState = { index: 0, routes: [{ name: 'Login' }] };
+// `App` renders inside NavigationProvider's `NavigationChildren` screen, so the
+// app routes live in that route's nested state.
+const withProvider = (routeName: string) => ({
+  index: 0,
+  routes: [
+    {
+      name: 'NavigationChildren',
+      state: { index: 0, routes: [{ name: routeName }] },
+    },
+  ],
+});
+const homeState = withProvider('HomeNav');
+const loginState = withProvider('Login');
 
 const mockSelectOtaUpdatesEnabledFlag = jest.fn();
 jest.mock('../../selectors/featureFlagController/otaUpdates', () => ({
