@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import VerifyIdentity from '../VerifyIdentity';
+import VbaKycNeedInfo from '../VbaKycNeedInfo';
 import VbaSumSubKyc from '../VbaSumSubKyc';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
 import {
@@ -35,6 +36,22 @@ const ProviderTermsStep = () => {
   return <VerifyIdentity onSuccess={handleSuccess} />;
 };
 
+const NeedInfoStep = () => {
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<VbaIdentityVerificationParamList>
+    >();
+  const handleContinue = useCallback(
+    () =>
+      navigation.navigate(VbaIdentityVerificationRoutes.PROVIDER, {
+        initialNeedsMoreInfo: false,
+      }),
+    [navigation],
+  );
+
+  return <VbaKycNeedInfo onContinue={handleContinue} />;
+};
+
 type ProviderStepProps = NativeStackScreenProps<
   VbaIdentityVerificationParamList,
   typeof VbaIdentityVerificationRoutes.PROVIDER
@@ -59,16 +76,22 @@ type Props = NativeStackScreenProps<
 
 export const getVbaIdentityVerificationInitialRoute = (
   snapshot: VbaOnboardingSnapshot,
-): VbaIdentityVerificationRoute =>
-  snapshot.sessionDisclaimersComplete
-    ? VbaIdentityVerificationRoutes.PROVIDER
-    : VbaIdentityVerificationRoutes.PROVIDER_TERMS;
+): VbaIdentityVerificationRoute => {
+  if (!snapshot.sessionDisclaimersComplete) {
+    return VbaIdentityVerificationRoutes.PROVIDER_TERMS;
+  }
 
-export const getVbaIdentityVerificationInitialProviderParams = (
-  snapshot: VbaOnboardingSnapshot,
-): VbaIdentityVerificationParamList['VbaIdentityVerificationProvider'] => ({
-  initialNeedsMoreInfo: snapshot.providerFlowStatus === 'abandoned',
-});
+  if (snapshot.providerFlowStatus === 'abandoned') {
+    return VbaIdentityVerificationRoutes.NEED_INFO;
+  }
+
+  return VbaIdentityVerificationRoutes.PROVIDER;
+};
+
+export const getVbaIdentityVerificationInitialProviderParams =
+  (): VbaIdentityVerificationParamList['VbaIdentityVerificationProvider'] => ({
+    initialNeedsMoreInfo: false,
+  });
 
 const VbaIdentityVerificationModule = ({ route }: Props) => {
   const initialRouteName = getVbaIdentityVerificationInitialRoute(
@@ -85,11 +108,13 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
         component={ProviderTermsStep}
       />
       <Stack.Screen
+        name={VbaIdentityVerificationRoutes.NEED_INFO}
+        component={NeedInfoStep}
+      />
+      <Stack.Screen
         name={VbaIdentityVerificationRoutes.PROVIDER}
         component={ProviderStep}
-        initialParams={getVbaIdentityVerificationInitialProviderParams(
-          route.params.snapshot,
-        )}
+        initialParams={getVbaIdentityVerificationInitialProviderParams()}
       />
     </Stack.Navigator>
   );
