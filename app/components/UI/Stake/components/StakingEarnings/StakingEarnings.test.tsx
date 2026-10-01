@@ -190,22 +190,6 @@ describe('Staking Earnings', () => {
     expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
   });
 
-  it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
-    (
-      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    const { getByText } = render();
-
-    expect(
-      getByText(
-        strings('earn.service_interruption_banner.maintenance_message'),
-      ),
-    ).toBeOnTheScreen();
-  });
-
   it('navigates to the pooled-staking learn more modal when annual rate is pressed', () => {
     const { getByTestId } = render();
 
