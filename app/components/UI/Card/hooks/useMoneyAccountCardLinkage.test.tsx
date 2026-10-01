@@ -555,12 +555,12 @@ describe('useMoneyAccountCardLinkage', () => {
       );
     });
 
-    it('keeps linking supported when capabilities are unavailable', () => {
+    it('refuses linking when an authenticated session has no capabilities', () => {
       mockUseCardCapabilities.mockReturnValue(null);
       const { result } = renderLinkageHook();
 
-      expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
-      expect(result.current.canLink).toBe(true);
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(false);
+      expect(result.current.canLink).toBe(false);
     });
 
     it('clears a pending link without opening the sheet when linking is unsupported', () => {

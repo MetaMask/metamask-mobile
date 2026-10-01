@@ -179,7 +179,7 @@ export const useMoneyAccountCardLinkage =
     const capabilities = useCardCapabilities();
     const isMoneyAccountLinkingSupported =
       !isCardAuthenticated ||
-      (capabilities?.supportsMoneyAccountLinking ?? true);
+      (capabilities?.supportsMoneyAccountLinking ?? false);
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
