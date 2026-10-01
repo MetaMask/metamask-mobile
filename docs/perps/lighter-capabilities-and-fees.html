@@ -386,14 +386,15 @@
       </p>
       <p>
         The current installed snapshot uses Core
-        <code>7eba1e8835d603700d3a068a30ea9bf3dd171a60</code> and local Mobile
-        <code>cf3c004e7aeabe02a14fe0ceb96c2c0c0b497170</code> with a controller
-        19.0.0 patch. All 324 installed build files match the reviewed Core
-        build. Mobile recovery corrections pass 93 unit, 25 component-view and
-        64 integration cases, plus full-project types and scoped lint. External
-        I/O is mocked in these tests. Final Core adoption, independent Mobile
-        review and live testnet validation remain pending. Earlier live runs
-        below retain their original source identities.
+        <code>911ba039ebd9c98d7fac1a90dab6dd6ab419a09f</code>, with Mobile
+        recovery and grouped-signer sources at
+        <code>771bbf03fd54f50fb982497d25e890337c143d54</code>. The controller
+        19.0.0 patch matches all 324 build files from the independently approved
+        Core build. Installed consumer checks pass 93 unit, 25 component-view
+        and 64 integration cases, plus full-project types. External I/O is
+        mocked in these tests. Independent final Mobile review and live testnet
+        validation remain pending. Earlier live runs below retain their original
+        source identities.
       </p>
       <p>
         The published stack comprises
@@ -411,12 +412,16 @@
         >. All four remain open and pass CI at their published heads. Recovery
         #10618 at <code>732ace0a0c92050fb3c44b934529fb3ad2788a3c</code> and
         capabilities #10629 at
-        <code>555868431e416cc2a958d788b053bda2517a9b85</code> have independent
-        source approval. Native triggers and position protection still need
-        final correction reviews. Recovery rejects actions after account,
-        network, provider or connection changes and preserves uncertain
-        submissions across restarts. These newer changes are not yet installed
-        in Mobile. <a href="#current-source-state">[C5, C6]</a>
+        <code>555868431e416cc2a958d788b053bda2517a9b85</code>, native triggers
+        #10638 at <code>372eda657e3fb7e72f489c54c30c71fd038161a6</code> and
+        position protection #10644 at
+        <code>26612eb8814c7f1939a5798cea0265272013bf96</code> have independent
+        source approval. Recovery rejects actions after account, network,
+        provider or connection changes and preserves uncertain submissions
+        across restarts. The installed local build includes these corrections
+        and separately approved strict recovery review. Published package
+        availability and live proof remain separate.
+        <a href="#current-source-state">[C5, C6, C8–C10]</a>
       </p>
       <p>
         The earlier October 1 capability stage used the additive contract in
@@ -429,13 +434,13 @@
         unavailable. Native standalone Lighter support now follows in
         <a href="https://github.com/MetaMask/core/pull/10638">Core #10638</a>,
         inspected at <code>76a86aefc391b2313e2d19df157aa256e731f41d</code>
-        and transported through the local controller 19.0.0 patch. Active-market
-        capability declarations expose all four native trigger types; strategies
-        remain empty. The installed build still refuses attached and partial
-        TP/SL. A separate unpublished partial-protection candidate adds fixed
-        positive single-leg coverage and equal-size OCO pairs, with cancellation
-        before replacement. It passes 4,597 package tests but needs
-        corrected-foundation integration, independent review and live proof. Its
+        before the corrections listed above. The installed controller 19.0.0
+        patch declares all four native trigger types for active markets;
+        strategies remain empty. It still refuses attached and partial TP/SL.
+        The unpublished partial-protection successor includes the corrected
+        foundation, fixed positive single-leg coverage and equal-size OCO pairs,
+        with cancellation before replacement. It passes 4,603 package tests;
+        independent review, Mobile adoption and live proof remain pending. Its
         capability declaration does not imply attached-order or dynamic
         whole-position support.
         <a href="#current-source-state">[C7]</a>
@@ -492,11 +497,14 @@
         exact type, side, quantity, prices, reduce-only, time-in-force and
         future expiry. Lighter offsets round to declared price precision before
         sizing; explicit off-grid prices refuse. Linked protection remains
-        unfinished. A recipe-library successor defaults Scale, Chase and TWAP
-        setup to the selected account and waits for the requested order option.
-        Its 84 host tests and 59 successful composition plans are preparation
-        evidence; independent review, adoption and runtime validation remain
-        pending. The currently registered library is unchanged.
+        unfinished. The independently approved library at
+        <code>def92b7033d6148d3d5a47a5ddf9da7355f1e5c6</code> now defaults
+        Scale, Chase and TWAP setup to the selected account and waits for the
+        requested order option. Use its explicit
+        <code>--library perps=...</code>
+        path for this task. Its 84 host tests and 59 successful composition
+        plans establish recipe preparation; fresh runtime validation remains
+        pending.
       </p>
       <div class="table-wrap">
         <table>
@@ -626,9 +634,13 @@
                 post-entry update.
               </td>
               <td>
-                Native OTO uses two orders; OTOCO uses three. The current bridge
-                accepts only two. Exact embedded-signer and venue lifecycle
-                validation are required before enabling attached placement.
+                Native OTO uses two orders; OTOCO uses three. The Mobile bridge
+                now accepts only grouping/count pairs 1/2, 2/2 and 3/3, with
+                exact parameter counts. All 62 wrapper regressions pass and the
+                embedded WASM is unchanged. Offline signing proves the grouped
+                transport, not venue acceptance or lifecycle behavior. Attached
+                placement remains disabled pending separate Core implementation,
+                independent review and live lifecycle proof.
               </td>
             </tr>
             <tr>
@@ -640,8 +652,9 @@
                 client/venue IDs across resizing and restart. Pending
                 submissions block conflicting writes. Manual obligations from
                 previous trading keys remain visible. Explicit resolution is
-                implemented in the installed local Core candidate; final Mobile
-                integration and live validation remain pending. Legacy
+                implemented in the installed local Core build. Mobile consumer
+                integration passes with external I/O mocked; final independent
+                Mobile review and live validation remain pending. Legacy
                 full-quantity closing triggers use an in-lock position read.
               </td>
               <td>
@@ -658,7 +671,7 @@
               </td>
               <td>
                 The installed build refuses partial sizes. Unpublished Core
-                candidate <code>bb9e1a6c64e67c95598373b28e6155d8413a4c8f</code>
+                candidate <code>ff0e20cacc74d25fa1073d07dc9be3f6856bcaf6</code>
                 accepts one fixed-size leg or an equal-quantity OCO pair. It
                 rejects unequal pairs and partial/full mixed pairs. Replacement
                 settles owned cancellation before creating the new set;
@@ -1130,11 +1143,29 @@
         </li>
         <li>
           C7 · Unpublished partial-protection source at
-          <code>bb9e1a6c64e67c95598373b28e6155d8413a4c8f</code>:
+          <code>ff0e20cacc74d25fa1073d07dc9be3f6856bcaf6</code>:
           <code>LighterProvider.ts</code>, <code>types/index.ts</code> and
           <code>constants/hyperLiquidConfig.ts</code>. Frozen local source and
           package checks establish implementation only, not published or live
           availability.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/372eda657e3fb7e72f489c54c30c71fd038161a6/packages/perps-controller/src/providers/LighterProvider.ts"
+            >C8 · Published standalone trigger implementation</a
+          >: durable ownership, session checks and signed expiry.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/26612eb8814c7f1939a5798cea0265272013bf96/packages/perps-controller/src/providers/LighterProvider.ts"
+            >C9 · Published position protection implementation</a
+          >: cancellation-first updates and exact protection receipts.
+        </li>
+        <li>
+          C10 · Installed strict recovery source at
+          <code>911ba039ebd9c98d7fac1a90dab6dd6ab419a09f</code>. Independently
+          approved local source and matching installed build; no published
+          package or live validation claim.
         </li>
       </ul>
       <p id="mobile-sources">
