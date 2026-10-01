@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -8,7 +8,6 @@ import {
   IconName,
   ListItem,
   ListItemVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
@@ -20,20 +19,16 @@ interface ImportOptionsSheetProps {
   onSelectExtension: () => void;
 }
 
+/**
+ * Import options overflow sheet. Visibility is mount/unmount driven —
+ * MMDS BottomSheetDialog opens itself on first layout.
+ */
 const ImportOptionsSheet = ({
   isVisible,
   onClose,
   onSelectQrCode,
   onSelectExtension,
 }: ImportOptionsSheetProps) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
-
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
-
   const handleSelectQrCode = useCallback(() => {
     onClose();
     onSelectQrCode();
@@ -50,7 +45,6 @@ const ImportOptionsSheet = ({
 
   return (
     <BottomSheet
-      ref={sheetRef}
       onClose={onClose}
       testID={ImportFromSeedSelectorsIDs.IMPORT_OPTIONS_SHEET_ID}
     >
