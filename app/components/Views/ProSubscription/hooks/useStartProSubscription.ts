@@ -101,8 +101,9 @@ export interface UseStartProSubscriptionResult {
  * responsible for consent; this hook still balance-checks first so the
  * insufficient-balance error mapping stays intact.
  *
- * On success, replaces the current screen with Pro Hub. The delegation start
- * refreshes subscriptions before it resolves, so the hub sees the subscriber.
+ * On success, returns to the caller. Benefits shows the confirmation screen,
+ * and that screen opens Pro Hub. The delegation start refreshes subscriptions
+ * before it resolves, so later screens see the subscriber.
  *
  * @returns Subscription start callback and its request state.
  */
