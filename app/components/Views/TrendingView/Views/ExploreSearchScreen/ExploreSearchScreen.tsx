@@ -713,7 +713,7 @@ const ExploreSearchScreen: React.FC = () => {
       dismissVariant={dismissVariant}
       showPastePill={showPastePill}
       onPastePress={handlePastePress}
-      clipboardButtonTestID="homepage-search-clipboard-button"
+      clipboardButtonTestID={ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON}
       rowTwClassName={isHomepageSearch ? 'flex-1' : undefined}
     />
   );
