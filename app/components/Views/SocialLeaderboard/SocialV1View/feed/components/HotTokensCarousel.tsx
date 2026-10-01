@@ -3,6 +3,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
@@ -18,18 +22,16 @@ import Animated, {
   useFrameCallback,
   useSharedValue,
 } from 'react-native-reanimated';
-import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
+import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
 import type { TokenFeedTarget } from '../hooks/tokenFeedQueries';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
 import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
-import type {
-  SocialV1FeedPost,
-  SocialV1HotToken,
-  SocialV1TokenFeedState,
-} from '../types';
+import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
+import type { SocialV1HotToken, SocialV1TokenFeedState } from '../types';
 import {
+  getSocialV1HotTokenCheckTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
@@ -76,8 +78,9 @@ const HotTokenChip: React.FC<{
   token: SocialV1HotToken;
   onPress?: (token: SocialV1HotToken) => void;
   testID: string;
+  checkTestID: string;
   isSelected?: boolean;
-}> = ({ token, onPress, testID, isSelected = false }) => (
+}> = ({ token, onPress, testID, checkTestID, isSelected = false }) => (
   // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
   // ticker must keep each chip at intrinsic width or the track never overflows
   // the viewport and the marquee never starts.
@@ -93,6 +96,16 @@ const HotTokenChip: React.FC<{
       }
       title={token.label}
       onPress={() => onPress?.(token)}
+      trailing={
+        isSelected ? (
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+            testID={checkTestID}
+          />
+        ) : null
+      }
     />
   </Box>
 );
@@ -112,23 +125,26 @@ const HotTokenTrack: React.FC<{
     onLayout={onLayout}
     testID={testID}
   >
-    {tokens.map((token) => (
-      <HotTokenChip
-        key={idSuffix ? `${token.id}${idSuffix}` : token.id}
-        token={token}
-        onPress={onPress}
-        isSelected={token.id === selectedTokenId}
-        testID={getSocialV1HotTokenChipTestId(
-          idSuffix ? `${token.id}${idSuffix}` : token.id,
-        )}
-      />
-    ))}
+    {tokens.map((token) => {
+      const chipId = idSuffix ? `${token.id}${idSuffix}` : token.id;
+      return (
+        <HotTokenChip
+          key={chipId}
+          token={token}
+          onPress={onPress}
+          isSelected={token.id === selectedTokenId}
+          testID={getSocialV1HotTokenChipTestId(chipId)}
+          checkTestID={getSocialV1HotTokenCheckTestId(chipId)}
+        />
+      );
+    })}
   </Box>
 );
 
 /**
  * HotTokensCarousel -- the rail of asset chips above the Social V1 feed. When
- * the chips overflow the viewport they crawl like a news ticker.
+ * the chips overflow the viewport they crawl like a news ticker, until a chip is
+ * selected: that one moves to the front, takes a check, and the rail holds still.
  *
  * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
  * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
@@ -170,10 +186,16 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     (heldContractTokenRef.current?.id === selectedTokenId
       ? heldContractTokenRef.current
       : null);
+  // The selected chip leads the rail. Frequency decides the order until a
+  // filter is on, and then the asset being filtered on has to be the one the
+  // user can see -- the rail is parked at its left edge while a chip is active.
   const railTokens = useMemo(
     () =>
-      selectedToken && !tokens.some((token) => token.id === selectedToken.id)
-        ? [selectedToken, ...tokens]
+      selectedToken
+        ? [
+            selectedToken,
+            ...tokens.filter((token) => token.id !== selectedToken.id),
+          ]
         : tokens,
     [selectedToken, tokens],
   );
@@ -229,6 +251,20 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
 
+  // A crawling rail would carry the chip the feed is filtered on off screen, so
+  // a selection parks the track at its start. The pan is left alone: scrubbing
+  // to read the rest of the rail is the user's call, and nothing re-starts the
+  // crawl behind them.
+  const isParked = Boolean(selectedTokenId);
+  const parked = useSharedValue(isParked);
+
+  useEffect(() => {
+    parked.value = isParked;
+    if (isParked) {
+      offset.value = 0;
+    }
+  }, [isParked, offset, parked]);
+
   const handleViewportLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const width = event.nativeEvent.layout.width;
@@ -280,7 +316,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       'worklet';
       const width = trackWidthSv.value;
       const viewport = viewportWidthSv.value;
-      if (paused.value || width <= 0 || viewport <= 0 || width <= viewport) {
+      if (
+        parked.value ||
+        paused.value ||
+        width <= 0 ||
+        viewport <= 0 ||
+        width <= viewport
+      ) {
         return;
       }
       const dtMs = frame.timeSincePreviousFrame ?? 0;
@@ -292,7 +334,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         width,
       );
     },
-    [offset, paused, trackWidthSv, viewportWidthSv],
+    [offset, parked, paused, trackWidthSv, viewportWidthSv],
   );
 
   useFrameCallback(tickMarquee);
