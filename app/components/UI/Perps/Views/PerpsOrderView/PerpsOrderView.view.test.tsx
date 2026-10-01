@@ -699,6 +699,34 @@ describe('PerpsOrderView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('shows the focused price when chart and mid caches are absent', async () => {
+      renderTradeSheet({
+        streamOverrides: {
+          cachedFocusedPrice: {
+            symbol: 'ETH',
+            price: '2715',
+            percentChange24h: '0.5',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(headerPriceText(2715));
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+      ).toHaveTextContent(headerChangeText(0.5));
+      expect(
+        screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('does not use the chart close when the Advanced Chart is active', async () => {
       renderTradeSheet({
         initialParams: {
