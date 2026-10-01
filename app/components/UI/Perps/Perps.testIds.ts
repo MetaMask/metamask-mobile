@@ -1213,6 +1213,9 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-adjust-margin-bottom-sheet',
+  HEADER_PRICE: 'perps-adjust-margin-bottom-sheet-header-price',
+  HEADER_CHANGE: 'perps-adjust-margin-bottom-sheet-header-change',
+  HEADER_SKELETON: 'perps-adjust-margin-bottom-sheet-header-skeleton',
   MODE_TOGGLE: 'perps-adjust-margin-bottom-sheet-mode-toggle',
   ADD_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-add-mode',
   REMOVE_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-remove-mode',

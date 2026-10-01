@@ -19,6 +19,15 @@ const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
+let mockLivePriceHeaderProps:
+  | {
+      symbol: string;
+      currentPrice: number;
+      percentChange24h: number | null;
+      testIDPrice?: string;
+      testIDChange?: string;
+    }
+  | undefined;
 let mockMarginAdjustmentOptions:
   | {
       onSuccess?: () => void;
@@ -75,6 +84,22 @@ jest.mock('../../utils/formatUtils', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+jest.mock('../LivePriceDisplay/LivePriceHeader', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: NonNullable<typeof mockLivePriceHeaderProps>) => {
+      mockLivePriceHeaderProps = props;
+      return ReactActual.createElement(
+        Text,
+        { testID: props.testIDPrice },
+        String(props.currentPrice),
+      );
+    },
+  };
+});
 
 jest.mock('../PerpsAmountDisplay', () => {
   const ReactActual = jest.requireActual('react');
@@ -184,6 +209,7 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
   newLiquidationDistance: mode === 'add' ? 10 : 2.5,
   spendableBalance: 1000,
   currentPrice: 2000,
+  percentChange24h: 1.5,
   isAddMode: mode === 'add',
   positionLeverage: 10,
 });
@@ -192,6 +218,7 @@ describe('PerpsAdjustMarginBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMarginAdjustmentOptions = undefined;
+    mockLivePriceHeaderProps = undefined;
     mockHandleAddMargin.mockResolvedValue(undefined);
     mockHandleRemoveMargin.mockResolvedValue(undefined);
     mockUsePerpsAdjustMarginData.mockImplementation(
@@ -220,14 +247,55 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     ).toHaveTextContent('perps.adjust_margin.add_margin_sheet');
   });
 
-  it('does not show the live price in the header', () => {
+  it('shows the live price and 24h change in the header', () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
     );
 
     expect(
       screen.UNSAFE_getByType(HeaderSubpage).props.description,
-    ).toBeUndefined();
+    ).toBeDefined();
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON,
+      ),
+    ).toBeNull();
+    expect(mockLivePriceHeaderProps).toEqual(
+      expect.objectContaining({
+        symbol: 'ETH',
+        currentPrice: 2000,
+        percentChange24h: 1.5,
+        testIDPrice: PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE,
+        testIDChange: PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_CHANGE,
+      }),
+    );
+  });
+
+  it('shows a header skeleton until the live price is available', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      currentPrice: 0,
+      percentChange24h: null,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE,
+      ),
+    ).toBeNull();
+    expect(mockLivePriceHeaderProps).toBeUndefined();
   });
 
   it('opens liquidation info inside the current sheet', () => {
