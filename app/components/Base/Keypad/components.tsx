@@ -1,8 +1,8 @@
 import React from 'react';
 import {
+  Pressable,
   StyleProp,
   StyleSheet,
-  TouchableOpacity,
   ViewStyle,
 } from 'react-native';
 import {
@@ -90,7 +90,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
     <Box twClassName="flex-1" {...boxWrapperProps}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.keypadButton, style]}
         disabled={isDisabled}
         accessibilityRole="button"
@@ -104,7 +104,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
         >
           {children}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </Box>
   );
 };
@@ -129,14 +129,14 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
     <Box twClassName="flex-1" {...boxWrapperProps}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.keypadDeleteButton, style]}
         accessibilityRole="button"
         accessible
         {...props}
       >
         <Icon name={IconName.Backspace} size={IconSize.Xl} />
-      </TouchableOpacity>
+      </Pressable>
     </Box>
   );
 };

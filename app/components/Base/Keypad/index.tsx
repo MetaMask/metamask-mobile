@@ -9,6 +9,7 @@ import { Keys } from './constants';
 import useCurrency from './useCurrency';
 import { KeypadTestIds } from './Keypad.testIds';
 import { colors } from '../../../styles/common';
+import { ImpactMoment, playImpact } from '../../../util/haptics';
 
 const styles = StyleSheet.create({
   periodButton: {
@@ -63,6 +64,7 @@ function KeypadComponent({
 
   const handleKeypadPress = useCallback(
     (pressedKey: Keys) => {
+      playImpact(ImpactMoment.KeypadKey).catch(() => undefined);
       const newValue = handler(value, pressedKey);
       let valueAsNumber = 0;
       try {
