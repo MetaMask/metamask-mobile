@@ -7,17 +7,11 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { initialStatePerps } from '../../../../../tests/component-view/presets/perpsStatePreset';
 import { buildLighterRecoveryHarness } from '../../../../../tests/integration/harnesses/perps/lighter-recovery';
 import { usePerpsRecovery } from '../hooks/usePerpsRecovery';
 import { usePerpsRecoveryActions } from '../hooks/usePerpsRecoveryActions';
-
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: { context: { PerpsController: undefined } },
-}));
 
 describe('Lighter recovery Mobile consumer', () => {
   it('acknowledges a real resolved outcome whose optional flag is omitted', async () => {
@@ -40,11 +34,7 @@ describe('Lighter recovery Mobile consumer', () => {
         recovered: [outcome],
       }),
     );
-    const engine = jest.replaceProperty(
-      Engine.context,
-      'PerpsController',
-      perps.controller,
-    );
+    const engine = perps.bindEngine();
     const state = initialStatePerps()
       .withMinimalAccounts(perps.walletAddress)
       .withAccountTreeForSelectedAccount()

@@ -29,7 +29,10 @@ import PerpsRecoveryPanel, {
   type PerpsRecoveryEntry,
   type PerpsRecoveryVenueSnapshot,
 } from './PerpsRecoveryPanel';
-import { PerpsRecoveryPanelTestIds as IDs } from './PerpsRecoveryPanel.testIds';
+import {
+  PerpsRecoveryPanelTestIds as IDs,
+  getPerpsRecoveryEntryTestId,
+} from './PerpsRecoveryPanel.testIds';
 import { formatOrderTypeLabel } from '../../utils/orderUtils';
 
 const DISPATCH: PerpsRecoveredDispatch = {
@@ -147,6 +150,52 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
     I18n.locale = originalLocale;
   });
 
+  it('selects the exact recovered entry when row labels repeat', async () => {
+    const second: PerpsRecoveredDispatch = {
+      ...DISPATCH,
+      recoveryId: 'opaque: source ["日本語"]/foo%bar',
+    };
+    getDispatches.mockResolvedValue([DISPATCH, second]);
+    getProtections.mockResolvedValue([]);
+    const { controls } = renderPanel();
+    await screen.findByTestId(IDs.PANEL);
+    await waitFor(() =>
+      expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
+    );
+    const target = `${IDs.REVIEW}:${JSON.stringify(['dispatch', second.recoveryId])}`;
+
+    fireEvent.press(screen.getByTestId(target));
+
+    expect(controls.onReview).toHaveBeenCalledTimes(1);
+    expect(controls.onReview.mock.calls[0][0]).toBe(second);
+    expect(controls.onAcknowledge).not.toHaveBeenCalled();
+    expect(screen.queryByText(second.recoveryId)).not.toBeOnTheScreen();
+  });
+
+  it('distinguishes dispatch and protection actions with the same opaque source', async () => {
+    const protection: PerpsPendingManualRecovery = {
+      ...PROTECTION,
+      recoveryId: DISPATCH.recoveryId,
+    };
+    getDispatches.mockResolvedValue([DISPATCH]);
+    getProtections.mockResolvedValue([protection]);
+    const { controls } = renderPanel();
+    await screen.findByTestId(IDs.PANEL);
+    await waitFor(() =>
+      expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
+    );
+    const dispatchTarget = `${IDs.REVIEW}:${JSON.stringify(['dispatch', DISPATCH.recoveryId])}`;
+    const protectionTarget = `${IDs.REVIEW}:${JSON.stringify(['protection', protection.recoveryId])}`;
+
+    fireEvent.press(screen.getByTestId(dispatchTarget));
+    fireEvent.press(screen.getByTestId(protectionTarget));
+
+    expect(controls.onReview).toHaveBeenCalledTimes(2);
+    expect(controls.onReview.mock.calls[0][0]).toBe(DISPATCH);
+    expect(controls.onReview.mock.calls[1][0]).toBe(protection);
+    expect(controls.onRemoveProtection).not.toHaveBeenCalled();
+  });
+
   it('shows complete recovery and venue data while hiding internal identifiers', async () => {
     const review = venueFor(DISPATCH);
     const { controls } = renderPanel({ review });
@@ -155,7 +204,11 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
       expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
     );
 
-    fireEvent.press(screen.getByTestId(IDs.ACKNOWLEDGE));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, DISPATCH),
+      ),
+    );
 
     expect(controls.onAcknowledge).toHaveBeenCalledWith(DISPATCH);
     const scope = within(venue);
@@ -212,10 +265,16 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
       expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
     );
 
-    fireEvent.press(screen.getByTestId(IDs.REVIEW));
+    fireEvent.press(
+      screen.getByTestId(getPerpsRecoveryEntryTestId(IDs.REVIEW, PENDING)),
+    );
 
     expect(controls.onReview).toHaveBeenCalledWith(PENDING);
-    expect(screen.queryByTestId(IDs.ACKNOWLEDGE)).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, PENDING),
+      ),
+    ).not.toBeOnTheScreen();
     expect(controls.onAcknowledge).not.toHaveBeenCalled();
     expect(
       within(screen.getByTestId(IDs.DISPATCH)).getByText(
@@ -233,11 +292,17 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
       expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
     );
 
-    fireEvent.press(screen.getByTestId(IDs.REVIEW));
+    fireEvent.press(
+      screen.getByTestId(getPerpsRecoveryEntryTestId(IDs.REVIEW, DISPATCH)),
+    );
 
     expect(controls.onReview).toHaveBeenCalledWith(DISPATCH);
     expect(screen.queryByTestId(IDs.VENUE)).not.toBeOnTheScreen();
-    expect(screen.queryByTestId(IDs.ACKNOWLEDGE)).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, DISPATCH),
+      ),
+    ).not.toBeOnTheScreen();
     expect(controls.onAcknowledge).not.toHaveBeenCalled();
   });
 
@@ -253,7 +318,11 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
 
     fireEvent.press(screen.getByTestId(IDs.CHECK_STATUS));
     await screen.findByTestId(IDs.ERROR);
-    fireEvent.press(screen.getByTestId(IDs.ACKNOWLEDGE));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, DISPATCH),
+      ),
+    );
 
     expect(screen.getAllByTestId(IDs.DISPATCH)).toHaveLength(2);
     expect(
@@ -357,12 +426,32 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
       expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
     );
 
-    fireEvent.press(screen.getByTestId(IDs.REMOVE_PROTECTION));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REMOVE_PROTECTION, PROTECTION),
+      ),
+    );
     expect(controls.onRemoveProtection).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByTestId(IDs.CANCEL_REMOVAL));
-    expect(screen.queryByTestId(IDs.CONFIRM_REMOVAL)).not.toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId(IDs.REMOVE_PROTECTION));
-    fireEvent.press(screen.getByTestId(IDs.CONFIRM_REMOVAL));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.CANCEL_REMOVAL, PROTECTION),
+      ),
+    );
+    expect(
+      screen.queryByTestId(
+        getPerpsRecoveryEntryTestId(IDs.CONFIRM_REMOVAL, PROTECTION),
+      ),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REMOVE_PROTECTION, PROTECTION),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.CONFIRM_REMOVAL, PROTECTION),
+      ),
+    );
 
     expect(controls.onRemoveProtection).toHaveBeenCalledTimes(1);
     expect(controls.onRemoveProtection).toHaveBeenCalledWith(PROTECTION);
