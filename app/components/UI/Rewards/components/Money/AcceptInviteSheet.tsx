@@ -97,7 +97,10 @@ export interface AcceptInviteSheetProps {
  * Header close / swipe / overlay dismiss without declining; the Decline CTA
  * is the explicit declined path. While a registration is in flight the sheet
  * is not interactable, so overlay, swipe, and hardware back cannot unmount it
- * before the accepted splash opens.
+ * before the accepted splash opens. A confirmed geo exclusion closes the sheet
+ * the same way a non-NONE variant does — the invite is not offered there.
+ * Region copy is still kept for edge cases: a race before the dismiss
+ * effect runs, and a server GEO refusal when client geo failed open.
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -130,6 +133,10 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     referralMe !== undefined &&
     !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
+  // Confirmed exclusion only — unknown geo fails open and stays on screen.
+  const shouldDismissForGeo = !acceptAllowedForGeo;
+  const shouldAutoDismiss =
+    shouldDismissForReferralVariant || shouldDismissForGeo;
   const copy = useInviteCopy(referralMe?.localized_text);
   // A resolved profile with no referral-me row is not a settled invite.
   // `loading` is only set once the fetch starts, so a missing entry would
@@ -178,7 +185,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // is the authority on it; a rejected one would only be refused again.
   const isRateLimited =
     acceptBlockedUntil !== null && Date.now() < acceptBlockedUntil;
-  // Geo exclusion disables Accept and surfaces through the same field error.
+  // Geo exclusion disables Accept until the auto-dismiss effect runs, and
+  // still gates a press if the sheet is briefly still mounted.
   const canAccept =
     hasCodeToValidate &&
     !isValidating &&
@@ -188,11 +196,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     acceptAllowedForGeo;
 
   // An offer is viewed only once this sheet is showing one: never on a
-  // payload still in flight, and never for a stale deeplink or an existing
-  // referee, which close themselves without the user seeing an invite. Those
-  // closes answer nothing, so a viewed interaction here would have no answer
-  // to pair with.
-  const isOfferOnScreen = !isCopyPending && !shouldDismissForReferralVariant;
+  // payload still in flight, and never for a stale deeplink, an existing
+  // referee, or a geo-blocked country, which close themselves without the
+  // user seeing an invite. Those closes answer nothing, so a viewed
+  // interaction here would have no answer to pair with — unless geo lands
+  // after the offer was already viewed, which is answered as dismissed.
+  const isOfferOnScreen = !isCopyPending && !shouldAutoDismiss;
 
   useEffect(() => {
     if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
@@ -306,13 +315,26 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       // Deliberately not `handleGoBack`: no offer was on screen to answer, so
       // this close is not a response and no viewed was recorded for it.
       navigation.goBack();
+      return;
     }
-  }, [navigation, shouldDismissForReferralVariant]);
+    if (shouldDismissForGeo) {
+      // `trackResponded` no-ops when the offer was never viewed (geo known at
+      // open). If geo landed after a viewed offer, pair that viewed with
+      // dismissed rather than leave the funnel unanswered.
+      trackResponded('dismissed');
+      navigation.goBack();
+    }
+  }, [
+    navigation,
+    shouldDismissForGeo,
+    shouldDismissForReferralVariant,
+    trackResponded,
+  ]);
 
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
-  // referrer or referee.
-  if (shouldDismissForReferralVariant) {
+  // referrer or referee, or a geo-blocked country.
+  if (shouldAutoDismiss) {
     return null;
   }
 
