@@ -5,7 +5,7 @@ import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
-} from '../SocialV1View/feed/mocks/socialV1Feed.mock';
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import { SocialFeedPostingBannerSelectorsIDs } from '../SocialV1View/feed/components/SocialFeedPostingBanner.testIds';
 import {
   COMPOSER_POSTING_DELAY_MS,
@@ -18,7 +18,7 @@ import {
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { FeedSortFilterSelectorsIDs } from '../components/Filters';
-import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
+import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type {
@@ -27,10 +27,12 @@ import type {
 } from '../SocialV1View/feed/types';
 import Routes from '../../../../constants/navigation/Routes';
 import EmptyShellTabPage, {
-  SOCIAL_V1_FEED_ERROR_TEST_ID,
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
-  SOCIAL_V1_FEED_RETRY_TEST_ID,
 } from './EmptyShellTabPage';
+import {
+  SOCIAL_FEED_ERROR_TEST_ID,
+  SOCIAL_FEED_RETRY_TEST_ID,
+} from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -39,7 +41,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
   const { Pressable } = jest.requireActual('react-native');
   return {
@@ -102,7 +104,7 @@ jest.mock('../SocialV1View/feed/components', () => {
     onTokenPress,
     onTokenFeedChange,
   }: {
-    posts?: import('../SocialV1View/feed/types').SocialV1FeedPost[];
+    posts?: import('../../../UI/SocialFeed/types').SocialV1FeedPost[];
     selectedTokenId?: string | null;
     onTokenPress?: (
       token: import('../SocialV1View/feed/types').SocialV1HotToken,
@@ -634,10 +636,8 @@ describe('EmptyShellTabPage', () => {
       expect(loadMore).toHaveBeenCalledTimes(1);
 
       reportTokenFeed({ ...idle, error: 'token feed down', posts: [] });
-      expect(
-        screen.getByTestId(SOCIAL_V1_FEED_ERROR_TEST_ID),
-      ).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId(SOCIAL_V1_FEED_RETRY_TEST_ID));
+      expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
       expect(refresh).toHaveBeenCalledTimes(1);
       expect(mainRefresh).not.toHaveBeenCalled();
 

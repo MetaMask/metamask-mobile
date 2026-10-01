@@ -433,6 +433,73 @@ describe('usePerpsAdjustMarginData', () => {
     });
   });
 
+  describe('24h percent change', () => {
+    it('parses the percent change from the live price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '100000',
+          percentChange24h: '-2.35',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.percentChange24h).toBe(-2.35);
+    });
+
+    it.each([
+      { percentChange24h: undefined, label: 'missing' },
+      { percentChange24h: '', label: 'empty' },
+      { percentChange24h: 'abc', label: 'malformed' },
+    ])(
+      'returns null when the percent change is $label',
+      ({ percentChange24h }) => {
+        mockUsePerpsLivePrices.mockReturnValue({
+          BTC: {
+            price: '100000',
+            percentChange24h,
+            symbol: 'BTC',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+
+        const { result } = renderHook(() =>
+          usePerpsAdjustMarginData({
+            symbol: 'BTC',
+            mode: 'add',
+            inputAmount: 0,
+          }),
+        );
+
+        expect(result.current.percentChange24h).toBeNull();
+      },
+    );
+
+    it('returns null when there is no live price for the symbol', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'add',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.percentChange24h).toBeNull();
+    });
+  });
+
   describe('mode handling', () => {
     it('correctly identifies add mode', () => {
       const { result } = renderHook(() =>

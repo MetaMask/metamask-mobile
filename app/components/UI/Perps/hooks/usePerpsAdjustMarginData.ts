@@ -51,6 +51,8 @@ export interface UsePerpsAdjustMarginDataReturn {
   spendableBalance: number;
   /** Current market price */
   currentPrice: number;
+  /** 24h percent change from the price stream; null until available */
+  percentChange24h: number | null;
   /** Whether this is add mode */
   isAddMode: boolean;
   /** Position leverage */
@@ -166,6 +168,13 @@ export function usePerpsAdjustMarginData(
     [livePrices, symbol],
   );
 
+  const percentChange24h = useMemo(() => {
+    const rawPercentChange = Number.parseFloat(
+      livePrices?.[symbol]?.percentChange24h ?? '',
+    );
+    return Number.isFinite(rawPercentChange) ? rawPercentChange : null;
+  }, [livePrices, symbol]);
+
   const spendableBalance = useMemo(
     () => parseFiniteNumber(account?.spendableBalance),
     [account],
@@ -261,6 +270,7 @@ export function usePerpsAdjustMarginData(
     newLiquidationDistance,
     spendableBalance,
     currentPrice,
+    percentChange24h,
     isAddMode,
     positionLeverage,
   };

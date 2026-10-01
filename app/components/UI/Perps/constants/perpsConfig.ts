@@ -17,6 +17,7 @@ import {
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
+  PERPS_LEARN_MORE_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
 import { DAY } from '../../../../constants/time';
@@ -300,6 +301,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
  */
 export const PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS = 10_000;
 
+/**
+ * Longest a pay-with-token order waits, after its deposit confirms on-chain,
+ * for HyperLiquid to credit the Perps balance before giving up on the order.
+ */
+export const PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS = 90_000;
+
 /** Extra capability requests after transient provider unavailability. */
 export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
 
@@ -365,6 +372,16 @@ export const SUPPORT_CONFIG = {
   Url: METAMASK_SUPPORT_URL,
   TitleKey: 'perps.support.title',
   DescriptionKey: 'perps.support.description',
+} as const;
+
+/**
+ * Service interruption (outage) banner configuration
+ * The FAQ link points users at the Perps help-center hub while trading is
+ * degraded; the support link reuses SUPPORT_CONFIG through the consent flow.
+ */
+export const SERVICE_INTERRUPTION_CONFIG = {
+  FaqUrl: PERPS_LEARN_MORE_URL,
+  FaqTitleKey: 'perps.service_interruption.faq_title',
 } as const;
 
 /**

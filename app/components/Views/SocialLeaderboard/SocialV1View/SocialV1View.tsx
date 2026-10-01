@@ -71,7 +71,7 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
-import { SocialEntryOptionsProvider } from '../components/SocialEntryOptionsBottomSheet';
+import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';

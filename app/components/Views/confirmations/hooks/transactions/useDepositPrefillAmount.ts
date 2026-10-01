@@ -35,6 +35,9 @@ import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvaila
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
+/** Smallest fiat amount the input can display and a quote can be built for. */
+export const MIN_FIAT_AMOUNT = 0.01;
+
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
 }
@@ -193,6 +196,17 @@ export function useDepositPrefillAmount({
       .multipliedBy(balanceUsd)
       .decimalPlaces(2, BigNumber.ROUND_DOWN);
 
+    // Sub-cent dust renders as $0.00 and cannot produce a usable quote.
+    // `updatePendingAmountPercentage` refuses to apply it, which left the
+    // previous token's amount in place and quoted it against the new token.
+    if (raw.lt(MIN_FIAT_AMOUNT)) {
+      return {
+        prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
+
     const capped =
       depositLimit !== undefined && raw.isGreaterThan(depositLimit);
 
@@ -243,10 +257,15 @@ export function useDepositPrefillAmount({
   // `NaN` produces no prefill amount and is not `<= 0`, so treating it as a
   // skip rather than waiting prevents an unbounded loader.
   const hasUsableBalance = Number.isFinite(balanceUsd) && balanceUsd > 0;
+  // With a pay token and a usable balance, the only way to have no prefill
+  // amount is a sub-cent dust balance, which is skipped like no balance.
+  const isDustBalance =
+    Boolean(payToken) && hasUsableBalance && prefillAmount === undefined;
   const isSkipped =
     enabled &&
     (isFiatPrefillSkipped ||
       (Boolean(payToken) && !hasUsableBalance) ||
+      isDustBalance ||
       (!payToken && !hasFundedToken));
 
   let status = DepositPrefillStatus.Loading;
