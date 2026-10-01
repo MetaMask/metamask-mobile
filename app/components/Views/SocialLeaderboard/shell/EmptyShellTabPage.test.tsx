@@ -148,6 +148,10 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => ({ profile: null }),
+}));
+
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
     jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
@@ -156,6 +160,7 @@ describe('EmptyShellTabPage', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     resetSocialV1ComposedFeedStore();
   });
 

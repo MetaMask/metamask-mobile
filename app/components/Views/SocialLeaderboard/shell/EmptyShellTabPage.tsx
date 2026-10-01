@@ -62,7 +62,7 @@ import type {
   SocialV1HotToken,
   SocialV1TokenFeedState,
 } from '../SocialV1View/feed/types';
-import { chainNameToId } from '../utils/chainMapping';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
