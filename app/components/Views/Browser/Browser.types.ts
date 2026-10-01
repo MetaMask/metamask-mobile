@@ -29,6 +29,7 @@ export interface BrowserTab {
   isArchived?: boolean;
   linkType?: string;
   entryPoint?: BrowserEntryPoint;
+  entryPointHost?: string;
   /** Timestamp (Date.now()) of when the user last activated this tab (switched to it or created it). */
   lastActiveAt?: number;
 }

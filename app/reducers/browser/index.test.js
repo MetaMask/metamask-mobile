@@ -59,6 +59,83 @@ describe('browserReducer CREATE_NEW_TAB entryPoint', () => {
   });
 });
 
+describe('browserReducer UPDATE_TAB entryPoint', () => {
+  const buildState = (tab = {}) => ({
+    history: [],
+    whitelist: [],
+    tabs: [
+      {
+        id: 7,
+        url: 'https://pancakeswap.finance',
+        entryPoint: 'explore_search',
+        ...tab,
+      },
+    ],
+    favicons: [],
+    activeTab: 7,
+  });
+  const loadedState = () =>
+    buildState({ entryPointHost: 'pancakeswap.finance' });
+  const updateUrl = (state, url) =>
+    browserReducer(state, { type: 'UPDATE_TAB', id: 7, data: { url } });
+
+  it('keeps the entry point and locks the host when the first load redirects', () => {
+    const newState = updateUrl(
+      buildState({ url: 'https://uniswap.org' }),
+      'https://app.uniswap.org/swap',
+    );
+
+    expect(newState.tabs[0].entryPoint).toBe('explore_search');
+    expect(newState.tabs[0].entryPointHost).toBe('app.uniswap.org');
+  });
+
+  it('keeps the entry point when the tab navigates within the locked host', () => {
+    const newState = updateUrl(
+      loadedState(),
+      'https://pancakeswap.finance/swap?chain=bsc',
+    );
+
+    expect(newState.tabs[0].entryPoint).toBe('explore_search');
+  });
+
+  it('drops the entry point when the tab leaves the locked host', () => {
+    const newState = updateUrl(loadedState(), 'https://app.uniswap.org');
+
+    expect(newState.tabs[0]).not.toHaveProperty('entryPoint');
+    expect(newState.tabs[0]).not.toHaveProperty('entryPointHost');
+    expect(newState.tabs[0].url).toBe('https://app.uniswap.org');
+  });
+
+  it('does not restore the entry point when the tab returns to the locked host', () => {
+    const awayState = updateUrl(loadedState(), 'https://app.uniswap.org');
+
+    const backState = updateUrl(awayState, 'https://pancakeswap.finance');
+
+    expect(backState.tabs[0]).not.toHaveProperty('entryPoint');
+  });
+
+  it('resets the locked host when an entry point is passed with the new url', () => {
+    const newState = browserReducer(loadedState(), {
+      type: 'UPDATE_TAB',
+      id: 7,
+      data: { url: 'https://1inch.com', entryPoint: 'explore_search' },
+    });
+
+    expect(newState.tabs[0].entryPoint).toBe('explore_search');
+    expect(newState.tabs[0]).not.toHaveProperty('entryPointHost');
+  });
+
+  it('keeps the entry point when the update has no url', () => {
+    const newState = browserReducer(loadedState(), {
+      type: 'UPDATE_TAB',
+      id: 7,
+      data: { image: 'file://thumb.jpg' },
+    });
+
+    expect(newState.tabs[0].entryPoint).toBe('explore_search');
+  });
+});
+
 describe('browserReducer SET_ACTIVE_TAB', () => {
   it('updates lastActiveAt for the activated tab', () => {
     const now = Date.now();

@@ -1,6 +1,27 @@
 import { BrowserActionTypes } from '../../actions/browser';
 import AppConstants from '../../core/AppConstants';
-import { appendURLParams } from '../../util/browser';
+import { appendURLParams, getHost } from '../../util/browser';
+
+const updateTabEntryPoint = (tab, data) => {
+  const {
+    entryPoint: _entryPoint,
+    entryPointHost: _entryPointHost,
+    ...unattributedTab
+  } = tab;
+  if ('entryPoint' in data) {
+    return { ...unattributedTab, ...data };
+  }
+  if (!tab.entryPoint || !data.url) {
+    return { ...tab, ...data };
+  }
+  const host = getHost(data.url);
+  if (!tab.entryPointHost) {
+    return { ...tab, ...data, entryPointHost: host };
+  }
+  return host === tab.entryPointHost
+    ? { ...tab, ...data }
+    : { ...unattributedTab, ...data };
+};
 
 const initialState = {
   history: [],
@@ -90,7 +111,7 @@ const browserReducer = (state = initialState, action) => {
         ...state,
         tabs: state.tabs.map((tab) => {
           if (tab.id === action.id) {
-            return { ...tab, ...action.data };
+            return updateTabEntryPoint(tab, action.data);
           }
           return { ...tab };
         }),
