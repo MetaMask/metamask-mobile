@@ -1,43 +1,27 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { type TextInput } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetFooter,
   BottomSheetHeader,
   type BottomSheetRef,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
+  Button,
   ButtonSize,
-  ButtonsAlignment,
+  ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Label,
   Text,
-  TextButton,
   TextColor,
   TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import { selectReferralMeEntry } from '../../../../../reducers/rewardsMoney/selectors';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
-import RewardsThemeImageComponent from '../ThemeImageComponent/RewardsThemeImageComponent';
 import { useSessionProfileId } from '../../hooks/useReferralMe';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
 import {
@@ -49,44 +33,37 @@ import {
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CONTAINER: 'accept-invite-sheet',
   CLOSE: 'accept-invite-sheet-close',
-  HERO: 'accept-invite-sheet-hero',
   BODY: 'accept-invite-sheet-body',
   CODE_FIELD: 'accept-invite-sheet-code-field',
-  CODE: 'accept-invite-sheet-code',
-  EDIT_CODE: 'accept-invite-sheet-edit-code',
   CODE_INPUT: 'accept-invite-sheet-code-input',
-  CODE_VALID: 'accept-invite-sheet-code-valid',
   CODE_ERROR: 'accept-invite-sheet-code-error',
-  CANCEL_EDIT: 'accept-invite-sheet-cancel-edit',
   DECLINE: 'accept-invite-sheet-decline',
   ACCEPT: 'accept-invite-sheet-accept',
 } as const;
+
+/** Alphanumeric upper-case only, capped at the Money code max length. */
+const normalizeInviteCodeInput = (value: string) =>
+  value
+    .replace(/[^a-zA-Z0-9]/gu, '')
+    .toUpperCase()
+    .slice(0, MONEY_REFERRAL_CODE_MAX_LENGTH);
 
 /**
  * Invite copy, resolved per key.
  *
  * The server owns this screen's words: it fills every `localized_text` key
  * from its own defaults, so a missing key means there is no referral-me
- * payload at all (Money disabled, or the fetch failed). Only keys that an
- * existing Mobile string already says have a fallback — this screen adds no
- * locale keys, so the rest render as nothing and the affordance they label is
- * left out rather than shown blank.
+ * payload at all. Only keys that an existing Mobile string already says have
+ * a fallback — this screen adds no locale keys.
  */
 function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
   return useMemo(
     () => ({
       title: localizedText?.inviteTitle ?? '',
-      body: localizedText?.inviteBody ?? '',
+      body: localizedText?.inviteMessageBody ?? '',
       codeLabel:
         localizedText?.inviteReferralCode ??
         strings('rewards.referral.referral_code'),
-      codePlaceholder:
-        localizedText?.inviteCodePlaceholder ??
-        strings('rewards.referral.referral_code'),
-      useDifferentCode: localizedText?.inviteUseDifferentCode ?? '',
-      cancelEdit:
-        localizedText?.inviteCancelEdit ??
-        strings('rewards.optout.modal.cancel'),
       decline:
         localizedText?.inviteDecline ?? strings('rewards.vip.splash_not_now'),
       accept:
@@ -97,144 +74,6 @@ function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
   );
 }
 
-interface InviteCodeFieldProps {
-  referralCode: string;
-  codeLabel: string;
-  codePlaceholder: string;
-  cancelEditLabel: string;
-  useDifferentCodeLabel: string;
-  isEditing: boolean;
-  isEditable: boolean;
-  isValidated: boolean;
-  errorMessage: string;
-  onBeginEditing: () => void;
-  onCancelEditing: () => void;
-  onChangeReferralCode: (code: string) => void;
-}
-
-/**
- * The invited code, shown as the invite's headline until the user asks to
- * replace it. Editing is offered only when there is copy that labels it.
- */
-const InviteCodeField: React.FC<InviteCodeFieldProps> = ({
-  referralCode,
-  codeLabel,
-  codePlaceholder,
-  cancelEditLabel,
-  useDifferentCodeLabel,
-  isEditing,
-  isEditable,
-  isValidated,
-  errorMessage,
-  onBeginEditing,
-  onCancelEditing,
-  onChangeReferralCode,
-}) => {
-  const inputRef = useRef<TextInput>(null);
-
-  useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
-    }
-  }, [isEditing]);
-
-  return (
-    <Box
-      twClassName="mt-4 justify-start"
-      testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_FIELD}
-    >
-      {isEditing ? (
-        <>
-          <Label fontWeight={FontWeight.Medium}>{codeLabel}</Label>
-          <TextField
-            value={referralCode}
-            onChangeText={onChangeReferralCode}
-            placeholder={codePlaceholder}
-            isDisabled={!isEditable}
-            isError={Boolean(errorMessage)}
-            endAccessory={
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                {isValidated && !errorMessage && (
-                  <Icon
-                    name={IconName.Check}
-                    size={IconSize.Md}
-                    color={IconColor.SuccessDefault}
-                    testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_VALID}
-                  />
-                )}
-                <TextButton
-                  variant={TextVariant.BodyMd}
-                  onPress={isEditable ? onCancelEditing : undefined}
-                  accessibilityRole="button"
-                  testID={ACCEPT_INVITE_SHEET_TEST_IDS.CANCEL_EDIT}
-                >
-                  {cancelEditLabel}
-                </TextButton>
-              </Box>
-            }
-            inputProps={{
-              autoCapitalize: 'characters',
-              autoCorrect: false,
-              autoComplete: 'off',
-              maxLength: MONEY_REFERRAL_CODE_MAX_LENGTH,
-              accessibilityLabel: codeLabel,
-              testID: ACCEPT_INVITE_SHEET_TEST_IDS.CODE_INPUT,
-            }}
-            inputRef={inputRef}
-          />
-          {Boolean(errorMessage) && (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-error-default mt-1"
-              testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_ERROR}
-            >
-              {errorMessage}
-            </Text>
-          )}
-        </>
-      ) : (
-        <>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {codeLabel}
-          </Text>
-          <Text
-            variant={TextVariant.DisplayMd}
-            fontWeight={FontWeight.Bold}
-            twClassName="leading-none"
-            testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE}
-          >
-            {referralCode}
-          </Text>
-          {Boolean(useDifferentCodeLabel) && (
-            <TextButton
-              variant={TextVariant.BodySm}
-              onPress={onBeginEditing}
-              accessibilityRole="button"
-              twClassName="self-start p-0"
-              testID={ACCEPT_INVITE_SHEET_TEST_IDS.EDIT_CODE}
-            >
-              {useDifferentCodeLabel}
-            </TextButton>
-          )}
-          {Boolean(errorMessage) && (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-error-default mt-1"
-              testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_ERROR}
-            >
-              {errorMessage}
-            </Text>
-          )}
-        </>
-      )}
-    </Box>
-  );
-};
-
 export interface AcceptInviteSheetProps {
   route: {
     params?: RewardsMoneyInviteSheetParams;
@@ -244,19 +83,19 @@ export interface AcceptInviteSheetProps {
 /**
  * Root modal for accepting a Money referral invite.
  *
- * Opened for `variant: NONE` callers, which is why it reads referral me from
- * the profile-keyed slice Rewards Home already filled rather than fetching it
- * again. Registration belongs to `useAcceptMoneyReferralCode`: it keeps the
- * sheet open on a refusal and dismisses it itself once the role has been read
- * back, so this screen never navigates on accept.
+ * Opened for `variant: NONE` callers. Registration belongs to
+ * `useAcceptMoneyReferralCode`: it keeps the sheet open on a refusal and
+ * dismisses it itself once the role has been read back.
+ *
+ * Header close / swipe / overlay dismiss without declining; the Decline CTA
+ * is the explicit declined path.
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
-  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
 
-  const { profileId, isResolved: isProfileResolved } = useSessionProfileId();
+  const { profileId } = useSessionProfileId();
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
@@ -275,13 +114,6 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
 
-  // The copy is read under a profile id that resolves asynchronously, so an
-  // absent invite string is only final once the session and the entry have
-  // both settled. Anything decided before that is deciding on a blank payload.
-  const isCopyPending = !isProfileResolved || Boolean(referralMeEntry?.loading);
-
-  const inviteHero = referralMe?.invite_hero;
-
   const {
     referralCode,
     setReferralCode,
@@ -295,17 +127,6 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     errorMessage: registerError,
     clearError,
   } = useAcceptMoneyReferralCode();
-
-  const canRequestEdit = Boolean(copy.useDifferentCode);
-  const [isEditRequested, setIsEditRequested] = useState(false);
-  // Derived rather than initialized, so a code that arrived on the route is
-  // shown as the invite's headline from the first frame and stays there once
-  // the copy that labels the edit affordance lands. With no such copy the
-  // field itself is the only way to fix a code, so it opens editable — but
-  // only once the absence is settled, never on a payload still in flight.
-  const isEditing =
-    isEditRequested || !referralCode || (!canRequestEdit && !isCopyPending);
-  const codeAtEditStartRef = useRef(referralCode);
 
   const hasCodeToValidate =
     referralCode.length >= MONEY_REFERRAL_CODE_MIN_LENGTH;
@@ -328,26 +149,19 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const handleChangeReferralCode = useCallback(
     (code: string) => {
       clearError();
-      setReferralCode(code);
+      setReferralCode(normalizeInviteCodeInput(code));
     },
     [clearError, setReferralCode],
   );
 
-  const handleBeginEditing = useCallback(() => {
-    codeAtEditStartRef.current = referralCode;
-    setIsEditRequested(true);
-  }, [referralCode]);
-
-  const handleCancelEditing = useCallback(() => {
-    setReferralCode(codeAtEditStartRef.current);
-    // Withdrawing the request is all this does: whether the field closes is
-    // the same derivation as on first render.
-    setIsEditRequested(false);
-  }, [setReferralCode]);
+  const handleClose = useCallback(() => {
+    if (isAccepting) {
+      return;
+    }
+    sheetRef.current?.onCloseBottomSheet();
+  }, [isAccepting]);
 
   const handleDecline = useCallback(() => {
-    // Dismissing mid-registration would leave the write unattended, and it is
-    // about to dismiss the sheet itself.
     if (isAccepting) {
       return;
     }
@@ -386,67 +200,75 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       testID={ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER}
     >
       <BottomSheetHeader
-        onClose={handleDecline}
+        onClose={handleClose}
         closeButtonProps={{ testID: ACCEPT_INVITE_SHEET_TEST_IDS.CLOSE }}
       >
         {copy.title}
       </BottomSheetHeader>
       <Box twClassName="px-4">
-        {inviteHero ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            testID={ACCEPT_INVITE_SHEET_TEST_IDS.HERO}
-          >
-            <RewardsThemeImageComponent
-              themeImage={inviteHero}
-              style={tw.style('h-28 w-48')}
-            />
-          </Box>
-        ) : null}
         {Boolean(copy.body) && (
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-4"
+            color={TextColor.TextDefault}
             testID={ACCEPT_INVITE_SHEET_TEST_IDS.BODY}
           >
             {copy.body}
           </Text>
         )}
-        <InviteCodeField
-          referralCode={referralCode}
-          codeLabel={copy.codeLabel}
-          codePlaceholder={copy.codePlaceholder}
-          cancelEditLabel={copy.cancelEdit}
-          useDifferentCodeLabel={copy.useDifferentCode}
-          isEditing={isEditing}
-          isEditable={!isAccepting}
-          isValidated={isValid}
-          errorMessage={errorMessage}
-          onBeginEditing={handleBeginEditing}
-          onCancelEditing={handleCancelEditing}
-          onChangeReferralCode={handleChangeReferralCode}
-        />
+        <Box
+          twClassName="mt-4 mb-6 flex flex-col gap-y-2"
+          testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_FIELD}
+        >
+          <Label fontWeight={FontWeight.Medium}>{copy.codeLabel}</Label>
+          <TextField
+            value={referralCode}
+            onChangeText={handleChangeReferralCode}
+            isDisabled={isAccepting}
+            isError={Boolean(errorMessage)}
+            autoFocus={referralCode.length === 0}
+            inputProps={{
+              autoCapitalize: 'characters',
+              autoCorrect: false,
+              autoComplete: 'off',
+              maxLength: MONEY_REFERRAL_CODE_MAX_LENGTH,
+              accessibilityLabel: copy.codeLabel,
+              testID: ACCEPT_INVITE_SHEET_TEST_IDS.CODE_INPUT,
+            }}
+          />
+          {Boolean(errorMessage) && (
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default mt-1"
+              testID={ACCEPT_INVITE_SHEET_TEST_IDS.CODE_ERROR}
+            >
+              {errorMessage}
+            </Text>
+          )}
+        </Box>
       </Box>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        secondaryButtonProps={{
-          children: copy.decline,
-          onPress: handleDecline,
-          size: ButtonSize.Lg,
-          isDisabled: isAccepting,
-          testID: ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE,
-        }}
-        primaryButtonProps={{
-          children: copy.accept,
-          onPress: handleAccept,
-          size: ButtonSize.Lg,
-          isLoading: isAccepting,
-          isDisabled: !canAccept,
-          testID: ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT,
-        }}
-        twClassName="px-4 pt-6"
-      />
+      <Box twClassName="gap-3 px-4">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isLoading={isAccepting}
+          isDisabled={!canAccept}
+          onPress={handleAccept}
+          testID={ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT}
+        >
+          {copy.accept}
+        </Button>
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isDisabled={isAccepting}
+          onPress={handleDecline}
+          testID={ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE}
+        >
+          {copy.decline}
+        </Button>
+      </Box>
     </BottomSheet>
   );
 };

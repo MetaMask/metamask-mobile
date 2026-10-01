@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 const QR_SIZE = 180;
 
 /**
- * Caption from `inviteBody` for SMS and Telegram. `{url}` is stripped (the
+ * Caption from `inviteMessageBody` for SMS and Telegram. `{url}` is stripped (the
  * link is attached separately). A leftover `{placeholder}` is not sendable.
  */
 export function buildShareInviteText(template: string | undefined): string {
@@ -97,7 +97,7 @@ function useShareCopy(localizedText: ReferralLocalizedText | undefined) {
       copyLink: localizedText?.copyLink ?? '',
       messages: localizedText?.messages ?? '',
       telegram: localizedText?.telegram ?? '',
-      inviteBody: localizedText?.inviteBody ?? '',
+      inviteMessageBody: localizedText?.inviteMessageBody ?? '',
     }),
     [localizedText],
   );
@@ -192,7 +192,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     // The two platforms disagree on how a body is attached to an `sms:` URL:
     // iOS wants it as a second field (`&`), Android as the first query
     // parameter (`?`). The wrong separator opens an empty composer.
-    const smsBody = buildShareSmsBody(copy.inviteBody, resolvedShareUrl);
+    const smsBody = buildShareSmsBody(copy.inviteMessageBody, resolvedShareUrl);
     const encodedBody = encodeURIComponent(smsBody);
     const smsUrl =
       Platform.OS === 'ios'
@@ -202,14 +202,14 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     Linking.openURL(smsUrl).catch((error) => {
       Logger.log('Error while opening messages for Money referral link', error);
     });
-  }, [copy.inviteBody, resolvedShareUrl]);
+  }, [copy.inviteMessageBody, resolvedShareUrl]);
 
   const handleTelegram = useCallback(() => {
     if (!resolvedShareUrl) {
       return;
     }
 
-    const inviteText = buildShareInviteText(copy.inviteBody);
+    const inviteText = buildShareInviteText(copy.inviteMessageBody);
     const telegramUrl = inviteText
       ? `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}&text=${encodeURIComponent(inviteText)}`
       : `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}`;
@@ -217,7 +217,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     Linking.openURL(telegramUrl).catch((error) => {
       Logger.log('Error while opening Telegram for Money referral link', error);
     });
-  }, [copy.inviteBody, resolvedShareUrl]);
+  }, [copy.inviteMessageBody, resolvedShareUrl]);
 
   // Without a link there is nothing for these to act on, so they are left out
   // rather than shown inert.
