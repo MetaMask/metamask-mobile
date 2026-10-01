@@ -106,6 +106,7 @@ import {
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
+import { translatePerpsError } from '../../../../utils/translatePerpsError';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -2829,8 +2830,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage =
-            tpslResult.error || strings('perps.errors.unknown');
+          const errorMessage = translatePerpsError(tpslResult.error);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,

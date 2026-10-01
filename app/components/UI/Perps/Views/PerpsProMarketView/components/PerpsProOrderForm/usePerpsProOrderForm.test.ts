@@ -3716,6 +3716,29 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('TP/SL handling', () => {
+    it.each([
+      [
+        PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        strings('perps.errors.clientReinitializing'),
+      ],
+      [undefined, strings('perps.errors.unknownError')],
+    ])(
+      'translates post-order TP/SL failure %s into a string toast',
+      async (error, expectedMessage) => {
+        mockOrderForm.takeProfitPrice = '95000';
+        mockUpdatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+        const { result } = renderProForm();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+        expect(mockUpdatePositionTPSL).toHaveBeenCalledTimes(1);
+        expect(updateTPSLError).toHaveBeenCalledWith(expectedMessage);
+      },
+    );
+
     it('places the order without TP/SL then updates position TP/SL when flagged', async () => {
       // Arrange: new market position with TP set -> handled separately
       mockOrderForm.takeProfitPrice = '95000';
