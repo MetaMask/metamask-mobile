@@ -93,7 +93,7 @@ const NATIVE_MARKS = {
 
 type TimedMark = readonly [StartupMark, number];
 
-/** A cold start up to the native splash hiding, in the order startup reaches each mark. */
+/** A cold start up to the splash fade-out, in the order startup reaches each mark. */
 const MARKS_UP_TO_SPLASH: readonly TimedMark[] = [
   ['storeInitStart', 1_250],
   ['persistStart', 1_300],
@@ -101,11 +101,11 @@ const MARKS_UP_TO_SPLASH: readonly TimedMark[] = [
   ['navInitStart', 1_650],
   ['navReady', 1_800],
   ['engineStart', 1_850],
+  ['nativeSplashHidden', 1_900],
   ['controllerStateLoaded', 2_000],
   ['engineEnd', 2_800],
   ['servicesReady', 2_850],
   ['appFirstCommit', 2_950],
-  ['nativeSplashHidden', 3_000],
 ];
 const SPLASH_GONE_AT = 3_300;
 
@@ -323,7 +323,7 @@ describe('startupStageSpans', () => {
           'startup.stage.root_navigator_first_render_ms': 100,
           'startup.stage.splash_reveal_tax_ms': 350,
           'startup.stage.unlock_prompt_delay_ms': 0,
-          'startup.native_splash_hidden_ms': 2_900,
+          'startup.native_splash_hidden_ms': 1_800,
           'startup.services_ready_ms': 2_750,
           'startup.splash_gone_ms': 3_200,
           'startup.credential_requested_ms': 3_000,
@@ -922,11 +922,11 @@ describe('startupStageSpans', () => {
     it('adds the slowest controller inits of the engine start to engine initialization', () => {
       runMarks(MARKS_UP_TO_SPLASH.slice(0, 5));
       noteStartupControllerInit('BeforeEngineStart', 500);
-      runMarks(MARKS_UP_TO_SPLASH.slice(5, 7));
+      runMarks(MARKS_UP_TO_SPLASH.slice(5, 8));
       for (let index = 0; index < 10; index += 1) {
         noteStartupControllerInit(`Controller${index}`, (index + 1) * 10);
       }
-      runMarks(MARKS_UP_TO_SPLASH.slice(7));
+      runMarks(MARKS_UP_TO_SPLASH.slice(8));
       noteStartupControllerInit('AfterEngineEnd', 900);
       runAt(SPLASH_GONE_AT, () => markStartup('splashGone'));
       routeAt(Routes.ONBOARDING.LOGIN, 3_400);
