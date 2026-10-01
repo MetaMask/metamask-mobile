@@ -22,9 +22,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import EarningsHistoryButton from '../../../Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton';
-import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import useEarnings from '../../../Earn/hooks/useEarnings';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
@@ -55,10 +53,6 @@ export const STAKING_EARNINGS_TEST_IDS = {
 const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
-
-  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
-    selectPooledStakingServiceInterruptionBannerEnabledFlag,
-  );
 
   const { navigate } = useNavigation<AppNavigationProp>();
 
@@ -95,9 +89,6 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
         {strings('stake.your_earnings')}
       </Text>
       <View style={styles.stakingEarningsContent}>
-        {isPooledStakingServiceInterruptionBannerEnabled && (
-          <EarnMaintenanceBanner />
-        )}
         {/* Annual Rate */}
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapper}>

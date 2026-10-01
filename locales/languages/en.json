@@ -8374,7 +8374,7 @@
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon."
+      "maintenance_message": "{{experienceName}} is down for maintenance and will be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
