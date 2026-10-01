@@ -2,6 +2,11 @@ export const VbaVerifyIdentitySelectorsIDs = {
   CONTAINER: 'vba-verify-identity-container',
   BACK_BUTTON: 'vba-verify-identity-back-button',
   CONTINUE_BUTTON: 'vba-verify-identity-continue-button',
+  CONFIRM_SHEET: 'vba-verify-identity-confirm-sheet',
+  CONFIRM_SHEET_CONFIRM_BUTTON:
+    'vba-verify-identity-confirm-sheet-confirm-button',
+  CONFIRM_SHEET_CANCEL_BUTTON:
+    'vba-verify-identity-confirm-sheet-cancel-button',
   DATA_AND_PRIVACY_TOGGLE: 'vba-verify-identity-data-and-privacy-toggle',
   WHAT_WE_COLLECT_TOGGLE: 'vba-verify-identity-what-we-collect-toggle',
   HOW_WE_STORE_DATA_TOGGLE: 'vba-verify-identity-how-we-store-data-toggle',
