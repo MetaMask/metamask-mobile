@@ -3,35 +3,60 @@ import Routes from '../../constants/navigation/Routes';
 import { MINUTE } from '../../constants/time';
 
 /**
- * How long after backgrounding a user may return and still land on the screen
- * they left. Measured from the `background` event rather than from the lock,
- * so it is independent of the user's auto-lock setting.
+ * Default restore window after lock (client constant). Change in a release;
+ * not remote-configurable in V1 (PM: release update is enough).
  */
 export const ROUTE_RESTORE_WINDOW_MS = 5 * MINUTE;
 
 /**
- * The only screens a user may be left on after unlocking. This is a veto, not a
- * destination: nothing navigates *to* these routes. The screen is already
- * mounted underneath the lock and login screens, and this list decides whether
- * uncovering it is allowed.
+ * Local V1 allowlist of **authorized trees** (SSOT). Not remote.
  *
- * Adding an entry is one line; owning it is not. Before adding one, confirm the
- * screen refetches prices, quotes and balances rather than rendering stale
- * values, that any socket reconnects, that nothing has silently expired, and
- * that it does not reset its own state on focus. Confirmation and signing
- * screens are never listed.
+ * Membership: if any of these route names appears on the reachable path under
+ * `HomeNav` (stack root, tab, or product sibling), unlock **keeps the exact
+ * focused screen** (only the lock covers are popped). Otherwise fail
+ * closed to Home.
+ *
+ * Prefer product stack roots (`Perps`, `Bridge`, …) so entry from Home cards
+ * still matches when the section home is not under the details screen. Tabs
+ * without a product stack stay listed by tab/screen name. Secondary MainNav
+ * siblings that users leave on (tx details, confirmations, Rewards flow) are
+ * listed explicitly.
+ *
+ * Do **not** list: tutorials, onboarding, modal roots (`*Modals`), Login,
+ * LockScreen, or generic wallet Home. No hard denylist — absence from this
+ * list is the safety boundary.
+ *
+ * When adding a screen/navigator, follow
+ * `.cursor/rules/route-restoration-allowlist.mdc`.
  */
 export const RESTORABLE_ROUTES: readonly string[] = [
-  Routes.TRENDING_VIEW, // Explore
-  Routes.MONEY.HOME,
+  // Explore (tab — no product stack root)
+  Routes.TRENDING_VIEW,
+  // Money
+  Routes.MONEY.ROOT,
+  Routes.MONEY.CONFIRMATIONS_ROOT,
+  Routes.MONEY.TRANSACTION_DETAILS,
+  Routes.MONEY.CARD_TRANSACTION_DETAILS,
+  // Rewards
   Routes.REWARDS_VIEW,
-  Routes.PERPS.PERPS_HOME,
-  // Predictions has two homes; which one renders is behind a remote flag.
-  Routes.PREDICT.MARKET_LIST,
-  Routes.PREDICT.FEED,
-  Routes.BRIDGE.BRIDGE_VIEW, // Swap
-  Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+  Routes.REWARDS_FLOW,
+  Routes.REWARDS_DASHBOARD,
+  // Perps
+  Routes.PERPS.ROOT,
+  Routes.PERPS.POSITION_TRANSACTION,
+  Routes.PERPS.ORDER_TRANSACTION,
+  Routes.PERPS.FUNDING_TRANSACTION,
+  Routes.PERPS.PRICE_ALERTS,
+  Routes.PERPS.CREATE_PRICE_ALERT,
+  // Predictions
+  Routes.PREDICT.ROOT,
+  // Bridge / Swap / Batch Sell (same stack) + tx sibling
+  Routes.BRIDGE.ROOT,
+  Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
 ];
+
+/** Module-level Set for the default allowlist — avoid realloc on every decide. */
+const RESTORABLE_ROUTES_SET: ReadonlySet<string> = new Set(RESTORABLE_ROUTES);
 
 type AnyNavigationState = NavigationState | PartialState<NavigationState>;
 
@@ -43,23 +68,29 @@ export type RouteRestoreRejection =
   | 'window_expired'
   | 'not_restorable';
 
-export type RouteRestoreDecision =
-  | {
-      restore: true;
-      /** The allow-listed screen the user ends up looking at. */
-      route: string;
-      /**
-       * What to pop back to, which is often a navigator containing `route`
-       * rather than `route` itself.
-       */
-      target: string;
-      /**
-       * Whether the user is already on `route`. False means they were deeper
-       * and the stack is trimmed back to it.
-       */
-      exact: boolean;
-    }
-  | { restore: false; reason: RouteRestoreRejection; route?: string };
+export interface RouteDecisionAccept {
+  restore: true;
+  /** Focused screen the user keeps looking at (analytics `route`). */
+  route: string;
+  /**
+   * Unused for unlock navigation in V1 (uncover only). Kept for analytics /
+   * type stability; equals `route`.
+   */
+  target: string;
+  /**
+   * Always `true` in V1 — unlock never trims nested screens. Property retained
+   * so `Route Restore Evaluated` keeps `restored_exact`.
+   */
+  exact: true;
+}
+
+export interface RouteDecisionReject {
+  restore: false;
+  reason: RouteRestoreRejection;
+  route?: string;
+}
+
+export type RouteRestoreDecision = RouteDecisionAccept | RouteDecisionReject;
 
 const findRoute = (
   state: AnyNavigationState | undefined,
@@ -89,14 +120,9 @@ interface ReachableLevel {
 }
 
 /**
- * Everything the user can be sent back to without navigating forwards, as one
- * level per nested navigator, outermost first. Each level holds the routes up
- * to and including the focused one.
- *
- * Both directions matter. A section's home is often a *sibling below* the
- * focused screen in the same stack — Perps home sits under the order form
- * pushed on top of it — while the tab or stack containing that screen is an
- * ancestor a level out. `popTo` reaches either.
+ * Everything reachable without navigating forwards, one level per nested
+ * navigator, outermost first. Each level holds routes up to and including the
+ * focused one (siblings below the focused screen stay reachable).
  */
 const collectReachableLevels = (
   state: AnyNavigationState,
@@ -122,15 +148,7 @@ const collectReachableLevels = (
 };
 
 /**
- * Every screen a user would pass through if sent back to `route`: its own name,
- * then whatever is focused inside it, all the way down.
- *
- * A candidate cannot be judged by its own name alone, because `Home` is a tab
- * navigator whose meaning depends on the selected tab. Nor by its deepest
- * descendant alone, because a top-level route can itself contain a navigator —
- * the Rewards tab renders a stack, so it resolves to `RewardsDashboard`. The
- * whole chain is the answer, and a match anywhere in it means landing on this
- * candidate puts the user on an allow-listed screen.
+ * Route name plus focused descendants all the way down.
  */
 const focusedChain = (route: AnyRoute): string[] => {
   const names = [route.name];
@@ -149,82 +167,74 @@ const focusedChain = (route: AnyRoute): string[] => {
   return names;
 };
 
+const pathTouchesAllowlist = (
+  levels: ReachableLevel[],
+  allowlist: ReadonlySet<string>,
+): boolean => {
+  for (const { routes } of levels) {
+    for (const route of routes) {
+      if (focusedChain(route).some((name) => allowlist.has(name))) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 /**
- * Decides whether unlocking should uncover the screens the user left, or fall
- * back to today's behaviour of resetting to a fresh home.
+ * Decides whether unlocking should uncover the exact screen the user left, or
+ * fall back to today's Home reset.
  *
  * Pure so the rule can be tested without a navigation container.
- *
- * @param options.rootState - The live root navigation state.
- * @param options.backgroundedAt - When the app last entered the background, or null if it has not.
- * @param options.enabled - Whether the rollout flag is on.
- * @param options.now - Current time, injectable for tests.
  */
 export const decideRouteRestore = ({
   rootState,
-  backgroundedAt,
+  lockedAt,
   enabled,
+  restoreWindowMs = ROUTE_RESTORE_WINDOW_MS,
+  allowedRouteIds = RESTORABLE_ROUTES,
   now = Date.now(),
 }: {
   rootState: AnyNavigationState | undefined;
-  backgroundedAt: number | null;
+  lockedAt: number | null;
   enabled: boolean;
+  restoreWindowMs?: number;
+  /** Defaults to local `RESTORABLE_ROUTES`; injectable for tests. */
+  allowedRouteIds?: readonly string[];
   now?: number;
 }): RouteRestoreDecision => {
-  // First, so that the flag being off is indistinguishable from the feature
-  // not existing.
   if (!enabled) {
     return { restore: false, reason: 'flag_off' };
   }
 
   const homeNav = findRoute(rootState, Routes.ONBOARDING.HOME_NAV);
   if (!homeNav) {
-    // Cold start, and also manual lock and logout, both of which reset to the
-    // login screen and leave nothing to uncover.
     return { restore: false, reason: 'no_tree' };
   }
 
-  // A mounted-but-unvisited HomeNav has no nested state of its own yet.
   const levels = homeNav.state ? collectReachableLevels(homeNav.state) : [];
   const innermost = levels[levels.length - 1];
-  // The walk stops where nesting does, so the innermost focused route is the
-  // screen on display.
   const focused =
     innermost?.routes[innermost.routes.length - 1]?.name ??
     Routes.ONBOARDING.HOME_NAV;
 
-  if (
-    backgroundedAt === null ||
-    now - backgroundedAt > ROUTE_RESTORE_WINDOW_MS
-  ) {
+  if (lockedAt === null || now - lockedAt > restoreWindowMs) {
     return { restore: false, reason: 'window_expired', route: focused };
   }
 
-  // Innermost first, and within a level nearest the focused screen first, so a
-  // user in a Perps order form lands on Perps home rather than on the tab that
-  // contains it.
-  for (let level = levels.length - 1; level >= 0; level--) {
-    const { routes, focusedIndex } = levels[level];
+  const allowlist =
+    allowedRouteIds === RESTORABLE_ROUTES
+      ? RESTORABLE_ROUTES_SET
+      : new Set(allowedRouteIds);
 
-    for (let i = routes.length - 1; i >= 0; i--) {
-      const route = focusedChain(routes[i]).find((name) =>
-        RESTORABLE_ROUTES.includes(name),
-      );
-
-      if (!route) {
-        continue;
-      }
-
-      return {
-        restore: true,
-        route,
-        target: routes[i].name,
-        // A candidate already on the focused path needs no trimming; only one
-        // sitting below it in its stack does.
-        exact: i === focusedIndex,
-      };
-    }
+  if (!pathTouchesAllowlist(levels, allowlist)) {
+    return { restore: false, reason: 'not_restorable', route: focused };
   }
 
-  return { restore: false, reason: 'not_restorable', route: focused };
+  return {
+    restore: true,
+    route: focused,
+    target: focused,
+    exact: true,
+  };
 };

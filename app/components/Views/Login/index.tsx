@@ -188,8 +188,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        // Covering a locked session: the previous screens are still mounted
-        // underneath, so back must not be allowed to reveal them.
+        // Covering a locked session: the product tree is still mounted
+        // under this Login route, so back must not reveal it.
         if (isLocked) {
           return true;
         }
@@ -573,7 +573,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     capabilities?.authType === AUTHENTICATION_TYPE.BIOMETRIC ||
     capabilities?.authType === AUTHENTICATION_TYPE.PASSCODE;
   const shouldHideDeviceAuthenticationButton =
-    route?.params?.locked || !isDeviceAuthenticationAvailable;
+    isLocked || !isDeviceAuthenticationAvailable;
 
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);

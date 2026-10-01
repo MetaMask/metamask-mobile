@@ -1,5 +1,6 @@
 import { checkForDeeplink } from '../../../actions/user';
 import { StackActions } from '@react-navigation/native';
+import { InteractionManager } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../AppConstants';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
@@ -14,13 +15,32 @@ import {
   rememberUnlockAppStartType,
   resetUnlockAppStartTypeForTesting,
 } from '../../Performance/unlockTraces';
+import {
+  setWalletLockedAt,
+  setWalletLockExpiredRoute,
+  resetWalletLockedAtForTesting,
+} from '../../../util/navigation/walletLockClock';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation((callback) => {
+    if (typeof callback === 'function') {
+      callback();
+    }
+    return { cancel: jest.fn() } as ReturnType<
+      typeof InteractionManager.runAfterInteractions
+    >;
+  });
 
 const mockDispatch = jest.fn();
 const mockReset = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockTrackRouteRestoreEvaluated = jest.fn();
-let mockRestoreEnabled = false;
+let mockRestoreSettings = {
+  enabled: false,
+  restoreWindowMs: 300_000,
+};
 let mockRootState: unknown = { index: 0, routes: [{ name: 'Login' }] };
 const mockResolve = jest.fn();
 const mockExecuteStartupDeeplinkIntent = jest.fn();
@@ -65,7 +85,39 @@ jest.mock('../../NavigationService', () => ({
 }));
 
 jest.mock('../../../selectors/featureFlagController/routeRestoration', () => ({
-  selectRouteRestorationEnabled: () => mockRestoreEnabled,
+  selectRouteRestorationSettings: () => mockRestoreSettings,
+}));
+
+jest.mock('../../../util/navigation/walletLockClock', () => {
+  let lockedAt: number | null = null;
+  let expiredRoute: string | null = null;
+  return {
+    getWalletLockedAt: () => lockedAt,
+    setWalletLockedAt: (value: number | null) => {
+      lockedAt = value;
+      if (value === null) {
+        expiredRoute = null;
+      }
+    },
+    getWalletLockExpiredRoute: () => expiredRoute,
+    setWalletLockExpiredRoute: (value: string | null) => {
+      expiredRoute = value;
+    },
+    resetWalletLockedAtForTesting: () => {
+      lockedAt = null;
+      expiredRoute = null;
+    },
+  };
+});
+
+const mockCancelRestoreWindowExpiry = jest.fn();
+jest.mock('../../../util/navigation/restoreWindowExpiry', () => ({
+  cancelRestoreWindowExpiry: () => mockCancelRestoreWindowExpiry(),
+}));
+
+const mockSetWalletLocked = jest.fn();
+jest.mock('../../WalletLockLifecycle', () => ({
+  setWalletLocked: (...args: unknown[]) => mockSetWalletLocked(...args),
 }));
 
 jest.mock('../../../util/analytics/routeRestoreTracking', () => ({
@@ -80,9 +132,12 @@ jest.mock('../DeeplinkManager', () => ({
   },
 }));
 
+const mockExecuteDeeplinkIntent = jest.fn();
 jest.mock('./executeDeeplinkIntent', () => ({
   executeStartupDeeplinkIntent: (intent: DeeplinkIntent) =>
     mockExecuteStartupDeeplinkIntent(intent),
+  executeDeeplinkIntent: (intent: DeeplinkIntent) =>
+    mockExecuteDeeplinkIntent(intent),
 }));
 
 jest.mock('../../AppStateEventListener', () => {
@@ -132,8 +187,13 @@ describe('startupDeeplinkNavigation', () => {
     setRequestAnimationFrame(mockRequestAnimationFrame);
     mockResolve.mockResolvedValue(intent);
     mockExecuteStartupDeeplinkIntent.mockResolvedValue(true);
-    mockRestoreEnabled = false;
+    mockExecuteDeeplinkIntent.mockResolvedValue(undefined);
+    mockRestoreSettings = {
+      enabled: false,
+      restoreWindowMs: 300_000,
+    };
     mockRootState = { index: 0, routes: [{ name: 'Login' }] };
+    resetWalletLockedAtForTesting();
   });
 
   afterEach(() => {
@@ -161,6 +221,35 @@ describe('startupDeeplinkNavigation', () => {
       },
     );
     expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
+    expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates on the mounted session tree instead of the startup reset when HomeNav is alive', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockRootState = {
+      key: 'root',
+      index: 0,
+      routes: [
+        {
+          name: Routes.ONBOARDING.HOME_NAV,
+          key: 'home-nav',
+          state: {
+            key: 'home-nav',
+            index: 0,
+            routes: [{ name: Routes.PERPS.ROOT, key: 'perps' }],
+          },
+        },
+      ],
+    };
+
+    await expect(navigateToPendingStartupDeeplink()).resolves.toBe(true);
+
+    expect(mockNavigationDispatch).toHaveBeenCalledWith(
+      StackActions.popTo(Routes.ONBOARDING.HOME_NAV),
+    );
+    expect(mockExecuteDeeplinkIntent).toHaveBeenCalledWith(intent);
+    expect(mockExecuteStartupDeeplinkIntent).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
     expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
   });
 
@@ -273,14 +362,6 @@ describe('startupDeeplinkNavigation', () => {
   });
 
   describe('route restoration', () => {
-    // The getter lives on the prototype, so define it on the instance instead.
-    const setBackgroundedAt = (value: number | null) => {
-      Object.defineProperty(AppStateEventProcessor, 'lastBackgroundedAt', {
-        configurable: true,
-        get: () => value,
-      });
-    };
-
     const restorableTree = {
       index: 0,
       routes: [
@@ -293,7 +374,15 @@ describe('startupDeeplinkNavigation', () => {
                 name: Routes.ONBOARDING.HOME_NAV,
                 state: {
                   index: 0,
-                  routes: [{ name: Routes.PERPS.PERPS_HOME }],
+                  routes: [
+                    {
+                      name: Routes.PERPS.ROOT,
+                      state: {
+                        index: 0,
+                        routes: [{ name: Routes.PERPS.PERPS_HOME }],
+                      },
+                    },
+                  ],
                 },
               },
               { name: Routes.ONBOARDING.LOGIN },
@@ -304,9 +393,12 @@ describe('startupDeeplinkNavigation', () => {
     };
 
     it('uncovers the screens the user left instead of resetting', async () => {
-      mockRestoreEnabled = true;
+      mockRestoreSettings = {
+        ...mockRestoreSettings,
+        enabled: true,
+      };
       mockRootState = restorableTree;
-      setBackgroundedAt(Date.now() - 1000);
+      setWalletLockedAt(Date.now() - 1000);
 
       await navigateToPostUnlockHome();
 
@@ -324,10 +416,14 @@ describe('startupDeeplinkNavigation', () => {
         },
         expect.any(Number),
       );
+      expect(mockSetWalletLocked).toHaveBeenCalledWith(false);
     });
 
-    it('trims the section stack when the user was deeper than a top-level route', async () => {
-      mockRestoreEnabled = true;
+    it('keeps a nested screen when the allowlisted tree is on the path', async () => {
+      mockRestoreSettings = {
+        ...mockRestoreSettings,
+        enabled: true,
+      };
       mockRootState = {
         index: 0,
         routes: [
@@ -339,10 +435,18 @@ describe('startupDeeplinkNavigation', () => {
                 {
                   name: Routes.ONBOARDING.HOME_NAV,
                   state: {
-                    index: 1,
+                    index: 0,
                     routes: [
-                      { name: Routes.PERPS.PERPS_HOME },
-                      { name: 'PerpsOrderForm' },
+                      {
+                        name: Routes.PERPS.ROOT,
+                        state: {
+                          index: 1,
+                          routes: [
+                            { name: Routes.PERPS.PERPS_HOME },
+                            { name: Routes.PERPS.MARKET_DETAILS },
+                          ],
+                        },
+                      },
                     ],
                   },
                 },
@@ -352,25 +456,32 @@ describe('startupDeeplinkNavigation', () => {
           },
         ],
       };
-      setBackgroundedAt(Date.now() - 1000);
+      setWalletLockedAt(Date.now() - 1000);
 
       await navigateToPostUnlockHome();
 
-      // Covers first, then the section's own stack.
-      expect(mockNavigationDispatch).toHaveBeenNthCalledWith(
-        1,
+      expect(mockNavigationDispatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
         StackActions.popTo(Routes.ONBOARDING.HOME_NAV),
       );
-      expect(mockNavigationDispatch).toHaveBeenNthCalledWith(
-        2,
+      expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         StackActions.popTo(Routes.PERPS.PERPS_HOME),
       );
       expect(mockReset).not.toHaveBeenCalled();
+      expect(mockTrackRouteRestoreEvaluated).toHaveBeenCalledWith(
+        {
+          restore: true,
+          route: Routes.PERPS.MARKET_DETAILS,
+          target: Routes.PERPS.MARKET_DETAILS,
+          exact: true,
+        },
+        expect.any(Number),
+      );
     });
 
     it('resets when the flag is off, and does not dispatch a pop', async () => {
       mockRootState = restorableTree;
-      setBackgroundedAt(Date.now() - 1000);
+      setWalletLockedAt(Date.now() - 1000);
 
       await navigateToPostUnlockHome();
 
@@ -381,12 +492,97 @@ describe('startupDeeplinkNavigation', () => {
     });
 
     it('does not report cold start, where no restore was possible', async () => {
-      mockRestoreEnabled = true;
+      mockRestoreSettings = {
+        ...mockRestoreSettings,
+        enabled: true,
+      };
 
       await navigateToPostUnlockHome();
 
       expect(mockReset).toHaveBeenCalled();
       expect(mockTrackRouteRestoreEvaluated).not.toHaveBeenCalled();
+    });
+
+    it('cancels the armed window expiry before navigating', async () => {
+      mockRestoreSettings = {
+        ...mockRestoreSettings,
+        enabled: true,
+      };
+      mockRootState = restorableTree;
+      setWalletLockedAt(Date.now() - 1000);
+
+      await navigateToPostUnlockHome();
+
+      expect(mockCancelRestoreWindowExpiry).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets to Home when the window expired without a proactive reset', async () => {
+      mockRestoreSettings = {
+        ...mockRestoreSettings,
+        enabled: true,
+        restoreWindowMs: 1000,
+      };
+      mockRootState = restorableTree;
+      setWalletLockedAt(Date.now() - 5000);
+
+      await navigateToPostUnlockHome();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+      expect(mockTrackRouteRestoreEvaluated).toHaveBeenCalledWith(
+        {
+          restore: false,
+          reason: 'window_expired',
+          route: Routes.PERPS.PERPS_HOME,
+        },
+        expect.any(Number),
+      );
+    });
+
+    it('skips the second reset and reports the abandoned screen after expiry behind the lock cover', async () => {
+      mockRestoreSettings = {
+        ...mockRestoreSettings,
+        enabled: true,
+        restoreWindowMs: 1000,
+      };
+      // Expiry already reset the tree: HomeNav now sits on Home, not Perps.
+      mockRootState = {
+        index: 0,
+        routes: [
+          {
+            name: 'NavigationChildren',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: Routes.ONBOARDING.HOME_NAV,
+                  state: {
+                    index: 0,
+                    routes: [{ name: Routes.WALLET.HOME }],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      setWalletLockedAt(Date.now() - 5000);
+      setWalletLockExpiredRoute(Routes.PERPS.MARKET_DETAILS);
+
+      await navigateToPostUnlockHome();
+
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockNavigationDispatch).not.toHaveBeenCalled();
+      expect(mockTrackRouteRestoreEvaluated).toHaveBeenCalledWith(
+        {
+          restore: false,
+          reason: 'window_expired',
+          route: Routes.PERPS.MARKET_DETAILS,
+        },
+        expect.any(Number),
+      );
+      expect(mockSetWalletLocked).toHaveBeenCalledWith(false);
     });
   });
 

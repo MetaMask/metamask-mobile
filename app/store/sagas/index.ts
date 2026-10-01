@@ -47,6 +47,13 @@ import UrlParser from 'url-parse';
 import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
+import { prepareWalletLockOverlay } from '../../util/navigation/prepareWalletLockOverlay';
+import {
+  getWalletLocked,
+  setWalletLocked,
+} from '../../core/WalletLockLifecycle';
+import { setWalletLockedAt } from '../../util/navigation/walletLockClock';
+import { cancelRestoreWindowExpiry } from '../../util/navigation/restoreWindowExpiry';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -273,7 +280,9 @@ export function* appLockStateMachine() {
       );
     }
 
-    // Navigate to lock screen.
+    // Stamp lockedAt (keep the background stamp), set isWalletLocked, and arm
+    // the restore window. Then push LockScreen over the still-mounted tree.
+    yield call(prepareWalletLockOverlay);
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
 
     // App state listener for prompting authentication when the app is foregrounded.
@@ -325,6 +334,10 @@ export function* authStateMachine() {
     LockManagerService.stopListening();
     // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
     yield cancel(appLockStateMachineTask);
+    // Curtain used to clear this when HomeNav left. Logout / wipe must too.
+    setWalletLocked(false);
+    setWalletLockedAt(null);
+    cancelRestoreWindowExpiry();
   }
 }
 
@@ -430,15 +443,18 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Password and biometric unlock dispatch SET_COMPLETED_ONBOARDING from the
-    // login or lock screen, before navigateToPostUnlockHome reads the pending
-    // link. Consuming it here clears the URL, then the home reset replaces any
-    // navigation this parse managed to start.
+    // Unlock owns pending links while the session is locked
+    // (`navigateToPostUnlockHome`). Biometric Face ID resumes as
+    // inactive→active after the keyring unlocks and can dispatch
+    // CHECK_FOR_DEEPLINK from LockManager; consuming here clears the URL,
+    // then the post-unlock Home reset wins. SET_COMPLETED_ONBOARDING from
+    // Login / LockScreen has the same race.
     const currentRouteName = NavigationService.getCurrentRoute()?.name;
     if (
-      value.type === SET_COMPLETED_ONBOARDING &&
-      (currentRouteName === Routes.ONBOARDING.LOGIN ||
-        currentRouteName === Routes.LOCK_SCREEN)
+      getWalletLocked() ||
+      (value.type === SET_COMPLETED_ONBOARDING &&
+        (currentRouteName === Routes.ONBOARDING.LOGIN ||
+          currentRouteName === Routes.LOCK_SCREEN))
     ) {
       continue;
     }

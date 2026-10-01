@@ -39,6 +39,11 @@ export interface UserState {
   protectWalletModalVisible: boolean;
   gasEducationCarouselSeen: boolean;
   userLoggedIn: boolean;
+  /**
+   * Session-only: wallet is covered by Login/LockScreen. Not persisted.
+   * Always-on feature code must gate on this (via selectIsWalletLocked).
+   */
+  isWalletLocked: boolean;
   isAuthChecked: boolean;
   initialScreen: string;
   appTheme: AppThemeKey;

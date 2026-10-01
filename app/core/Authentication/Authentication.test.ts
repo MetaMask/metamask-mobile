@@ -5550,14 +5550,12 @@ describe('Authentication', () => {
       expect(SecureKeychain.getGenericPassword).toHaveBeenCalled();
     });
 
-    it('covers the existing screens with login when no password can be derived', async () => {
+    it('shows the Login route when no password can be derived', async () => {
       // Neither a supplied password nor stored credentials.
       jest.spyOn(SecureKeychain, 'getGenericPassword').mockResolvedValue(null);
 
       await Authentication.unlockWallet();
 
-      // Pushed over whatever the user was on, not reset onto a bare stack, so
-      // unlocking can reveal those screens again.
       expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN, {
         locked: true,
       });

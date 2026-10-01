@@ -68,12 +68,12 @@ const buildTree = ({
 };
 
 describe('decideRouteRestore', () => {
-  const restorableRoute = Routes.PERPS.PERPS_HOME;
+  const restorableRoute = Routes.PERPS.ROOT;
 
   it('restores when the focused screen is allow-listed and the window is open', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({ focusedRoute: restorableRoute }),
-      backgroundedAt: NOW - 60_000,
+      lockedAt: NOW - 60_000,
       enabled: true,
       now: NOW,
     });
@@ -88,8 +88,8 @@ describe('decideRouteRestore', () => {
 
   it('finds the focused screen beneath the covers rather than the cover itself', () => {
     const decision = decideRouteRestore({
-      rootState: buildTree({ focusedRoute: Routes.BRIDGE.BRIDGE_VIEW }),
-      backgroundedAt: NOW - 1000,
+      rootState: buildTree({ focusedRoute: Routes.BRIDGE.ROOT }),
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
@@ -97,8 +97,8 @@ describe('decideRouteRestore', () => {
     // Login is focused, but the decision is about what it covers.
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.BRIDGE.BRIDGE_VIEW,
-      target: Routes.BRIDGE.BRIDGE_VIEW,
+      route: Routes.BRIDGE.ROOT,
+      target: Routes.BRIDGE.ROOT,
       exact: true,
     });
   });
@@ -106,7 +106,7 @@ describe('decideRouteRestore', () => {
   it('declines when the flag is off, before inspecting anything else', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({ focusedRoute: restorableRoute }),
-      backgroundedAt: NOW,
+      lockedAt: NOW,
       enabled: false,
       now: NOW,
     });
@@ -117,7 +117,7 @@ describe('decideRouteRestore', () => {
   it('declines with no_tree when HomeNav is absent, as on cold start', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({ includeHomeNav: false }),
-      backgroundedAt: NOW,
+      lockedAt: NOW,
       enabled: true,
       now: NOW,
     });
@@ -128,7 +128,7 @@ describe('decideRouteRestore', () => {
   it('declines once the window has elapsed', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({ focusedRoute: restorableRoute }),
-      backgroundedAt: NOW - ROUTE_RESTORE_WINDOW_MS - 1,
+      lockedAt: NOW - ROUTE_RESTORE_WINDOW_MS - 1,
       enabled: true,
       now: NOW,
     });
@@ -140,10 +140,10 @@ describe('decideRouteRestore', () => {
     });
   });
 
-  it('declines when the app has not been backgrounded at all', () => {
+  it('declines when lockedAt is null', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({ focusedRoute: restorableRoute }),
-      backgroundedAt: null,
+      lockedAt: null,
       enabled: true,
       now: NOW,
     });
@@ -152,6 +152,38 @@ describe('decideRouteRestore', () => {
       restore: false,
       reason: 'window_expired',
       route: restorableRoute,
+    });
+  });
+
+  it('honours a custom restoreWindowMs', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({ focusedRoute: restorableRoute }),
+      lockedAt: NOW - 2_000,
+      enabled: true,
+      restoreWindowMs: 1_000,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: false,
+      reason: 'window_expired',
+      route: restorableRoute,
+    });
+  });
+
+  it('honours a narrowed allowlist', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({ focusedRoute: Routes.BRIDGE.ROOT }),
+      lockedAt: NOW - 1000,
+      enabled: true,
+      allowedRouteIds: [Routes.PERPS.ROOT],
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: false,
+      reason: 'not_restorable',
+      route: Routes.BRIDGE.ROOT,
     });
   });
 
@@ -160,7 +192,7 @@ describe('decideRouteRestore', () => {
       rootState: buildTree({
         stack: [Routes.WALLET_VIEW, Routes.SETTINGS.NOTIFICATIONS],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
@@ -172,112 +204,128 @@ describe('decideRouteRestore', () => {
     });
   });
 
-  it('trims back to the section home when the user was deeper', () => {
+  it('keeps the exact focused screen inside an allowlisted tree', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
-        // The order form is pushed on top of Perps home in the same stack, so
-        // home is a sibling below rather than an ancestor.
-        stack: [restorableRoute, 'PerpsOrderForm'],
+        stack: [
+          {
+            name: Routes.PERPS.ROOT,
+            focused: Routes.PERPS.MARKET_DETAILS,
+          },
+        ],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
     expect(decision).toStrictEqual({
       restore: true,
-      route: restorableRoute,
-      target: restorableRoute,
-      exact: false,
+      route: Routes.PERPS.MARKET_DETAILS,
+      target: Routes.PERPS.MARKET_DETAILS,
+      exact: true,
     });
   });
 
-  it('returns to a section from a modal registered beside its stack', () => {
+  it('keeps Home-entered details when the stack root is allowlisted', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
-        // Predict modals are siblings of the Predict stack in MainNavigator,
-        // so the only thing reachable is the stack itself.
+        stack: [
+          {
+            name: Routes.PERPS.ROOT,
+            focused: Routes.PERPS.MARKET_DETAILS,
+          },
+        ],
+      }),
+      lockedAt: NOW - 1000,
+      enabled: true,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: true,
+      route: Routes.PERPS.MARKET_DETAILS,
+      target: Routes.PERPS.MARKET_DETAILS,
+      exact: true,
+    });
+  });
+
+  it('keeps a focused sibling when an allowlisted stack sits below it', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({
         stack: [
           { name: Routes.PREDICT.ROOT, focused: Routes.PREDICT.MARKET_LIST },
           Routes.PREDICT.MODALS.ROOT,
         ],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
-    // Popping to the stack lands on the screen focused inside it.
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.PREDICT.MARKET_LIST,
-      target: Routes.PREDICT.ROOT,
-      exact: false,
+      route: Routes.PREDICT.MODALS.ROOT,
+      target: Routes.PREDICT.MODALS.ROOT,
+      exact: true,
     });
   });
 
-  it('returns to a section from a detail screen registered beside its stack', () => {
+  it('keeps a listed sibling detail screen', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
-        stack: [
-          { name: Routes.MONEY.ROOT, focused: Routes.MONEY.HOME },
-          Routes.MONEY.TRANSACTION_DETAILS,
-        ],
+        stack: [Routes.MONEY.TRANSACTION_DETAILS],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.MONEY.HOME,
-      target: Routes.MONEY.ROOT,
-      exact: false,
+      route: Routes.MONEY.TRANSACTION_DETAILS,
+      target: Routes.MONEY.TRANSACTION_DETAILS,
+      exact: true,
     });
   });
 
-  it('returns to the selected tab from a screen pushed above the tabs', () => {
+  it('keeps a screen pushed above an allowlisted tab', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
-        // Explore is a tab, and crypto movers is pushed above the whole tab
-        // navigator, so `Home` is what is reachable.
         stack: [
           { name: Routes.HOME_TABS, focused: Routes.TRENDING_VIEW },
           Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
         ],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.TRENDING_VIEW,
-      target: Routes.HOME_TABS,
-      exact: false,
+      route: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      target: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      exact: true,
     });
   });
 
-  it('restores a listed route that renders a navigator of its own', () => {
+  it('keeps the focused child of an allowlisted screen', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
-        // The Rewards tab renders its own stack, so it resolves past the
-        // listed name down to the dashboard.
         stack: [
           { name: Routes.REWARDS_VIEW, focused: Routes.REWARDS_DASHBOARD },
         ],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.REWARDS_VIEW,
-      target: Routes.REWARDS_VIEW,
+      route: Routes.REWARDS_DASHBOARD,
+      target: Routes.REWARDS_DASHBOARD,
       exact: true,
     });
   });
@@ -290,7 +338,7 @@ describe('decideRouteRestore', () => {
           Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
         ],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
@@ -302,32 +350,33 @@ describe('decideRouteRestore', () => {
     });
   });
 
-  it('prefers the nearest allow-listed screen when several are reachable', () => {
+  it('keeps a nested Bridge screen when the stack root is allowlisted', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
         stack: [
-          Routes.BRIDGE.BRIDGE_VIEW,
-          Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-          Routes.BRIDGE.BATCH_SELL_REVIEW,
+          {
+            name: Routes.BRIDGE.ROOT,
+            focused: Routes.BRIDGE.BATCH_SELL_REVIEW,
+          },
         ],
       }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-      target: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-      exact: false,
+      route: Routes.BRIDGE.BATCH_SELL_REVIEW,
+      target: Routes.BRIDGE.BATCH_SELL_REVIEW,
+      exact: true,
     });
   });
 
   it('treats an unvisited HomeNav as the home route itself', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({ covers: [] }),
-      backgroundedAt: NOW - 1000,
+      lockedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });

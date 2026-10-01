@@ -154,8 +154,7 @@ export class AppStateEventListener {
 
   /**
    * When the app last entered the background, or null if it has not since
-   * launch. Route restoration measures its window from here rather than from
-   * the lock, so it is independent of the user's auto-lock setting.
+   * launch.
    */
   public get lastBackgroundedAt(): number | null {
     return this.backgroundedAt;

@@ -1,0 +1,47 @@
+---
+description: When adding a screen or navigator, decide whether it belongs on the route-restore allowlist
+globs: app/**/*.{ts,tsx,js,jsx}
+alwaysApply: false
+---
+
+# Route restore allowlist
+
+> SSOT: `RESTORABLE_ROUTES` in [`app/util/navigation/routeRestoration.ts`](../../app/util/navigation/routeRestoration.ts)
+
+After unlock inside the client restore window (`ROUTE_RESTORE_WINDOW_MS`, default 5 minutes), the user **stays on the exact focused screen** when the reachable path under `HomeNav` touches this allowlist. Otherwise unlock resets to Home.
+
+V1 knobs are **local only**: allowlist and window live in code. The remote `routeRestoration` flag only toggles enablement (`selectRouteRestorationSettings`); ignore remote `allowedRouteIds` / `restoreWindowMs` if present. No denylist — absence from the list is the boundary. Unlock never trims nested screens back to a catalog root.
+
+## Exercise (do this for every new screen / navigator)
+
+1. Find where it is registered (`MainNavigator`, a product stack, a tab).
+2. Ask: is this a **product surface the user can leave the app on**?
+3. If yes, make sure **some allowlisted name is on the reachable path** when that screen is focused — usually the product **stack root**, not the leaf.
+4. If the screen can be opened **without** that root underneath (Home card, deeplink, sibling on MainNav), **add that screen's own route name** (or its stack root) to `RESTORABLE_ROUTES`.
+5. If no, leave it off. Unlock then goes Home. Do not add a regex or name prefix.
+
+Home → Perps details is the canonical miss: `navigate(Perps, { screen: PerpsMarketDetails })` does **not** put `PerpsMarketListView` on the path. Listing `Perps` (`Routes.PERPS.ROOT`) covers it. Listing only the section home (`PerpsMarketListView`) does not.
+
+## Include
+
+Match the live `RESTORABLE_ROUTES` list (prefer stack roots; add MainNav siblings users actually leave on):
+
+- **Explore** — `Routes.TRENDING_VIEW` (tab; no product stack root)
+- **Money** — `Routes.MONEY.ROOT` (`MoneyScreens`); confirmations / transaction-detail siblings
+- **Rewards** — `Routes.REWARDS_VIEW`, `Routes.REWARDS_FLOW`, `Routes.REWARDS_DASHBOARD`
+- **Perps** — `Routes.PERPS.ROOT` (`Perps`); tx / price-alert siblings on MainNav
+- **Predict** — `Routes.PREDICT.ROOT` (`Predict`)
+- **Bridge** (Swap and Batch Sell share this stack) — `Routes.BRIDGE.ROOT` (`Bridge`); bridge tx details sibling
+
+Prefer one stack root over every leaf inside it.
+
+## Exclude
+
+- Tutorials and onboarding (`PerpsTutorial`, `RewardsOnboardingFlow`, Money onboarding)
+- Modal / sheet roots (`PerpsModals`, `BridgeModals`, `MoneyModals`, and `*Modal` routes)
+- Login, LockScreen, generic wallet Home, settings, confirms that are not already a listed product sibling
+- Regex or `startsWith('Perps')` — route names are inconsistent
+
+## After editing the list
+
+Update `routeRestoration.test.ts` with one keep-exact case for the new path (including a Home-entry shape if that exists). Do not trim nested screens; do not remount at lock.

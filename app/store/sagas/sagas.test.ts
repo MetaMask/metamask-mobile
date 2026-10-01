@@ -70,6 +70,17 @@ jest.mock('../../core/NavigationService', () => ({
   },
 }));
 
+const mockPrepareWalletLockOverlay = jest.fn();
+jest.mock('../../util/navigation/prepareWalletLockOverlay', () => ({
+  prepareWalletLockOverlay: (...args: unknown[]) =>
+    mockPrepareWalletLockOverlay(...args),
+}));
+
+const mockGetWalletLocked = jest.fn(() => false);
+jest.mock('../../core/WalletLockLifecycle', () => ({
+  getWalletLocked: () => mockGetWalletLocked(),
+}));
+
 // Mock the services
 jest.mock('../../core/EngineService', () => ({
   start: jest.fn(),
@@ -445,7 +456,7 @@ describe('appStateListenerTask', () => {
     expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
-  it('covers the existing screens with login and tracks error when unlockWallet fails', async () => {
+  it('tracks the error and pushes Login when unlockWallet fails', async () => {
     const mockError = new Error('Authentication failed');
     (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(mockError);
 
@@ -476,17 +487,19 @@ describe('appLockStateMachine', () => {
     mockNavigate.mockClear();
     mockReset.mockClear();
     mockApprovalControllerClear.mockClear();
+    mockPrepareWalletLockOverlay.mockClear();
   });
 
-  it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
+  it('forks appStateListenerTask and pushes LockScreen when app is locked', async () => {
     await expectSaga(appLockStateMachine)
       .dispatch({ type: UserActionType.LOCKED_APP })
       // Verify appStateListenerTask is called
       .call(appStateListenerTask)
       .run();
 
-    // Verify navigation to LockScreen
+    expect(mockPrepareWalletLockOverlay).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('clears pending approvals via ApprovalController.clearRequests when app is locked', async () => {
@@ -497,10 +510,10 @@ describe('appLockStateMachine', () => {
     expect(mockApprovalControllerClear).toHaveBeenCalledWith(
       providerErrors.userRejectedRequest(),
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+    expect(mockPrepareWalletLockOverlay).toHaveBeenCalled();
   });
 
-  it('navigates to LockScreen even when ApprovalController.clearRequests throws', async () => {
+  it('still prepares the lock and pushes LockScreen when ApprovalController.clearRequests throws', async () => {
     mockApprovalControllerClear.mockImplementationOnce(() => {
       throw new Error('clear failed');
     });
@@ -509,6 +522,7 @@ describe('appLockStateMachine', () => {
       .dispatch({ type: UserActionType.LOCKED_APP })
       .run();
 
+    expect(mockPrepareWalletLockOverlay).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 });
@@ -722,6 +736,7 @@ describe('handleDeeplinkSaga', () => {
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
     mockGetCurrentRoute.mockReturnValue(undefined);
+    mockGetWalletLocked.mockReturnValue(false);
     (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(false);
   });
 
@@ -882,6 +897,55 @@ describe('handleDeeplinkSaga', () => {
             ).not.toHaveBeenCalled();
           },
         );
+
+        it('leaves a pending deeplink in place when onboarding completes while the wallet is locked (HomeNav focused)', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          mockGetCurrentRoute.mockReturnValue({
+            name: Routes.ONBOARDING.HOME_NAV,
+          });
+          mockGetWalletLocked.mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              user: { existingUser: true },
+            })
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+        });
+
+        it('leaves a pending deeplink in place on CHECK_FOR_DEEPLINK while the wallet is locked', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/rewards';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          mockGetCurrentRoute.mockReturnValue({
+            name: Routes.ONBOARDING.HOME_NAV,
+          });
+          mockGetWalletLocked.mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: { existingUser: true },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+        });
 
         it('leaves a pending deeplink in place while auto-lock is still pending', async () => {
           AppStateEventProcessor.pendingDeeplink =

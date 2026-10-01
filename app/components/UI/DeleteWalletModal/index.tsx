@@ -3,6 +3,7 @@ import { InteractionManager, UIManager } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Authentication } from '../../../core';
+import NavigationService from '../../../core/NavigationService';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
@@ -70,8 +71,11 @@ const DeleteWalletModal: React.FC = () => {
 
   const triggerClose = (): void => dismissModal();
 
+  // Always reset the app root navigator so a wipe replaces the locked session
+  // even if this modal is not the focused stack screen.
   const navigateOnboardingRoot = (): void => {
-    navigation.reset({
+    const rootNavigation = NavigationService.navigation ?? navigation;
+    rootNavigation.reset({
       routes: [
         {
           name: Routes.ONBOARDING.ROOT_NAV,

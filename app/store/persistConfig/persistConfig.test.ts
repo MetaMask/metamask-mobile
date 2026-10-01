@@ -423,6 +423,21 @@ describe('persistConfig', () => {
       ).toEqual({ passwordSet: true });
     });
 
+    it('does not persist isWalletLocked', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        in: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      // Session-only mirror of the lock flag; a persisted `true` would mark a
+      // fresh cold start as locked.
+      expect(
+        userTransform.in({ isWalletLocked: true, passwordSet: true }),
+      ).toEqual({ passwordSet: true });
+    });
+
     it('resets a stale persisted userLoggedIn on rehydrate', () => {
       const userTransform = persistConfig.transforms[0] as Transform<
         unknown,
@@ -439,6 +454,7 @@ describe('persistConfig', () => {
       ).toEqual({
         passwordSet: true,
         userLoggedIn: false,
+        isWalletLocked: false,
         initialScreen: '',
         isAuthChecked: false,
         appServicesReady: false,

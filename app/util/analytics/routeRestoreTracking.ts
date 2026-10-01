@@ -38,7 +38,7 @@ const bucketTimeAway = (ms: number | null): string => {
  * Route names only — never params, which is where amounts and addresses live.
  *
  * @param decision - The outcome of the restore rule.
- * @param timeAwayMs - How long the app was backgrounded, or null if unknown.
+ * @param timeAwayMs - How long since lock (`lockedAt`), or null if unknown.
  */
 export const trackRouteRestoreEvaluated = (
   decision: RouteRestoreDecision,
@@ -53,8 +53,7 @@ export const trackRouteRestoreEvaluated = (
           restored: decision.restore,
           rejection_reason: decision.restore ? null : decision.reason,
           route: decision.route ?? null,
-          // False means the user was deeper and was trimmed back to their
-          // section's home, which is worth separating when reading adoption.
+          // Always uncovers the exact focused screen (no nested trim).
           restored_exact: decision.restore ? decision.exact : null,
           time_away: bucketTimeAway(timeAwayMs),
         })
