@@ -220,7 +220,7 @@ describe('Perps position protection through the Mobile trading hook', () => {
         });
       });
 
-      expect(infoClient.userToMultiSigSigners).toHaveBeenCalled();
+      expect(infoClient.userToMultiSigSigners).toHaveBeenCalledTimes(1);
       expect(update).toMatchObject({
         success: false,
         error: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,

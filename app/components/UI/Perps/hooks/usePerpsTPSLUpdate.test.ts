@@ -8,6 +8,7 @@ import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { endPerpsCufTrace } from '../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 jest.mock('./usePerpsTrading');
 jest.mock('../services/PerpsCacheInvalidator', () => ({
   PerpsCacheInvalidator: { invalidate: jest.fn() },
@@ -250,6 +251,38 @@ describe('usePerpsTPSLUpdate', () => {
     ).toHaveBeenCalledWith(error);
   });
 
+  it.each(['response', 'exception'] as const)(
+    'translates a lifecycle-stale %s for error feedback',
+    async (failurePath) => {
+      const onError = jest.fn();
+      const { result } = renderHookWithToast({ onError });
+      if (failurePath === 'response') {
+        mockUpdatePositionTPSL.mockResolvedValue({
+          success: false,
+          error: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        });
+      } else {
+        mockUpdatePositionTPSL.mockRejectedValue(
+          new Error(PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE),
+        );
+      }
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(
+          createMockPosition(),
+          '3300',
+          '2700',
+        );
+      });
+
+      expect(
+        mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+      ).toHaveBeenCalledWith('perps.errors.clientReinitializing');
+      expect(onError).toHaveBeenCalledWith('perps.errors.clientReinitializing');
+      expect(mockUpdatePositionTPSLOptimistic).not.toHaveBeenCalled();
+    },
+  );
+
   it('should show success toast and call onSuccess callback', async () => {
     const onSuccess = jest.fn();
     const { result } = renderHookWithToast({ onSuccess });
@@ -283,13 +316,13 @@ describe('usePerpsTPSLUpdate', () => {
 
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('Network error');
+    ).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'Network error',
+        'perps.errors.networkErrorSimple',
       ),
     );
-    expect(onError).toHaveBeenCalledWith('Network error');
+    expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
   it('shows already-closed toast when TP/SL update returns No position found', async () => {
@@ -387,13 +420,13 @@ describe('usePerpsTPSLUpdate', () => {
 
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('Network error');
+    ).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'Network error',
+        'perps.errors.networkErrorSimple',
       ),
     );
-    expect(onError).toHaveBeenCalledWith('Network error');
+    expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
   it('should handle undefined TP/SL prices', async () => {
@@ -429,13 +462,12 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
-    // When error is null, the mock falls back to 'perps.errors.unknown'
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('perps.errors.unknown');
+    ).toHaveBeenCalledWith('perps.errors.unknownError');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'perps.errors.unknown',
+        'perps.errors.unknownError',
       ),
     );
   });
