@@ -14,6 +14,7 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import {
+  getSearchQueryLength,
   trackExploreSearchEvent,
   type ExploreSearchInteractedProperties,
   type SearchFeedPill,
@@ -27,6 +28,7 @@ interface SearchFeedRowProps {
   item: unknown;
   index: number;
   searchQuery: string;
+  analyticsSearchQuery?: string;
   tabName: SearchFeedPill;
   resultCount?: number;
   onQuickTrade?: (token: TrendingAsset) => void;
@@ -49,6 +51,20 @@ export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
     case 'earn':
       return (item as EarnSearchItem).id;
   }
+};
+
+export const getTokenIdentityProperties = (
+  feedId: SearchFeedId,
+  item: unknown,
+): Pick<ExploreSearchInteractedProperties, 'token_name' | 'token_symbol'> => {
+  if (feedId !== 'tokens' && feedId !== 'stocks') {
+    return {};
+  }
+  const { name, symbol } = item as TrendingAsset;
+  return {
+    ...(name ? { token_name: name } : {}),
+    ...(symbol ? { token_symbol: symbol } : {}),
+  };
 };
 
 export const getPredictMarketProperties = (
@@ -76,24 +92,29 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   item,
   index,
   searchQuery,
+  analyticsSearchQuery = searchQuery,
   tabName,
   resultCount,
   onQuickTrade,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const analyticsSearchQueryRef = useRef(analyticsSearchQuery);
+  analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
   resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
       interaction_type: 'result_clicked',
-      search_query: searchQueryRef.current,
+      search_query: analyticsSearchQueryRef.current,
       ...(tabName === 'all' ? { section_name: feedId } : {}),
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
       result_count: resultCountRef.current,
+      query_length: getSearchQueryLength(searchQueryRef.current),
+      ...getTokenIdentityProperties(feedId, item),
       ...getPredictMarketProperties(feedId, item),
     });
   }, [feedId, tabName, item, index]);

@@ -102,10 +102,9 @@ describe('getLimitOrder', () => {
     const [requestedUrl, requestOptions] = globalFetchSpy.mock.calls[0];
     const url = new URL(requestedUrl);
     expect(`${url.origin}${url.pathname}`).toBe(
-      `${MOCK_BASE_URL}/v2/orders/limit`,
+      `${MOCK_BASE_URL}/v2/orders/limit/${ORDER_ID}`,
     );
     expect(Object.fromEntries(url.searchParams)).toStrictEqual({
-      id: ORDER_ID,
       accountAddress: ACCOUNT_ADDRESS,
     });
     expect(requestOptions).toMatchObject({
@@ -118,14 +117,14 @@ describe('getLimitOrder', () => {
     });
   });
 
-  it('keeps an order id that is not URL safe inside its query param', async () => {
-    const orderId = 'order&id=other';
+  it('keeps an order id that is not URL safe inside its path segment', async () => {
+    await getLimitOrder({ ...GET_PARAMS, orderId: '../limit?id=1' });
 
-    await getLimitOrder({ ...GET_PARAMS, orderId });
-
-    const url = new URL(globalFetchSpy.mock.calls[0][0]);
-    expect(url.searchParams.getAll('id')).toStrictEqual([orderId]);
-    expect(url.searchParams.get('accountAddress')).toBe(ACCOUNT_ADDRESS);
+    const { pathname, searchParams } = new URL(globalFetchSpy.mock.calls[0][0]);
+    expect(pathname).toMatch(/\/v2\/orders\/limit\/..%2Flimit%3Fid%3D1$/u);
+    expect(Object.fromEntries(searchParams)).toStrictEqual({
+      accountAddress: ACCOUNT_ADDRESS,
+    });
   });
 
   it('returns the order and its transactions as the API sent them', async () => {

@@ -11,8 +11,8 @@ import { SocialFeedPostingBannerSelectorsIDs } from './feed/components/SocialFee
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
   mockOpenPerpsFeedItem,
-} from './feed/mocks/socialV1Feed.mock';
-import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   COMPOSER_POSTING_DELAY_MS,
   resetSocialV1ComposedFeedStore,
@@ -69,7 +69,7 @@ jest.mock('../analytics', () => {
   };
 });
 
-jest.mock('./feed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -97,7 +97,7 @@ jest.mock('./feed/components', () => ({
   HotTokensCarousel: () => null,
 }));
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -303,7 +303,18 @@ describe('SocialV1View', () => {
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
+  it('opens Rewards from the gift button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 
   it('consumes the focus-trending flag when the screen gains focus', () => {

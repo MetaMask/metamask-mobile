@@ -8,8 +8,8 @@ import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
-import { mockOpenPerpsFeedItem } from '../SocialV1View/feed/mocks/socialV1Feed.mock';
-import type { SocialV1FeedPost } from '../SocialV1View/feed/types';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -20,6 +20,19 @@ import {
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
+const mockFollowWithSetup = jest.fn(
+  async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
+    await performFollow();
+  },
+);
+let mockProfileRouteParams:
+  | {
+      traderId?: string;
+      traderName?: string;
+      traderAddress?: string;
+      traderAvatarUri?: string;
+    }
+  | undefined;
 const mockUseMyProfileAddress = jest.fn<string | undefined, []>(
   () => '0xselected',
 );
@@ -31,6 +44,13 @@ const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useRoute: () => ({ params: mockProfileRouteParams }),
+}));
+
+jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
+  useFollowWithNotificationSetup: () => ({
+    followWithSetup: mockFollowWithSetup,
+  }),
 }));
 
 jest.mock('./hooks', () => ({
@@ -44,7 +64,7 @@ jest.mock('../TraderProfileView/hooks', () => ({
   useTraderProfile: () => mockUseTraderProfile(),
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -115,6 +135,7 @@ describe('MyProfileView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockProfileRouteParams = undefined;
     mockUseMyProfile.mockReturnValue({
       profile,
       isLoading: false,
@@ -527,5 +548,49 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.RETRY_BUTTON));
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides owner actions and shows follow for another trader', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const toggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTraderProfile.mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.queryByText('Your feed starts here')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
+    );
+
+    expect(mockFollowWithSetup).toHaveBeenCalledTimes(1);
+    expect(toggleFollow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'trader_profile',
+        traderAddress: '0xabc',
+        traderUsername: 'alpha.eth',
+      }),
+    );
   });
 });

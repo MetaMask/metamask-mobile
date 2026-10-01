@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 import SocialV1TraderRow from './SocialV1TraderRow';
+import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
 const baseTrader: TopTrader = {
   id: 'trader-1',
@@ -28,7 +29,7 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the win rate, follower count, PnL, and ROI without a follow action', () => {
+  it('renders rank medal, username, verified badge, cohort, and PnL without follow chrome', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -36,37 +37,65 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
-    expect(screen.getByText('92% WR')).toBeOnTheScreen();
-    expect(screen.getByText('48,707 followers')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
+    ).toBeOnTheScreen();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.queryByText('92% WR')).toBeNull();
+    expect(screen.queryByText('48,707 followers')).toBeNull();
+    expect(screen.queryByText('+43.0%')).toBeNull();
     expect(screen.queryByText('Follow')).toBeNull();
   });
 
-  it('renders the singular follower label for a single follower', () => {
+  it('renders the numeric rank for positions outside the podium', () => {
     renderWithProvider(
       <SocialV1TraderRow
-        trader={{ ...baseTrader, followerCount: 1 }}
+        trader={{ ...baseTrader, rank: 7, overallRank: 7 }}
         onFollowPress={mockOnFollowPress}
       />,
     );
 
-    expect(screen.getByText('1 follower')).toBeOnTheScreen();
+    expect(screen.getByText('7')).toBeOnTheScreen();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
   });
 
-  it('omits the win rate tag when the window has no win-rate data', () => {
+  it('keeps the rank column width when hideRank is set', () => {
     renderWithProvider(
       <SocialV1TraderRow
-        trader={{ ...baseTrader, winRatePercent: null }}
+        trader={baseTrader}
         onFollowPress={mockOnFollowPress}
+        hideRank
       />,
     );
 
-    expect(screen.queryByText(/WR$/)).toBeNull();
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('keeps the row and podium medal interactive', () => {
+  it('wraps a highlighted row in the muted gradient card', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the row interactive', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -75,23 +104,9 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
-    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('trader-row-trader-1'));
+
     expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
-  });
-
-  it('ignores the mute props this surface has no inline actions for', () => {
-    const mockOnMuteToggle = jest.fn();
-    renderWithProvider(
-      <SocialV1TraderRow
-        trader={{ ...baseTrader, isFollowing: true }}
-        onFollowPress={mockOnFollowPress}
-        showMute
-        onMuteToggle={mockOnMuteToggle}
-      />,
-    );
-
-    expect(screen.queryByTestId('trader-row-mute-chip-trader-1')).toBeNull();
   });
 
   it('renders the ranked metric passed by the list instead of PnL', () => {
