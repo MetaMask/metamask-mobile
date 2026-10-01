@@ -25,6 +25,7 @@ import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
 import { FiatOrderSummaryLine } from './fiat-order-summary-line';
 import { strings } from '../../../../../../../locales/i18n';
+import { isFiatVaultOnlyFailure } from '../../../../../UI/Money/utils/fiatVaultFailureSuppression';
 
 export function TransactionDetailsSummary() {
   const { transactionMeta } = useTransactionDetails();
@@ -61,11 +62,20 @@ export function TransactionDetailsSummary() {
     selectTransactionsByIds(state, transactionIds),
   );
 
-  const transactions = allTransactions.filter(
-    (transaction) =>
+  // A vault-only failure means the deposit itself succeeded (CHOMP backstops
+  // the vault leg — see `isFiatVaultOnlyFailure`), so the parent's own
+  // "Receive mUSD" step must not render as a failed step.
+  const suppressReceiveStep = isFiatVaultOnlyFailure(transactionMeta);
+
+  const transactions = allTransactions.filter((transaction) => {
+    if (suppressReceiveStep && transaction.id === transactionId) {
+      return false;
+    }
+    return (
       !isSkippedTransaction(transaction, transactionMeta) ||
-      transaction.id === transactionId,
-  );
+      transaction.id === transactionId
+    );
+  });
 
   const hasDepositTransactions =
     (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;

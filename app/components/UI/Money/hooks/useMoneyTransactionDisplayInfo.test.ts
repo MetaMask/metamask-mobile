@@ -30,6 +30,18 @@ beforeEach(() => {
   mockUseFiatPaymentMethodName.mockReturnValue(undefined);
 });
 
+// None of these fixtures are restart/vault-only failures, so the real
+// derivation collapses to the base status — mocked here to avoid needing
+// MoneyAccountController/Redux/React Query wiring in this file (that
+// behavior is covered in useEffectiveMoneyActivityStatus.test.ts).
+jest.mock('./useEffectiveMoneyActivityStatus', () => ({
+  useEffectiveMoneyActivityStatus: jest.fn((tx) =>
+    jest
+      .requireActual('../utils/classifyMoneyActivity')
+      .getMoneyActivityStatus(tx),
+  ),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
