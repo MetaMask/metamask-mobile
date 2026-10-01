@@ -1719,8 +1719,10 @@
     },
     "service_interruption": {
       "title": "We're experiencing an outage",
-      "description": "Some services may be unavailable while the team works on a fix.",
-      "contact_support": "Contact support"
+      "description": "Some services are temporarily unavailable. {{faqLink}}, or {{supportLink}}.",
+      "faq_link": "See your options in FAQs",
+      "contact_support": "contact support",
+      "faq_title": "Perps FAQs"
     },
     "competition_banner": {
       "title": "Competition leaderboard",
@@ -2147,8 +2149,8 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
         "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
-        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
-        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
         "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
@@ -9464,7 +9466,7 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
       "activity_title_filled": "Swapped {{source}} to {{dest}}",
       "activity_title_expired": "{{source}} to {{dest}} expired",
       "activity_title_canceled": "{{source}} to {{dest}} canceled",

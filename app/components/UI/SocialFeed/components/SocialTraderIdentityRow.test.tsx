@@ -2,6 +2,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialV1FeedAuthor } from '../types';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { SocialTraderIdentityRowSelectorsIDs } from './SocialTraderIdentityRow.testIds';
 
@@ -48,14 +49,16 @@ describe('SocialTraderIdentityRow', () => {
 
   it('renders the handle, invented verified badge, cohort, and 30-day P&L', () => {
     renderWithProvider(
-      <SocialTraderIdentityRow
-        author={dolphinAuthor()}
-        handle="cented"
-        imageUrl={null}
-        timestampMs={Date.now()}
-        recyclingKey="row-1"
-        onMorePress={onMorePress}
-      />,
+      <SocialFeedSurfaceProvider showMockedFields>
+        <SocialTraderIdentityRow
+          author={dolphinAuthor()}
+          handle="cented"
+          imageUrl={null}
+          timestampMs={Date.now()}
+          recyclingKey="row-1"
+          onMorePress={onMorePress}
+        />
+      </SocialFeedSurfaceProvider>,
     );
 
     expect(
@@ -71,6 +74,27 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toHaveTextContent('$50K P&L (30d)');
+  });
+
+  it('omits the invented verified badge when the surface has not opted in', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={dolphinAuthor()}
+        handle="cented"
+        imageUrl={null}
+        timestampMs={Date.now()}
+        recyclingKey="row-1"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
+    expect(screen.queryByText('*')).toBeNull();
+    expect(
+      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
+    ).toHaveTextContent('cented');
   });
 
   it('omits the stat line and cohort when the trader has no stats', () => {

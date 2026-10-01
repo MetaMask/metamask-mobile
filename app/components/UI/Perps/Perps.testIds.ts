@@ -519,8 +519,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
-  CHART_SERVICE_INTERRUPTION_BANNER:
-    'perps-pro-market-chart-service-interruption-banner',
+  SERVICE_INTERRUPTION_BANNER: 'perps-pro-market-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
   STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
   STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',
@@ -1213,6 +1212,9 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-adjust-margin-bottom-sheet',
+  HEADER_PRICE: 'perps-adjust-margin-bottom-sheet-header-price',
+  HEADER_CHANGE: 'perps-adjust-margin-bottom-sheet-header-change',
+  HEADER_SKELETON: 'perps-adjust-margin-bottom-sheet-header-skeleton',
   MODE_TOGGLE: 'perps-adjust-margin-bottom-sheet-mode-toggle',
   ADD_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-add-mode',
   REMOVE_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-remove-mode',

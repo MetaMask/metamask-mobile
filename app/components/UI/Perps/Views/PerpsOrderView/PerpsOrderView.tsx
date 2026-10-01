@@ -161,6 +161,12 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
+import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  getCachedPerpsHeaderQuote,
+  type CachedPerpsHeaderQuote,
+} from '../../utils/cachedPerpsHeaderQuote';
 import {
   BUTTON_COLOR_VARIANTS,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
@@ -293,6 +299,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const selectedCandlePeriod = useSelector(
+    selectPerpsChartPreferredCandlePeriod,
+  );
+  const stream = usePerpsStream();
   const chartLibrary =
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
@@ -2317,7 +2327,37 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const tradeSheetPercentChange = Number.isFinite(rawPercentChange)
       ? rawPercentChange
       : null;
-    const isTradeSheetHeaderLoading = !currentPrice || assetData.price <= 0;
+    // Until this sheet's own subscription delivers, seed the header from what
+    // the asset screen already has in memory so the first frame shows that
+    // price instead of a skeleton. Once a live mid exists the header follows
+    // it, matching the price the order math validates against. The cache
+    // reads are skipped on live renders so keystrokes and ticks stay cheap.
+    const hasLiveHeaderPrice = Boolean(currentPrice) && assetData.price > 0;
+    let cachedHeaderQuote: CachedPerpsHeaderQuote | null = null;
+    if (!hasLiveHeaderPrice) {
+      // The Advanced Chart renders TradingView's own bar close, which is not
+      // in the candle cache, so only the Lite chart close can seed the header.
+      const cachedChart =
+        chartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+          ? null
+          : stream.candles.getCachedData(orderForm.asset, selectedCandlePeriod);
+      cachedHeaderQuote = getCachedPerpsHeaderQuote({
+        asset: orderForm.asset,
+        candleData:
+          cachedChart && stream.candles.isChartCacheFresh(cachedChart)
+            ? cachedChart
+            : null,
+        focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
+        cachedPrice: stream.prices.getSnapshotForSymbol(orderForm.asset),
+      });
+    }
+    const tradeSheetHeaderPrice = hasLiveHeaderPrice
+      ? assetData.price
+      : (cachedHeaderQuote?.price ?? 0);
+    const tradeSheetHeaderChange = hasLiveHeaderPrice
+      ? tradeSheetPercentChange
+      : (cachedHeaderQuote?.percentChange24h ?? null);
+    const isTradeSheetHeaderLoading = tradeSheetHeaderPrice <= 0;
     // Keep the selected pay token visible while its quote refreshes after form
     // changes. The token and balance are still valid during that refetch.
     const isTradeSheetPayWithLoading = isLoadingAccount;
@@ -2441,8 +2481,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 direction={orderForm.direction}
                 leverage={orderForm.leverage}
                 maxLeverage={maxLeverage}
-                currentPrice={assetData.price}
-                percentChange24h={tradeSheetPercentChange}
+                currentPrice={tradeSheetHeaderPrice}
+                percentChange24h={tradeSheetHeaderChange}
                 orderType={tradeSheetOrderType}
                 limitPrice={orderForm.limitPrice}
                 limitPriceWarning={limitPriceWarning}

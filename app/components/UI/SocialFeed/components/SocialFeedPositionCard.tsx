@@ -1,7 +1,9 @@
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedItem } from '../types';
+import { mockedFieldLabel } from '../utils/mockedFieldLabel';
 import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
@@ -81,6 +83,20 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
   onCopyTrade,
 }) => {
+  const { showMockedFields } = useSocialFeedSurface();
+  const autoCloseLabel = mockedFieldLabel(
+    item.variant === 'perpsOpen' ? item.autoCloseLabel : undefined,
+    'autoClose',
+    item.mockedFields,
+    showMockedFields,
+  );
+  const markPriceLabel = mockedFieldLabel(
+    'markPriceLabel' in item ? item.markPriceLabel : undefined,
+    'markPrice',
+    item.mockedFields,
+    showMockedFields,
+  );
+
   if (
     item.variant === 'perpsOpen' ||
     item.variant === 'spotOpen' ||
@@ -109,7 +125,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
               label: strings(
                 'social_leaderboard.feed.position_card.auto_close',
               ),
-              value: item.autoCloseLabel,
+              value: autoCloseLabel,
               testID: statId(item.id, 'autoClose'),
             },
             costRow,
@@ -138,7 +154,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             item.variant === 'perpsOpen' ? item.leverageLabel : undefined
           }
           side={item.variant === 'perpsOpen' ? undefined : item.side}
-          markPriceLabel={item.markPriceLabel}
+          markPriceLabel={markPriceLabel}
           valueLabel={item.valueLabel}
           pnlLabel={item.pnlLabel}
           pnlValueLabel={item.pnlValueLabel}

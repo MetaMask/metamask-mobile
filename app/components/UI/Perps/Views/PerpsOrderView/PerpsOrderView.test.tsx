@@ -1173,6 +1173,15 @@ const createMockStreamManager = () => {
       },
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getSnapshotForSymbol: jest.fn(() => null),
+    },
+    focusedPrice: {
+      getSnapshot: jest.fn(() => null),
+      subscribeToSymbol: jest.fn(() => jest.fn()),
+    },
+    candles: {
+      getCachedData: jest.fn(() => null),
+      isChartCacheFresh: jest.fn(() => false),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),

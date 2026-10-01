@@ -20,12 +20,14 @@ import {
   KeyValueRow,
   KeyValueRowVariant,
   SegmentedControl,
+  Skeleton,
   Slider,
   Text,
   TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { typography } from '@metamask/design-tokens';
 import {
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
@@ -62,6 +64,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import {
   PerpsInlineInfoScreen,
@@ -87,6 +90,13 @@ interface SubmittedEstimate {
 }
 
 const floorUsd = (value: number) => Math.floor(value * 100) / 100;
+
+/**
+ * The header price line is a single BodySm row; the skeleton takes the same
+ * line height so the title doesn't shift when the live price arrives.
+ * Mirrors the trade sheet header.
+ */
+const HEADER_PRICE_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 const formatLiquidationDistance = (
   distance: number,
@@ -195,6 +205,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
+    currentPrice,
+    percentChange24h,
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition.symbol,
@@ -426,6 +438,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const isConfirmDisabled =
     hasInvalidAmount || isAdjusting || isPositionGone || isPositionDataInvalid;
 
+  const isHeaderPriceLoading = !(currentPrice > 0);
+
   if (selectedTooltip) {
     return (
       <BottomSheet
@@ -457,6 +471,27 @@ const PerpsAdjustMarginBottomSheet: React.FC<
           fontWeight: FontWeight.Bold,
           accessibilityRole: 'header',
         }}
+        description={
+          isHeaderPriceLoading ? (
+            <Skeleton
+              testID={PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON}
+              width={112}
+              height={HEADER_PRICE_SKELETON_HEIGHT}
+            />
+          ) : (
+            <LivePriceHeader
+              symbol={routePosition.symbol}
+              currentPrice={currentPrice}
+              percentChange24h={percentChange24h}
+              testIDPrice={
+                PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE
+              }
+              testIDChange={
+                PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_CHANGE
+              }
+            />
+          )
+        }
         endAccessory={
           <SegmentedControl
             accessible={false}
