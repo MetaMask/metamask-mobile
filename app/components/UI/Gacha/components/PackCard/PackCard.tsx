@@ -13,9 +13,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { GachaPackCardTestIds } from '../../Gacha.testIds';
 import {
-  getCollectorCryptPackArtwork,
+  getGachaPackArtwork,
   type PackArtwork,
-} from '../../assets/packs';
+} from '../../controllers/GachaPackCatalog';
 import type { CollectorCryptPack } from '../../providers/collector-crypt/types';
 import CtaButton from '../CtaButton';
 import { UsdcIcon } from '../UsdcAmount';
@@ -37,7 +37,8 @@ const PackCard = ({
 }: PackCardProps) => {
   const { fontScale } = useWindowDimensions();
   const handleOpen = useCallback(() => onOpen(pack), [onOpen, pack]);
-  const artwork = customArtwork ?? getCollectorCryptPackArtwork(pack.code);
+  const artwork =
+    customArtwork ?? getGachaPackArtwork('collector-crypt', pack.code);
   const displayName = artwork.name ?? pack.name;
   const price = formatPackPrice(pack.price);
 

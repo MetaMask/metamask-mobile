@@ -5,15 +5,9 @@ import { GachaPackCardTestIds } from '../../Gacha.testIds';
 import { createPack } from '../../views/testUtils';
 import PackCard from './PackCard';
 
-jest.mock(
-  '../../assets/packs/artwork/pokemon-25-ember/pack-list.webp',
-  () => 12,
-);
-jest.mock(
-  '../../assets/packs/artwork/pokemon-50-spark/pack-list.webp',
-  () => 22,
-);
-jest.mock('../../assets/packs/artwork/default-origin/pack-list.webp', () => 32);
+jest.mock('../../assets/pack-artwork/pokemon-25-ember-list.webp', () => 12);
+jest.mock('../../assets/pack-artwork/pokemon-50-spark-list.webp', () => 22);
+jest.mock('../../assets/pack-artwork/default-origin-list.webp', () => 32);
 
 const PACK = createPack();
 

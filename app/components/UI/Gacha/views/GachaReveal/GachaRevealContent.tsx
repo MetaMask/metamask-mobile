@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { getCollectorCryptPackArtwork } from '../../assets/packs';
+import { getGachaPackArtwork } from '../../controllers/GachaPackCatalog';
 import CardDisplay from '../../components/CardDisplay';
 import PackReveal from '../../components/PackReveal';
 import { GachaRevealTestIds } from '../../Gacha.testIds';
@@ -32,7 +32,7 @@ const GachaRevealContent = ({
   details,
 }: GachaRevealContentProps) => {
   const tw = useTailwind();
-  const artwork = getCollectorCryptPackArtwork(packCode);
+  const artwork = getGachaPackArtwork('collector-crypt', packCode);
   const [height, setHeight] = useState(0);
   const [imageReady, setImageReady] = useState(
     !card.image && !card.mediumImage,
