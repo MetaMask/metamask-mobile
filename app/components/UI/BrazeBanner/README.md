@@ -27,7 +27,7 @@ The banner moves through four states managed by `useBrazeBanner`:
 | `loading`   | Nothing rendered (see note below) | → `visible` when a valid banner arrives during the startup window; → `empty` on timeout |
 | `visible`   | BrazeBannerCard rendered          | → `dismissed` when user taps the close button                                           |
 | `empty`     | Nothing rendered                  | Terminal                                                                                |
-| `dismissed` | Nothing rendered                  | Terminal for the session                                                                |
+| `dismissed` | Nothing rendered                  | Terminal for this mount; Braze decides later eligibility                                |
 
 > **Why no loading skeleton?** At mount time it is unknown whether the current user has a banner assigned. Showing a skeleton and then removing it — with nothing taking its place — is not ideal. The component renders nothing during `loading` and the banner only appears if a valid banner arrives.
 
@@ -39,14 +39,12 @@ Late first-time banners from `bannerCardsUpdated` events are ignored after the s
 - SDK returned an empty-HTML banner
 - Banner is a control-group assignment (`isControl === true`)
 - HTML payload exceeds 256 KB
-- Banner's `dismiss_id` matches the one persisted from a previous session
 
 ## Dismiss behaviour
 
-Tapping the close button always hides the banner immediately for the current session (in-memory). Cross-session persistence is opt-in per campaign:
+Tapping the close button hides the banner immediately for the current mount and calls `Braze.dismissBanner(placementId)`. Braze records the dismissal and applies campaign re-eligibility on the backend, so the same banner is not served again until the campaign allows it.
 
-- **Without `dismiss_id`** — dismissal is session-only; the banner may reappear after the app restarts.
-- **With `dismiss_id`** — the ID is persisted to the Redux store and checked on future mounts; the banner stays hidden until a new campaign with a different `dismiss_id` is deployed. A custom user attribute (`banner-dismissed-<dismiss_id>`) is also set on the Braze profile, allowing the campaign to exclude this user from future targeting.
+Test sends skip the SDK dismiss call so they can be shown again without waiting for re-eligibility.
 
 ## Impression and click logging
 
@@ -72,11 +70,10 @@ import { BRAZE_BANNER_PLACEMENT_ID } from 'app/core/Braze/constants';
 
 Set these properties on the Braze campaign:
 
-| Property     | Type   | Required | Description                                                                            |
-| ------------ | ------ | -------- | -------------------------------------------------------------------------------------- |
-| `deeplink`   | string | No       | URL routed through the app deeplink pipeline on tap. See deeplink allowlist below.     |
-| `height`     | number | No       | Banner height in logical pixels. Clamped to 60–240 px; defaults to 120 px when absent. |
-| `dismiss_id` | string | No       | Stable identifier for cross-session dismissal. Omit for session-only banners.          |
+| Property   | Type   | Required | Description                                                                            |
+| ---------- | ------ | -------- | -------------------------------------------------------------------------------------- |
+| `deeplink` | string | No       | URL routed through the app deeplink pipeline on tap. See deeplink allowlist below.     |
+| `height`   | number | No       | Banner height in logical pixels. Clamped to 60–240 px; defaults to 120 px when absent. |
 
 ### Interaction model — single CTA per banner
 

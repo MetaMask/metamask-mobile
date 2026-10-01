@@ -1010,5 +1010,6 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({
       remove: jest.fn(),
     })),
+    dismissBanner: jest.fn(),
   },
 }));

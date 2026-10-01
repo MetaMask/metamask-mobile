@@ -12,10 +12,7 @@ import {
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
 import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
-import {
-  BANNER_EVENT_DISMISSED,
-  BANNER_EVENT_DISPLAY,
-} from '../../constants/engagement';
+import { BANNER_EVENT_DISPLAY } from '../../constants/engagement';
 
 const mockSetBrazeProfileId = jest.fn();
 const mockSetBlockedEvents = jest.fn();
@@ -201,22 +198,16 @@ describe('Braze service', () => {
   });
 
   describe('dismissBrazeBanner', () => {
-    it('logs the dismissed event with the supplied properties', () => {
-      dismissBrazeBanner({ banner_id: 'campaign-xyz', placement_id: 'home' });
+    it('calls Braze.dismissBanner with the placement ID', () => {
+      dismissBrazeBanner('placement-1');
 
-      expect(Braze.logCustomEvent).toHaveBeenCalledWith(
-        BANNER_EVENT_DISMISSED,
-        {
-          banner_id: 'campaign-xyz',
-          placement_id: 'home',
-        },
-      );
+      expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
     });
 
-    it('requests an immediate data flush after logging the event', () => {
-      dismissBrazeBanner({ banner_id: 'campaign-xyz' });
+    it('does not log a custom dismissed event', () => {
+      dismissBrazeBanner('placement-1');
 
-      expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
     });
   });
 });

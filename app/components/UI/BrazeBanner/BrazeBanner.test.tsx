@@ -39,11 +39,12 @@ jest.mock('@braze/react-native-sdk', () => ({
 const mockGetBannerForPlacement = jest.fn().mockResolvedValue(null);
 const mockLogBrazeBannerImpression = jest.fn();
 const mockLogBrazeBannerClick = jest.fn();
+const mockDismissBrazeBanner = jest.fn();
 
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
-  dismissBrazeBanner: jest.fn(),
+  dismissBrazeBanner: (...args: unknown[]) => mockDismissBrazeBanner(...args),
   logBrazeBannerImpression: (...args: unknown[]) =>
     mockLogBrazeBannerImpression(...args),
   logBrazeBannerClick: (...args: unknown[]) => mockLogBrazeBannerClick(...args),
@@ -67,18 +68,6 @@ const mockIsAllowedBrazeDeeplink = jest.fn().mockReturnValue(true);
 jest.mock('./isAllowedBrazeDeeplink', () => ({
   isAllowedBrazeDeeplink: (...args: unknown[]) =>
     mockIsAllowedBrazeDeeplink(...args),
-}));
-
-// ---------------------------------------------------------------------------
-// Mock: Redux (react-redux)
-// ---------------------------------------------------------------------------
-const mockDispatch = jest.fn();
-let mockLastDismissed: string | null = null;
-
-jest.mock('react-redux', () => ({
-  useDispatch: () => mockDispatch,
-  useSelector: (selector: (s: unknown) => unknown) =>
-    selector({ banners: { lastDismissedBrazeBanner: mockLastDismissed } }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -211,7 +200,6 @@ function assertBannerState(
 describe('BrazeBanner', () => {
   beforeEach(() => {
     capturedBannerListener = undefined;
-    mockLastDismissed = null;
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
@@ -264,29 +252,6 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
-  it('renders nothing when incoming banner bannerName matches lastDismissedBrazeBanner', () => {
-    mockLastDismissed = 'campaign-xyz';
-    const { queryByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
-
-    // Dismissed banner is skipped; hook stays in loading which now returns null
-    assertBannerState(queryByTestId, 'empty');
-  });
-
-  it('renders normally when lastDismissedBrazeBanner does not match incoming banner', () => {
-    mockLastDismissed = 'old-campaign';
-    const { queryByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
-
-    assertBannerState(queryByTestId, 'visible');
-  });
-
   it('renders null immediately on dismiss with no skeleton shown', () => {
     const { getByTestId, queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
@@ -300,22 +265,18 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
-  it('dispatches setLastDismissedBrazeBanner on dismiss when banner_name and dismissable:true are set', () => {
+  it('calls dismissBrazeBanner with the placement ID on close', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([
-      makeBanner({ bannerName: 'campaign-xyz', dismissable: true }),
-    ]);
+    fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ payload: 'campaign-xyz' }),
-    );
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
   });
 
-  it('does not dispatch when banner has no bannerName', () => {
+  it('calls dismissBrazeBanner even when the banner has no campaign_name', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
@@ -323,7 +284,7 @@ describe('BrazeBanner', () => {
     fireBannerEvent([makeBanner()]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
   });
 
   it('ignores further bannerCardsUpdated events after dismiss', () => {
