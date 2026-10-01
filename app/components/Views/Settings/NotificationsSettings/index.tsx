@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -11,12 +11,15 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import Logger from '../../../../util/Logger';
+import { useNotificationsCategories } from '../../../../util/notifications/hooks/useNotifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
+import NotificationsSettingsRowSkeleton from './NotificationsSettingsRowSkeleton';
 import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
@@ -118,6 +121,49 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const { preferences } = useNotificationStoragePreferences();
+  const { categoriesData, isLoading: isLoadingCategories } =
+    useNotificationsCategories();
+
+  // Backend decides which rows show and in what order; presentation and
+  // routing stay local, resolved through the category's AUS keys.
+  // Categories without aus_keys are display-only and have no settings row.
+  const resolved = useMemo(
+    () =>
+      categoriesData
+        .filter((category) => category.aus_keys.length > 0)
+        .map((category) => ({
+          categoryId: category.category_id,
+          section: NOTIFICATION_SETTINGS_SECTIONS.find((s) =>
+            category.aus_keys.includes(s.type),
+          ),
+        })),
+    [categoriesData],
+  );
+
+  const sections = useMemo(
+    () =>
+      resolved.flatMap(({ section }) =>
+        section &&
+        (!section.requiresSocialLeaderboard || isSocialLeaderboardEnabled)
+          ? [section]
+          : [],
+      ),
+    [resolved, isSocialLeaderboardEnabled],
+  );
+
+  useEffect(() => {
+    const unsupported = resolved
+      .filter(({ section }) => !section)
+      .map(({ categoryId }) => categoryId);
+    if (unsupported.length > 0) {
+      Logger.error(
+        new Error(
+          `Unsupported notification categories: ${unsupported.join(', ')}`,
+        ),
+      );
+    }
+  }, [resolved]);
+
   const sectionParam = route.params?.section;
 
   const navigateToSection = useCallback(
@@ -163,29 +209,24 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         </Text>
         <MainNotificationToggle />
 
+        {isMetamaskNotificationsEnabled && isLoadingCategories && (
+          <NotificationsSettingsRowSkeleton />
+        )}
         {isMetamaskNotificationsEnabled &&
-          NOTIFICATION_SETTINGS_SECTIONS.map((section) => {
-            if (
-              section.requiresSocialLeaderboard &&
-              !isSocialLeaderboardEnabled
-            ) {
-              return null;
-            }
-
-            return (
-              <NotificationRow
-                key={section.type}
-                title={strings(section.titleKey)}
-                status={
-                  section.showStatus
-                    ? getStatusText(preferences?.[section.type])
-                    : undefined
-                }
-                iconName={section.iconName}
-                onPress={() => navigateToSection(section)}
-              />
-            );
-          })}
+          !isLoadingCategories &&
+          sections.map((section) => (
+            <NotificationRow
+              key={section.type}
+              title={strings(section.titleKey)}
+              status={
+                section.showStatus
+                  ? getStatusText(preferences?.[section.type])
+                  : undefined
+              }
+              iconName={section.iconName}
+              onPress={() => navigateToSection(section)}
+            />
+          ))}
       </ScrollView>
     </SafeAreaView>
   );

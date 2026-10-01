@@ -6,6 +6,11 @@ import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import {
+  markCategoriesFetchSettled,
+  type NotificationCategoryMetadata,
+} from '../../../../util/notifications/categories';
+import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 
 jest.mock('react-native-device-info', () => ({
@@ -19,6 +24,8 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 const createMockState = ({
   notificationsEnabled = false,
   socialLeaderboardEnabled = false,
+  categories = [] as NotificationCategoryMetadata[],
+  isFetchingCategories = false,
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -31,6 +38,8 @@ const createMockState = ({
       NotificationServicesController: {
         ...backgroundState.NotificationServicesController,
         isNotificationServicesEnabled: notificationsEnabled,
+        metamaskNotificationsCategories: categories,
+        isFetchingMetamaskNotificationsCategories: isFetchingCategories,
       },
       RemoteFeatureFlagController: {
         ...backgroundState.RemoteFeatureFlagController,
@@ -133,6 +142,10 @@ const priceAlertsSectionTitle = strings(
 );
 
 describe('NotificationsSettings', () => {
+  beforeAll(() => {
+    markCategoriesFetchSettled();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -170,6 +183,14 @@ describe('NotificationsSettings', () => {
   it('renders price alerts section when notifications are enabled', () => {
     const state = createMockState({
       notificationsEnabled: true,
+      categories: [
+        {
+          category_id: 'price_alerts',
+          aus_keys: ['priceAlerts'],
+          visible_on: ['mobile'],
+          notification_types: ['price_alerts'],
+        },
+      ],
     });
 
     const { getByText } = renderNotificationsSettings(state);
@@ -185,5 +206,67 @@ describe('NotificationsSettings', () => {
     const { queryByText } = renderNotificationsSettings(state);
 
     expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+  });
+
+  describe('backend-driven rows', () => {
+    const backendCategory = (
+      category_id: string,
+      aus_keys: string[],
+      visible_on: NotificationCategoryMetadata['visible_on'] = ['mobile'],
+    ): NotificationCategoryMetadata => ({
+      category_id,
+      aus_keys,
+      visible_on,
+      notification_types: [],
+    });
+
+    it('renders only backend categories, resolved by aus key', () => {
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [backendCategory('trading_activity', ['perps'])],
+      });
+
+      const { getByText, queryByText } = renderNotificationsSettings(state);
+
+      expect(
+        getByText(strings('app_settings.notifications_opts.perps_title')),
+      ).toBeOnTheScreen();
+      expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+    });
+
+    it('logs once and hides a category with aus keys but no known section', () => {
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [backendCategory('mystery', ['mystery'])],
+      });
+
+      renderNotificationsSettings(state);
+
+      expect(loggerSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('silently skips display-only categories', () => {
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [backendCategory('announcements', [])],
+      });
+
+      renderNotificationsSettings(state);
+
+      expect(loggerSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows no rows while categories are loading', () => {
+      const state = createMockState({
+        notificationsEnabled: true,
+        isFetchingCategories: true,
+      });
+
+      const { queryByText } = renderNotificationsSettings(state);
+
+      expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+    });
   });
 });

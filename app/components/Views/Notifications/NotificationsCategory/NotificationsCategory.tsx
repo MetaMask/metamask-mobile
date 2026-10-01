@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   FilterButton,
@@ -36,6 +36,7 @@ interface CategoryTab {
  * filtered out when the social leaderboard flag is off.
  */
 const NotificationsCategory = ({
+  selectedCategory,
   onSelect,
   testID,
 }: NotificationsCategoryProps) => {
@@ -47,10 +48,6 @@ const NotificationsCategory = ({
     selectSocialLeaderboardEnabled,
   );
   const { categoriesData, isLoading } = useNotificationsCategories();
-
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    ALL_NOTIFICATIONS_CATEGORY_ID,
-  );
 
   const tabs = useMemo<CategoryTab[]>(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -65,28 +62,27 @@ const NotificationsCategory = ({
       },
     ];
 
-    const sectionConfigs = getNotificationsSettingsSectionConfigs(categoriesData, {
-      isSocialLeaderboardEnabled,
-    });
+    const sectionConfigs = getNotificationsSettingsSectionConfigs(
+      categoriesData,
+      {
+        isSocialLeaderboardEnabled,
+      },
+    );
 
     sectionConfigs.forEach((category) => {
       items.push({
         key: category.category_id,
-        label: getCategoryTitle(category.category_id),
+        label: getCategoryTitle(category),
         testID: categoryTestID(category.category_id),
       });
     });
 
     return items;
-  }, [categoriesData, isMetamaskNotificationsEnabled, isSocialLeaderboardEnabled]);
-
-  const handleSelect = useCallback(
-    (key: string) => {
-      setSelectedCategory(key);
-      onSelect(key);
-    },
-    [onSelect],
-  );
+  }, [
+    categoriesData,
+    isMetamaskNotificationsEnabled,
+    isSocialLeaderboardEnabled,
+  ]);
 
   if (!isMetamaskNotificationsEnabled) {
     return null;
@@ -103,7 +99,7 @@ const NotificationsCategory = ({
   return (
     <FilterButtonGroup
       value={selectedCategory}
-      onChange={handleSelect}
+      onChange={onSelect}
       twClassName="gap-2 px-4 py-1"
       style={tw.style('flex-grow-0')}
       testID={testID ?? NotificationsCategorySelectorsIDs.CONTAINER}

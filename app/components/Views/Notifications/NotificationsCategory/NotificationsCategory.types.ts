@@ -3,6 +3,10 @@
  */
 export interface NotificationsCategoryProps {
   /**
+   * Currently selected category id.
+   */
+  selectedCategory: string;
+  /**
    * Called with the selected category id whenever the user picks a tab.
    */
   onSelect: (categoryId: string) => void;

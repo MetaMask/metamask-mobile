@@ -12,6 +12,7 @@ import { sortNotifications } from '../../../util/notifications';
 import {
   ALL_NOTIFICATIONS_CATEGORY_ID,
   getNotificationCategoryId,
+  isNotificationVisibleInApp,
 } from '../../../util/notifications/categories';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../util/theme';
@@ -34,7 +35,9 @@ import {
 import {
   useListNotifications,
   useMarkNotificationAsRead,
+  useNotificationsCategories,
 } from '../../../util/notifications/hooks/useNotifications';
+import { useNotificationStoragePreferences } from '../../../util/notifications/hooks/useNotificationStoragePreferences';
 import { useNotificationListPerformance } from '../../../util/notifications/hooks/useNotificationListPerformance';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
@@ -113,15 +116,20 @@ const NotificationsView = ({
     ALL_NOTIFICATIONS_CATEGORY_ID,
   );
 
-  const categoryFilteredNotifications = useMemo(
-    () =>
-      selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID
-        ? allNotifications
-        : allNotifications.filter(
-            (n) => getNotificationCategoryId(n) === selectedCategory,
-          ),
-    [allNotifications, selectedCategory],
-  );
+  const { categoriesData } = useNotificationsCategories();
+  const { preferences } = useNotificationStoragePreferences();
+
+  // Order matters: user in-app preferences first, then the selected tab.
+  const categoryFilteredNotifications = useMemo(() => {
+    const enabled = allNotifications.filter((n) =>
+      isNotificationVisibleInApp(n, categoriesData, preferences),
+    );
+    return selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID
+      ? enabled
+      : enabled.filter(
+          (n) => getNotificationCategoryId(n) === selectedCategory,
+        );
+  }, [allNotifications, categoriesData, preferences, selectedCategory]);
 
   const unreadCount = useMemo(
     () => categoryFilteredNotifications.filter((n) => !n.isRead).length,
@@ -167,7 +175,10 @@ const NotificationsView = ({
       >
         {isNotificationEnabled ? (
           <>
-            <NotificationsCategory onSelect={setSelectedCategory} />
+            <NotificationsCategory
+              selectedCategory={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
             <Notifications
               navigation={navigation}
               allNotifications={categoryFilteredNotifications}

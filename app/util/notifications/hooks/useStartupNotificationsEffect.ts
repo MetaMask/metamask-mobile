@@ -26,14 +26,12 @@ const silentPushCheck = { nudgeEnablePush: false };
 const useEnableAndRefresh = () => {
   const { enableNotifications } = useEnableNotifications(silentPushCheck);
   const { listNotifications } = useListNotifications();
-  const { fetchCategories } = useNotificationsCategories();
   return useCallback(
     async (shouldEnable = true) => {
       shouldEnable && (await enableNotifications());
       await listNotifications();
-      await fetchCategories();
     },
-    [enableNotifications, listNotifications, fetchCategories],
+    [enableNotifications, listNotifications],
   );
 };
 
@@ -163,9 +161,39 @@ export function useEnableNotificationsByDefaultEffect() {
 }
 
 /**
+ * Fetches the (unauthenticated) notification categories on startup, regardless
+ * of whether the user has notifications enabled.
+ */
+export function useFetchNotificationCategoriesEffect() {
+  const { isUnlocked, isBasicFunctionalityEnabled, notificationsFlagEnabled } =
+    useNotificationStartupSelectors();
+  const { fetchCategories } = useNotificationsCategories();
+
+  useEffect(() => {
+    if (
+      !(isUnlocked && isBasicFunctionalityEnabled && notificationsFlagEnabled)
+    ) {
+      return;
+    }
+    fetchCategories().catch((error) =>
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Failed to fetch notification categories on startup',
+      ),
+    );
+  }, [
+    fetchCategories,
+    isBasicFunctionalityEnabled,
+    isUnlocked,
+    notificationsFlagEnabled,
+  ]);
+}
+
+/**
  * Effect that queries for notifications on startup if notifications are enabled.
  */
 export function useStartupNotificationsEffect() {
+  useFetchNotificationCategoriesEffect();
   useRegisterAndFetchNotifications();
   useEnableNotificationsByDefaultEffect();
 }

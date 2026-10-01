@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
@@ -13,6 +13,7 @@ import {
 import {
   getNotificationsList,
   selectIsFetchingMetamaskNotifications,
+  selectIsFetchingMetamaskNotificationsCategories,
   selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotifications,
@@ -25,6 +26,11 @@ import {
   updateNotificationSubscriptionExpiration,
 } from '../constants/notification-storage-keys';
 import type { RootState } from '../../../reducers';
+import {
+  markCategoriesFetchSettled,
+  resolveNotificationCategories,
+  useCategoriesFetchSettled,
+} from '../categories';
 
 const selectHasMarketingConsent = (state: RootState) =>
   Boolean(state.security.dataCollectionForMarketing);
@@ -231,19 +237,27 @@ export function useMarkNotificationAsRead() {
 }
 
 export function useNotificationsCategories() {
-  const loading = useSelector(selectIsFetchingMetamaskNotifications);
+  const loading = useSelector(selectIsFetchingMetamaskNotificationsCategories);
   const data = useSelector(getNotificationsCategories);
+  const hasSettled = useCategoriesFetchSettled();
+  const categoriesData = useMemo(
+    () => resolveNotificationCategories(data),
+    [data],
+  );
   const [error, setError] = useState<unknown>(null);
   const fetchCategories = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
-    await fetchNotificationsCategories().catch((e) => setError(e));
+    await fetchNotificationsCategories()
+      .catch((e) => setError(e))
+      .finally(markCategoriesFetchSettled);
   }, []);
 
   return {
     fetchCategories,
-    categoriesData: data,
-    isLoading: loading,
+    categoriesData,
+    // Skeleton until the first fetch settles, unless we already have data.
+    isLoading: loading || (data.length === 0 && !hasSettled),
     error,
-  }
+  };
 }

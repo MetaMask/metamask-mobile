@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
-import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
+import Engine from '../../../core/Engine';
+import Logger from '../../Logger';
 import { useNotificationStoragePreferences } from './useNotificationStoragePreferences';
 
 jest.mock('@metamask/react-data-query');
@@ -17,13 +17,13 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
 }));
 
-jest.mock('../../../../../util/Logger', () => ({
+jest.mock('../../Logger', () => ({
   error: jest.fn(),
 }));
 

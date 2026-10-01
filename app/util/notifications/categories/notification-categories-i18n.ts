@@ -1,9 +1,10 @@
 import { strings } from '../../../../locales/i18n';
+import type { NotificationCategoryMetadata } from './notification-categories.types';
 
-// Maps a categoryId to the stem of its existing app_settings.notifications_opts.*
-// i18n keys. Keeps the mock catalog's label/description fields as structural
-// placeholders while translated copy keeps coming from the existing locale keys.
-const CATEGORY_ID_TO_I18N_STEM: Record<string, string> = {
+// Maps an AUS key to the stem of its existing app_settings.notifications_opts.*
+// i18n keys. Keyed by AUS key (not category_id) because category_id is
+// backend-owned and may differ from the local naming.
+const AUS_KEY_TO_I18N_STEM: Record<string, string> = {
   walletActivity: 'wallet_activity',
   perps: 'perps',
   agenticCli: 'agentic_cli',
@@ -12,14 +13,17 @@ const CATEGORY_ID_TO_I18N_STEM: Record<string, string> = {
   priceAlerts: 'price_alerts',
 };
 
-export function getCategoryTitle(categoryId: string): string {
-  const stem = CATEGORY_ID_TO_I18N_STEM[categoryId];
+const getStem = (category: NotificationCategoryMetadata) =>
+  AUS_KEY_TO_I18N_STEM[category.aus_keys[0]];
+
+export function getCategoryTitle(category: NotificationCategoryMetadata) {
+  const stem = getStem(category);
   return stem
     ? strings(`app_settings.notifications_opts.${stem}_title`)
-    : categoryId;
+    : category.category_id;
 }
 
-export function getCategoryDescription(categoryId: string): string {
-  const stem = CATEGORY_ID_TO_I18N_STEM[categoryId];
+export function getCategoryDescription(category: NotificationCategoryMetadata) {
+  const stem = getStem(category);
   return stem ? strings(`app_settings.notifications_opts.${stem}_desc`) : '';
 }

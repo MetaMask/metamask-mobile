@@ -234,4 +234,4 @@ export const markNotificationsAsRead = async (
 export const fetchNotificationsCategories = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.fetchMetamaskNotificationsCategories();
-}
+};

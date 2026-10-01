@@ -92,7 +92,7 @@ describe('NotificationsCategory', () => {
 
   it('renders the All tab plus one tab per catalog category', () => {
     const { getByTestId, queryByTestId } = render(
-      <NotificationsCategory onSelect={jest.fn()} />,
+      <NotificationsCategory selectedCategory="all" onSelect={jest.fn()} />,
     );
 
     expect(getByTestId(NotificationsCategorySelectorsIDs.ALL)).toBeTruthy();
@@ -106,7 +106,7 @@ describe('NotificationsCategory', () => {
     mockIsSocialLeaderboardEnabled = true;
 
     const { getByTestId } = render(
-      <NotificationsCategory onSelect={jest.fn()} />,
+      <NotificationsCategory selectedCategory="all" onSelect={jest.fn()} />,
     );
 
     expect(getByTestId('notifications-category-socialAI')).toBeTruthy();
@@ -115,7 +115,7 @@ describe('NotificationsCategory', () => {
   it('calls onSelect with the categoryId when a tab is pressed', () => {
     const onSelect = jest.fn();
     const { getByTestId } = render(
-      <NotificationsCategory onSelect={onSelect} />,
+      <NotificationsCategory selectedCategory="all" onSelect={onSelect} />,
     );
 
     fireEvent(getByTestId('notifications-category-perps'), 'onPress');
@@ -127,7 +127,7 @@ describe('NotificationsCategory', () => {
     mockIsLoading = true;
 
     const { queryByTestId } = render(
-      <NotificationsCategory onSelect={jest.fn()} />,
+      <NotificationsCategory selectedCategory="all" onSelect={jest.fn()} />,
     );
 
     expect(
@@ -143,7 +143,7 @@ describe('NotificationsCategory', () => {
     mockIsMetamaskNotificationsEnabled = false;
 
     const { queryByTestId } = render(
-      <NotificationsCategory onSelect={jest.fn()} />,
+      <NotificationsCategory selectedCategory="all" onSelect={jest.fn()} />,
     );
 
     expect(
@@ -155,7 +155,7 @@ describe('NotificationsCategory', () => {
     mockIsMetamaskNotificationsEnabled = false;
 
     const { queryByTestId } = render(
-      <NotificationsCategory onSelect={jest.fn()} />,
+      <NotificationsCategory selectedCategory="all" onSelect={jest.fn()} />,
     );
 
     expect(

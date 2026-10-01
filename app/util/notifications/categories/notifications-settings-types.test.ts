@@ -1,7 +1,9 @@
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import type { NotificationCategoryMetadata } from './notification-categories.types';
 import {
   getNotificationsSettingsSectionConfigs,
   isChannelEnabledForAusKeys,
+  isNotificationVisibleInApp,
   targetAusKeysInPreferences,
 } from './notifications-settings-types';
 
@@ -86,7 +88,7 @@ describe('getNotificationsSettingsSectionConfigs', () => {
       notification_types: [],
     },
     {
-      category_id: 'socialAI',
+      category_id: 'social_ai',
       aus_keys: ['socialAI'],
       visible_on: [],
       notification_types: [],
@@ -99,5 +101,71 @@ describe('getNotificationsSettingsSectionConfigs', () => {
     });
 
     expect(sections.map((s) => s.category_id)).toEqual(['walletActivity']);
+  });
+
+  it('keeps socialAI when the social leaderboard flag is on', () => {
+    const sections = getNotificationsSettingsSectionConfigs(categories, {
+      isSocialLeaderboardEnabled: true,
+    });
+
+    expect(sections.map((s) => s.category_id)).toEqual([
+      'walletActivity',
+      'social_ai',
+    ]);
+  });
+});
+
+describe('isNotificationVisibleInApp', () => {
+  const categories: NotificationCategoryMetadata[] = [
+    {
+      category_id: 'trading_activity',
+      aus_keys: ['perps'],
+      visible_on: ['mobile'],
+      notification_types: [],
+    },
+    {
+      category_id: 'announcements',
+      aus_keys: [],
+      visible_on: ['mobile'],
+      notification_types: [],
+    },
+  ];
+  const prefs = (inApp: boolean): NotificationPreferences =>
+    ({
+      perps: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: inApp,
+      },
+    }) as unknown as NotificationPreferences;
+
+  it('hides a notification whose category in-app preference is off', () => {
+    expect(
+      isNotificationVisibleInApp(
+        { category: 'trading_activity' },
+        categories,
+        prefs(false),
+      ),
+    ).toBe(false);
+  });
+
+  it('shows a notification whose category in-app preference is on', () => {
+    expect(
+      isNotificationVisibleInApp(
+        { category: 'trading_activity' },
+        categories,
+        prefs(true),
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['preferences are unavailable', 'trading_activity', null],
+    ['the category is unknown', 'mystery', prefs(false)],
+    ['the category is display-only', 'announcements', prefs(false)],
+    ['the notification is uncategorized', '', prefs(false)],
+  ])('shows the notification when %s', (_label, category, preferences) => {
+    expect(
+      isNotificationVisibleInApp({ category }, categories, preferences),
+    ).toBe(true);
   });
 });
