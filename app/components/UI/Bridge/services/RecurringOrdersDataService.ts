@@ -53,7 +53,7 @@ export interface RecurringOrdersDataServiceGetRecurringOrdersByAssetAction {
 
 export interface RecurringOrdersDataServiceCancelRecurringOrderAction {
   type: 'RecurringOrdersDataService:cancelRecurringOrder';
-  handler: (orderId: string) => Promise<void>;
+  handler: (orderId: string, accountAddress: string) => Promise<void>;
 }
 
 export type RecurringOrdersDataServiceActions =
@@ -172,7 +172,10 @@ export class RecurringOrdersDataService extends BaseDataService<
     );
   }
 
-  async cancelRecurringOrder(orderId: string): Promise<void> {
-    await cancelRecurringOrderRequest(orderId);
+  async cancelRecurringOrder(
+    orderId: string,
+    accountAddress: string,
+  ): Promise<void> {
+    await cancelRecurringOrderRequest(orderId, accountAddress);
   }
 }
