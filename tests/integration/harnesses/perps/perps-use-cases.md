@@ -28,14 +28,14 @@ Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.m
 
 ## Position management
 
-| Use case                             |  U  | CV  |   I   | E2E | Coverage notes                                                              |
-| ------------------------------------ | :-: | :-: | :---: | :-: | --------------------------------------------------------------------------- |
-| Add collateral (increase margin)     |     |  ✓  | **✓** |     | I: state transition on margin-update. CV: input form + confirmation.        |
-| Remove collateral (decrease margin)  |     |  ✓  | **✓** |     | Same; covers the rejection path when margin would drop below maintenance.   |
-| Set take-profit                      |     |  ✓  | **✓** |     | I: TP-price validation, state update. CV: TP input.                         |
-| Set stop-loss                        |     |  ✓  | **✓** |     | Same shape as TP.                                                           |
-| Update existing TP/SL                |     |     | **✓** |     | Edit-of-existing path; UI is shared with create.                            |
-| Adjust leverage on existing position |     |  ✓  | **✓** |     | I: leverage validation against position size. CV: leverage slider clamping. |
+| Use case                             |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                   |
+| ------------------------------------ | :-: | :-: | :---: | :-: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Add collateral (increase margin)     |     |  ✓  | **✓** |     | I: state transition on margin-update. CV: input form + confirmation.                                                                                             |
+| Remove collateral (decrease margin)  |     |  ✓  | **✓** |     | Same; covers the rejection path when margin would drop below maintenance.                                                                                        |
+| Set take-profit                      |     |  ✓  | **✓** |     | I: TP-price validation, state update. CV: TP input.                                                                                                              |
+| Set stop-loss                        |     |  ✓  | **✓** |     | Same shape as TP.                                                                                                                                                |
+| Update existing TP/SL                |     |     | **✓** |     | Signed-size/entry preconditions, exact child receipts, account/network switches and dispatch-time drift. Removal preserves protection when the position changes. |
+| Adjust leverage on existing position |     |  ✓  | **✓** |     | I: leverage validation against position size. CV: leverage slider clamping.                                                                                      |
 
 ## Account / funds
 

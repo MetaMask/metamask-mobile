@@ -208,7 +208,46 @@ describe('usePerpsTPSLUpdate', () => {
       stopLossPrice,
       trackingData: undefined,
       position,
+      expectedPosition: { size: '1.5', entryPrice: '3000' },
     });
+  });
+
+  it('preserves the displayed short position and provider when the position changes during submission', async () => {
+    const onSuccess = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess });
+    const position = {
+      ...createMockPosition({ size: '-1.5' }),
+      providerId: 'lighter' as const,
+    };
+    const error =
+      'TP/SL expected position changed or is invalid; refresh before retrying';
+    mockUpdatePositionTPSL.mockImplementation(async () => {
+      position.size = '-2';
+      position.entryPrice = '3100';
+      return { success: false, error };
+    });
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '2700',
+        '3300',
+      );
+    });
+
+    expect(mockUpdatePositionTPSL).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providerId: 'lighter',
+        expectedPosition: { size: '-1.5', entryPrice: '3000' },
+      }),
+    );
+    expect(updateResult).toEqual({ success: false });
+    expect(mockUpdatePositionTPSLOptimistic).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+    ).toHaveBeenCalledWith(error);
   });
 
   it('should show success toast and call onSuccess callback', async () => {
@@ -373,6 +412,7 @@ describe('usePerpsTPSLUpdate', () => {
       stopLossPrice: undefined,
       trackingData: undefined,
       position,
+      expectedPosition: { size: '1.5', entryPrice: '3000' },
     });
   });
 

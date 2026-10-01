@@ -216,6 +216,36 @@ describe('Perps order lifecycle — FLOW integration', () => {
       try {
         const perps = buildPerpsFlowHarness();
         perps.harness.setupTradingReady();
+        perps.harness.mocks.exchangeClient.order
+          .mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: 123 } }] } },
+          })
+          .mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: 124 } }] } },
+          });
+        perps.harness.mocks.infoClient.orderStatus.mockImplementation(
+          async ({ oid }: { oid: number }) => {
+            if (oid !== 123 && oid !== 124) {
+              return { status: 'unknownOid' };
+            }
+            const canceled =
+              perps.harness.mocks.exchangeClient.cancel.mock.calls.some(
+                ([request]) =>
+                  (request as { cancels: { o: number }[] }).cancels.some(
+                    (cancel) => cancel.o === oid,
+                  ),
+              );
+            return {
+              status: 'order',
+              order: {
+                status: canceled ? 'canceled' : 'open',
+                order: { coin: 'BTC', oid, sz: '0.1' },
+              },
+            };
+          },
+        );
         const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
         await act(async () => {
           await result.current.placeOrder({

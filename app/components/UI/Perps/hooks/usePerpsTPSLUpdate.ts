@@ -100,7 +100,14 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           takeProfitPrice,
           stopLossPrice,
           trackingData,
-          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
+          position,
+          ...(position.providerId ? { providerId: position.providerId } : {}),
+          // Bind the mutation to the position the user edited. The provider
+          // rechecks it against authoritative data before protection writes.
+          expectedPosition: {
+            size: position.size,
+            entryPrice: position.entryPrice,
+          },
         });
         controllerSettled = true;
 
