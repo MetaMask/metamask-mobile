@@ -35,10 +35,10 @@ import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialSer
 import { useTheme } from '../../../../util/theme';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
-import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
-import SocialFeedPostSkeleton from '../SocialV1View/feed/components/SocialFeedPostSkeleton';
-import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
+import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import {
@@ -47,14 +47,14 @@ import {
   FeedSortFilterSheet,
   type FeedSort,
 } from '../components/Filters';
-import { useSocialEntryModeration } from '../components/SocialEntryOptionsBottomSheet';
+import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import type {
-  SocialV1FeedPost,
   SocialV1FeedTab,
   SocialV1HotToken,
   SocialV1TokenFeedState,

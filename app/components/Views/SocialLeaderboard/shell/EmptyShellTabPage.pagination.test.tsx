@@ -21,7 +21,7 @@ jest.mock('../SocialV1View/feed/components', () => ({
   HotTokensCarousel: () => null,
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => ({
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => ({
   __esModule: true,
   default: () => null,
 }));
