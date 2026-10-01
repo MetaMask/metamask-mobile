@@ -355,6 +355,68 @@ describe('analytics', () => {
     });
   });
 
+  describe('marketing consent', () => {
+    it('queues optInToMarketing', () => {
+      analytics.optInToMarketing();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optInToMarketing',
+      );
+    });
+
+    it('queues optOutOfMarketing', () => {
+      analytics.optOutOfMarketing();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optOutOfMarketing',
+      );
+    });
+
+    it('queues resetMarketingConsentDecision', () => {
+      analytics.resetMarketingConsentDecision();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'resetMarketingConsentDecision',
+      );
+    });
+
+    it('maps a true marketing preference to optInToMarketing', async () => {
+      await analytics.setDataCollectionForMarketing(true);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optInToMarketing',
+      );
+      expect(
+        mockQueueManagerFromFactory.queueOperation,
+      ).not.toHaveBeenCalledWith('optOutOfMarketing');
+    });
+
+    it('maps a false marketing preference to optOutOfMarketing', async () => {
+      await analytics.setDataCollectionForMarketing(false);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optOutOfMarketing',
+      );
+      expect(
+        mockQueueManagerFromFactory.queueOperation,
+      ).not.toHaveBeenCalledWith('optInToMarketing');
+    });
+
+    it('logs error when a marketing queue operation rejects', async () => {
+      const error = new Error('Queue operation failed');
+      mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
+
+      analytics.optInToMarketing();
+
+      await new Promise(process.nextTick);
+
+      expect(mockedLoggerLog).toHaveBeenCalledWith(
+        'Analytics: Unhandled error in optInToMarketing',
+        error,
+      );
+    });
+  });
+
   describe('getAnalyticsId', () => {
     it('returns analytics ID from storage', async () => {
       const expectedId = 'test-analytics-id-123';

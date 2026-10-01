@@ -2,6 +2,7 @@ import { createPlatformAdapter, normalizeProxyUrl } from './platform-adapter';
 import {
   createClient,
   type SegmentClient,
+  type SegmentEvent,
   DestinationPlugin,
 } from '@segment/analytics-react-native';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
@@ -197,6 +198,40 @@ describe('createPlatformAdapter', () => {
         eventName,
         properties,
       );
+    });
+
+    it('merges consent and eventsConfigVersion into Segment context', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const properties = { amount: 1 };
+      const incomingEvent = {
+        type: 'track',
+        event: 'Swap Completed',
+        context: {
+          consent: { categoryPreferences: { product: false } },
+        },
+      } as unknown as SegmentEvent;
+
+      adapter.track('Swap Completed', properties, {
+        consent: {
+          categoryPreferences: { product: true, marketing: false },
+        },
+        eventsConfigVersion: '7',
+      });
+
+      expect(segmentMockClient.track).toHaveBeenCalledWith(
+        'Swap Completed',
+        properties,
+        expect.any(Function),
+      );
+      const enrichment = jest.mocked(segmentMockClient.track).mock.calls[0][2];
+      expect(enrichment?.(incomingEvent).context).toEqual({
+        consent: {
+          categoryPreferences: { product: true, marketing: false },
+        },
+        eventsConfigVersion: '7',
+      });
     });
 
     it('calls Segment client.track without properties', () => {

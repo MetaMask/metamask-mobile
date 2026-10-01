@@ -149,6 +149,17 @@ const executeQueuedOperation = (
     case 'optOut':
       messengerInstance.call('AnalyticsController:optOut');
       break;
+    case 'optInToMarketing':
+      messengerInstance.call('AnalyticsController:optInToMarketing');
+      break;
+    case 'optOutOfMarketing':
+      messengerInstance.call('AnalyticsController:optOutOfMarketing');
+      break;
+    case 'resetMarketingConsentDecision':
+      messengerInstance.call(
+        'AnalyticsController:resetMarketingConsentDecision',
+      );
+      break;
     default:
       Logger.error(
         new Error(`Unknown analytics action: ${action}`),

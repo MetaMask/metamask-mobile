@@ -1,10 +1,11 @@
-import { takeEvery, put } from 'redux-saga/effects';
+import { call, put, takeEvery } from 'redux-saga/effects';
 import {
   ActionType,
   type SetDataCollectionForMarketing,
 } from '../../actions/security';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
 import { clearAttribution } from '../../core/redux/slices/attribution';
+import { analytics } from '../../util/analytics/analytics';
 
 /**
  * Clear persisted acquisition data when marketing consent is disabled.
@@ -15,6 +16,9 @@ export function* watchMarketingAttributionOnConsentChange() {
     function* setDataCollectionForMarketingHandler({
       enabled,
     }: SetDataCollectionForMarketing) {
+      // Redux remains the preference the UI writes. This saga copies each
+      // marketing preference into AnalyticsController consent.
+      yield call([analytics, analytics.setDataCollectionForMarketing], enabled);
       if (enabled === false) {
         yield put(clearAttribution());
       }
