@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
-import { wrapMockFeedPosts } from '../SocialV1View/feed/mocks/wrapMockFeedPosts';
-import { SocialFeedPostShellSelectorsIDs } from '../SocialV1View/feed/components/SocialFeedPostShell.testIds';
+import { wrapMockFeedPosts } from '../../../UI/SocialFeed/mocks/wrapMockFeedPosts';
+import { SocialFeedPostShellSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedPostShell.testIds';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
@@ -34,7 +34,7 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
   default: () => null,
 }));
 
-jest.mock('../../Homepage/Sections/TopTraders/components/TraderAvatar', () => {
+jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -42,7 +42,7 @@ jest.mock('../../Homepage/Sections/TopTraders/components/TraderAvatar', () => {
   };
 });
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
