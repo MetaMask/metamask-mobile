@@ -29,7 +29,7 @@ When the harness boundary changes, update this section. Authoring workflow: [`ha
 ### Seedless — [`seedless.ts`](seedless.ts)
 
 - **Shape:** A — controller-level harness
-- **Real:** `SeedlessOnboardingController` (controller lock, token-refresh retry, vault creation, backup-metadata state), Mobile's `seedlessOnboardingEncryptorAdapter`
+- **Real:** `SeedlessOnboardingController` (controller lock, token-refresh retry, vault creation, backup-metadata state), Mobile's `seedlessOnboardingEncryptorAdapter`. Jest mocks the `Encryptor` under the adapter, so a vault written here does not decrypt back to its contents; tests that unlock a vault need their own in-memory encryptor
 - **Mocked:** TOPRF client methods (`authenticate`, `createLocalKey`, `addSecretDataItem`, `persistLocalKey`, `recoverEncKey`, `fetchAllSecretDataItems`, `fetchAuthPubKey`) backed by `FakeToprfBackend`; auth-server `refreshJWTToken` / `revokeRefreshToken` / `renewRefreshToken`
 - **Factory:** `buildSeedlessIntegrationHarness()`
 - **Returns:** `{ backend, newInstall }`. Each `newInstall()` returns `{ controller, signIn }` sharing one backend.
