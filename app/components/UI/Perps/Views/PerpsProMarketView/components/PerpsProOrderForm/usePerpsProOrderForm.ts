@@ -2955,6 +2955,7 @@ export const usePerpsProOrderForm = ({
       leverage: orderForm.leverage,
       orderType: orderForm.type,
       limitPrice: normalizedLimitPrice,
+      marginMode,
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: effectiveUsdAmount,
@@ -2973,6 +2974,7 @@ export const usePerpsProOrderForm = ({
   }, [
     PerpsToastOptions.formValidation.orderForm.limitPriceRequired,
     normalizedLimitPrice,
+    marginMode,
     orderForm.limitPrice,
     orderForm.type,
     orderForm.asset,
