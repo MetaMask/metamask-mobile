@@ -5,6 +5,7 @@
  */
 import '../../../../../tests/component-view/mocks';
 
+import type { ComponentType } from 'react';
 import { screen, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { renderPerpsView } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
@@ -179,7 +180,7 @@ describe('PerpsOrderRedirect', () => {
           name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           Component: createRouteParamsProbe(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          ),
+          ) as ComponentType<unknown>,
         },
       ],
     });
