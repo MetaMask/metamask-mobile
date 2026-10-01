@@ -235,6 +235,22 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByText('0x00000...short')).toBeNull();
     });
 
+    it('replaces the contract address when a description is provided', () => {
+      const { Text } = jest.requireActual('react-native');
+      const { getByText, queryByText, queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+        },
+        description: <Text>$0.000012</Text>,
+      });
+
+      expect(getByText('$0.000012')).toBeOnTheScreen();
+      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+    });
+
     it('renders short contract address in description for non-native tokens', () => {
       const { getByText } = renderHeader({
         token: {

@@ -25,7 +25,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  StyleSheet,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -71,6 +77,7 @@ import {
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
@@ -372,6 +379,16 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  const handleMultichainScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      onScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [onScrollOffset],
+  );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
 
@@ -682,6 +699,7 @@ const TokenDetails: React.FC<{
             : undefined
         }
         onCopyAddress={handleCopyAddress}
+        description={headerDescription}
       />
 
       {txIsNonEvmAsset ? (
@@ -695,10 +713,12 @@ const TokenDetails: React.FC<{
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
+          onScroll={handleMultichainScroll}
         />
       ) : (
         <Transactions
           header={renderHeader()}
+          onScrollThroughContent={onScrollOffset}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}

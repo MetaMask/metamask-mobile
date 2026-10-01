@@ -326,9 +326,13 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   default: () => null,
 }));
 
+const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
+  default: (props: { header?: React.ReactNode }) => {
+    mockTransactions(props);
+    return props.header ?? null;
+  },
 }));
 
 jest.mock(
@@ -1749,6 +1753,58 @@ describe('TokenDetails', () => {
         expect.objectContaining({ token: expect.any(Object) }),
       );
       expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('header live price on scroll', () => {
+    const getScrollHandler = () =>
+      (mockTransactions.mock.calls.at(-1)?.[0] ?? {}) as {
+        onScrollThroughContent?: (y: number) => void;
+      };
+
+    it('shows the contract address (no description) before scrolling', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    });
+
+    it('swaps the header subtitle to the live price once scrolled, and back when returning to top', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(120);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: expect.anything() }),
+      );
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(0);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    });
+
+    it('keeps the contract address when there is no live price', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 0,
+      });
+
+      render(<TokenDetails />);
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(120);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
     });
   });
 });
