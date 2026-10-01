@@ -377,6 +377,36 @@ describe('useClaimEarnings', () => {
     expect(onSubmitted).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the retry toast when signing the earning address fails', async () => {
+    mockEngineCall.mockResolvedValue({
+      kind: 'proof_required',
+      body: {
+        reason: 'PROOF_REQUIRED',
+        claim_intent_id: 'intent-1',
+        expires_at: '2026-09-29T00:00:00.000Z',
+        challenges: [
+          {
+            earning_address: EARNING_ADDRESS,
+            amount_musd_base_units: ONE_DOLLAR,
+            message: 'sign me',
+          },
+        ],
+      },
+    });
+    mockSignPersonalMessage.mockRejectedValue(new Error('User rejected'));
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureRetryToast,
+    );
+    expect(onSubmitted).not.toHaveBeenCalled();
+  });
+
   it('shows the retry toast when the earning address cannot be signed', async () => {
     mockEngineCall.mockResolvedValue({
       kind: 'proof_required',
