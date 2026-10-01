@@ -26,10 +26,10 @@ interface BrazeBannerProps {
  * visual rendering to `BrazeBannerCard` (swap out for another renderer if needed).
  *
  * State machine (managed by `useBrazeBanner`):
- * - `loading`   → skeleton visible, waits for a non-dismissed banner
+ * - `loading`   → nothing rendered, waits for a valid banner
  * - `visible`   → BrazeBannerCard rendered
  * - `empty`     → returns null (no campaign / timeout reached)
- * - `dismissed` → returns null immediately, no skeleton shown again
+ * - `dismissed` → returns null immediately; Braze owns re-eligibility
  */
 const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
   const tw = useTailwind();
