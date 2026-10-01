@@ -233,18 +233,15 @@ export const useCursorPaginatedList = <T>({
   let displayItems: T[] | null;
   let displayError: string | null;
 
-  if (isInitialLoading) {
-    // Cached rows stay up while the first page loads, so the screen never
-    // goes cache → skeleton → fresh rows. Skeletons only when there is no cache.
-    displayItems = cachedRows;
-    displayError = null;
-  } else if (error) {
+  if (!isInitialLoading && error) {
     displayItems = fallbackRows;
     displayError = error;
-  } else if (items !== null) {
+  } else if (!isInitialLoading && items !== null) {
     displayItems = items;
     displayError = null;
   } else {
+    // Cached rows stay up while the first page loads, and again when loading
+    // finishes with nothing stored. Skeletons only when there is no cache.
     displayItems = cachedRows;
     displayError = null;
   }

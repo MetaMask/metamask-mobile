@@ -51,7 +51,7 @@ export const useReferralFunnel = (
 
   useFocusEffect(
     useCallback(() => {
-      fetchReferralFunnel();
+      void fetchReferralFunnel();
     }, [fetchReferralFunnel]),
   );
 
