@@ -119,6 +119,8 @@ const Routes = {
   REWARDS_DASHBOARD: 'RewardsDashboard',
   /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
   REWARDS_MONEY_DASHBOARD: 'RewardsMoneyDashboard',
+  REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW:
+    'RewardsMoneyReferralAcceptedSplashView',
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',

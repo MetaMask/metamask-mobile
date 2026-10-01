@@ -219,6 +219,7 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
@@ -1043,6 +1044,16 @@ const MainNavigator = () => {
           component={AcceptInviteSheet}
         />
       </NativeStack.Group>
+      {/*
+       * Post-accept confirmation. Registered on the root stack (not inside
+       * RewardsNavigator) so it can fade over the Money dashboard after the
+       * invite sheet dismisses — same pattern as Money onboarding.
+       */}
+      <NativeStack.Screen
+        name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
+        component={RewardsMoneyReferralAcceptedSplashView}
+        options={{ headerShown: false, ...fadeNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}

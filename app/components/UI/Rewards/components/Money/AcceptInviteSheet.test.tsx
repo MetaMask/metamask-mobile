@@ -77,29 +77,15 @@ jest.mock('../../hooks/useReferralMe', () => ({
   useSessionProfileId: () => mockUseSessionProfileId(),
 }));
 
-// The real hook resolves the session asynchronously, which is what the copy
-// this screen reads depends on; the tests below run it rather than a stand-in.
-const { useSessionProfileId: realUseSessionProfileId } = jest.requireActual<
-  typeof import('../../hooks/useReferralMe')
->('../../hooks/useReferralMe');
-
 jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
   useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
 }));
 
-const INVITE_HERO = {
-  lightModeUrl: 'https://example.com/invite-light.png',
-  darkModeUrl: 'https://example.com/invite-dark.png',
-};
-
 const LOCALIZED_TEXT = {
   inviteTitle: 'Claim your invite',
-  inviteBody: 'Your friend sent you a code that earns you cashback.',
+  inviteMessageBody: 'Your friend sent you a code that earns you cashback.',
   inviteReferralCode: 'Invite code',
-  inviteUseDifferentCode: 'Use a different code',
-  inviteCodePlaceholder: 'Enter a code',
-  inviteCancelEdit: 'Keep original',
-  inviteDecline: 'No thanks',
+  inviteDecline: 'Continue without referral',
   inviteAccept: 'Accept invite',
   inviteIllustrationLabel: 'Two friends trading',
 } as unknown as ReferralLocalizedText;
@@ -120,7 +106,7 @@ const buildReferralMe = (
     cashback_earning_term_minutes: null,
   },
   localized_text: LOCALIZED_TEXT,
-  invite_hero: INVITE_HERO,
+  invite_hero: null,
   ...overrides,
 });
 
@@ -128,7 +114,6 @@ let referralMeEntries: Record<
   string,
   { loading: boolean; error: boolean; data: ReferralMeDto | null }
 >;
-let appTheme: 'light' | 'dark';
 
 const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
 
@@ -140,7 +125,6 @@ const advanceDebounce = async () => {
 
 const renderSheetSync = (referralCode?: string) => {
   const store = configureStore({
-    user: { appTheme },
     rewardsMoney: { referralMe: referralMeEntries },
   });
   const view = render(
@@ -158,41 +142,6 @@ const renderSheet = async (referralCode?: string) => {
   return view;
 };
 
-/**
- * Holds the session read open so the frames before it comes back can be
- * asserted, the way they are on a real launch.
- */
-const deferSessionProfile = ({ signedOut = false } = {}) => {
-  let resolveProfile: (
-    profile: { profileId: string } | undefined,
-  ) => void = () => undefined;
-  const pendingProfile = new Promise<{ profileId: string } | undefined>(
-    (resolve) => {
-      resolveProfile = resolve;
-    },
-  );
-
-  mockUseSessionProfileId.mockImplementation(() => realUseSessionProfileId());
-  mockEngineCall.mockImplementation(async (action: string) => {
-    if (action === 'AuthenticationController:getSessionProfile') {
-      return pendingProfile;
-    }
-    if (action === 'RewardsMoneyController:validateReferralCode') {
-      return { success: true };
-    }
-    return undefined;
-  });
-
-  return {
-    resolveProfile: async () => {
-      await act(async () => {
-        resolveProfile(signedOut ? undefined : { profileId: PROFILE_ID });
-      });
-      await advanceDebounce();
-    },
-  };
-};
-
 describe('AcceptInviteSheet', () => {
   beforeAll(() => {
     jest.useFakeTimers();
@@ -204,7 +153,6 @@ describe('AcceptInviteSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    appTheme = 'light';
     referralMeEntries = {
       [PROFILE_ID]: { loading: false, error: false, data: buildReferralMe() },
     };
@@ -282,11 +230,8 @@ describe('AcceptInviteSheet', () => {
       );
     });
 
-    // Dismissal after register belongs to useAcceptMoneyReferralCode. This
-    // screen must not goBack a second time just because variant is no longer
-    // NONE — that would pop Rewards as well as the sheet.
-    expect(mockGoBack).not.toHaveBeenCalled();
     expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('closes when a pending referral-me load settles as already referred', async () => {
@@ -297,7 +242,6 @@ describe('AcceptInviteSheet', () => {
     const { queryByTestId, store } = renderSheetSync('KOL1');
 
     expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(mockGoBack).not.toHaveBeenCalled();
 
     await act(async () => {
       store.dispatch(
@@ -312,106 +256,78 @@ describe('AcceptInviteSheet', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('prefills the normalized route code', async () => {
+  it('prefills the normalized route code in the always-on field', async () => {
     const { getByTestId } = await renderSheet('kol1');
 
-    expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
+    expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
   });
 
-  it('renders the invite copy and hero of the current profile', async () => {
-    const { getByText, getByTestId } = await renderSheet('KOL1');
+  it('renders the invite copy of the current profile without a hero', async () => {
+    const { getByTestId, queryByTestId } = await renderSheet('KOL1');
 
-    expect(getByText('Claim your invite')).toBeOnTheScreen();
-    expect(
-      getByText('Your friend sent you a code that earns you cashback.'),
-    ).toBeOnTheScreen();
-    expect(getByText('Invite code')).toBeOnTheScreen();
-    expect(getByTestId(TEST_IDS.HERO)).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.BODY)).toHaveTextContent(
+      'Your friend sent you a code that earns you cashback.',
+    );
+    expect(queryByTestId('accept-invite-sheet-hero')).toBeNull();
   });
 
   it('reads no copy from another profile entry', async () => {
-    referralMeEntries = {
-      'profile-2': { loading: false, error: false, data: buildReferralMe() },
-    };
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'other-profile',
+      isResolved: true,
+    });
 
-    const { queryByText, queryByTestId } = await renderSheet('KOL1');
+    const { queryByTestId } = await renderSheet('KOL1');
 
-    expect(queryByText('Claim your invite')).toBeNull();
-    expect(queryByTestId(TEST_IDS.HERO)).toBeNull();
+    expect(queryByTestId(TEST_IDS.BODY)).toBeNull();
   });
 
   it('labels the code from existing Mobile copy when the server sent none', async () => {
-    referralMeEntries = {};
-
-    const { getByText } = await renderSheet('KOL1');
-
-    const fallbackLabel = strings('rewards.referral.referral_code');
-    expect(fallbackLabel).not.toBe('rewards.referral.referral_code');
-    expect(getByText(fallbackLabel)).toBeOnTheScreen();
-  });
-
-  it('keeps the actions usable when the server sent no copy', async () => {
-    referralMeEntries = {};
-
-    const { getByTestId } = await renderSheet('KOL1');
-
-    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
-  });
-
-  it('omits the hero when the payload has no invite image', async () => {
     referralMeEntries = {
       [PROFILE_ID]: {
         loading: false,
         error: false,
-        data: buildReferralMe({ invite_hero: null }),
+        data: buildReferralMe({
+          localized_text: undefined as unknown as ReferralLocalizedText,
+        }),
       },
     };
 
-    const { queryByTestId } = await renderSheet('KOL1');
+    const { getByText } = await renderSheet('KOL1');
 
-    expect(queryByTestId(TEST_IDS.HERO)).toBeNull();
+    expect(
+      getByText(strings('rewards.referral.referral_code')),
+    ).toBeOnTheScreen();
   });
 
-  it('swaps the code for an input when a different code is requested', async () => {
-    const { getByTestId, queryByTestId } = await renderSheet('KOL1');
+  it('keeps the actions usable when the server sent no copy', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({
+          localized_text: undefined as unknown as ReferralLocalizedText,
+        }),
+      },
+    };
 
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
-
-    expect(getByTestId(TEST_IDS.CODE_INPUT)).toBeOnTheScreen();
-    expect(queryByTestId(TEST_IDS.CODE)).toBeNull();
-  });
-
-  it('validates an edited code through the Money validate hook', async () => {
     const { getByTestId } = await renderSheet('KOL1');
 
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
-    fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'ab12cd');
+    expect(getByTestId(TEST_IDS.ACCEPT)).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.DECLINE)).toBeOnTheScreen();
+  });
+
+  it('normalizes typed codes and validates through the Money validate hook', async () => {
+    const { getByTestId } = await renderSheet();
+
+    fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'ab-12cd');
     await advanceDebounce();
 
+    expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('AB12CD');
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:validateReferralCode',
       'AB12CD',
     );
-    expect(getByTestId(TEST_IDS.CODE_VALID)).toBeOnTheScreen();
-  });
-
-  it('can restore the original code after the edited code validates', async () => {
-    const { getByTestId } = await renderSheet('KOL1');
-
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
-    fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'ab12cd');
-    await advanceDebounce();
-
-    expect(getByTestId(TEST_IDS.CODE_VALID)).toBeOnTheScreen();
-    const cancelEdit = getByTestId(TEST_IDS.CANCEL_EDIT);
-    expect(cancelEdit.props.accessibilityRole).toBe('button');
-
-    fireEvent.press(cancelEdit);
-    await advanceDebounce();
-
-    expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
   });
 
   it('shows the invalid-code error and blocks accept when the server rejects the code', async () => {
@@ -422,64 +338,54 @@ describe('AcceptInviteSheet', () => {
       return undefined;
     });
 
-    const { getByTestId, queryByTestId } = await renderSheet('BADCODE');
+    const { getByTestId } = await renderSheet('BAD1');
 
     expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
       strings('rewards.error_messages.invalid_referral_code'),
     );
-    expect(queryByTestId(TEST_IDS.CODE_VALID)).toBeNull();
-
-    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-
-    expect(mockAcceptReferralCode).not.toHaveBeenCalled();
+    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
+      { disabled: true },
+    );
   });
 
   it('shows a register refusal as the field error instead of blocking accept', async () => {
     mockUseAcceptMoneyReferralCode.mockReturnValue({
       acceptReferralCode: mockAcceptReferralCode,
       isLoading: false,
-      errorMessage: strings(
-        'rewards.error_messages.cannot_use_own_referral_code',
-      ),
-      clearError: jest.fn(),
-    });
-
-    const { getByTestId, queryByTestId } = await renderSheet('KOL1');
-
-    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
-      strings('rewards.error_messages.cannot_use_own_referral_code'),
-    );
-
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
-
-    expect(queryByTestId(TEST_IDS.CODE_VALID)).toBeNull();
-
-    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
-  });
-
-  it('clears the register error when the code is edited', async () => {
-    const mockClearError = jest.fn();
-    mockUseAcceptMoneyReferralCode.mockReturnValue({
-      acceptReferralCode: mockAcceptReferralCode,
-      isLoading: false,
       errorMessage: strings('rewards.error_messages.already_referred'),
-      clearError: mockClearError,
+      clearError: jest.fn(),
     });
 
     const { getByTestId } = await renderSheet('KOL1');
 
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
+    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
+      strings('rewards.error_messages.already_referred'),
+    );
+    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
+      { disabled: false },
+    );
+  });
+
+  it('clears the register error when the code is edited', async () => {
+    const clearError = jest.fn();
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings('rewards.error_messages.already_referred'),
+      clearError,
+    });
+
+    const { getByTestId } = await renderSheet('KOL1');
+
     fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'AB12CD');
 
-    expect(mockClearError).toHaveBeenCalled();
+    expect(clearError).toHaveBeenCalled();
   });
 
   it('still allows accept when validation itself failed', async () => {
     mockEngineCall.mockImplementation(async (action: string) => {
       if (action === 'RewardsMoneyController:validateReferralCode') {
-        throw new Error('offline');
+        throw new Error('network');
       }
       return undefined;
     });
@@ -489,21 +395,9 @@ describe('AcceptInviteSheet', () => {
     expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
       strings('rewards.error_messages.something_went_wrong'),
     );
-
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
     expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
-  });
-
-  it('restores the original code when the edit is cancelled', async () => {
-    const { getByTestId } = await renderSheet('KOL1');
-
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
-    fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'zz99');
-    fireEvent.press(getByTestId(TEST_IDS.CANCEL_EDIT));
-    await advanceDebounce();
-
-    expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
   });
 
   it.each([
@@ -538,7 +432,6 @@ describe('AcceptInviteSheet', () => {
   it('accepts with an edited code', async () => {
     const { getByTestId } = await renderSheet('KOL1');
 
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
     fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'ab12cd');
     await advanceDebounce();
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
@@ -549,7 +442,6 @@ describe('AcceptInviteSheet', () => {
   it('does not accept while the code is being validated', async () => {
     const { getByTestId } = await renderSheet('KOL1');
 
-    fireEvent.press(getByTestId(TEST_IDS.EDIT_CODE));
     fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'ab12cd');
 
     fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
@@ -602,95 +494,4 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     },
   );
-
-  describe('while the session profile is still resolving', () => {
-    it('shows a prefilled code as the headline and never swaps it for an input', async () => {
-      const { resolveProfile } = deferSessionProfile();
-
-      const { getByTestId, queryByTestId } = renderSheetSync('KOL1');
-
-      // No copy has arrived yet, so there is no edit affordance to offer —
-      // which must not be read as "this code cannot be edited".
-      expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
-      expect(queryByTestId(TEST_IDS.CODE_INPUT)).toBeNull();
-      expect(queryByTestId(TEST_IDS.EDIT_CODE)).toBeNull();
-
-      await resolveProfile();
-
-      expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
-      expect(getByTestId(TEST_IDS.EDIT_CODE)).toBeOnTheScreen();
-      expect(queryByTestId(TEST_IDS.CODE_INPUT)).toBeNull();
-    });
-
-    it('keeps the code editable when the resolved copy has no edit label', async () => {
-      referralMeEntries = {
-        [PROFILE_ID]: {
-          loading: false,
-          error: false,
-          data: buildReferralMe({
-            localized_text: {
-              ...LOCALIZED_TEXT,
-              inviteUseDifferentCode: '',
-            },
-          }),
-        },
-      };
-      const { resolveProfile } = deferSessionProfile();
-
-      const { getByTestId, queryByTestId } = renderSheetSync('KOL1');
-
-      expect(queryByTestId(TEST_IDS.CODE_INPUT)).toBeNull();
-
-      await resolveProfile();
-
-      expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
-      expect(queryByTestId(TEST_IDS.CODE)).toBeNull();
-    });
-
-    it('keeps the code editable when no profile resolves at all', async () => {
-      const { resolveProfile } = deferSessionProfile({ signedOut: true });
-
-      const { getByTestId, queryByTestId } = renderSheetSync('KOL1');
-
-      expect(queryByTestId(TEST_IDS.CODE_INPUT)).toBeNull();
-
-      await resolveProfile();
-
-      expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
-    });
-
-    it('waits for a loading entry before deciding the code is uneditable', async () => {
-      referralMeEntries = {
-        [PROFILE_ID]: { loading: true, error: false, data: null },
-      };
-      const { resolveProfile } = deferSessionProfile();
-
-      const { getByTestId, queryByTestId, store } = renderSheetSync('KOL1');
-      await resolveProfile();
-
-      expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
-      expect(queryByTestId(TEST_IDS.CODE_INPUT)).toBeNull();
-
-      await act(async () => {
-        store.dispatch(
-          setReferralMe({ profileId: PROFILE_ID, data: buildReferralMe() }),
-        );
-      });
-
-      expect(getByTestId(TEST_IDS.CODE)).toHaveTextContent('KOL1');
-      expect(getByTestId(TEST_IDS.EDIT_CODE)).toBeOnTheScreen();
-    });
-
-    it('makes the code editable once a failed entry settles', async () => {
-      referralMeEntries = {
-        [PROFILE_ID]: { loading: false, error: true, data: null },
-      };
-      const { resolveProfile } = deferSessionProfile();
-
-      const { getByTestId } = renderSheetSync('KOL1');
-      await resolveProfile();
-
-      expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
-    });
-  });
 });

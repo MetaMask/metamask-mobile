@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import rewardsMoneyReducer from '../../../../reducers/rewardsMoney';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -36,12 +37,9 @@ jest.mock('./useRewardsToast', () => ({
 const PROFILE_A = 'profile-a';
 const PROFILE_B = 'profile-b';
 const CODE = 'KOL1';
-const INVITE_ACCEPTED_TOAST = 'You’re in';
 
 const buildReferralMe = (
-  localizedText: Partial<ReferralMeDto['localized_text']> = {
-    inviteAcceptedToast: INVITE_ACCEPTED_TOAST,
-  },
+  localizedText: Partial<ReferralMeDto['localized_text']> = {},
 ): ReferralMeDto => ({
   role: 'REFEREE',
   variant: 'REFEREE',
@@ -268,25 +266,11 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(store.getState().rewardsMoney.referralMe[PROFILE_A].data).toEqual(
         buildReferralMe(),
       );
-      expect(mockSuccessToast).toHaveBeenCalledWith(INVITE_ACCEPTED_TOAST);
-      expect(mockShowToast).toHaveBeenCalledWith({
-        kind: 'success',
-        title: INVITE_ACCEPTED_TOAST,
-      });
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('dismisses without a success toast when the copy has no accepted string', async () => {
-      mockMessenger({ referralMe: buildReferralMe({}) });
-
-      const { result } = renderAcceptHook();
-      await act(async () => {
-        await result.current.acceptReferralCode(CODE);
-      });
-
       expect(mockSuccessToast).not.toHaveBeenCalled();
-      expect(mockErrorToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
     });
 
     it('reports loading while the flow runs and settles it afterwards', async () => {
@@ -442,6 +426,9 @@ describe('useAcceptMoneyReferralCode', () => {
       );
       expect(mockSuccessToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
     });
 
     it('retries the refresh without registering again when the first read is discarded', async () => {
@@ -465,8 +452,11 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(store.getState().rewardsMoney.referralMe[PROFILE_B].data).toEqual(
         buildReferralMe(),
       );
-      expect(mockSuccessToast).toHaveBeenCalledWith(INVITE_ACCEPTED_TOAST);
+      expect(mockSuccessToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
     });
 
     it('treats an identity that never settles as a refresh failure and does not register again', async () => {
@@ -504,6 +494,9 @@ describe('useAcceptMoneyReferralCode', () => {
       );
       expect(mockSuccessToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
     });
   });
 
@@ -566,6 +559,9 @@ describe('useAcceptMoneyReferralCode', () => {
         1,
       );
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
     });
   });
 

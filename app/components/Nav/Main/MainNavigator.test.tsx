@@ -15,9 +15,11 @@ import OfflineMode from '../../Views/OfflineMode';
 import {
   slideFromRightNativeOptions,
   transparentModalStackOptions,
+  fadeNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import type { ReferralVariant } from '../../../core/Engine/controllers/rewards-money-controller/types';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -2612,6 +2614,28 @@ describe('MainNavigator', () => {
         expect(group?.props?.screenOptions).toEqual(
           transparentModalStackOptions,
         );
+      });
+
+      it('registers the Money referral-accepted splash with a fade transition', () => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const splashScreen = root
+          .findAll(
+            (node: ReactTestInstance) =>
+              typeof node?.props?.name === 'string' &&
+              node.props.name ===
+                Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+          )
+          .at(0);
+
+        expect(splashScreen?.props?.component).toBe(
+          RewardsMoneyReferralAcceptedSplashView,
+        );
+        expect(splashScreen?.props?.options).toEqual({
+          headerShown: false,
+          ...fadeNativeOptions,
+        });
       });
     });
 
