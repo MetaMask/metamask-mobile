@@ -39,7 +39,6 @@ interface UpdateQuoteParamsOptions {
   traceId?: string;
 }
 
-// TODO check if things that I added context hooks to are wrapped
 /**
  * Hook for handling bridge quote request updates
  * @deprecated Use useSwapQuotes for new features. Avoid adding new functionality to this hook.

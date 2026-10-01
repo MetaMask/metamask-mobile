@@ -217,7 +217,6 @@ const selectQuoteMetadataDeps = createSelector(
   }),
 );
 
-// TODO skip useEffects if swapQuotes
 /**
  * @deprecated Use useSwapQuotes instead
  */
@@ -342,7 +341,6 @@ export function useQuickBuyQuotes({
         gasIncluded,
         gasIncluded7702,
       };
-      // TODO include analytics/trace params
       setQuoteParams(quoteParams);
     }
   }, [
