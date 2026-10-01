@@ -236,7 +236,8 @@ class SmartTransactionHook {
     }
   }
 
-  #getFees = async () => await this.#smartTransactionsController.getFees(
+  #getFees = async () =>
+    await this.#smartTransactionsController.getFees(
       { ...this.#txParams, chainId: this.#chainId },
       undefined,
       { networkClientId: this.#transactionMeta.networkClientId },
