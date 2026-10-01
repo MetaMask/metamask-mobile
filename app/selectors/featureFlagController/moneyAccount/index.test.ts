@@ -2,6 +2,7 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
+  selectMoneyAccountPremiumVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
   selectMoneyMovementBrazilNeobankEnabled,
   isVbaGeoBypassEnabled,
@@ -386,6 +387,42 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toEqual(remoteConfig);
+    });
+  });
+
+  describe('selectMoneyAccountPremiumVaultConfig', () => {
+    const premiumConfig = {
+      chainId: '0x8f',
+      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
+      lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+      underlyingToken: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    };
+
+    it('returns the parsed premium vault config when the flag is valid', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: premiumConfig,
+      });
+
+      expect(result).toEqual(premiumConfig);
+    });
+
+    it('returns undefined when the premium vault flag is missing', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({});
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the premium vault flag is malformed', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: {
+          ...premiumConfig,
+          lensAddress: '0x0',
+        },
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 });
