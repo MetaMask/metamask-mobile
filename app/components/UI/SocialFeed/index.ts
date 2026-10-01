@@ -25,5 +25,13 @@ export { default as SocialFeedSkeleton } from './components/SocialFeedSkeleton';
 export { default as SocialFeedError } from './components/SocialFeedError';
 export { default as SocialFeedEmpty } from './components/SocialFeedEmpty';
 export { SocialEntryOptionsProvider } from './components/SocialEntryOptionsBottomSheet';
+export {
+  SocialFeedSurfaceProvider,
+  useSocialFeedSurface,
+} from './SocialFeedSurface';
+export type {
+  SocialFeedLocation,
+  SocialFeedSurface,
+} from './SocialFeedSurface';
 
 export type { SocialV1FeedItem, SocialV1FeedPost } from './types';
