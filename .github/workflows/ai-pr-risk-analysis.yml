@@ -1,16 +1,7 @@
 name: AI PR risk analysis
 
-# opened / synchronize / reopened / ready_for_review cover release branches
-# and main pull requests that already have auto-merge. Applying auto-merge
-# is handled by ai-pr-risk-analysis-label.yml.
-#
-# labeled is not a trigger here. A skipped Analyze job is reported as
-# success, and that newer check would replace an in-progress or failed
-# result on the same commit.
-#
-# There is no branches filter. Skipping the workflow that way leaves a
-# required check pending. Skipping this job still reports Analyze, which
-# branch protection treats as a success for pushes to other bases.
+# Label events live in ai-pr-risk-analysis-label.yml: a skipped Analyze job
+# reports success and would replace a real result on the same commit.
 
 on:
   pull_request:
@@ -24,8 +15,7 @@ jobs:
   analyze:
     name: Analyze
     timeout-minutes: 10
-    # Main requires auto-merge. Release branches run on these events.
-    # A draft that already has the label is analyzed on ready_for_review.
+    # PRs to main require the auto-merge label; PRs to release/* always run.
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
@@ -37,8 +27,6 @@ jobs:
         )
         || startsWith(github.event.pull_request.base.ref, 'release/')
       )
-    # ready_for_review queues instead of cancelling an in-progress analysis.
-    # A later push may cancel a stale run.
     concurrency:
       group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: ${{ github.event.action != 'ready_for_review' }}

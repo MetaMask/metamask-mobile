@@ -1,16 +1,8 @@
 name: AI PR risk analysis label gate
 
-# Applying auto-merge on main runs the same analysis as
-# ai-pr-risk-analysis.yml without a new push.
-#
-# This job is not named Analyze. Every label starts a workflow run, and a
-# skipped job named Analyze is reported as success. That check would replace
-# an in-progress or failed Analyze result on the same commit. Unrelated
-# labels skip this job and leave the existing Analyze check unchanged.
-# A run that does execute publishes an Analyze check for the real result.
-#
-# Release pull requests are not included. A label there must not start a run.
-# Keep the analysis inputs in sync with ai-pr-risk-analysis.yml.
+# Runs analysis when auto-merge is added to a main PR. The job is not named
+# Analyze so unrelated labels cannot replace that check with a skip.
+# Keep the analysis step in sync with ai-pr-risk-analysis.yml.
 
 on:
   pull_request:
@@ -23,11 +15,6 @@ jobs:
   analyze-on-auto-merge:
     name: Auto-merge label
     timeout-minutes: 10
-    # No concurrency group. This job is skipped for every other label, and a
-    # skipped job must not cancel an analysis already running in
-    # ai-pr-risk-analysis.yml. That workflow only starts on main when
-    # auto-merge is already present, so it is not in progress when this
-    # label is first added.
     if: >-
       github.event_name == 'pull_request'
       && github.event.action == 'labeled'
@@ -72,9 +59,7 @@ jobs:
           gate-override-author: 'runway-github[bot]'
           gate-override-title-pattern: 'cherry.?pick'
 
-      # The open or sync workflow may already have a skipped Analyze check on
-      # this commit. Publish the real conclusion so that skip is not the latest
-      # result. This step does not run when the job itself is skipped.
+      # Replaces the skipped Analyze check left by ai-pr-risk-analysis.yml.
       - name: Publish Analyze check
         if: always() && !cancelled()
         uses: actions/github-script@v9
