@@ -600,12 +600,21 @@ describe('AcceptInviteSheet', () => {
       });
     });
 
+    it('tracks no offer while the session profile is unresolved', () => {
+      renderSheetSync('KOL1', '');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('tracks no offer for an already-referred profile that closes itself', async () => {
       referralMeEntries = {
         [PROFILE_ID]: {
           loading: false,
           error: false,
-          data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+          data: buildReferralMe({
+            roles: ['REFEREE'],
+            ui_variant: 'REFEREE',
+          }),
         },
       };
 
@@ -628,7 +637,10 @@ describe('AcceptInviteSheet', () => {
         store.dispatch(
           setReferralMe({
             profileId: PROFILE_ID,
-            data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+            data: buildReferralMe({
+              roles: ['REFEREE'],
+              ui_variant: 'REFEREE',
+            }),
           }),
         );
       });
