@@ -159,7 +159,7 @@ describe('Browser - Function Coverage Tests', () => {
   });
 
   describe('takeScreenshot function', () => {
-    it('captures screen and updates tab with image', async () => {
+    it('captures screen and updates tab with image only', async () => {
       const mockCaptureScreen = captureScreen as jest.Mock;
       mockCaptureScreen.mockResolvedValue('screenshot-uri.jpg');
 
@@ -219,13 +219,9 @@ describe('Browser - Function Coverage Tests', () => {
       }
 
       expect(mockCaptureScreen).toHaveBeenCalled();
-      expect(mockUpdateTab).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({
-          url: 'https://example.com',
-          image: 'screenshot-uri.jpg',
-        }),
-      );
+      expect(mockUpdateTab).toHaveBeenCalledWith(1, {
+        image: 'screenshot-uri.jpg',
+      });
     });
 
     it('logs error when screenshot fails', async () => {
@@ -1104,9 +1100,8 @@ describe('Browser - Function Coverage Tests', () => {
         });
       }
 
-      // Should use activeTab 2's URL (https://second.com)
+      // Should screenshot activeTab 2
       expect(mockUpdateTab).toHaveBeenCalledWith(2, {
-        url: 'https://second.com',
         image: 'screenshot.jpg',
       });
     });

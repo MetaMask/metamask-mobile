@@ -75,21 +75,42 @@ describe('browserReducer UPDATE_TAB entryPoint', () => {
     activeTab: 7,
   });
   const loadedState = () =>
-    buildState({ entryPointHost: 'pancakeswap.finance' });
+    buildState({ entryPointDomain: 'pancakeswap.finance' });
   const updateUrl = (state, url) =>
     browserReducer(state, { type: 'UPDATE_TAB', id: 7, data: { url } });
 
-  it('keeps the entry point and locks the host when the first load redirects', () => {
+  it('keeps the entry point and locks the domain when the first load redirects', () => {
     const newState = updateUrl(
-      buildState({ url: 'https://uniswap.org' }),
-      'https://app.uniswap.org/swap',
+      buildState({ url: 'https://www.hel.io' }),
+      'https://www.moonpay.com/business/commerce',
     );
 
     expect(newState.tabs[0].entryPoint).toBe('explore_search');
-    expect(newState.tabs[0].entryPointHost).toBe('app.uniswap.org');
+    expect(newState.tabs[0].entryPointDomain).toBe('moonpay.com');
   });
 
-  it('keeps the entry point when the tab navigates within the locked host', () => {
+  it('keeps the entry point when the tab moves to a sibling subdomain', () => {
+    const firstLoad = updateUrl(
+      buildState({ url: 'https://aave.com' }),
+      'https://aave.com/',
+    );
+
+    const newState = updateUrl(firstLoad, 'https://pro.aave.com/');
+
+    expect(newState.tabs[0].entryPoint).toBe('explore_search');
+    expect(newState.tabs[0].entryPointDomain).toBe('aave.com');
+  });
+
+  it('falls back to the host for urls without a registrable domain', () => {
+    const newState = updateUrl(
+      buildState({ url: 'http://localhost:3000' }),
+      'http://localhost:3000/app',
+    );
+
+    expect(newState.tabs[0].entryPointDomain).toBe('localhost');
+  });
+
+  it('keeps the entry point when the tab navigates within the locked domain', () => {
     const newState = updateUrl(
       loadedState(),
       'https://pancakeswap.finance/swap?chain=bsc',
@@ -98,15 +119,15 @@ describe('browserReducer UPDATE_TAB entryPoint', () => {
     expect(newState.tabs[0].entryPoint).toBe('explore_search');
   });
 
-  it('drops the entry point when the tab leaves the locked host', () => {
+  it('drops the entry point when the tab leaves the locked domain', () => {
     const newState = updateUrl(loadedState(), 'https://app.uniswap.org');
 
     expect(newState.tabs[0]).not.toHaveProperty('entryPoint');
-    expect(newState.tabs[0]).not.toHaveProperty('entryPointHost');
+    expect(newState.tabs[0]).not.toHaveProperty('entryPointDomain');
     expect(newState.tabs[0].url).toBe('https://app.uniswap.org');
   });
 
-  it('does not restore the entry point when the tab returns to the locked host', () => {
+  it('does not restore the entry point when the tab returns to the locked domain', () => {
     const awayState = updateUrl(loadedState(), 'https://app.uniswap.org');
 
     const backState = updateUrl(awayState, 'https://pancakeswap.finance');
@@ -114,7 +135,7 @@ describe('browserReducer UPDATE_TAB entryPoint', () => {
     expect(backState.tabs[0]).not.toHaveProperty('entryPoint');
   });
 
-  it('resets the locked host when an entry point is passed with the new url', () => {
+  it('resets the locked domain when an entry point is passed with the new url', () => {
     const newState = browserReducer(loadedState(), {
       type: 'UPDATE_TAB',
       id: 7,
@@ -122,7 +143,7 @@ describe('browserReducer UPDATE_TAB entryPoint', () => {
     });
 
     expect(newState.tabs[0].entryPoint).toBe('explore_search');
-    expect(newState.tabs[0]).not.toHaveProperty('entryPointHost');
+    expect(newState.tabs[0]).not.toHaveProperty('entryPointDomain');
   });
 
   it('keeps the entry point when the update has no url', () => {

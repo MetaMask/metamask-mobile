@@ -1,11 +1,14 @@
 import { BrowserActionTypes } from '../../actions/browser';
 import AppConstants from '../../core/AppConstants';
+import { getDomain } from 'tldts';
 import { appendURLParams, getHost } from '../../util/browser';
+
+const getSiteDomain = (url) => getDomain(url) ?? getHost(url);
 
 const updateTabEntryPoint = (tab, data) => {
   const {
     entryPoint: _entryPoint,
-    entryPointHost: _entryPointHost,
+    entryPointDomain: _entryPointDomain,
     ...unattributedTab
   } = tab;
   if ('entryPoint' in data) {
@@ -14,11 +17,11 @@ const updateTabEntryPoint = (tab, data) => {
   if (!tab.entryPoint || !data.url) {
     return { ...tab, ...data };
   }
-  const host = getHost(data.url);
-  if (!tab.entryPointHost) {
-    return { ...tab, ...data, entryPointHost: host };
+  const domain = getSiteDomain(data.url);
+  if (!tab.entryPointDomain) {
+    return { ...tab, ...data, entryPointDomain: domain };
   }
-  return host === tab.entryPointHost
+  return domain === tab.entryPointDomain
     ? { ...tab, ...data }
     : { ...unattributedTab, ...data };
 };

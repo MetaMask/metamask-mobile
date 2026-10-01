@@ -165,10 +165,8 @@ export const BrowserPure = (props) => {
           THUMB_HEIGHT,
         }).then(
           (uri) => {
-            updateTab(tabID, {
-              url,
-              image: uri,
-            });
+            // No url: a capture mid-redirect would lock the tab's entry point to the pre-redirect host.
+            updateTab(tabID, { image: uri });
             resolve(true);
           },
           (error) => {
