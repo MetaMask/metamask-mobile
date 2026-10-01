@@ -146,13 +146,7 @@ export function usePerpsClosePositionForm(
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
     enableHaptics = false,
-  } = route.params as {
-    position: Position;
-    source?: string;
-    buttonClicked?: string;
-    buttonLocation?: string;
-    enableHaptics?: boolean;
-  };
+  } = route.params;
   const { playImpact: playHapticImpact } = useHaptics();
 
   // Ref so an inline closure from the caller cannot re-run the latched
@@ -219,6 +213,10 @@ export function usePerpsClosePositionForm(
   const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
+  const effectiveMaxSlippageBps =
+    effectiveOrderType === 'limit'
+      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+      : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -699,6 +697,12 @@ export function usePerpsClosePositionForm(
           : {}),
         vipTier: vipTier ?? undefined,
         vipDiscount: feeResults.feeDiscountPercentage,
+        ...(effectiveOrderType === 'market'
+          ? {
+              maxSlippageBps: effectiveMaxSlippageBps,
+              maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
+            }
+          : {}),
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
@@ -706,10 +710,7 @@ export function usePerpsClosePositionForm(
       slippage: {
         usdAmount: isFullClose ? undefined : closingValueString,
         priceAtCalculation: effectivePrice,
-        maxSlippageBps:
-          effectiveOrderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
+        maxSlippageBps: effectiveMaxSlippageBps,
       },
     });
   }, [
@@ -734,6 +735,7 @@ export function usePerpsClosePositionForm(
     rewardsState.estimatedPoints,
     routeSource,
     vipTier,
+    effectiveMaxSlippageBps,
     priceData,
     position.symbol,
     closingValueString,

@@ -1,6 +1,9 @@
 import { strings } from '../../../../../locales/i18n';
+import { hasProperty } from '@metamask/utils';
 import {
+  isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
+  type PerpsErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
@@ -10,6 +13,103 @@ import {
  * When provided, enables detailed logging for debugging.
  */
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
+
+export interface PerpsErrorInput {
+  error: string;
+  errorCode?: PerpsErrorCode;
+  errorDetails?: PerpsErrorDetails;
+  maxSlippageBps?: number;
+}
+
+const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
+
+function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    hasProperty(value, 'code') &&
+    value.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    hasProperty(value, 'priceDeltaBps') &&
+    typeof value.priceDeltaBps === 'number' &&
+    hasProperty(value, 'maxSlippageBps') &&
+    typeof value.maxSlippageBps === 'number' &&
+    hasProperty(value, 'expectedPrice') &&
+    typeof value.expectedPrice === 'number' &&
+    hasProperty(value, 'currentPrice') &&
+    typeof value.currentPrice === 'number'
+  );
+}
+
+function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !hasProperty(value, 'error') ||
+    typeof value.error !== 'string'
+  ) {
+    return false;
+  }
+
+  const hasValidCode =
+    !hasProperty(value, 'errorCode') ||
+    value.errorCode === undefined ||
+    isPerpsErrorCodeValue(value.errorCode);
+  const hasValidDetails =
+    !hasProperty(value, 'errorDetails') ||
+    value.errorDetails === undefined ||
+    isPerpsErrorDetails(value.errorDetails);
+  const hasValidSlippage =
+    !hasProperty(value, 'maxSlippageBps') ||
+    value.maxSlippageBps === undefined ||
+    typeof value.maxSlippageBps === 'number';
+
+  return hasValidCode && hasValidDetails && hasValidSlippage;
+}
+
+const normalizePerpsError = (error: unknown): PerpsErrorInput | null => {
+  if (isPerpsErrorInput(error)) {
+    return error;
+  }
+  if (error instanceof Error) {
+    return { error: error.message };
+  }
+  if (typeof error === 'string') {
+    return { error };
+  }
+  return null;
+};
+
+const getErrorInterpolationData = (
+  errorInput: PerpsErrorInput,
+  context?: Record<string, unknown>,
+): Record<string, unknown> => {
+  const interpolationData: Record<string, unknown> = {};
+  const { errorCode, errorDetails } = errorInput;
+
+  if (
+    errorDetails?.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    Number.isFinite(errorDetails.priceDeltaBps) &&
+    Number.isFinite(errorDetails.maxSlippageBps)
+  ) {
+    interpolationData.priceDelta = formatBpsAsPercent(
+      errorDetails.priceDeltaBps,
+    );
+    interpolationData.maxSlippage = formatBpsAsPercent(
+      errorDetails.maxSlippageBps,
+    );
+  } else if (errorCode === PERPS_ERROR_CODES.IOC_CANCEL) {
+    const maxSlippageBps =
+      errorInput.maxSlippageBps ??
+      (typeof context?.maxSlippageBps === 'number'
+        ? context.maxSlippageBps
+        : undefined);
+    if (maxSlippageBps !== undefined) {
+      interpolationData.maxSlippage = formatBpsAsPercent(maxSlippageBps);
+    }
+  }
+
+  return interpolationData;
+};
 
 /**
  * Maps error codes to i18n keys
@@ -35,7 +135,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
-  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.insufficientLiquidity',
+  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',
   [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
   // Withdraw validation errors
   [PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED]:
@@ -193,6 +293,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
+  [PERPS_ERROR_CODES.PRICE_MOVED]: 'perps.errors.priceMoved',
   [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
   // Network/service errors
   [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
@@ -200,6 +301,15 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.UNSUPPORTED_COLLATERAL]:
     'perps.errors.unsupportedCollateral',
 };
+
+const getErrorI18nKey = (
+  errorCode: PerpsErrorCode,
+  interpolationData: Record<string, unknown>,
+): string =>
+  errorCode === PERPS_ERROR_CODES.IOC_CANCEL &&
+  interpolationData.maxSlippage === undefined
+    ? 'perps.errors.iocCancelUnknownTolerance'
+    : ERROR_CODE_TO_I18N_KEY[errorCode];
 
 /**
  * Pattern matching for common HyperLiquid API error messages.
@@ -335,41 +445,36 @@ export function translatePerpsError(
     return strings('perps.errors.unknownError');
   }
 
-  // Handle error code strings
-  if (typeof error === 'string' && error in ERROR_CODE_TO_I18N_KEY) {
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[error as PerpsErrorCode];
-    return strings(i18nKey, data || {});
+  const errorInput = normalizePerpsError(error);
+  if (!errorInput) {
+    return strings('perps.errors.unknownError');
+  }
+  const errorCode =
+    errorInput.errorCode ??
+    (isPerpsErrorCodeValue(errorInput.error) ? errorInput.error : undefined);
+  const interpolationData = {
+    ...getErrorInterpolationData(
+      errorCode ? { ...errorInput, errorCode } : errorInput,
+    ),
+    ...data,
+  };
+
+  if (errorCode) {
+    return strings(
+      getErrorI18nKey(errorCode, interpolationData),
+      interpolationData,
+    );
   }
 
-  // Handle standard Error objects
-  if (error instanceof Error) {
-    // Check if error message is an error code
-    if (error.message in ERROR_CODE_TO_I18N_KEY) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[error.message as PerpsErrorCode];
-      return strings(i18nKey, data || {});
-    }
-    // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(error.message);
-    if (matchedErrorCode) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, data || {});
-    }
-    return error.message;
+  const matchedErrorCode = matchApiErrorPattern(errorInput.error);
+  if (matchedErrorCode) {
+    return strings(
+      getErrorI18nKey(matchedErrorCode, interpolationData),
+      interpolationData,
+    );
   }
 
-  // Handle string errors that might be error codes
-  if (typeof error === 'string') {
-    // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(error);
-    if (matchedErrorCode) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, data || {});
-    }
-    return error;
-  }
-
-  // Handle objects, numbers, and other types
-  return strings('perps.errors.unknownError');
+  return errorInput.error;
 }
 
 /**
@@ -379,11 +484,8 @@ export function isPerpsErrorCode(
   error: unknown,
   code: PerpsErrorCode,
 ): boolean {
-  if (error instanceof Error && error.message === code) {
-    return true;
-  }
-
-  return error === code;
+  const errorInput = normalizePerpsError(error);
+  return errorInput?.errorCode === code || errorInput?.error === code;
 }
 
 /** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
@@ -419,6 +521,7 @@ export interface HandlePerpsErrorParams {
     assetId?: string;
     supportedAssets?: string;
     method?: string;
+    maxSlippageBps?: number;
   };
   fallbackMessage?: string;
   debugLogger?: ErrorHandlerDebugLogger;
@@ -444,14 +547,18 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     return fallbackMessage || strings('perps.errors.unknownError');
   }
 
-  // Extract error string from Error objects or use as-is
-  let errorString: string | null = null;
-
-  if (error instanceof Error) {
-    errorString = error.message;
-  } else if (typeof error === 'string') {
-    errorString = error;
+  const parsedError = normalizePerpsError(error);
+  if (!parsedError) {
+    return fallbackMessage || strings('perps.errors.unknownError');
   }
+  const errorString = parsedError.error;
+  const errorCode =
+    parsedError.errorCode ??
+    (isPerpsErrorCodeValue(errorString) ? errorString : undefined);
+  const normalizedError = errorCode
+    ? { ...parsedError, errorCode }
+    : parsedError;
+  const errorParams = getErrorInterpolationData(normalizedError, context);
 
   // Log error for debugging (without event tracking)
   debugLogger?.log('PerpsErrorHandler: Error encountered', {
@@ -461,14 +568,9 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   });
 
   // Check if it's a Core PerpsController or Perps Provider error code
-  if (
-    errorString &&
-    Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
-  ) {
+  if (errorCode && errorCode in ERROR_CODE_TO_I18N_KEY) {
     // Map error codes to their required parameters
-    const errorParams: Record<string, unknown> = {};
-
-    switch (errorString) {
+    switch (errorCode) {
       case PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED:
         errorParams.token = context?.token || 'Unknown';
         break;
@@ -483,7 +585,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         break;
     }
 
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[errorString as PerpsErrorCode];
+    const i18nKey = getErrorI18nKey(errorCode, errorParams);
     return strings(i18nKey, errorParams);
   }
 
@@ -496,7 +598,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         matchedCode: matchedErrorCode,
       });
 
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
+      const i18nKey = getErrorI18nKey(matchedErrorCode, errorParams);
       // Pass through any provided context for interpolation
       return strings(i18nKey, context || {});
     }
