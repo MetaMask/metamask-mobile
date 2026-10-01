@@ -61,12 +61,8 @@ import {
 } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
-import { useABTest } from '../../../hooks/useABTest';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog. */
-import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_VARIANTS,
-} from '../Homepage/abTestConfig';
+import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 /* eslint-enable import-x/no-restricted-paths */
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
@@ -151,13 +147,8 @@ function TradeWalletActions() {
   const { colors } = useTheme();
   // Assignment-only read: exposure is tracked where the experiment surface is
   // owned, the wallet header and the tab bar, so this must not emit it again.
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    { trackExposure: false },
-  );
-  const isTradeFocusedArm =
-    headerNavBarVariant.trailingNavBarAction === 'trade';
+  const { trailingNavBarAction } = useHomeNavBarConfig();
+  const isTradeFocusedArm = trailingNavBarAction === 'trade';
   const { isBlurAvailable, tint } = useBlurMaterial();
   const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
   // Glass needs one rounded surface; the notched edge is an SVG shape that

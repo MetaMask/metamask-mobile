@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { GlassView } from 'expo-glass-effect';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -17,10 +18,12 @@ import {
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
+import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
@@ -39,6 +42,13 @@ interface TouchAreaSlop {
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
 const hiddenSearchBarStyle: ViewStyle = { opacity: 0 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
+const INTERIM_ACCOUNT_NAME_MAX_CHARS = 12;
+// The glass capsule supplies the height and fill, so the picker drops its own.
+const glassAccountPickerStyle: ViewStyle = {
+  backgroundColor: 'transparent',
+  paddingVertical: 0,
+  paddingHorizontal: 12,
+};
 
 export interface WalletHeaderProps {
   displayName: string;
@@ -59,6 +69,8 @@ export interface WalletHeaderProps {
   touchAreaSlop: TouchAreaSlop;
   headerActionButtonsContainerStyle: ViewStyle;
   headerAccountPickerStyle: ViewStyle;
+  /** Interim brand refresh: Activity, Search and Menu only, on Liquid Glass where available. */
+  isInterimLayout?: boolean;
 }
 
 const WalletHeader = ({
@@ -76,8 +88,11 @@ const WalletHeader = ({
   navigation,
   headerActionButtonsContainerStyle,
   headerAccountPickerStyle,
+  isInterimLayout = false,
 }: WalletHeaderProps) => {
+  const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
+  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
   const searchBarRef = useRef<View>(null);
 
   const measureSearchOrigin = useCallback(
@@ -100,33 +115,39 @@ const WalletHeader = ({
     [],
   );
 
+  const hamburgerButton = (
+    <BadgeWrapper
+      // BadgeWrapper defaults to `self-start`, which top-aligns it in a row.
+      twClassName="self-center"
+      position={BadgeWrapperPosition.TopRight}
+      positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+      badge={
+        hasAccountsMenuAttention ? (
+          <BadgeStatus
+            status={BadgeStatusStatus.Attention}
+            testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
+          />
+        ) : null
+      }
+    >
+      <ButtonIcon
+        iconProps={{ color: MMDSIconColor.IconDefault }}
+        onPress={handleHamburgerPress}
+        iconName={MMDSIconName.Menu}
+        size={ButtonIconSize.Md}
+        testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+        hitSlop={touchAreaSlop}
+      />
+    </BadgeWrapper>
+  );
+
   const menuButton = (
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       twClassName="h-12"
     >
-      <BadgeWrapper
-        position={BadgeWrapperPosition.TopRight}
-        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-        badge={
-          hasAccountsMenuAttention ? (
-            <BadgeStatus
-              status={BadgeStatusStatus.Attention}
-              testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
-            />
-          ) : null
-        }
-      >
-        <ButtonIcon
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={handleHamburgerPress}
-          iconName={MMDSIconName.Menu}
-          size={ButtonIconSize.Md}
-          testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
-          hitSlop={touchAreaSlop}
-        />
-      </BadgeWrapper>
+      {hamburgerButton}
     </Box>
   );
 
@@ -151,6 +172,108 @@ const WalletHeader = ({
       ...createAccountSelectorNavDetails({}),
     );
   }, [navigation]);
+
+  // Array.from splits by code point so an emoji is never cut in half.
+  const accountNameChars = Array.from(displayName);
+  const pickerAccountName =
+    isInterimLayout && accountNameChars.length > INTERIM_ACCOUNT_NAME_MAX_CHARS
+      ? `${accountNameChars.slice(0, INTERIM_ACCOUNT_NAME_MAX_CHARS).join('')}...`
+      : displayName;
+
+  const accountPicker = (
+    <View style={accountPickerContainerStyle}>
+      <PickerAccount
+        accountName={pickerAccountName}
+        onPress={handleAccountPickerPress}
+        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+        hitSlop={touchAreaSlop}
+        style={headerAccountPickerStyle}
+      />
+    </View>
+  );
+
+  if (isInterimLayout && !useSearchHeaderLayout) {
+    const interimActions = (
+      <>
+        {isMoneyAccountVisible && (
+          <ButtonIcon
+            iconProps={{ color: MMDSIconColor.IconDefault }}
+            onPress={handleActivityPress}
+            iconName={MMDSIconName.Clock}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+            hitSlop={touchAreaSlop}
+          />
+        )}
+        <ButtonIcon
+          iconProps={{ color: MMDSIconColor.IconDefault }}
+          onPress={() => handleSearchPress()}
+          iconName={MMDSIconName.Search}
+          size={ButtonIconSize.Md}
+          testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+          accessibilityLabel={strings('wallet.search_accessibility_label')}
+          hitSlop={touchAreaSlop}
+        />
+        {hamburgerButton}
+      </>
+    );
+
+    if (!isGlassEnabled) {
+      return (
+        <HeaderRoot
+          testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+          endAccessory={
+            <View style={headerActionButtonsContainerStyle} accessible={false}>
+              {interimActions}
+            </View>
+          }
+          twClassName="pl-1 pr-3"
+        >
+          {accountPicker}
+        </HeaderRoot>
+      );
+    }
+
+    // The native glass only takes the capsule's corners when clipped.
+    const glassCapsuleClass =
+      'h-10 flex-row items-center overflow-hidden rounded-full';
+
+    return (
+      <HeaderRoot
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+        endAccessory={
+          <GlassView
+            glassEffectStyle="regular"
+            colorScheme={glassColorScheme}
+            isInteractive
+            style={tw.style(glassCapsuleClass, 'gap-2 px-2')}
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS}
+          >
+            {interimActions}
+          </GlassView>
+        }
+        twClassName="pl-3 pr-3"
+      >
+        <View style={accountPickerContainerStyle}>
+          <GlassView
+            glassEffectStyle="regular"
+            colorScheme={glassColorScheme}
+            isInteractive
+            style={tw.style(glassCapsuleClass, 'mr-4 max-w-full self-start')}
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER}
+          >
+            <PickerAccount
+              accountName={pickerAccountName}
+              onPress={handleAccountPickerPress}
+              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+              hitSlop={touchAreaSlop}
+              style={glassAccountPickerStyle}
+            />
+          </GlassView>
+        </View>
+      </HeaderRoot>
+    );
+  }
 
   if (!useSearchHeaderLayout) {
     return (
@@ -212,15 +335,7 @@ const WalletHeader = ({
         }
         twClassName="pl-1 pr-3"
       >
-        <View style={accountPickerContainerStyle}>
-          <PickerAccount
-            accountName={displayName}
-            onPress={handleAccountPickerPress}
-            testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-            hitSlop={touchAreaSlop}
-            style={headerAccountPickerStyle}
-          />
-        </View>
+        {accountPicker}
       </HeaderRoot>
     );
   }
