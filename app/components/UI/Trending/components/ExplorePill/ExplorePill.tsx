@@ -58,7 +58,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         gap={2}
       >
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
@@ -67,7 +67,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         </Text>
         {showChange ? (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={changeTextColor}
             numberOfLines={1}
