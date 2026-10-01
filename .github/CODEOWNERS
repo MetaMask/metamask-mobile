@@ -245,7 +245,6 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 
 # Social & AI Team
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
-app/components/UI/SocialFeed/                                        @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
