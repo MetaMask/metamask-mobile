@@ -289,7 +289,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           isLoading={isSubmitting}
           isFullWidth
         >
-          {strings('pro_subscription.join_pro')}
+          {strings('pro_subscription.join_orange')}
         </Button>
       </Box>
 

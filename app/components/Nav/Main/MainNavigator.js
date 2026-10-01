@@ -1291,6 +1291,10 @@ const MainNavigator = () => {
             component={MyProfileView}
           />
           <NativeStack.Screen
+            name={Routes.SOCIAL.V1_PROFILE}
+            component={MyProfileView}
+          />
+          <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
           />
@@ -1353,6 +1357,12 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
+          options={({ route }) => ({
+            headerShown: false,
+            ...(route.params?.entryPoint === 'home'
+              ? { animation: 'none' }
+              : slideFromRightNativeOptions),
+          })}
         />
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}

@@ -193,7 +193,7 @@ describe('SocialPostComposerView', () => {
     jest.useRealTimers();
   });
 
-  it('keeps Post disabled until text and a position are valid', () => {
+  it('keeps Post disabled until a position is selected', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     expect(
@@ -208,6 +208,19 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('enables Post when a position is selected, even with an empty caption', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
   });
 
   it('clips typed text at 250 characters', () => {
