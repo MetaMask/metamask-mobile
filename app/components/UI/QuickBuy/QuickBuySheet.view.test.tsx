@@ -225,8 +225,12 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await selectQuarterBuy(screen);
 
-    await waitForQuoteTotal(screen);
-    expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
+      },
+      { timeout: WAIT_MS },
+    );
   });
 
   it('enables confirm when a valid amount and quote are available', async () => {
@@ -851,11 +855,16 @@ describeForPlatforms('QuickBuySheet', () => {
   it('shows the fee token chip in quote details for gasless quotes', async () => {
     const screen = await openQuoteDetails(true);
 
-    expect(
-      within(
-        screen.getByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
-      ).getByText('ETH'),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(
+          within(
+            screen.getByTestId(QuickBuySheetSelectorsIDs.GASLESS_FEE_TOKEN),
+          ).getByText('ETH'),
+        ).toBeOnTheScreen();
+      },
+      { timeout: WAIT_MS },
+    );
   });
 
   it('hides the fee token chip in quote details for regular quotes', async () => {
@@ -874,7 +883,12 @@ describeForPlatforms('QuickBuySheet', () => {
       discountType: DiscountType.PROMO,
     });
 
-    expect(screen.getByText('Promo')).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(screen.getByText('Promo')).toBeOnTheScreen();
+      },
+      { timeout: WAIT_MS },
+    );
     expect(screen.getByText('0.875%')).toBeOnTheScreen();
     expect(screen.getByText('0%')).toBeOnTheScreen();
   });

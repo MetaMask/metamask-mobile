@@ -141,6 +141,26 @@ const toQuickBuyReduxQuote = (
       destTokenAmount?: string;
       minDestTokenAmount?: string;
       priceData?: { priceImpact?: unknown };
+      gasIncluded?: boolean;
+      feeData?: {
+        metabridge?: {
+          quoteBpsFee?: number;
+          baseBpsFee?: number;
+          discountType?: string;
+        };
+        txFee?: {
+          amount?: string;
+          maxFeePerGas?: string;
+          maxPriorityFeePerGas?: string;
+          asset?: {
+            address?: string;
+            symbol?: string;
+            decimals?: number;
+            name?: string;
+            assetId?: string;
+          };
+        };
+      };
     };
   },
 ) => {
@@ -152,6 +172,10 @@ const toQuickBuyReduxQuote = (
   const destDecimals = raw.quote?.destAsset?.decimals ?? USDC_DEST.decimals;
   const destSymbol = raw.quote?.destAsset?.symbol ?? USDC_DEST.symbol;
   const priceImpactAmount = priceImpactAmountFromRaw(raw);
+  const gasIncluded = Boolean(raw.quote?.gasIncluded);
+  const metabridgeFee = raw.quote?.feeData?.metabridge;
+  const txFee = raw.quote?.feeData?.txFee;
+  const ethAssetId = formatAddressToAssetId(srcTokenAddress, 1);
 
   return {
     namespace: 'eip155',
@@ -192,8 +216,17 @@ const toQuickBuyReduxQuote = (
               decimals: 18,
               symbol: 'ETH',
               name: 'Ether',
-              assetId: formatAddressToAssetId(srcTokenAddress, 1),
+              assetId: ethAssetId,
             },
+            ...(metabridgeFee?.quoteBpsFee !== undefined
+              ? { quoteBpsFee: metabridgeFee.quoteBpsFee }
+              : {}),
+            ...(metabridgeFee?.baseBpsFee !== undefined
+              ? { baseBpsFee: metabridgeFee.baseBpsFee }
+              : {}),
+            ...(metabridgeFee?.discountType
+              ? { discountType: metabridgeFee.discountType }
+              : {}),
           },
         ],
         network: [
@@ -204,8 +237,25 @@ const toQuickBuyReduxQuote = (
             asset: getNativeAssetForChainId(1),
           },
         ],
+        // Gasless fees are read from txFee, not network. Keep the same $2
+        // enrichment the network row already uses so the label stays "$2".
+        ...(gasIncluded
+          ? {
+              txFee: [
+                {
+                  amount: txFee?.amount ?? QUICK_BUY_QUOTE_TX_FEE_AMOUNT,
+                  normalizedAmount: '0.001',
+                  valueInCurrency: '2',
+                  maxFeePerGas: txFee?.maxFeePerGas ?? '4667609171',
+                  maxPriorityFeePerGas:
+                    txFee?.maxPriorityFeePerGas ?? '1000000004',
+                  asset: getNativeAssetForChainId(1),
+                },
+              ],
+            }
+          : {}),
       },
-      gasIncluded: false,
+      gasIncluded,
       ...(priceImpactAmount
         ? { priceData: { priceImpact: { amount: priceImpactAmount } } }
         : {}),
