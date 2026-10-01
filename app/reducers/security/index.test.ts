@@ -3,6 +3,8 @@ import {
   type AllowLoginWithRememberMeUpdated,
   type SetDataCollectionForMarketing,
   type SetOsAuthEnabled,
+  type SetShouldShowConsentSheet,
+  type SetDataSharingPreference,
 } from '../../actions/security';
 import { SecuritySettingsState } from '../../actions/security/state';
 import securityReducer from '.';
@@ -13,6 +15,8 @@ describe('securityReducer', () => {
     dataCollectionForMarketing: null,
     isNFTAutoDetectionModalViewed: false,
     osAuthEnabled: true,
+    shouldShowConsentSheet: true,
+    dataSharingPreference: null,
   };
 
   it('sets allowLoginWithRememberMe to true', () => {
@@ -56,6 +60,38 @@ describe('securityReducer', () => {
     const expectedState = {
       ...initialState,
       osAuthEnabled: false,
+    };
+
+    const newState = securityReducer(initialState, action);
+
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('sets shouldShowConsentSheet to false', () => {
+    const action: SetShouldShowConsentSheet = {
+      type: ActionType.SET_SHOULD_SHOW_CONSENT_SHEET,
+      shouldShow: false,
+    };
+
+    const expectedState = {
+      ...initialState,
+      shouldShowConsentSheet: false,
+    };
+
+    const newState = securityReducer(initialState, action);
+
+    expect(newState).toEqual(expectedState);
+  });
+
+  it('sets dataSharingPreference to false', () => {
+    const action: SetDataSharingPreference = {
+      type: ActionType.SET_DATA_SHARING_PREFERENCE,
+      preference: false,
+    };
+
+    const expectedState = {
+      ...initialState,
+      dataSharingPreference: false,
     };
 
     const newState = securityReducer(initialState, action);
