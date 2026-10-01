@@ -129,55 +129,6 @@ jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
   useOHLCVRealtime: () => ({ latestBar: null }),
 }));
 
-jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
-  const { View, Pressable, Text } = jest.requireActual('react-native');
-  const { ChartType: MockChartType } = jest.requireActual(
-    '../../Charts/AdvancedChart/AdvancedChart.types',
-  );
-  const MockSelector = ({
-    onSelect,
-    onChartTypeSelect,
-    onChartTypeToggle,
-    isChartLoading,
-  }: {
-    onSelect: (r: string) => void;
-    onChartTypeSelect?: (type: number) => void;
-    onChartTypeToggle?: () => void;
-    isChartLoading?: boolean;
-  }) => (
-    <View
-      testID="mock-time-range-selector"
-      accessibilityState={{ busy: isChartLoading }}
-    >
-      <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
-      <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
-      {(onChartTypeSelect || onChartTypeToggle) && (
-        <Pressable
-          testID="toggle-chart-type"
-          onPress={() =>
-            onChartTypeSelect
-              ? onChartTypeSelect(MockChartType.Candles)
-              : onChartTypeToggle?.()
-          }
-        >
-          <Text>Toggle</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-  return {
-    __esModule: true,
-    default: MockSelector,
-    TIME_RANGE_CONFIGS: {
-      '1H': { timePeriod: '1h', durationMs: 60 * 60 * 1000 },
-      '1D': { timePeriod: '1d', durationMs: 24 * 60 * 60 * 1000 },
-      '1W': { timePeriod: '1w', durationMs: 7 * 24 * 60 * 60 * 1000 },
-      '1M': { timePeriod: '1m', durationMs: 30 * 24 * 60 * 60 * 1000 },
-      '1Y': { timePeriod: '1y', durationMs: 365 * 24 * 60 * 60 * 1000 },
-    },
-  };
-});
-
 jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
   const { View, Pressable } = jest.requireActual('react-native');
   return {
@@ -200,33 +151,6 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
           testID="toggle-bol"
           onPress={() => onIndicatorToggle?.('BOL')}
         />
-      </View>
-    ),
-  };
-});
-
-jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
-  const { View, Pressable, Text } = jest.requireActual('react-native');
-  const { TOKEN_OVERVIEW_CHART_INTERVALS } = jest.requireActual(
-    './tokenOverviewChart.constants',
-  );
-  return {
-    __esModule: true,
-    default: ({
-      onIntervalSelect,
-    }: {
-      onIntervalSelect?: (interval: string) => void;
-    }) => (
-      <View testID="mock-interval-bar">
-        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval: string) => (
-          <Pressable
-            key={interval}
-            accessibilityLabel={interval}
-            onPress={() => onIntervalSelect?.(interval.toUpperCase())}
-          >
-            <Text>{interval}</Text>
-          </Pressable>
-        ))}
       </View>
     ),
   };
@@ -268,6 +192,14 @@ const baseProps: PriceAdvancedProps = {
   comparePrice: 100,
   isLoading: false,
   prices: mockPricesAtLeast5,
+};
+
+const revealAdvancedChart = (
+  getByTestId: ReturnType<typeof render>['getByTestId'],
+) => {
+  act(() => {
+    getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+  });
 };
 
 describe('PriceAdvanced', () => {
@@ -353,9 +285,11 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
   });
 
-  it('renders TimeRangeSelector when chart has data', () => {
-    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-    expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
+  it('renders time range filters after the chart is revealed', () => {
+    const { getByTestId, getByText } = render(<PriceAdvanced {...baseProps} />);
+    revealAdvancedChart(getByTestId);
+
+    expect(getByText('1D')).toBeOnTheScreen();
   });
 
   it('falls back to legacy chart when hasEmptyData is true', () => {
@@ -424,9 +358,10 @@ describe('PriceAdvanced', () => {
   });
 
   it('tracks chart_interacted with timeframe_changed when a different time range is selected', () => {
-    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId, getByText } = render(<PriceAdvanced {...baseProps} />);
+    revealAdvancedChart(getByTestId);
 
-    fireEvent.press(getByTestId('select-1W'));
+    fireEvent.press(getByText('1W'));
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -441,17 +376,21 @@ describe('PriceAdvanced', () => {
   });
 
   it('does not track when selecting the already-active time range', () => {
-    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId, getByText } = render(<PriceAdvanced {...baseProps} />);
+    revealAdvancedChart(getByTestId);
 
-    fireEvent.press(getByTestId('select-1D'));
+    fireEvent.press(getByText('1D'));
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('tracks chart_interacted with chart_type_changed when chart type is toggled', () => {
-    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId, getByLabelText } = render(
+      <PriceAdvanced {...baseProps} />,
+    );
+    revealAdvancedChart(getByTestId);
 
-    fireEvent.press(getByTestId('toggle-chart-type'));
+    fireEvent.press(getByLabelText('Switch to candlestick chart'));
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -476,11 +415,12 @@ describe('PriceAdvanced', () => {
   });
 
   it('re-fetches with new params after time range change', () => {
-    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+    const { getByTestId, getByText } = render(<PriceAdvanced {...baseProps} />);
+    revealAdvancedChart(getByTestId);
     mockUseOHLCVChart.mockClear();
 
     act(() => {
-      fireEvent.press(getByTestId('select-1W'));
+      fireEvent.press(getByText('1W'));
     });
 
     expect(mockUseOHLCVChart).toHaveBeenCalledWith(
@@ -989,39 +929,6 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
     });
 
-    it('keeps TimeRangeSelector loading until advanced chart is revealed', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const timeRangeSelector = getByTestId('mock-time-range-selector');
-
-      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(true);
-
-      act(() => {
-        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
-      });
-
-      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
-    });
-
-    it('keeps TimeRangeSelector visible after time range change when technical indicators FF is OFF', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-
-      act(() => {
-        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
-      });
-
-      expect(
-        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
-      ).toBe(false);
-
-      act(() => {
-        fireEvent.press(getByTestId('select-1W'));
-      });
-
-      expect(
-        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
-      ).toBe(false);
-    });
-
     it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
@@ -1034,18 +941,16 @@ describe('PriceAdvanced', () => {
         return ChartType.Candles;
       });
 
-      const { getByTestId, queryByTestId } = render(
+      const { getByTestId, getByText, queryByTestId, queryByText } = render(
         <PriceAdvanced {...baseProps} />,
       );
 
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByText('5m')).toBeNull();
       expect(queryByTestId('mock-indicator-bar')).toBeNull();
 
-      act(() => {
-        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
-      });
+      revealAdvancedChart(getByTestId);
 
-      expect(getByTestId('mock-interval-bar')).toBeOnTheScreen();
+      expect(getByText('5m')).toBeOnTheScreen();
       expect(getByTestId('mock-indicator-bar')).toBeOnTheScreen();
     });
 
@@ -1061,11 +966,11 @@ describe('PriceAdvanced', () => {
         return ChartType.Candles;
       });
 
-      const { getByTestId, queryByTestId } = render(
+      const { getByTestId, queryByTestId, queryByText } = render(
         <PriceAdvanced {...baseProps} />,
       );
 
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByText('5m')).toBeNull();
       expect(queryByTestId('mock-indicator-bar')).toBeNull();
 
       act(() => {
@@ -1075,17 +980,20 @@ describe('PriceAdvanced', () => {
       });
 
       expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
+      expect(queryByText('5m')).toBeNull();
       expect(queryByTestId('mock-indicator-bar')).toBeNull();
     });
 
     it('starts time range visibility trace when time range changes', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const { getByTestId, getByText } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+      revealAdvancedChart(getByTestId);
 
       mockTrace.mockClear();
 
       act(() => {
-        fireEvent.press(getByTestId('select-1W'));
+        fireEvent.press(getByText('1W'));
       });
 
       expect(mockTrace).toHaveBeenCalledWith(
@@ -1097,13 +1005,11 @@ describe('PriceAdvanced', () => {
     });
 
     it('supersedes previous trace when series key changes before skeleton hidden', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const { rerender } = render(<PriceAdvanced {...baseProps} />);
 
       mockEndTrace.mockClear();
 
-      act(() => {
-        fireEvent.press(getByTestId('select-1W'));
-      });
+      rerender(<PriceAdvanced {...baseProps} currentCurrency="EUR" />);
 
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1668,21 +1574,21 @@ describe('PriceAdvanced', () => {
 
     it('uses config.timePeriod for 1H time range when technical indicators flag is OFF', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
-
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const { getByTestId, getByText } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+      revealAdvancedChart(getByTestId);
 
       mockUseOHLCVChart.mockClear();
 
-      // Simulate selecting 1H time range
-      const mockTimeRangeSelector = getByTestId('mock-time-range-selector');
-      // Since the mock doesn't have a 1H button, we'll verify the initial state
-      // The important part is that when flag is OFF, it should use config.timePeriod
+      fireEvent.press(getByText('1H'));
 
-      // For '1H' timeRange:
-      // - WS_INTERVAL_BY_TIME_RANGE['1H'] = '1m'
-      // - CHART_INTERVAL_CONFIGS['1m'] = '1d'
-      // - TIME_RANGE_CONFIGS['1H'].timePeriod = '1h'
-      // With flag OFF, should use '1h', not '1d'
+      expect(mockUseOHLCVChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriod: '1h',
+          interval: undefined,
+        }),
+      );
     });
 
     it('uses CHART_INTERVAL_CONFIGS when technical indicators flag is ON', () => {
@@ -1706,21 +1612,7 @@ describe('PriceAdvanced', () => {
     it('correctly derives timePeriod for each time range when flag is OFF', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
 
-      const testCases: {
-        range: string;
-        expectedTimePeriod: string;
-        wsInterval: string;
-      }[] = [
-        { range: '1H', expectedTimePeriod: '1h', wsInterval: '1m' },
-        { range: '1D', expectedTimePeriod: '1d', wsInterval: '15m' },
-        { range: '1W', expectedTimePeriod: '1w', wsInterval: '1h' },
-        { range: '1M', expectedTimePeriod: '1m', wsInterval: '1d' },
-        { range: '1Y', expectedTimePeriod: '1y', wsInterval: '1d' },
-      ];
-
-      // We can only test the initial render with '1D'
-      // since our mock selector doesn't expose all time ranges
-      const { rerender } = render(<PriceAdvanced {...baseProps} />);
+      render(<PriceAdvanced {...baseProps} />);
 
       expect(mockUseOHLCVChart).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1922,9 +1814,12 @@ describe('PriceAdvanced', () => {
         return ChartType.Line;
       });
 
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const { getByTestId, getByText } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+      revealAdvancedChart(getByTestId);
 
-      fireEvent.press(getByTestId('select-1W'));
+      fireEvent.press(getByText('1W'));
 
       expect(mockDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({

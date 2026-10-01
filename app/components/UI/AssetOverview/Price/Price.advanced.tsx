@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -17,6 +17,7 @@ import {
   CHART_INTERVAL_CONFIGS,
   isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
+  TOKEN_OVERVIEW_CHART_INTERVALS,
 } from './tokenOverviewChart.constants';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
@@ -31,7 +32,7 @@ import {
   type CrosshairData,
   type IndicatorType,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
-import TimeRangeSelector, {
+import {
   TIME_RANGE_CONFIGS,
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
@@ -39,14 +40,26 @@ import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
-import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
+import ChartTypeToggle from '../../Charts/AdvancedChart/ChartTypeToggle';
 
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
-import { Box, TextColor } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+  IconName,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -88,6 +101,8 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1M': 'asset_overview.chart_time_period.1m',
   '1Y': 'asset_overview.chart_time_period.1y',
 };
+
+const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
 /** Maps {@link ohlcvSeriesKey} transitions to Sentry trace name/op (dashboards filter by name or op). */
 function getAdvancedChartVisibilityTraceRequest(
@@ -940,6 +955,80 @@ const PriceAdvanced = ({
     [],
   );
 
+  const renderTimeRangeSelector = () => (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="w-full px-4"
+    >
+      <FilterButtonGroup
+        value={timeRange}
+        onChange={(range) => handleTimeRangeSelect(range as TimeRange)}
+        variant={FilterButtonVariant.Secondary}
+        twClassName="flex-1 justify-between"
+      >
+        {TIME_RANGES.map((range) => (
+          <FilterButton key={range} value={range} size={FilterButtonSize.Sm}>
+            {range}
+          </FilterButton>
+        ))}
+      </FilterButtonGroup>
+      <ButtonIcon
+        iconName={
+          chartType === ChartType.Candles
+            ? IconName.Diagram
+            : IconName.Candlestick
+        }
+        size={ButtonIconSize.Sm}
+        onPress={toggleChartType}
+        accessibilityLabel={
+          chartType === ChartType.Candles
+            ? 'Switch to line chart'
+            : 'Switch to candlestick chart'
+        }
+      />
+    </Box>
+  );
+
+  const renderIntervalSelector = () => (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="w-full px-4"
+    >
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.intervalSelectorScrollView}
+        contentContainerStyle={styles.intervalSelectorScrollViewContent}
+      >
+        <FilterButtonGroup
+          value={displayInterval.toLowerCase()}
+          onChange={(interval) =>
+            handleInlineIntervalSelect(interval.toUpperCase())
+          }
+          variant={FilterButtonVariant.Secondary}
+          twClassName="gap-1"
+        >
+          {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval) => (
+            <FilterButton
+              key={interval}
+              value={interval}
+              size={FilterButtonSize.Sm}
+            >
+              {interval}
+            </FilterButton>
+          ))}
+        </FilterButtonGroup>
+      </ScrollView>
+      <ChartTypeToggle
+        chartType={chartType}
+        onChartTypeSelect={handleChartTypeSelect}
+        containerTwClassName="shrink-0 rounded-full border border-border-muted p-0.5"
+      />
+    </Box>
+  );
+
   if (shouldFallbackToLegacy) {
     return (
       <PriceLegacy
@@ -999,14 +1088,7 @@ const PriceAdvanced = ({
       {isTechnicalIndicatorsEnabled && shouldShowTechnicalIndicators && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
-            <Box twClassName="w-full">
-              <IntervalBar
-                selectedInterval={displayInterval}
-                onIntervalSelect={handleInlineIntervalSelect}
-                chartType={chartType}
-                onChartTypeSelect={handleChartTypeSelect}
-              />
-            </Box>
+            {renderIntervalSelector()}
           </View>
         </View>
       )}
@@ -1095,14 +1177,13 @@ const PriceAdvanced = ({
       ) : !shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled ? (
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
-            <TimeRangeSelector
-              isChartLoading={isInitialChartPending}
-              selected={timeRange}
-              onSelect={handleTimeRangeSelect}
-              chartType={chartType}
-              onChartTypeToggle={toggleChartType}
-              selectedColor={initialAmbientColor}
-            />
+            {isInitialChartPending ? (
+              <Box twClassName="w-full px-4">
+                <Skeleton height={29} width="100%" />
+              </Box>
+            ) : (
+              renderTimeRangeSelector()
+            )}
           </View>
         </View>
       ) : (

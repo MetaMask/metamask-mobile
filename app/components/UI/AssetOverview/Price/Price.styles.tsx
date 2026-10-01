@@ -54,17 +54,19 @@ const styleSheet = (params: { theme: Theme }) =>
       width: '100%',
       alignSelf: 'stretch',
     } as ViewStyle,
+    intervalSelectorScrollView: {
+      flex: 1,
+    } as ViewStyle,
+    intervalSelectorScrollViewContent: {
+      flexGrow: 1,
+    } as ViewStyle,
     noDataOverlay: {
       ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 2,
     } as ViewStyle,
-    /**
-     * Segment row for legacy chart periods; matches {@link TimeRangeSelector} segment padding (`py-1` / `px-4`).
-     * Vertical spacing chart→selector and selector→actions comes from the parent `timeRangeContainer`
-     * (same as `Price.advanced`).
-     */
+    /** Layout container for the legacy chart's MMDS time-period filter group. */
     chartNavigationWrapper: {
       display: 'flex',
       flexDirection: 'row',
