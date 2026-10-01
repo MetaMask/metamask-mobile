@@ -120,7 +120,7 @@ test('a scenario at 1.5 times the recent median becomes a finding', () => {
   assert.doesNotMatch(slack, /subteam|<!/);
 });
 
-test('two scenarios crossing together become one run-level anomaly', () => {
+test('two scenarios crossing together are each named in the digest', () => {
   const current = report('4', [
     scenario('Perps add funds', 200),
     scenario('Money Home after importing SRP with funded balance', 350),
@@ -136,7 +136,8 @@ test('two scenarios crossing together become one run-level anomaly', () => {
   const slack = buildScheduledExceptionSlack(exception);
 
   assert.equal(exception.findings.length, 2);
-  assert.match(slack, /one run-level anomaly, not 2 regressions/);
+  assert.match(slack, /2 scenarios\* each exceeded 1\.5×/);
+  assert.match(slack, /tracked on its own bug/);
   assert.match(slack, /owner mm-perps-engineering-team/);
   assert.match(slack, /owner mm-earn-team/);
 });
@@ -191,7 +192,7 @@ test('a finding links the GitHub issue that tracks it', () => {
   assert.equal(buildPerformanceChannelSlack(exception), null);
 });
 
-test('a slow run links its single run-level issue', () => {
+test('two newly opened bugs are each linked and mention their team', () => {
   const current = report('4', [
     scenario('Perps add funds', 200),
     scenario('Money Home after importing SRP with funded balance', 350),
@@ -203,34 +204,40 @@ test('a slow run links its single run-level issue', () => {
     ]),
   );
   const exception = buildScheduledException(current, baseline);
-  exception.meta.slowRunIssue = {
+  exception.findings[0].issue = {
     number: 600,
     url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
-    created: false,
+    created: true,
+  };
+  exception.findings[1].issue = {
+    number: 601,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/601',
+    created: true,
   };
 
   const slack = buildScheduledExceptionSlack(exception);
-
-  assert.match(slack, /one run-level anomaly, not 2 regressions/);
-  assert.match(slack, /already open for slow runs, referenced/);
-  assert.doesNotMatch(slack, /subteam/);
-  assert.equal(buildPerformanceChannelSlack(exception), null);
-  assert.match(
-    buildScheduledExceptionMarkdown(exception),
-    /GitHub issue: \[#600\]\(.*\/600\) already open for slow runs, referenced/,
-  );
-
-  exception.meta.slowRunIssue.created = true;
   const performance = buildPerformanceChannelSlack(exception);
+
+  assert.match(slack, /#600> opened/);
+  assert.match(slack, /#601> opened/);
+  assert.doesNotMatch(slack, /subteam/);
+  assert.match(performance, /\*App profiling: bugs opened for review\*/);
+  assert.match(performance, /A bug is open for each owning team/);
   assert.match(
     performance,
-    /\*App profiling: slow run, one bug opened for review\*/,
+    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/600\|#600>/,
   );
-  assert.match(performance, /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/);
-  assert.match(performance, /<!subteam\^S052NJFKX6Y\|mm-earn-team>/);
   assert.match(
-    buildScheduledExceptionSlack(exception),
-    /opened for this slow run/,
+    performance,
+    /<!subteam\^S052NJFKX6Y\|mm-earn-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/601\|#601>/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /\[#600\]\(.*\/600\) opened/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /\[#601\]\(.*\/601\) opened/,
   );
 });
 

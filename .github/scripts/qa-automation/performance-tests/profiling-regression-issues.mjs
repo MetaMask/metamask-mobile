@@ -7,9 +7,8 @@
  * One finding (a scenario over 1.5× its recent median) becomes one issue that
  * follows `.github/ISSUE_TEMPLATE/bug-report.yml`, labelled for the owning
  * team. A finding that recurs while its issue is still open is recorded as a
- * comment on that issue instead of a new one. A run where several scenarios
- * crossed together is one run-level issue, not one per team, because the run
- * is the common factor.
+ * comment on that issue instead of a new one. Several scenarios crossing in
+ * the same run each get their own issue.
  *
  * Every issue and recurrence comment carries a machine-readable HTML marker so
  * the Monday report can list what was opened during the week without parsing
@@ -25,6 +24,7 @@ import { scenarioTeam } from './link-scenario-artifacts.mjs';
 
 export const ISSUE_MARKER = 'hermes-profile-regression';
 export const RECURRENCE_MARKER = 'hermes-profile-regression-recurrence';
+/** Marker key of run-level issues opened before each scenario got its own bug. */
 export const SLOW_RUN_KEY = 'slow-run';
 /** `type-bug` and `regression-main` follow the labeler for a `main` bug. */
 export const BASE_LABELS = ['type-bug', 'area-performance', 'regression-main'];
@@ -486,161 +486,25 @@ export function buildRegressionIssue({
   };
 }
 
-function slowRunScenarioLines(exception) {
-  const formatted = formatDurationsAlike(
-    exception.findings.flatMap((finding) => [
-      finding.jsWorkMs,
-      finding.baselineMedianJsWorkMs,
-    ]),
-  );
-  return exception.findings.map((finding, index) => {
-    const team = scenarioTeam(displayName(finding.scenario));
-    return `- **${displayName(finding.scenario)}** — JS work ${formatted[index * 2]} vs ${formatted[index * 2 + 1]} recent median (${finding.ratio}×) · owner \`${team.handle}\``;
-  });
-}
-
-/**
- * One issue for a run where several scenarios crossed together. The run is
- * the common factor, so no team is routed and no per-scenario issue is
- * opened; the next slow run is a comment on this one while it stays open.
- */
-export function buildSlowRunIssue({
-  exception,
-  currentReport,
-  aiText = null,
-  appVersion = null,
-  profileAttachments = [],
-}) {
-  const headSha = currentReport?.meta?.headSha || null;
-  const count = exception.findings.length;
-  const projects = [
-    ...new Set(exception.findings.map((finding) => finding.projectName)),
-  ];
-  const body = [
-    '### Describe the bug',
-    '',
-    `Performance run [${exception.meta.runId}](${exception.meta.runUrl}) exceeded ${exception.meta.thresholdRatio}× the recent median JS work in **${count} scenarios at once**. Several scenarios crossing in the same run points at the run (device, agent, or an app-wide change), not at ${count} independent regressions, so this is tracked as one run-level anomaly and no team is routed.`,
-    '',
-    ...slowRunScenarioLines(exception),
-    '',
-    '### Expected behavior',
-    '',
-    `No scenario exceeds ${exception.meta.thresholdRatio}× its recent median JS work in a scheduled run on \`main\`.`,
-    '',
-    '### Screenshots/Recordings',
-    '',
-    ...recordingsLines(currentReport, profileAttachments),
-    '',
-    '### Steps to reproduce',
-    '',
-    `1. Open the performance run [${exception.meta.runId}](${exception.meta.runUrl}) and check the device and agent it ran on.`,
-    '2. Run Actions → Analyze App Profiling with `run_id` set to that run to rebuild the per-scenario report.',
-    '3. Compare the flagged scenarios with the previous two scheduled runs; if the next scheduled run is clean, this was one slow run.',
-    '',
-    '### Error messages or log output',
-    '',
-    '```shell',
-    `Run: ${exception.meta.runId}`,
-    `Scenarios over ${exception.meta.thresholdRatio}×: ${count} of ${exception.meta.comparedScenarioCount} compared`,
-    ...exception.findings.map(
-      (finding) =>
-        `${displayName(finding.scenario)}: ${formatMs(finding.jsWorkMs)} vs ${formatMs(finding.baselineMedianJsWorkMs)} recent median (${finding.ratio}×)`,
-    ),
-    '```',
-    '',
-    '### Where was this bug found?',
-    '',
-    'Scheduled performance CI on `main` (not a store or release-candidate build)',
-    '',
-    '### Version',
-    '',
-    versionLine(appVersion, headSha),
-    '',
-    '### Build number',
-    '',
-    buildNumberLine(headSha),
-    '',
-    '### Build type',
-    '',
-    'Other (CI `main-e2e` build used by the scheduled performance suite)',
-    '',
-    '### Device',
-    '',
-    `BrowserStack device of the scheduled performance suite (projects: ${projects.map((project) => `\`${project}\``).join(', ')})`,
-    '',
-    '### Operating system',
-    '',
-    [...new Set(projects.map(operatingSystem))].join(', '),
-    '',
-    '### Additional context',
-    '',
-    ...additionalContextLines({ exception, currentReport, aiText }),
-    '',
-    '### Severity',
-    '',
-    'Low until the same scenarios stay slow in the next scheduled run; a single slow run is usually infrastructure noise.',
-    '',
-    encodeMarker(ISSUE_MARKER, {
-      key: SLOW_RUN_KEY,
-      kind: 'slow-run',
-      scenarios: exception.findings.map((finding) => displayName(finding.scenario)),
-      runId: String(exception.meta.runId),
-      maxRatio: Math.max(...exception.findings.map((finding) => finding.ratio)),
-      detectedAt: exception.meta.createdAt || null,
-    }),
-    '',
-  ].join('\n');
-
-  return {
-    key: SLOW_RUN_KEY,
-    title: `[Bug]: Hermes slow run — ${count} scenarios over ${exception.meta.thresholdRatio}× in run ${exception.meta.runId}`,
-    body,
-    labels: [...BASE_LABELS],
-    owner: null,
-  };
-}
-
 export function buildRecurrenceComment({
   exception,
-  finding = null,
+  finding,
   profileAttachment = null,
-  profileAttachments = [],
 }) {
-  const attached = finding
-    ? [attachmentMarkdown(profileAttachment)].filter(Boolean)
-    : profileAttachments
-        .map((attachment) =>
-          attachmentMarkdown(attachment, attachment.label || null),
-        )
-        .filter(Boolean);
-  if (finding) {
-    const [current, baseline] = formatDurationsAlike([
-      finding.jsWorkMs,
-      finding.baselineMedianJsWorkMs,
-    ]);
-    return [
-      `Flagged again in performance run [${exception.meta.runId}](${exception.meta.runUrl}): JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs).`,
-      ...(attached.length ? ['', ...attached] : []),
-      '',
-      encodeMarker(RECURRENCE_MARKER, {
-        runId: String(exception.meta.runId),
-        ratio: finding.ratio,
-        jsWorkMs: finding.jsWorkMs,
-        baselineMedianJsWorkMs: finding.baselineMedianJsWorkMs,
-        detectedAt: exception.meta.createdAt || null,
-      }),
-    ].join('\n');
-  }
+  const attached = [attachmentMarkdown(profileAttachment)].filter(Boolean);
+  const [current, baseline] = formatDurationsAlike([
+    finding.jsWorkMs,
+    finding.baselineMedianJsWorkMs,
+  ]);
   return [
-    `Another slow run: performance run [${exception.meta.runId}](${exception.meta.runUrl}) exceeded ${exception.meta.thresholdRatio}× in ${exception.findings.length} scenarios.`,
-    '',
-    ...slowRunScenarioLines(exception),
+    `Flagged again in performance run [${exception.meta.runId}](${exception.meta.runUrl}): JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs).`,
     ...(attached.length ? ['', ...attached] : []),
     '',
     encodeMarker(RECURRENCE_MARKER, {
       runId: String(exception.meta.runId),
-      scenarios: exception.findings.map((finding) => displayName(finding.scenario)),
-      maxRatio: Math.max(...exception.findings.map((finding) => finding.ratio)),
+      ratio: finding.ratio,
+      jsWorkMs: finding.jsWorkMs,
+      baselineMedianJsWorkMs: finding.baselineMedianJsWorkMs,
       detectedAt: exception.meta.createdAt || null,
     }),
   ].join('\n');
@@ -892,10 +756,10 @@ function attachFindingProfiles({
 }
 
 /**
- * Creates or references the issue for each finding and records the outcome
- * on the exception (`finding.issue` or `meta.slowRunIssue`) so the Slack and
- * markdown builders can link it. One failing GitHub call is recorded on that
- * finding and does not stop the others.
+ * Creates or references one issue per finding and records the outcome on
+ * `finding.issue` so the Slack and markdown builders can link it. Several
+ * findings in one run each get their own issue. One failing GitHub call is
+ * recorded on that finding and does not stop the others.
  */
 export function syncProfilingRegressionIssues({
   exception,
@@ -934,14 +798,16 @@ export function syncProfilingRegressionIssues({
     outputDirectory,
   });
   const results = [];
-  const sharedRun = exception.findings.length > 1;
-  if (sharedRun) {
-    const issue = buildSlowRunIssue({
+  for (const [index, finding] of exception.findings.entries()) {
+    const profileAttachment = attachments[index];
+    const issue = buildRegressionIssue({
+      finding,
       exception,
       currentReport,
+      frames,
       aiText,
       appVersion,
-      profileAttachments: attachments,
+      profileAttachment,
     });
     try {
       const outcome = syncOne({
@@ -951,54 +817,23 @@ export function syncProfilingRegressionIssues({
         issue,
         recurrence: buildRecurrenceComment({
           exception,
-          profileAttachments: attachments,
+          finding,
+          profileAttachment,
         }),
       });
-      exception.meta.slowRunIssue = outcome;
-      results.push({ key: issue.key, title: issue.title, ...outcome });
+      finding.issue = outcome;
+      results.push({
+        key: issue.key,
+        title: issue.title,
+        owner: issue.owner,
+        ...outcome,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.log(`ℹ️ Could not sync the slow-run issue: ${message}`);
-      exception.meta.slowRunIssue = { error: message };
-    }
-  } else {
-    for (const [index, finding] of exception.findings.entries()) {
-      const profileAttachment = attachments[index];
-      const issue = buildRegressionIssue({
-        finding,
-        exception,
-        currentReport,
-        frames,
-        aiText,
-        appVersion,
-        profileAttachment,
-      });
-      try {
-        const outcome = syncOne({
-          repo,
-          runGh,
-          tracked,
-          issue,
-          recurrence: buildRecurrenceComment({
-            exception,
-            finding,
-            profileAttachment,
-          }),
-        });
-        finding.issue = outcome;
-        results.push({
-          key: issue.key,
-          title: issue.title,
-          owner: issue.owner,
-          ...outcome,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.log(
-          `ℹ️ Could not sync the issue for ${displayName(finding.scenario)}: ${message}`,
-        );
-        finding.issue = { error: message };
-      }
+      console.log(
+        `ℹ️ Could not sync the issue for ${displayName(finding.scenario)}: ${message}`,
+      );
+      finding.issue = { error: message };
     }
   }
 

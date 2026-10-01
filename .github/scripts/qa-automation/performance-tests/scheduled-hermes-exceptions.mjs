@@ -152,17 +152,6 @@ function issueMarkdownSuffix(issue) {
   return ` — [#${issue.number}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
-function slowRunIssueSlackLine(meta) {
-  const issue = meta.slowRunIssue;
-  if (!issue) {
-    return null;
-  }
-  if (issue.error) {
-    return `_GitHub issue:_ not created (${issue.error})`;
-  }
-  return `_GitHub issue:_ <${issue.url}|#${issue.number}> ${issue.created ? 'opened for this slow run' : 'already open for slow runs, referenced'}`;
-}
-
 /**
  * Slack user-group mention for the scenario's owning team. A team with no
  * group id stays plain text, so the message does not invent a ping.
@@ -175,12 +164,10 @@ function slackOwnerMention(scenario) {
   return `<!subteam^${team.id}|${team.handle}>`;
 }
 
-function linkedBug(exception) {
-  const issue =
-    exception.findings.length > 1
-      ? exception.meta.slowRunIssue
-      : exception.findings[0]?.issue;
-  return issue?.url ? issue : null;
+function openedBugs(exception) {
+  return exception.findings.filter(
+    (finding) => finding.issue?.created && finding.issue?.url,
+  );
 }
 
 function findingComparison(finding) {
@@ -197,28 +184,26 @@ function findingComparison(finding) {
  * null so that channel stays quiet.
  */
 export function buildPerformanceChannelSlack(exception) {
-  const issue = linkedBug(exception);
-  if (!issue?.created) {
+  const opened = openedBugs(exception);
+  if (opened.length === 0) {
     return null;
   }
-  const bug = `<${issue.url}|#${issue.number}>`;
   const { meta } = exception;
   const lines = [];
-  if (exception.findings.length > 1) {
+  if (opened.length > 1) {
     lines.push(
-      '*App profiling: slow run, one bug opened for review*',
+      '*App profiling: bugs opened for review*',
       '',
-      `${exception.findings.length} scenarios exceeded ${meta.thresholdRatio}× their recent median JS work in the same run. One bug is open for review.`,
+      `${opened.length} scenarios exceeded ${meta.thresholdRatio}× their recent median JS work. A bug is open for each owning team.`,
       '',
     );
-    for (const finding of exception.findings) {
+    for (const finding of opened) {
       lines.push(
-        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)}`,
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>`,
       );
     }
-    lines.push('', `• Bug: ${bug}`);
   } else {
-    const finding = exception.findings[0];
+    const finding = opened[0];
     lines.push(
       '*App profiling: bug opened for review*',
       '',
@@ -226,7 +211,7 @@ export function buildPerformanceChannelSlack(exception) {
       '',
       `• JS work: ${findingComparison(finding)}`,
       `• Owner: ${slackOwnerMention(finding.scenario)}`,
-      `• Bug: ${bug}`,
+      `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
     );
   }
   lines.push(
@@ -235,17 +220,6 @@ export function buildPerformanceChannelSlack(exception) {
     '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
   );
   return lines.join('\n');
-}
-
-function slowRunIssueMarkdownLine(meta) {
-  const issue = meta.slowRunIssue;
-  if (!issue) {
-    return null;
-  }
-  if (issue.error) {
-    return `GitHub issue: not created (${issue.error})`;
-  }
-  return `GitHub issue: [#${issue.number}](${issue.url}) ${issue.created ? 'opened for this slow run' : 'already open for slow runs, referenced'}`;
 }
 
 /**
@@ -270,7 +244,7 @@ export function buildScheduledExceptionSlack(exception) {
     `_Baseline:_ median of the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~6h and ~12h)`,
     '',
     sharedRun
-      ? `*Slow run:* ${exception.findings.length} scenarios exceeded ${exception.meta.thresholdRatio}× their recent median in the same run. Treat this as one run-level anomaly, not ${exception.findings.length} regressions.`
+      ? `*${exception.findings.length} scenarios* each exceeded ${exception.meta.thresholdRatio}× their recent median. Each one is tracked on its own bug.`
       : `*Possible regression:* one scenario exceeded ${exception.meta.thresholdRatio}× its recent median.`,
     '_Owners are named for routing; no team is notified._',
     '',
@@ -283,10 +257,6 @@ export function buildScheduledExceptionSlack(exception) {
     lines.push(
       `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
     );
-  }
-  const slowRunIssue = slowRunIssueSlackLine(exception.meta);
-  if (slowRunIssue) {
-    lines.push('', slowRunIssue);
   }
   lines.push(
     '',
@@ -313,7 +283,7 @@ export function buildScheduledExceptionMarkdown(exception) {
   }
   lines.push(
     exception.findings.length > 1
-      ? `${exception.findings.length} scenarios crossed the threshold in one run; this is reported as one run-level anomaly.`
+      ? `${exception.findings.length} scenarios each crossed the threshold. Each one is tracked on its own bug.`
       : 'One scenario crossed the notification threshold.',
     '',
   );
@@ -325,10 +295,6 @@ export function buildScheduledExceptionMarkdown(exception) {
     lines.push(
       `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}`,
     );
-  }
-  const slowRunIssue = slowRunIssueMarkdownLine(exception.meta);
-  if (slowRunIssue) {
-    lines.push('', slowRunIssue);
   }
   return lines.join('\n');
 }

@@ -12,7 +12,6 @@ import {
   SLOW_RUN_KEY,
   buildRecurrenceComment,
   buildRegressionIssue,
-  buildSlowRunIssue,
   encodeMarker,
   fetchAppVersion,
   findOpenIssue,
@@ -264,50 +263,10 @@ test('a scenario without a team label gets only the base labels and no mention',
   assert.match(issue.body, /### Build number\n\nNot a store build: CI `main-e2e` build\n/);
 });
 
-test('a slow run becomes one issue with no team label', () => {
-  const findings = [
-    finding(),
-    finding({
-      scenario: 'Perps_add_funds',
-      owner: 'mm-perps-engineering-team',
-      jsWorkMs: 300,
-      baselineMedianJsWorkMs: 100,
-      ratio: 3,
-    }),
-  ];
-  const issue = buildSlowRunIssue({
-    exception: exception(findings),
-    currentReport: currentReport(),
-    appVersion: '7.60.0',
-  });
-
-  assert.equal(issue.key, SLOW_RUN_KEY);
-  assert.equal(issue.owner, null);
-  assert.deepEqual(issue.labels, BASE_LABELS);
-  assert.match(issue.title, /Hermes slow run — 2 scenarios over 1\.5× in run 36676470722/);
-  for (const section of BUG_REPORT_SECTIONS) {
-    assert.ok(issue.body.includes(`${section}\n`), `missing ${section}`);
-  }
-  assert.match(issue.body, /one run-level anomaly and no team is routed/);
-  assert.match(issue.body, /\*\*Perps add funds\*\* — JS work 0\.3 s vs 0\.1 s recent median \(3×\) · owner `mm-perps-engineering-team`/);
-  assert.doesNotMatch(issue.body, /@MetaMask\//);
-  assert.deepEqual(parseMarker(issue.body, ISSUE_MARKER), {
-    key: SLOW_RUN_KEY,
-    kind: 'slow-run',
-    scenarios: ['Measure Warm Start: Warm Start to Login Screen', 'Perps add funds'],
-    runId: '36676470722',
-    maxRatio: 3,
-    detectedAt: '2026-09-23T06:40:00.000Z',
-  });
-});
-
 test('recurrence comments carry the run and a machine-readable marker', () => {
   const scenarioComment = buildRecurrenceComment({
     exception: exception([finding()]),
     finding: finding(),
-  });
-  const slowRunComment = buildRecurrenceComment({
-    exception: exception([finding(), finding({ scenario: 'Perps_add_funds', ratio: 2 })]),
   });
 
   assert.match(scenarioComment, /Flagged again in performance run \[36676470722\]/);
@@ -321,8 +280,6 @@ test('recurrence comments carry the run and a machine-readable marker', () => {
       detectedAt: '2026-09-23T06:40:00.000Z',
     },
   ]);
-  assert.match(slowRunComment, /Another slow run/);
-  assert.equal(parseRecurrenceMarkers(slowRunComment)[0].maxRatio, 2);
 });
 
 test('issueNumberFromUrl reads the number gh prints', () => {
@@ -495,10 +452,15 @@ test('a closed issue for the same finding does not stop a new one', () => {
   assert.equal(calls.filter((args) => args[1] === 'create').length, 1);
 });
 
-test('several findings in one run open a single slow-run issue', () => {
+test('several findings in one run each open their own issue', () => {
+  let nextNumber = 600;
+  const bodies = [];
   const { calls, runGh } = fakeGh({
     'issue list': trackedIssueJson([]),
-    'issue create': 'https://github.com/MetaMask/metamask-mobile/issues/600\n',
+    'issue create': (args) => {
+      bodies.push(fs.readFileSync(args[args.indexOf('--body-file') + 1], 'utf8'));
+      return `https://github.com/MetaMask/metamask-mobile/issues/${nextNumber++}\n`;
+    },
   });
   const current = exception([
     finding(),
@@ -512,17 +474,19 @@ test('several findings in one run open a single slow-run issue', () => {
     runGh,
   });
 
-  assert.equal(calls.filter((args) => args[1] === 'create').length, 1);
-  assert.deepEqual(current.meta.slowRunIssue, {
-    number: 600,
-    url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
-    created: true,
-  });
-  assert.equal(current.findings[0].issue, undefined);
-  assert.equal(result.issues[0].key, SLOW_RUN_KEY);
-  const create = calls.find((args) => args[1] === 'create');
-  const labels = create.flatMap((arg, index) => (arg === '--label' ? [create[index + 1]] : []));
-  assert.deepEqual(labels, BASE_LABELS);
+  const creates = calls.filter((args) => args[1] === 'create');
+  assert.equal(creates.length, 2);
+  assert.equal(current.findings[0].issue.number, 600);
+  assert.equal(current.findings[1].issue.number, 601);
+  assert.equal(current.findings[0].issue.created, true);
+  assert.equal(current.findings[1].issue.created, true);
+  assert.equal(result.issues.length, 2);
+  const labelsFor = (args) =>
+    args.flatMap((arg, index) => (arg === '--label' ? [args[index + 1]] : []));
+  assert.ok(labelsFor(creates[0]).includes('team-mobile-platform'));
+  assert.ok(labelsFor(creates[1]).includes('team-perps'));
+  assert.match(bodies[0], /Warm Start to Login Screen/);
+  assert.match(bodies[1], /Perps add funds/);
 });
 
 test('a failing GitHub call is recorded on the finding and does not throw', () => {
