@@ -144,14 +144,14 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions?.[0].label).toBe('Adding funds');
     });
 
-    it('inProgress title/body is "Depositing" / "Card orders may take a few minutes." when intent is card', () => {
+    it('inProgress title/body is "Adding funds" / "Card orders may take a few minutes." when intent is card', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
       const toast = result.current.MoneyToastOptions.deposit.inProgress({
         intent: 'card',
       });
 
-      expect(toast.labelOptions?.[0].label).toBe('Depositing');
+      expect(toast.labelOptions?.[0].label).toBe('Adding funds');
       const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
         children?: React.ReactNode;
       }>;
@@ -196,7 +196,7 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions?.[0].label).toBe('Funds added');
     });
 
-    it('success title/body is "Deposit complete" / amount added when intent is card', () => {
+    it('success title/body is "Funds added" / amount added when intent is card', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
       const toast = result.current.MoneyToastOptions.deposit.success({
@@ -204,7 +204,7 @@ describe('useMoneyToasts', () => {
         intent: 'card',
       });
 
-      expect(toast.labelOptions?.[0].label).toBe('Deposit complete');
+      expect(toast.labelOptions?.[0].label).toBe('Funds added');
       const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
         children?: React.ReactNode;
       }>;
@@ -252,14 +252,14 @@ describe('useMoneyToasts', () => {
       expect(secondary.props.children).toBe('Unable to add funds. Try again.');
     });
 
-    it('failed title/body is "Deposit failed" / "Unable to add funds. Try again." for card', () => {
+    it('failed title/body is "Failed to add funds" / "Unable to add funds. Try again." for card', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
       const toast = result.current.MoneyToastOptions.deposit.failed({
         intent: 'card',
       });
 
-      expect(toast.labelOptions?.[0].label).toBe('Deposit failed');
+      expect(toast.labelOptions?.[0].label).toBe('Failed to add funds');
       const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
         children?: React.ReactNode;
       }>;
