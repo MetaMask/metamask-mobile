@@ -122,6 +122,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'UiSlotsController:stateChanged',
   'ClientController:stateChange',
   'DelegationController:stateChange',
+  'ProfileController:stateChange',
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
   'KycController:stateChange',
