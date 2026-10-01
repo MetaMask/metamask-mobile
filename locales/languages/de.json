@@ -610,10 +610,10 @@
     "steps": "Schritt {{currentStep}} von {{totalSteps}}",
     "password_error": "Passwörter stimmen nicht überein.",
     "marketing_opt_in_description": "Erhalten Sie Produkt-Updates, Tipps und Neuigkeiten auch per E-Mail. Wir können Ihre Interaktionen zur Verbesserung unseres Angebots nutzen.",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "MetaMask kann Ihr Passwort nicht zurücksetzen",
+    "password_warning_description_part1": "Sollten Sie dieses Passwort vergessen, erhalten Sie den Zugang nur mit Ihrer ",
     "password_warning_srp": "Geheime Wiederherstellungsphrase",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " oder einem Gerät mit aktivierter biometrischer Authentifizierung.",
     "password_warning_confirm": "Ich verstehe",
     "password_warning_cancel": "Stornieren"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Suche",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Suchen",
     "rewards_accessibility_label": "Belohnungen",
     "tokens": "Tokens",
     "view_all_nfts": "Alle NFTs anzeigen",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "Staken",
     "earn": "Verdienen",
     "tron": {
       "stake_completed": "Staking abgeschlossen",

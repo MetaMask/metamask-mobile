@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Ví",
     "search_accessibility_label": "Tìm kiếm",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Tìm kiếm",
     "rewards_accessibility_label": "Phần thưởng",
     "tokens": "Token",
     "view_all_nfts": "Xem tất cả NFT",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "Ký gửi",
     "earn": "Kiếm lợi nhuận",
     "tron": {
       "stake_completed": "Ký gửi đã hoàn tất",
