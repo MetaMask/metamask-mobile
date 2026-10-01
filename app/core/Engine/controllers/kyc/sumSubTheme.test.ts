@@ -74,6 +74,16 @@ describe('buildSumSubTheme', () => {
       expect(theme.ios?.colors).not.toHaveProperty('progressBarTint');
     });
 
+    it('compensates for the Material button insets on Android only', () => {
+      const theme = buildSumSubTheme();
+
+      // MaterialButton insets its background by 6dp top and bottom, so the
+      // view must be 60dp for a visible 48dp pill.
+      expect(theme.android?.metrics).toMatchObject({ buttonHeight: 60 });
+      expect(theme.ios?.metrics).not.toHaveProperty('buttonHeight');
+      expect(theme.universal.metrics).toMatchObject({ buttonHeight: 48 });
+    });
+
     it('includes the shared metrics', () => {
       const theme = buildSumSubTheme();
 
