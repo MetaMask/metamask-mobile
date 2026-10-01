@@ -67,9 +67,16 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
-  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect).
+  // RECEIVED is the funnel entry point; exactly one of ESTABLISHED / REJECTED /
+  // FAILED is the terminal outcome, which is what makes connection success rate
+  // computable per `transport_type`. REJECTED (user declined) is kept separate
+  // from FAILED (wallet/transport error) so user intent is not counted as a
+  // reliability failure.
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
   REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
+  REMOTE_CONNECTION_REQUEST_REJECTED = 'Remote Connection Request Rejected',
+  REMOTE_CONNECTION_ESTABLISHED = 'Remote Connection Established',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -960,6 +967,12 @@ const events = {
   ),
   REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
+  ),
+  REMOTE_CONNECTION_REQUEST_REJECTED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_REJECTED,
+  ),
+  REMOTE_CONNECTION_ESTABLISHED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_ESTABLISHED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)

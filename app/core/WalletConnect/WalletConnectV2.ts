@@ -56,6 +56,16 @@ import {
   getScopedPermissionsByAdapters,
 } from './multichain';
 import NavigationService from '../NavigationService';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import {
+  getErrorMessage,
+  isUserRejectedError,
+} from '../../util/errorHandling/isUserRejectedError';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
+import {
+  getWalletConnectSessionId,
+  trackWalletConnectEvent,
+} from './wc-analytics';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -551,6 +561,27 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
+    // Telemetry context for this connection attempt. `remote_session_id` is
+    // derived from the pairing topic so it matches the id the session's
+    // BackgroundBridge will later stamp onto transaction/signature events —
+    // that pairing is what makes conversion-to-transaction measurable.
+    // `dapp_name`/`dapp_url` are self-reported by the dapp (see the trust
+    // caveats on WalletConnect2Session.selfReportedUrl) and are reporting
+    // dimensions only.
+    const connectionTelemetry = {
+      remote_session_id: getWalletConnectSessionId(channelId),
+      transport_type: TransportType.WALLETCONNECT,
+      // Deliberately metadata.name, not the local `name` above — that one
+      // holds metadata.description because it feeds the approval UI.
+      dapp_name: metadata.name ?? '',
+      dapp_url: url,
+    };
+
+    trackWalletConnectEvent(
+      MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+      connectionTelemetry,
+    );
+
     // Extract WalletConnect Verify API context for domain risk detection.
     // If unavailable (error, timeout), default to undefined so the UI
     // treats it as a clean connection (no malicious warnings).
@@ -591,6 +622,13 @@ export class WC2Manager {
     // Validate new session proposal URL without normalizing - reject if invalid.
     if (!isValidUrl(url)) {
       console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
+      trackWalletConnectEvent(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+        {
+          ...connectionTelemetry,
+          failure_reason: 'invalid_dapp_url',
+        },
+      );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -602,6 +640,13 @@ export class WC2Manager {
     // This is an external connection (WalletConnect), so block any internal origin
     if (INTERNAL_ORIGINS.includes(url)) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
+      trackWalletConnectEvent(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+        {
+          ...connectionTelemetry,
+          failure_reason: 'internal_origin_blocked',
+        },
+      );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -709,6 +754,28 @@ export class WC2Manager {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
         err,
       });
+      // The dominant path here is the user declining the approval sheet.
+      // Split that out from genuine errors so connection success rate isn't
+      // polluted by user intent.
+      //
+      // The fallback message must be non-empty: containsUserRejectedError()
+      // bails out before it ever looks at the error code when handed an empty
+      // message, which would misclassify a bare `{ code: 4001 }` rejection.
+      if (isUserRejectedError(err, 'unknown')) {
+        trackWalletConnectEvent(
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_REJECTED,
+          connectionTelemetry,
+        );
+      } else {
+        trackWalletConnectEvent(
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+          {
+            ...connectionTelemetry,
+            failure_reason: 'request_permissions_failed',
+            error_message_sample: getErrorMessage(err, 'unknown').slice(0, 200),
+          },
+        );
+      }
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -719,6 +786,8 @@ export class WC2Manager {
       );
       return;
     }
+
+    let didEstablish = false;
 
     try {
       const approvedAccounts = getPermittedAccounts(channelId);
@@ -773,6 +842,16 @@ export class WC2Manager {
 
       this.sessions[activeSession.topic] = session;
 
+      // Terminal success for the funnel. Emitted as soon as the session is
+      // approved and registered — the follow-up updateSession/chainChanged
+      // calls below are notifications to an already-established connection,
+      // so failing them shouldn't retroactively make this a failed connect.
+      didEstablish = true;
+      trackWalletConnectEvent(MetaMetricsEvents.REMOTE_CONNECTION_ESTABLISHED, {
+        ...connectionTelemetry,
+        is_deeplink: deeplink,
+      });
+
       await this.enforceSessionLimit();
 
       DevLogger.log(`WC2::session_proposal updateSession`, {
@@ -818,6 +897,19 @@ export class WC2Manager {
       }
     } catch (err) {
       console.error(`invalid wallet status`, err);
+      // Only a failure if we never got as far as registering the session.
+      // Post-approval notification errors are logged above but must not
+      // double-count against an already-established connection.
+      if (!didEstablish) {
+        trackWalletConnectEvent(
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+          {
+            ...connectionTelemetry,
+            failure_reason: 'approve_session_failed',
+            error_message_sample: getErrorMessage(err, 'unknown').slice(0, 200),
+          },
+        );
+      }
     } finally {
       store.dispatch(
         updateWC2Metadata({
