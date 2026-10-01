@@ -80,6 +80,18 @@ E2E for live data is impractical (timing-dependent, needs real WS); rely on inte
 | Approve builder fee                         |     |     | **✓** |       | I: one-time approval flow.                                                               |
 | Set referrer code                           |     |     | **✓** |       | I: referrer state update.                                                                |
 
+## Lighter recovery
+
+| Use case                                                 |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                                 |
+| -------------------------------------------------------- | :-: | :-: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Review selected wallet's venue positions/orders          |     |  ✓  | **✓** |  ✓  | Real installed Core controller/provider and Mobile messenger; registered local key only, no venue writes. CV owns controls; live recipes prove native signer and actual venue. |
+| Refuse a mismatched local and registered key             |     |     | **✓** |     | Read authentication cannot overwrite an occupied key or submit registration.                                                                                                   |
+| Refuse incomplete order responses                        |     |     | **✓** |     | Missing venue data cannot become an assumed empty account.                                                                                                                     |
+| Refuse account data owned by another wallet              |     |     | **✓** |     | Real wallet/client validation must preserve Ethereum-address ownership.                                                                                                        |
+| Expire authoritative reads after selected-wallet changes |     |  ✓  | **✓** |  ✓  | Core rejects late reads; CV independently owns account/network A-to-B-to-A expiry, and live recipes cover native account switching.                                            |
+| Expire review after A-to-B-to-A provider rebinding       |     |  ✓  | **✓** |  ✓  | Both in-flight account reviews reject after a real intervening provider read; a fresh review works for A without registration or writes.                                       |
+| Expire review across a controller network change         |     |  ✓  | **✓** |  ✓  | Real controller teardown/reinitialization invalidates old testnet reads. Integration HTTP remains mocked on both networks; native scope isolation still requires live proof.   |
+
 ## Pure helpers (utility functions)
 
 These don't have user-facing flows; they're consumed by the layers above. Unit is the right home for all of them.
