@@ -44,6 +44,14 @@ function getSwapAccessory(swap: RecurringSwap) {
     );
   }
 
+  if (swap.status === RecurringSwapStatus.Submitted) {
+    return (
+      <Tag severity={TagSeverity.Neutral}>
+        {strings('bridge.limit.submitted')}
+      </Tag>
+    );
+  }
+
   return (
     <Tag severity={TagSeverity.Success}>
       {strings('bridge.recurring.filled')}
@@ -95,7 +103,7 @@ export function RecurringSwapRow({
       }
       titleEndAccessory={getSwapAccessory(swap)}
       onPress={onPress}
-      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId)}
+      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id)}
     />
   );
 }
