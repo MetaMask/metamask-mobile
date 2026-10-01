@@ -5,6 +5,9 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useSelector } from 'react-redux';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Icon,
   IconColor,
   IconSize,
@@ -34,7 +37,6 @@ import {
 import PerpsSentimentSatisfiedIcon, {
   PERPS_SENTIMENT_ICON_SIZE_MD,
 } from '../PerpsSentimentSatisfiedIcon/PerpsSentimentSatisfiedIcon';
-import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import type { PerpsProductsProps } from './PerpsProducts.types';
@@ -112,10 +114,10 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
 
   const renderCategoryPill = useCallback(
     (category: PerpsCategory, index: number) => (
-      <ExplorePill
+      <Button
         onPress={() => handlePillPress(category.id, index)}
         testID={`${TEST_ID}-${category.id}`}
-        leading={
+        startAccessory={
           category.id === MEMECOIN_CATEGORY_ID ? (
             <PerpsSentimentSatisfiedIcon size={PERPS_SENTIMENT_ICON_SIZE_MD} />
           ) : (
@@ -126,8 +128,12 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
             />
           )
         }
-        title={category.label}
-      />
+        size={ButtonSize.Md}
+        variant={ButtonVariant.Secondary}
+        twClassName="shrink"
+      >
+        {category.label}
+      </Button>
     ),
     [handlePillPress],
   );

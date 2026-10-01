@@ -2,9 +2,14 @@ import React, { memo, useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   SectionHeader,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -16,7 +21,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
-import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -72,20 +76,43 @@ const PerpsRecentlyViewedPill: React.FC<{
   );
 
   return (
-    <ExplorePill
+    <Button
       onPress={handlePress}
       testID={`perps-recently-viewed-tile-${market.symbol}`}
-      leading={
+      startAccessory={
         <PerpsTokenLogo
           symbol={market.symbol}
           size={LOGO_SIZE}
           recyclingKey={market.symbol}
         />
       }
-      title={getPerpsDisplaySymbol(market.symbol)}
-      changeLabel={change24hPercent}
-      changeTextColor={changeTextColor}
-    />
+      size={ButtonSize.Md}
+      variant={ButtonVariant.Secondary}
+      twClassName="shrink"
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+        >
+          {getPerpsDisplaySymbol(market.symbol)}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={changeTextColor}
+          numberOfLines={1}
+        >
+          {change24hPercent}
+        </Text>
+      </Box>
+    </Button>
   );
 };
 

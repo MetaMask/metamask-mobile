@@ -3,13 +3,24 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import {
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
-import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -77,20 +88,43 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   };
 
   return (
-    <ExplorePill
+    <Button
       onPress={onPress}
       testID={`perps-market-tile-card-${market.symbol}`}
-      leading={
+      startAccessory={
         <PerpsTokenLogo
           symbol={market.symbol}
           size={LOGO_SIZE}
           recyclingKey={market.symbol}
         />
       }
-      title={getPerpsDisplaySymbol(market.symbol)}
-      changeLabel={changeLabel}
-      changeTextColor={changeTextColor}
-    />
+      size={ButtonSize.Md}
+      variant={ButtonVariant.Secondary}
+      twClassName="shrink"
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+        >
+          {getPerpsDisplaySymbol(market.symbol)}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={changeTextColor}
+          numberOfLines={1}
+        >
+          {changeLabel}
+        </Text>
+      </Box>
+    </Button>
   );
 };
 
