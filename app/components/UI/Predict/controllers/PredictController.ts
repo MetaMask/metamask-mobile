@@ -1947,10 +1947,10 @@ export class PredictController extends BaseController<
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
 
+    let previewWithFeePolicy: OrderPreview;
+
     try {
-      const previewWithFeePolicy = await this.withPredictFeePolicy(
-        params.preview,
-      );
+      previewWithFeePolicy = await this.withPredictFeePolicy(params.preview);
       await validateMarketBettable({
         provider: this.provider,
         preview: previewWithFeePolicy,

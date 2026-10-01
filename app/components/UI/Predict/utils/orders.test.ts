@@ -204,6 +204,8 @@ describe('orders utils', () => {
           fees: {
             ...(preview.fees ?? {}),
             metamaskFee: 0,
+            providerFee: preview.fees?.providerFee ?? 0,
+            collector: preview.fees?.collector ?? '0x0',
             totalFee: 0.222,
             totalFeePercentage: 2.22,
           },
@@ -234,6 +236,8 @@ describe('orders utils', () => {
           fees: {
             ...(preview.fees ?? {}),
             metamaskFee: 0,
+            providerFee: preview.fees?.providerFee ?? 0,
+            collector: preview.fees?.collector ?? '0x0',
             totalFee: 0.222,
             totalFeePercentage: 2.22,
           },
