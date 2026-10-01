@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
-import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
+import { useNotificationStoragePreferences } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -14,7 +14,9 @@ import { NotificationChannel } from '../../../../core/Analytics/events/channels'
 import Logger from '../../../../util/Logger';
 import type { WalletActivityPreference } from '@metamask/authenticated-user-storage';
 
-jest.mock('./hooks/useNotificationStoragePreferences');
+jest.mock(
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+);
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 jest.mock('./AccountsList', () => {
   const MockView = jest.requireActual('react-native').View;

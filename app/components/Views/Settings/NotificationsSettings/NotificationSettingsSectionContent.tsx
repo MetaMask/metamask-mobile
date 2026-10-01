@@ -12,7 +12,7 @@ import {
 import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
-} from './hooks/useNotificationStoragePreferences';
+} from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';

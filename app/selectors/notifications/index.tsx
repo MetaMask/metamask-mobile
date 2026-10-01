@@ -117,3 +117,14 @@ export const getValidNotificationAccounts = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.subscriptionAccountsSeen,
 );
+
+export const selectIsFetchingMetamaskNotificationsCategories = createSelector(
+  selectNotificationServicesControllerState,
+  (notificationServicesControllerState: NotificationServicesState) =>
+    notificationServicesControllerState.isFetchingMetamaskNotificationsCategories,
+);
+export const getNotificationsCategories = createDeepEqualSelector(
+  selectNotificationServicesControllerState,
+  (notificationServicesControllerState: NotificationServicesState) =>
+    notificationServicesControllerState.metamaskNotificationsCategories,
+);

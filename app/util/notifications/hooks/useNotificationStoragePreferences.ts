@@ -6,9 +6,9 @@ import type {
   AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
   NotificationPreferences as NotificationPreferencesType,
 } from '@metamask/authenticated-user-storage';
-import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
-import { selectAiSocialAusCacheRefreshEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import Engine from '../../../core/Engine';
+import Logger from '../../Logger';
+import { selectAiSocialAusCacheRefreshEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 
 const CLIENT_TYPE = 'mobile' as const;
 const GET_ACTION =

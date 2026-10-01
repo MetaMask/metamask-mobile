@@ -1,4 +1,4 @@
-import type { NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
+import type { NotificationPreferenceSection } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 
 export interface FeatureNotificationsGateCopy {
   titleKey: string;

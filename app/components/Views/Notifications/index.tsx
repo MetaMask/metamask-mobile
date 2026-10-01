@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,11 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
+import {
+  ALL_NOTIFICATIONS_CATEGORY_ID,
+  getNotificationCategoryId,
+  isNotificationVisibleInApp,
+} from '../../../util/notifications/categories';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../util/theme';
 
@@ -20,6 +25,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import DisabledNotifications from './DisabledNotifications';
+import NotificationsCategory from './NotificationsCategory';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -29,7 +35,9 @@ import {
 import {
   useListNotifications,
   useMarkNotificationAsRead,
+  useNotificationsCategories,
 } from '../../../util/notifications/hooks/useNotifications';
+import { useNotificationStoragePreferences } from '../../../util/notifications/hooks/useNotificationStoragePreferences';
 import { useNotificationListPerformance } from '../../../util/notifications/hooks/useNotificationListPerformance';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
@@ -38,20 +46,34 @@ import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
+  isAllNotificationsSelected: boolean;
 }) {
-  const { notifications } = props;
+  const { notifications, isAllNotificationsSelected } = props;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
-    NotificationsService.setBadgeCount(0);
+    if (isAllNotificationsSelected) {
+      NotificationsService.setBadgeCount(0);
+    } else {
+      const unreadCount = notifications.filter(
+        (notification) => !notification.isRead,
+      ).length;
+      NotificationsService.decrementBadgeCount(unreadCount);
+    }
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
       ).build(),
     );
-  }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
+  }, [
+    createEventBuilder,
+    isAllNotificationsSelected,
+    markNotificationAsRead,
+    notifications,
+    trackEvent,
+  ]);
 
   return {
     handleMarkAllAsRead,
@@ -100,13 +122,34 @@ const NotificationsView = ({
     enabled: isNotificationEnabled,
   });
 
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    ALL_NOTIFICATIONS_CATEGORY_ID,
+  );
+
+  const { categoriesData } = useNotificationsCategories();
+  const { preferences } = useNotificationStoragePreferences();
+
+  // Order matters: user in-app preferences first, then the selected tab.
+  const categoryFilteredNotifications = useMemo(() => {
+    const enabled = allNotifications.filter((n) =>
+      isNotificationVisibleInApp(n, categoriesData, preferences),
+    );
+    return selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID
+      ? enabled
+      : enabled.filter(
+          (n) => getNotificationCategoryId(n) === selectedCategory,
+        );
+  }, [allNotifications, categoriesData, preferences, selectedCategory]);
+
   const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
-    notifications,
+    notifications: categoryFilteredNotifications,
+    isAllNotificationsSelected:
+      selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID,
   });
 
   const unreadCount = useMemo(
-    () => allNotifications.filter((n) => !n.isRead).length,
-    [allNotifications],
+    () => categoryFilteredNotifications.filter((n) => !n.isRead).length,
+    [categoryFilteredNotifications],
   );
 
   const handleClose = useCallback(() => {
@@ -148,9 +191,13 @@ const NotificationsView = ({
       >
         {isNotificationEnabled ? (
           <>
+            <NotificationsCategory
+              selectedCategory={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
             <Notifications
               navigation={navigation}
-              allNotifications={allNotifications}
+              allNotifications={categoryFilteredNotifications}
               loading={isLoading}
             />
             {!isLoading && unreadCount > 0 && (
@@ -161,7 +208,11 @@ const NotificationsView = ({
                 style={styles.stickyButton}
                 isDisabled={loading}
               >
-                {strings('notifications.mark_all_as_read')}
+                {strings(
+                  selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID
+                    ? 'notifications.mark_all_as_read'
+                    : 'notifications.mark_category_as_read',
+                )}
               </Button>
             )}
           </>

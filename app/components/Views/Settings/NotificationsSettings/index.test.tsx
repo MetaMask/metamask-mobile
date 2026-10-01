@@ -6,6 +6,11 @@ import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import {
+  markCategoriesFetchSettled,
+  type NotificationCategoryMetadata,
+} from '../../../../util/notifications/categories';
+import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 
 jest.mock('react-native-device-info', () => ({
@@ -19,6 +24,8 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 const createMockState = ({
   notificationsEnabled = false,
   socialLeaderboardEnabled = false,
+  categories = [] as NotificationCategoryMetadata[],
+  isFetchingCategories = false,
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -31,6 +38,8 @@ const createMockState = ({
       NotificationServicesController: {
         ...backgroundState.NotificationServicesController,
         isNotificationServicesEnabled: notificationsEnabled,
+        metamaskNotificationsCategories: categories,
+        isFetchingMetamaskNotificationsCategories: isFetchingCategories,
       },
       RemoteFeatureFlagController: {
         ...backgroundState.RemoteFeatureFlagController,
@@ -83,47 +92,50 @@ jest.mock(
   }),
 );
 
-jest.mock('./hooks/useNotificationStoragePreferences', () => ({
-  useNotificationStoragePreferences: () => ({
-    preferences: {
-      walletActivity: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
+jest.mock(
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+  () => ({
+    useNotificationStoragePreferences: jest.fn(() => ({
+      preferences: {
+        walletActivity: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        perps: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        agenticCli: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        socialAI: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        marketing: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        priceAlerts: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        card: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        securityAlerts: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
       },
-      perps: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      agenticCli: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      socialAI: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      marketing: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      priceAlerts: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      card: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      securityAlerts: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-    },
-    isLoading: false,
-    error: null,
-    updatePreference: jest.fn(),
+      isLoading: false,
+      error: null,
+      updatePreference: jest.fn(),
+    })),
   }),
-}));
+);
 
 const socialAISectionTitle = strings(
   'app_settings.notifications_opts.social_ai_title',
@@ -133,6 +145,10 @@ const priceAlertsSectionTitle = strings(
 );
 
 describe('NotificationsSettings', () => {
+  beforeAll(() => {
+    markCategoriesFetchSettled();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -170,6 +186,14 @@ describe('NotificationsSettings', () => {
   it('renders price alerts section when notifications are enabled', () => {
     const state = createMockState({
       notificationsEnabled: true,
+      categories: [
+        {
+          category_id: 'price_alerts',
+          aus_keys: ['priceAlerts'],
+          visible_on: ['mobile'],
+          notification_types: ['price_alerts'],
+        },
+      ],
     });
 
     const { getByText } = renderNotificationsSettings(state);
@@ -185,5 +209,104 @@ describe('NotificationsSettings', () => {
     const { queryByText } = renderNotificationsSettings(state);
 
     expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+  });
+
+  describe('without a notification preference record', () => {
+    const mockedHook = jest.requireMock(
+      '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+    ).useNotificationStoragePreferences as jest.Mock;
+    const defaultImplementation = mockedHook.getMockImplementation();
+
+    afterEach(() => {
+      mockedHook.mockImplementation(defaultImplementation);
+    });
+
+    it('shows no sections when preferences are null', () => {
+      mockedHook.mockImplementation(() => ({
+        preferences: null,
+        isLoading: false,
+        error: null,
+        updatePreference: jest.fn(),
+      }));
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [
+          {
+            category_id: 'trading_activity',
+            aus_keys: ['perps'],
+            visible_on: ['mobile'],
+            notification_types: ['perps'],
+          },
+        ],
+      });
+
+      const { queryByText } = renderNotificationsSettings(state);
+
+      expect(
+        queryByText(strings('app_settings.notifications_opts.perps_title')),
+      ).toBeNull();
+    });
+  });
+
+  describe('backend-driven rows', () => {
+    const backendCategory = (
+      category_id: string,
+      aus_keys: string[],
+      visible_on: NotificationCategoryMetadata['visible_on'] = ['mobile'],
+    ): NotificationCategoryMetadata => ({
+      category_id,
+      aus_keys,
+      visible_on,
+      notification_types: [],
+    });
+
+    it('renders only backend categories, resolved by aus key', () => {
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [backendCategory('trading_activity', ['perps'])],
+      });
+
+      const { getByText, queryByText } = renderNotificationsSettings(state);
+
+      expect(
+        getByText(strings('app_settings.notifications_opts.perps_title')),
+      ).toBeOnTheScreen();
+      expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+    });
+
+    it('logs once and hides a category with aus keys but no known section', () => {
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [backendCategory('mystery', ['mystery'])],
+      });
+
+      renderNotificationsSettings(state);
+
+      expect(loggerSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('silently skips display-only categories', () => {
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [backendCategory('announcements', [])],
+      });
+
+      renderNotificationsSettings(state);
+
+      expect(loggerSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows no rows while categories are loading', () => {
+      const state = createMockState({
+        notificationsEnabled: true,
+        isFetchingCategories: true,
+      });
+
+      const { queryByText } = renderNotificationsSettings(state);
+
+      expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+    });
   });
 });

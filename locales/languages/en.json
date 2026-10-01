@@ -4895,6 +4895,7 @@
     "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
+      "all_title": "All",
       "preferences_title": "Preferences",
       "push_recommended": "Push",
       "in_app": "In-app",
@@ -6875,6 +6876,7 @@
     "received": "Received",
     "unstaked": "Unstaked",
     "mark_all_as_read": "Mark all as read",
+    "mark_category_as_read": "Mark category as read",
     "to": "To",
     "rate": "Rate (fees included)",
     "unstaking_requested": "Unstaking requested",

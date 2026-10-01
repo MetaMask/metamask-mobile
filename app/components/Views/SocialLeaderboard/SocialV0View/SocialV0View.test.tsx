@@ -100,7 +100,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock(
-  '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
   () => ({
     useNotificationStoragePreferences: () => ({
       hasNotificationPreferences: mockHasNotificationPreferences(),

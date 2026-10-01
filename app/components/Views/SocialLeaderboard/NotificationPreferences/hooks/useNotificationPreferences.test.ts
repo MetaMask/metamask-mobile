@@ -6,14 +6,14 @@ import {
   TX_AMOUNT_THRESHOLDS,
 } from './useNotificationPreferences';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useNotificationStoragePreferences } from '../../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import { useNotificationStoragePreferences } from '../../../../../util/notifications/hooks/useNotificationStoragePreferences';
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
 jest.mock(
-  '../../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
+  '../../../../../util/notifications/hooks/useNotificationStoragePreferences',
   () => ({
     useNotificationStoragePreferences: jest.fn(),
   }),

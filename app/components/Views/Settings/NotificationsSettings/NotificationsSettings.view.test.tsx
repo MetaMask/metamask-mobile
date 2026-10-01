@@ -12,6 +12,7 @@ import NotificationsSettings from './';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
+import { markCategoriesFetchSettled } from '../../../../util/notifications/categories';
 
 const MOCK_NOTIFICATION_PREFERENCES = {
   walletActivity: {
@@ -52,6 +53,7 @@ const MOCK_NOTIFICATION_PREFERENCES = {
 
 const GET_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences';
+let defaultControllerMessengerCall: typeof Engine.controllerMessenger.call;
 
 const SECTION_TITLES = {
   walletActivity: 'Wallet activity',
@@ -93,7 +95,8 @@ function renderSettingsWithSectionRoute(
 
 describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   beforeEach(() => {
-    const controllerMessengerCall = Engine.controllerMessenger.call.bind(
+    markCategoriesFetchSettled();
+    defaultControllerMessengerCall = Engine.controllerMessenger.call.bind(
       Engine.controllerMessenger,
     ) as (action: string, ...args: unknown[]) => unknown;
 
@@ -105,7 +108,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
         return Promise.resolve(MOCK_NOTIFICATION_PREFERENCES);
       }
 
-      return controllerMessengerCall(action, ...args);
+      return defaultControllerMessengerCall(action, ...args);
     }) as unknown as typeof Engine.controllerMessenger.call;
 
     jest
@@ -161,6 +164,48 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
   });
 
+  it('keeps the preference skeleton while the AUS request is pending', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      (action: string, ...args: unknown[]) => {
+        if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+          return new Promise(() => undefined);
+        }
+
+        return defaultControllerMessengerCall(action, ...args);
+      },
+    );
+
+    const { findAllByTestId } = renderSettings();
+
+    expect(
+      await findAllByTestId(NotificationSettingsViewSelectorsIDs.ROW_SKELETON),
+    ).toHaveLength(4);
+  });
+
+  it('hides preference sections after the AUS request fails', async () => {
+    const preferenceError = new Error('AUS unavailable');
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      (action: string, ...args: unknown[]) => {
+        if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+          return Promise.reject(preferenceError);
+        }
+
+        return defaultControllerMessengerCall(action, ...args);
+      },
+    );
+
+    const { queryAllByTestId, queryByText } = renderSettings();
+
+    await waitFor(() => {
+      expect(hasFetchedNotificationPreferences()).toBe(true);
+      expect(
+        queryAllByTestId(NotificationSettingsViewSelectorsIDs.ROW_SKELETON),
+      ).toHaveLength(0);
+    });
+    expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
+    expect(queryByText(SECTION_TITLES.perps)).toBeNull();
+  });
+
   it('hides notification sections when main toggle is off', async () => {
     const { getByTestId, queryByText } = renderSettings({
       notificationsEnabled: false,
@@ -209,9 +254,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   });
 
   it('navigates to the wallet activity notification section when its row is pressed', async () => {
-    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
+    const { findByText, findByTestId } = renderSettingsWithSectionRoute();
 
-    fireEvent.press(getByText(SECTION_TITLES.walletActivity));
+    fireEvent.press(await findByText(SECTION_TITLES.walletActivity));
 
     expect(
       await findByTestId(
@@ -221,9 +266,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   });
 
   it('navigates to the agentic CLI notification section when its row is pressed', async () => {
-    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
+    const { findByText, findByTestId } = renderSettingsWithSectionRoute();
 
-    fireEvent.press(getByText(SECTION_TITLES.agenticCli));
+    fireEvent.press(await findByText(SECTION_TITLES.agenticCli));
 
     expect(
       await findByTestId(

@@ -1,6 +1,6 @@
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import type { NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
+import type { NotificationPreferenceSection } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 
 /**
  * Canonical `section` query values for notification-settings deeplinks.

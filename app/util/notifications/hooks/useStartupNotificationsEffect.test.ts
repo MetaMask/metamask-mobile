@@ -13,6 +13,7 @@ import * as SettingsSelectors from '../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as IdentitySelectors from '../../../selectors/identity';
 import storageWrapper from '../../../store/storage-wrapper';
+import Logger from '../../Logger';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 // eslint-disable-next-line import-x/no-namespace
 import * as Constants from '../constants/config';
@@ -23,6 +24,7 @@ import * as StorageHooks from '../../../store/storage-wrapper-hooks';
 // eslint-disable-next-line import-x/no-namespace
 import * as NotificationHelpers from '../../../actions/notification/helpers';
 import {
+  useFetchNotificationCategoriesEffect,
   useRegisterAndFetchNotifications,
   useEnableNotificationsByDefaultEffect,
 } from './useStartupNotificationsEffect';
@@ -35,6 +37,7 @@ describe('useRegisterAndFetchNotifications', () => {
   const arrangeHooks = () => {
     const mockEnableNotifications = jest.fn();
     const mockListNotifications = jest.fn();
+    const mockFetchCategories = jest.fn().mockResolvedValue(undefined);
 
     const mockUseEnableNotifications = jest.spyOn(
       NotificationHooks,
@@ -61,9 +64,19 @@ describe('useRegisterAndFetchNotifications', () => {
       error: undefined,
     });
 
+    jest
+      .spyOn(NotificationHooks, 'useNotificationsCategories')
+      .mockReturnValue({
+        fetchCategories: mockFetchCategories,
+        categoriesData: [],
+        isLoading: false,
+        error: null,
+      });
+
     return {
       enableNotifications: mockEnableNotifications,
       listNotifications: mockListNotifications,
+      fetchCategories: mockFetchCategories,
       mockUseEnableNotifications,
       mockUseListNotifications,
     };
@@ -143,6 +156,67 @@ describe('useRegisterAndFetchNotifications', () => {
     });
   });
 
+  describe('useFetchNotificationCategoriesEffect', () => {
+    const arrangeReady = () => {
+      const mocks = arrange();
+      mocks.selectors.mockIsNotifsEnabled.mockReturnValue(false);
+      mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+      mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
+      return mocks;
+    };
+
+    it('fetches categories even when notifications are disabled', async () => {
+      const mocks = arrangeReady();
+
+      renderHookWithProvider(() => useFetchNotificationCategoriesEffect(), {});
+
+      await waitFor(() => {
+        expect(mocks.hooks.fetchCategories).toHaveBeenCalledTimes(1);
+      });
+      expect(mocks.hooks.listNotifications).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch categories when the wallet is locked', () => {
+      const mocks = arrangeReady();
+      mocks.selectors.mockSelectIsUnlocked.mockReturnValue(false);
+
+      renderHookWithProvider(() => useFetchNotificationCategoriesEffect(), {});
+
+      expect(mocks.hooks.fetchCategories).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch categories when basic functionality is disabled', () => {
+      const mocks = arrangeReady();
+      mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(
+        false,
+      );
+
+      renderHookWithProvider(() => useFetchNotificationCategoriesEffect(), {});
+
+      expect(mocks.hooks.fetchCategories).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch categories when the notifications feature flag is off', () => {
+      const mocks = arrangeReady();
+      mocks.helpers.mockIsFlagEnabled.mockReturnValue(false);
+
+      renderHookWithProvider(() => useFetchNotificationCategoriesEffect(), {});
+
+      expect(mocks.hooks.fetchCategories).not.toHaveBeenCalled();
+    });
+
+    it('swallows fetch errors', async () => {
+      const mocks = arrangeReady();
+      mocks.hooks.fetchCategories.mockRejectedValue(new Error('cat failed'));
+
+      renderHookWithProvider(() => useFetchNotificationCategoriesEffect(), {});
+
+      await waitFor(() => {
+        expect(mocks.hooks.fetchCategories).toHaveBeenCalled();
+      });
+    });
+  });
+
   it('refreshes notification registrations without prompting for push permission', async () => {
     const mocks = arrange();
     mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
@@ -194,6 +268,31 @@ describe('useRegisterAndFetchNotifications', () => {
       expect(mocks.hooks.enableNotifications).toHaveBeenCalled();
       expect(mocks.hooks.listNotifications).toHaveBeenCalled();
     });
+  });
+
+  it('skips re-enabling notifications when the AUS preference check fails', async () => {
+    const mocks = arrange();
+    mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
+    mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
+    mocks.helpers.mockGetStorageItem.mockResolvedValue(Date.now() + 1000);
+    mocks.helpers.mockHasNotificationPreferences.mockRejectedValue(
+      new Error('AUS unavailable'),
+    );
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+
+    renderHookWithProvider(() => useRegisterAndFetchNotifications(), {});
+
+    await waitFor(() => {
+      expect(mocks.hooks.listNotifications).toHaveBeenCalled();
+    });
+    expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.any(Error),
+      'Failed to check notification preferences initialization',
+    );
+    loggerSpy.mockRestore();
   });
 
   it('deos not fetch notifications when basic functionality is disabled', async () => {

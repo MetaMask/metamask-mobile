@@ -13,6 +13,7 @@ export const NotificationSettingsViewSelectorsIDs = {
   FEATURE_ANNOUNCEMENT_SEPARATOR:
     'notification-settings-feature-announcements-separator',
   SECTION_SCROLL_VIEW: 'notification-settings-section-scroll-view',
+  ROW_SKELETON: 'notifications-settings-row-skeleton',
   WALLET_ACTIVITY_LIST: 'notification-settings-wallet-activity-list',
   PERPS_NOTIFICATIONS_TOGGLE:
     'notification-settings-perps-notifications-toggle',
