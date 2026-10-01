@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import {
   fireEvent,
   render,
@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
 import PerpsTradeScreen from './PerpsTradeScreen';
+import type PerpsSlider from '../PerpsSlider';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigateTo = jest.fn();
@@ -15,6 +16,7 @@ let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
   | undefined;
 let mockPerpsTokenLogoProps: { symbol: string; size: number } | undefined;
+let mockPerpsSliderProps: React.ComponentProps<typeof PerpsSlider> | undefined;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
@@ -27,7 +29,10 @@ jest.mock('./PerpsTradeBottomSheet', () => ({
 
 jest.mock('../PerpsSlider', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: React.ComponentProps<typeof PerpsSlider>) => {
+    mockPerpsSliderProps = props;
+    return null;
+  },
 }));
 
 jest.mock('../PerpsOICapWarning', () => ({
@@ -58,6 +63,16 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
     return null;
   },
 }));
+
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
 
 const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   asset: 'SOL',
@@ -120,6 +135,7 @@ describe('PerpsTradeScreen errors', () => {
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
+    mockPerpsSliderProps = undefined;
   });
 
   it('propagates every form error to an accessible alert', () => {
@@ -170,6 +186,7 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('payWith');
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
@@ -193,6 +210,33 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the payment asset icon beside the pay with value', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
+      ).getByTestId('pay-with-icon'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the payment asset icon while the pay with row is loading', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isPayWithLoading
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(screen.queryByTestId('pay-with-icon')).toBeNull();
   });
 
   it('shows the market maximum leverage in the header, not the selected one', () => {
@@ -289,6 +333,26 @@ describe('PerpsTradeScreen errors', () => {
     render(<PerpsTradeScreen {...defaultProps} />);
 
     expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
+  });
+
+  it('renders the same full-size slider as the close-position sheet', () => {
+    render(<PerpsTradeScreen {...defaultProps} sliderMaximum={250} />);
+
+    expect(mockPerpsSliderProps).toEqual(
+      expect.objectContaining({
+        value: 10,
+        minimumValue: 0,
+        maximumValue: 250,
+        step: 1,
+        showPercentageLabels: true,
+        disabled: false,
+        onValueChange: defaultProps.onSliderValueChange,
+        onDragEnd: defaultProps.onSliderDragEnd,
+      }),
+    );
+    // Both A/B bottom sheets share one slider control, so the Trade sheet
+    // must not opt into a different variant.
+    expect(mockPerpsSliderProps).not.toHaveProperty('variant');
   });
 
   it('opens Auto close for a limit order that has no limit price yet', () => {
@@ -393,6 +457,12 @@ describe('PerpsTradeScreen errors', () => {
     ).toHaveStyle({ height: typography.sBodyXS.lineHeight });
   });
 
+  it('shows the VIP badge beside the fee for discounted users', () => {
+    render(<PerpsTradeScreen {...defaultProps} feeDiscountPercentage={15} />);
+
+    expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+  });
+
   it('shows the limit price row for a limit order', () => {
     render(
       <PerpsTradeScreen
@@ -448,6 +518,7 @@ describe('PerpsTradeScreen errors', () => {
     expect(payWithRow.props.accessibilityState).toEqual({ disabled: true });
     fireEvent.press(payWithRow);
     expect(onPayWithPress).not.toHaveBeenCalled();
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('payWith');
   });
 
   it('shows the reused keypad while editing a limit price', () => {

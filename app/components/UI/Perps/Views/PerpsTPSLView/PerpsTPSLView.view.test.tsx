@@ -152,10 +152,10 @@ describe('PerpsTPSLView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
-    ).toHaveTextContent('+');
+    ).toHaveAccessibilityValue({ text: '+' });
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
-    ).toHaveTextContent('-');
+    ).toHaveAccessibilityValue({ text: '-' });
   });
 
   it('flips the take profit RoE badge from + to - on press', async () => {
@@ -174,7 +174,7 @@ describe('PerpsTPSLView', () => {
         screen.getByTestId(
           PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
         ),
-      ).toHaveTextContent('-');
+      ).toHaveAccessibilityValue({ text: '-' });
     });
   });
 
@@ -206,19 +206,22 @@ describe('PerpsTPSLView', () => {
         streamOverrides: { positions: [position] },
       });
 
-    it('renders the sheet back button and the Save action', async () => {
+    it('renders only the Save action in the sheet header and footer', async () => {
       renderSheet();
 
       expect(
         await screen.findByTestId(
-          PerpsTPSLViewSelectorsIDs.BACK_BUTTON,
+          PerpsTPSLViewSelectorsIDs.SET_BUTTON,
           {},
           { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
-      ).toBeOnTheScreen();
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('sets a stop loss from the sheet', async () => {

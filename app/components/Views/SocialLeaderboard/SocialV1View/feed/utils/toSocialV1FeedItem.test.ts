@@ -347,6 +347,44 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.asset.symbol).toBe('PEPE');
     });
+
+    it('carries a token name that differs from the ticker', () => {
+      const row = buildRow(mockSpotFeedItem());
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.name).toBe('Pepe');
+    });
+
+    it('omits the asset name when it repeats the ticker', () => {
+      const row = buildRow(mockSpotFeedItem({ tokenName: 'PEPE' }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.name).toBeUndefined();
+    });
+
+    it('omits a perp name that is a raw market id', () => {
+      const row = buildRow(
+        mockPerpFeedItem({ tokenSymbol: 'ETH', tokenName: 'xyz:ETH' }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('ETH');
+      expect(result.asset.name).toBeUndefined();
+    });
+
+    it('carries a perp name that is not a market id', () => {
+      const row = buildRow(
+        mockPerpFeedItem({ tokenSymbol: 'xyz:NVDA', tokenName: 'NVIDIA' }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('NVDA');
+      expect(result.asset.name).toBe('NVIDIA');
+    });
   });
 
   describe('mocked fields', () => {
@@ -467,6 +505,29 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.comment).toBe('Thesis unchanged.');
       expect(result.mockedFields).toStrictEqual([]);
+    });
+
+    it('strips a static.klipy.com gif url from the caption', () => {
+      const gifUrl =
+        'https://static.klipy.com/ii/935d7ab9d8c6202580a668421940ec81/14/af/um0L4dFH.gif';
+      const row = buildRow(
+        mockPerpFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: `Thesis unchanged.\n${gifUrl}`,
+            timestamp: 1_700_000_000,
+            engagement: {
+              reactions: [],
+              userReaction: null,
+              replyCount: 2,
+            },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.comment).toBe('Thesis unchanged.');
     });
 
     it('omits the caption when the position has no author comment', () => {

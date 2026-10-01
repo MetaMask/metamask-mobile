@@ -3349,6 +3349,380 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
     },
   );
+
+  itForPlatforms('submits a stop-market order with triggerPrice', async () => {
+    const validateOrder = jest.mocked(
+      Engine.context.PerpsController.validateOrder,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    validateOrder.mockClear();
+    placeOrder.mockClear();
+    renderProMarketWithTriggeredOrdersFlag(true);
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
+
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+    );
+
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    fireEvent.changeText(triggerInput, '2600');
+    fireEvent(triggerInput, 'blur');
+
+    const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    let finalValidation: Promise<unknown> | undefined;
+    await waitFor(
+      () => {
+        const idx = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'stop_market' &&
+            params.triggerPrice === '2600',
+        );
+        expect(idx).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[idx]
+          ?.value as Promise<unknown>;
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    await act(async () => {
+      await finalValidation;
+    });
+    await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+      timeout: TIMEOUT_MS,
+    });
+    fireEvent.press(placeOrderButton);
+
+    await waitFor(
+      () => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'stop_market',
+            triggerPrice: '2600',
+          }),
+        );
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
+  });
+
+  itForPlatforms(
+    'submits a take-profit-limit order with triggerPrice and limit price',
+    async () => {
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      validateOrder.mockClear();
+      placeOrder.mockClear();
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+      );
+
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2600');
+      fireEvent(triggerInput, 'blur');
+      fireEvent.changeText(limitInput, '2650');
+      fireEvent(limitInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      let finalValidation: Promise<unknown> | undefined;
+      await waitFor(
+        () => {
+          const idx = validateOrder.mock.calls.findIndex(
+            ([params]) =>
+              params.orderType === 'take_profit_limit' &&
+              params.triggerPrice === '2600' &&
+              params.price === '2650',
+          );
+          expect(idx).toBeGreaterThanOrEqual(0);
+          finalValidation = validateOrder.mock.results[idx]
+            ?.value as Promise<unknown>;
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      await act(async () => {
+        await finalValidation;
+      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'take_profit_limit',
+              triggerPrice: '2600',
+              price: '2650',
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'submits a take-profit-market order with triggerPrice',
+    async () => {
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      validateOrder.mockClear();
+      placeOrder.mockClear();
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+      );
+
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2000');
+      fireEvent(triggerInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      let finalValidation: Promise<unknown> | undefined;
+      await waitFor(
+        () => {
+          const idx = validateOrder.mock.calls.findIndex(
+            ([params]) =>
+              params.orderType === 'take_profit_market' &&
+              params.triggerPrice === '2000',
+          );
+          expect(idx).toBeGreaterThanOrEqual(0);
+          finalValidation = validateOrder.mock.results[idx]
+            ?.value as Promise<unknown>;
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      await act(async () => {
+        await finalValidation;
+      });
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'take_profit_market',
+              triggerPrice: '2000',
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
+    },
+  );
+
+  itForPlatforms(
+    'submits a TWAP order with default 30-minute duration',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockClear();
+      renderProMarketWithTwapFlag(true);
+      const { sizeInput } = await openTwapOrderForm();
+
+      fireEvent.changeText(sizeInput, '100');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'twap',
+              twapDuration: 30,
+              twapRandomize: false,
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'shows an invalid-range notice when Scale start price exceeds end price',
+    async () => {
+      renderProMarketWithScaleFlag(true);
+      await findSizeInput();
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+
+      await openScaleOrderForm();
+
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2600');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(`${ids.NOTICE}-scale`)).toHaveTextContent(
+            strings('perps.pro_order_form.scale.validation.invalid_range'),
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'submits a Scale order with a valid price ladder',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockClear();
+      renderProMarketWithScaleFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+
+      await openScaleOrderForm();
+
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2600');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'scale',
+              scaleMinPrice: '2200',
+              scaleMaxPrice: '2600',
+              scaleNumOrders: 3,
+              scaleSkew: 1,
+            }),
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'shows a max-distance error when Chase max distance is zero',
+    async () => {
+      jest
+        .mocked(Engine.context.PerpsController.getOrderCapabilities)
+        .mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['chase'],
+        });
+      renderPerpsProMarketView({
+        streamOverrides: { account: createFundedAccountForViews('1000') },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsMobileChase: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const sizeInput = await findSizeInput();
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+      fireEvent.changeText(sizeInput, '30');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(await screen.findByTestId(ids.CHASE_FORM)).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      );
+      fireEvent.changeText(
+        screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),
+        '0',
+      );
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByTestId(`${ids.NOTICE}-chase-max-distance`),
+          ).toBeOnTheScreen();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
 });
 
 describe('PerpsProMarketView header actions', () => {

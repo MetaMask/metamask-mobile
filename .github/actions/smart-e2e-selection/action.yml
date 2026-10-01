@@ -137,6 +137,7 @@ runs:
         AI_ANALYZER_METAMASK_SKILLS: 'true'
         PR_NUMBER: ${{ inputs.pr-number }}
         BASE_REF: ${{ inputs.base-ref }}
+        INPUT_SKIP_SCOPE: 'true' # Skip minFile scope check for smart-e2e analysis so that all relevant tests are considered
       run: |
         if [[ -n "$BASE_REF" ]]; then
           export BASE_BRANCH="origin/${BASE_REF}"

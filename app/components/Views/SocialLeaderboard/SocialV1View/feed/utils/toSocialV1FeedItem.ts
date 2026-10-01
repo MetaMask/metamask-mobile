@@ -6,12 +6,16 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { TraderFeedRow } from '../../../FeedView/hooks/useTraderFeed';
 import {
   formatHoldDuration,
+  formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
+  formatUsd,
 } from '../../../utils/formatters';
 import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
 import { markMocked, type SocialV1MockedField } from '../mockMarker';
 import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
+import { splitKlipyGifFromCommentText } from '../../../utils/klipyGifComment';
+import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
 
@@ -129,6 +133,29 @@ const toLeverageLabel = (item: {
 }): string | undefined =>
   item.leverage == null ? undefined : `${item.leverage}x`;
 
+/**
+ * Name worth showing on a hot-token chip. Drops blanks, raw market ids
+ * (`xyz:NVDA`), and ticker case-variants (`ETH`, `eth`) so the chip falls
+ * back to the display symbol. A mixed-case name that shares the ticker's
+ * letters (`Pepe`) is kept.
+ */
+const toAssetName = (
+  name: string | null | undefined,
+  symbol: string,
+): string | undefined => {
+  const trimmed = name?.trim();
+  if (!trimmed || trimmed.includes(':')) {
+    return undefined;
+  }
+  const sameLetters = trimmed.toUpperCase() === symbol.toUpperCase();
+  const isTickerCase =
+    trimmed === trimmed.toUpperCase() || trimmed === trimmed.toLowerCase();
+  if (sameLetters && isTickerCase) {
+    return undefined;
+  }
+  return trimmed;
+};
+
 const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   if (action) {
     return isEntryAction(action as Parameters<typeof isEntryAction>[0])
@@ -169,24 +196,45 @@ export function toSocialV1FeedItem(
     followerCount: card.actor.followerCount ?? null,
   };
 
-  const commentText = core.authorComment?.text?.trim();
+  const authorComment = readAuthorComment(core);
+  const { text: commentText } = splitKlipyGifFromCommentText(
+    authorComment?.text ?? '',
+  );
   const comment = commentText || undefined;
+
+  // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
+  // already strips the HIP-3 dex prefix into `marketSymbol` (`xyz:NVDA` ->
+  // `NVDA`), while icon resolution needs the prefixed form -- the MetaMask
+  // icon CDN publishes equities only under `hip3:xyz_NVDA`.
+  const displaySymbol =
+    item.type === 'perps' ? item.marketSymbol : item.tokenSymbol;
+  const assetName = toAssetName(
+    item.type === 'spot' ? item.tokenName : core.tokenName,
+    displaySymbol,
+  );
 
   const base = {
     id: item.id,
     author,
     timestamp: item.timestamp,
-    // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
-    // already strips the HIP-3 dex prefix into `marketSymbol` (`xyz:NVDA` ->
-    // `NVDA`), while icon resolution needs the prefixed form -- the MetaMask
-    // icon CDN publishes equities only under `hip3:xyz_NVDA`.
     asset: {
-      symbol: item.type === 'perps' ? item.marketSymbol : item.tokenSymbol,
+      symbol: displaySymbol,
+      ...(assetName ? { name: assetName } : {}),
       avatar: item.tokenAvatar,
     },
     comment,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
+    // Abbreviated: the open card puts this under the percent in a column capped
+    // at 45% of the row, where a full `+$280,638.23` would not fit.
+    pnlValueLabel: isPresentNumber(core.pnlValueUsd)
+      ? formatSignedAbbreviatedUsd(core.pnlValueUsd)
+      : undefined,
+    // `boughtUsd` is what the P&L percent is already measured against, so a
+    // card's Cost and its percent agree by construction.
+    costLabel: isPresentNumber(core.boughtUsd)
+      ? formatUsd(Math.abs(core.boughtUsd))
+      : undefined,
     isPnlPositive: item.isPnlPositive,
     mockedFields,
   };
@@ -206,7 +254,6 @@ export function toSocialV1FeedItem(
         exitPrice == null ? undefined : formatTradeUnitPrice(exitPrice),
       holdTimeLabel:
         holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs),
-      statusLabel: strings('social_leaderboard.feed.position_card.closed'),
     };
 
     return isSpot

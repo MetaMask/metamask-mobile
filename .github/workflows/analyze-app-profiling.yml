@@ -8,7 +8,8 @@
 #
 # Cadence:
 # - After a *scheduled* 6-hour performance run: collect `report.json`, compare
-#   the run with the prior 7-day median, and post either the scenarios that
+#   the run with the median of the previous two scheduled ticks (~6h and
+#   ~12h), and post either the scenarios that
 #   crossed the 1.5× threshold or a one-line all-clear, so a quiet channel
 #   always means the check stopped running. No per-scenario profile zips.
 #   Findings also get an optional Slack proposal from the pinned
@@ -278,6 +279,7 @@ jobs:
             /tmp/analyze-app-profiling/*.md
             /tmp/analyze-app-profiling/report.json
             /tmp/analyze-app-profiling/notification.json
+            /tmp/analyze-app-profiling/ai-proposal-evidence.json
             /tmp/analyze-app-profiling/slack-cards.json
             /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/

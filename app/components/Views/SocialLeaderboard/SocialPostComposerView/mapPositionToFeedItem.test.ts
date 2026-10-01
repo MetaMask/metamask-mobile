@@ -6,6 +6,8 @@ jest.mock('../utils/formatters', () => ({
     value == null ? '—' : `${value}%`,
   formatSignedUsd: (value: number | null | undefined) =>
     value == null ? '—' : `$${value}`,
+  formatSignedAbbreviatedUsd: (value: number | null | undefined) =>
+    value == null ? '—' : `$${value}`,
   formatTradeUnitPrice: (value: number | null | undefined) =>
     value == null ? '—' : `$${value}`,
   formatUsd: (value: number | null | undefined) =>

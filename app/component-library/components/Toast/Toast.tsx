@@ -112,7 +112,7 @@ const shouldTopAlignToastContent = ({
     return false;
   }
 
-  if (titleLineCount !== null && titleLineCount > 1 && hasDescription) {
+  if (titleLineCount !== null && titleLineCount > 1) {
     return true;
   }
 
@@ -221,9 +221,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const animationStartedRef = useRef(false);
   const visibleAtRef = useRef<number | null>(null);
   const hasNoTimeoutRef = useRef(false);
+  const visibilityDurationRef = useRef(visibilityDuration);
   const isDismissing = useSharedValue(false);
   const topOffset = toastOptions?.customTopOffset ?? 0;
   hasNoTimeoutRef.current = Boolean(toastOptions?.hasNoTimeout);
+  visibilityDurationRef.current = toastOptions?.timeoutMs ?? visibilityDuration;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
@@ -307,7 +309,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const beginAutoDismiss = () => {
     visibleAtRef.current = Date.now();
-    scheduleAutoDismiss(visibilityDuration);
+    scheduleAutoDismiss(visibilityDurationRef.current);
   };
 
   const ensureAutoDismissAfterIncompleteSwipe = () => {
@@ -336,12 +338,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }
 
     const elapsed = Date.now() - visibleAtRef.current;
-    if (elapsed >= visibilityDuration) {
+    if (elapsed >= visibilityDurationRef.current) {
       startDismissAnimation();
       return;
     }
 
-    scheduleAutoDismiss(visibilityDuration - elapsed);
+    scheduleAutoDismiss(visibilityDurationRef.current - elapsed);
   };
 
   const syncDismissTargetAfterRemeasure = () => {
@@ -357,12 +359,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     clearScheduledAutoDismiss();
     cancelAnimation(translateYProgress);
 
-    if (elapsed >= visibilityDuration) {
+    if (elapsed >= visibilityDurationRef.current) {
       startDismissAnimation();
       return;
     }
 
-    scheduleAutoDismiss(visibilityDuration - elapsed);
+    scheduleAutoDismiss(visibilityDurationRef.current - elapsed);
   };
 
   const handleTitleTextLayout = (

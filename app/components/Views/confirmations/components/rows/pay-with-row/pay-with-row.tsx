@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -65,16 +65,11 @@ function PayWithRowComponent({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
+  const { payToken } = useTransactionPayToken();
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
   const { payWithOption } = useParams<ConfirmationParams>({});
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
-
-  // Once the controller has set a paymentOverride (even if later cleared by the
-  // user switching away), Redux is the source of truth and the flag-based
-  // default no longer applies.
-  const overrideApplied = useRef(false);
-  if (paymentOverride !== undefined) {
-    overrideApplied.current = true;
-  }
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {
@@ -86,8 +81,15 @@ function PayWithRowComponent({
     return <PayWithRowMoneyAccount />;
   }
 
-  // Flag-based default — step aside when results are ready so user can change.
-  if (isDefaultMoneyAccount && !overrideApplied.current && !isResultReady) {
+  // Flag default only before a token or fiat method is chosen. Clearing the
+  // money-account override leaves the selected pay token in place, and that
+  // token is what the row should show.
+  if (
+    isDefaultMoneyAccount &&
+    !payToken &&
+    !selectedFiatPaymentMethod &&
+    !isResultReady
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 

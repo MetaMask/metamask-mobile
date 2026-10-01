@@ -52,7 +52,11 @@ describe('traderFeedQueries', () => {
     it('returns the SocialService fetchFeed key for the given scope', () => {
       expect(buildTraderFeedQueryKey('following')).toEqual([
         'SocialService:fetchFeed',
-        { scope: 'following', chains: FEED_CAIP2_CHAINS },
+        {
+          scope: 'following',
+          chains: FEED_CAIP2_CHAINS,
+          limit: FEED_PAGE_LIMIT,
+        },
       ]);
     });
   });

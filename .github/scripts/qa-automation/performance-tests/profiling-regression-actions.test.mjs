@@ -235,6 +235,10 @@ test('proposeProfilingGroundedActions does not call Claude on an all-clear', asy
   assert.equal(result, null);
   assert.equal(called, false);
   assert.equal(fs.existsSync(path.join(outputDirectory, 'ai-actions.md')), false);
+  assert.equal(
+    fs.existsSync(path.join(outputDirectory, 'ai-proposal-evidence.json')),
+    false,
+  );
 });
 
 test('proposeProfilingGroundedActions writes a Slack card from profile overlap only', async () => {
@@ -309,8 +313,10 @@ test('proposeProfilingGroundedActions writes a Slack card from profile overlap o
   assert.equal(cards.length, 1);
   assert.match(cards[0], /profiling evidence only/);
   assert.equal(ghCalls[0][0], 'pr');
+  // The digest's own ai-briefing.md must not be overwritten by the proposal.
+  assert.equal(fs.existsSync(path.join(outputDirectory, 'ai-briefing.md')), false);
   const briefing = fs.readFileSync(
-    path.join(outputDirectory, 'ai-briefing.md'),
+    path.join(outputDirectory, 'ai-proposal-evidence.json'),
     'utf8',
   );
   JSON.parse(briefing);

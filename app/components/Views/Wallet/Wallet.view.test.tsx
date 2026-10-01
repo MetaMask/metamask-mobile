@@ -139,13 +139,18 @@ describeForPlatforms('Wallet', () => {
                 sortCallback: 'stringNumeric',
               },
             },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                homeTMCU1384AbtestHomepageSearch: 'treatment',
+              },
+            },
           },
         },
       } as unknown as Record<string, unknown>,
     });
 
     const searchButton = getByTestId(
-      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+      WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON,
     );
 
     // Icon-only button, so screen readers have nothing to announce without this.
