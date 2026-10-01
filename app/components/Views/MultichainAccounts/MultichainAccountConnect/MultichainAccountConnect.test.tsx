@@ -4,6 +4,7 @@ import {
   Caip25EndowmentPermissionName,
   Caip25CaveatType,
   Caip25CaveatValue,
+  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
 import renderWithProvider, {
   DeepPartial,
@@ -370,6 +371,7 @@ jest.mock(
 
 const createMockCaip25Permission = (
   optionalScopes: Record<string, { accounts: string[] }>,
+  sessionProperties: Record<string, boolean> = {},
 ) => ({
   [Caip25EndowmentPermissionName]: {
     parentCapability: Caip25EndowmentPermissionName,
@@ -380,7 +382,7 @@ const createMockCaip25Permission = (
           requiredScopes: {},
           optionalScopes,
           isMultichainOrigin: false,
-          sessionProperties: {},
+          sessionProperties,
         },
       },
     ] as [{ type: string; value: Caip25CaveatValue }],
@@ -696,6 +698,116 @@ describe('MultichainAccountConnect', () => {
           source: 'in-app browser',
           request_source: 'In-App-Browser',
         }),
+      );
+    });
+  });
+
+  describe('eip1193-compatible session property handling', () => {
+    const getGrantedScopes = (acceptPermissionsRequestMock: jest.Mock) => {
+      const acceptedRequest = acceptPermissionsRequestMock.mock.calls[0][0];
+      const caveatValue =
+        acceptedRequest.permissions[Caip25EndowmentPermissionName].caveats[0]
+          .value;
+      return Object.keys({
+        ...caveatValue.requiredScopes,
+        ...caveatValue.optionalScopes,
+      });
+    };
+
+    it('pre-selects all default networks for Multichain API requests carrying the eip1193-compatible session property even when specific chains are requested', async () => {
+      const mockAcceptPermissionsRequestLocal = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptPermissionsRequestLocal;
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission(
+                  {
+                    'eip155:1': {
+                      accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+                    },
+                  },
+                  { [KnownSessionProperties.Eip1193Compatible]: true },
+                ),
+              },
+              permissionRequestId: 'test-eip1193-compatible',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAcceptPermissionsRequestLocal).toHaveBeenCalled();
+      });
+
+      const grantedScopes = getGrantedScopes(mockAcceptPermissionsRequestLocal);
+      // All-networks pre-selection grants non-EVM defaults (e.g. Solana)
+      // beyond the explicitly requested eip155:1 scope.
+      expect(grantedScopes).toContain('eip155:1');
+      expect(grantedScopes).toContain(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+    });
+
+    it('keeps only the requested chains for legacy EIP-1193 requests with specific chains even though they carry the eip1193-compatible session property', async () => {
+      // Legacy EIP-1193 requests are also tagged with the `eip1193-compatible`
+      // session property by `getCaip25PermissionFromLegacyPermissions`, but
+      // specific-chain requests (e.g. `wallet_requestPermissions` with
+      // `endowment:permitted-chains`) must not take the all-networks path.
+      const mockAcceptPermissionsRequestLocal = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptPermissionsRequestLocal;
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission(
+                  {
+                    'eip155:1': {
+                      accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+                    },
+                  },
+                  { [KnownSessionProperties.Eip1193Compatible]: true },
+                ),
+              },
+              permissionRequestId: 'test-legacy-specific-chains',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAcceptPermissionsRequestLocal).toHaveBeenCalled();
+      });
+
+      const grantedScopes = getGrantedScopes(mockAcceptPermissionsRequestLocal);
+      expect(grantedScopes).toContain('eip155:1');
+      expect(grantedScopes).not.toContain(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       );
     });
   });
