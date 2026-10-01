@@ -20,6 +20,7 @@ export const userInitialState: UserState = {
   protectWalletModalVisible: false,
   gasEducationCarouselSeen: false,
   userLoggedIn: false,
+  isWalletLocked: false,
   isAuthChecked: false,
   initialScreen: '',
   appTheme: AppThemeKey.os,
@@ -58,6 +59,11 @@ const userReducer = (
       return {
         ...state,
         userLoggedIn: false,
+      };
+    case UserActionType.SET_IS_WALLET_LOCKED:
+      return {
+        ...state,
+        isWalletLocked: action.isWalletLocked,
       };
     case UserActionType.LOADING_SET:
       return {

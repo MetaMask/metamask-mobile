@@ -36,6 +36,7 @@ import {
   type SetAppInstallEventFiredAction,
   type SetPendingAppInstallAction,
   type ClearPendingAppInstallAction,
+  type SetIsWalletLockedAction,
   UserActionType,
 } from './types';
 import { type PendingAppInstall } from '../../reducers/user/types';
@@ -341,5 +342,18 @@ export function setPendingAppInstall(
 export function clearPendingAppInstall(): ClearPendingAppInstallAction {
   return {
     type: UserActionType.CLEAR_PENDING_APP_INSTALL,
+  };
+}
+
+/**
+ * Session-only mirror of wallet lock for `selectIsWalletLocked`.
+ * Not persisted — set by WalletLockLifecycle platform helpers.
+ */
+export function setIsWalletLocked(
+  isWalletLocked: boolean,
+): SetIsWalletLockedAction {
+  return {
+    type: UserActionType.SET_IS_WALLET_LOCKED,
+    isWalletLocked,
   };
 }

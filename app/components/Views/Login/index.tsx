@@ -189,6 +189,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        // Covering a locked session: the product tree is still mounted
+        // under this Login route, so back must not reveal it.
+        if (isLocked) {
+          return true;
+        }
         void lockApp({ reset: false });
         return false;
       },
@@ -197,7 +202,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return () => {
       subscription.remove();
     };
-  }, [lockApp]);
+  }, [lockApp, isLocked]);
 
   useEffect(() => {
     if (Platform.OS === 'android' && !hasTestOverrides) {
@@ -569,7 +574,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     capabilities?.authType === AUTHENTICATION_TYPE.BIOMETRIC ||
     capabilities?.authType === AUTHENTICATION_TYPE.PASSCODE;
   const shouldHideDeviceAuthenticationButton =
-    route?.params?.locked || !isDeviceAuthenticationAvailable;
+    isLocked || !isDeviceAuthenticationAvailable;
 
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);

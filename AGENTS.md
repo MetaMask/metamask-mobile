@@ -119,6 +119,8 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
 - **Rive animations**: Use the Nitro-based `@rive-app/react-native` API and follow [`app/animations/README.md`](app/animations/README.md)
 - **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
+- **Wallet lock / always-on**: Gate long-lived sockets, WebViews, and charts on `selectIsWalletLocked` — see [`app/core/WalletLockLifecycle/README.md`](app/core/WalletLockLifecycle/README.md) and [`.cursor/rules/wallet-lock-always-on.mdc`](.cursor/rules/wallet-lock-always-on.mdc). AppState background alone is insufficient while LockScreen / Login cover a locked session.
+- **Route restore allowlist**: When adding a screen or navigator, check whether it belongs on `RESTORABLE_ROUTES` — see [`.cursor/rules/route-restoration-allowlist.mdc`](.cursor/rules/route-restoration-allowlist.mdc). Unlock keeps the exact screen when the reachable path touches that local catalog.
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup

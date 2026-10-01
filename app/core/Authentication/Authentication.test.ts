@@ -5912,6 +5912,18 @@ describe('Authentication', () => {
       expect(SecureKeychain.getGenericPassword).toHaveBeenCalled();
     });
 
+    it('shows the Login route when no password can be derived', async () => {
+      // Neither a supplied password nor stored credentials.
+      jest.spyOn(SecureKeychain, 'getGenericPassword').mockResolvedValue(null);
+
+      await Authentication.unlockWallet();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN, {
+        locked: true,
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
     it('navigates to the onboarding flow when user does not exist', async () => {
       // Mock existing user state.
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({

@@ -1,0 +1,20 @@
+---
+description: Always-on / long-lived wallet work must gate on selectIsWalletLocked while an in-session lock covers the tree
+globs: app/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Wallet lock — always-on gating
+
+> Platform API: [`app/core/WalletLockLifecycle/README.md`](../../app/core/WalletLockLifecycle/README.md)
+
+In-session lock pushes `LockScreen`, then `Login` (`{ locked: true }`) when biometrics fail, while `isWalletLocked` is true. The product tree **stays mounted** under those covers (keep the exact screen). Remount / trim at lock is not used.
+
+When adding or changing **always-on**, singleton, WebView, socket, chart, or other long-lived work under the wallet root:
+
+1. Read **`selectIsWalletLocked`** (or `getWalletLocked()` off the React tree).
+2. **Do not** start or keep expensive connect/subscribe/chart work while locked.
+3. Do **not** rely on `AppState` background alone — the app stays `active` under the lock covers.
+4. In-session lock **does** push `LockScreen` / `Login`. Do not add a second cover (root Modal curtain is deferred).
+5. Singletons that outlive screens still need this flag — keep-alive means unmount is not the pause mechanism.
+6. **`setWalletLocked` is platform-only** (lock / unlock paths). Features only read the flag. There is **no** `subscribeWalletLockLifecycle` / `onLocked` / `onUnlocked` API.
