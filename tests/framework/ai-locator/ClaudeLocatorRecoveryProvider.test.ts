@@ -28,6 +28,14 @@ describe('pageSourceContainsSecrets', () => {
     ).toBe(true);
   });
 
+  it('detects reveal-private-credential screens', () => {
+    expect(
+      pageSourceContainsSecrets(
+        '<AppiumAUT><XCUIElementTypeOther name="reveal-private-credential-screen"/><XCUIElementTypeStaticText value="abandon ability able"/></AppiumAUT>',
+      ),
+    ).toBe(true);
+  });
+
   it('returns false for non-secret wallet screens', () => {
     expect(
       pageSourceContainsSecrets(
@@ -65,6 +73,38 @@ describe('ClaudeLocatorRecoveryProvider', () => {
       driver: { getPageSource, takeScreenshot } as unknown as Browser,
       intent: 'tap continue on import wallet',
       primaryError: 'continue button not found',
+    });
+
+    expect(result).toBeNull();
+    expect(getPageSource).toHaveBeenCalledTimes(1);
+    expect(takeScreenshot).not.toHaveBeenCalled();
+    expect(analyzeImage).not.toHaveBeenCalled();
+  });
+
+  it('refuses recovery on reveal-seed screens without screenshot or model call', async () => {
+    const analyzeImage = jest.fn();
+    jest.mocked(ClaudeProvider).mockImplementation(
+      () =>
+        ({
+          analyzeImage,
+        }) as unknown as ClaudeProvider,
+    );
+
+    const takeScreenshot = jest.fn().mockResolvedValue('c2NyZWVuc2hvdA==');
+    const getPageSource = jest.fn().mockResolvedValue(`
+      <hierarchy>
+        <android.widget.FrameLayout resource-id="reveal-private-credential-screen">
+          <android.widget.TextView text="abandon ability able about above absent"/>
+          <android.widget.ImageView resource-id="reveal-credential-qr-code-image"/>
+        </android.widget.FrameLayout>
+      </hierarchy>
+    `);
+
+    const provider = new ClaudeLocatorRecoveryProvider();
+    const result = await provider.recover({
+      driver: { getPageSource, takeScreenshot } as unknown as Browser,
+      intent: 'tap done on reveal credential',
+      primaryError: 'done button not found',
     });
 
     expect(result).toBeNull();

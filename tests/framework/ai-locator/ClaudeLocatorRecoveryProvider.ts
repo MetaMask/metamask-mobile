@@ -23,6 +23,12 @@ export const SENSITIVE_PAGE_SOURCE_MARKERS = [
   'srp-input-word',
   'input-private-key',
   'seed-phrase-warning',
+  // RevealPrivateCredential — SRP / private key text or QR after unlock.
+  'reveal-private-credential-screen',
+  'reveal-credential-qr-code-image',
+  'reveal-credential-copy-to-clipboard-button',
+  'tab-scroll-view-text',
+  'tab-scroll-view-qr-code',
 ] as const;
 
 /**

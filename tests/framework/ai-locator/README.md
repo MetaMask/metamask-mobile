@@ -54,5 +54,6 @@ stable Page Object selectors instead of being silently accepted forever.
 Recovery must never upload SRP words, private keys, or reveal-seed UI to the
 external model. `ClaudeLocatorRecoveryProvider` inspects the accessibility
 tree for known secret-screen markers (import-from-seed, SrpInputGrid,
-private-key input, …) and refuses recovery before taking a screenshot or
-calling Claude. Add new markers when new secret-bearing screens appear.
+private-key input, reveal-private-credential, …) and refuses recovery before
+taking a screenshot or calling Claude. Add new markers when new secret-bearing
+screens appear.
