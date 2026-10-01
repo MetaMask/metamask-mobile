@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   BottomSheet,
@@ -446,74 +453,79 @@ const ContactForm = ({
         }}
         endAccessory={headerEndAccessory ?? undefined}
       />
-      <KeyboardAwareScrollView
-        style={styles.informationWrapper}
-        contentContainerStyle={styles.scrollWrapper}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.formBody}
       >
-        <ContactFormFields
-          address={address}
-          addressInputRef={addressInput}
-          editable={editable}
-          isAddMode={isAddMode}
-          isEditMode={isEditMode}
-          memo={memo}
-          memoInputRef={memoInput}
-          name={name}
-          onChangeAddress={onChangeAddress}
-          onChangeMemo={onChangeMemo}
-          onChangeName={onChangeName}
-          onScan={onScan}
-          themeAppearance={themeAppearance}
-          toEnsAddress={toEnsAddress}
-          toEnsName={toEnsName}
-        />
-
-        <View style={styles.networkField}>
-          <Label>{strings('address_book.network')}</Label>
-          <ContactNetworkSelector
-            chainId={contactChainId || chainId}
+        <KeyboardAwareScrollView
+          style={styles.informationWrapper}
+          contentContainerStyle={styles.scrollWrapper}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ContactFormFields
+            address={address}
+            addressInputRef={addressInput}
             editable={editable}
-            networkName={networkName}
-            onOpen={() => setOpenNetworkSelector(true)}
+            isAddMode={isAddMode}
+            isEditMode={isEditMode}
+            memo={memo}
+            memoInputRef={memoInput}
+            name={name}
+            onChangeAddress={onChangeAddress}
+            onChangeMemo={onChangeMemo}
+            onChangeName={onChangeName}
+            onScan={onScan}
+            themeAppearance={themeAppearance}
+            toEnsAddress={toEnsAddress}
+            toEnsName={toEnsName}
           />
-        </View>
 
-        {addressError && (
-          <ErrorMessage
-            errorMessage={renderErrorMessage(addressError)}
-            errorContinue={!!errorContinue}
-            onContinue={onErrorContinue}
-          />
-        )}
-      </KeyboardAwareScrollView>
-      {!!editable && (
-        <View style={styles.buttonsWrapper}>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            isDisabled={!addressReady || !name || !!addressError}
-            onPress={saveContact}
-            testID={AddContactViewSelectorsIDs.ADD_BUTTON}
-          >
-            {strings(`address_book.${mode}_contact`)}
-          </Button>
-          {mode === EDIT && (
+          <View style={styles.networkField}>
+            <Label>{strings('address_book.network')}</Label>
+            <ContactNetworkSelector
+              chainId={contactChainId || chainId}
+              editable={editable}
+              networkName={networkName}
+              onOpen={() => setOpenNetworkSelector(true)}
+            />
+          </View>
+
+          {addressError && (
+            <ErrorMessage
+              errorMessage={renderErrorMessage(addressError)}
+              errorContinue={!!errorContinue}
+              onContinue={onErrorContinue}
+            />
+          )}
+        </KeyboardAwareScrollView>
+        {!!editable && (
+          <View style={styles.buttonsWrapper}>
             <Button
-              variant={ButtonVariant.Tertiary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               isFullWidth
-              isDanger
               isDisabled={!addressReady || !name || !!addressError}
-              onPress={onDelete}
-              testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
+              onPress={saveContact}
+              testID={AddContactViewSelectorsIDs.ADD_BUTTON}
             >
-              {strings(`address_book.delete`)}
+              {strings(`address_book.${mode}_contact`)}
             </Button>
-          )}
-        </View>
-      )}
+            {mode === EDIT && (
+              <Button
+                variant={ButtonVariant.Tertiary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDanger
+                isDisabled={!addressReady || !name || !!addressError}
+                onPress={onDelete}
+                testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
+              >
+                {strings(`address_book.delete`)}
+              </Button>
+            )}
+          </View>
+        )}
+      </KeyboardAvoidingView>
       {state.openDeleteSheet ? (
         <BottomSheet
           testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}

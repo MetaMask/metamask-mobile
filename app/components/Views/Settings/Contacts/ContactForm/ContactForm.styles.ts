@@ -13,6 +13,9 @@ export const createStyles = (colors: Colors) =>
       paddingVertical: 12,
       gap: 16,
     },
+    formBody: {
+      flex: 1,
+    },
     informationWrapper: {
       flex: 1,
       paddingHorizontal: 24,
