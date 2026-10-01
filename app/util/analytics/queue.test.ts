@@ -217,6 +217,22 @@ describe('createAnalyticsQueueManager', () => {
       );
     });
 
+    it('calls the marketing consent controller actions', async () => {
+      await queueManager.queueOperation('optInToMarketing');
+      await queueManager.queueOperation('optOutOfMarketing');
+      await queueManager.queueOperation('resetMarketingConsentDecision');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:optInToMarketing',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:optOutOfMarketing',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:resetMarketingConsentDecision',
+      );
+    });
+
     it('logs error for unknown action', async () => {
       await queueManager.queueOperation('unknownAction', 'arg1', 'arg2');
 
