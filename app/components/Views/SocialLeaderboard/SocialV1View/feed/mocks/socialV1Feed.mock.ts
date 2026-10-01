@@ -45,6 +45,7 @@ export const mockOpenPerpsFeedItem = (
   pnlValueLabel: '+$256.96K',
   costLabel: '$212,000.00',
   isPnlPositive: true,
+  leverage: 40,
   leverageLabel: '40X',
   autoCloseLabel: 'TP $101,214 / SL $110,905',
   entryPriceLabel: '$107,675',

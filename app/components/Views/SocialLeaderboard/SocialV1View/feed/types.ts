@@ -73,6 +73,8 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   variant: 'perpsOpen';
   direction: SocialV1PerpDirection;
   markPriceLabel?: string;
+  /** Numeric leverage copied into the trade sheet. The label stays for display. */
+  leverage?: number;
   leverageLabel?: string;
   autoCloseLabel?: string;
   entryPriceLabel?: string;

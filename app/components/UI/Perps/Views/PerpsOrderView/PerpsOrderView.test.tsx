@@ -2006,6 +2006,49 @@ describe('PerpsOrderView', () => {
     await act(async () => resolveOrder({ success: true }));
   });
 
+  it('dismisses the Trade sheet back to the presenting screen when stayOnCurrentScreen is set', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    useTradeSheetRoute({ stayOnCurrentScreen: true });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      getMockTradeScreenProps().onSubmit();
+    });
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MARKET_DETAILS,
+      }),
+    );
+  });
+
+  it('does not pop the presenting screen again when the Trade sheet closes after a stay-on-screen submit', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    useTradeSheetRoute({ stayOnCurrentScreen: true });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      getMockTradeScreenProps().onSubmit();
+    });
+    mockTradeSheetOnClose?.();
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('still leaves the Trade sheet when the order execution fails', async () => {
     const placeOrder = jest.fn().mockResolvedValue({ success: false });
     (usePerpsOrderExecution as jest.Mock).mockReturnValue({
@@ -5998,7 +6041,27 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('explains why Trade sheet submission is blocked when market data is unavailable', () => {
+    it('does not treat a deferred empty-asset fetch as a failed market', () => {
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().errorMessages).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'market-data-unavailable',
+          }),
+        ]),
+      );
+    });
+
+    it('explains why Trade sheet submission is blocked when market data is unavailable', async () => {
       (usePerpsMarketData as jest.Mock).mockReturnValue({
         marketData: null,
         isLoading: false,
@@ -6009,15 +6072,17 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
-      expect(getMockTradeScreenProps().errorMessages).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            key: 'market-data-unavailable',
-            message: 'perps.failed_to_load_market_data',
-          }),
-        ]),
-      );
+      await waitFor(() => {
+        expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+        expect(getMockTradeScreenProps().errorMessages).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              key: 'market-data-unavailable',
+              message: 'perps.failed_to_load_market_data',
+            }),
+          ]),
+        );
+      });
     });
   });
 

@@ -1,6 +1,11 @@
 import React from 'react';
 import { lightTheme } from '@metamask/design-tokens';
-import { screen, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -24,7 +29,36 @@ import {
   getSocialFeedPostAvatarTestId,
   getSocialFeedPostWinRateTestId,
 } from './SocialFeedPositionCard.testIds';
+import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { MINUTE } from '../../../../../../constants/time';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+const mockGate = jest.fn((action: () => Promise<void> | void) =>
+  Promise.resolve(action()),
+);
+const mockSelectPerpsEligibility = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../../../../UI/Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockGate }),
+}));
+
+jest.mock('../../../../../UI/Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: () => mockSelectPerpsEligibility(),
+}));
+
+jest.mock('../../../../../UI/Perps/components/PerpsBottomSheetTooltip', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
 
 jest.mock('../../../components/PositionTokenAvatar', () => ({
   __esModule: true,
@@ -422,6 +456,73 @@ describe('SocialFeedPositionCard', () => {
       expect(
         cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false })),
       ).toContain(lightTheme.colors.error.default);
+    });
+  });
+
+  describe('copy trade', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+      mockGate.mockImplementation((action: () => Promise<void> | void) =>
+        Promise.resolve(action()),
+      );
+      mockSelectPerpsEligibility.mockReturnValue(true);
+    });
+
+    it('opens the perps order redirect as a bottom sheet when the trader is eligible', async () => {
+      const item = mockOpenPerpsFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: {
+            direction: 'short',
+            asset: 'BTC',
+            leverage: 40,
+            useBottomSheet: true,
+            stayOnCurrentScreen: true,
+          },
+        });
+      });
+    });
+
+    it('does not navigate when compliance blocks the action', async () => {
+      const item = mockOpenPerpsFeedItem();
+      mockGate.mockImplementation(() => Promise.resolve());
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(mockGate).toHaveBeenCalled();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID),
+      ).toBeNull();
+    });
+
+    it('shows the geo block and does not navigate when the trader is ineligible', async () => {
+      const item = mockOpenPerpsFeedItem();
+      mockSelectPerpsEligibility.mockReturnValue(false);
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID),
+        ).toBeOnTheScreen();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

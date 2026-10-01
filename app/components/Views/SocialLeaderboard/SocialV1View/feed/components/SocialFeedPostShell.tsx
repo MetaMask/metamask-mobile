@@ -16,6 +16,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSocialEntryOptions } from '../../../components/SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from '../../../components/SocialTraderIdentityRow';
+import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import { markMocked } from '../mockMarker';
@@ -58,6 +59,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
     post.reactions,
     post.userReaction ?? null,
   );
+  const { onCopyTrade, geoBlockSheet } = useCopyTradeToPerps(post.item);
 
   const chips = visibleReactions(reactions);
 
@@ -121,7 +123,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} />
+      <PositionCardBody item={post.item} onCopyTrade={onCopyTrade} />
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">
@@ -198,6 +200,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         onPick={handlePick}
       />
       {optionsSheet}
+      {geoBlockSheet}
     </Box>
   );
 };

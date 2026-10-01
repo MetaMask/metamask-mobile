@@ -23,6 +23,12 @@ import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/Perp
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsModalsNavigationParamList = {
+  /**
+   * Trade sheet entry from outside the Perps stack (e.g. Social copy trade).
+   * The modal stack is transparent, so the sheet opens over the calling page.
+   */
+  PerpsOrderRedirect: PerpsStackParamList['PerpsOrderRedirect'];
+  RedesignedConfirmations: PerpsStackParamList['RedesignedConfirmations'];
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;
@@ -91,6 +97,12 @@ export type PerpsOrderRouteParams = {
    * loader inside a bottom sheet instead of a full-screen spinner.
    */
   forceBottomSheet?: boolean;
+  /**
+   * After submit, dismiss back to the presenting screen instead of opening
+   * market details. The order still places and the same submitted / confirmed
+   * / failed toasts still fire.
+   */
+  stayOnCurrentScreen?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -358,9 +370,21 @@ export type PerpsStackParamList = {
   PerpsOrderRedirect: {
     direction: 'long' | 'short';
     asset: string;
+    leverage?: number;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    /**
+     * Forces the trade bottom sheet and renders the redirect transparent.
+     * Meant for the `PerpsModals` entry, where the page beneath should stay
+     * visible. Omitted entries keep the screen-vs-sheet experiment assignment.
+     */
+    useBottomSheet?: boolean;
+    /**
+     * After submit, stay on the presenting screen (e.g. Social feed) instead
+     * of opening market details.
+     */
+    stayOnCurrentScreen?: boolean;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)

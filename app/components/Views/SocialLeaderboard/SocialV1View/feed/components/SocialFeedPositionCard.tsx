@@ -1,5 +1,6 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
+import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import type { SocialV1FeedItem } from '../types';
 import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
@@ -25,6 +26,8 @@ export interface SocialFeedPositionCardProps {
 
 export interface PositionCardBodyProps {
   item: SocialV1FeedItem;
+  /** Set for an open perp. Spot copy trade stays unwired. */
+  onCopyTrade?: () => void;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -74,7 +77,10 @@ const closedStats = (item: {
  * A closed card also takes the tone of its realized P&L, so a win and a loss
  * are distinguishable while scrolling past at speed.
  */
-export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
+export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
+  item,
+  onCopyTrade,
+}) => {
   if (
     item.variant === 'perpsOpen' ||
     item.variant === 'spotOpen' ||
@@ -141,6 +147,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
         <PositionCardStats rows={stats} cardId={item.id} />
         {showCopyTrade ? (
           <CopyTradeButton
+            onPress={onCopyTrade}
             testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
           />
         ) : null}
@@ -175,16 +182,23 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
 const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   item,
   now,
-}) => (
-  <FeedPost
-    id={item.id}
-    author={item.author}
-    timestamp={item.timestamp}
-    comment={item.comment}
-    now={now}
-  >
-    <PositionCardBody item={item} />
-  </FeedPost>
-);
+}) => {
+  const { onCopyTrade, geoBlockSheet } = useCopyTradeToPerps(item);
+
+  return (
+    <>
+      <FeedPost
+        id={item.id}
+        author={item.author}
+        timestamp={item.timestamp}
+        comment={item.comment}
+        now={now}
+      >
+        <PositionCardBody item={item} onCopyTrade={onCopyTrade} />
+      </FeedPost>
+      {geoBlockSheet}
+    </>
+  );
+};
 
 export default SocialFeedPositionCard;

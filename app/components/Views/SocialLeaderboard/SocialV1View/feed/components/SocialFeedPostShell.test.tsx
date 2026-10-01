@@ -2,7 +2,9 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { View } from 'react-native';
+import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import {
   mockClosedPerpsFeedItem,
@@ -48,15 +50,57 @@ jest.mock(
   },
 );
 
-jest.mock('./SocialFeedPositionCard', () => {
+const mockNavigate = jest.fn();
+const mockGate = jest.fn((action: () => Promise<void> | void) =>
+  Promise.resolve(action()),
+);
+const mockSelectPerpsEligibility = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../../../../UI/Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockGate }),
+}));
+
+jest.mock('../../../../../UI/Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: () => mockSelectPerpsEligibility(),
+}));
+
+jest.mock('../../../../../UI/Perps/components/PerpsBottomSheetTooltip', () => {
   const { View: MockView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
+  };
+});
+
+jest.mock('./SocialFeedPositionCard', () => {
+  const { Pressable, View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({ item }: { item: { id: string } }) => (
       <MockView testID={`social-feed-position-card-${item.id}`} />
     ),
-    PositionCardBody: ({ item }: { item: { id: string } }) => (
-      <MockView testID={`social-feed-position-card-${item.id}`} />
+    // Exposes the copy-trade handler the shell passes so the gate can be
+    // exercised without rendering the real card.
+    PositionCardBody: ({
+      item,
+      onCopyTrade,
+    }: {
+      item: { id: string };
+      onCopyTrade?: () => void;
+    }) => (
+      <MockView testID={`social-feed-position-card-${item.id}`}>
+        {onCopyTrade ? (
+          <Pressable
+            testID={`social-feed-position-card-copy-trade-${item.id}`}
+            onPress={onCopyTrade}
+          />
+        ) : null}
+      </MockView>
     ),
   };
 });
@@ -374,5 +418,64 @@ describe('SocialFeedPostShell', () => {
         `${SocialFeedPostShellSelectorsIDs.CONTAINER}-post-1`,
       ),
     ).toBeNull();
+  });
+
+  describe('copy trade', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+      mockGate.mockImplementation((action: () => Promise<void> | void) =>
+        Promise.resolve(action()),
+      );
+      mockSelectPerpsEligibility.mockReturnValue(true);
+    });
+
+    it('opens the perps order redirect as a bottom sheet for an open perp', async () => {
+      renderShell(basePost());
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: {
+            direction: 'short',
+            asset: 'BTC',
+            leverage: 40,
+            useBottomSheet: true,
+            stayOnCurrentScreen: true,
+          },
+        });
+      });
+    });
+
+    it('does not wire copy trade for a closed position', () => {
+      renderShell(
+        basePost({ item: mockClosedPerpsFeedItem({ id: 'item-closed' }) }),
+      );
+
+      expect(
+        screen.queryByTestId(
+          'social-feed-position-card-copy-trade-item-closed',
+        ),
+      ).toBeNull();
+    });
+
+    it('shows the geo block instead of navigating when ineligible', async () => {
+      mockSelectPerpsEligibility.mockReturnValue(false);
+      renderShell(basePost());
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID),
+        ).toBeOnTheScreen();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 });

@@ -305,6 +305,7 @@ export function toSocialV1FeedItem(
     ...base,
     variant: 'perpsOpen',
     direction: item.direction,
+    leverage: item.leverage ?? undefined,
     leverageLabel: toLeverageLabel(item),
     markPriceLabel,
     entryPriceLabel,

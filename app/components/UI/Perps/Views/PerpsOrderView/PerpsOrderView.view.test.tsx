@@ -549,6 +549,45 @@ describe('PerpsOrderView', () => {
       placeOrder.mockResolvedValue({ success: true });
     });
 
+    it('places the order and stays off the market page when stayOnCurrentScreen is set', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      placeOrder.mockResolvedValue({ success: true });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          ...tradeSheetParams,
+          stayOnCurrentScreen: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const submitButton = await findEnabledSubmitButton();
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            isBuy: true,
+            orderType: 'market',
+          }),
+        );
+      });
+      expect(
+        screen.queryByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
+      ).toBeNull();
+    });
+
     // Dismissing the sheet runs its exit animation and `onClose` before the
     // navigation transition would unmount the view. The view framework renders
     // the design-system BottomSheet as a plain View (no backdrop or swipe), so

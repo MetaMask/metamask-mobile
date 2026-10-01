@@ -101,6 +101,7 @@ describe('toSocialV1FeedItem', () => {
       const result = toSocialV1FeedItem(row);
 
       expect(result.variant).toBe('perpsOpen');
+      expect(result.variant === 'perpsOpen' && result.leverage).toBe(8);
     });
 
     it('maps a closed perp row to the closed perps card', () => {

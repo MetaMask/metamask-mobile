@@ -296,6 +296,75 @@ describe('PerpsOrderRedirect', () => {
     });
   });
 
+  it('forces the trade bottom sheet when the route asks for it', async () => {
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'ETH',
+        leverage: 8,
+        useBottomSheet: true,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: false,
+    });
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          leverage: 8,
+          useBottomSheet: true,
+          forceBottomSheet: true,
+        }),
+      );
+    });
+  });
+
+  it('forwards stayOnCurrentScreen onto the confirmation screen', async () => {
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'ETH',
+        leverage: 8,
+        useBottomSheet: true,
+        stayOnCurrentScreen: true,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: false,
+    });
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          stayOnCurrentScreen: true,
+        }),
+      );
+    });
+  });
+
   it('forwards the treatment assignment from Token Details', async () => {
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
