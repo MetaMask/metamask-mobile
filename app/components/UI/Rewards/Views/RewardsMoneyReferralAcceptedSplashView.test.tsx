@@ -54,15 +54,18 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock('../components/ThemeImageComponent/RewardsThemeImageComponent', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, { testID: 'theme-image-hero' }),
-  };
-});
+jest.mock(
+  '../components/ThemeImageComponent/RewardsThemeImageComponent',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactActual.createElement(View, { testID: 'theme-image-hero' }),
+    };
+  },
+);
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -153,9 +156,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(getByTestId(TEST_IDS.TITLE)).toHaveTextContent(
       'Your rebate offer is active',
     );
-    expect(getByTestId(TEST_IDS.BODY).props.children).toMatch(
-      /through .+2026/,
-    );
+    expect(getByTestId(TEST_IDS.BODY).props.children).toMatch(/through .+2026/);
   });
 
   it('uses for a limited time when earning_end is missing', () => {

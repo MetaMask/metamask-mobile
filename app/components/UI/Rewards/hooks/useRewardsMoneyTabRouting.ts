@@ -111,7 +111,7 @@ export function useRewardsMoneyTabRouting(): RewardsMoneyTabRouting {
           }
         }
       };
-      resolveCurrentProfile();
+      void resolveCurrentProfile();
 
       return () => {
         active = false;
