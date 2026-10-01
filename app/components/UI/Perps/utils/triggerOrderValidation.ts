@@ -10,7 +10,6 @@ import {
   type TriggerOrderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from './formatUtils';
 import {
@@ -533,17 +532,6 @@ export const getScalePriceCrossingWarning = ({
   }
 
   const isFullLadder = crossingCount === 2;
-  if (isFullLadder) {
-    DevLogger.log(
-      '[PR-TAT-4018] BUG_MARKER: full-ladder scale warning selected',
-      direction,
-      strings(
-        direction === 'long'
-          ? 'perps.order.validation.scale_price_above_warning'
-          : 'perps.order.validation.scale_price_below_warning',
-      ),
-    );
-  }
   if (direction === 'long') {
     return strings(
       isFullLadder
