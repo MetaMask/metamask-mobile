@@ -99,8 +99,7 @@ describe('Perps position protection through the Mobile trading hook', () => {
 
       expect(update).toMatchObject({
         success: false,
-        error:
-          'TP/SL expected position changed or is invalid; refresh before retrying',
+        error: PERPS_ERROR_CODES.TPSL_UPDATE_FAILED,
       });
       expect(perps.harness.mocks.exchangeClient.cancel).not.toHaveBeenCalled();
       expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
@@ -260,8 +259,7 @@ describe('Perps position protection through the Mobile trading hook', () => {
     expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
     expect(update).toMatchObject({
       success: false,
-      error:
-        'TP/SL expected position changed or is invalid; refresh before retrying',
+      error: PERPS_ERROR_CODES.TPSL_UPDATE_FAILED,
     });
     expect(exchangeClient.cancel).not.toHaveBeenCalled();
     expect(exchangeClient.order).not.toHaveBeenCalled();
