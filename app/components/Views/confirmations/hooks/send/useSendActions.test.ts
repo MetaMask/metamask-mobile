@@ -20,6 +20,7 @@ import * as MultichainSnaps from '../../utils/multichain-snaps';
 import * as SendType from './useSendType';
 import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { NonEvmSendUnknownValue } from './metrics/useNonEvmSendMetrics';
+import { useMaxAmount } from './usePercentageAmount';
 import { useSendActions } from './useSendActions';
 
 jest.mock('../../context/send-context', () => ({
@@ -56,9 +57,14 @@ const trackedEventProperties = (eventName: string) =>
   mockTrackEvent.mock.calls.find(([event]) => event.name === eventName)?.[0]
     .properties;
 
+jest.mock('./usePercentageAmount', () => ({
+  useMaxAmount: jest.fn(),
+}));
+
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
+const mockUseMaxAmount = jest.mocked(useMaxAmount);
 
 const mockGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
@@ -93,6 +99,9 @@ describe('useSendActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackEvent.mockClear();
+    mockUseMaxAmount.mockReturnValue({
+      getMaxAmount: jest.fn().mockResolvedValue('1'),
+    } as unknown as ReturnType<typeof useMaxAmount>);
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -125,6 +134,73 @@ describe('useSendActions', () => {
       params: { maxValueMode: undefined },
       loader: 'transfer',
     });
+  });
+
+  it('recalculates a native max send with the selected recipient before submitting', async () => {
+    const getMaxAmount = jest.fn().mockResolvedValue('8.5');
+    mockUseMaxAmount.mockReturnValue({
+      getMaxAmount,
+    } as unknown as ReturnType<typeof useMaxAmount>);
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        decimals: 2,
+        isNative: true,
+      },
+      chainId: '0x1',
+      from: ACCOUNT_ADDRESS_MOCK_1,
+      maxValueMode: true,
+      value: '9',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const submitSpy = jest
+      .spyOn(SendUtils, 'submitEvmTransaction')
+      .mockResolvedValue(undefined);
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+
+    await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+    expect(getMaxAmount).toHaveBeenCalledWith(ACCOUNT_ADDRESS_MOCK_2);
+    expect(submitSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: ACCOUNT_ADDRESS_MOCK_2,
+        value: '8.5',
+      }),
+    );
+  });
+
+  it('does not submit a native max send when gas estimation is unavailable', async () => {
+    mockUseMaxAmount.mockReturnValue({
+      getMaxAmount: jest.fn().mockResolvedValue(undefined),
+    } as unknown as ReturnType<typeof useMaxAmount>);
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        decimals: 2,
+        isNative: true,
+      },
+      chainId: '0x1',
+      from: ACCOUNT_ADDRESS_MOCK_1,
+      maxValueMode: true,
+      value: '9',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const submitSpy = jest
+      .spyOn(SendUtils, 'submitEvmTransaction')
+      .mockResolvedValue(undefined);
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+
+    await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+    expect(submitSpy).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith('Transaction error');
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('normalizes trailing dot values before submitting evm transaction', async () => {

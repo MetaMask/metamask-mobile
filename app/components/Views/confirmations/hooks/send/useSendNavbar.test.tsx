@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./useSendActions', () => ({
-  useSendActions: () => ({
+  useSendNavigationActions: () => ({
     handleCancelPress: mockHandleCancelPress,
   }),
 }));

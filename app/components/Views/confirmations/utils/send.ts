@@ -422,21 +422,27 @@ export const getLayer1GasFeeForSend = async ({
   asset,
   chainId,
   from,
+  networkClientId,
+  to,
   value,
 }: {
   asset: AssetType;
   chainId: Hex;
   from: Hex;
+  networkClientId?: string;
+  to?: Hex;
   value: string;
 }) => {
   const txParams = {
     chainId,
     from,
-    value: fromTokenMinUnits(value, asset.decimals),
+    to,
+    value: addHexPrefix(toTokenMinimalUnit(value, asset.decimals).toString(16)),
   };
   return await fetchEstimatedMultiLayerL1Fee(undefined, {
     txParams,
     chainId,
+    networkClientId,
   });
 };
 

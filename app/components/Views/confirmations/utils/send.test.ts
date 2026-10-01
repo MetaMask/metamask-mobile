@@ -409,12 +409,38 @@ describe('getLayer1GasFeeForSend', () => {
       .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
       .mockImplementation(() => Promise.resolve('0x186a0'));
     getLayer1GasFeeForSend({
-      asset: { decimals: 2 } as unknown as AssetType,
+      asset: { decimals: 2, isNative: true } as unknown as AssetType,
       chainId: '0x1',
       from: '0x123',
+      networkClientId: 'mainnet',
+      to: '0x456',
       value: '10',
     });
-    expect(mockGetLayer1GasFee).toHaveBeenCalled();
+    expect(mockGetLayer1GasFee).toHaveBeenCalledWith(undefined, {
+      txParams: expect.objectContaining({ to: '0x456' }),
+      chainId: '0x1',
+      networkClientId: 'mainnet',
+    });
+  });
+
+  it('converts fractional values to minimal units', () => {
+    const mockGetLayer1GasFee = jest
+      .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
+      .mockImplementation(() => Promise.resolve('0x186a0'));
+
+    getLayer1GasFeeForSend({
+      asset: { decimals: 18, isNative: true } as unknown as AssetType,
+      chainId: '0xa',
+      from: '0x123',
+      to: '0x456',
+      value: '12.5',
+    });
+
+    expect(mockGetLayer1GasFee).toHaveBeenCalledWith(undefined, {
+      txParams: expect.objectContaining({ value: '0xad78ebc5ac620000' }),
+      chainId: '0xa',
+      networkClientId: undefined,
+    });
   });
 });
 
