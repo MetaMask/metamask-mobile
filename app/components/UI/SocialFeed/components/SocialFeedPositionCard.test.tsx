@@ -4,6 +4,7 @@ import { screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPositionCard, {
   PositionCardBody,
 } from './SocialFeedPositionCard';
@@ -420,6 +421,38 @@ describe('SocialFeedPositionCard', () => {
         cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false })),
       ).toContain(lightTheme.colors.error.default);
     });
+  });
+
+  it('hides an invented mark price and leaves a dash for an invented auto-close', () => {
+    const item = mockOpenPerpsFeedItem({
+      mockedFields: ['markPrice', 'autoClose'],
+    });
+
+    renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+    expect(screen.queryByText('$104,213')).toBeNull();
+    expect(
+      within(
+        screen.getByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'autoClose'),
+        ),
+      ).getByText('\u2014'),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps invented values when the surface opts in', () => {
+    const item = mockOpenPerpsFeedItem({
+      mockedFields: ['markPrice', 'autoClose'],
+    });
+
+    renderWithProvider(
+      <SocialFeedSurfaceProvider showMockedFields>
+        <SocialFeedPositionCard item={item} />
+      </SocialFeedSurfaceProvider>,
+    );
+
+    expect(screen.getByText('$104,213')).toBeOnTheScreen();
+    expect(statValue(item.id, 'autoClose')).toBe('TP $101,214 / SL $110,905');
   });
 
   it('renders the position body without the post author header', () => {
