@@ -615,6 +615,82 @@ describe('AcceptInviteSheet', () => {
     );
   });
 
+  it('does not auto-dismiss for late geo while accept is in flight', async () => {
+    mockAcceptReferralCode.mockReturnValue(new Promise(() => undefined));
+
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({ excluded_regions: ['GB'] }),
+      },
+    };
+
+    const { getByTestId, queryByTestId, store } = await renderSheet('KOL1', {
+      geoLocation: null,
+    });
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+
+    await act(async () => {
+      store.dispatch(
+        setGeoRewardsMetadata({
+          geoLocation: 'GB',
+          optinAllowedForGeo: true,
+        }),
+      );
+    });
+
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-dismiss for late geo after a refused accept', async () => {
+    mockAcceptReferralCode.mockResolvedValue(false);
+
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({ excluded_regions: ['GB'] }),
+      },
+    };
+
+    const { getByTestId, queryByTestId, store } = await renderSheet('KOL1', {
+      geoLocation: null,
+    });
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings(
+        'rewards.onboarding.not_supported_region_description',
+      ),
+      clearError: jest.fn(),
+    });
+
+    await act(async () => {
+      store.dispatch(
+        setGeoRewardsMetadata({
+          geoLocation: 'GB',
+          optinAllowedForGeo: true,
+        }),
+      );
+    });
+
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
+      strings('rewards.onboarding.not_supported_region_description'),
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['accept', ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT],
     ['decline', ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE],
@@ -735,6 +811,44 @@ describe('AcceptInviteSheet', () => {
         referral_code: 'KOL1',
         interaction_type: 'dismissed',
       });
+    });
+
+    it('does not record dismissed for late geo after Accept has started', async () => {
+      mockAcceptReferralCode.mockReturnValue(new Promise(() => undefined));
+
+      referralMeEntries = {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: buildReferralMe({ excluded_regions: ['GB'] }),
+        },
+      };
+
+      const { getByTestId, store } = await renderSheet('KOL1', {
+        geoLocation: null,
+      });
+
+      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+      await act(async () => {
+        store.dispatch(
+          setGeoRewardsMetadata({
+            geoLocation: 'GB',
+            optinAllowedForGeo: true,
+          }),
+        );
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+        referral_code: 'KOL1',
+      });
+      expect(viewedBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ interaction_type: 'dismissed' }),
+      );
     });
 
     it('tracks no offer when a pending referral-me load settles as already referred', async () => {
