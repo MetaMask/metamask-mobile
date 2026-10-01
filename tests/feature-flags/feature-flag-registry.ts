@@ -5339,6 +5339,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  rampsOffRampNonEvm: {
+    name: 'rampsOffRampNonEvm',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rampsServiceDisruptionModal: {
     name: 'rampsServiceDisruptionModal',
     type: FeatureFlagType.Remote,
