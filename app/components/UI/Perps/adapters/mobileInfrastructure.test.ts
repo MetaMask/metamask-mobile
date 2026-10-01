@@ -432,7 +432,7 @@ describe('createMobileInfrastructure', () => {
       expect(result).toBe(5);
     });
 
-    it('returns 0 discount when vipProgramEnabled is false', async () => {
+    it('delegates targeted eligibility when vipProgramEnabled is false', async () => {
       mockSelectVipProgramEnabled.mockReturnValue(false);
       const infra = createMobileInfrastructure();
       const caipAccountId =
@@ -445,8 +445,8 @@ describe('createMobileInfrastructure', () => {
 
       expect(
         Engine.context.RewardsController.getPerpsDiscountForAccount,
-      ).not.toHaveBeenCalled();
-      expect(result).toBe(0);
+      ).toHaveBeenCalledWith(caipAccountId, 10);
+      expect(result).toBe(5);
     });
   });
 
