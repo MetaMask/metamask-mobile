@@ -2,6 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import {
   type Position,
+  type MarginMode,
   type Order,
   type OrderType,
   type PerpsMarketData,
@@ -286,6 +287,8 @@ export type PerpsStackParamList = {
     initialTakeProfitPrice?: string;
     initialStopLossPrice?: string;
     leverage?: number;
+    /** Collateral mode for a new order; existing positions report their own liquidation price. */
+    marginMode?: MarginMode;
     orderType?: OrderType;
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
