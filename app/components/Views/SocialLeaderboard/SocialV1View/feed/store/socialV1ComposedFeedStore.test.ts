@@ -13,7 +13,7 @@ import {
   submitSocialV1ComposedPost,
   subscribeSocialV1ComposedFeed,
 } from './socialV1ComposedFeedStore';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 
 const composedPost = {
   id: 'composed-1',

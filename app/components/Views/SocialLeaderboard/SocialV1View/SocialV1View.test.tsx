@@ -11,8 +11,8 @@ import { SocialFeedPostingBannerSelectorsIDs } from './feed/components/SocialFee
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
   mockOpenPerpsFeedItem,
-} from './feed/mocks/socialV1Feed.mock';
-import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   COMPOSER_POSTING_DELAY_MS,
   resetSocialV1ComposedFeedStore,
@@ -69,7 +69,7 @@ jest.mock('../analytics', () => {
   };
 });
 
-jest.mock('./feed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -97,7 +97,7 @@ jest.mock('./feed/components', () => ({
   HotTokensCarousel: () => null,
 }));
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));

@@ -5,17 +5,17 @@ import {
   formatSignedUsd,
   formatTradeUnitPrice,
   formatUsd,
-} from '../utils/formatters';
+} from '../../../UI/SocialFeed/utils/formatters';
 import {
   getPerpPositionDirection,
   isClosedPosition,
   isPerpPosition,
-} from '../utils/perp';
-import { tradeTimestampToMs } from '../utils/tradeTimestamp';
+} from '../../../UI/SocialFeed/utils/perp';
+import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 import type {
   SocialV1FeedAuthor,
   SocialV1FeedItem,
-} from '../SocialV1View/feed/types';
+} from '../../../UI/SocialFeed/types';
 import { holdDurationFromTimestamps } from './formatHoldDuration';
 
 const leverageLabel = (position: Position): string | undefined => {
