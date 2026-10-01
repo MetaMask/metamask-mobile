@@ -1,40 +1,95 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
-import {
-  TokenDetailsV1,
-  TOKEN_DETAILS_V1_TEST_ID,
-  TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID,
-} from './TokenDetailsV1';
+import { TokenDetailsV1, TOKEN_DETAILS_V1_TEST_ID } from './TokenDetailsV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
-import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
+import type { TokenDetailsV1HeaderProps } from '../components/TokenDetailsV1Header';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
 }));
 
-// Keeps the security fetch off the network. Tokens carrying `securityData`
-// from navigation short-circuit the hook before it reaches this.
-jest.mock('@metamask/assets-controllers', () => ({
-  fetchTokenAssets: jest.fn().mockResolvedValue([]),
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => undefined),
 }));
 
-/** Minimal shape that satisfies the hook's prefetched-data validation. */
-const securityDataWithLinks = {
-  resultType: 'Benign',
-  features: [],
-  metadata: {
-    externalLinks: {
-      homepage: 'https://pepe.vip',
-      twitterPage: 'pepecoineth',
-      telegramChannelId: 'pepecoineth',
-    },
-  },
-} as unknown as TokenDetailsRouteParams['securityData'];
+const mockTrackEvent = jest.fn();
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: () => ({ build: () => ({}) }),
+    }),
+  }),
+}));
+
+jest.mock('../hooks/useTokenPrice', () => ({
+  useTokenPrice: () => ({
+    currentPrice: 1,
+    priceDiff: 0,
+    comparePrice: 1,
+    currentCurrency: 'usd',
+  }),
+}));
+
+jest.mock('../hooks/useTokenSecurityData', () => ({
+  useTokenSecurityData: () => ({ securityData: null, isLoading: false }),
+}));
+
+const mockUseIsPriceAlertsChainSupported = jest.fn(() => true);
+jest.mock(
+  '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported',
+  () => ({
+    useIsPriceAlertsChainSupported: () => mockUseIsPriceAlertsChainSupported(),
+  }),
+);
+
+jest.mock('../../Bridge/utils/exchange-rates', () => ({
+  calcUsdAmountFromFiat: () => 1,
+}));
+
+jest.mock(
+  '../../Assets/watchlist/components/WatchlistStarButton',
+  () => () => null,
+);
+
+jest.mock('../components/ShareTokenBottomSheet', () => {
+  const { Text: MockText } = jest.requireActual('react-native');
+  return () => <MockText testID="share-token-bottom-sheet">share</MockText>;
+});
+
+jest.mock('../components/TokenDetailsV1Header', () => {
+  const { Pressable: MockPressable, Text: MockText } =
+    jest.requireActual('react-native');
+  return {
+    TokenDetailsV1Header: ({
+      token,
+      onBackPress,
+      onPriceAlertPress,
+      onSharePress,
+    }: TokenDetailsV1HeaderProps) => (
+      <>
+        <MockText>{token.symbol}</MockText>
+        <MockPressable testID="mock-back" onPress={onBackPress} />
+        {onPriceAlertPress && (
+          <MockPressable
+            testID="mock-price-alert"
+            onPress={onPriceAlertPress}
+          />
+        )}
+        {onSharePress && (
+          <MockPressable testID="mock-share" onPress={onSharePress} />
+        )}
+      </>
+    ),
+  };
+});
 
 const baseToken = {
   address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
@@ -52,75 +107,88 @@ const baseToken = {
 
 describe('TokenDetailsV1', () => {
   beforeEach(() => {
-    mockGoBack.mockClear();
+    jest.clearAllMocks();
+    mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
   });
 
-  it('renders the page', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+  it('renders the placeholder meme-TDP body with the token symbol in the header', () => {
+    const { getByTestId, getByText } = render(
+      <TokenDetailsV1 token={baseToken} />,
+    );
 
-    expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeTruthy();
+    expect(getByText('PEPE')).toBeTruthy();
   });
 
-  it('navigates back when the back button is pressed', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+  it('renders the placeholder title and description with the token symbol', () => {
+    const { getByText } = render(<TokenDetailsV1 token={baseToken} />);
 
-    fireEvent.press(getByTestId(TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders the security & social row with the mocked security verdict', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
-
+    expect(getByText('Dedicated meme coin view')).toBeTruthy();
     expect(
-      getByTestId(SecuritySocialSectionSelectors.SECTION),
-    ).toBeOnTheScreen();
-    // Asserted by test ID, not label, so previewing a different verdict via
-    // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
-    // cover the label for each verdict.
-    expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
+      getByText(
+        'A tailored experience for PEPE is being built. Check back soon.',
+      ),
+    ).toBeTruthy();
   });
 
-  it('renders the token social links from its security data', () => {
-    const { getByTestId } = render(
+  it('falls back to "this token" when the token has no symbol', () => {
+    const { getByText } = render(
       <TokenDetailsV1
-        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        token={
+          {
+            ...baseToken,
+            symbol: undefined,
+          } as unknown as TokenDetailsRouteParams
+        }
       />,
     );
 
     expect(
-      getByTestId(SecuritySocialSectionSelectors.LINK_X),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(SecuritySocialSectionSelectors.LINK_WEBSITE),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(SecuritySocialSectionSelectors.LINK_TELEGRAM),
-    ).toBeOnTheScreen();
+      getByText(
+        'A tailored experience for this token is being built. Check back soon.',
+      ),
+    ).toBeTruthy();
   });
 
-  it('renders no social links for a token without security data', () => {
-    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
-
-    expect(queryByTestId(SecuritySocialSectionSelectors.LINK_X)).toBeNull();
-  });
-
-  it('offers the contract address for copying', () => {
+  it('navigates back when the header back button is pressed', () => {
     const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
-    expect(
-      getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
-    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId('mock-back'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  // A native token's `address` is a placeholder, not something worth copying.
-  it('hides the copy chip for a native token', () => {
-    const { queryByTestId } = render(
-      <TokenDetailsV1 token={{ ...baseToken, isNative: true }} />,
-    );
+  it('navigates to manage price alerts when the bell is pressed', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
-    expect(
-      queryByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
-    ).toBeNull();
+    fireEvent.press(getByTestId('mock-price-alert'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MANAGE_PRICE_ALERTS,
+      expect.objectContaining({
+        symbol: 'PEPE',
+        assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+      }),
+    );
+  });
+
+  it('hides the price alert action when the chain is not supported', () => {
+    mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
+
+    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    expect(queryByTestId('mock-price-alert')).toBeNull();
+  });
+
+  it('tracks the share event and opens the share sheet', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1 token={baseToken} />,
+    );
+    expect(queryByTestId('share-token-bottom-sheet')).toBeNull();
+
+    fireEvent.press(getByTestId('mock-share'));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(getByTestId('share-token-bottom-sheet')).toBeTruthy();
   });
 });
