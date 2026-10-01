@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
+import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
