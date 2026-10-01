@@ -120,9 +120,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     selectSocialLeaderboardEnabled,
   );
 
-  const { preferences } = useNotificationStoragePreferences();
+  const { preferences, isLoading: isLoadingPreferences } =
+    useNotificationStoragePreferences();
   const { categoriesData, isLoading: isLoadingCategories } =
     useNotificationsCategories();
+  const isLoadingSections = isLoadingCategories || isLoadingPreferences;
 
   // Backend decides which rows show and in what order; presentation and
   // routing stay local, resolved through the category's AUS keys.
@@ -209,18 +211,20 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         </Text>
         <MainNotificationToggle />
 
-        {isMetamaskNotificationsEnabled && isLoadingCategories && (
+        {isMetamaskNotificationsEnabled && isLoadingSections && (
           <NotificationsSettingsRowSkeleton />
         )}
+        {/* No preference record means setup failed; show no sections. */}
         {isMetamaskNotificationsEnabled &&
-          !isLoadingCategories &&
+          !isLoadingSections &&
+          preferences &&
           sections.map((section) => (
             <NotificationRow
               key={section.type}
               title={strings(section.titleKey)}
               status={
                 section.showStatus
-                  ? getStatusText(preferences?.[section.type])
+                  ? getStatusText(preferences[section.type])
                   : undefined
               }
               iconName={section.iconName}

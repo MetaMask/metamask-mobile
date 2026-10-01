@@ -95,7 +95,7 @@ jest.mock(
 jest.mock(
   '../../../../util/notifications/hooks/useNotificationStoragePreferences',
   () => ({
-    useNotificationStoragePreferences: () => ({
+    useNotificationStoragePreferences: jest.fn(() => ({
       preferences: {
         walletActivity: {
           pushNotificationsEnabled: false,
@@ -133,7 +133,7 @@ jest.mock(
       isLoading: false,
       error: null,
       updatePreference: jest.fn(),
-    }),
+    })),
   }),
 );
 
@@ -209,6 +209,43 @@ describe('NotificationsSettings', () => {
     const { queryByText } = renderNotificationsSettings(state);
 
     expect(queryByText(priceAlertsSectionTitle)).toBeNull();
+  });
+
+  describe('without a notification preference record', () => {
+    const mockedHook = jest.requireMock(
+      '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+    ).useNotificationStoragePreferences as jest.Mock;
+    const defaultImplementation = mockedHook.getMockImplementation();
+
+    afterEach(() => {
+      mockedHook.mockImplementation(defaultImplementation);
+    });
+
+    it('shows no sections when preferences are null', () => {
+      mockedHook.mockImplementation(() => ({
+        preferences: null,
+        isLoading: false,
+        error: null,
+        updatePreference: jest.fn(),
+      }));
+      const state = createMockState({
+        notificationsEnabled: true,
+        categories: [
+          {
+            category_id: 'trading_activity',
+            aus_keys: ['perps'],
+            visible_on: ['mobile'],
+            notification_types: ['perps'],
+          },
+        ],
+      });
+
+      const { queryByText } = renderNotificationsSettings(state);
+
+      expect(
+        queryByText(strings('app_settings.notifications_opts.perps_title')),
+      ).toBeNull();
+    });
   });
 
   describe('backend-driven rows', () => {

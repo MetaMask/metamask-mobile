@@ -50,6 +50,7 @@ jest.mock(
 
 jest.mock('../../../util/notifications/hooks/useNotifications', () => ({
   ...jest.requireActual('../../../util/notifications/hooks/useNotifications'),
+  useMarkNotificationAsRead: jest.fn(),
   useNotificationsCategories: () => ({
     categoriesData: [
       {
@@ -119,6 +120,12 @@ const mockNotificationsDisabledState: DeepPartial<RootState> = {
 describe('NotificationsView - header', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(UseNotificationsModule.useMarkNotificationAsRead)
+      .mockReturnValue({
+        loading: false,
+        markNotificationAsRead: jest.fn(),
+      });
   });
 
   const arrange = () => {
@@ -176,6 +183,12 @@ describe('NotificationsView - header', () => {
 describe('NotificationsView - content', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(UseNotificationsModule.useMarkNotificationAsRead)
+      .mockReturnValue({
+        loading: false,
+        markNotificationAsRead: jest.fn(),
+      });
   });
 
   it('shows empty container when no notifications are available', () => {
@@ -237,24 +250,120 @@ describe('NotificationsView - content', () => {
       Routes.SETTINGS.NOTIFICATIONS,
     );
   });
+
+  it('marks only visible notifications in the selected category as read', () => {
+    const walletNotification = {
+      ...processNotification(createMockNotificationEthSent()),
+      id: 'wallet-notification',
+      category: 'walletActivity',
+      isRead: false,
+    };
+    const perpsNotification = {
+      ...processNotification(createMockNotificationEthSent()),
+      id: 'perps-notification',
+      category: 'perps',
+      isRead: false,
+    };
+    const mockMarkNotificationsAsRead = jest.fn();
+    jest
+      .mocked(UseNotificationsModule.useMarkNotificationAsRead)
+      .mockReturnValue({
+        loading: false,
+        markNotificationAsRead: mockMarkNotificationsAsRead,
+      });
+    const state: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NotificationServicesController: {
+            isNotificationServicesEnabled: true,
+            metamaskNotificationsList: [walletNotification, perpsNotification],
+          },
+        },
+      },
+    };
+    const { getByTestId, getByText } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state },
+    );
+
+    fireEvent(getByTestId('notifications-category-perps'), 'onPress');
+    fireEvent.press(getByText(strings('notifications.mark_category_as_read')));
+
+    expect(mockMarkNotificationsAsRead).toHaveBeenCalledWith([
+      perpsNotification,
+    ]);
+  });
+
+  it('marks all visible notifications as read on the All tab', () => {
+    const walletNotification = {
+      ...processNotification(createMockNotificationEthSent()),
+      id: 'wallet-notification',
+      category: 'walletActivity',
+      isRead: false,
+    };
+    const perpsNotification = {
+      ...processNotification(createMockNotificationEthSent()),
+      id: 'perps-notification',
+      category: 'perps',
+      isRead: false,
+    };
+    const mockMarkNotificationsAsRead = jest.fn();
+    jest
+      .mocked(UseNotificationsModule.useMarkNotificationAsRead)
+      .mockReturnValue({
+        loading: false,
+        markNotificationAsRead: mockMarkNotificationsAsRead,
+      });
+    const state: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NotificationServicesController: {
+            isNotificationServicesEnabled: true,
+            metamaskNotificationsList: [walletNotification, perpsNotification],
+          },
+        },
+      },
+    };
+    const { getByText } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state },
+    );
+
+    expect(
+      getByText(strings('notifications.mark_all_as_read')),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByText(strings('notifications.mark_all_as_read')));
+
+    expect(mockMarkNotificationsAsRead).toHaveBeenCalledWith([
+      walletNotification,
+      perpsNotification,
+    ]);
+  });
 });
 
 describe('useMarkAsReadCallback', () => {
   const arrangeMocks = () => {
     const mockMarkNotificationsAsRead = jest.fn();
     jest
-      .spyOn(UseNotificationsModule, 'useMarkNotificationAsRead')
+      .mocked(UseNotificationsModule.useMarkNotificationAsRead)
       .mockReturnValue({
         loading: false,
         markNotificationAsRead: mockMarkNotificationsAsRead,
       });
 
     const mockSetBadgeCount = jest.spyOn(NotificationsService, 'setBadgeCount');
+    const mockDecrementBadgeCount = jest.spyOn(
+      NotificationsService,
+      'decrementBadgeCount',
+    );
 
     return {
       mockMetrics,
       mockMarkNotificationsAsRead,
       mockSetBadgeCount,
+      mockDecrementBadgeCount,
     };
   };
 
@@ -262,12 +371,21 @@ describe('useMarkAsReadCallback', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('marks content as read and fires event', async () => {
     const mocks = arrangeMocks();
     const notifications = [
       processNotification(createMockNotificationEthSent()),
     ];
-    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+    const hook = renderHook(() =>
+      useMarkAsReadCallback({
+        notifications,
+        isAllNotificationsSelected: true,
+      }),
+    );
 
     await act(() => hook.result.current.handleMarkAllAsRead());
 
@@ -279,6 +397,37 @@ describe('useMarkAsReadCallback', () => {
 
     // Assert - event fired
     expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
+    expect(mocks.mockSetBadgeCount).toHaveBeenCalledWith(0);
+  });
+
+  it('decrements the badge by the unread count when marking a category as read', async () => {
+    const mocks = arrangeMocks();
+    const notifications = [
+      {
+        ...processNotification(createMockNotificationEthSent()),
+        id: 'unread-notification',
+        isRead: false,
+      },
+      {
+        ...processNotification(createMockNotificationEthSent()),
+        id: 'read-notification',
+        isRead: true,
+      },
+    ];
+    const hook = renderHook(() =>
+      useMarkAsReadCallback({
+        notifications,
+        isAllNotificationsSelected: false,
+      }),
+    );
+
+    await act(() => hook.result.current.handleMarkAllAsRead());
+
+    expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalledWith(
+      notifications,
+    );
+    expect(mocks.mockDecrementBadgeCount).toHaveBeenCalledWith(1);
+    expect(mocks.mockSetBadgeCount).not.toHaveBeenCalled();
   });
 });
 

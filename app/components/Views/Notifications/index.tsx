@@ -46,20 +46,34 @@ import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
+  isAllNotificationsSelected: boolean;
 }) {
-  const { notifications } = props;
+  const { notifications, isAllNotificationsSelected } = props;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
-    NotificationsService.setBadgeCount(0);
+    if (isAllNotificationsSelected) {
+      NotificationsService.setBadgeCount(0);
+    } else {
+      const unreadCount = notifications.filter(
+        (notification) => !notification.isRead,
+      ).length;
+      NotificationsService.decrementBadgeCount(unreadCount);
+    }
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
       ).build(),
     );
-  }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
+  }, [
+    createEventBuilder,
+    isAllNotificationsSelected,
+    markNotificationAsRead,
+    notifications,
+    trackEvent,
+  ]);
 
   return {
     handleMarkAllAsRead,
@@ -108,10 +122,6 @@ const NotificationsView = ({
     enabled: isNotificationEnabled,
   });
 
-  const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
-    notifications,
-  });
-
   const [selectedCategory, setSelectedCategory] = useState<string>(
     ALL_NOTIFICATIONS_CATEGORY_ID,
   );
@@ -130,6 +140,12 @@ const NotificationsView = ({
           (n) => getNotificationCategoryId(n) === selectedCategory,
         );
   }, [allNotifications, categoriesData, preferences, selectedCategory]);
+
+  const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
+    notifications: categoryFilteredNotifications,
+    isAllNotificationsSelected:
+      selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID,
+  });
 
   const unreadCount = useMemo(
     () => categoryFilteredNotifications.filter((n) => !n.isRead).length,
@@ -192,7 +208,11 @@ const NotificationsView = ({
                 style={styles.stickyButton}
                 isDisabled={loading}
               >
-                {strings('notifications.mark_all_as_read')}
+                {strings(
+                  selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID
+                    ? 'notifications.mark_all_as_read'
+                    : 'notifications.mark_category_as_read',
+                )}
               </Button>
             )}
           </>
