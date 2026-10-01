@@ -3,8 +3,9 @@ description: Detects flaky Jest patterns in modified unit test files and suggest
 finalizeToolName: finalize_flaky_unit_test_analysis
 outputFile: .ai-pr-analyzer/flaky-ai-analysis.json
 # Pin Sonnet on both tiers so product-area escalationPatterns cannot drop this
-# mode onto gpt-4o-mini. Input is already scoped to a few test files.
+# mode onto gpt-4o-mini. Each invocation analyzes one test file.
 config:
+  maxIterations: 6
   models:
     default: claude-sonnet-5
     escalation: claude-sonnet-5

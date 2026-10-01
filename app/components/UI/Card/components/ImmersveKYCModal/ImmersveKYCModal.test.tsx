@@ -70,6 +70,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Md: 'Md' },
     TextVariant: { BodyMd: 'BodyMd' },
+    IconSize: { Xl: 'Xl' },
+    Spinner: () => null,
   };
 });
 

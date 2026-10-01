@@ -1,11 +1,9 @@
 import { act, renderHook } from '@testing-library/react-native';
-import {
-  useTraderFeed,
-  type TraderFeedRow,
-} from '../../../FeedView/hooks/useTraderFeed';
-import { mockPerpFeedItem } from '../../../FeedView/mocks/coreFeed.mock';
-import { mapFeedItem } from '../../../FeedView/utils/mapFeedItem';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
+import { type TraderFeedRow } from '../../../../../UI/SocialFeed/types';
+import { mockPerpFeedItem } from '../../../../../UI/SocialFeed/mocks/coreFeed.mock';
+import { mapFeedItem } from '../../../../../UI/SocialFeed/utils/mapFeedItem';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   COMPOSER_POSTING_DELAY_MS,
   resetSocialV1ComposedFeedStore,
@@ -51,8 +49,7 @@ const composedPost = () => ({
   id: 'composed-1',
   authorHandle: 'giga-whale',
   timestampMs: Date.now(),
-  likeCount: 0,
-  commentCount: 0,
+  reactions: [],
   item: mockOpenPerpsFeedItem({
     id: 'composed-item',
     comment: 'this is alpha',
@@ -92,11 +89,12 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].authorHandle).toBe('aparjey');
     });
 
-    // The envelope's win rate is invented, so it has to carry the marker.
-    it('marks the invented win-rate label', () => {
+    // The header reads the trader's stats off the item rather than the
+    // envelope, and reports nothing when the actor sent nothing.
+    it('carries the actor stats through without inventing a win rate', () => {
       const { result } = renderHook(() => useSocialV1Feed('trending'));
 
-      expect(result.current.posts[0].winRateLabel).toContain('*');
+      expect(result.current.posts[0].item.author.winRatePercent).toBeNull();
     });
 
     it('reads the leaderboard scope on Trending', () => {

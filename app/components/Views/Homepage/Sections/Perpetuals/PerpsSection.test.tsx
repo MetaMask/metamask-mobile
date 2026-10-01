@@ -10,6 +10,8 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
+import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
+import { HomepagePerpsSelectorsIDs } from '../../Homepage.testIds';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import type {
   PerpsLoadingLifecycle,
@@ -106,6 +108,11 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 jest.mock('../../../../UI/Perps/selectors/perpsController', () => ({
   ...jest.requireActual('../../../../UI/Perps/selectors/perpsController'),
   selectIsFirstTimePerpsUser: jest.fn(),
+}));
+
+jest.mock('../../../../UI/Perps/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../../../UI/Perps/selectors/featureFlags'),
+  selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
@@ -440,6 +447,46 @@ describe('PerpsSection', () => {
     );
 
     expect(screen.getByText('Perps')).toBeOnTheScreen();
+  });
+
+  describe('service interruption banner', () => {
+    afterEach(() => {
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(false);
+    });
+
+    it('does not render the outage banner when the flag is off', () => {
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.queryByTestId(
+          HomepagePerpsSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+    });
+
+    it('renders the outage banner under the section header when the flag is on', () => {
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(true);
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          HomepagePerpsSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText("We're experiencing an outage"),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('correlates the existing section trace with the loading session', () => {

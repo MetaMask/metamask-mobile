@@ -6,7 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import type { FeedSubHeader } from '../types';
+import type { FeedSubHeader } from '../../../../UI/SocialFeed/types';
 
 export interface FeedSubHeaderTextProps {
   subHeader: FeedSubHeader;

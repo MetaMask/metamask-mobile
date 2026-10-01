@@ -23,6 +23,10 @@ import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
 import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from '../intent/handleNotificationsSettingsUrl';
+import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
 } from '../intent/handleRewardsUrl';
@@ -56,6 +60,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
 jest.mock('../intent/handleDappUrl', () => {
   const actual = jest.requireActual('../intent/handleDappUrl');
@@ -364,18 +369,21 @@ describe('handleUniversalLink', () => {
 
   describe('SDK Actions', () => {
     const testCases = [
-      { action: ACTIONS.CONNECT },
-      { action: ACTIONS.MMSDK },
+      { action: ACTIONS.CONNECT, host: 'link.metamask.io' },
+      { action: ACTIONS.CONNECT, host: 'link.metamask.com' },
+      { action: ACTIONS.MMSDK, host: 'link.metamask.io' },
+      { action: ACTIONS.MMSDK, host: 'link.metamask.com' },
     ] as const;
 
     it.each(testCases)(
-      'calls handleMetaMaskDeeplink when deeplink is $url',
-      async ({ action }) => {
-        const testUrl = `https://link.metamask.io/${action}`;
+      'calls handleMetaMaskDeeplink when deeplink is https://$host/$action',
+      async ({ action, host }) => {
+        const testUrl = `https://${host}/${action}`;
         const expectedMappedUrl = `metamask://${action}`;
-        const { urlObj: testUrlObj, params: testParams } =
+        const { urlObj: testUrlObj } = extractURLParams(testUrl);
+        const { urlObj: mappedUrlObj, params: testParams } =
           extractURLParams(expectedMappedUrl);
-        const wcURL = testParams?.uri || testUrlObj.href;
+        const wcURL = testParams?.uri || mappedUrlObj.href;
 
         await handleUniversalLink({
           instance,
@@ -397,9 +405,9 @@ describe('handleUniversalLink', () => {
     );
 
     it.each(testCases)(
-      'returns null in resolve mode without executing SDK action $action',
-      async ({ action }) => {
-        const testUrl = `https://link.metamask.io/${action}`;
+      'returns null in resolve mode without executing SDK action https://$host/$action',
+      async ({ action, host }) => {
+        const testUrl = `https://${host}/${action}`;
         const { urlObj: testUrlObj } = extractURLParams(testUrl);
 
         const result = await handleUniversalLink({
@@ -432,9 +440,7 @@ describe('handleUniversalLink', () => {
       mockHandleMetaMaskDeeplink.mockRejectedValueOnce(rejectionError);
 
       const testUrl = `https://link.metamask.io/${ACTIONS.CONNECT}`;
-      const { urlObj: testUrlObj } = extractURLParams(
-        `metamask://${ACTIONS.CONNECT}`,
-      );
+      const { urlObj: testUrlObj } = extractURLParams(testUrl);
 
       await expect(
         handleUniversalLink({
@@ -583,6 +589,74 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.NOTIFICATIONS_SETTINGS', () => {
+    it('calls handleNotificationsSettingsUrl with the path after the action', async () => {
+      const notificationsSettingsPath = '?section=price-alerts';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.NOTIFICATIONS_SETTINGS}${notificationsSettingsPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.NOTIFICATIONS_SETTINGS}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleNotificationsSettingsUrl).toHaveBeenCalledWith({
+        notificationsSettingsPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a startup intent in resolve mode without executing notification settings navigation', async () => {
+      const notificationsSettingsPath = '?section=wallet-activity';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.NOTIFICATIONS_SETTINGS}${notificationsSettingsPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.NOTIFICATIONS_SETTINGS}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'SettingsView',
+          params: {
+            screen: 'NotificationsSettings',
+            params: { section: 'wallet-activity' },
+          },
+        },
+      };
+      (
+        createNotificationsSettingsDeeplinkIntent as jest.MockedFunction<
+          typeof createNotificationsSettingsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createNotificationsSettingsDeeplinkIntent).toHaveBeenCalledWith({
+        notificationsSettingsPath,
+      });
+      expect(handleNotificationsSettingsUrl).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -751,6 +825,10 @@ describe('handleUniversalLink', () => {
           domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
           description: 'test deeplink domain',
         },
+        {
+          domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+          description: 'com test deeplink domain',
+        },
       ] as const;
 
       it.each(testCases)(
@@ -828,6 +906,10 @@ describe('handleUniversalLink', () => {
       {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
       },
     ] as const;
 
@@ -1292,6 +1374,7 @@ describe('handleUniversalLink', () => {
         AppConstants.MM_UNIVERSAL_LINK_HOST,
         AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
         AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
       ];
 
       for (const domain of testCases) {
@@ -1438,6 +1521,10 @@ describe('handleUniversalLink', () => {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
       },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
+      },
     ] as const;
 
     it.each(testCases)(
@@ -1508,6 +1595,10 @@ describe('handleUniversalLink', () => {
       {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
       },
     ] as const;
 
@@ -2012,6 +2103,7 @@ describe('handleUniversalLink', () => {
         AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
       ];
 
       // All in-app sources except the trusted ones (excluding ORIGIN_DEEPLINK which is external)

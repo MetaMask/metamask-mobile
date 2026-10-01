@@ -4,7 +4,13 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import {
   createEthMarketForViews,
@@ -17,7 +23,12 @@ import {
   PerpsMarketBalanceActionsSelectorsIDs,
 } from '../../Perps.testIds';
 import { PerpsHomeSectionTestIds } from '../../components/PerpsHomeSection/PerpsHomeSection.testIds';
+import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  clearPerpsOutreachApiMocks,
+  setupPerpsOutreachApiMock,
+} from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 
 const TIMEOUT_MS = 5000;
 
@@ -46,6 +57,32 @@ const ineligibleOverrides = {
 describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    cleanup();
+    clearPerpsOutreachApiMocks();
+  });
+
+  it('shows and dismisses an eligible Terminal outreach campaign', async () => {
+    renderPerpsHomeView({
+      overrides: eligibleOverrides,
+    });
+
+    expect(
+      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsOutreachBannerSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('shows Add funds as the next action for a no-funds trader', async () => {

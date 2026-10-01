@@ -34,7 +34,7 @@ const createStyles = (theme) => {
       paddingBottom: 12,
       paddingLeft: 16,
       paddingRight: 16,
-      borderRadius: 12,
+      borderRadius: 9999,
       borderWidth: 0,
     },
     selectedLabel: {
@@ -81,6 +81,11 @@ const createStyles = (theme) => {
   });
 };
 
+/**
+ * @deprecated Please update your code to use `SelectButton` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/SelectButton/README.md}
+ */
 export default class SelectComponent extends PureComponent {
   static propTypes = {
     /**

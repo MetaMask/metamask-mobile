@@ -8,6 +8,7 @@ import {
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
@@ -34,6 +35,7 @@ export {
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
@@ -225,6 +227,14 @@ export const selectCardUkMigrationPhase = createSelector(
 export const selectIsCardUkMigrationActive = createSelector(
   selectCardUkMigrationState,
   (state) => state.isActive,
+);
+
+export const selectCardUkMigrationSignInRoutingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    readCardUkMigrationSignInRoutingEnabled(
+      remoteFeatureFlags as CardRemoteFeatureFlags,
+    ),
 );
 
 export const selectCardIntercomSupportEnabled = createSelector(

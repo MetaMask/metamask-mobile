@@ -5,7 +5,7 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from './analytics';
-import { chainNameToId } from '../../Views/SocialLeaderboard/utils/chainMapping';
+import { chainNameToId } from '../SocialFeed/utils/chainMapping';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {
@@ -22,10 +22,10 @@ export type QuickBuyAmountDisplayMode = 'fiat' | 'crypto';
 
 export type QuickBuyScreen =
   | 'amount'
-  | 'editQuickAmounts'
   | 'quoteDetails'
   | 'selectQuote'
   | 'payWith'
+  | 'selectNetwork'
   | 'priceImpactConfirm';
 
 /** Feature flags for optional flow pieces (enabled per consumer). */
@@ -67,6 +67,7 @@ export interface QuickBuyRootProps {
   target: QuickBuyTarget | null;
   onClose: () => void;
   features?: QuickBuyFeatures;
+  initialTradeMode?: QuickBuyTradeMode;
   analyticsContext?: QuickBuyAnalyticsContext;
   children?: ReactNode;
 }

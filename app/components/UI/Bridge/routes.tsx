@@ -6,6 +6,8 @@ import BridgeView from './Views/BridgeView';
 import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
 import { BatchSellReview } from './Views/BatchSellReview';
 import RecurringOrderDetailsView from './Views/RecurringOrderDetailsView';
+import RecurringSwapDetailsView from './Views/RecurringSwapDetailsView';
+import SwapsLimitOrderActivityPage from './Views/SwapsLimitOrderActivityPage';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
@@ -38,6 +40,8 @@ import { SwapsLimitOrderDefaultCostToleranceModal } from './components/SwapsLimi
 import { SwapsLimitOrderCustomCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderCustomCostToleranceModal';
 import { LimitOrderConfirmationModalScreen } from './components/LimitOrderConfirmationModal/LimitOrderConfirmationModalScreen';
 import { LimitOrderCostToleranceInfoSheetScreen } from './components/LimitOrderCostToleranceInfoSheet/LimitOrderCostToleranceInfoSheetScreen';
+import { OpenLimitOrderDetailsModalScreen } from './components/OpenLimitOrderDetailsModal/OpenLimitOrderDetailsModalScreen';
+import { CancelLimitOrderModalScreen } from './components/CancelLimitOrderModal/CancelLimitOrderModalScreen';
 import { RecurringIntervalSheetScreen } from './components/RecurringIntervalSheet/RecurringIntervalSheetScreen';
 import { RecurringRepeatInfoSheetScreen } from './components/RecurringRepeatInfoSheet/RecurringRepeatInfoSheetScreen';
 import { PriceRangeSheetScreen } from './components/PriceRangeSheet/PriceRangeSheetScreen';
@@ -160,6 +164,14 @@ export const BridgeModalStack = () => (
       component={LimitOrderCostToleranceInfoSheetScreen}
     />
     <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL}
+      component={OpenLimitOrderDetailsModalScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.CANCEL_LIMIT_ORDER_MODAL}
+      component={CancelLimitOrderModalScreen}
+    />
+    <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECURRING_INTERVAL_MODAL}
       component={RecurringIntervalSheetScreen}
     />
@@ -212,6 +224,16 @@ export const BridgeScreenStack = () => (
         <Stack.Screen
           name={Routes.BRIDGE.RECURRING_ORDER_DETAILS}
           component={RecurringOrderDetailsView}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.RECURRING_SWAP_DETAILS}
+          component={RecurringSwapDetailsView}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name={Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY}
+          component={SwapsLimitOrderActivityPage}
           options={{ headerShown: false }}
         />
         <Stack.Screen

@@ -15,8 +15,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -254,19 +254,21 @@ const SetPhoneNumber = () => {
         {/* Phone number input */}
         <Box twClassName="flex-1">
           <TextField
-            autoCapitalize={'none'}
             onChangeText={handlePhoneNumberChange}
-            numberOfLines={1}
-            autoComplete="one-time-code"
             value={phoneNumber}
-            keyboardType="phone-pad"
-            maxLength={255}
-            accessibilityLabel={strings(
-              'card.card_onboarding.set_phone_number.phone_number_label',
-            )}
-            testID="set-phone-number-phone-number-input"
-            onSubmitEditing={handleContinue}
-            returnKeyType="done"
+            inputProps={{
+              autoCapitalize: 'none',
+              numberOfLines: 1,
+              autoComplete: 'one-time-code',
+              keyboardType: 'phone-pad',
+              maxLength: 255,
+              accessibilityLabel: strings(
+                'card.card_onboarding.set_phone_number.phone_number_label',
+              ),
+              testID: 'set-phone-number-phone-number-input',
+              onSubmitEditing: handleContinue,
+              returnKeyType: 'done',
+            }}
           />
         </Box>
       </Box>

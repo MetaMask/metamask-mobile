@@ -4,10 +4,12 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { UseSocialV1FeedResult } from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
-  SOCIAL_V1_FEED_ERROR_TEST_ID,
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
-  SOCIAL_V1_FEED_RETRY_TEST_ID,
 } from './EmptyShellTabPage';
+import {
+  SOCIAL_FEED_ERROR_TEST_ID,
+  SOCIAL_FEED_RETRY_TEST_ID,
+} from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -21,7 +23,12 @@ jest.mock('../SocialV1View/feed/components', () => ({
   HotTokensCarousel: () => null,
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => ({
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -53,9 +60,10 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
         id: 'post-1',
         authorHandle: 'aparjey',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
-        item: {} as UseSocialV1FeedResult['posts'][number]['item'],
+        reactions: [],
+        item: {
+          author: { id: 'author-1' },
+        } as UseSocialV1FeedResult['posts'][number]['item'],
       },
     ],
     ...overrides,
@@ -161,7 +169,7 @@ describe('EmptyShellTabPage pagination', () => {
     arrangeFeed({ error: 'Network request failed' });
 
     renderPage();
-    fireEvent.press(screen.getByTestId(SOCIAL_V1_FEED_RETRY_TEST_ID));
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
     expect(mockRefresh).toHaveBeenCalled();
   });
@@ -175,7 +183,7 @@ describe('EmptyShellTabPage pagination', () => {
 
       renderPage();
 
-      expect(screen.queryByTestId(SOCIAL_V1_FEED_ERROR_TEST_ID)).toBeNull();
+      expect(screen.queryByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeNull();
     });
 
     it('refetches from pull-to-refresh', async () => {
