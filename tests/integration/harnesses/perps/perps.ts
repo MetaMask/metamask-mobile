@@ -347,8 +347,8 @@ export function buildPerpsIntegrationHarness(
       if (!beforeDispatch) {
         return exchangeClient;
       }
-      // Model the service's operation-local fence at the SDK I/O boundary.
-      // SDK signing itself remains mocked in this harness.
+      // Run the fence before the mocked SDK call. Production runs it after
+      // signing; this harness does not simulate that signing boundary.
       return new Proxy(exchangeClient, {
         get(target, property, receiver) {
           const value: unknown = Reflect.get(target, property, receiver);
