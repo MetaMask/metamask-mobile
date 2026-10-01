@@ -517,6 +517,15 @@ import {
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import {
+  ProfileController,
+  ProfileControllerActions,
+  ProfileControllerEvents,
+  ProfileControllerState,
+  ProfileService,
+  ProfileServiceActions,
+  ProfileServiceEvents,
+} from '@metamask/profile-controller';
+import {
   ProfileMetricsController,
   ProfileMetricsControllerActions,
   ProfileMetricsControllerEvents,
@@ -772,6 +781,8 @@ export type GlobalActions =
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
+  | ProfileControllerActions
+  | ProfileServiceActions
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
   | ProofOfOwnershipServiceActions
@@ -887,6 +898,8 @@ export type GlobalEvents =
   | AccountTreeControllerEvents
   | DelegationControllerEvents
   | NftDetectionControllerEvents
+  | ProfileControllerEvents
+  | ProfileServiceEvents
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
   | ProofOfOwnershipServiceEvents
@@ -1051,6 +1064,8 @@ export type MessengerClients = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  ProfileController: ProfileController;
+  ProfileService: ProfileService;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   ProofOfOwnershipService: ProofOfOwnershipService;
@@ -1155,6 +1170,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  ProfileController: ProfileControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
@@ -1275,6 +1291,8 @@ export type MessengerClientsToInitialize =
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
+  | 'ProfileController'
+  | 'ProfileService'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'ProofOfOwnershipService'

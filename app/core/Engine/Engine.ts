@@ -183,6 +183,8 @@ import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
+import { profileControllerInit } from './controllers/profile-controller-init';
+import { profileServiceInit } from './controllers/profile-service-init';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { proofOfOwnershipServiceInit } from './controllers/proof-of-ownership-service-init';
@@ -408,6 +410,8 @@ export class Engine {
         DelegationController: DelegationControllerInit,
         NetworkConnectionBannerController:
           networkConnectionBannerControllerInit,
+        ProfileController: profileControllerInit,
+        ProfileService: profileServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
@@ -494,6 +498,8 @@ export class Engine {
     const configRegistryApiService = this.#wallet.getInstance(
       'ConfigRegistryApiService',
     );
+    const profileController = messengerClientsByName.ProfileController;
+    const profileService = messengerClientsByName.ProfileService;
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -716,6 +722,8 @@ export class Engine {
       RewardsController: rewardsController,
       RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
+      ProfileController: profileController,
+      ProfileService: profileService,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       ProofOfOwnershipService: proofOfOwnershipService,
@@ -1702,6 +1710,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileController,
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
@@ -1788,6 +1797,7 @@ export default {
       MultichainBalancesController: MultichainBalancesController.state,
       MultichainTransactionsController: MultichainTransactionsController.state,
       ///: END:ONLY_INCLUDE_IF
+      ProfileController: ProfileController.state,
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,

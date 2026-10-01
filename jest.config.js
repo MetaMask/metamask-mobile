@@ -100,6 +100,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/phishing-controller',
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
+  '@metamask/profile-controller',
   '@metamask/profile-metrics-controller',
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',

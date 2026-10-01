@@ -146,6 +146,8 @@ import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
 } from './transaction-pay-controller-messenger';
+import { getProfileControllerMessenger } from './profile-controller-messenger';
+import { getProfileServiceMessenger } from './profile-service-messenger';
 import {
   getProfileMetricsControllerMessenger,
   getProfileMetricsControllerInitMessenger,
@@ -478,6 +480,14 @@ export const MESSENGER_FACTORIES = {
   },
   OHLCVService: {
     getMessenger: getOHLCVServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileController: {
+    getMessenger: getProfileControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileService: {
+    getMessenger: getProfileServiceMessenger,
     getInitMessenger: noop,
   },
   ProfileMetricsController: {
