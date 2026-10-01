@@ -3,6 +3,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
   getExploreSearchResultCount,
+  getSearchQueryLength,
   getTotalSectionResultCount,
   trackExplorePredictTrendingAssetViewed,
   trackExploreSearchOpened,
@@ -77,6 +78,18 @@ describe('getExploreSearchResultCount', () => {
   });
 });
 
+describe('getSearchQueryLength', () => {
+  it.each([
+    ['eth', 3],
+    ['  eth  ', 3],
+    ['wrapped eth', 11],
+    ['   ', 0],
+    ['', 0],
+  ])('returns the trimmed length of %p', (query, expected) => {
+    expect(getSearchQueryLength(query)).toBe(expected);
+  });
+});
+
 describe('useInstrumentedSearchEffect', () => {
   const sections = [
     makeSection('tokens', { total: 5, items: [{}] as unknown[] }),
@@ -114,6 +127,24 @@ describe('useInstrumentedSearchEffect', () => {
       search_query: 'eth',
       tab_name: 'all',
       result_count: 5,
+      query_length: 3,
+    });
+  });
+
+  it('sends the trimmed query length on the searched event', () => {
+    renderHook(() =>
+      useInstrumentedSearchEffect({
+        searchQuery: '  eth  ',
+        isLoading: false,
+        getPill,
+        getSections,
+      }),
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      search_query: '  eth  ',
+      query_length: 3,
     });
   });
 
@@ -132,6 +163,27 @@ describe('useInstrumentedSearchEffect', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('redacts a clipboard query from the searched event', () => {
+    renderHook(() =>
+      useInstrumentedSearchEffect({
+        searchQuery: 'clipboard-secret',
+        redactSearchQuery: true,
+        isLoading: false,
+        getPill,
+        getSections,
+      }),
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          interaction_type: 'searched',
+          search_query: '',
+        }),
+      }),
+    );
   });
 
   it('fires again when the query changes', () => {

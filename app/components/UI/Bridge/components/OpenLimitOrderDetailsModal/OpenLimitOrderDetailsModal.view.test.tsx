@@ -17,7 +17,6 @@ const {
   TRIGGER_COMPARISON,
   EXPIRY,
   CANCEL_ORDER_BUTTON,
-  USD_PRICE_NOTICE,
 } = OpenLimitOrderDetailsModalSelectorsIDs;
 
 // Derived from MOCK_LIMIT_OPEN_ORDER: 0.1 ETH at 2200 USDC per ETH, expiring
@@ -35,32 +34,27 @@ const MOCK_USD_PRICE_ORDER = {
 };
 
 /**
- * State where the display currency is EUR. With both rates given, 1 ETH is
- * worth EUR 2000 and USD 2160, so EUR 1 is worth USD 1.08.
+ * State where the display currency is EUR. 1 ETH is worth EUR 2000 and
+ * USD 2160, so EUR 1 is worth USD 1.08.
  */
-const withEurDisplayCurrency = ({
-  usdPrice,
-}: {
-  usdPrice?: number;
-}): DeepPartial<RootState> =>
-  ({
-    engine: {
-      backgroundState: {
-        AssetsController: {
-          selectedCurrency: 'eur',
-          assetsPrice: {
-            'eip155:1/slip44:60': {
-              assetPriceType: 'fungible',
-              id: 'eth',
-              price: 2000,
-              usdPrice,
-              lastUpdated: 1700000000000,
-            },
+const EUR_DISPLAY_CURRENCY_STATE = {
+  engine: {
+    backgroundState: {
+      AssetsController: {
+        selectedCurrency: 'eur',
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2000,
+            usdPrice: 2160,
+            lastUpdated: 1700000000000,
           },
         },
       },
     },
-  }) as unknown as DeepPartial<RootState>;
+  },
+} as unknown as DeepPartial<RootState>;
 
 describeForPlatforms('OpenLimitOrderDetailsModal', () => {
   it('shows every detail of the open order', async () => {
@@ -117,72 +111,20 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     },
   );
 
-  it('does not show the USD price notice when the display currency is USD', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderOpenLimitOrderDetailsModal({
-        order: MOCK_USD_PRICE_ORDER,
-        deterministicFiat: true,
-      });
-
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
-
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('$2160'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
-  });
-
-  it('shows a USD trigger price in the display currency, with the USD price in a notice', async () => {
+  // The order is placed at the USD price, so converting it would show a price
+  // that drifts with the exchange rate while the order does not.
+  it('shows a USD trigger price in USD whatever the display currency is', async () => {
     const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
       order: MOCK_USD_PRICE_ORDER,
       deterministicFiat: true,
-      overrides: withEurDisplayCurrency({ usdPrice: 2160 }),
+      overrides: EUR_DISPLAY_CURRENCY_STATE,
     });
 
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('€2000'),
-    ).toBeOnTheScreen();
-    expect(getByTestId(USD_PRICE_NOTICE)).toHaveTextContent(
-      strings('bridge.limit.usd_price_notice', { usdPrice: '$2160' }),
-    );
-  });
-
-  // Without a rate the converted price would be a guess, while the USD price
-  // is exactly the one the order was placed at.
-  it('shows a USD trigger price as is when no rate converts it to the display currency', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderOpenLimitOrderDetailsModal({
-        order: MOCK_USD_PRICE_ORDER,
-        deterministicFiat: true,
-        overrides: withEurDisplayCurrency({ usdPrice: undefined }),
-      });
-
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
-
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('$2160'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
-  });
-
-  // A ratio trigger is priced in the destination token, so no exchange rate
-  // takes part in placing the order.
-  it('does not show the USD price notice for a ratio trigger', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderOpenLimitOrderDetailsModal({
-        order: MOCK_LIMIT_OPEN_ORDER,
-        deterministicFiat: true,
-        overrides: withEurDisplayCurrency({ usdPrice: 2160 }),
-      });
-
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
-
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText(TRIGGER_PRICE),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
+    const triggerRow = getByTestId(TRIGGER_CONDITION);
+    expect(within(triggerRow).getByText('$2160')).toBeOnTheScreen();
+    expect(within(triggerRow).queryByText('€2000')).not.toBeOnTheScreen();
   });
 
   // The orders response carries no market price, so the sheet cannot say how
@@ -193,6 +135,24 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
     expect(queryByTestId(TRIGGER_COMPARISON)).not.toBeOnTheScreen();
+  });
+
+  it('offers to cancel an order the API reports as cancellable', async () => {
+    const { findByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: true },
+    });
+
+    expect(await findByTestId(CANCEL_ORDER_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('does not offer to cancel an order the API reports as not cancellable', async () => {
+    const { findByTestId, queryByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: false },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(queryByTestId(CANCEL_ORDER_BUTTON)).not.toBeOnTheScreen();
   });
 
   it('opens the cancel order sheet from the details sheet', async () => {
@@ -212,24 +172,6 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(
       getByTestId(CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('returns to the details sheet once the cancellation is confirmed', async () => {
-    const { findByTestId, queryByTestId } = renderDetails();
-
-    await act(async () => {
-      fireEvent.press(await findByTestId(CANCEL_ORDER_BUTTON));
-    });
-    await act(async () => {
-      fireEvent.press(
-        await findByTestId(CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON),
-      );
-    });
-
-    expect(
-      queryByTestId(CancelLimitOrderModalSelectorsIDs.SHEET),
-    ).not.toBeOnTheScreen();
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
   });
 
   it('returns to the details sheet when the cancel sheet is dismissed', async () => {

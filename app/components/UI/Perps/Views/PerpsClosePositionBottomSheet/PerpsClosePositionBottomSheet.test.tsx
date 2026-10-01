@@ -20,6 +20,7 @@ import {
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
 import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
+import { getLimitPriceTooFarMessage } from '../../utils/triggerOrderValidation';
 import PerpsClosePositionBottomSheet from './PerpsClosePositionBottomSheet';
 
 const mockGoBack = jest.fn();
@@ -373,11 +374,14 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
 
     it('swaps the primary amount between fiat and token when toggled', () => {
-      const { getByTestId } = renderSheet();
+      const { getByTestId, queryByTestId } = renderSheet();
 
       const amount = () =>
         getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
+      const unit = () =>
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL);
       const fiatFirst = amount().props.children;
+      expect(unit()).toBeNull();
 
       fireEvent.press(
         getByTestId(
@@ -387,7 +391,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       const tokenFirst = amount().props.children;
 
       expect(tokenFirst).not.toBe(fiatFirst);
-      expect(String(tokenFirst)).toContain('ETH');
+      expect(unit()).toHaveTextContent('ETH');
 
       fireEvent.press(
         getByTestId(
@@ -395,6 +399,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         ),
       );
       expect(amount().props.children).toBe(fiatFirst);
+      expect(unit()).toBeNull();
     });
 
     it('renders the order type toggle when the limit order flag is enabled', () => {
@@ -694,6 +699,20 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveLength(1);
     });
 
+    it('opens the size keypad when the amount display is pressed in market mode', () => {
+      const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } =
+        renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+
+      expect(queryByTestId('mock-keypad')).toBeOnTheScreen();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(0);
+    });
+
     it('shows the slider when the close size is pressed on a limit view', () => {
       const utils = renderSheet();
       const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } = utils;
@@ -728,19 +747,18 @@ describe('PerpsClosePositionBottomSheet', () => {
     };
 
     it('does not repeat a limit-price error already shown on the field', () => {
+      const tooFarError = getLimitPriceTooFarMessage(
+        Number.parseFloat(defaultPerpsLivePricesMock.ETH.price),
+      );
       usePerpsClosePositionValidationMock.mockReturnValue({
         ...defaultPerpsClosePositionValidationMock,
-        errors: [strings('perps.order.limit_price_modal.limit_price_too_far')],
+        errors: [tooFarError],
         isValid: false,
       });
 
       const { getAllByText } = selectLimitAndEnterPrice('6');
 
-      expect(
-        getAllByText(
-          strings('perps.order.limit_price_modal.limit_price_too_far'),
-        ),
-      ).toHaveLength(1);
+      expect(getAllByText(tooFarError)).toHaveLength(1);
     });
 
     it('does not warn when the limit price is a zero that renders as an empty field', () => {

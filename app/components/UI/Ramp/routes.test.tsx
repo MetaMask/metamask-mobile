@@ -1,11 +1,19 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { act, render } from '@testing-library/react-native';
+import {
+  CommonActions,
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import TokenListRoutes from './routes';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  RAMP_V2_MAIN_ROUTE_SCREEN_IDS,
+  RAMP_V2_MODAL_ROUTE_SCREEN_IDS,
+} from './constants/rampScreenPerformance';
 
 jest.mock('./Views/TokenSelection', () => {
   const MockView = () => {
@@ -386,5 +394,50 @@ describe('Navigation Structure', () => {
   it('has main routes stack', () => {
     const { getByTestId } = renderWithProviders();
     expect(getByTestId('token-selection')).toBeTruthy();
+  });
+});
+
+describe('Ramp V2 screen performance coverage', () => {
+  const getRegisteredRouteNames = () => {
+    const navigationRef = createNavigationContainerRef();
+    render(
+      <Provider store={mockStore(initialState)}>
+        <NavigationContainer ref={navigationRef}>
+          <TokenListRoutes />
+        </NavigationContainer>
+      </Provider>,
+    );
+
+    const routeNamesOf = (stackRouteName: string) =>
+      navigationRef
+        .getRootState()
+        .routes.find((route) => route.name === stackRouteName)?.state
+        ?.routeNames ?? [];
+
+    const mainRoutes = routeNamesOf(Routes.RAMP.TOKEN_SELECTION_ROOT);
+
+    act(() => {
+      navigationRef.dispatch(CommonActions.navigate(Routes.RAMP.MODALS.ID, {}));
+    });
+
+    return { mainRoutes, modalRoutes: routeNamesOf(Routes.RAMP.MODALS.ID) };
+  };
+
+  it('maps every V2 main-stack route to a screen id', () => {
+    const { mainRoutes } = getRegisteredRouteNames();
+
+    expect(mainRoutes.length).toBeGreaterThan(0);
+    expect(Object.keys(RAMP_V2_MAIN_ROUTE_SCREEN_IDS).sort()).toEqual(
+      [...mainRoutes].sort(),
+    );
+  });
+
+  it('maps every V2 modal-stack route to a screen id', () => {
+    const { modalRoutes } = getRegisteredRouteNames();
+
+    expect(modalRoutes.length).toBeGreaterThan(0);
+    expect(Object.keys(RAMP_V2_MODAL_ROUTE_SCREEN_IDS).sort()).toEqual(
+      [...modalRoutes].sort(),
+    );
   });
 });

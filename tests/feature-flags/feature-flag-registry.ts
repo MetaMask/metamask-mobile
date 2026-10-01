@@ -388,6 +388,41 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  assetsMemecoinTdpV1: {
+    name: 'assetsMemecoinTdpV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.17.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'feature is OFF',
+            thresholdVersion: 2,
+            value: {
+              enabled: false,
+            },
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'feature is ON',
+            thresholdVersion: 2,
+            value: {
+              enabled: true,
+            },
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsNotificationsEnabled: {
     name: 'assetsNotificationsEnabled',
     type: FeatureFlagType.Remote,

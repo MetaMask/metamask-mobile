@@ -18,6 +18,7 @@ export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
+  assetsMemecoinTdpV1 = 'assetsMemecoinTdpV1',
   defiControllerV2 = 'defiControllerV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
@@ -44,6 +45,7 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
+  [FeatureFlagNames.assetsMemecoinTdpV1]: { enabled: false },
   [FeatureFlagNames.defiControllerV2]: { enabled: false },
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,

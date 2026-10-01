@@ -12,6 +12,7 @@ const modifiedState: LimitOrderPriceAdjustState = {
   isTrackingMarket: false,
   isCustomActive: true,
   customValue: '8',
+  hasUserEditedLimitPrice: true,
 };
 
 const initialLimitOrderPriceAdjustState = getInitialLimitOrderPriceAdjustState({
@@ -28,6 +29,7 @@ describe('limitOrderPriceAdjustReducer', () => {
       isTrackingMarket: true,
       isCustomActive: false,
       customValue: undefined,
+      hasUserEditedLimitPrice: false,
     });
   });
 
@@ -44,6 +46,7 @@ describe('limitOrderPriceAdjustReducer', () => {
       isTrackingMarket: true,
       isCustomActive: false,
       customValue: undefined,
+      hasUserEditedLimitPrice: false,
     });
   });
 
@@ -58,6 +61,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         ...initialLimitOrderPriceAdjustState,
         limitPrice: '95',
         isTrackingMarket: false,
+        hasUserEditedLimitPrice: true,
       });
     });
   });
@@ -157,6 +161,50 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: false,
         customValue: '99',
       });
+    });
+  });
+
+  describe('hasUserEditedLimitPrice', () => {
+    it.each([
+      ['setLimitPrice', { type: 'setLimitPrice', limitPrice: '95' }],
+      [
+        'applyPreset',
+        { type: 'applyPreset', limitPrice: '100', isTrackingMarket: true },
+      ],
+      [
+        'commitCustomPercent',
+        {
+          type: 'commitCustomPercent',
+          limitPrice: '95',
+          isTrackingMarket: false,
+          customValue: '5',
+        },
+      ],
+    ] as const)('is set when the user sets the price via %s', (_, action) => {
+      const result = limitOrderPriceAdjustReducer(
+        initialLimitOrderPriceAdjustState,
+        action,
+      );
+
+      expect(result.hasUserEditedLimitPrice).toBe(true);
+    });
+
+    it('is not set when the price is seeded from market', () => {
+      const result = limitOrderPriceAdjustReducer(
+        initialLimitOrderPriceAdjustState,
+        { type: 'seedFromMarket', limitPrice: '100' },
+      );
+
+      expect(result.hasUserEditedLimitPrice).toBe(false);
+    });
+
+    it('is not set by a preset that leaves the price unchanged', () => {
+      const result = limitOrderPriceAdjustReducer(
+        initialLimitOrderPriceAdjustState,
+        { type: 'applyPreset', isTrackingMarket: false },
+      );
+
+      expect(result.hasUserEditedLimitPrice).toBe(false);
     });
   });
 
@@ -277,6 +325,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
 
@@ -297,6 +346,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
   });
@@ -316,6 +366,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
 
@@ -336,6 +387,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
   });
