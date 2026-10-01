@@ -138,13 +138,17 @@ function isExactMainnetRpcUrl(url: string | null): boolean {
   );
 }
 
+// Gas, block, and transaction methods the fiat test-funding transfer needs on
+// mainnet. `eth_call` and `eth_getBalance` are deliberately absent: balance
+// reads and Multicall3 aggregate3 belong to the holdings mocks, which keep
+// seeded balances consistent and return `0x` so AssetsController falls back
+// to per-call reads.
 const MAINNET_DEPOSIT_RPC_METHODS = new Set([
   'eth_blockNumber',
   'eth_chainId',
   'eth_estimateGas',
   'eth_feeHistory',
   'eth_gasPrice',
-  'eth_getBalance',
   'eth_getBlockByNumber',
   'eth_getCode',
   'eth_getTransactionByHash',
@@ -156,24 +160,10 @@ const MAINNET_DEPOSIT_RPC_METHODS = new Set([
   'net_version',
 ]);
 
-function isMainnetBalanceRead(call: Record<string, unknown>): boolean {
-  if (call?.method === 'eth_getBalance') {
-    return true;
-  }
-  if (call?.method !== 'eth_call') {
-    return false;
-  }
-  const params = call.params as { data?: string }[] | undefined;
-  return (params?.[0]?.data?.toLowerCase() ?? '').startsWith('0x70a08231');
-}
-
 async function mockMainnetRpc(mockServer: Mockttp) {
   await mockServer
     .forPost('/proxy')
-    // Above the holdings balance mock (1002) so a batch that mixes a balance
-    // read with eth_getBlockByNumber is not answered entirely as `0x0`.
-    // Pure balance reads are left to that mock.
-    .asPriority(1004)
+    .asPriority(1001)
     .matching(async (request) => {
       const url = new URL(request.url).searchParams.get('url');
       if (!isExactMainnetRpcUrl(url)) return false;
@@ -185,10 +175,14 @@ async function mockMainnetRpc(mockServer: Mockttp) {
           string,
           unknown
         >[];
+        // Only claim requests made up entirely of these methods. A batch that
+        // also carries a balance read or aggregate3 is left to the holdings
+        // mocks so their fallback semantics are untouched.
         return (
-          calls.some((call) =>
+          calls.length > 0 &&
+          calls.every((call) =>
             MAINNET_DEPOSIT_RPC_METHODS.has(String(call?.method)),
-          ) && !calls.every(isMainnetBalanceRead)
+          )
         );
       } catch {
         return false;
@@ -234,9 +228,6 @@ const MULTICALL3_AGGREGATE3_SELECTOR = '0x82ad56cb';
 
 const MAINNET_TX_HASH =
   '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-const ONE_ETH_WEI = '0xde0b6b3a7640000';
-const USDC_BALANCE_500 =
-  '0x000000000000000000000000000000000000000000000000000000001dcd6500';
 
 function mainnetSuccessReceipt(hash: string) {
   return {
@@ -319,19 +310,6 @@ function resolveMainnetDepositRpc(body: Record<string, unknown>): unknown {
       };
     case 'eth_getCode':
       return '0x';
-    case 'eth_getBalance':
-      return ONE_ETH_WEI;
-    case 'eth_call': {
-      const call = params?.[0] as { data?: string; to?: string } | undefined;
-      const data = call?.data?.toLowerCase() ?? '';
-      if (
-        data.startsWith(ERC20_BALANCE_OF_SELECTOR) &&
-        call?.to?.toLowerCase() === USDC_MAINNET.toLowerCase()
-      ) {
-        return USDC_BALANCE_500;
-      }
-      return UINT256_ZERO;
-    }
     default:
       return '0x';
   }
