@@ -16,12 +16,14 @@ import NotificationService, {
   isPushPermissionPromptable,
   requestPushPermissions,
 } from '../../../../util/notifications/services/NotificationService';
-import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
+import { useNotificationStoragePreferences } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { strings } from '../../../../../locales/i18n';
 
-jest.mock('./hooks/useNotificationStoragePreferences');
+jest.mock(
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+);
 jest.mock('./MainNotificationToggle.hooks');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');

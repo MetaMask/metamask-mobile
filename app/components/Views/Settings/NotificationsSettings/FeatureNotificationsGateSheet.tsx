@@ -24,7 +24,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
-import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
+import { useNotificationStoragePreferences } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 import {
   FEATURE_NOTIFICATIONS_GATE_COPY,
   type FeatureNotificationsGateFeature,

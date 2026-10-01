@@ -313,7 +313,7 @@ const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
 };
 
 jest.mock(
-  '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
   () => ({
     useNotificationStoragePreferences: () => ({
       hasNotificationPreferences: mockHasNotificationPreferences(),

@@ -63,15 +63,18 @@ jest.mock('../../../../selectors/notifications', () => ({
     mockIsMetamaskNotificationsEnabled,
 }));
 
-jest.mock('./hooks/useNotificationStoragePreferences', () => ({
-  useNotificationStoragePreferences: () => ({
-    preferences: mockPreferences,
-    updatePreference: mockUpdatePreference,
-    updatePreferencesSection: mockUpdatePreferencesSection,
-    updateSectionChannel: mockUpdateSectionChannel,
-    isUpdatingPreferences: mockIsUpdatingPreferences,
+jest.mock(
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+  () => ({
+    useNotificationStoragePreferences: () => ({
+      preferences: mockPreferences,
+      updatePreference: mockUpdatePreference,
+      updatePreferencesSection: mockUpdatePreferencesSection,
+      updateSectionChannel: mockUpdateSectionChannel,
+      isUpdatingPreferences: mockIsUpdatingPreferences,
+    }),
   }),
-}));
+);
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 

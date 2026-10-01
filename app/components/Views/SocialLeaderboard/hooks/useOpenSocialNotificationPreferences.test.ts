@@ -3,13 +3,13 @@ import { useNavigation } from '@react-navigation/native';
 import { useOpenSocialNotificationPreferences } from './useOpenSocialNotificationPreferences';
 import Routes from '../../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import { useNotificationStoragePreferences } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 jest.mock(
-  '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
 );
 
 const mockNavigate = jest.fn();

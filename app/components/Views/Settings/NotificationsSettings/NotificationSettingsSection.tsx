@@ -12,7 +12,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
-import { type NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
+import { type NotificationPreferenceSection } from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';

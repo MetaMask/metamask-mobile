@@ -3,7 +3,7 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../../selectors/n
 import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
-} from './useNotificationStoragePreferences';
+} from '../../../../../util/notifications/hooks/useNotificationStoragePreferences';
 
 /**
  * Notification enablement status for one feature: the global master toggle

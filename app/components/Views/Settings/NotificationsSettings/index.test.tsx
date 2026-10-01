@@ -92,47 +92,50 @@ jest.mock(
   }),
 );
 
-jest.mock('./hooks/useNotificationStoragePreferences', () => ({
-  useNotificationStoragePreferences: () => ({
-    preferences: {
-      walletActivity: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
+jest.mock(
+  '../../../../util/notifications/hooks/useNotificationStoragePreferences',
+  () => ({
+    useNotificationStoragePreferences: () => ({
+      preferences: {
+        walletActivity: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        perps: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        agenticCli: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        socialAI: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        marketing: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        priceAlerts: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        card: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        securityAlerts: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
       },
-      perps: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      agenticCli: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      socialAI: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      marketing: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      priceAlerts: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      card: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-      securityAlerts: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
-    },
-    isLoading: false,
-    error: null,
-    updatePreference: jest.fn(),
+      isLoading: false,
+      error: null,
+      updatePreference: jest.fn(),
+    }),
   }),
-}));
+);
 
 const socialAISectionTitle = strings(
   'app_settings.notifications_opts.social_ai_title',

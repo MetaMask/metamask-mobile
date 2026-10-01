@@ -23,7 +23,7 @@ import NotificationsSettingsRowSkeleton from './NotificationsSettingsRowSkeleton
 import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
-} from './hooks/useNotificationStoragePreferences';
+} from '../../../../util/notifications/hooks/useNotificationStoragePreferences';
 import {
   getNotificationSettingsSectionRouteParams,
   NOTIFICATION_SETTINGS_SECTIONS,
