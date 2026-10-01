@@ -129,8 +129,8 @@ describe('SocialFeedPositionCard', () => {
     expect(statValue(item.id, 'cost')).toBe('$212,000.00');
   });
 
-  it('forwards the open item when Copy trade is pressed', () => {
-    const item = mockOpenPerpsFeedItem();
+  it('forwards the open spot item when Copy trade is pressed', () => {
+    const item = mockOpenSpotFeedItem();
     const onCopyTrade = jest.fn();
 
     renderWithProvider(

@@ -360,8 +360,6 @@ export type PerpsStackParamList = {
     asset: string;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
-    /** Analytics source of the entry point. Defaults to the asset screen. */
-    source?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 

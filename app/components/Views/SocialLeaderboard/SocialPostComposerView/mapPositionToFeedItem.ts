@@ -8,7 +8,6 @@ import {
 } from '../../../UI/SocialFeed/utils/formatters';
 import {
   getPerpPositionDirection,
-  getSupportedXyzPerpMarketSymbol,
   isClosedPosition,
   isPerpPosition,
 } from '../../../UI/SocialFeed/utils/perp';
@@ -133,9 +132,6 @@ export const mapPositionToFeedItem = (
   const timestamp = options?.timestamp ?? Date.now();
 
   if (isPerp) {
-    const { targetSymbol: tradeSymbol } = getSupportedXyzPerpMarketSymbol(
-      position.tokenSymbol,
-    );
     const direction = getPerpPositionDirection(position) ?? 'long';
     if (closed) {
       return {
@@ -143,7 +139,6 @@ export const mapPositionToFeedItem = (
         author,
         timestamp,
         variant: 'perpsClosed',
-        tradeSymbol,
         comment,
         asset: { symbol: displaySymbol, avatar },
         direction,
@@ -164,7 +159,6 @@ export const mapPositionToFeedItem = (
       author,
       timestamp,
       variant: 'perpsOpen',
-      tradeSymbol,
       comment,
       asset: { symbol: displaySymbol, avatar },
       direction,

@@ -268,7 +268,6 @@ export function toSocialV1FeedItem(
       : {
           ...closed,
           variant: 'perpsClosed',
-          tradeSymbol: item.tradeSymbol,
           direction: item.direction,
           leverageLabel: toLeverageLabel(item),
         };
@@ -308,7 +307,6 @@ export function toSocialV1FeedItem(
   return {
     ...base,
     variant: 'perpsOpen',
-    tradeSymbol: item.tradeSymbol,
     direction: item.direction,
     leverageLabel: toLeverageLabel(item),
     markPriceLabel,

@@ -22,7 +22,6 @@ import {
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
-import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
 import { playSelection } from '../../../../util/haptics';
@@ -397,22 +396,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const handleCopyTrade = useCallback(
     (item: SocialV1FeedItem) => {
-      if (item.variant === 'perpsOpen') {
-        // The feed lives outside the Perps stack, so the order flow has to be
-        // entered through `PerpsOrderRedirect`: it waits for the Perps socket
-        // to connect before creating the pending transaction, then replaces
-        // itself with the trade sheet.
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.ORDER_REDIRECT,
-          params: {
-            direction: item.direction,
-            asset: item.tradeSymbol,
-            source: 'trader_feed',
-          },
-        });
-        return;
-      }
-
       if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
         return;
       }
@@ -430,7 +413,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         chain,
       });
     },
-    [navigation, onQuickBuy],
+    [onQuickBuy],
   );
 
   const handleAuthorPress = useCallback(

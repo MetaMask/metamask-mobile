@@ -18,10 +18,6 @@ jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { perpPositionType?: string; chain?: string }) =>
     position.perpPositionType != null || position.chain === 'hyperliquid',
   isClosedPosition: () => false,
-  getSupportedXyzPerpMarketSymbol: (symbol: string) => ({
-    targetSymbol: symbol === 'cash:SPCX' ? 'xyz:SPCX' : symbol,
-    requiresXyzMarketCheck: symbol === 'cash:SPCX',
-  }),
   getPerpPositionDirection: (position: {
     perpPositionType?: 'long' | 'short' | null;
   }) => position.perpPositionType ?? null,
@@ -100,20 +96,6 @@ describe('mapPositionToFeedItem', () => {
     }
     expect(item.direction).toBe('short');
     expect(item.leverageLabel).toBe('40x');
-  });
-
-  it('normalizes non-xyz HIP-3 symbols for copy trade', () => {
-    const item = mapPositionToFeedItem(
-      { ...openPerp, tokenSymbol: 'cash:SPCX' },
-      'this is alpha',
-      { isClosed: false },
-    );
-
-    expect(item.variant).toBe('perpsOpen');
-    if (item.variant !== 'perpsOpen') {
-      return;
-    }
-    expect(item.tradeSymbol).toBe('xyz:SPCX');
   });
 
   it('maps a closed perp without copy trade', () => {

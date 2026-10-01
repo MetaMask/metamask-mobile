@@ -73,8 +73,6 @@ interface SocialV1FeedItemBase {
 
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   variant: 'perpsOpen';
-  /** Tradable market symbol, including any HIP-3 namespace. */
-  tradeSymbol: string;
   direction: SocialV1PerpDirection;
   markPriceLabel?: string;
   leverageLabel?: string;
@@ -84,8 +82,6 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
   variant: 'perpsClosed';
-  /** Tradable market symbol, including any HIP-3 namespace. */
-  tradeSymbol: string;
   direction: SocialV1PerpDirection;
   leverageLabel?: string;
   entryPriceLabel?: string;

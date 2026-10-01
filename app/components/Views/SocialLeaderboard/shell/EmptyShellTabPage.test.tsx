@@ -25,7 +25,6 @@ import type {
   SocialV1FeedItem,
   SocialV1TokenFeedState,
 } from '../SocialV1View/feed/types';
-import Routes from '../../../../constants/navigation/Routes';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
 } from './EmptyShellTabPage';
@@ -220,30 +219,6 @@ describe('EmptyShellTabPage', () => {
         `social-v1-feed-card-${MOCK_SOCIAL_V1_FEED_ITEMS[0].id}`,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('enters the Perps order flow through the redirect screen', () => {
-    const item = MOCK_SOCIAL_V1_FEED_ITEMS[0];
-
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="following"
-        isActive
-        containerTestID="following-page-content"
-        scrollTestID="following-page-scroll"
-      />,
-    );
-
-    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.ORDER_REDIRECT,
-      params: {
-        direction: 'short',
-        asset: 'BTC',
-        source: 'trader_feed',
-      },
-    });
   });
 
   it('requests a QuickBuy target for an open spot feed item', () => {

@@ -1,11 +1,6 @@
 import type { PositionTokenAvatarData } from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import type { SocialV1FeedPost } from '../../../../UI/SocialFeed/types';
 
-export type {
-  SocialV1FeedItem,
-  SocialV1FeedPost,
-} from '../../../../UI/SocialFeed/types';
-
 export type SocialV1FeedTab = 'trending' | 'following';
 
 export interface UseSocialV1FeedResult {

@@ -28,7 +28,6 @@ export const mockOpenPerpsFeedItem = (
   },
   timestamp: minutesAgo(40),
   comment: 'Leverage is a lifestyle.',
-  tradeSymbol: 'BTC',
   asset: {
     symbol: 'BTC',
     avatar: {
@@ -68,7 +67,6 @@ export const mockClosedPerpsFeedItem = (
   },
   timestamp: hoursAgo(3),
   comment: 'Risk managed. Mostly.',
-  tradeSymbol: 'ETH',
   asset: {
     symbol: 'ETH',
     avatar: {

@@ -49,13 +49,8 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 const PerpsOrderRedirect: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteParams>();
-  const {
-    direction,
-    asset,
-    fromTokenDetails,
-    transactionActiveAbTests,
-    source = PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-  } = route.params;
+  const { direction, asset, fromTokenDetails, transactionActiveAbTests } =
+    route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
@@ -77,7 +72,7 @@ const PerpsOrderRedirect: React.FC = () => {
           direction,
           asset,
           fromTokenDetails,
-          source,
+          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
           transactionActiveAbTests,
         }),
       );
@@ -91,7 +86,9 @@ const PerpsOrderRedirect: React.FC = () => {
 
     const runDepositFlow = async (): Promise<void> => {
       if (useBottomSheet) {
-        startPerpsTradeSheetInteractiveTrace(source);
+        startPerpsTradeSheetInteractiveTrace(
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        );
       }
       try {
         await withPendingTransactionActiveAbTests(
@@ -109,7 +106,7 @@ const PerpsOrderRedirect: React.FC = () => {
               direction,
               asset,
               fromTokenDetails,
-              source,
+              source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
               ...(useBottomSheet
                 ? { useBottomSheet: true, forceBottomSheet: true }
                 : {}),
@@ -157,7 +154,6 @@ const PerpsOrderRedirect: React.FC = () => {
     direction,
     asset,
     fromTokenDetails,
-    source,
     transactionActiveAbTests,
     useBottomSheet,
     depositWithOrder,
