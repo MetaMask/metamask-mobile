@@ -29,11 +29,14 @@ import RewardsAnimations, {
 } from '../../../../../Rewards/components/RewardPointsAnimation';
 import { usePredictRewards } from '../../../../hooks/usePredictRewards';
 import { formatPrice } from '../../../../utils/format';
+import type { PredictFeePolicyStatus } from '../../../../types';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
+  originalTotal?: number;
+  feePolicyStatus?: PredictFeePolicyStatus;
   rewardsFeeAmountUsd?: number;
   rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
@@ -44,6 +47,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   loading = false,
   handleFeesInfoPress,
   total,
+  originalTotal,
+  feePolicyStatus,
   rewardsFeeAmountUsd,
   rewardsLoadingOverride = false,
 }) => {
@@ -115,13 +120,26 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 color={IconColor.IconAlternative}
               />
             </Box>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {formatPrice(total, { maximumDecimals: 2 })}
-            </Text>
+            <Box twClassName="flex-row items-center gap-2">
+              {feePolicyStatus === 'membership' &&
+                originalTotal !== undefined && (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                    twClassName="line-through"
+                  >
+                    {formatPrice(originalTotal, { maximumDecimals: 2 })}
+                  </Text>
+                )}
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {formatPrice(total, { maximumDecimals: 2 })}
+              </Text>
+            </Box>
           </Box>
         </TouchableOpacity>
 

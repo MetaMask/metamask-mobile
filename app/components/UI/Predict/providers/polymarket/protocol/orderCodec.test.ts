@@ -99,6 +99,21 @@ describe('polymarket protocol order codec', () => {
     ]);
   });
 
+  it('uses an explicit per-order builder code instead of the protocol default', () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
+      builderCode: membershipBuilderCode,
+    });
+
+    expect(order.builder).toBe(membershipBuilderCode);
+  });
+
   it('builds a v2 order with 0.0025 tick size from ROUNDING_CONFIG', () => {
     const order = buildProtocolUnsignedOrder({
       protocol,

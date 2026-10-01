@@ -7,6 +7,7 @@ import {
   selectIsActiveSubscriber,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
+  type PredictBenefitUsage,
   type Subscription,
   type SubscriptionBenefitsState,
   type SubscriptionControllerState,
@@ -184,6 +185,28 @@ export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
 );
 
 /**
+ * Selects whether the dedicated Predict free-transaction entitlement is
+ * granted for Money Account Plus.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether Predict fee waivers are entitled.
+ */
+export const selectHasPredictFreeTxEntitlement = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean => {
+    if (!subscriptionControllerState) {
+      return false;
+    }
+
+    return selectHasEntitlement(
+      subscriptionControllerState,
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      MoneyAccountFeature.PredictFreeTx,
+    );
+  },
+);
+
+/**
  * Selects persisted Money Account Plus benefit usage for the current billing
  * period. Undefined until `getBenefits()` has stored a snapshot.
  *
@@ -194,6 +217,17 @@ export const selectSubscriptionBenefits = createSelector(
   selectSubscriptionControllerState,
   (subscriptionControllerState): SubscriptionBenefitsState | undefined =>
     subscriptionControllerState?.benefits,
+);
+
+/**
+ * Selects the current Predict benefit usage from the persisted snapshot.
+ *
+ * @param state - The root Redux state.
+ * @returns Predict benefit usage, or undefined before benefits are fetched.
+ */
+export const selectPredictBenefitUsage = createSelector(
+  selectSubscriptionBenefits,
+  (benefits): PredictBenefitUsage | undefined => benefits?.predict,
 );
 
 /**

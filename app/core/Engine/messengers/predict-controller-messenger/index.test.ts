@@ -25,4 +25,19 @@ describe('PredictController Messenger', () => {
       expect(typeof result[method]).toBe('function');
     });
   });
+
+  it('delegates subscription benefits lookup to the scoped messenger', () => {
+    const rootMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getPredictControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['SubscriptionController:getBenefits']),
+      }),
+    );
+  });
 });

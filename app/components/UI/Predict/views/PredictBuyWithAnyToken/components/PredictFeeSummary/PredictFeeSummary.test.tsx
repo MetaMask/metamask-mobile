@@ -168,6 +168,19 @@ describe('PredictFeeSummary', () => {
     expect(handleFeesInfoPress).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the original total alongside the waived membership total', () => {
+    render(
+      <PredictFeeSummary
+        {...baseProps}
+        feePolicyStatus="membership"
+        originalTotal={15}
+      />,
+    );
+
+    expect(screen.getByText('$15.00')).toBeOnTheScreen();
+    expect(screen.getByText('$13.50')).toBeOnTheScreen();
+  });
+
   it('renders rewards animation in idle state for opted-in accounts', () => {
     setRewardsState({
       shouldShowRewardsRow: true,

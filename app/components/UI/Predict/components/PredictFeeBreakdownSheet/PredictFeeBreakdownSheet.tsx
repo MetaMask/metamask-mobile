@@ -13,6 +13,7 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
+import type { PredictFeePolicyStatus } from '../../types';
 
 interface FeeRowProps {
   title: string;
@@ -42,6 +43,8 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
+  feePolicyStatus?: PredictFeePolicyStatus;
+  originalTotal?: number;
   depositFee?: number;
   sharePrice: number;
   contractCount: number;
@@ -60,6 +63,8 @@ const PredictFeeBreakdownSheet = forwardRef<
     {
       providerFee,
       metamaskFee,
+      feePolicyStatus,
+      originalTotal,
       sharePrice,
       depositFee,
       contractCount,
@@ -135,13 +140,28 @@ const PredictFeeBreakdownSheet = forwardRef<
           >
             {strings('predict.fee_summary.total')}
           </Text>
-          <Text
-            color={TextColor.TextDefault}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-          >
-            {formatPrice(total, { maximumDecimals: 2 })}
-          </Text>
+          <Box twClassName="flex-row items-center gap-2">
+            {feePolicyStatus === 'membership' &&
+              originalTotal !== undefined && (
+                <Text
+                  color={TextColor.TextAlternative}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Bold}
+                  twClassName="line-through"
+                >
+                  {formatPrice(originalTotal, {
+                    maximumDecimals: 2,
+                  })}
+                </Text>
+              )}
+            <Text
+              color={TextColor.TextDefault}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+            >
+              {formatPrice(total, { maximumDecimals: 2 })}
+            </Text>
+          </Box>
         </Box>
 
         {fakOrdersEnabled && (

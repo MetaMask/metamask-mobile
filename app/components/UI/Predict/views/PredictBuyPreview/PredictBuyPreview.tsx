@@ -76,7 +76,7 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 import {
-  buildPredictFeeBreakdownAmounts,
+  buildPredictFeeBreakdowns,
   getPredictBuyAllInCost,
   roundUpToCents,
 } from '../../utils/orders';
@@ -276,7 +276,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     currentValue > 0 && preview
       ? previewAllInCost
       : roundUpToCents(currentValue);
-  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
     side: Side.BUY,
     order: currentValue,
     metamaskFee,
@@ -680,6 +681,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
+          feePolicyStatus={preview?.feePolicy?.status}
+          originalTotal={originalFeeBreakdown?.total}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
           }
