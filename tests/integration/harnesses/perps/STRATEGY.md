@@ -45,6 +45,7 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Shape:** A — provider-level harness
 - **Real:** `HyperLiquidProvider` (mobile), all of its order / close / validation logic, asset-map lookups, in-memory state transitions
 - **Mocked:** `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, injected `streamManager` platform dependency, `hyperLiquidValidation` utility module
+- **SDK boundary:** Operation-local exchange clients await the supplied dispatch guard before mocked writes. SDK signing remains mocked. Order-status reads default to `unknownOid`; receipt tests must supply authoritative coin, client order ID and venue order ID.
 - **Factory:** `buildPerpsIntegrationHarness({ isTestnet?, assetMapping?, cachedPrices? })`
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration

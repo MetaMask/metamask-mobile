@@ -76,19 +76,25 @@ index 65a03cfc60191f0e98564d3c051bbbe5bee83768..a5162d004229ec872d89484f1c9be41a
                  };
                  const unsub = provider.subscribeToOrders(subscribeParams);
 diff --git a/dist/constants/hyperLiquidConfig.d.ts b/dist/constants/hyperLiquidConfig.d.ts
-index b3547a084d4c2ea9427938d33500baffa7f48874..c9854f8310172259aaadaef1d2f266adea54a909 100644
+index b3547a084d4c2ea9427938d33500baffa7f48874..fd4af89c7870609ea7691cef1eac6d8591be6c0c 100644
 --- a/dist/constants/hyperLiquidConfig.d.ts
 +++ b/dist/constants/hyperLiquidConfig.d.ts
-@@ -103,6 +103,7 @@ export declare const HYPERLIQUID_ORDER_CAPABILITIES: Readonly<{
+@@ -103,6 +103,13 @@ export declare const HYPERLIQUID_ORDER_CAPABILITIES: Readonly<{
      status: "ready";
      providerId: "hyperliquid";
      supportedStrategies: readonly ("chase" | "scale" | "twap")[];
 +    supportedTriggerOrderTypes: readonly ("stop_limit" | "stop_market" | "take_profit_limit" | "take_profit_market")[];
++    positionTpsl: Readonly<{
++        supportsExpectedPosition: true;
++        childOrderIds: "request-correlated";
++        takeProfitOrderType: "take_profit_limit";
++        stopLossOrderType: "stop_market";
++    }>;
  }>;
  export declare const REFERRAL_CONFIG: {
      MainnetCode: string;
 diff --git a/dist/constants/hyperLiquidConfig.js b/dist/constants/hyperLiquidConfig.js
-index db5ca7244653febc762834bbd1398ebc3b9e33de..cda424c5100bafa13af1cdeaf237a7164b19229c 100644
+index db5ca7244653febc762834bbd1398ebc3b9e33de..1c220fcb481f2022f83c5e360a130bf11997e8b5 100644
 --- a/dist/constants/hyperLiquidConfig.js
 +++ b/dist/constants/hyperLiquidConfig.js
 @@ -1,5 +1,5 @@
@@ -98,11 +104,17 @@ index db5ca7244653febc762834bbd1398ebc3b9e33de..cda424c5100bafa13af1cdeaf237a716
  import { PROVIDER_CONFIG } from './perpsConfig.js';
  // Network constants
  export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1';
-@@ -172,6 +172,7 @@ export const HYPERLIQUID_ORDER_CAPABILITIES = Object.freeze({
+@@ -172,6 +172,13 @@ export const HYPERLIQUID_ORDER_CAPABILITIES = Object.freeze({
      status: 'ready',
      providerId: PROVIDER_CONFIG.DefaultProvider,
      supportedStrategies: Object.freeze([...STRATEGY_ORDER_TYPES]),
 +    supportedTriggerOrderTypes: Object.freeze([...TRIGGER_ORDER_TYPES]),
++    positionTpsl: Object.freeze({
++        supportsExpectedPosition: true,
++        childOrderIds: 'request-correlated',
++        takeProfitOrderType: 'take_profit_limit',
++        stopLossOrderType: 'stop_market',
++    }),
  });
  // Referral code configuration
  export const REFERRAL_CONFIG = {
@@ -152,6 +164,813 @@ index d93326fe53589c810b7e125d496936455ab974ab..c4b9705d022e1f7575eeafceb49df61d
  export const LIGHTER_ORDER_EXPIRY_NONE = -1;
  /** Sentinel for "no trigger price". */
  export const LIGHTER_NO_TRIGGER_PRICE = 0;
+diff --git a/dist/providers/HyperLiquidProvider.d.ts b/dist/providers/HyperLiquidProvider.d.ts
+index b1eac21024337eb027e11e3d46a67ce22bc2926f..4c6f262e554ccaf80e6ac6d91bf33ad37e4194e4 100644
+--- a/dist/providers/HyperLiquidProvider.d.ts
++++ b/dist/providers/HyperLiquidProvider.d.ts
+@@ -39,13 +39,13 @@ export declare class HyperLiquidProvider implements PerpsProvider {
+     readonly protocolId: "hyperliquid";
+     constructor(options: HyperLiquidProviderOptions);
+     /**
+-     * Return provider-owned strategy and margin-mode support for a routed
+-     * market. HyperLiquid metadata has no per-market strategy flags. This
+-     * provider advertises its implemented strategies uniformly after confirming
+-     * the routed market exists; margin modes follow the market's metadata.
++     * Return provider-owned standalone trigger, strategy and margin-mode support
++     * for a routed market. HyperLiquid advertises its implemented trigger types
++     * and strategies uniformly after confirming the routed market exists;
++     * margin modes follow the market's metadata.
+      *
+      * @param params - Required market route context.
+-     * @returns Supported strategy order types and margin modes.
++     * @returns Supported standalone trigger types, strategies and margin modes.
+      */
+     getOrderCapabilities(params: GetOrderCapabilitiesParams): Promise<DirectProviderOrderCapabilities>;
+     /**
+diff --git a/dist/providers/HyperLiquidProvider.js b/dist/providers/HyperLiquidProvider.js
+index 58982fe5ba7b9729509cc05fd52ee35628a6f72e..5c06d53c89c4ee82ad9f9be73c819a1d481c1aa5 100644
+--- a/dist/providers/HyperLiquidProvider.js
++++ b/dist/providers/HyperLiquidProvider.js
+@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
+ import { PERPS_EVENT_PROPERTY, PERPS_EVENT_VALUE, } from '../constants/eventNames.js';
+ import { BASIS_POINTS_DIVISOR, BUILDER_FEE_CONFIG, canonicalizeHyperLiquidDexes, FEE_RATES, HYPERLIQUID_ORDER_CAPABILITIES, getBridgeInfo, getChainId, HIP3_ASSET_MARKET_TYPES, HIP3_FEE_CONFIG, HIP3_MARGIN_CONFIG, HYPERLIQUID_ASSET_NAMES, HYPERLIQUID_CONFIG, HYPERLIQUID_WITHDRAWAL_MINUTES, REFERRAL_CONFIG, TRADING_DEFAULTS, USDC_DECIMALS, USDC_SYMBOL, } from '../constants/hyperLiquidConfig.js';
+ import { DETAILED_ORDER_TYPES } from '../constants/orderTypes.js';
+-import { CHASE_ORDER_CONFIG, CHASE_ORDER_STATUS, HYPERLIQUID_TWAP_LIMITS, ORDER_SLIPPAGE_CONFIG, PERFORMANCE_CONFIG, PERPS_CONSTANTS, PROVIDER_CONFIG, TP_SL_CONFIG, WITHDRAWAL_CONSTANTS, } from '../constants/perpsConfig.js';
++import { CHASE_ORDER_CONFIG, CHASE_ORDER_STATUS, HYPERLIQUID_TWAP_LIMITS, ORDER_SLIPPAGE_CONFIG, PERFORMANCE_CONFIG, PERPS_CONSTANTS, PROVIDER_CONFIG, SUBSCRIPTION_CLOID_CONFIG, TP_SL_CONFIG, WITHDRAWAL_CONSTANTS, } from '../constants/perpsConfig.js';
+ import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig.js';
+ import { PERPS_ERROR_CODES } from '../perpsErrorCodes.js';
+ import { AgentSignerUnavailableError, getAgentAccountKey, isAgentSignerUnavailableError, } from '../services/agentSigner.js';
+@@ -28,6 +28,7 @@ import { transformMarketData } from '../utils/marketDataTransform.js';
+ import { compileMarketPattern, shouldIncludeMarket, } from '../utils/marketUtils.js';
+ import { buildOrdersArray, calculateFinalPositionSize, calculateOrderPriceAndSize, computeChaseQuotePrice, computeScalePriceLadder, floorToSizeDecimals, formatPartialTpslSize, getPriceTick, splitScaleSizes, validateOrderPrecision, } from '../utils/orderCalculations.js';
+ import { getTriggerDirection, getTriggerExecution, isLimitExecutionOrderType, isStrategyOrderType, isTriggerOrderType, resolvePositionTriggerSummaryPrice, toSDKTimeInForce, } from '../utils/orderTypes.js';
++import { assertExpectedPosition } from '../utils/positionProtection.js';
+ import { createStandaloneInfoClient, queryStandaloneClearinghouseStates, queryStandaloneOpenOrders, } from '../utils/standaloneInfoClient.js';
+ import { parseBoundedNonNegativeDecimal } from '../utils/stringParseUtils.js';
+ import { markSubscriptionCloid, quantizeBuilderFeeTenthsBps, } from '../utils/subscriptionFeeWaiver.js';
+@@ -884,13 +885,13 @@ export class HyperLiquidProvider {
+         return HYPERLIQUID_ORDER_FEE_CONFIG.market;
+     }
+     /**
+-     * Return provider-owned strategy and margin-mode support for a routed
+-     * market. HyperLiquid metadata has no per-market strategy flags. This
+-     * provider advertises its implemented strategies uniformly after confirming
+-     * the routed market exists; margin modes follow the market's metadata.
++     * Return provider-owned standalone trigger, strategy and margin-mode support
++     * for a routed market. HyperLiquid advertises its implemented trigger types
++     * and strategies uniformly after confirming the routed market exists;
++     * margin modes follow the market's metadata.
+      *
+      * @param params - Required market route context.
+-     * @returns Supported strategy order types and margin modes.
++     * @returns Supported standalone trigger types, strategies and margin modes.
+      */
+     async getOrderCapabilities(params) {
+         const result = await this.#getOrderCapabilityMarket(params.symbol);
+@@ -1465,12 +1466,12 @@ export class HyperLiquidProvider {
+      * block remains the safety net.
+      *
+      * @param userAddress - The wallet address to check.
++     * @param infoClient - Optional captured reader for an operation-scoped probe.
+      * @returns True only when Hyperliquid reports a multi-sig signer set.
+      * @private
+      */
+-    async #isHyperliquidMultiSigAccount(userAddress) {
++    async #isHyperliquidMultiSigAccount(userAddress, infoClient = this.#clientService.getInfoClient()) {
+         try {
+-            const infoClient = this.#clientService.getInfoClient();
+             const signers = await infoClient.userToMultiSigSigners({
+                 user: userAddress,
+             });
+@@ -6409,11 +6410,11 @@ export class HyperLiquidProvider {
+      *
+      * @param exchangeClient - Client that owns the orders.
+      * @param requests - Venue cancel requests.
++     * @param onError - Optional operation-specific failure classifier.
+      * @returns Order IDs that may still be resting.
+      */
+-    async #cancelOrderRequests(exchangeClient, requests) {
+-        return (await this.#cancelOrderRequestBatch(exchangeClient, requests))
+-            .remainingOrderIds;
++    async #cancelOrderRequests(exchangeClient, requests, onError) {
++        return (await this.#cancelOrderRequestBatch(exchangeClient, requests, onError)).remainingOrderIds;
+     }
+     /**
+      * Cancel pending orders by client order ID and retain every request that may
+@@ -6492,9 +6493,10 @@ export class HyperLiquidProvider {
+      *
+      * @param exchangeClient - Client that owns the orders.
+      * @param requests - Venue cancel requests.
++     * @param onError - Optional operation-specific failure classifier.
+      * @returns IDs that may still rest and IDs this call confirmed it cancelled.
+      */
+-    async #cancelOrderRequestBatch(exchangeClient, requests) {
++    async #cancelOrderRequestBatch(exchangeClient, requests, onError) {
+         if (requests.length === 0) {
+             return {
+                 remainingOrderIds: [],
+@@ -6537,6 +6539,7 @@ export class HyperLiquidProvider {
+             return classifyStatuses(statuses);
+         }
+         catch (error) {
++            onError?.(error);
+             // The SDK throws when any entry failed, with every entry's status.
+             const statuses = getCancelStatusesFromError(error, requests.length);
+             if (statuses) {
+@@ -6612,70 +6615,112 @@ export class HyperLiquidProvider {
+         return { state: 'unknown' };
+     }
+     /**
+-     * Recover IDs omitted from waiting trigger acknowledgements.
++     * Preserve the raw statuses carried by the SDK's bulk rejection.
++     *
++     * @param error - SDK exchange error.
++     * @returns Exact reported statuses, or undefined for no authoritative batch.
++     */
++    #readProtectionErrorStatuses(error) {
++        const response = error instanceof Error && hasProperty(error, 'response')
++            ? error.response
++            : undefined;
++        return isStatusObject(response) &&
++            isStatusObject(response.response) &&
++            response.response.type === 'order' &&
++            isStatusObject(response.response.data) &&
++            Array.isArray(response.response.data.statuses)
++            ? response.response.data.statuses
++            : undefined;
++    }
++    /**
++     * Distinguish a venue rejection from ambiguous transport failure.
+      *
+-     * HyperLiquid does not preserve submission order in `frontendOpenOrders`, so
+-     * each unresolved leg is matched by its submitted trigger attributes and
+-     * accepted only when exactly one new order qualifies.
++     * @param error - SDK exchange error.
++     * @returns Whether the venue authoritatively rejected the entire action.
++     */
++    #isDefinitiveProtectionRejection(error) {
++        const response = error instanceof Error && hasProperty(error, 'response')
++            ? error.response
++            : undefined;
++        return (isStatusObject(response) &&
++            response.status === 'err' &&
++            typeof response.response === 'string');
++    }
++    /**
++     * Apply both signer invalidation and account-shape classification to writes.
++     *
++     * @param error - Failed protection write.
++     * @returns Actionable error retaining the venue message when unmapped.
++     */
++    #classifyProtectionWriteError(error) {
++        return (this.#classifySignerFailure(error) ??
++            (isHyperLiquidMultiSigRequiredError(error)
++                ? new Error(PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED)
++                : ensureError(error, 'HyperLiquidProvider.updatePositionTPSL')));
++    }
++    /**
++     * Correlate protection outcomes only by final signed cloid and market.
++     * Unknown/truncated acknowledgements never acquire ownership from book shape.
+      *
+-     * @param params - Reconciliation parameters.
+-     * @param params.outcomes - Classified placement responses.
+-     * @param params.orders - Submitted TP/SL orders.
+-     * @param params.previousOrderIds - Order IDs observed before submission.
+-     * @param params.dexName - DEX queried for the placement.
+-     * @param params.symbol - Market the triggers protect.
+-     * @returns Outcomes enriched with unambiguous exchange order IDs.
++     * @param params - Captured request identities and scoped status reader.
++     * @param params.outcomes - Classified SDK statuses, possibly truncated.
++     * @param params.orders - Exact signed orders, including final cloids.
++     * @param params.userAddress - Captured submitting account.
++     * @param params.infoClient - Captured venue reader.
++     * @param params.assertScope - Account/network/lifecycle fence.
++     * @param params.symbol - Requested venue market.
++     * @returns Ordered outcomes with exact identities where resolved.
+      */
+     async #reconcileTpslOrderPlacementOutcomes(params) {
+-        if (!params.outcomes.some((outcome) => outcome.state === 'waitingForTrigger' &&
+-            outcome.orderId === undefined)) {
+-            return params.outcomes;
+-        }
+-        try {
+-            const appearedOrders = (await this.#fetchOpenOrders({ dexName: params.dexName })).filter((order) => order.coin === params.symbol &&
+-                order.reduceOnly &&
+-                order.isTrigger &&
+-                !params.previousOrderIds.has(order.oid.toString()));
+-            const claimedOrderIds = new Set();
+-            return params.outcomes.map((outcome, index) => {
+-                if (outcome.orderId !== undefined ||
+-                    outcome.state !== 'waitingForTrigger') {
+-                    return outcome;
+-                }
+-                const submittedOrder = params.orders[index];
+-                const trigger = hasProperty(submittedOrder.t, 'trigger')
+-                    ? submittedOrder.t.trigger
+-                    : undefined;
+-                if (!isStatusObject(trigger) ||
+-                    !hasProperty(trigger, 'triggerPx') ||
+-                    (typeof trigger.triggerPx !== 'string' &&
+-                        typeof trigger.triggerPx !== 'number') ||
+-                    !hasProperty(trigger, 'tpsl') ||
+-                    (trigger.tpsl !== 'tp' && trigger.tpsl !== 'sl')) {
+-                    return outcome;
+-                }
+-                const submittedSize = parseFloat(String(submittedOrder.s));
+-                const submittedTriggerPrice = parseFloat(String(trigger.triggerPx));
+-                const expectedOrderType = trigger.tpsl === 'tp' ? 'Take Profit' : 'Stop';
+-                const candidates = appearedOrders.filter((order) => !claimedOrderIds.has(order.oid) &&
+-                    (order.side === 'B') === submittedOrder.b &&
+-                    parseFloat(order.sz) === submittedSize &&
+-                    parseFloat(order.triggerPx) === submittedTriggerPrice &&
+-                    order.orderType.includes(expectedOrderType));
+-                if (candidates.length !== 1) {
+-                    return outcome;
+-                }
+-                claimedOrderIds.add(candidates[0].oid);
+-                return { ...outcome, orderId: candidates[0].oid.toString() };
+-            });
+-        }
+-        catch (error) {
+-            this.#deps.debugLogger.log('Could not reconcile TP/SL placement order IDs', {
+-                error: ensureError(error, 'HyperLiquidProvider.reconcileTpslOrderPlacementOutcomes').message,
+-                symbol: params.symbol,
+-            });
+-            return params.outcomes;
++        const correlated = [];
++        for (const [index, order] of params.orders.entries()) {
++            const outcome = params.outcomes[index] ?? { state: 'unknown' };
++            if (outcome.state === 'rejected' || outcome.orderId !== undefined) {
++                correlated.push(outcome);
++                continue;
++            }
++            let resolved = outcome;
++            if (order.c !== undefined) {
++                await params.assertScope();
++                try {
++                    const status = await params.infoClient.orderStatus({
++                        user: params.userAddress,
++                        oid: order.c,
++                    });
++                    await params.assertScope();
++                    if (status.status === 'order') {
++                        const row = status.order.order;
++                        if (row.coin === params.symbol &&
++                            row.cloid?.toLowerCase() === order.c.toLowerCase() &&
++                            Number.isSafeInteger(row.oid) &&
++                            row.oid > 0) {
++                            let state = 'unknown';
++                            if (status.order.status === 'filled') {
++                                state = 'filled';
++                            }
++                            else if (status.order.status === 'open') {
++                                state = 'resting';
++                            }
++                            else if (hasProperty(HISTORICAL_ORDER_STATUS_BY_SDK_STATUS, status.order.status)) {
++                                const terminal = HISTORICAL_ORDER_STATUS_BY_SDK_STATUS[status.order.status];
++                                if (terminal === 'canceled' || terminal === 'rejected') {
++                                    state = 'rejected';
++                                }
++                            }
++                            resolved = { orderId: String(row.oid), state };
++                        }
++                    }
++                }
++                catch {
++                    await params.assertScope();
++                }
++            }
++            correlated.push(resolved);
+         }
++        const ids = correlated.flatMap((outcome) => outcome.orderId ? [outcome.orderId] : []);
++        return correlated.map((outcome) => outcome.orderId && ids.filter((id) => id === outcome.orderId).length > 1
++            ? { state: 'unknown' }
++            : outcome);
+     }
+     /**
+      * Read a valid order ID from a resting or filled placement status.
+@@ -6752,8 +6797,8 @@ export class HyperLiquidProvider {
+      *
+      * @param orders - The SDK order payloads about to be submitted.
+      * @param generatedCloids - Cloids this package generated for these orders and
+-     * may therefore re-stamp. Only the Scale ladder supplies any; every other path
+-     * either has no cloid or carries the caller's own.
++     * may therefore re-stamp. Scale ladders and position TP/SL supply these;
++     * other paths have no cloid or carry the caller's own.
+      * @param marksSubscriptionCloid - Overrides the live fee resolution for a
+      * chase replacement, which runs after that resolution has been cleared.
+      * @returns The same payloads, with cloids marked when subscription won.
+@@ -6765,6 +6810,8 @@ export class HyperLiquidProvider {
+         const marks = marksSubscriptionCloid ?? this.#isSubscriptionFeeSource();
+         if (!marks) {
+             // Any other source leaves the id exactly as the caller built it.
++            // Position TP/SL already reserves the subscription layout with flag00;
++            // the program marker alone never implies a fee reduction.
+             return orders;
+         }
+         return orders.map((order) => ({
+@@ -7608,7 +7655,22 @@ export class HyperLiquidProvider {
+      * @returns A promise that resolves to the result.
+      */
+     async updatePositionTPSL(params) {
++        const expectedPosition = params.expectedPosition === undefined
++            ? undefined
++            : { ...params.expectedPosition };
+         try {
++            const lifecycle = this.#lifecycleGeneration;
++            const isTestnet = this.#clientService.isTestnetMode();
++            const userAddress = await this.#walletService.getUserAddressWithDefault();
++            const assertScope = async () => {
++                const current = await this.#walletService.getUserAddressWithDefault();
++                this.#assertProviderLifecycleCurrent(lifecycle, 'updatePositionTPSL');
++                if (current.toLowerCase() !== userAddress.toLowerCase() ||
++                    this.#clientService.isTestnetMode() !== isTestnet) {
++                    throw new Error(PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE);
++                }
++            };
++            await assertScope();
+             this.#deps.debugLogger.log('Updating position TP/SL:', params);
+             const { symbol, takeProfitPrice, stopLossPrice, takeProfitSize, stopLossSize, position: livePosition, } = params;
+             const isPartialTpsl = takeProfitSize !== undefined || stopLossSize !== undefined;
+@@ -7632,6 +7694,8 @@ export class HyperLiquidProvider {
+                     liveSize: position.size,
+                 });
+             }
++            await assertScope();
++            assertExpectedPosition(expectedPosition, position);
+             if (!position) {
+                 throw new Error(PERPS_ERROR_CODES.POSITION_NOT_FOUND);
+             }
+@@ -7657,8 +7721,7 @@ export class HyperLiquidProvider {
+             // Holding the exchange client reference is not itself a write; it is only
+             // used below, after the trading setup has run.
+             const infoClient = this.#clientService.getInfoClient();
+-            const exchangeClient = this.#clientService.getExchangeClient();
+-            const userAddress = await this.#walletService.getUserAddressWithDefault();
++            await assertScope();
+             // Extract DEX name for API calls (main DEX = null)
+             const { dex: dexName } = parseAssetName(symbol);
+             // Asset info is resolved before the pre-cancel sweep so a partial size
+@@ -7753,7 +7816,6 @@ export class HyperLiquidProvider {
+             // OPTIMIZATION: Use WebSocket cache first (0 weight), fall back to single-DEX REST (20 weight)
+             // Previously: queryUserDataAcrossDexs queried ALL DEXs (20 weight × N DEXs = 40+ weight)
+             let cancelRequests = [];
+-            const orderIdsBeforePlacement = new Set();
+             const restorablePositionTpslOrders = [];
+             const restorableStandaloneTpslOrders = [];
+             // Every replacement must cancel first so old and new reduce-only triggers
+@@ -7840,7 +7902,6 @@ export class HyperLiquidProvider {
+                     user: userAddress,
+                     dex: dexName ?? undefined,
+                 });
+-                openOrders.forEach((order) => orderIdsBeforePlacement.add(order.oid.toString()));
+                 // Orders that belong to a pending parent order (normalTpsl children) are
+                 // also listed at the top level, so collect their IDs to exclude them:
+                 // they protect that pending order, not this position.
+@@ -7867,7 +7928,6 @@ export class HyperLiquidProvider {
+             else {
+                 // WebSocket cache available - use it (no API call, 0 weight)
+                 this.#deps.debugLogger.log('Using WebSocket cache for TP/SL orders lookup', { cachedOrdersCount: cachedOrders.length });
+-                cachedOrders.forEach((order) => orderIdsBeforePlacement.add(order.orderId));
+                 // Filter using normalized Order type properties, matching the REST fallback criteria:
+                 // - symbol matches
+                 // - isTrigger === true
+@@ -7939,6 +7999,65 @@ export class HyperLiquidProvider {
+                 };
+                 orders.push(slOrder);
+             }
++            const generatedCloids = new Set();
++            for (const order of orders) {
++                const entropy = uuidv4()
++                    .replace(/-/gu, '')
++                    .slice(0, SUBSCRIPTION_CLOID_CONFIG.EntropyHexLength);
++                const cloid = `0x${SUBSCRIPTION_CLOID_CONFIG.ProgramId}00${entropy}`;
++                if (generatedCloids.has(cloid)) {
++                    throw new Error('Duplicate TP/SL client order identity');
++                }
++                generatedCloids.add(cloid);
++                order.c = cloid;
++            }
++            const assertCurrentPosition = async () => {
++                await assertScope();
++                if (expectedPosition) {
++                    const state = await infoClient.clearinghouseState({
++                        user: userAddress,
++                        ...(dexName ? { dex: dexName } : {}),
++                    });
++                    await assertScope();
++                    const current = state.assetPositions.find((entry) => entry.position.coin === symbol);
++                    assertExpectedPosition(expectedPosition, current
++                        ? {
++                            size: current.position.szi,
++                            entryPrice: current.position.entryPx ?? '',
++                        }
++                        : undefined);
++                }
++            };
++            await assertCurrentPosition();
++            // These operation-local reads run inside the SDK signing semaphore.
++            // The extra round trips deliberately serialize with the signed write,
++            // preventing stale account-shape/position dispatch after wallet prompts.
++            const assertWritableScope = async () => {
++                await assertScope();
++                const isMultiSig = await this.#isHyperliquidMultiSigAccount(userAddress, infoClient);
++                await assertScope();
++                if (isMultiSig) {
++                    throw new Error(PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED);
++                }
++            };
++            let cancelGuardFailure;
++            const exchangeClient = this.#clientService.getExchangeClient(async () => {
++                try {
++                    await assertWritableScope();
++                    await assertCurrentPosition();
++                }
++                catch (error) {
++                    cancelGuardFailure = error;
++                    throw error;
++                }
++            });
++            const recoveryExchangeClient = this.#clientService.getExchangeClient(assertWritableScope);
++            let replacementMayHaveDispatched = false;
++            const replacementExchangeClient = this.#clientService.getExchangeClient(async () => {
++                await assertWritableScope();
++                await assertCurrentPosition();
++                replacementMayHaveDispatched = true;
++            });
+             const rollbackRequiresBuilderFee = [
+                 ...restorablePositionTpslOrders,
+                 ...restorableStandaloneTpslOrders,
+@@ -7955,6 +8074,10 @@ export class HyperLiquidProvider {
+             const builderOrderContext = builderFeeSetupContext
+                 ? await this.#getBuilderOrderContext(builderFeeSetupContext)
+                 : undefined;
++            const sentOrders = this.#applySubscriptionCloid(orders, generatedCloids);
++            if (new Set(sentOrders.map((order) => order.c)).size !== sentOrders.length) {
++                throw new Error('Duplicate final TP/SL client order identity');
++            }
+             const restoreCancelledProtection = async (cancelledOrderIds) => {
+                 const restoredOrderIds = [];
+                 let success = true;
+@@ -7973,47 +8096,64 @@ export class HyperLiquidProvider {
+                     if (entries.length === 0) {
+                         continue;
+                     }
++                    const restorationOrders = entries.map((entry) => ({
++                        ...entry.order,
++                        c: `0x${SUBSCRIPTION_CLOID_CONFIG.ProgramId}00${uuidv4().replace(/-/gu, '').slice(0, SUBSCRIPTION_CLOID_CONFIG.EntropyHexLength)}`,
++                    }));
++                    const sentRestorationOrders = this.#applySubscriptionCloid(restorationOrders, new Set(restorationOrders.map((order) => order.c)));
++                    let statuses;
++                    let restorationFailure;
+                     try {
+-                        const result = await exchangeClient.order({
+-                            orders: this.#applySubscriptionCloid(entries.map((entry) => entry.order)),
++                        // Restore the exact pre-call reduce-only intent. Scope and account
++                        // shape are still probed after signing, but the requested new
++                        // protection's position precondition does not apply to rollback.
++                        await assertScope();
++                        const result = await recoveryExchangeClient.order({
++                            orders: sentRestorationOrders,
+                             grouping: protection.grouping,
+                             ...(entries.some((entry) => entry.chargesMetamaskBuilderFee) &&
+                                 builderOrderContext && { builder: builderOrderContext }),
+                         });
+-                        const statuses = result.response?.data?.statuses ?? [];
+-                        const rawOutcomes = statuses
+-                            .slice(0, entries.length)
+-                            .map((status) => this.#readTpslOrderPlacementOutcome(status));
+-                        const outcomes = await this.#reconcileTpslOrderPlacementOutcomes({
+-                            outcomes: rawOutcomes,
+-                            orders: entries.map((entry) => entry.order),
+-                            previousOrderIds: new Set([
+-                                ...orderIdsBeforePlacement,
+-                                ...Array.from(cancelledOrderIds, String),
+-                            ]),
+-                            dexName,
+-                            symbol,
+-                        });
+-                        restoredOrderIds.push(...outcomes.flatMap((outcome) => outcome.orderId ? [outcome.orderId] : []));
+-                        if (result.status !== 'ok' ||
+-                            statuses.length !== entries.length ||
+-                            outcomes.some((outcome) => outcome.state === 'rejected' || outcome.state === 'unknown')) {
+-                            success = false;
+-                            this.#deps.logger.error(new Error(PERPS_ERROR_CODES.TPSL_UPDATE_FAILED), this.#getErrorContext('updatePositionTPSL > restoreCancelledProtection', { symbol, grouping: protection.grouping, statuses }));
+-                        }
++                        statuses = result.response?.data?.statuses ?? [];
+                     }
+                     catch (error) {
++                        const failure = this.#classifyProtectionWriteError(error);
++                        restorationFailure = failure;
++                        statuses =
++                            this.#readProtectionErrorStatuses(error) ??
++                                (this.#isDefinitiveProtectionRejection(error)
++                                    ? entries.map(() => ({ error: failure.message }))
++                                    : []);
++                        this.#deps.debugLogger.log('Protection restoration requires reconciliation', { symbol, error: failure.message });
++                    }
++                    await assertScope();
++                    const outcomes = await this.#reconcileTpslOrderPlacementOutcomes({
++                        outcomes: statuses
++                            .slice(0, entries.length)
++                            .map((status) => this.#readTpslOrderPlacementOutcome(status)),
++                        orders: sentRestorationOrders,
++                        userAddress,
++                        infoClient,
++                        assertScope,
++                        symbol,
++                    });
++                    await assertScope();
++                    restoredOrderIds.push(...outcomes.flatMap((outcome) => outcome.orderId ? [outcome.orderId] : []));
++                    if (outcomes.some((outcome) => outcome.state === 'rejected' || outcome.state === 'unknown')) {
+                         success = false;
+-                        // A signer that could not sign is retryable, not a defect; the
+-                        // caller still learns the protection was lost.
+-                        if (!this.#handleSignerFailure(error, 'updatePositionTPSL', {
+-                            symbol,
+-                            grouping: protection.grouping,
+-                        })) {
+-                            this.#deps.logger.error(ensureError(error, 'HyperLiquidProvider.updatePositionTPSL.restoreCancelledProtection'), this.#getErrorContext('updatePositionTPSL > restoreCancelledProtection', { symbol, grouping: protection.grouping }));
++                        if (!restorationFailure ||
++                            !this.#isSignerFailure(restorationFailure)) {
++                            this.#deps.logger.error(restorationFailure ??
++                                new Error(PERPS_ERROR_CODES.TPSL_PROTECTION_LOST), this.#getErrorContext('updatePositionTPSL', {
++                                symbol,
++                                stage: 'restoration',
++                                protectionStatus: PERPS_ERROR_CODES.TPSL_PROTECTION_LOST,
++                                childOrderIds: restoredOrderIds,
++                            }));
+                         }
+                     }
+                 }
++                await assertScope();
+                 return { restoredOrderIds, success };
+             };
+             const createProtectionLostResult = (survivingOrderIds) => createErrorResult(new Error(PERPS_ERROR_CODES.TPSL_PROTECTION_LOST), {
+@@ -8023,7 +8163,15 @@ export class HyperLiquidProvider {
+             // Cancel before placing for both position-bound and standalone partial
+             // triggers. A place-first partial update leaves both trigger sets live
+             // during the cancellation round trip and can reduce more than requested.
+-            const oldCancellation = await this.#cancelOrderRequestBatch(exchangeClient, cancelRequests);
++            await assertCurrentPosition();
++            const oldCancellation = await this.#cancelOrderRequestBatch(exchangeClient, cancelRequests, (error) => {
++                if (cancelGuardFailure !== undefined) {
++                    throw this.#classifyProtectionWriteError(cancelGuardFailure);
++                }
++                if (isHyperLiquidMultiSigRequiredError(error)) {
++                    throw this.#classifyProtectionWriteError(error);
++                }
++            });
+             // The signer could not sign the cancel. With nothing cancelled the old
+             // protection is still in place, and a clear keeps only what it could
+             // not cancel, so the caller retries. A replacement that cancelled part
+@@ -8035,6 +8183,7 @@ export class HyperLiquidProvider {
+                     success: false,
+                 });
+             }
++            await assertScope();
+             // Clearing has no replacement batch to preserve. A partial cancellation
+             // is reported so the caller can retry the same clear operation.
+             if (orders.length === 0) {
+@@ -8044,6 +8193,7 @@ export class HyperLiquidProvider {
+                 this.#deps.debugLogger.log('No new TP/SL orders to place - existing ones cancelled');
+                 return {
+                     success: true,
++                    childOrderIds: [],
+                     // No orderId since we only cancelled orders, didn't place new ones
+                 };
+             }
+@@ -8063,6 +8213,7 @@ export class HyperLiquidProvider {
+                         error: ensureError(error, 'HyperLiquidProvider.updatePositionTPSL.reconcileProtection').message,
+                     });
+                 }
++                await assertScope();
+                 return createProtectionLostResult(possiblyLiveOrderIds);
+             }
+             oldCancellation.cancelledOrderIds.forEach((orderId) => confirmedCancelledOldOrderIds.add(orderId));
+@@ -8098,75 +8249,161 @@ export class HyperLiquidProvider {
+                     childOrderIds: survivingOrderIds,
+                 });
+             }
+-            let result;
++            let placementStatuses;
++            let placementFailure;
++            let responseAccepted = false;
+             try {
+-                result = await exchangeClient.order({
+-                    orders: this.#applySubscriptionCloid(orders),
++                // Old protection may already be cancelled. A failed position read
++                // belongs to recovery, which reports loss if safe restoration is
++                // impossible instead of returning a pre-mutation refresh error.
++                await assertCurrentPosition();
++                const result = await replacementExchangeClient.order({
++                    orders: sentOrders,
+                     grouping: isPartialTpsl ? 'na' : 'positionTpsl',
+                     ...(replacementChargesMetamaskBuilderFee &&
+                         builderOrderContext && { builder: builderOrderContext }),
+                 });
++                placementStatuses = result.response?.data?.statuses ?? [];
++                responseAccepted = result.status === 'ok';
+             }
+             catch (error) {
+-                // Classify first, so a rejected agent is dropped (and reported) before
+-                // the restoration signs.
+-                const signerFailure = this.#classifySignerFailure(error);
+-                const restoration = await restoreCancelledProtection(confirmedCancelledOldOrderIds);
+-                if (!restoration.success) {
+-                    return createProtectionLostResult(restoration.restoredOrderIds);
++                placementFailure = this.#classifyProtectionWriteError(error);
++                const statuses = this.#readProtectionErrorStatuses(error);
++                if (statuses !== undefined) {
++                    placementStatuses = statuses;
+                 }
+-                if (signerFailure) {
+-                    this.#logRetryableSignerFailure('updatePositionTPSL', { symbol });
+-                    return createErrorResult(signerFailure, {
++                else if (replacementMayHaveDispatched &&
++                    !this.#isDefinitiveProtectionRejection(error)) {
++                    // Arbitrary transport/HTTP failures do not prove non-processing.
++                    placementStatuses = [];
++                }
++                else {
++                    const restoration = await restoreCancelledProtection(confirmedCancelledOldOrderIds);
++                    if (!restoration.success) {
++                        return createProtectionLostResult(restoration.restoredOrderIds);
++                    }
++                    return createErrorResult(placementFailure, {
+                         success: false,
+-                        ...(restoration.restoredOrderIds.length > 0 && {
+-                            childOrderIds: restoration.restoredOrderIds,
+-                        }),
++                        ...(restoration.restoredOrderIds.length > 0
++                            ? { childOrderIds: restoration.restoredOrderIds }
++                            : {}),
+                     });
+                 }
+-                throw error;
+             }
+-            const placementStatuses = result.response?.data?.statuses ?? [];
++            await assertScope();
+             const initialPlacementOutcomes = placementStatuses
+                 .slice(0, orders.length)
+                 .map((status) => this.#readTpslOrderPlacementOutcome(status));
+-            const placementAccepted = result.status === 'ok' &&
++            const placementAccepted = responseAccepted &&
+                 placementStatuses.length === orders.length &&
+                 initialPlacementOutcomes.every((outcome) => outcome.state === 'resting' ||
+                     outcome.state === 'filled' ||
+                     outcome.state === 'waitingForTrigger');
+             if (placementAccepted) {
++                // Only response-correlated IDs form a receipt. A waitingForTrigger
++                // acknowledgement without an ID cannot be attributed from book changes.
++                const childOrderIds = [];
++                let identitiesValid = true;
++                for (const [index, outcome] of initialPlacementOutcomes.entries()) {
++                    const cloid = sentOrders[index]?.c;
++                    let { orderId } = outcome;
++                    if (cloid === undefined) {
++                        identitiesValid = false;
++                        continue;
++                    }
++                    for (let attempt = 0; attempt < 3; attempt += 1) {
++                        await assertScope();
++                        try {
++                            const status = await infoClient.orderStatus({
++                                user: userAddress,
++                                oid: cloid,
++                            });
++                            await assertScope();
++                            if (status.status !== 'order') {
++                                continue;
++                            }
++                            const row = status.order.order;
++                            if (row.coin !== symbol ||
++                                row.cloid?.toLowerCase() !== cloid.toLowerCase() ||
++                                !Number.isSafeInteger(row.oid) ||
++                                row.oid <= 0 ||
++                                (orderId !== undefined && orderId !== String(row.oid))) {
++                                identitiesValid = false;
++                            }
++                            else {
++                                orderId = String(row.oid);
++                            }
++                            break;
++                        }
++                        catch {
++                            // A query failure cannot invent an ID. Recheck lifecycle outside
++                            // the catch so stale accounts never produce a success receipt.
++                            await assertScope();
++                            break;
++                        }
++                    }
++                    if (orderId !== undefined) {
++                        childOrderIds.push(orderId);
++                    }
++                }
++                const completeReceipt = identitiesValid &&
++                    childOrderIds.length === orders.length &&
++                    childOrderIds.every((id) => Number(id) > 0) &&
++                    new Set(childOrderIds).size === childOrderIds.length;
+                 return {
+                     success: true,
+                     orderId: 'TP/SL orders placed',
++                    ...(completeReceipt ? { childOrderIds } : {}),
+                 };
+             }
+             const placementOutcomes = await this.#reconcileTpslOrderPlacementOutcomes({
+                 outcomes: initialPlacementOutcomes,
+-                orders,
+-                previousOrderIds: new Set([
+-                    ...orderIdsBeforePlacement,
+-                    ...Array.from(confirmedCancelledOldOrderIds, String),
+-                ]),
+-                dexName,
++                orders: sentOrders,
++                userAddress,
++                infoClient,
++                assertScope,
+                 symbol,
+             });
++            await assertScope();
+             const restingReplacementOrderIds = placementOutcomes.flatMap((outcome) => (outcome.state === 'resting' ||
+                 outcome.state === 'waitingForTrigger') &&
+                 outcome.orderId
+                 ? [outcome.orderId]
+                 : []);
+             const filledReplacementOrderIds = placementOutcomes.flatMap((outcome) => outcome.state === 'filled' && outcome.orderId ? [outcome.orderId] : []);
+-            const hasUnresolvedWaitingTrigger = placementOutcomes.some((outcome) => outcome.state === 'waitingForTrigger' &&
++            const inFlightOrderIds = placementOutcomes.flatMap((outcome) => outcome.state === 'unknown' && outcome.orderId ? [outcome.orderId] : []);
++            const hasUnresolvedWaitingTrigger = placementOutcomes.some((outcome) => (outcome.state === 'waitingForTrigger' ||
++                outcome.state === 'unknown') &&
+                 outcome.orderId === undefined);
+-            const remainingReplacementIds = await this.#cancelOrderRequests(exchangeClient, restingReplacementOrderIds.map((orderId) => ({
++            await assertScope();
++            let cleanupFailure;
++            const remainingReplacementIds = await this.#cancelOrderRequests(recoveryExchangeClient, restingReplacementOrderIds.map((orderId) => ({
+                 a: assetId,
+                 o: Number(orderId),
+-            })));
++            })), (error) => {
++                if (isHyperLiquidMultiSigRequiredError(error) ||
++                    (error instanceof Error &&
++                        error.message === PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED)) {
++                    // Old protection has already changed. Classification must not
++                    // throw away this batch's still-live replacement identities.
++                    cleanupFailure = this.#classifyProtectionWriteError(error);
++                }
++            });
++            await assertScope();
+             const recoverableOrderIds = [
+                 ...filledReplacementOrderIds,
++                ...inFlightOrderIds,
+                 ...remainingReplacementIds.map(String),
+             ];
++            if (cleanupFailure && recoverableOrderIds.length > 0) {
++                this.#deps.logger.error(cleanupFailure, this.#getErrorContext('updatePositionTPSL', {
++                    symbol,
++                    stage: 'cleanup',
++                    protectionStatus: PERPS_ERROR_CODES.TPSL_PROTECTION_LOST,
++                    childOrderIds: recoverableOrderIds,
++                }));
++                return createProtectionLostResult(recoverableOrderIds);
++            }
+             if (hasUnresolvedWaitingTrigger) {
+                 return createProtectionLostResult(recoverableOrderIds);
+             }
+@@ -8175,21 +8412,24 @@ export class HyperLiquidProvider {
+                 if (!restoration.success) {
+                     return createProtectionLostResult(restoration.restoredOrderIds);
+                 }
++                return createErrorResult(placementFailure ?? new Error(PERPS_ERROR_CODES.TPSL_UPDATE_FAILED), {
++                    success: false,
++                    ...(restoration.restoredOrderIds.length > 0
++                        ? { childOrderIds: restoration.restoredOrderIds }
++                        : {}),
++                });
+             }
+             // A filled replacement may have changed or closed the position, while
+             // an uncancelled replacement may still protect it. Restoring the old
+             // whole-position triggers in either case risks stale or duplicate
+             // protection, so return those IDs for caller reconciliation instead.
+-            if (recoverableOrderIds.length > 0) {
+-                if (!isPartialTpsl) {
+-                    return createProtectionLostResult(recoverableOrderIds);
+-                }
+-                return createErrorResult(new Error(PERPS_ERROR_CODES.TPSL_UPDATE_FAILED), {
+-                    success: false,
+-                    childOrderIds: recoverableOrderIds,
+-                });
++            if (!isPartialTpsl) {
++                return createProtectionLostResult(recoverableOrderIds);
+             }
+-            throw new Error(PERPS_ERROR_CODES.TPSL_UPDATE_FAILED);
++            return createErrorResult(new Error(PERPS_ERROR_CODES.TPSL_UPDATE_FAILED), {
++                success: false,
++                childOrderIds: recoverableOrderIds,
++            });
+         }
+         catch (error) {
+             const signerFailure = this.#handleSignerFailure(error, 'updatePositionTPSL', { symbol: params.symbol });
 diff --git a/dist/providers/LighterProvider.d.ts b/dist/providers/LighterProvider.d.ts
 index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..c27ee4a606d4230bc43e513ec1f4eb2bab380921 100644
 --- a/dist/providers/LighterProvider.d.ts
@@ -203,7 +1022,7 @@ index 61bb12912fbbb842ab64bc0c2c49738bedc0b543..c27ee4a606d4230bc43e513ec1f4eb2b
      getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
      getPositions(_params?: GetPositionsParams): Promise<Position[]>;
 diff --git a/dist/providers/LighterProvider.js b/dist/providers/LighterProvider.js
-index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6ac3d78156 100644
+index 59c846b66d11a19ab27d86571cbe435db4f83363..300a78df7abf6693bb108de7e40969006252450e 100644
 --- a/dist/providers/LighterProvider.js
 +++ b/dist/providers/LighterProvider.js
 @@ -13,7 +13,7 @@
@@ -215,15 +1034,24 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
  import { PERPS_CONSTANTS } from '../constants/perpsConfig.js';
  import { PERPS_ERROR_CODES } from '../perpsErrorCodes.js';
  import { hasErrorInCauseChain } from '../services/causeChain.js';
-@@ -22,6 +22,7 @@ import { LighterWalletService } from '../services/LighterWalletService.js';
+@@ -22,8 +22,16 @@ import { LighterWalletService } from '../services/LighterWalletService.js';
  import { WebSocketConnectionState } from '../types/index.js';
  import { ensureError, isKeyringLockedError } from '../utils/errorUtils.js';
  import { adaptAccountStateFromLighter, adaptAccountStateFromLighterUserStats, adaptFillFromLighterTrade, adaptMarketDataFromLighter, adaptMarketFromLighter, adaptOrderFromLighter, adaptPositionFromLighter, adaptPriceUpdateFromLighter, adaptPriceUpdateFromLighterWsStat, } from '../utils/lighterAdapter.js';
 +import { isLimitExecutionOrderType, isTriggerOrderType, TRIGGER_ORDER_TYPES, } from '../utils/orderTypes.js';
++import { assertExpectedPosition } from '../utils/positionProtection.js';
  const NOOP_UNSUBSCRIBE = () => undefined;
  const LIGHTER_INACTIVE_HISTORY_ROW_LIMIT = 10_000;
++/** Default Lighter execution protection, in basis points (5%). */
++const LIGHTER_DEFAULT_SLIPPAGE_BPS = 500;
++/** Maximum durable position-protection ownership entries per account market. */
++const LIGHTER_TPSL_OWNERSHIP_MAX_ORDERS = 256;
++/** Single-page history bound used when reclaiming expired protection ownership. */
++const LIGHTER_TPSL_OWNERSHIP_HISTORY_PAGE_SIZE = 100;
  const deriveLighterMaxLeverage = (minInitialMarginFraction, market) => {
-@@ -119,7 +120,7 @@ const snapToLighterSizeGrid = (size, supportedSizeDecimals) => {
+     if (typeof minInitialMarginFraction !== 'number' ||
+         !Number.isSafeInteger(minInitialMarginFraction) ||
+@@ -119,7 +127,7 @@ const snapToLighterSizeGrid = (size, supportedSizeDecimals) => {
   * @param params - Order intent to classify.
   * @returns Whether the order rests as a maker order.
   */
@@ -232,7 +1060,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
  /**
   * Parse a candle field without JavaScript's null/boolean/blank coercions.
   *
-@@ -198,6 +199,56 @@ const requireSignedTxIdentity = (signed) => {
+@@ -198,6 +206,56 @@ const requireSignedTxIdentity = (signed) => {
      }
      return { txHash, expiresAt };
  };
@@ -289,7 +1117,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
  /**
   * PROCESS-WIDE mutexes: venue write sections, the per-settlement journal
   * state machine, and journal/index read-modify-writes are serialized
-@@ -225,7 +276,6 @@ const withProcessMutex = async (key, operation) => {
+@@ -225,7 +283,6 @@ const withProcessMutex = async (key, operation) => {
          if (processMutexTails.get(key) === settled) {
              processMutexTails.delete(key);
          }
@@ -297,7 +1125,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      })
          .catch(() => undefined);
      return await run;
-@@ -493,10 +543,10 @@ const lighterLeverageError = (leverage) => {
+@@ -493,10 +550,10 @@ const lighterLeverageError = (leverage) => {
  };
  /**
   * Derive the protection/execution price a market order signs from its
@@ -310,7 +1138,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
   * @param isBuy - Order side; buys protect above, sells below.
   * @param slippageFraction - Slippage tolerance (validated < 1).
   * @returns The slippage-adjusted execution price.
-@@ -508,6 +558,94 @@ const LIGHTER_NOT_SUPPORTED_ERROR = 'Lighter operation not yet supported';
+@@ -508,6 +565,94 @@ const LIGHTER_NOT_SUPPORTED_ERROR = 'Lighter operation not yet supported';
  const LIGHTER_SIGNER_UNAVAILABLE_ERROR = 'Lighter signer bridge not configured';
  const LIGHTER_MAINNET_EXPLORER_URL = 'https://scan.lighter.xyz';
  const LIGHTER_TESTNET_EXPLORER_URL = 'https://testnet.zklighter.elliot.ai';
@@ -389,7 +1217,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
 +        return { referencePrice: price, executionPrice: price, triggerPriceInt };
 +    }
 +    const slippageFraction = params.maxSlippageBps === undefined
-+        ? (params.slippage ?? 0.05)
++        ? (params.slippage ?? LIGHTER_DEFAULT_SLIPPAGE_BPS / 10_000)
 +        : params.maxSlippageBps / 10_000;
 +    if (!Number.isFinite(slippageFraction) ||
 +        slippageFraction < 0 ||
@@ -405,7 +1233,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
  /** A definitive venue response that the selected wallet has no account. */
  class LighterAccountNotFoundError extends Error {
      constructor(address) {
-@@ -567,6 +705,7 @@ export class LighterProvider {
+@@ -567,6 +712,7 @@ export class LighterProvider {
      #signerResetUnsubscribe = null;
      #isTestnet;
      #apiKeyIndex;
@@ -413,7 +1241,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      #configuredAccountIndex;
      /** Markets cache keyed by symbol (freshness delegated to client service). */
      #marketsBySymbol = new Map();
-@@ -618,6 +757,9 @@ export class LighterProvider {
+@@ -618,6 +764,9 @@ export class LighterProvider {
      #wsPositions = new Map();
      /** Merged live open orders from account_all_orders (keyed orderId). */
      #wsOrders = new Map();
@@ -423,7 +1251,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      #oiCapSubscribers = new Set();
      #accountSubscribers = new Set();
      #positionSubscribers = new Set();
-@@ -653,6 +795,7 @@ export class LighterProvider {
+@@ -653,6 +802,7 @@ export class LighterProvider {
                  : options.webSocketCtor;
          this.#apiKeyIndex =
              options.lighterAuthConfig?.apiKeyIndex ?? LIGHTER_DEFAULT_API_KEY_INDEX;
@@ -431,7 +1259,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          this.#configuredAccountIndex = options.lighterAuthConfig?.accountIndex;
          this.#clientService = new LighterClientService(this.#deps, {
              isTestnet: this.#isTestnet,
-@@ -856,6 +999,8 @@ export class LighterProvider {
+@@ -856,6 +1006,8 @@ export class LighterProvider {
          // client, drop the cached session so the next call re-runs setup
          // instead of failing forever against a resolved-but-dead session.
          return {
@@ -440,7 +1268,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              createClient: async (params) => {
                  try {
                      const result = await bridge.createClient(params);
-@@ -978,6 +1123,7 @@ export class LighterProvider {
+@@ -978,6 +1130,7 @@ export class LighterProvider {
          // instead of caching results for the wrong account.
          this.#sessionGeneration += 1;
          this.#accountIndex = null;
@@ -448,7 +1276,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          this.#signerReadyPromise = null;
          this.#authToken = null;
          this.#replaceSignerResetListener();
-@@ -1172,23 +1318,25 @@ export class LighterProvider {
+@@ -1172,23 +1325,25 @@ export class LighterProvider {
       * whose outcome is unknown, and a proven never-landed dispatch can
       * release its nonce for the venue to consume.
       *
@@ -477,7 +1305,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          }
          catch (error) {
              throw new Error(`Lighter nonce ledger read failed; refusing writes: ${ensureError(error, 'LighterProvider.#readNonceLedger').message}`);
-@@ -1277,13 +1425,14 @@ export class LighterProvider {
+@@ -1277,13 +1432,14 @@ export class LighterProvider {
      /**
       * Persist the dispatch ledger document.
       *
@@ -494,7 +1322,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      };
      /**
       * Resolve one dispatch entry as CONSUMED: remove it and advance the
-@@ -1305,11 +1454,12 @@ export class LighterProvider {
+@@ -1305,11 +1461,12 @@ export class LighterProvider {
       * dispatch entry. Lock order is always venueWrite → bridge → ledger
       * (the ack path takes only the ledger mutex), so no cycle exists.
       *
@@ -508,7 +1336,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      /**
       * Append a recovered dispatch without ever sacrificing a blocking
       * succeeded/unknown outcome to bounded storage. Retry-safe failures may
-@@ -1350,14 +1500,16 @@ export class LighterProvider {
+@@ -1350,14 +1507,16 @@ export class LighterProvider {
       * are consumed without quarantine in both cases (their machine
       * reconciles the intent by exact hash).
       *
@@ -528,7 +1356,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          if (at >= 0) {
              doc.entries.splice(at, 1);
          }
-@@ -1373,8 +1525,8 @@ export class LighterProvider {
+@@ -1373,8 +1532,8 @@ export class LighterProvider {
                  evidence: 'post-dispatch-session-cancelled',
              });
          }
@@ -539,7 +1367,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      /**
       * Resolve every unresolved dispatch before a write section may issue
       * nonces. Consumption is proven by REST-nonce advance or an exact tx
-@@ -1385,17 +1537,19 @@ export class LighterProvider {
+@@ -1385,17 +1544,19 @@ export class LighterProvider {
       * blocking until the venue advances. Ambiguity blocks the write.
       * Runs under the account+slot ledger lock.
       *
@@ -563,7 +1391,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          // The durable consumed watermark always seeds the memory floor.
          if (doc.consumedFloor > 0) {
              const floor = this.#nonceReservations.get(reservationKey) ?? 0;
-@@ -1433,7 +1587,7 @@ export class LighterProvider {
+@@ -1433,7 +1594,7 @@ export class LighterProvider {
                  evidence,
              });
          };
@@ -572,7 +1400,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          const remaining = [];
          for (const entry of doc.entries) {
              if (entry.txHash === null && nonceResponse.nonce > entry.nonce) {
-@@ -1461,7 +1615,7 @@ export class LighterProvider {
+@@ -1461,7 +1622,7 @@ export class LighterProvider {
                          lookedUp.hash.toLowerCase().replace(/^0x/u, '') ===
                              entry.txHash.toLowerCase().replace(/^0x/u, '') &&
                          lookedUp.accountIndex === accountIndex &&
@@ -581,7 +1409,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                          lookedUp.nonce === entry.nonce &&
                          typeof lookedUp.status === 'number';
                      if (matchesIdentity) {
-@@ -1510,7 +1664,7 @@ export class LighterProvider {
+@@ -1510,7 +1671,7 @@ export class LighterProvider {
                      // never landed — the venue still expects this nonce (unless a
                      // later dispatch already consumed it: consumedFloor guards).
                      if (entry.nonce >= doc.consumedFloor) {
@@ -590,7 +1418,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      }
                      continue;
                  }
-@@ -1522,7 +1676,7 @@ export class LighterProvider {
+@@ -1522,7 +1683,7 @@ export class LighterProvider {
              consumedFloor: doc.consumedFloor,
              entries: remaining,
              recovered: doc.recovered,
@@ -599,7 +1427,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          if (remaining.length > 0) {
              throw new Error('A previous Lighter submission has an unresolved outcome; writes are blocked until it can be proven consumed or never-landed');
          }
-@@ -1536,19 +1690,32 @@ export class LighterProvider {
+@@ -1536,19 +1697,32 @@ export class LighterProvider {
       * List TP/SL obligations parked in DURABLE manual-recovery state: the
       * venue removed (or rejected) protection in a way that cannot be
       * safely re-established automatically. Surfaced to callers/UI; each
@@ -638,7 +1466,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          // Storage errors PROPAGATE — a corrupt index degrading to "nothing
          // pending" would hide a naked position.
          const manualIndex = await this.#readTpslManualIndex();
-@@ -1565,7 +1732,7 @@ export class LighterProvider {
+@@ -1565,7 +1739,7 @@ export class LighterProvider {
                      reason: doc.reason,
                      priorIntent: doc.priorIntent,
                      survivingOrderIds: doc.survivingOrderIds,
@@ -647,7 +1475,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  });
              }
          }
-@@ -1578,18 +1745,30 @@ export class LighterProvider {
+@@ -1578,18 +1752,30 @@ export class LighterProvider {
                  continue;
              }
              const journal = await this.#loadTpslJournal(settlementKey);
@@ -681,7 +1509,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          return pending;
      }
      /**
-@@ -1597,13 +1776,20 @@ export class LighterProvider {
+@@ -1597,13 +1783,20 @@ export class LighterProvider {
       * (previously ambiguous submissions later resolved). Never mutates the
       * ledger — acknowledgment is a separate, per-outcome call so a crash
       * between reading and acting can never silently drop an outcome.
@@ -702,7 +1530,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          return doc.recovered.map((outcome) => ({ ...outcome }));
      }
      /**
-@@ -1619,10 +1805,13 @@ export class LighterProvider {
+@@ -1619,10 +1812,13 @@ export class LighterProvider {
          this.#ensureSessionBinding();
          const generation = this.#sessionGeneration;
          const accountIndex = await this.#ensureAccountIndex();
@@ -718,7 +1546,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              const remaining = doc.recovered.filter((outcome) => outcome.recoveryId !== recoveryId);
              if (remaining.length === doc.recovered.length) {
                  throw new Error(`No pending recovered Lighter dispatch matches id ${recoveryId}; refresh and re-read before acknowledging`);
-@@ -1631,7 +1820,7 @@ export class LighterProvider {
+@@ -1631,7 +1827,7 @@ export class LighterProvider {
                  consumedFloor: doc.consumedFloor,
                  entries: doc.entries,
                  recovered: remaining,
@@ -727,7 +1555,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          });
      }
      /**
-@@ -1639,15 +1828,16 @@ export class LighterProvider {
+@@ -1639,15 +1835,16 @@ export class LighterProvider {
       * refused when the durable consumed watermark shows a later dispatch
       * (e.g. a retry) already consumed the nonce.
       *
@@ -747,7 +1575,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      };
      /**
       * Durable TP/SL journal key (network + address + accountIndex + symbol
-@@ -1658,6 +1848,210 @@ export class LighterProvider {
+@@ -1658,6 +1855,210 @@ export class LighterProvider {
       * @returns The disk-cache key.
       */
      #tpslJournalKey = (settlementKey) => `lighterTpslJournal:${this.#isTestnet ? 'testnet' : 'mainnet'}:${settlementKey}`;
@@ -778,7 +1606,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
 +        if (parsed === null ||
 +            parsed.version !== 1 ||
 +            !Array.isArray(parsed.orders) ||
-+            parsed.orders.length > 256 ||
++            parsed.orders.length > LIGHTER_TPSL_OWNERSHIP_MAX_ORDERS ||
 +            !parsed.orders.every((entry) => {
 +                if (typeof entry !== 'object' || entry === null) {
 +                    return false;
@@ -858,7 +1686,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
 +                    }
 +                }
 +            }
-+            if (orders.size > 256) {
++            if (orders.size > LIGHTER_TPSL_OWNERSHIP_MAX_ORDERS) {
 +                throw new Error('Lighter managed TP/SL ownership is full; refusing further protection changes');
 +            }
 +            await this.#deps.diskCache.setItem(key, JSON.stringify({ version: 1, orders: [...orders.values()] }));
@@ -958,7 +1786,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      /**
       * Operation-scoped journal payload key: each operation's journal lives
       * under its OWN key so a stale resolver physically cannot overwrite or
-@@ -1753,7 +2147,11 @@ export class LighterProvider {
+@@ -1753,7 +2154,11 @@ export class LighterProvider {
                      attempt.clientIds.length >= 1 &&
                      attempt.clientIds.length <= 2 &&
                      attempt.clientIds.every(isWireId) &&
@@ -971,7 +1799,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              }
              if (attempt.kind === 'cancel') {
                  return (attempt.clientIds === undefined &&
-@@ -1818,7 +2216,10 @@ export class LighterProvider {
+@@ -1818,7 +2223,10 @@ export class LighterProvider {
              Number.isSafeInteger(parsed.recordedAt) &&
              parsed.recordedAt >= 0 &&
              // The journal is bound to ONE api-key slot: nonces are per slot.
@@ -983,7 +1811,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              typeof parsed.operationId === 'string' &&
              parsed.operationId.length >= 1 &&
              parsed.operationId.length <= 64 &&
-@@ -1868,7 +2269,9 @@ export class LighterProvider {
+@@ -1868,7 +2276,9 @@ export class LighterProvider {
                  (attempt.priorOrderIds ?? []).every((priorOrderId) => priorTriggers.some((trigger) => trigger.orderId === priorOrderId)));
              if (restoresLinked) {
                  return {
@@ -994,7 +1822,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      recordedAt: parsed.recordedAt,
                      operationId: parsed.operationId,
                      createdAt: parsed.createdAt,
-@@ -2103,25 +2506,35 @@ export class LighterProvider {
+@@ -2103,25 +2513,35 @@ export class LighterProvider {
                      throw new Error(`Lighter TP/SL journal for ${settlementKey} belongs to a different operation; refusing a stale write`);
                  }
              }
@@ -1046,7 +1874,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              }
              catch (error) {
                  // Pointer write failed on the FIRST persist of this operation:
-@@ -2133,6 +2546,16 @@ export class LighterProvider {
+@@ -2133,6 +2553,16 @@ export class LighterProvider {
                          .removeItem(this.#tpslJournalOpKey(settlementKey, journal.operationId))
                          .catch(() => undefined);
                  }
@@ -1063,7 +1891,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  throw error;
              }
          });
-@@ -2152,10 +2575,11 @@ export class LighterProvider {
+@@ -2152,10 +2582,11 @@ export class LighterProvider {
       * @param settlementKey - Settlement identity.
       * @param expectedOperationId - The operation this resolver settled;
       * null prunes only a dangling index entry with NO journal behind it.
@@ -1076,7 +1904,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          const journalKey = this.#tpslJournalKey(settlementKey);
          const cleared = await withStorageMutex(journalKey, async () => {
              const currentRaw = await this.#deps.diskCache.getItem(journalKey);
-@@ -2184,6 +2608,12 @@ export class LighterProvider {
+@@ -2184,6 +2615,12 @@ export class LighterProvider {
                          .catch(() => undefined);
                      return false;
                  }
@@ -1089,7 +1917,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  await this.#deps.diskCache.removeItem(this.#tpslJournalOpKey(settlementKey, expectedOperationId));
                  await this.#deps.diskCache.removeItem(journalKey);
                  return true;
-@@ -2211,6 +2641,12 @@ export class LighterProvider {
+@@ -2211,6 +2648,12 @@ export class LighterProvider {
                  this.#deps.debugLogger.log('[LighterProvider] TP/SL journal clear refused: different operation', { settlementKey });
                  return false;
              }
@@ -1102,7 +1930,41 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              await this.#deps.diskCache.removeItem(journalKey);
              return true;
          });
-@@ -2530,6 +2966,11 @@ export class LighterProvider {
+@@ -2256,6 +2699,7 @@ export class LighterProvider {
+      */
+     #makeInactiveReader = (accountIndex, authToken, generation, marketId) => {
+         const terminalCache = new Map();
++        const conflictingClients = new Set();
+         let deepTraversalDone = false;
+         return async (targetClientIds) => {
+             this.#assertSession(generation);
+@@ -2264,7 +2708,14 @@ export class LighterProvider {
+             const ingest = (orders) => {
+                 for (const order of orders) {
+                     if (order.ownerAccountIndex === accountIndex) {
+-                        terminalCache.set(String(order.clientOrderIndex), order);
++                        const clientId = String(order.clientOrderIndex);
++                        const previous = terminalCache.get(clientId);
++                        if (previous &&
++                            (previous.orderIndex !== order.orderIndex ||
++                                previous.marketIndex !== order.marketIndex)) {
++                            conflictingClients.add(clientId);
++                        }
++                        terminalCache.set(clientId, order);
+                     }
+                 }
+             };
+@@ -2303,6 +2754,9 @@ export class LighterProvider {
+                 }
+                 deepTraversalDone = !cursor || !missing();
+             }
++            if (targets.some((id) => conflictingClients.has(id))) {
++                throw new Error(`${LIGHTER_DATA_INTEGRITY_PREFIX} conflicting inactive-order identity for requested client; TP/SL recovery is still pending`);
++            }
+             return [...terminalCache.values()];
+         };
+     };
+@@ -2530,6 +2984,11 @@ export class LighterProvider {
          if (reconciled === 'unresolved') {
              return false;
          }
@@ -1114,7 +1976,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          const persistEntry = async () => {
              this.#tpslUnsettled.set(settlementKey, journalEntry);
              await this.#persistTpslJournal(settlementKey, journalEntry);
-@@ -2699,7 +3140,7 @@ export class LighterProvider {
+@@ -2699,7 +3158,7 @@ export class LighterProvider {
                  recordedAt: Date.now(),
              });
              this.#deps.debugLogger.log('[LighterProvider] TP/SL protection requires MANUAL re-establishment', { settlementKey, reason });
@@ -1123,7 +1985,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              return true;
          };
          if (journalEntry.phase === 'manual') {
-@@ -2762,7 +3203,7 @@ export class LighterProvider {
+@@ -2762,7 +3221,7 @@ export class LighterProvider {
          }
          // A refused clear (superseded by a newer operation) is UNRESOLVED —
          // never reported as success.
@@ -1132,7 +1994,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      };
      /**
       * Reconcile a PRIOR transition's expectation before any new mutation.
-@@ -2781,6 +3222,12 @@ export class LighterProvider {
+@@ -2781,6 +3240,12 @@ export class LighterProvider {
       * ACCEPTED mutation is still not visible.
       */
      #reconcilePriorTpsl = async (readActiveRaw, readInactive, accountIndex, entry) => {
@@ -1145,7 +2007,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          // Per-attempt reconciliation, authoritative and never time-guessed:
          // 1. Books first — a create is resolved when its ids are all
          //    active/terminal, a cancel when its target left the active book.
-@@ -2851,7 +3298,7 @@ export class LighterProvider {
+@@ -2851,7 +3316,7 @@ export class LighterProvider {
                      lookedUp.hash.toLowerCase().replace(/^0x/u, '') ===
                          attempt.txHash.toLowerCase().replace(/^0x/u, '') &&
                      lookedUp.accountIndex === accountIndex &&
@@ -1154,7 +2016,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      lookedUp.nonce === attempt.nonce;
                  if (!matchesIdentity) {
                      this.#deps.debugLogger.log('[LighterProvider] TP/SL tx lookup identity mismatch; failing closed', { txHash: attempt.txHash });
-@@ -2875,13 +3322,19 @@ export class LighterProvider {
+@@ -2875,13 +3340,19 @@ export class LighterProvider {
              }
              // Venue-confirmed not-found: only never-landed once the signed
              // payload can no longer be accepted.
@@ -1176,7 +2038,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          }
          return 'resolved';
      };
-@@ -2890,11 +3343,12 @@ export class LighterProvider {
+@@ -2890,11 +3361,12 @@ export class LighterProvider {
       * PROVEN never-landed. Only the topmost reservation can be safely
       * lowered; anything else stays reserved until proven in turn.
       *
@@ -1191,7 +2053,57 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          if (this.#nonceReservations.get(reservationKey) === nonce + 1) {
              this.#nonceReservations.set(reservationKey, nonce);
          }
-@@ -3048,6 +3502,7 @@ export class LighterProvider {
+@@ -2920,6 +3392,7 @@ export class LighterProvider {
+      * @param options - Aggregation options.
+      * @param options.createdGroups - Per-attempt aggregation groups over
+      * the created ids (see inline doc).
++     * @param options.receiptIdentity - Account and market bound to a new receipt.
+      * @returns Outcome: 'settled' when every id is accounted for and no
+      * created id failed ('executedCreated' marks created ids that reached a
+      * SUCCESS terminal state — filled/executed — instead of resting
+@@ -2938,6 +3411,28 @@ export class LighterProvider {
+             const rawInactive = missingFromActive.length > 0
+                 ? await readInactive(missingFromActive)
+                 : [];
++            const childOrderIds = [];
++            if (options.receiptIdentity) {
++                for (const clientId of expectation.createdClientIds) {
++                    const active = rawActive.filter((row) => String(row.clientOrderIndex) === String(clientId));
++                    const matches = active.length > 0
++                        ? active
++                        : rawInactive.filter((row) => String(row.clientOrderIndex) === String(clientId));
++                    if (matches.length === 0) {
++                        continue; // Existing settlement polling retains the obligation.
++                    }
++                    const [row] = matches;
++                    if (matches.length !== 1 ||
++                        row.ownerAccountIndex !== options.receiptIdentity.accountIndex ||
++                        row.marketIndex !== options.receiptIdentity.marketIndex ||
++                        !Number.isSafeInteger(row.orderIndex) ||
++                        row.orderIndex <= 0 ||
++                        childOrderIds.includes(String(row.orderIndex))) {
++                        throw new Error('Lighter TP/SL receipt identity is invalid or ambiguous');
++                    }
++                    childOrderIds.push(String(row.orderIndex));
++                }
++            }
+             // Per-id classification. Success is EXACT-whitelisted
+             // ('filled'/'executed') AND requires a strictly ZERO remaining size
+             // (a 'filled' row with remainder is not a proven execution);
+@@ -2992,7 +3487,11 @@ export class LighterProvider {
+                         survivingActiveClientIds: failedGroupActiveIds,
+                     };
+                 }
+-                return { outcome: 'settled', executedCreated: anyGroupSuccess };
++                return {
++                    outcome: 'settled',
++                    executedCreated: anyGroupSuccess,
++                    childOrderIds,
++                };
+             }
+             await new Promise((resolve) => setTimeout(resolve, LIGHTER_TPSL_SETTLE_POLL_MS));
+         }
+@@ -3048,6 +3547,7 @@ export class LighterProvider {
          this.#sessionGeneration += 1;
          this.#boundAddress = null;
          this.#accountIndex = null;
@@ -1199,7 +2111,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          this.#signerReadyPromise = null;
          this.#authToken = null;
          this.#clearBridgeOwnership();
-@@ -3081,70 +3536,186 @@ export class LighterProvider {
+@@ -3081,70 +3581,186 @@ export class LighterProvider {
              throw error;
          }
      };
@@ -1436,7 +2348,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
      };
      #registerVenueKey = async (accountIndex, changePubKeyBody, generation, nextNonce, submit) => {
          const bridge = this.#getSignerBridge();
-@@ -3236,16 +3807,32 @@ export class LighterProvider {
+@@ -3236,16 +3852,32 @@ export class LighterProvider {
       * provided helper (each call returns the next fresh nonce).
       * @param generationAtIntent - Session generation captured when the
       * caller's intent was formed (defaults to now).
@@ -1471,7 +2383,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              this.#assertSession(generationAtIntent);
              // Monotonic nonce reservation: the venue's nextNonce endpoint can
              // LAG accepted submissions. The floor is SESSION-GLOBAL per
-@@ -3255,14 +3842,14 @@ export class LighterProvider {
+@@ -3255,14 +3887,14 @@ export class LighterProvider {
              // response was lost. Reservation advances at DISPATCH (a signing
              // failure never burns a nonce the venue still expects); a proven
              // never-landed submission releases it again via reconciliation.
@@ -1488,7 +2400,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  this.#assertSession(generationAtIntent);
                  const reservedFloor = this.#nonceReservations.get(reservationKey);
                  const issued = reservedFloor === undefined
-@@ -3310,7 +3897,7 @@ export class LighterProvider {
+@@ -3310,7 +3942,7 @@ export class LighterProvider {
                      };
                      const appendedEntry = ledgerEntry;
                      await this.#withLedgerLock(accountIndex, async () => {
@@ -1497,7 +2409,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                          if (doc.entries.length >= 16) {
                              throw new Error('Too many unresolved Lighter dispatches; refusing further writes until they resolve');
                          }
-@@ -3318,8 +3905,8 @@ export class LighterProvider {
+@@ -3318,8 +3950,8 @@ export class LighterProvider {
                              consumedFloor: doc.consumedFloor,
                              entries: [...doc.entries, appendedEntry],
                              recovered: doc.recovered,
@@ -1508,18 +2420,48 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      // Only AFTER the durable append: reserve in memory — from this
                      // point the venue may consume the nonce even if the response
                      // never arrives.
-@@ -3328,6 +3915,10 @@ export class LighterProvider {
+@@ -3328,6 +3960,40 @@ export class LighterProvider {
                  // EVERY error path below keeps the durable entry — a coded venue
                  // or HTTP error can mask a commit, so nothing short of an exact
                  // authoritative reconciliation may release the nonce.
 +                // A switch after append leaves the unsent entry for conservative
 +                // reconciliation. It may block until signed expiry plus clock slack;
 +                // retaining uncertainty avoids treating a durable append as absent.
-+                this.#assertSession(generationAtIntent);
++                try {
++                    await identity?.beforeDispatch?.();
++                    this.#assertSession(generationAtIntent);
++                }
++                catch (error) {
++                    // No transport call has occurred. Keep the final after-persistence
++                    // guard, but release only this exact proven-unsent attempt. A stale
++                    // session retains quarantine rather than touching another scope.
++                    this.#assertSession(generationAtIntent);
++                    await identity?.onNotDispatched?.();
++                    this.#assertSession(generationAtIntent);
++                    const unsentEntry = ledgerEntry;
++                    if (unsentEntry) {
++                        await this.#withLedgerLock(accountIndex, async () => {
++                            this.#assertSession(generationAtIntent);
++                            const doc = await this.#readNonceLedger(accountIndex, apiKeyIndex);
++                            this.#assertSession(generationAtIntent);
++                            await this.#writeNonceLedger(accountIndex, {
++                                ...doc,
++                                entries: doc.entries.filter((entry) => entry.nonce !== unsentEntry.nonce ||
++                                    entry.txHash !== unsentEntry.txHash ||
++                                    entry.owner !== unsentEntry.owner),
++                            }, apiKeyIndex);
++                            this.#assertSession(generationAtIntent);
++                            if (unsentEntry.nonce >= doc.consumedFloor) {
++                                this.#releaseNonceReservation(accountIndex, unsentEntry.nonce, apiKeyIndex);
++                            }
++                        }, apiKeyIndex);
++                    }
++                    throw error;
++                }
                  const response = await this.#clientService.sendTx(txType, txInfo);
                  // Acceptance bookkeeping runs SYNCHRONOUSLY before anything can
                  // fail: a switch during network submission must cancel the
-@@ -3349,7 +3940,7 @@ export class LighterProvider {
+@@ -3349,7 +4015,7 @@ export class LighterProvider {
                      fenceError = error;
                  }
                  if (ledgerEntry !== null) {
@@ -1528,7 +2470,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  }
                  if (fenceError !== null) {
                      throw ensureError(fenceError, 'LighterProvider.submit');
-@@ -3362,7 +3953,7 @@ export class LighterProvider {
+@@ -3362,7 +4028,7 @@ export class LighterProvider {
          // serialized PROCESS-WIDE per network+account+api-key slot: the
          // instance chain alone cannot stop a second live provider from
          // issuing the same nonce or interleaving ledger writes.
@@ -1537,7 +2479,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          // INNERMOST: the bridge mutex — the WASM client is a singleton
          // per bridge, so ensure-correct-client + every sign of a section
          // are serialized across ALL providers sharing the bridge.
-@@ -3392,6 +3983,7 @@ export class LighterProvider {
+@@ -3392,6 +4058,7 @@ export class LighterProvider {
              accountIndex: recreateParams.accountIndex,
              nonce,
              apiKeyIndex: this.#apiKeyIndex,
@@ -1545,7 +2487,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          });
          if (recreated.error || !recreated.success) {
              throw new Error(`Lighter signer client re-establishment failed: ${recreated.error ?? 'unknown'}`);
-@@ -3442,15 +4034,61 @@ export class LighterProvider {
+@@ -3442,15 +4109,67 @@ export class LighterProvider {
          this.#authToken = { token: token.token, deadline: token.deadline };
          return token.token;
      };
@@ -1605,12 +2547,18 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
 +            providerId: this.protocolId,
 +            supportedStrategies: Object.freeze([]),
 +            supportedTriggerOrderTypes: Object.freeze([...TRIGGER_ORDER_TYPES]),
++            positionTpsl: Object.freeze({
++                supportsExpectedPosition: true,
++                childOrderIds: 'request-correlated',
++                takeProfitOrderType: 'take_profit_market',
++                stopLossOrderType: 'stop_market',
++            }),
 +        });
 +    }
      async getMarkets(_params) {
          try {
              const markets = await this.#clientService.getOrderBooks();
-@@ -3759,9 +4397,15 @@ export class LighterProvider {
+@@ -3759,9 +4478,15 @@ export class LighterProvider {
                      error: PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED,
                  };
              }
@@ -1627,7 +2575,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              // User intent is never silently dropped: fields this venue path does
              // not execute are rejected so the caller can adapt, not surprised.
              if (params.takeProfitPrice || params.stopLossPrice) {
-@@ -3791,7 +4435,7 @@ export class LighterProvider {
+@@ -3791,7 +4516,7 @@ export class LighterProvider {
              // and account setup are deferred until it passes so invalid intent
              // causes zero bridge calls (no client creation or key registration
              // side effects).
@@ -1636,7 +2584,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              const market = markets.get(params.symbol);
              if (!market) {
                  return {
-@@ -3799,7 +4443,13 @@ export class LighterProvider {
+@@ -3799,7 +4524,13 @@ export class LighterProvider {
                      error: `Unknown Lighter market: ${params.symbol}`,
                  };
              }
@@ -1651,7 +2599,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  return { success: false, error: 'Limit order requires a price' };
              }
              if (params.leverage !== undefined) {
-@@ -3830,7 +4480,13 @@ export class LighterProvider {
+@@ -3830,7 +4561,13 @@ export class LighterProvider {
              // separate so usdAmount sizing is never distorted by the protection
              // offset.
              let referencePrice;
@@ -1666,7 +2614,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  // STRICT full-string parse: '90000USD' prefix-parses under
                  // parseFloat and must never become signed intent.
                  const parsedLimitPrice = parseFinitePositive(params.price ?? '');
-@@ -3845,7 +4501,7 @@ export class LighterProvider {
+@@ -3845,7 +4582,7 @@ export class LighterProvider {
              else {
                  referencePrice = parseFloat(params.price ?? String(params.currentPrice ?? 0));
              }
@@ -1675,7 +2623,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              if (params.orderType === 'market') {
                  const resolved = await this.#resolveMarketReferencePrice(params.symbol, slippageFraction, params.priceAtCalculation);
                  if (resolved.error !== null) {
-@@ -3913,7 +4569,10 @@ export class LighterProvider {
+@@ -3913,7 +4650,10 @@ export class LighterProvider {
                  // extra exposure results and dust positions stay closable. The
                  // isFullClose flag is a hint, never trusted — a partial close
                  // bumped to the minimum would close more than the caller asked.
@@ -1687,7 +2635,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      ? await this.#isVerifiedFullClose(params.symbol, requestedSize)
                      : false;
                  if (!verifiedFullClose) {
-@@ -3928,6 +4587,13 @@ export class LighterProvider {
+@@ -3928,6 +4668,13 @@ export class LighterProvider {
              // sub-tick rejections throw here, still with zero bridge calls.
              const priceInt = toSignerWirePriceInteger(executionPrice, market.supportedPriceDecimals);
              const sizeInt = toSignerWireInteger(size, market.supportedSizeDecimals);
@@ -1701,7 +2649,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              const leverageImfHundredths = await this.#resolveLeverageIntent(params);
              // Margin mode is sent only with an explicit leverage update. An
              // omitted leverage leaves both leverage and margin mode unchanged;
-@@ -3980,17 +4646,17 @@ export class LighterProvider {
+@@ -3980,17 +4727,17 @@ export class LighterProvider {
                          String(sizeInt),
                          String(priceInt),
                          params.isBuy ? 0 : 1,
@@ -1727,15 +2675,65 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                              ? LIGHTER_ORDER_EXPIRY_NONE
                              : 0,
                          await nextNonce(),
-@@ -4486,13 +5152,66 @@ export class LighterProvider {
+@@ -4266,6 +5013,9 @@ export class LighterProvider {
+         }
+     }
+     async updatePositionTPSL(params) {
++        const expectedPosition = params.expectedPosition === undefined
++            ? undefined
++            : { ...params.expectedPosition };
+         try {
+             // Partial TP/SL sizes are NOT wired to this venue path: it always
+             // covers the full position. Silently ignoring a requested partial
+@@ -4294,6 +5044,8 @@ export class LighterProvider {
+             const lifecycleBoundary = Date.now();
+             const positions = await this.getPositions();
+             const position = positions.find((entry) => entry.symbol === params.symbol);
++            this.#assertSession(generationAtIntent);
++            assertExpectedPosition(expectedPosition, position);
+             if (!position) {
+                 return {
+                     success: false,
+@@ -4310,6 +5062,7 @@ export class LighterProvider {
+             let singleOrderPayload = null;
+             let groupedOrderPayload = null;
+             let createdClientIds = [];
++            let childOrderIds = [];
+             let createdIdsNeedingFinalCheck = [];
+             let preflightPositionWireSize = null;
+             let preflightPositionSign = null;
+@@ -4432,6 +5185,22 @@ export class LighterProvider {
+             // so no nested lock acquisition can deadlock; nonce serialization is
+             // preserved because every nonce comes from this section's nextNonce.
+             await this.#withVenueWriteLock(accountIndex, async (nextNonce, submit) => {
++                const assertLiveExpected = async () => {
++                    if (expectedPosition === undefined) {
++                        return;
++                    }
++                    this.#assertSession(generationAtIntent);
++                    const account = await this.#clientService.getAccountByIndex(accountIndex);
++                    this.#assertSession(generationAtIntent);
++                    const current = account.accounts[0]?.positions?.find((entry) => entry.symbol === params.symbol);
++                    assertExpectedPosition(expectedPosition, current
++                        ? {
++                            size: `${current.sign === -1 ? '-' : ''}${current.position}`,
++                            entryPrice: current.avgEntryPrice,
++                        }
++                        : undefined);
++                };
++                await assertLiveExpected();
+                 // STRICT direct read with the CAPTURED account/auth/generation:
+                 // a swallowed [] would make remove "succeed" cancelling nothing;
+                 // a setup-capable helper here could self-deadlock (see auth
+@@ -4486,13 +5255,72 @@ export class LighterProvider {
                      this.#assertSession(generationAtIntent);
                  }
                  const rawOrders = await readActiveRaw();
 +                await this.#pruneManagedTpsl(settlementKey, rawOrders, async () => {
 +                    this.#assertSession(generationAtIntent);
-+                    const response = await this.#clientService.getInactiveOrders(accountIndex, authToken, 100, undefined, market.marketId);
++                    const response = await this.#clientService.getInactiveOrders(accountIndex, authToken, LIGHTER_TPSL_OWNERSHIP_HISTORY_PAGE_SIZE, undefined, market.marketId);
 +                    this.#assertSession(generationAtIntent);
-+                    if (response.orders.length > 100) {
++                    if (response.orders.length > LIGHTER_TPSL_OWNERSHIP_HISTORY_PAGE_SIZE) {
 +                        throw new Error('Lighter ownership history exceeded one page');
 +                    }
 +                    return response.orders.filter((row) => row.ownerAccountIndex === accountIndex &&
@@ -1771,6 +2769,12 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
 +                            livePosition?.sign !== preflightPositionSign))) {
 +                    throw new Error(`Lighter position changed before TP/SL signing for ${params.symbol}; refresh and retry protection against the current position`);
 +                }
++                assertExpectedPosition(expectedPosition, livePosition
++                    ? {
++                        size: `${livePosition.sign === -1 ? '-' : ''}${livePosition.position}`,
++                        entryPrice: livePosition.avgEntryPrice,
++                    }
++                    : undefined);
 +                const managed = await this.#readManagedTpsl(settlementKey);
 +                this.#assertSession(generationAtIntent);
                  const openOrders = rawOrders.map((order) => adaptOrderFromLighter(order, this.#marketsById.get(order.marketIndex)?.symbol ??
@@ -1799,7 +2803,53 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  // The prior triggers' EXACT wire intents ride along with the
                  // journal: a crash can still restore/rollback faithfully. A
                  // stale trigger that CANNOT be faithfully restored (unknown
-@@ -4629,35 +5348,6 @@ export class LighterProvider {
+@@ -4567,6 +5395,7 @@ export class LighterProvider {
+                 // even when the response is lost), flips to accepted inside
+                 // onAccepted (pre-fence), and reconciliation disambiguates each
+                 // attempt individually via books + nonce.
++                await assertLiveExpected();
+                 const journal = {
+                     attempts: [],
+                     recordedAt: Date.now(),
+@@ -4584,6 +5413,24 @@ export class LighterProvider {
+                     journal.recordedAt = Date.now();
+                     await this.#persistTpslJournal(settlementKey, journal);
+                 };
++                const discardUnsentAttempt = async (attempt) => {
++                    this.#assertSession(generationAtIntent);
++                    const remaining = journal.attempts.filter((entry) => entry.attemptId !== attempt.attemptId);
++                    if (attempt.kind === 'create') {
++                        await this.#discardManagedTpslIds(settlementKey, attempt.clientIds.map(String));
++                    }
++                    this.#assertSession(generationAtIntent);
++                    if (remaining.length === 0) {
++                        await this.#clearTpslJournal(settlementKey, journal.operationId);
++                    }
++                    else {
++                        await this.#persistTpslJournal(settlementKey, {
++                            ...journal,
++                            attempts: remaining,
++                        });
++                    }
++                    journal.attempts = remaining;
++                };
+                 // Sign+journal+submit one tracked cancel (stale protection or a
+                 // rollback of a surviving replacement leg).
+                 const submitTrackedCancel = async (orderId, role) => {
+@@ -4621,6 +5468,12 @@ export class LighterProvider {
+                         txHash: cancelIdentity.txHash,
+                         expiresAt: cancelIdentity.expiresAt,
+                         owner: journal.operationId,
++                        ...(journal.intent === 'remove'
++                            ? {
++                                beforeDispatch: assertLiveExpected,
++                                onNotDispatched: async () => discardUnsentAttempt(cancelAttempt),
++                            }
++                            : {}),
+                     });
+                 };
+                 // CREATE FIRST, cancel after: if signing or submission of the
+@@ -4629,35 +5482,6 @@ export class LighterProvider {
                  // safe — both sets are reduce-only and clamp to the position.
                  if (wantsReplacement &&
                      (singleOrderPayload !== null || groupedOrderPayload !== null)) {
@@ -1835,7 +2885,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      const createNonce = await nextNonce();
                      // A lone trigger is an ordinary CreateOrder (same wire
                      // layout); only a TP+SL pair uses the grouped OCO transaction.
-@@ -4701,6 +5391,7 @@ export class LighterProvider {
+@@ -4701,6 +5525,7 @@ export class LighterProvider {
                          nonce: createNonce,
                          outcome: 'unknown',
                          clientIds: [...createdClientIds],
@@ -1843,7 +2893,25 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                          txHash: createIdentity.txHash,
                          expiresAt: createIdentity.expiresAt,
                          role: 'replacement',
-@@ -4751,7 +5442,7 @@ export class LighterProvider {
+@@ -4718,6 +5543,8 @@ export class LighterProvider {
+                         txHash: createIdentity.txHash,
+                         expiresAt: createIdentity.expiresAt,
+                         owner: journal.operationId,
++                        beforeDispatch: assertLiveExpected,
++                        onNotDispatched: async () => discardUnsentAttempt(createAttempt),
+                     });
+                     // PHASE BARRIER: prove the replacement is on the venue's books
+                     // BEFORE touching the old protection. An accepted create can
+@@ -4727,6 +5554,8 @@ export class LighterProvider {
+                     const createVisibility = await this.#awaitTpslVisibility(readActiveRaw, readInactiveFor, {
+                         createdClientIds,
+                         cancelledOrderIds: [],
++                    }, {
++                        receiptIdentity: { accountIndex, marketIndex: market.marketId },
+                     });
+                     if (createVisibility.outcome === 'timeout') {
+                         throw new Error(`Lighter TP/SL update for ${params.symbol} was submitted but its settlement is not yet visible; further protection changes are blocked until the venue reflects it`);
+@@ -4751,13 +5580,14 @@ export class LighterProvider {
                                  throw new Error(`Lighter TP/SL update for ${params.symbol} was submitted but its settlement is not yet visible; further protection changes are blocked until the venue reflects it`);
                              }
                          }
@@ -1852,7 +2920,23 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                          throw new Error(`Lighter replacement TP/SL for ${params.symbol} was cancelled or rejected by the venue before becoming active; the existing protection was left untouched`);
                      }
                      // Barrier-proved TERMINAL success is immutable: skip those ids
-@@ -4811,11 +5502,11 @@ export class LighterProvider {
+                     // in the final settlement check (no duplicate high-weight
+                     // inactive read); active-at-barrier ids are still re-verified
+                     // there (they can terminal-fail before the cancels settle).
++                    childOrderIds = createVisibility.childOrderIds;
+                     createdIdsNeedingFinalCheck = createVisibility.executedCreated
+                         ? []
+                         : createdClientIds;
+@@ -4783,6 +5613,8 @@ export class LighterProvider {
+                         cancelledOrderIds: journal.attempts
+                             .filter((attempt) => attempt.kind === 'cancel')
+                             .map((attempt) => attempt.orderId),
++                    }, {
++                        receiptIdentity: { accountIndex, marketIndex: market.marketId },
+                     });
+                     if (settled.outcome === 'timeout') {
+                         throw new Error(`Lighter TP/SL update for ${params.symbol} was submitted but its settlement is not yet visible; further protection changes are blocked until the venue reflects it`);
+@@ -4811,11 +5643,16 @@ export class LighterProvider {
                              operationId: journal.operationId,
                              recordedAt: Date.now(),
                          });
@@ -1862,11 +2946,25 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                          throw new Error(`Lighter replacement TP/SL for ${params.symbol} was cancelled or rejected by the venue after the previous protection was already removed; the position's protection could NOT be safely re-established automatically — MANUAL re-establishment is required (a new explicit TP/SL update resolves this state)`);
                      }
 -                    await this.#clearTpslJournal(settlementKey, journal.operationId);
++                    if (createdIdsNeedingFinalCheck.length > 0 &&
++                        (settled.childOrderIds.length !== childOrderIds.length ||
++                            settled.childOrderIds.some((id, index) => id !== childOrderIds[index]))) {
++                        throw new Error('Lighter TP/SL receipt identity changed during settlement');
++                    }
 +                    await this.#clearTpslJournal(settlementKey, journal.operationId, await readActiveRaw());
                      // A switch DURING the final journal-clear await must not let
                      // stale A protection report success under B.
                      this.#assertSession(generationAtIntent);
-@@ -5196,9 +5887,15 @@ export class LighterProvider {
+@@ -4827,7 +5664,7 @@ export class LighterProvider {
+                 await this.#clearTpslManualRecovery(settlementKey);
+                 this.#assertSession(generationAtIntent);
+             }, generationAtIntent);
+-            return { success: true };
++            return { success: true, childOrderIds };
+         }
+         catch (error) {
+             const wrappedError = ensureError(error, 'LighterProvider.updatePositionTPSL');
+@@ -5196,9 +6033,15 @@ export class LighterProvider {
          }
          // Mirrors placeOrder's own rejections so validation never approves an
          // order shape the placement path would refuse.
@@ -1883,7 +2981,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          if (params.takeProfitPrice || params.stopLossPrice) {
              return {
                  isValid: false,
-@@ -5211,10 +5908,11 @@ export class LighterProvider {
+@@ -5211,10 +6054,11 @@ export class LighterProvider {
                  error: 'Lighter placement does not support post-only (ALO) yet',
              };
          }
@@ -1897,7 +2995,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              // Strict finite parity with placement, LIMIT ONLY: 'Infinity' and
              // prefix-numeric strings ('90000USD') both parse under a bare
              // parseFloat check but placement refuses them. Market placement
-@@ -5246,7 +5944,7 @@ export class LighterProvider {
+@@ -5246,7 +6090,7 @@ export class LighterProvider {
          if (!hasUsdSizing && parseFinitePositive(params.size) === null) {
              return { isValid: false, error: 'Order size must be positive' };
          }
@@ -1906,7 +3004,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          const market = markets.get(params.symbol);
          if (!market) {
              return {
-@@ -5254,6 +5952,12 @@ export class LighterProvider {
+@@ -5254,6 +6098,12 @@ export class LighterProvider {
                  error: `Unknown Lighter market: ${params.symbol}`,
              };
          }
@@ -1919,7 +3017,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          if (params.leverage !== undefined) {
              // Same authoritative-metadata requirement as placement.
              const maxLeverage = await this.#requireMarketMaxLeverage(params.symbol);
-@@ -5279,7 +5983,12 @@ export class LighterProvider {
+@@ -5279,7 +6129,12 @@ export class LighterProvider {
          // the wire-range check below inspects the exact signed value.
          let referencePrice;
          let executionPrice;
@@ -1933,7 +3031,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              const slippageFraction = params.maxSlippageBps === undefined
                  ? (params.slippage ?? 0.05)
                  : params.maxSlippageBps / 10_000;
-@@ -5338,7 +6047,7 @@ export class LighterProvider {
+@@ -5338,7 +6193,7 @@ export class LighterProvider {
                  // can THROW (capability gates, venue-data integrity): a validator
                  // must resolve to an explicit invalid result, never reject.
                  let verifiedFullClose = false;
@@ -1942,7 +3040,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      try {
                          verifiedFullClose = await this.#isVerifiedFullClose(params.symbol, requestedSize);
                      }
-@@ -5827,7 +6536,7 @@ export class LighterProvider {
+@@ -5827,7 +6682,7 @@ export class LighterProvider {
              return NOOP_UNSUBSCRIBE;
          }
          this.#orderSubscribers.add(params);
@@ -1951,7 +3049,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              params.callback([...this.#wsOrders.values()]);
          }
          this.#ensureAccountChannels();
-@@ -5842,6 +6551,20 @@ export class LighterProvider {
+@@ -5842,6 +6697,20 @@ export class LighterProvider {
          }
          this.#fillSubscribers.add(params);
          this.#ensureAccountChannels();
@@ -1972,7 +3070,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          return () => {
              this.#fillSubscribers.delete(params);
              this.#releaseChannelIfUnused();
-@@ -5867,7 +6590,9 @@ export class LighterProvider {
+@@ -5867,7 +6736,9 @@ export class LighterProvider {
          }
          const generation = this.#sessionGeneration;
          let channelsRequested = false;
@@ -1983,7 +3081,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              try {
                  // Warm the margin cache before any WS position frame is adapted.
                  await this.#ensureMarketMargins().catch(() => undefined);
-@@ -5883,6 +6608,7 @@ export class LighterProvider {
+@@ -5883,6 +6754,7 @@ export class LighterProvider {
                  this.#requestChannel(`account_all_positions/${accountIndex}`);
                  this.#requestChannel(`account_all_trades/${accountIndex}`);
                  channelsRequested = true;
@@ -1991,7 +3089,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  try {
                      const auth = await this.#getAuthToken();
                      this.#assertSession(generation);
-@@ -5890,6 +6616,20 @@ export class LighterProvider {
+@@ -5890,6 +6762,20 @@ export class LighterProvider {
                  }
                  catch (error) {
                      this.#deps.debugLogger.log('[LighterProvider] orders channel skipped (no auth token)', { error: String(error) });
@@ -2012,7 +3110,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      // Setup failures are not authoritative empty order state. Account
                      // switches and deselection already emit their synchronous reset.
                      channelsRequested = false;
-@@ -5907,6 +6647,17 @@ export class LighterProvider {
+@@ -5907,6 +6793,17 @@ export class LighterProvider {
                      generation === this.#sessionGeneration) {
                      this.#emitAccountBindingReset();
                  }
@@ -2030,7 +3128,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                  // An aborted previous-account setup has no authority over the new
                  // session. Current-session failures also preserve the last known data.
                  // Transport, auth, capability, and integrity failures are not
-@@ -5924,7 +6675,6 @@ export class LighterProvider {
+@@ -5924,7 +6821,6 @@ export class LighterProvider {
                  this.#accountChannelsPromise === setupPromise) {
                  this.#accountChannelsPromise = null;
              }
@@ -2038,7 +3136,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          })
              .catch(() => undefined);
          this.#ensureStream();
-@@ -6017,7 +6767,6 @@ export class LighterProvider {
+@@ -6017,7 +6913,6 @@ export class LighterProvider {
                          }
                          this.#wsWantedChannels.set(channel, { auth: freshToken });
                          this.#sendSubscribe(channel, freshToken);
@@ -2046,7 +3144,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
                      })
                          .catch((error) => {
                          this.#deps.debugLogger.log('[LighterProvider] auth channel resubscribe failed', { channel, error: String(error) });
-@@ -6173,6 +6922,9 @@ export class LighterProvider {
+@@ -6173,6 +7068,9 @@ export class LighterProvider {
                      }
                  }
              }
@@ -2056,7 +3154,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
              this.#wsOrders.clear();
              for (const [orderId, order] of nextOrders) {
                  this.#wsOrders.set(orderId, order);
-@@ -6338,9 +7090,6 @@ export class LighterProvider {
+@@ -6338,9 +7236,6 @@ export class LighterProvider {
       * @param message - Camelized account_all_trades payload.
       */
      #handleTradesMessage = (message) => {
@@ -2066,7 +3164,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          const isSnapshot = (message.type ?? '').startsWith('subscribed');
          const fills = [];
          let droppedUnsupportedFill = false;
-@@ -6361,6 +7110,11 @@ export class LighterProvider {
+@@ -6361,6 +7256,11 @@ export class LighterProvider {
                  }
              }
          }
@@ -2078,7 +3176,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          if (fills.length === 0 && !isSnapshot) {
              return;
          }
-@@ -6372,6 +7126,21 @@ export class LighterProvider {
+@@ -6372,6 +7272,21 @@ export class LighterProvider {
              this.#deps.debugLogger.log('[LighterProvider] withholding partial fills snapshot (unsupported fills present)');
              return;
          }
@@ -2100,7 +3198,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          for (const subscriber of this.#fillSubscribers) {
              try {
                  subscriber.callback(fills, isSnapshot);
-@@ -6499,6 +7268,8 @@ export class LighterProvider {
+@@ -6499,6 +7414,8 @@ export class LighterProvider {
          this.#wsWantedChannels.clear();
          this.#accountChannelsPromise = null;
          this.#wsPositions.clear();
@@ -2109,7 +3207,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          this.#wsOrders.clear();
          this.#orderBookState.clear();
          this.#candleSeries.clear();
-@@ -6555,7 +7326,6 @@ export class LighterProvider {
+@@ -6555,7 +7472,6 @@ export class LighterProvider {
              params.callback(seeded);
              this.#requestChannel(`candle/${market.marketId}/${resolution}`);
              this.#ensureStream();
@@ -2117,7 +3215,7 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          })
              .catch((error) => {
              this.#deps.debugLogger.log('[LighterProvider] candle seed failed', {
-@@ -6625,7 +7395,6 @@ export class LighterProvider {
+@@ -6625,7 +7541,6 @@ export class LighterProvider {
              subscribers.add(params);
              this.#requestChannel(`order_book/${marketId}`);
              this.#ensureStream();
@@ -2125,6 +3223,56 @@ index 59c846b66d11a19ab27d86571cbe435db4f83363..c9cec5d0eb8374c5acd62e2fcd509c6a
          })
              .catch((error) => {
              if (!this.#isDisconnected && !released) {
+diff --git a/dist/services/HyperLiquidClientService.d.ts b/dist/services/HyperLiquidClientService.d.ts
+index 9e064b33f2582cf99c2478867316c4ee5dc721e1..554741407ba2028ae27f85e79a937551d51f22c3 100644
+--- a/dist/services/HyperLiquidClientService.d.ts
++++ b/dist/services/HyperLiquidClientService.d.ts
+@@ -68,9 +68,10 @@ export declare class HyperLiquidClientService {
+     /**
+      * Get the exchange client
+      *
+-     * @returns The initialized ExchangeClient instance.
++     * @param beforeDispatch - Optional operation-local fence after SDK signing.
++     * @returns The initialized client, or an isolated guarded client.
+      */
+-    getExchangeClient(): ExchangeClient;
++    getExchangeClient(beforeDispatch?: () => Promise<void>): ExchangeClient;
+     /**
+      * Get the info client
+      *
+diff --git a/dist/services/HyperLiquidClientService.js b/dist/services/HyperLiquidClientService.js
+index c17157e893b8c528aecda13f5892f5af41d0b764..88eecfd5d27a0f6d167e07070bb3211deb6a5eed 100644
+--- a/dist/services/HyperLiquidClientService.js
++++ b/dist/services/HyperLiquidClientService.js
+@@ -6,6 +6,7 @@ import { PERPS_ERROR_CODES } from '../perpsErrorCodes.js';
+ import { WebSocketConnectionState } from '../types/index.js';
+ import { coalescePerpsRestRequest } from '../utils/coalescePerpsRestRequest.js';
+ import { ensureError, isAbortError } from '../utils/errorUtils.js';
++import { createGuardedHyperLiquidClient } from '../utils/guardedHyperLiquidClient.js';
+ import { getPerpsConnectionAttemptContext } from '../utils/perpsConnectionAttemptContext.js';
+ /**
+  * Maximum number of reconnection attempts before giving up.
+@@ -310,14 +311,17 @@ export class HyperLiquidClientService {
+     /**
+      * Get the exchange client
+      *
+-     * @returns The initialized ExchangeClient instance.
++     * @param beforeDispatch - Optional operation-local fence after SDK signing.
++     * @returns The initialized client, or an isolated guarded client.
+      */
+-    getExchangeClient() {
++    getExchangeClient(beforeDispatch) {
+         if (!this.#exchangeClient) {
+             this.ensureInitialized();
+             throw new Error(PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE);
+         }
+-        return this.#exchangeClient;
++        return beforeDispatch
++            ? createGuardedHyperLiquidClient(this.#exchangeClient, beforeDispatch)
++            : this.#exchangeClient;
+     }
+     /**
+      * Get the info client
 diff --git a/dist/services/LighterClientService.js b/dist/services/LighterClientService.js
 index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615e174094c 100644
 --- a/dist/services/LighterClientService.js
@@ -2141,7 +3289,7 @@ index 5255ffb0620a5318a2f0099ee431e545f1cfb4b8..f74fc26cf10b286a8ab22382987c9615
  const ResponseStructs = {
      orderBooks: type({
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index 3924c0be2cb8eb6dac463a8d2273203d72140a00..6e120944dfff4337caf62f6f57b8b00c6972cddb 100644
+index 3924c0be2cb8eb6dac463a8d2273203d72140a00..4ab99f052d36613fd3fe5933303459029cf5d8ba 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
 @@ -564,6 +564,8 @@ export type DisconnectResult = {
@@ -2182,7 +3330,7 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..6e120944dfff4337caf62f6f57b8b00c
      accountId?: CaipAccountId;
      includeHistory?: boolean;
  };
-@@ -1397,14 +1404,20 @@ export type GetScalePriceLadderParams = {
+@@ -1397,14 +1404,31 @@ export type GetScalePriceLadderParams = {
      /** Optional explicit route; omitted uses the active/default provider. */
      providerId?: PerpsProviderType;
  };
@@ -2202,10 +3350,21 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..6e120944dfff4337caf62f6f57b8b00c
 +     * from the provider name. Attached or position TP/SL is a separate contract.
 +     */
 +    supportedTriggerOrderTypes?: readonly TriggerOrderType[];
++    /**
++     * Position protection mutation guarantees. Omitted means unsupported or
++     * unreported. Accepted updates can still omit IDs when exact correlation
++     * remains unresolved; clients must not infer identities from book changes.
++     */
++    positionTpsl?: Readonly<{
++        supportsExpectedPosition: true;
++        childOrderIds: 'request-correlated';
++        takeProfitOrderType: 'take_profit_market' | 'take_profit_limit';
++        stopLossOrderType: 'stop_market' | 'stop_limit';
++    }>;
      /**
       * Margin modes the market accepts for `OrderParams.marginMode`. Omitted
       * means the provider does not report it, and clients should not offer an
-@@ -1423,7 +1436,7 @@ export type PerpsOrderCapabilities = ReadyPerpsOrderCapabilities | Readonly<{
+@@ -1423,7 +1447,7 @@ export type PerpsOrderCapabilities = ReadyPerpsOrderCapabilities | Readonly<{
      reason: OrderCapabilitiesUnavailableReason;
  }>;
  /** Reasons a direct provider cannot produce a Scale price ladder. */
@@ -2214,7 +3373,23 @@ index 3924c0be2cb8eb6dac463a8d2273203d72140a00..6e120944dfff4337caf62f6f57b8b00c
  /** Reasons a provider-routed Scale price ladder cannot be produced. */
  export type ScalePriceLadderUnavailableReason = DirectProviderScalePriceLadderUnavailableReason | RoutedOrderCapabilitiesUnavailableReason;
  /** Result of provider-routed Scale price normalization. */
-@@ -1629,7 +1642,7 @@ export type PerpsProvider = {
+@@ -1572,6 +1596,15 @@ export type PerpsFeeResolution = {
+     subscriptionCoveredNotionalUsd?: number;
+ };
+ export type UpdatePositionTPSLParams = {
++    /**
++     * Optional mutation precondition, checked against authoritative position data
++     * before setup and again before protection writes. Size is signed base units.
++     * A mismatch rejects the update rather than protecting a different position.
++     */
++    expectedPosition?: {
++        size: string;
++        entryPrice: string;
++    };
+     symbol: string;
+     takeProfitPrice?: string;
+     stopLossPrice?: string;
+@@ -1629,7 +1662,7 @@ export type PerpsProvider = {
      /** Whether this provider routes individual requests by `providerId`. */
      readonly routesOrdersByProviderId?: boolean;
      /**
@@ -2308,6 +3483,54 @@ index 9f212d4edfa0141522a868fb006a8d02621bed96..df63db4afe0d5f07b82013d207cd2d86
  };
  /**
   * Response of `GET /api/v1/trades`.
+diff --git a/dist/utils/guardedHyperLiquidClient.d.ts b/dist/utils/guardedHyperLiquidClient.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..75c8f14fbf351a718b6f03fe782bb9b543654c11
+--- /dev/null
++++ b/dist/utils/guardedHyperLiquidClient.d.ts
+@@ -0,0 +1,11 @@
++import { ExchangeClient } from '@nktkas/hyperliquid';
++/**
++ * Create an operation-local SDK client with a fence after signing and before
++ * transport dispatch. The shared client and transport remain unchanged.
++ *
++ * @param client - Captured SDK client, including wallet and nonce configuration.
++ * @param beforeDispatch - Authoritative operation precondition.
++ * @returns A client whose writes are fenced at the transport boundary.
++ */
++export declare function createGuardedHyperLiquidClient(client: ExchangeClient, beforeDispatch: () => Promise<void>): ExchangeClient;
++//# sourceMappingURL=guardedHyperLiquidClient.d.ts.map
+\ No newline at end of file
+diff --git a/dist/utils/guardedHyperLiquidClient.js b/dist/utils/guardedHyperLiquidClient.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..55076942f5bf1de94999938ab34a3c8d93f2344f
+--- /dev/null
++++ b/dist/utils/guardedHyperLiquidClient.js
+@@ -0,0 +1,23 @@
++import { ExchangeClient } from '@nktkas/hyperliquid';
++/**
++ * Create an operation-local SDK client with a fence after signing and before
++ * transport dispatch. The shared client and transport remain unchanged.
++ *
++ * @param client - Captured SDK client, including wallet and nonce configuration.
++ * @param beforeDispatch - Authoritative operation precondition.
++ * @returns A client whose writes are fenced at the transport boundary.
++ */
++export function createGuardedHyperLiquidClient(client, beforeDispatch) {
++    const { transport } = client.config_;
++    return new ExchangeClient({
++        ...client.config_,
++        transport: {
++            isTestnet: transport.isTestnet,
++            async request(endpoint, payload, signal) {
++                await beforeDispatch();
++                return transport.request(endpoint, payload, signal);
++            },
++        },
++    });
++}
++//# sourceMappingURL=guardedHyperLiquidClient.js.map
+\ No newline at end of file
 diff --git a/dist/utils/lighterAdapter.d.ts b/dist/utils/lighterAdapter.d.ts
 index 10b857cec38fdfe407304af090910286e187c0c4..3f24e0a7a045105de8d721ccb5e45e4201fb06eb 100644
 --- a/dist/utils/lighterAdapter.d.ts
@@ -2429,3 +3652,96 @@ index 4894b39738fcca97eeabb3875f64ef751d493d1e..27aae8b99046863d93c446d8086705bf
          direction,
          ...(startPosition === undefined ? {} : { startPosition }),
          fee,
+diff --git a/dist/utils/positionProtection.d.ts b/dist/utils/positionProtection.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..4c8cc1a7016750efba0cfdfa8146e3b47035523c
+--- /dev/null
++++ b/dist/utils/positionProtection.d.ts
+@@ -0,0 +1,12 @@
++import type { UpdatePositionTPSLParams } from '../types/index.js';
++/**
++ * Reject a protection mutation whose caller-owned position no longer matches.
++ *
++ * @param expected - Optional immutable caller precondition.
++ * @param actual - Authoritative current position, if any.
++ */
++export declare function assertExpectedPosition(expected: UpdatePositionTPSLParams['expectedPosition'], actual: {
++    size: string;
++    entryPrice: string;
++} | undefined): void;
++//# sourceMappingURL=positionProtection.d.ts.map
+\ No newline at end of file
+diff --git a/dist/utils/positionProtection.js b/dist/utils/positionProtection.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..a17f37b96824dee5241abc31ce985e8d458b1ec1
+--- /dev/null
++++ b/dist/utils/positionProtection.js
+@@ -0,0 +1,25 @@
++import { BigNumber } from 'bignumber.js';
++/**
++ * Reject a protection mutation whose caller-owned position no longer matches.
++ *
++ * @param expected - Optional immutable caller precondition.
++ * @param actual - Authoritative current position, if any.
++ */
++export function assertExpectedPosition(expected, actual) {
++    if (expected === undefined) {
++        return;
++    }
++    const decimal = /^-?(?:\d+(?:\.\d*)?|\.\d+)$/u;
++    if (!actual ||
++        ![expected.size, expected.entryPrice, actual.size, actual.entryPrice].every((value) => typeof value === 'string' && decimal.test(value)) ||
++        !new BigNumber(expected.size).isFinite() ||
++        new BigNumber(expected.size).isZero() ||
++        !new BigNumber(expected.entryPrice).isFinite() ||
++        !new BigNumber(expected.entryPrice).isPositive() ||
++        new BigNumber(expected.entryPrice).isZero() ||
++        !new BigNumber(expected.size).eq(actual.size) ||
++        !new BigNumber(expected.entryPrice).eq(actual.entryPrice)) {
++        throw new Error('TP/SL expected position changed or is invalid; refresh before retrying');
++    }
++}
++//# sourceMappingURL=positionProtection.js.map
+\ No newline at end of file
+diff --git a/dist/utils/subscriptionFeeWaiver.d.ts b/dist/utils/subscriptionFeeWaiver.d.ts
+index 90f4337782d34581b7653df031a0bbb14f148390..5f46848f9e40b5232d599322e85a635f23d5c2d9 100644
+--- a/dist/utils/subscriptionFeeWaiver.d.ts
++++ b/dist/utils/subscriptionFeeWaiver.d.ts
+@@ -98,11 +98,11 @@ export declare function hasFeeReductionAppliedFlag(clientOrderId: string | null
+ /**
+  * Whether a cloid carries the subscription program marker in its leading bytes.
+  *
+- * Only orders that had no cloid of their own get the program marker; an order
+- * that already carried one (a Scale rung) keeps its own leading marker and
+- * carries the subscription attribution in the flag byte instead. Decoders
+- * should therefore key on {@link hasFeeReductionAppliedFlag}, and use this only
+- * to tell the two layouts apart.
++ * Orders without their own cloid acquire this marker when a subscription
++ * discount applies. Position TP/SL also reserves this layout for correlation,
++ * with a zero flag byte when no discount applies. A Scale rung keeps its own
++ * leading marker and carries attribution in its flag byte. Marker presence
++ * alone therefore does not prove a discount; use {@link hasFeeReductionAppliedFlag}.
+  *
+  * @param clientOrderId - A venue client order ID, or nothing.
+  * @returns True when the cloid starts with the subscription program id.
+diff --git a/dist/utils/subscriptionFeeWaiver.js b/dist/utils/subscriptionFeeWaiver.js
+index 02e1a8d232f91c974c161ec3828abaf7f4656357..921bd5f9aaf862b8de66e99ebf08fb513792a0a6 100644
+--- a/dist/utils/subscriptionFeeWaiver.js
++++ b/dist/utils/subscriptionFeeWaiver.js
+@@ -153,11 +153,11 @@ function isFlagSet(flags, bit) {
+ /**
+  * Whether a cloid carries the subscription program marker in its leading bytes.
+  *
+- * Only orders that had no cloid of their own get the program marker; an order
+- * that already carried one (a Scale rung) keeps its own leading marker and
+- * carries the subscription attribution in the flag byte instead. Decoders
+- * should therefore key on {@link hasFeeReductionAppliedFlag}, and use this only
+- * to tell the two layouts apart.
++ * Orders without their own cloid acquire this marker when a subscription
++ * discount applies. Position TP/SL also reserves this layout for correlation,
++ * with a zero flag byte when no discount applies. A Scale rung keeps its own
++ * leading marker and carries attribution in its flag byte. Marker presence
++ * alone therefore does not prove a discount; use {@link hasFeeReductionAppliedFlag}.
+  *
+  * @param clientOrderId - A venue client order ID, or nothing.
+  * @returns True when the cloid starts with the subscription program id.

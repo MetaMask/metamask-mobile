@@ -173,6 +173,7 @@ function createMockInfoClient() {
       balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
     }),
     userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+    userToMultiSigSigners: jest.fn().mockResolvedValue(null),
     meta: jest.fn().mockResolvedValue({
       universe: [
         { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -216,10 +217,8 @@ function createMockInfoClient() {
         [{ px: '50001', sz: '1', n: 1 }],
       ],
     }),
-    orderStatus: jest.fn().mockResolvedValue({
-      status: 'order',
-      order: { status: 'open', order: { sz: '0.1' } },
-    }),
+    // No signed identity is known until the test supplies its venue receipt.
+    orderStatus: jest.fn().mockResolvedValue({ status: 'unknownOid' }),
     referral: jest.fn().mockResolvedValue({
       referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
     }),
@@ -344,7 +343,25 @@ export function buildPerpsIntegrationHarness(
       .fn()
       .mockReturnValue(options.isTestnet ? 'testnet' : 'mainnet'),
     getInfoClient: jest.fn().mockReturnValue(infoClient),
-    getExchangeClient: jest.fn().mockReturnValue(exchangeClient),
+    getExchangeClient: jest.fn((beforeDispatch?: () => Promise<void>) => {
+      if (!beforeDispatch) {
+        return exchangeClient;
+      }
+      // Model the service's operation-local fence at the SDK I/O boundary.
+      // SDK signing itself remains mocked in this harness.
+      return new Proxy(exchangeClient, {
+        get(target, property, receiver) {
+          const value: unknown = Reflect.get(target, property, receiver);
+          if (typeof value !== 'function') {
+            return value;
+          }
+          return async (...args: unknown[]) => {
+            await beforeDispatch();
+            return Reflect.apply(value, target, args);
+          };
+        },
+      });
+    }),
     fetchHistoricalOrders: jest.fn().mockResolvedValue([]),
     disconnect: jest.fn().mockResolvedValue(undefined),
     toggleTestnet: jest.fn(),
