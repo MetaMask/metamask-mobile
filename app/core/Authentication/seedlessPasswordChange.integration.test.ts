@@ -65,7 +65,6 @@ const useEngine = (
   mockEngine.context.KeyringController = keyring;
 };
 
-/** A seedless wallet with its Keyring encryption key synced, on `OLD_PASSWORD`. */
 const createWallet = async () => {
   const harness = buildSeedlessPasswordChangeHarness();
   const install = harness.newInstall();
@@ -86,7 +85,6 @@ const createWallet = async () => {
 const changePassword = () =>
   recreateVaultsWithNewPassword(OLD_PASSWORD, NEW_PASSWORD, '0x1');
 
-/** The app restarts: persisted state survives, both controllers start locked. */
 const restart = (
   harness: PasswordChangeHarness,
   controller: SeedlessOnboardingController,
@@ -98,7 +96,6 @@ const restart = (
   return next;
 };
 
-/** Mobile's unlock order: seedless recovery, then the Keyring unlock. */
 const unlock = async (keyring: FakeKeyringController, password: string) => {
   const recovered = await applySeedlessUnlockRecovery(password);
   await keyring.submitPassword(password);

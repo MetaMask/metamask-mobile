@@ -9,18 +9,8 @@ import {
 } from '@metamask/seedless-onboarding-controller';
 import { secp256k1 } from '@noble/curves/secp256k1';
 
-/**
- * Seedless password-change integration-test harness.
- *
- * REAL: SeedlessOnboardingController (lifecycle checkpoints, password sync,
- * vault rewrite, Keyring encryption key store).
- * MOCKED: the TOPRF client, backed by an in-memory SSS and metadata store that
- * keeps one key per password; the vault encryptor, an in-memory store that
- * checks the password or key; and the auth-server token callbacks.
- *
- * The vault encryptor is in-memory because Jest mocks Mobile's `Encryptor`,
- * so a vault written there never decrypts back to what was written.
- */
+// Seedless password-change integration harness. The vault encryptor is
+// in-memory because Jest mocks Mobile's `Encryptor`.
 
 type ToprfClient = SeedlessOnboardingController['toprfClient'];
 type KeyPair = Parameters<ToprfClient['addSecretDataItem']>[0]['authKeyPair'];
@@ -28,30 +18,18 @@ type SecretItem = Awaited<
   ReturnType<ToprfClient['fetchAllSecretDataItems']>
 >[number];
 
-/** Where `changeEncKey` stops: before SSS, after SSS, or after both writes. */
 export type ChangeEncKeyFault =
   | 'sss_store_fails'
   | 'metadata_set_fails_after_sss_ok'
   | 'change_enc_key_times_out';
 
-/**
- * In-memory SSS and metadata store with one key per password.
- *
- * SSS keeps the current key. Each password change adds a key, and the
- * password backup chain lets an older key's `pwEncKey` be recovered from a
- * newer one. Secret items live under the auth public key they were written
- * with, and a password change moves them to the new key.
- */
 export class FakePasswordBackend {
-  /** Password for each key, by key index (0-based). */
   readonly passwords: string[] = [];
 
-  /** Index of the key SSS returns, or -1 for a new user. */
   current = -1;
 
   readonly metadata = new Map<string, SecretItem[]>();
 
-  /** Fault for the next `changeEncKey` call. */
   nextChangeEncKeyFault: ChangeEncKeyFault | undefined;
 
   #nextItemId = 1;
@@ -104,10 +82,6 @@ export class FakePasswordBackend {
   }
 }
 
-/**
- * In-memory vault encryptor. A vault decrypts only with the password or key it
- * was written with, so a wrong password fails the way it does on a device.
- */
 export class FakeVaultEncryptor {
   readonly #entries = new Map<string, { data: string; keyString: string }>();
 
@@ -179,10 +153,6 @@ export class FakeVaultEncryptor {
   );
 }
 
-/**
- * In-memory stand-in for `KeyringController`, covering the calls Mobile's
- * password-change flow makes. The encryption key follows the password.
- */
 export class FakeKeyringController {
   #password: string;
 
@@ -233,13 +203,6 @@ export class FakeKeyringController {
   });
 }
 
-/**
- * The state that survives an app restart: only the fields the controller
- * marks as persisted, as redux-persist stores them.
- *
- * @param controller - The controller before the restart.
- * @returns The persisted state.
- */
 export const persistedState = (
   controller: SeedlessOnboardingController,
 ): Partial<SeedlessOnboardingControllerState> =>
@@ -251,7 +214,6 @@ export const persistedState = (
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-/** A JWT valid for a day, so the controller's expiry checks pass. */
 const longLivedJwt = (subject: string): string => {
   const encode = (value: object) =>
     Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -262,7 +224,6 @@ const longLivedJwt = (subject: string): string => {
   ].join('.');
 };
 
-/** A node auth token: base64 JSON, valid for a day. */
 const longLivedNodeAuthToken = (nodeIndex: number): string =>
   Buffer.from(
     JSON.stringify({ nodeIndex, exp: nowSeconds() + 86_400 }),
@@ -341,14 +302,12 @@ const installFakeToprfClient = (
       if (!newPassword) {
         throw new Error('changeEncKey needs a new password');
       }
-      // SSS stores the new key shares.
       const next = backend.addKey(newPassword);
       backend.current = next;
       const { encKey, pwEncKey, authKeyPair } = backend.keyFor(next);
       if (fault === 'metadata_set_fails_after_sss_ok') {
         throw new Error('Metadata set failed');
       }
-      // The metadata store moves the secrets to the new key.
       backend.moveItems(oldAuthKeyPair, authKeyPair);
       if (fault === 'change_enc_key_times_out') {
         throw new Error('changeEncKey timed out');
@@ -375,21 +334,11 @@ export interface PasswordChangeInstall {
 export interface PasswordChangeHarness {
   backend: FakePasswordBackend;
   encryptor: FakeVaultEncryptor;
-  /**
-   * A new controller sharing the backend. Pass the previous controller's
-   * state to simulate an app restart: the persisted state survives and the
-   * controller starts locked.
-   */
   newInstall: (
     state?: Partial<SeedlessOnboardingControllerState>,
   ) => PasswordChangeInstall;
 }
 
-/**
- * Build a password-change harness with one shared backend.
- *
- * @returns The harness.
- */
 export const buildSeedlessPasswordChangeHarness = (): PasswordChangeHarness => {
   const backend = new FakePasswordBackend();
   const encryptor = new FakeVaultEncryptor();
