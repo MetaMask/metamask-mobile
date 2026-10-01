@@ -115,10 +115,10 @@ export const ensureAccountListOpenPlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
 ): Promise<void> => {
   const deadline = Date.now() + timeout;
-  // Performance prefers the add-account control (more reliable with A/B chrome).
-  // Smoke keeps the classic account-list container selector.
+  // Performance Account Hub exposes account-hub-add-wallet-button; the classic
+  // account-list-add-account-button is not present. Smoke keeps the list container.
   const accountListVisibleMarker = isPerformanceSuiteActive()
-    ? AccountListBottomSheet.addAccountButton
+    ? AccountListBottomSheet.addWalletButton
     : AccountListBottomSheet.accountList;
 
   while (Date.now() < deadline) {
