@@ -3,6 +3,7 @@ import { FlatList, type ListRenderItemInfo } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   type RouteProp,
+  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -105,6 +106,7 @@ export const PredictSearchScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
+  const isFocused = useIsFocused();
   const { venueId } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextSearch'>>()
       .params;
@@ -125,6 +127,7 @@ export const PredictSearchScreen = () => {
   const isPendingResults = hasQuery && !isError && data === undefined;
   const resultEvents = data?.events ?? NO_EVENTS;
   const events = useEventsWithLiveData(venueId, resultEvents, {
+    isVisible: isFocused,
     marketScope: 'card',
   });
   const listContentContainerStyle = useMemo(

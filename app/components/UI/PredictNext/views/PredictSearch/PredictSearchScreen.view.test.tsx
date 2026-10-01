@@ -8,7 +8,7 @@ import {
   makePredictNextEvent,
   messengerCall,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
@@ -156,6 +156,43 @@ describe('PredictSearchScreen', () => {
         PredictHomeTestIds.event(KALSHI_VENUE_ID, event.id),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('releases every Search watch while an Event Screen is on top and rewatches on return', async () => {
+    const event = makePredictNextEvent('search-4', 'Chiefs at Bills');
+    configureSearch({ chiefs: [event] });
+    const view = renderPredictSearchScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictSearchScreenTestIds.IDLE);
+    typeQuery(view, 'chiefs');
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, event.id),
+    );
+    messengerCall.mockClear();
+
+    fireEvent.press(
+      view.getByTestId(
+        PredictHomeTestIds.eventContent(KALSHI_VENUE_ID, event.id),
+      ),
+    );
+    await view.findByTestId(PredictEventScreenTestIds.VIEW);
+
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictLiveDataService:unwatchEvents',
+      KALSHI_VENUE_ID,
+      [event.id],
+      { marketScope: 'card' },
+    );
+
+    messengerCall.mockClear();
+    fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictLiveDataService:watchEvents',
+        KALSHI_VENUE_ID,
+        [event.id],
+        { marketScope: 'card' },
+      ),
+    );
   });
 
   it('opens a result Event and cancels back to Home', async () => {
