@@ -1,22 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  DimensionValue,
+  KeyboardAvoidingView,
   Platform,
-  Text,
+  ScrollView,
   TextInput,
   TouchableOpacity,
-  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
+  Label,
   HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
   areAddressesEqual,
@@ -24,7 +31,6 @@ import {
 } from '../../../../../util/address';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
-import ActionSheet from '@metamask/react-native-actionsheet';
 import { useTheme } from '../../../../../util/theme';
 import {
   CONTACT_ALREADY_SAVED,
@@ -57,8 +63,7 @@ import type {
 } from '@react-navigation/native';
 import type { RootState } from '../../../../../reducers';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
-import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { createStyles } from './ContactForm.styles';
+import type { BottomSheetRef as NetworkBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { ContactNetworkSelector } from './ContactNetworkSelector';
 import { ContactFormFields } from './ContactFormFields';
 import {
@@ -88,8 +93,8 @@ interface ContactFormState {
   mode: ContactMode;
   memo: string | null;
   editable: boolean;
-  inputWidth: DimensionValue | undefined;
   openNetworkSelector: boolean;
+  openDeleteSheet: boolean;
 }
 
 interface ContactFormStateProps {
@@ -147,8 +152,8 @@ const createInitialState = ({
     mode,
     memo: null,
     editable: true,
-    inputWidth: Platform.OS === 'android' ? '99%' : undefined,
     openNetworkSelector: false,
+    openDeleteSheet: false,
   };
 
   if (mode !== EDIT) {
@@ -194,8 +199,8 @@ const ContactForm = ({
   chainId,
   route,
 }: ContactFormProps) => {
-  const { colors, themeAppearance = 'light' } = useTheme();
-  const styles = createStyles(colors);
+  const { themeAppearance = 'light' } = useTheme();
+  const tw = useTailwind();
   const [state, setState] = useState<ContactFormState>(() =>
     createInitialState({
       address: route.params?.address ?? '',
@@ -206,13 +211,9 @@ const ContactForm = ({
     }),
   );
   const stateRef = useRef(state);
-  const actionSheet = useRef<typeof ActionSheet>(null);
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const inputWidthTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const sheetRef = useRef<NetworkBottomSheetRef>(null);
   const contactAddressToRemove = useRef<string | null>(null);
 
   const updateState = (updates: Partial<ContactFormState>) => {
@@ -239,7 +240,7 @@ const ContactForm = ({
         onPress={onEdit}
         testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
       >
-        <Text style={styles.headerEndActionText}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
           {state.editable
             ? strings('address_book.cancel')
             : strings('address_book.edit')}
@@ -248,27 +249,13 @@ const ContactForm = ({
     );
   };
 
-  useEffect(() => {
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    if (stateRef.current.inputWidth) {
-      inputWidthTimeoutId.current = setTimeout(() => {
-        setState((currentState) => ({
-          ...currentState,
-          inputWidth: '100%',
-        }));
-      }, 100);
-    }
-
-    return () => {
-      if (inputWidthTimeoutId.current) {
-        clearTimeout(inputWidthTimeoutId.current);
-      }
-    };
-  }, []);
-
   const onDelete = () => {
     contactAddressToRemove.current = state.address;
-    actionSheet.current?.show();
+    updateState({ openDeleteSheet: true });
+  };
+
+  const closeDeleteSheet = () => {
+    updateState({ openDeleteSheet: false });
   };
 
   const onChangeName = (name: string) => {
@@ -370,6 +357,11 @@ const ContactForm = ({
     navigation.pop();
   };
 
+  const confirmDelete = () => {
+    updateState({ openDeleteSheet: false });
+    deleteContact();
+  };
+
   const onScan = () => {
     navigation.navigate(
       ...createQRScannerNavDetails({
@@ -423,7 +415,6 @@ const ContactForm = ({
     addressReady,
     memo,
     editable,
-    inputWidth,
     toEnsAddress,
     errorContinue,
     contactChainId,
@@ -451,7 +442,7 @@ const ContactForm = ({
 
   return (
     <SafeAreaView
-      style={styles.wrapper}
+      style={tw.style('flex-1 flex-col bg-default')}
       testID={AddContactViewSelectorsIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
@@ -464,14 +455,23 @@ const ContactForm = ({
         }}
         endAccessory={headerEndAccessory ?? undefined}
       />
-      <KeyboardAwareScrollView style={styles.informationWrapper}>
-        <View style={styles.scrollWrapper}>
+      {/* KeyboardAvoidingView is the only keyboard handler here: it insets the
+          form body so the sticky actions below stay above the keyboard. A
+          keyboard-aware scroll view inside it would apply the inset a second
+          time. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={tw.style('flex-1')}
+      >
+        <ScrollView
+          style={tw.style('flex-1 px-6')}
+          contentContainerStyle={tw.style('gap-4 py-3')}
+          keyboardShouldPersistTaps="handled"
+        >
           <ContactFormFields
             address={address}
             addressInputRef={addressInput}
-            colors={colors}
             editable={editable}
-            inputWidth={inputWidth}
             isAddMode={isAddMode}
             isEditMode={isEditMode}
             memo={memo}
@@ -481,79 +481,82 @@ const ContactForm = ({
             onChangeMemo={onChangeMemo}
             onChangeName={onChangeName}
             onScan={onScan}
-            styles={styles}
             themeAppearance={themeAppearance}
             toEnsAddress={toEnsAddress}
             toEnsName={toEnsName}
           />
 
-          <>
-            <Text style={styles.label}>{strings('address_book.network')}</Text>
+          <Box twClassName="gap-2">
+            <Label>{strings('address_book.network')}</Label>
             <ContactNetworkSelector
               chainId={contactChainId || chainId}
               editable={editable}
               networkName={networkName}
               onOpen={() => setOpenNetworkSelector(true)}
-              styles={styles}
             />
-          </>
-        </View>
+          </Box>
 
-        {addressError && (
-          <ErrorMessage
-            errorMessage={renderErrorMessage(addressError)}
-            errorContinue={!!errorContinue}
-            onContinue={onErrorContinue}
-          />
-        )}
-
+          {addressError && (
+            <ErrorMessage
+              errorMessage={renderErrorMessage(addressError)}
+              errorContinue={!!errorContinue}
+              onContinue={onErrorContinue}
+            />
+          )}
+        </ScrollView>
         {!!editable && (
-          <View style={styles.buttonsWrapper}>
-            <View style={styles.buttonsContainer}>
-              <View style={styles.actionButton}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  isFullWidth
-                  isDisabled={!addressReady || !name || !!addressError}
-                  onPress={saveContact}
-                  testID={AddContactViewSelectorsIDs.ADD_BUTTON}
-                >
-                  {strings(`address_book.${mode}_contact`)}
-                </Button>
-              </View>
-              {mode === EDIT && (
-                <View style={styles.actionButton}>
-                  <Button
-                    variant={ButtonVariant.Tertiary}
-                    size={ButtonSize.Lg}
-                    isFullWidth
-                    isDanger
-                    isDisabled={!addressReady || !name || !!addressError}
-                    onPress={onDelete}
-                    testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
-                  >
-                    {strings(`address_book.delete`)}
-                  </Button>
-                </View>
-              )}
-            </View>
-          </View>
+          <Box twClassName="gap-2 px-6 pb-4 pt-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDisabled={!addressReady || !name || !!addressError}
+              onPress={saveContact}
+              testID={AddContactViewSelectorsIDs.ADD_BUTTON}
+            >
+              {strings(`address_book.${mode}_contact`)}
+            </Button>
+            {mode === EDIT && (
+              <Button
+                variant={ButtonVariant.Tertiary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDanger
+                isDisabled={!addressReady || !name || !!addressError}
+                onPress={onDelete}
+                testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
+              >
+                {strings(`address_book.delete`)}
+              </Button>
+            )}
+          </Box>
         )}
-        <ActionSheet
-          ref={actionSheet}
-          title={strings('address_book.delete_contact')}
-          options={[
-            strings('address_book.delete'),
-            strings('address_book.cancel'),
-          ]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          // eslint-disable-next-line react/jsx-no-bind
-          onPress={(index: number) => (index === 0 ? deleteContact() : null)}
-          theme={themeAppearance}
-        />
-      </KeyboardAwareScrollView>
+      </KeyboardAvoidingView>
+      {state.openDeleteSheet ? (
+        <BottomSheet
+          testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}
+          onClose={closeDeleteSheet}
+        >
+          <BottomSheetHeader onClose={closeDeleteSheet}>
+            {`${strings('address_book.delete_contact')}: ${name ?? ''}`}
+          </BottomSheetHeader>
+          <BottomSheetFooter
+            secondaryButtonProps={{
+              children: strings('address_book.cancel'),
+              onPress: closeDeleteSheet,
+              size: ButtonSize.Lg,
+              testID: AddContactViewSelectorsIDs.DELETE_CANCEL_BUTTON,
+            }}
+            primaryButtonProps={{
+              children: strings('address_book.delete'),
+              isDanger: true,
+              onPress: confirmDelete,
+              size: ButtonSize.Lg,
+              testID: AddContactViewSelectorsIDs.DELETE_CONFIRM_BUTTON,
+            }}
+          />
+        </BottomSheet>
+      ) : null}
       {state.openNetworkSelector ? (
         <NetworkListBottomSheet
           selectedNetwork={state.contactChainId || null}
