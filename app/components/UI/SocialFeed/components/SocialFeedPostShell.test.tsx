@@ -74,12 +74,20 @@ const basePost = (
 
 const renderShell = (
   post: SocialV1FeedPost,
-  showMockedFields: boolean | null = true,
+  options?: {
+    onAuthorPress?: (post: SocialV1FeedPost) => void;
+    /** `null` renders with no surface provider, so invented values stay hidden. */
+    showMockedFields?: boolean | null;
+  },
 ) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  const shell = <SocialFeedPostShell post={post} />;
+  const showMockedFields =
+    options && 'showMockedFields' in options ? options.showMockedFields : true;
+  const shell = (
+    <SocialFeedPostShell post={post} onAuthorPress={options?.onAuthorPress} />
+  );
   return renderWithProvider(
     <QueryClientProvider client={queryClient}>
       {showMockedFields === null ? (
@@ -282,7 +290,7 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('hides the invented copy count when the surface has not opted in', () => {
-      renderShell(basePost(), null);
+      renderShell(basePost(), { showMockedFields: null });
 
       expect(screen.queryByTestId(copiesTestId)).toBeNull();
     });
@@ -352,6 +360,33 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`)
         .props.imageUrl,
     ).toBe('https://cdn.test/alice.png');
+  });
+
+  describe('author identity press', () => {
+    it('calls onAuthorPress when the identity is pressed', () => {
+      const onAuthorPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onAuthorPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onAuthorPress).toHaveBeenCalledTimes(1);
+      expect(onAuthorPress).toHaveBeenCalledWith(post);
+    });
+
+    it('does not wrap the identity in a pressable when onAuthorPress is omitted', () => {
+      renderShell(basePost());
+
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      ).toBeNull();
+    });
   });
 
   it('opens the report reason sheet from the post options', () => {
