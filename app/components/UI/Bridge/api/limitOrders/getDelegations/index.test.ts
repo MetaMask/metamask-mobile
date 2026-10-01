@@ -125,7 +125,7 @@ describe('useFetchLimitOrdersDelegations', () => {
     const [url, requestOptions] = globalFetchSpy.mock.calls[0];
     expect(url).toContain('/v2/limit-orders/delegations?');
     expect(url).toContain(
-      `account=${encodeURIComponent(`eip155:143:${DELEGATOR_ADDRESS}`)}`,
+      `accountAddress=${encodeURIComponent(`eip155:143:${DELEGATOR_ADDRESS}`)}`,
     );
     expect(url).toContain('priceTolerance=2.5');
     expect(url).toContain('expiresInMinutes=60');

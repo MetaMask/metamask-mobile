@@ -1121,13 +1121,16 @@
       "navbar_title": "बैंक अकाउंट",
       "title": "अपनी Pix Key पाएं",
       "description": "किसी भी बैंक अकाउंट से सीधे अपने मनी अकाउंट में पैसे भेजें।",
-      "benefit_deposit_pix": "के साथ डिपॉज़िट करें",
-      "benefit_payments": "लोकल और इंटरनेशनल पेमेंट भेजें",
-      "agreements_disclosures_title": "समझौते और प्रकटीकरण",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "नियम और शर्तें लोड नहीं हो सकीं।",
       "disclaimers_retry": "फिर से प्रयास करें",
-      "agreement_text": "जारी रखकर, आप ऊपर दिए गए नियम और शर्तों से सहमत हैं।",
-      "powered_by_moonpay": "MoonPay द्वारा संचालित।",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " और ",
       "button": "सहमत हों और जारी रखें"
     },
     "verify_identity": {
@@ -1158,9 +1161,38 @@
       "error_description": "हम आपकी आइडेंटिटी वेरिफ़िकेशन शुरू नहीं कर सके। फिर से कोशिश करें।",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "ईमेल नहीं दिख रही है। वापस जाएं और अपना ईमेल डालें।"
+    },
+    "kyc_pending": {
+      "title": "वेरिफिकेशन प्रोग्रेस में है",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "स्टेटस जांचें"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "फिर से प्रयास करें"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "फिर से प्रयास करें"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "फिर से प्रयास करें"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "विकल्प",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "लोकप्रिय"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "जब आपके द्वारा फ़ॉलो किए गए ट्रेडर कोई कदम उठाएंगे, तो आपको एलर्ट मिलेंगे। अपने डिवाइस की सेटिंग्स में नोटिफ़िकेशन चालू करें।",
@@ -1282,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "पोज़िशन",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1310,10 +1348,14 @@
       },
       "filters": {
         "title": "Filters",
-        "show_results": "Show results",
+        "show_results": "लागू करें",
+        "apply": "लागू करें",
+        "reset": "रीसेट करें",
         "section": {
-          "type": "यह पुष्टि करने के लिए टाइप करें",
-          "trader_cohort": "Trader cohort",
+          "type": "एसेट",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "ट्रेडर्स",
           "timeframe": "टाइम फ्रेम",
           "network": "नेटवर्क",
           "market_cap": "मार्केट कैप",
@@ -1325,13 +1367,19 @@
           "perps": "पर्प्स",
           "predictions": "प्रेडिक्शंस"
         },
+        "verification": {
+          "all": "सभी",
+          "verified": "वेरीफाई किया गया",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "सभी",
           "following": "फ़ॉलो कर रहे हैं",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "वेरीफाई किया गया"
         },
         "timeframe": {
           "1h": "1H",
@@ -2046,7 +2094,7 @@
         "scale_price_above_warning": "आपकी प्राइस रेंज मौजूदा प्राइस से ज़्यादा है, इसलिए यह टेकर ऑर्डर के तौर पर तुरंत पूरा हो सकता है और इस पर टेकर शुल्क लग सकता है।",
         "scale_price_below_warning": "आपकी प्राइस रेंज मौजूदा प्राइस से कम है, इसलिए यह टेकर ऑर्डर के तौर पर तुरंत पूरा हो सकता है और इस पर टेकर शुल्क लग सकता है।",
         "scale_price_above_partial_warning": "आपकी प्राइस रेंज का कुछ हिस्सा मौजूदा प्राइस से ज़्यादा है और हो सकता है कि यह टेकर ऑर्डर के तौर पर तुरंत पूरा हो जाए।",
-        "scale_price_below_partial_warning": "आपकी प्राइस रेंज का कुछ हिस्सा मौजूदा प्राइस से कम है और हो सकता है कि यह टेकर ऑर्डर के तौर पर तुरंत पूरा हो जाए और इस पर टेकर शुल्क लगे।",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "ट्रिगर प्राइस मिड प्राइस से ज़्यादा होना चाहिए",
         "trigger_must_be_below_mid": "ट्रिगर प्राइस मिड प्राइस से कम होना चाहिए",
         "trigger_orders_unavailable": "ट्रिगर किए गए ऑर्डर कुछ समय के लिए उपलब्ध नहीं हैं। एक मार्केट ऑर्डर चुनें।",
@@ -3340,17 +3388,40 @@
       "predict_balance": "बैलेंस का अनुमान लगाएं",
       "total": "कुल",
       "price_details": "प्राइस विवरण",
-      "confirm": "कन्फर्म करें",
       "terms": "जारी रखकर, आप प्लेटफ़ॉर्म की शर्तों को स्वीकार करते हैं।",
       "learn_more": "ज्यादा जानें",
       "submitting": "आपका ऑर्डर सबमिट कर रहे हैं...",
-      "success_title": "ऑर्डर सबमिट किया गया",
       "done": "पूरा हुआ",
       "close": "बंद करें",
       "delete": "हटाएँ",
       "expired": "इस कोटेशन की समयसीमा समाप्त हो गई है। नई कोटेशन पाने के लिए रिफ्रेश करें।",
       "refresh": "रिफ्रेश",
-      "retry": "फिर से प्रयास करें"
+      "retry": "फिर से प्रयास करें",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "अपना ऑर्डर समीक्षा करें",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "ऑर्डर पूरा हो गया",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "भरा गया",
+      "average_fill_price": "औसत फ़िल प्राइस",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "फिर से प्रयास करें"
     }
   },
   "predict": {
@@ -4151,6 +4222,7 @@
     "display_nft_media_cta": "'NFT मीडिया दिखाएं' को चालू करें",
     "display_media_nft_warning": "NFT मीडिया और डेटा को दिखाने से आपका आईपी ​​एड्रेस सेंट्रलाइज़्ड सर्वरों के सामने आ सकता है। NFT को सिर्फ तभी इम्पोर्ट करें जब आप इससे जुड़े खतरों को समझते हों।",
     "nfts_autodetect_title": "NFT ऑटोडिटेक्शन",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "NFT ऑटोडिटेक्शन चालू करें",
     "turn_on_network_check_cta": "नेटवर्क डिटेल्स की जांच को चालू करें",
     "display_nft_media_cta_new_1": "NFT देखने के लिए, इसमें 'NFT मीडिया दिखाएं' को चालू करें",
@@ -4318,7 +4390,7 @@
     "privacy_policy_button": "गोपनीयता नीति से सहमत होते हैं",
     "agree": "मैं सहमत हूं",
     "decline": "जी नहीं, धन्यवाद",
-    "description_title": "MetaMask को बेहतर बनाएं",
+    "description_title": "MetaMask को बेहतर बनाने में हमारी मदद करें",
     "description_content_1": "हम इन अनुमतियों का अनुरोध करना चाहेंगे। आप कभी भी अपनी उपयोग संबंधी डेटा से बाहर निकल सकते हैं या उसे मिटा सकते हैं।",
     "description_content_2": "जब हम मेट्रिक्स इकट्ठा करते हैं, तो यह हमेशा... रहेगा",
     "description_content_3": "जानें कि आपके प्रोफ़ाइल के लिए यूसेज डेटा एकत्र करते समय हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं।",
@@ -4364,17 +4436,18 @@
   },
   "basic_functionality_migration": {
     "title": "हमने अपनी सेटिंग्स अपडेट कर दी हैं",
-    "social_title": "गोपनीयता और प्रोडक्ट अपडेट्स",
-    "social_body_1": "हम सोशल लॉगिन के लिए MetaMask के काम करने के तरीके को अपडेट कर रहे हैं। MetaMask पर एक आसान एक्सपीरियंस देने के लिए, आपका सोशल लॉगिन आइडेंटिफायर (ईमेल या हैंडल) अब आपकी यूज़र प्रोफ़ाइल और उससे जुड़े अकाउंट एड्रेस से सुरक्षित तरीके से लिंक हो जाएगा। इस अपडेट के हिस्से के तौर पर, बेसिक फंक्शनैलिटी और दूसरी डिफॉल्ट सेटिंग्स हमेशा चालू रहेंगी।",
-    "social_body_2_prefix": "हम आपका डेटा कभी भी थर्ड पार्टी को नहीं बेचते हैं। हम क्या इकट्ठा करते हैं और क्यों, इसके बारे में और पढ़ें",
-    "social_body_2_middle": " और अपडेट किया गया ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " और ",
     "social_body_2_suffix": ".",
     "blog_post_link": "ब्लॉग पोस्ट",
     "privacy_notice_link": "गोपनीयता नोटिस",
-    "toast_description": "बेसिक फंक्शनैलिटी में अब थर्ड-पार्टी APIs शामिल हैं। यह आपकी पिछली सेटिंग्स के आधार पर चालू है। कभी भी इसमें एडजस्ट करें",
-    "toast_description_disabled": "बेसिक फंक्शनैलिटी में अब थर्ड-पार्टी APIs शामिल हैं। यह आपकी पिछली सेटिंग्स के आधार पर बंद है। कभी भी इसमें एडजस्ट करें",
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
     "settings_link": "सेटिंग्स > गोपनीयता।",
-    "accept_and_close": "स्वीकार करें और बंद करें"
+    "learn_more_link": "अधिक जानें।",
+    "accept_and_close": "जारी रखें"
   },
   "onboarding_interest_questionnaire": {
     "title": "आप MetaMask का इस्तेमाल कैसे करेंगे?",
@@ -5140,7 +5213,7 @@
       },
       "identity": {
         "title": "पहचान",
-        "description": "यह स्थायी प्रमाणीकरण सत्र को हटाता है। MM_DEV_API_ENV को टॉगल करने के बाद इसका उपयोग करें — अन्यथा एक प्रोड-जनरेटेड JWT तब तक dev-API उपभोक्ताओं को मिलता रहेगा जब तक उसकी वैधता समाप्त नहीं हो जाती। वर्तमान MM_DEV_API_ENV: {{env}}।",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "स्थायी प्रमाणीकरण सत्र हटाएं"
       },
       "notifications": {
@@ -7173,6 +7246,12 @@
     "order_status_cancelled": "रद्द हो गया",
     "webview_no_url_provided": "जारी रखने के लिए कोई URL नहीं दिया गया",
     "webview_error_no_address_provided": "जारी रखने के लिए कोई वॉलेट एड्रेस नहीं दिया गया",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "वापस जाएं",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "सेटिंग्स",
       "use_new_buy_experience": "खरीदने के और तरीके",
@@ -8484,7 +8563,6 @@
       "add": "जोड़ें",
       "convert_cta": "अपने क्रिप्टो को कन्वर्ट करें",
       "no_fee": "कोई शुल्क नहीं",
-      "view_all": "सभी देखें",
       "view_potential_earnings": "संभावित कमाई देखें"
     },
     "metamask_card": {
@@ -8494,13 +8572,11 @@
       "virtual_card": "वर्चुअल कार्ड",
       "metal_card": "मेटल कार्ड",
       "cashback": "{{percentage}}% mUSD वापस",
-      "get_now": "पाएं",
       "link_title": "कार्ड लिंक करें",
       "link_subtitle": "अपना बैलेंस खर्च करें और खरीदारी पर कमाएं।",
       "link_subtitle_no_apy": "अपना बैलेंस खर्च करें और खरीदारी पर कमाएं।",
       "link_bullet_cashback": "{{percentage}}% mUSD वापस पाएं",
       "link_bullet_apy": "~{{apy}}% APY तक कमाएं",
-      "link_card": "कार्ड लिंक करें",
       "link_pending_title": "आपका कार्ड लिंक किया जा रहा है",
       "link_success_title": "आपका कार्ड उपयोग के लिए तैयार है",
       "link_error": "आपका कार्ड लिंक करने में कुछ समस्या हुई",
@@ -8522,7 +8598,6 @@
       "unlink_card_sheet_another_money_account": "एक और Money Account",
       "unlink_card_sheet_keep_linked": "लिंक रखें",
       "unlink_card_sheet_unlink_account": "अकाउंट को अनलिंक करें",
-      "manage_card": "मैनेज करें",
       "verification_pending": "आपकी पहचान सत्यापन की समीक्षा की जा रही है। यह आम तौर पर 12 घंटे से कम समय लेता है।"
     },
     "what_you_get": {
@@ -9231,6 +9306,8 @@
       "limit": "सीमित करें",
       "recurring": "आवर्ती"
     },
+    "generic_error_toast_title": "कुछ गलत हो गया",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "खुला ऑर्डर",
@@ -9290,15 +9367,21 @@
       "trigger_condition": "ट्रिगर का शर्त",
       "expiry_label": "एक्सपायरी",
       "confirm_order": "ऑर्डर कन्फर्म करें",
-      "status": "Status",
+      "status": "स्टेटस",
       "in_progress": "In progress",
-      "submitted": "Submitted",
-      "cancel_order": "Cancel order",
-      "cancel_order_confirmation": "Do you really want to cancel your order?",
+      "submitted": "सबमिट किया गया",
+      "cancel_order": "ऑर्डर कैंसिल करें",
+      "cancel_order_confirmation": "क्या आप वास्तव में अपना ऑर्डर कैंसिल करना चाहते हैं?",
       "edit_cost_tolerance": "कॉस्ट टॉलरेंस को बदलें",
       "try_again": "फिर से प्रयास करें",
       "error_calculation_network_fees": "नेटवर्क फीस कैलकुलेट नहीं की जा सकी।",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "ऑर्डर बनाया गया",
+      "order_created_description": "जब यह फिल कर दिया जाएगा तो हम आपको बता देंगे।",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "आप पाते हैं",
@@ -10391,7 +10474,7 @@
         },
         "unverified": {
           "title": "वेरिफिकेशन ज़रूरी है",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "वेरिफिकेशन स्टेटस उपलब्ध नहीं है",
@@ -10712,8 +10795,8 @@
       "sign_in_help_got_it": "समझ गए",
       "errors": {
         "invalid_credentials": "लॉगिन जानकारी ग़लत है",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "ईमेल की आवश्यकता है",
         "password_required": "पासवर्ड की आवश्यकता है",
         "email_invalid": "ईमेल एड्रेस ग़लत है",

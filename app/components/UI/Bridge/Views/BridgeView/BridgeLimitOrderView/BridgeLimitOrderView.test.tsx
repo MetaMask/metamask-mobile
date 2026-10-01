@@ -709,6 +709,58 @@ describe('BridgeLimitOrderView', () => {
     });
   });
 
+  it('navigates to the confirmation modal with a USD price trigger when the limit is quoted in fiat', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      isLimitFiatMode: true,
+      limitPrice: '3000',
+      executionType: LimitOrderExecutionType.SELL,
+      priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+        params: expect.objectContaining({
+          // The display currency is USD in this state, so the price is sent
+          // as typed.
+          trigger: { kind: 'src_price', threshold: 'above', price: '3000' },
+        }),
+      }),
+    );
+  });
+
+  it('navigates to the confirmation modal with a ratio trigger when the limit is quoted in token units', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      isLimitFiatMode: false,
+      limitPrice: '0.04',
+      priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          trigger: { kind: 'ratio', threshold: 'below', price: '0.04' },
+        }),
+      }),
+    );
+  });
+
   it('saves the selected expiration in minutes when the modal confirms', () => {
     const { getByTestId, getByText, queryByText } = renderLimitOrderView();
 

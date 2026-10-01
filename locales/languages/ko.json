@@ -1121,13 +1121,16 @@
       "navbar_title": "은행 계좌",
       "title": "Pix 키 받기",
       "description": "모든 은행 계좌에서 머니 계정으로 직접 송금할 수 있습니다.",
-      "benefit_deposit_pix": "입금 방법:",
-      "benefit_payments": "국내 및 해외로 결제 대금 보내기",
-      "agreements_disclosures_title": "약관 및 고지 사항",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "이용 약관을 불러올 수 없습니다.",
       "disclaimers_retry": "다시 시도",
-      "agreement_text": "계속하면 위의 이용 약관에 동의하는 것으로 간주됩니다.",
-      "powered_by_moonpay": "MoonPay 제공",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " 및 ",
       "button": "동의하고 계속하기"
     },
     "verify_identity": {
@@ -1158,9 +1161,38 @@
       "error_description": "본인 인증을 시작하지 못했습니다. 다시 시도해 주세요.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "이메일 주소가 입력되지 않았습니다. 돌아가서 이메일 주소를 입력하세요."
+    },
+    "kyc_pending": {
+      "title": "신원 인증 진행 중",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "상태 확인"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "다시 시도"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "다시 시도"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "다시 시도"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "옵션",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "인기"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "팔로우하는 트레이더가 거래를 하면 알림을 받습니다. 기기 설정에서 알림을 켜세요.",
@@ -1282,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "포지션",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1310,10 +1348,14 @@
       },
       "filters": {
         "title": "Filters",
-        "show_results": "Show results",
+        "show_results": "적용",
+        "apply": "적용",
+        "reset": "초기화",
         "section": {
-          "type": "유형",
-          "trader_cohort": "Trader cohort",
+          "type": "자산",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "트레이더",
           "timeframe": "기간",
           "network": "네트워크",
           "market_cap": "시가총액",
@@ -1325,13 +1367,19 @@
           "perps": "무기한 선물",
           "predictions": "예측"
         },
+        "verification": {
+          "all": "모두",
+          "verified": "인증 완료",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "모두",
           "following": "팔로우 중",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "인증 완료"
         },
         "timeframe": {
           "1h": "1H",
@@ -2046,7 +2094,7 @@
         "scale_price_above_warning": "가격 범위가 현재 가격보다 높아 즉시 테이커 주문으로 체결되고 테이커 수수료가 발생할 수 있습니다.",
         "scale_price_below_warning": "가격 범위가 현재 가격보다 낮아 즉시 테이커 주문으로 체결되고 테이커 수수료가 발생할 수 있습니다.",
         "scale_price_above_partial_warning": "가격 범위의 일부가 현재 가격보다 높아 즉시 테이커 주문으로 체결될 수 있습니다.",
-        "scale_price_below_partial_warning": "가격 범위의 일부가 현재 가격보다 낮아 즉시 테이커 주문으로 체결되고 테이커 수수료가 발생할 수 있습니다.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "트리거 가격은 중간 가격보다 높아야 합니다",
         "trigger_must_be_below_mid": "트리거 가격은 중간 가격보다 낮아야 합니다",
         "trigger_orders_unavailable": "트리거 주문은 일시적으로 사용할 수 없습니다. 시장가 주문을 선택하세요.",
@@ -3340,17 +3388,40 @@
       "predict_balance": "잔액 예측",
       "total": "총액",
       "price_details": "가격 정보",
-      "confirm": "컨펌",
       "terms": "계속 진행하면 플랫폼 약관에 동의하는 것이 됩니다.",
       "learn_more": "더 보기",
       "submitting": "주문 제출 중…",
-      "success_title": "주문 제출됨",
       "done": "완료",
       "close": "닫기",
       "delete": "삭제",
       "expired": "이 견적은 만료되었습니다. 새 견적을 받으려면 새로고침하세요.",
       "refresh": "새로 고침",
-      "retry": "다시 시도"
+      "retry": "다시 시도",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "주문 검토",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "주문 체결 완료",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "체결됨",
+      "average_fill_price": "평균 체결가",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "다시 시도"
     }
   },
   "predict": {
@@ -4151,6 +4222,7 @@
     "display_nft_media_cta": "NFT 미디어 표시 켜기",
     "display_media_nft_warning": "NFT 미디어와 데이터를 표시하면 IP 주소가 중앙 서버에 노출될 수 있습니다. 관련 위험을 이해하고 있는 경우에만 NFT를 가져오세요.",
     "nfts_autodetect_title": "NFT 자동 감지",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "NFT 자동 감지 활성화",
     "turn_on_network_check_cta": "네트워크 세부 정보 확인 켜기",
     "display_nft_media_cta_new_1": "NFT를 보려면, 다음에서 NFT 미디어 표시를 켜세요",
@@ -4318,7 +4390,7 @@
     "privacy_policy_button": "개인정보 보호방침",
     "agree": "동의합니다",
     "decline": "아니요, 괜찮습니다",
-    "description_title": "MetaMask 개선",
+    "description_title": "MetaMask 개선에 도움을 주세요",
     "description_content_1": "이러한 권한을 요청하고자 합니다. 언제든지 사용 데이터를 거부하거나 삭제할 수 있습니다.",
     "description_content_2": "메트릭을 수집할 때는 항상...",
     "description_content_3": "프로필 사용 데이터를 수집하는 동안 개인정보 보호 방법을 알아보세요.",
@@ -4364,17 +4436,18 @@
   },
   "basic_functionality_migration": {
     "title": "설정이 업데이트되었습니다",
-    "social_title": "개인정보 보호 및 제품 업데이트",
-    "social_body_1": "MetaMask의 소셜 로그인 작동 방식을 업데이트합니다. MetaMask 전반에서 원활한 이용 환경을 제공하기 위해 이제 소셜 로그인 식별자(이메일 또는 아이디)가 사용자 프로필 및 연결된 계정 주소에 안전하게 링크됩니다. 이번 업데이트에 따라 기본 기능과 기타 기본 설정은 항상 활성화 상태로 유지됩니다.",
-    "social_body_2_prefix": "MetaMask는 사용자의 데이터를 제삼자에게 절대 판매하지 않습니다. 수집하는 데이터와 그 이유에 대한 자세한 내용은 다음에서 확인하세요:",
-    "social_body_2_middle": " 및 업데이트된 ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " 및 ",
     "social_body_2_suffix": ".",
     "blog_post_link": "블로그 포스트",
     "privacy_notice_link": "개인정보 처리방침",
-    "toast_description": "이제 기본 기능에 타사 API가 포함됩니다. 이전 설정에 따라 활성화되었습니다. 언제든지 다음에서 변경할 수 있습니다:",
-    "toast_description_disabled": "이제 기본 기능에 타사 API가 포함됩니다. 이전 설정에 따라 비활성화되었습니다. 언제든지 다음에서 변경할 수 있습니다:",
-    "settings_link": "설정 > 개인정보 보호.",
-    "accept_and_close": "동의하고 종료하기"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "설정 > 개인정보 보호. ",
+    "learn_more_link": "자세히 알아보세요.",
+    "accept_and_close": "계속"
   },
   "onboarding_interest_questionnaire": {
     "title": "MetaMask를 어떻게 사용하실 건가요?",
@@ -5140,7 +5213,7 @@
       },
       "identity": {
         "title": "식별 정보",
-        "description": "저장된 인증 세션을 삭제합니다. MM_DEV_API_ENV를 변경한 후에는 이 작업을 수행하세요. 그러지 않으면 프로덕션 환경에서 발급된 JWT가 만료될 때까지 계속 개발 API에 전달됩니다. 현재 MM_DEV_API_ENV: {{env}}",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "저장된 인증 세션 삭제"
       },
       "notifications": {
@@ -7173,6 +7246,12 @@
     "order_status_cancelled": "취소됨",
     "webview_no_url_provided": "계속하려면 URL이 필요합니다",
     "webview_error_no_address_provided": "계속하려면 지갑 주소가 필요합니다",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "뒤로 가기",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "설정",
       "use_new_buy_experience": "다른 구매 방법",
@@ -8484,7 +8563,6 @@
       "add": "추가",
       "convert_cta": "암호자산 전환",
       "no_fee": "요금 없음",
-      "view_all": "모두 보기",
       "view_potential_earnings": "예상 수익 보기"
     },
     "metamask_card": {
@@ -8494,13 +8572,11 @@
       "virtual_card": "가상 카드",
       "metal_card": "메탈 카드",
       "cashback": "{{percentage}}% mUSD 캐시백",
-      "get_now": "받기",
       "link_title": "카드 연결",
       "link_subtitle": "잔액으로 결제하여 구매 시 보상을 받으세요.",
       "link_subtitle_no_apy": "잔액으로 결제하여 구매 시 보상을 받으세요.",
       "link_bullet_cashback": "{{percentage}}% mUSD 캐시백 적립",
       "link_bullet_apy": "최대 ~{{apy}}% APY 수익 얻기",
-      "link_card": "카드 연결",
       "link_pending_title": "카드 연결 중",
       "link_success_title": "이제 카드를 사용할 수 있습니다",
       "link_error": "카드를 연결하는 동안 오류가 발생했습니다",
@@ -8522,7 +8598,6 @@
       "unlink_card_sheet_another_money_account": "다른 Money Account",
       "unlink_card_sheet_keep_linked": "연결 유지",
       "unlink_card_sheet_unlink_account": "계정 연결 해제",
-      "manage_card": "관리",
       "verification_pending": "신원 인증을 검토 중입니다. 일반적으로 12시간 이내에 완료됩니다."
     },
     "what_you_get": {
@@ -9231,6 +9306,8 @@
       "limit": "한도",
       "recurring": "반복"
     },
+    "generic_error_toast_title": "문제가 발생했습니다",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "미체결 주문",
@@ -9290,15 +9367,21 @@
       "trigger_condition": "트리거 조건",
       "expiry_label": "유효기간",
       "confirm_order": "주문 컨펌",
-      "status": "Status",
+      "status": "상태",
       "in_progress": "In progress",
-      "submitted": "Submitted",
-      "cancel_order": "Cancel order",
-      "cancel_order_confirmation": "Do you really want to cancel your order?",
+      "submitted": "제출",
+      "cancel_order": "주문 취소",
+      "cancel_order_confirmation": "주문을 정말 취소하시겠습니까?",
       "edit_cost_tolerance": "비용 허용 범위 수정",
       "try_again": "다시 시도",
       "error_calculation_network_fees": "네트워크 수수료를 계산하지 못했습니다.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "주문 생성됨",
+      "order_created_description": "체결되면 알려드리겠습니다.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "수령 금액",
@@ -10391,7 +10474,7 @@
         },
         "unverified": {
           "title": "인증 필요",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "인증 상태를 확인할 수 없습니다",
@@ -10712,8 +10795,8 @@
       "sign_in_help_got_it": "컨펌",
       "errors": {
         "invalid_credentials": "잘못된 로그인 정보입니다",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "이메일 주소를 입력해야 합니다",
         "password_required": "비밀번호를 입력해야 합니다",
         "email_invalid": "잘못된 이메일 주소입니다",

@@ -70,6 +70,8 @@ import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWallet
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
+import { getLimitOrderTriggerParams } from '../../../utils/limitOrders/getLimitOrderTriggerParams';
+import { useFiatToUsdRate } from '../../../hooks/useFiatToUsdRate';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
@@ -354,6 +356,27 @@ const BridgeLimitOrderViewContent = () => {
     isLimitFiatMode ? getCurrencySymbol(currentCurrency || 'usd') : ''
   }${formatAmountWithLocaleSeparators(value)}`;
 
+  // The order is placed with the USD equivalent of the limit price, which the
+  // display currency only matches when it is already USD.
+  const fiatToUsdRate = useFiatToUsdRate(sourceToken?.chainId);
+  const trigger = useMemo(
+    () =>
+      getLimitOrderTriggerParams({
+        executionType,
+        isLimitFiatMode,
+        limitPrice,
+        priceComparisonDirection,
+        fiatToUsdRate,
+      }),
+    [
+      executionType,
+      fiatToUsdRate,
+      isLimitFiatMode,
+      limitPrice,
+      priceComparisonDirection,
+    ],
+  );
+
   const handleCreateOrderPress = useCallback(() => {
     dismissInputAndKeypad();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -372,6 +395,7 @@ const BridgeLimitOrderViewContent = () => {
           destTokenAmount,
           expiresInMinutes: expirationMinutes,
         }),
+        trigger,
       },
     });
   }, [
@@ -384,6 +408,7 @@ const BridgeLimitOrderViewContent = () => {
     quotedToken,
     sourceAmount,
     sourceToken,
+    trigger,
     triggerPrice,
   ]);
 

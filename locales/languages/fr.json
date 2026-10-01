@@ -1121,13 +1121,16 @@
       "navbar_title": "Compte bancaire",
       "title": "Obtenez votre Pix Key",
       "description": "Transférez directement des fonds depuis n'importe quel compte bancaire vers votre compte Money.",
-      "benefit_deposit_pix": "Effectuez un dépôt via",
-      "benefit_payments": "Effectuez des paiements nationaux et internationaux",
-      "agreements_disclosures_title": "Accords et mentions légales",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Impossible de charger les conditions générales.",
       "disclaimers_retry": "Réessayez",
-      "agreement_text": "En continuant, vous acceptez les conditions générales ci-dessus.",
-      "powered_by_moonpay": "Propulsé par MoonPay.",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " et ",
       "button": "Accepter et continuer"
     },
     "verify_identity": {
@@ -1158,9 +1161,38 @@
       "error_description": "Nous n'avons pas pu lancer le processus de vérification de votre identité. Veuillez réessayer.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "L’adresse e-mail est manquante. Revenez en arrière et saisissez votre adresse e-mail."
+    },
+    "kyc_pending": {
+      "title": "Vérification en cours",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Vérifier l’état"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Réessayez"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Réessayez"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Réessayez"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Options",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Populaire"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "Vous recevrez des alertes lorsque les traders que vous suivez effectuent une opération. Activez les notifications dans les paramètres de votre appareil.",
@@ -1282,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1310,9 +1348,13 @@
       },
       "filters": {
         "title": "Filters",
-        "show_results": "Show results",
+        "show_results": "Appliquer",
+        "apply": "Appliquer",
+        "reset": "Réinitialiser",
         "section": {
-          "type": "Type",
+          "type": "Actif",
+          "asset_type": "Asset type",
+          "verification": "Verification",
           "trader_cohort": "Trader cohort",
           "timeframe": "Période",
           "network": "Réseau",
@@ -1325,13 +1367,19 @@
           "perps": "Perps",
           "predictions": "Prédictions"
         },
+        "verification": {
+          "all": "Tous",
+          "verified": "Vérifié",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "Tous",
           "following": "Vous suivez",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Vérifié"
         },
         "timeframe": {
           "1h": "1H",
@@ -1551,7 +1599,7 @@
       "select_quote_title": "Sélectionner la cotation",
       "rate": "Taux",
       "get_new_quote": "Obtenir une nouvelle cotation",
-      "available_balance": "{{amount}} disponible(s)",
+      "available_balance": "{{amount}} Disponible(s)",
       "toggle_amount_display": "Passer du montant en jetons au montant en dollars",
       "includes_mm_fee": "Comprend {{fee}} % de frais MetaMask",
       "pay_with_no_tokens": "Pas de jeton disponible pour payer",
@@ -2046,7 +2094,7 @@
         "scale_price_above_warning": "Votre fourchette de prix est supérieure au cours actuel et l'ordre pourrait être exécuté immédiatement en tant qu'ordre « taker », ce qui entraînerait des frais d’ordre « taker ».",
         "scale_price_below_warning": "Votre fourchette de prix est inférieure au cours actuel et l'ordre pourrait être exécuté immédiatement en tant qu'ordre « taker », ce qui entraînerait des frais d’ordre « taker ».",
         "scale_price_above_partial_warning": "Une partie de votre fourchette de prix est supérieure au prix actuel et peut être exécutée immédiatement en tant qu’ordre « taker ».",
-        "scale_price_below_partial_warning": "Une partie de votre fourchette de prix est inférieure au cours actuel et l'ordre pourrait être exécuté immédiatement en tant qu'ordre « taker », ce qui entraînerait des frais d’ordre « taker ».",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Le prix déclencheur doit être supérieur au prix moyen",
         "trigger_must_be_below_mid": "Le prix déclencheur doit être inférieur au prix moyen",
         "trigger_orders_unavailable": "Les ordres à prix déclencheur sont temporairement indisponibles. Sélectionnez un ordre au marché.",
@@ -3340,17 +3388,40 @@
       "predict_balance": "Solde « Predict »",
       "total": "Total",
       "price_details": "Détails du prix",
-      "confirm": "Confirmer",
       "terms": "En continuant, vous acceptez les conditions d'utilisation de la plateforme.",
       "learn_more": "En savoir plus",
       "submitting": "Envoi de votre ordre…",
-      "success_title": "Ordre envoyé",
       "done": "Terminé",
       "close": "Fermer",
       "delete": "Supprimer",
       "expired": "Cette cotation a expiré. Actualisez la page pour en obtenir une nouvelle.",
       "refresh": "Actualiser",
-      "retry": "Réessayez"
+      "retry": "Réessayez",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Vérifiez votre commande",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Ordre exécuté",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Exécuté",
+      "average_fill_price": "Prix moyen d'exécution",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Réessayez"
     }
   },
   "predict": {
@@ -4151,6 +4222,7 @@
     "display_nft_media_cta": "Activez l’option « Afficher les supports NFT »",
     "display_media_nft_warning": "L’affichage des supports et des données NFT peut exposer votre adresse IP à des serveurs centralisés. N’importez un NFT que si vous comprenez les risques encourus.",
     "nfts_autodetect_title": "Détection automatique des NFT",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "Activer la détection automatique des NFT",
     "turn_on_network_check_cta": "Activer la vérification des détails du réseau",
     "display_nft_media_cta_new_1": "Pour voir un NFT, activez l’option « Afficher les supports NFT » dans",
@@ -4318,7 +4390,7 @@
     "privacy_policy_button": "la politique de confidentialité",
     "agree": "J’accepte",
     "decline": "Non, merci",
-    "description_title": "Améliorer MetaMask",
+    "description_title": "Aidez-nous à améliorer MetaMask",
     "description_content_1": "Nous aimerions demander ces autorisations. Vous pouvez vous désinscrire ou supprimer vos données d’utilisation à tout moment.",
     "description_content_2": "Lorsque nous recueillons des données, elles sont toujours…",
     "description_content_3": "Découvrez comment nous protégeons votre vie privée lors de la collecte de données d’utilisation pour votre profil.",
@@ -4364,17 +4436,18 @@
   },
   "basic_functionality_migration": {
     "title": "Nous avons mis à jour nos paramètres",
-    "social_title": "Confidentialité et mises à jour des produits",
-    "social_body_1": "Nous mettons à jour le mode de fonctionnement de MetaMask pour la connexion via les réseaux sociaux. Afin de garantir une expérience utilisateur plus fluide sur l'ensemble des services MetaMask, votre identifiant de connexion via les réseaux sociaux (e-mail ou pseudo) sera désormais associé de manière sécurisée à votre profil utilisateur et aux adresses de compte qui y sont associées. Dans le cadre de cette mise à jour, les fonctionnalités de base et les autres paramètres par défaut seront toujours activés.",
-    "social_body_2_prefix": "Nous ne vendons jamais vos données à des tiers. Pour en savoir plus sur les données que nous collectons et les raisons pour lesquelles nous le faisons, consultez notre",
-    "social_body_2_middle": " et la version mise à jour de ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " et ",
     "social_body_2_suffix": ".",
     "blog_post_link": "article de blog",
     "privacy_notice_link": "Politique de confidentialité",
-    "toast_description": "Les fonctionnalités de base incluent désormais les API tierces. Elles sont activées conformément à vos paramètres précédents. Vous pouvez les modifier à tout moment dans",
-    "toast_description_disabled": "Les fonctionnalités de base incluent désormais les API tierces. Elles sont désactivées conformément à vos paramètres précédents. Vous pouvez les modifier à tout moment dans",
-    "settings_link": "Paramètres > Confidentialité.",
-    "accept_and_close": "Accepter et fermer"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Paramètres > Confidentialité. ",
+    "learn_more_link": "En savoir plus.",
+    "accept_and_close": "Continuer"
   },
   "onboarding_interest_questionnaire": {
     "title": "Que comptez-vous faire avec votre compte MetaMask ?",
@@ -5140,7 +5213,7 @@
       },
       "identity": {
         "title": "Identité",
-        "description": "Efface la session d’authentification mémorisée. Utilisez cette commande après avoir activé ou désactivé MM_DEV_API_ENV ; sinon, un JWT généré en production continuera d’être transmis aux consommateurs de l’API de développement jusqu’à son expiration. Valeur actuelle de MM_DEV_API_ENV : {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Effacer la session d’authentification mémorisée"
       },
       "notifications": {
@@ -7173,6 +7246,12 @@
     "order_status_cancelled": "Annulé",
     "webview_no_url_provided": "Aucune URL n’a été fournie pour continuer",
     "webview_error_no_address_provided": "Aucune adresse de portefeuille n’a été fournie pour continuer",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Retour",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Paramètres",
       "use_new_buy_experience": "Autres moyens d’effectuer un achat",
@@ -8484,7 +8563,6 @@
       "add": "Ajouter",
       "convert_cta": "Convertissez vos crypto-monnaies",
       "no_fee": "Pas de frais",
-      "view_all": "Tout afficher",
       "view_potential_earnings": "Afficher les gains potentiels"
     },
     "metamask_card": {
@@ -8494,13 +8572,11 @@
       "virtual_card": "Carte virtuelle",
       "metal_card": "Carte Metal",
       "cashback": "{{percentage}} % de cashback en mUSD",
-      "get_now": "Obtenir",
       "link_title": "Associer une carte",
       "link_subtitle": "Utilisez votre solde pour effectuer des achats et gagnez de l’argent.",
       "link_subtitle_no_apy": "Utilisez votre solde pour effectuer des achats et gagnez de l’argent.",
       "link_bullet_cashback": "Recevez {{percentage}} % de cashback en mUSD",
       "link_bullet_apy": "Obtenez jusqu’à {{apy}} % de rendement annuel",
-      "link_card": "Associer une carte",
       "link_pending_title": "Association de votre carte",
       "link_success_title": "Votre carte peut être utilisée",
       "link_error": "Une erreur s’est produite lors de l’association de votre carte",
@@ -8522,7 +8598,6 @@
       "unlink_card_sheet_another_money_account": "un autre Money Account",
       "unlink_card_sheet_keep_linked": "Ne pas dissocier",
       "unlink_card_sheet_unlink_account": "Dissocier le compte",
-      "manage_card": "Gérer",
       "verification_pending": "Votre vérification d’identité est en cours d’examen. Cela prend généralement moins de 12 heures."
     },
     "what_you_get": {
@@ -9231,6 +9306,8 @@
       "limit": "Limite",
       "recurring": "Récurrent"
     },
+    "generic_error_toast_title": "Quelque chose a mal tourné",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Ordres ouverts",
@@ -9290,15 +9367,21 @@
       "trigger_condition": "Condition d’exécution",
       "expiry_label": "Date d’expiration",
       "confirm_order": "Confirmer l'ordre",
-      "status": "Status",
+      "status": "État",
       "in_progress": "In progress",
-      "submitted": "Submitted",
-      "cancel_order": "Cancel order",
-      "cancel_order_confirmation": "Do you really want to cancel your order?",
+      "submitted": "Envoyé",
+      "cancel_order": "Annuler l’ordre",
+      "cancel_order_confirmation": "Souhaitez-vous vraiment annuler votre ordre ?",
       "edit_cost_tolerance": "Modifier la tolérance de coût",
       "try_again": "Réessayez",
       "error_calculation_network_fees": "Impossible de calculer les frais de réseau.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Ordre créé",
+      "order_created_description": "Nous vous informerons dès qu'il aura été exécuté.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "Vous recevez",
@@ -10391,7 +10474,7 @@
         },
         "unverified": {
           "title": "Vérification requise",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Statut de vérification non disponible",
@@ -10712,8 +10795,8 @@
       "sign_in_help_got_it": "J’ai compris",
       "errors": {
         "invalid_credentials": "Identifiants de connexion non valides",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "L’adresse e-mail est requise",
         "password_required": "Le mot de passe est requis",
         "email_invalid": "Adresse e-mail non valide",
