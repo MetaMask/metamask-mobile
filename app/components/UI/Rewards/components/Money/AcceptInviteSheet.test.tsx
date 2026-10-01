@@ -559,6 +559,17 @@ describe('AcceptInviteSheet', () => {
       });
     });
 
+    it('tracks no offer while the session profile is unresolved', () => {
+      mockUseSessionProfileId.mockReturnValue({
+        profileId: undefined,
+        isResolved: false,
+      });
+
+      renderSheetSync('KOL1');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('tracks no offer for an already-referred profile that closes itself', async () => {
       referralMeEntries = {
         [PROFILE_ID]: {
