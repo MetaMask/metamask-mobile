@@ -4,12 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
-import {
-  selectReferralMeEntry,
-  selectReferralMeLocalizedText,
-} from '../../../../reducers/rewardsMoney/selectors';
+import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
 import useRewardsToast from './useRewardsToast';
 import { useReferralMe } from './useReferralMe';
 import {
@@ -89,8 +87,7 @@ export interface UseAcceptMoneyReferralCodeResult {
  * `POST /wr/referral/referee`. A refusal keeps the sheet open and writes the
  * reason onto {@link UseAcceptMoneyReferralCodeResult.errorMessage}; only a
  * successful registration dismisses it, after the referral role has been
- * read back with `forceFresh` so Rewards Home routes to the Money dashboard
- * on the way out.
+ * read back with `forceFresh`, then navigates to the accepted splash.
  */
 export const useAcceptMoneyReferralCode =
   (): UseAcceptMoneyReferralCodeResult => {
@@ -197,15 +194,7 @@ export const useAcceptMoneyReferralCode =
 
           // The registration stands either way, so the sheet closes either
           // way; a failed read back is reported as the fetch failure it is.
-          if (refreshedProfileId) {
-            const acceptedToast = selectReferralMeLocalizedText(
-              store.getState() as RootState,
-              refreshedProfileId,
-            )?.inviteAcceptedToast;
-            if (acceptedToast) {
-              showToast(RewardsToastOptions.success(acceptedToast));
-            }
-          } else {
+          if (!refreshedProfileId) {
             showToast(
               RewardsToastOptions.error(
                 strings('rewards.referral_details_error.error_fetching_title'),
@@ -214,6 +203,9 @@ export const useAcceptMoneyReferralCode =
           }
 
           navigation.goBack();
+          navigation.navigate(
+            Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+          );
           return true;
         } finally {
           isAcceptingRef.current = false;

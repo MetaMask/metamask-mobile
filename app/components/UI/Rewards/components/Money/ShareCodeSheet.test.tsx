@@ -400,12 +400,12 @@ describe('ShareCodeSheet', () => {
       );
     });
 
-    it('fills {url} in inviteBody for the SMS composer', () => {
+    it('fills {url} in inviteMessageBody for the SMS composer', () => {
       Platform.OS = 'ios';
       const { getByTestId } = renderSheet({
         localizedText: {
           ...LOCALIZED_TEXT,
-          inviteBody:
+          inviteMessageBody:
             'Earn 2× cashback on Swaps and Perps trades for a limited time. {url}',
         } as unknown as ReferralLocalizedText,
       });
@@ -419,12 +419,12 @@ describe('ShareCodeSheet', () => {
       );
     });
 
-    it('appends the url when inviteBody has no {url} placeholder', () => {
+    it('appends the url when inviteMessageBody has no {url} placeholder', () => {
       Platform.OS = 'android';
       const { getByTestId } = renderSheet({
         localizedText: {
           ...LOCALIZED_TEXT,
-          inviteBody:
+          inviteMessageBody:
             'Earn 2× cashback on Swaps and Perps trades for a limited time.',
         } as unknown as ReferralLocalizedText,
       });
@@ -438,12 +438,12 @@ describe('ShareCodeSheet', () => {
       );
     });
 
-    it('sends only the url when inviteBody still has an unsubstituted placeholder', () => {
+    it('sends only the url when inviteMessageBody still has an unsubstituted placeholder', () => {
       Platform.OS = 'ios';
       const { getByTestId } = renderSheet({
         localizedText: {
           ...LOCALIZED_TEXT,
-          inviteBody:
+          inviteMessageBody:
             'Earn {cashbackMultiplier}× cashback on Swaps and Perps trades for a limited time.',
         } as unknown as ReferralLocalizedText,
       });
@@ -476,11 +476,11 @@ describe('ShareCodeSheet', () => {
       );
     });
 
-    it('opens Telegram with inviteBody as the share text', () => {
+    it('opens Telegram with inviteMessageBody as the share text', () => {
       const { getByTestId } = renderSheet({
         localizedText: {
           ...LOCALIZED_TEXT,
-          inviteBody:
+          inviteMessageBody:
             'Earn 2× cashback on Swaps and Perps trades for a limited time.',
         } as unknown as ReferralLocalizedText,
       });
@@ -494,11 +494,11 @@ describe('ShareCodeSheet', () => {
       );
     });
 
-    it('opens Telegram without text when inviteBody still has an unsubstituted placeholder', () => {
+    it('opens Telegram without text when inviteMessageBody still has an unsubstituted placeholder', () => {
       const { getByTestId } = renderSheet({
         localizedText: {
           ...LOCALIZED_TEXT,
-          inviteBody:
+          inviteMessageBody:
             'Earn {cashbackMultiplier}× cashback on Swaps and Perps trades for a limited time.',
         } as unknown as ReferralLocalizedText,
       });
