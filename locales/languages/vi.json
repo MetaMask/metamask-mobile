@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Ví",
     "search_accessibility_label": "Tìm kiếm",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Tìm kiếm",
     "rewards_accessibility_label": "Phần thưởng",
     "tokens": "Token",
     "view_all_nfts": "Xem tất cả NFT",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "Ký gửi",
     "earn": "Kiếm lợi nhuận",
     "tron": {
       "stake_completed": "Ký gửi đã hoàn tất",
@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Gói thành viên của bạn",
       "plan": "Gói thành viên",
-      "earned_this_month": "Đã sinh lời trong tháng này",
       "payment_details": "Chi tiết thanh toán",
       "total": "Tổng cộng",
       "paying_with": "Thanh toán bằng",
@@ -12214,15 +12213,7 @@
       "manage": "Quản lý",
       "invoices": "Hóa đơn",
       "contact_support": "Liên hệ bộ phận hỗ trợ",
-      "cancel_membership": "Hủy gói thành viên",
-      "earned_info": {
-        "title": "Đã sinh lời trong tháng này",
-        "description": "Số tiền sinh lời từ APY và khoản hoàn lại bằng mUSD với tư cách thành viên Pro."
-      },
-      "saved_info": {
-        "title": "Đã tiết kiệm trong tháng này",
-        "description": "Số tiền bạn tiết kiệm được với tư cách thành viên Pro từ phí MetaMask khi thực hiện hoán đổi, giao dịch hợp đồng vĩnh cửu và dự đoán trong tháng này, cùng với phí ATM và phí ngoại hối."
-      }
+      "cancel_membership": "Hủy gói thành viên"
     },
     "cancel_membership": {
       "title": "Tại sao bạn muốn hủy?",

@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Maghanap",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Maghanap",
     "rewards_accessibility_label": "Mga Reward",
     "tokens": "Mga Token",
     "view_all_nfts": "Tingnan ang lahat ng NFT",
@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Ang membership mo",
       "plan": "Membership",
-      "earned_this_month": "Kinita ngayong buwan",
       "payment_details": "Mga detalye ng pagbabayad",
       "total": "Kabuuan",
       "paying_with": "Nagbabayad gamit ang",
@@ -12214,15 +12213,7 @@
       "manage": "Pamahalaan",
       "invoices": "Mga Invoice",
       "contact_support": "Kontakin ang suporta",
-      "cancel_membership": "Kanselahin ang membership",
-      "earned_info": {
-        "title": "Kinita ngayong buwan",
-        "description": "Ang halagang kinita mo sa APY at MUSD noong Pro na miyembro ka pa."
-      },
-      "saved_info": {
-        "title": "Natipid ngayong buwan",
-        "description": "Ang halagang natipid mo bilang Pro na miyembro sa mga bayarin sa MetaMask sa mga swap, perp, at prediction ngayong buwan, kasama ang mga bayarin sa ATM at FX."
-      }
+      "cancel_membership": "Kanselahin ang membership"
     },
     "cancel_membership": {
       "title": "Bakit ka nagkakansela?",
