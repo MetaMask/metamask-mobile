@@ -1,4 +1,4 @@
-/** Integration coverage for Mobile's recovery actions through installed Core. */
+/** Installed Core recovery read coverage through Mobile messenger delegation. */
 import { buildLighterRecoveryHarness } from '../../../../../tests/integration/harnesses/perps/lighter-recovery';
 import { waitFor } from '@testing-library/react-native';
 

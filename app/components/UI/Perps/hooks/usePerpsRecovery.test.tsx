@@ -2,15 +2,18 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import type {
-  PerpsActiveProviderMode,
-  PerpsPendingManualRecovery,
-  PerpsRecoveredDispatch,
+import {
+  PERPS_CONSTANTS,
+  type PerpsActiveProviderMode,
+  type PerpsPendingManualRecovery,
+  type PerpsRecoveredDispatch,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { initialStatePerps } from '../../../../../tests/component-view/presets/perpsStatePreset';
 import { usePerpsRecovery } from './usePerpsRecovery';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -46,9 +49,11 @@ const OLD_DISPATCH: PerpsRecoveredDispatch = {
   evidence: 'pending',
 };
 const NEW_DISPATCH: PerpsRecoveredDispatch = {
-  ...OLD_DISPATCH,
   recoveryId: 'opaque-dispatch-two',
-  acknowledgeable: true,
+  apiKeyIndex: 7,
+  kind: 14,
+  intent: 'placeOrder:ETH:123',
+  txHash: null,
   outcome: 'succeeded',
   evidence: 'tx-status:2',
 };
@@ -126,7 +131,90 @@ describe('usePerpsRecovery', () => {
 
   afterEach(() => {
     Engine.context.PerpsController = controller;
+    jest.restoreAllMocks();
   });
+
+  it.each(['success', 'rejection'] as const)(
+    'keeps the reconnect read pending when the retired read ends with %s',
+    async (outcome) => {
+      let generation = 10;
+      let notify: () => void = () => undefined;
+      jest
+        .spyOn(PerpsConnectionManager, 'getConnectionGeneration')
+        .mockImplementation(() => generation);
+      jest
+        .spyOn(PerpsConnectionManager, 'subscribeToConnectionGeneration')
+        .mockImplementation((listener) => {
+          notify = listener;
+          return () => undefined;
+        });
+      const logError = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const oldRead = deferred<PerpsRecoveredDispatch[]>();
+      const newRead = deferred<PerpsRecoveredDispatch[]>();
+      getDispatches
+        .mockReturnValueOnce(oldRead.promise)
+        .mockReturnValueOnce(newRead.promise);
+      const { result } = renderRecovery();
+      await waitFor(() => expect(getDispatches).toHaveBeenCalledTimes(1));
+
+      act(() => {
+        generation += 1;
+        notify();
+      });
+      await waitFor(() => expect(getDispatches).toHaveBeenCalledTimes(2));
+      await act(async () => {
+        if (outcome === 'success') oldRead.resolve([OLD_DISPATCH]);
+        else oldRead.reject(new Error('retired read failed'));
+      });
+
+      expect(result.current.hasLoaded).toBe(false);
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.dispatches).toEqual([]);
+      expect(result.current.error).toBeUndefined();
+      expect(result.current.captureActivity()).toBeUndefined();
+      expect(logError).not.toHaveBeenCalled();
+      await act(async () => newRead.resolve([NEW_DISPATCH]));
+      expect(result.current.dispatches).toEqual([NEW_DISPATCH]);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.captureActivity()).toBeDefined();
+    },
+  );
+
+  it.each(['load', 'status'] as const)(
+    'logs the current %s failure with its original Error and safe selection tags',
+    async (operation) => {
+      const failure = new Error('Recovery transport failed');
+      const logError = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const { result } = renderRecovery();
+      await waitFor(() => expect(result.current.hasLoaded).toBe(true));
+      if (operation === 'load') getDispatches.mockRejectedValueOnce(failure);
+      else reconcile.mockRejectedValueOnce(failure);
+
+      await act(async () => {
+        expect(
+          await (operation === 'load'
+            ? result.current.reload()
+            : result.current.checkStatus()),
+        ).toBe(false);
+      });
+
+      expect(logError).toHaveBeenCalledTimes(1);
+      expect(logError).toHaveBeenCalledWith(failure, {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsRecovery',
+          action: operation,
+          provider: 'lighter',
+          network: 'testnet',
+        },
+      });
+      expect(result.current.error).toBe(operation);
+    },
+  );
 
   it('loads both local recovery collections without acknowledging or trading', async () => {
     getDispatches.mockResolvedValue([OLD_DISPATCH]);

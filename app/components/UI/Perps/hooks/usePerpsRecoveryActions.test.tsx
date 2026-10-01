@@ -2,18 +2,21 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import type {
-  PerpsActiveProviderMode,
-  PerpsPendingManualRecovery,
-  PerpsRecoveredDispatch,
-  PerpsRecoveryVenueReview,
-  Position,
+import {
+  PERPS_CONSTANTS,
+  type PerpsActiveProviderMode,
+  type PerpsPendingManualRecovery,
+  type PerpsRecoveredDispatch,
+  type PerpsRecoveryVenueReview,
+  type Position,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import type { RootState } from '../../../../reducers';
 import { initialStatePerps } from '../../../../../tests/component-view/presets/perpsStatePreset';
 import { usePerpsRecovery } from './usePerpsRecovery';
 import { usePerpsRecoveryActions } from './usePerpsRecoveryActions';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -47,7 +50,6 @@ const DISPATCH: PerpsRecoveredDispatch = {
   providerId: 'lighter',
   walletAddress: ACCOUNT_A,
   network: 'testnet',
-  acknowledgeable: true,
   kind: 14,
   intent: 'placeOrder:ETH:123',
   txHash: null,
@@ -168,6 +170,183 @@ describe('usePerpsRecoveryActions', () => {
 
   afterEach(() => {
     Engine.context.PerpsController = controller;
+    jest.restoreAllMocks();
+  });
+
+  it('retires a protection editor claim across a same-selection reconnect', async () => {
+    let generation = 10;
+    jest
+      .spyOn(PerpsConnectionManager, 'getConnectionGeneration')
+      .mockImplementation(() => generation);
+    const { result } = renderActions();
+    await waitFor(() => expect(result.current.activity.hasLoaded).toBe(true));
+    await act(async () => result.current.actions.reviewEntry(PROTECTION));
+    const params = result.current.actions.prepareProtectionEdit(PROTECTION);
+    if (params === undefined) throw new Error('Expected reviewed editor');
+    act(() => expect(params.onBeforeConfirm?.()).toBe(true));
+
+    await act(async () => {
+      generation += 1;
+      expect(await params.onConfirm(POSITION, '2800')).toEqual({
+        success: false,
+      });
+    });
+
+    expect(resolveProtection).not.toHaveBeenCalled();
+    expect(result.current.actions.review).toBeUndefined();
+    expect(result.current.actions.isActionPending).toBe(false);
+  });
+
+  it.each([
+    ['acknowledge', 'success'],
+    ['acknowledge', 'rejection'],
+    ['resolve', 'success'],
+    ['resolve', 'rejection'],
+  ] as const)(
+    'preserves a new reconnect review when retired %s completes with %s',
+    async (operation, outcome) => {
+      let generation = 10;
+      let notify: () => void = () => undefined;
+      jest
+        .spyOn(PerpsConnectionManager, 'getConnectionGeneration')
+        .mockImplementation(() => generation);
+      jest
+        .spyOn(PerpsConnectionManager, 'subscribeToConnectionGeneration')
+        .mockImplementation((listener) => {
+          notify = listener;
+          return () => undefined;
+        });
+      const logError = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const { result } = renderActions();
+      await waitFor(() => expect(result.current.activity.hasLoaded).toBe(true));
+      const entry = operation === 'acknowledge' ? DISPATCH : PROTECTION;
+      await act(async () => result.current.actions.reviewEntry(entry));
+      const acknowledgment = deferred<void>();
+      const resolution =
+        deferred<
+          Awaited<ReturnType<typeof controller.resolveRecoveryProtection>>
+        >();
+      let oldAction: Promise<boolean | { success: boolean }> | undefined;
+      if (operation === 'acknowledge')
+        acknowledge.mockReturnValueOnce(acknowledgment.promise);
+      else resolveProtection.mockReturnValueOnce(resolution.promise);
+      act(() => {
+        oldAction =
+          operation === 'acknowledge'
+            ? result.current.actions.acknowledge(DISPATCH)
+            : result.current.actions.removeProtection(PROTECTION);
+      });
+      await waitFor(() =>
+        expect(
+          operation === 'acknowledge' ? acknowledge : resolveProtection,
+        ).toHaveBeenCalledTimes(1),
+      );
+
+      act(() => {
+        generation += 1;
+        notify();
+      });
+      await waitFor(() => expect(getDispatches).toHaveBeenCalledTimes(2));
+      await waitFor(() =>
+        expect(result.current.activity.captureActivity()).toBeDefined(),
+      );
+      const nextVenue = deferred<PerpsRecoveryVenueReview>();
+      reviewVenue.mockReturnValueOnce(nextVenue.promise);
+      let newReview: Promise<boolean> | undefined;
+      act(() => {
+        newReview = result.current.actions.reviewEntry(entry);
+      });
+      await act(async () => {
+        if (outcome === 'rejection') {
+          const failure = new Error('Retired recovery action failed');
+          if (operation === 'acknowledge') acknowledgment.reject(failure);
+          else resolution.reject(failure);
+        } else if (operation === 'acknowledge') acknowledgment.resolve();
+        else
+          resolution.resolve({
+            status: 'settled',
+            providerId: 'lighter',
+            success: true,
+          });
+        expect(await oldAction).toEqual(
+          operation === 'acknowledge' ? false : { success: false },
+        );
+      });
+
+      expect(result.current.actions.isActionPending).toBe(true);
+      expect(result.current.actions.actionError).toBeUndefined();
+      expect(getDispatches).toHaveBeenCalledTimes(2);
+      expect(logError).not.toHaveBeenCalled();
+      await act(async () => {
+        nextVenue.resolve(VENUE);
+        expect(await newReview).toBe(true);
+      });
+      expect(result.current.actions.review?.entry).toBe(entry);
+    },
+  );
+
+  it.each(['review', 'acknowledge', 'resolve'] as const)(
+    'logs current %s failures with the original Error and only safe tags',
+    async (operation) => {
+      const failure = new Error('Recovery action failed');
+      const logError = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const { result } = renderActions();
+      await waitFor(() => expect(result.current.activity.hasLoaded).toBe(true));
+      const entry = operation === 'acknowledge' ? DISPATCH : PROTECTION;
+      if (operation === 'review') reviewVenue.mockRejectedValueOnce(failure);
+      else {
+        await act(async () => result.current.actions.reviewEntry(entry));
+        if (operation === 'acknowledge')
+          acknowledge.mockRejectedValueOnce(failure);
+        else resolveProtection.mockRejectedValueOnce(failure);
+      }
+
+      await act(async () => {
+        if (operation === 'review')
+          await result.current.actions.reviewEntry(entry);
+        else if (operation === 'acknowledge')
+          await result.current.actions.acknowledge(DISPATCH);
+        else await result.current.actions.removeProtection(PROTECTION);
+      });
+
+      expect(logError).toHaveBeenCalledTimes(1);
+      expect(logError).toHaveBeenCalledWith(failure, {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'usePerpsRecoveryActions',
+          action: operation,
+          provider: 'lighter',
+          network: 'testnet',
+        },
+      });
+      expect(result.current.actions.actionError).toBe(operation);
+    },
+  );
+
+  it('preserves a reviewed short position in the editor and signed-size guard', async () => {
+    const short = { ...POSITION, size: '-0.01' };
+    reviewVenue.mockResolvedValue({ ...VENUE, positions: [short] });
+    const { result } = renderActions();
+    await waitFor(() => expect(result.current.activity.hasLoaded).toBe(true));
+    await act(async () => result.current.actions.reviewEntry(PROTECTION));
+    const params = result.current.actions.prepareProtectionEdit(PROTECTION);
+    if (params === undefined) throw new Error('Expected reviewed short editor');
+    expect(params.direction).toBe('short');
+    expect(params.position).toBe(short);
+    act(() => expect(params.onBeforeConfirm?.()).toBe(true));
+
+    await act(async () => params.onConfirm(short, '2200'));
+
+    expect(resolveProtection).toHaveBeenCalledWith(
+      expect.objectContaining({
+        position: short,
+        expectedPosition: { size: '-0.01', entryPrice: '2500' },
+      }),
+    );
   });
 
   it('grants review only to an exact current scoped list member', async () => {

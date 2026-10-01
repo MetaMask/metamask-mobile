@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type {
-  PerpsPendingManualRecovery,
-  PerpsProviderType,
+import {
+  PERPS_CONSTANTS,
+  type PerpsPendingManualRecovery,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
+
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import {
   usePerpsRecovery,
   type PerpsRecoveryActivitySnapshot,
@@ -57,17 +61,28 @@ const PerpsRecoveryPanelContainer = ({
         return;
       }
       try {
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
         stream.retryOrderStreams();
         stream.positions.clearCache();
         stream.account.clearCache();
         stream.positions.reconnect();
         stream.account.reconnect();
-      } catch {
+      } catch (error) {
         // A local subscription failure cannot change a settled venue outcome.
         // Existing stream error controls remain responsible for retry guidance.
-        Logger.error(new Error('Perps recovery user-data refresh failed'), {
-          context: 'PerpsRecoveryPanelContainer.refreshOwnedStreams',
-        });
+        Logger.error(
+          ensureError(error, 'PerpsRecoveryPanelContainer.refreshOwnedStreams'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'PerpsRecoveryPanelContainer',
+              action: 'refresh_user_data',
+              provider: snapshot.context.provider,
+              network: snapshot.context.network,
+            },
+          },
+        );
       }
     },
     [isCurrent, stream],

@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  PerpsController,
-  PerpsPendingManualRecovery,
-  PerpsRecoveredDispatch,
+import {
+  PERPS_CONSTANTS,
+  type PerpsController,
+  type PerpsPendingManualRecovery,
+  type PerpsRecoveredDispatch,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import {
   usePerpsRecoveryContext,
   type PerpsRecoveryContext,
@@ -114,8 +118,17 @@ export function usePerpsRecovery() {
           pending: operation,
         });
         return true;
-      } catch {
+      } catch (error) {
         if (ownsResult()) {
+          Logger.error(ensureError(error, 'usePerpsRecovery.readActivity'), {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsRecovery',
+              action: operation,
+              provider: issued.provider,
+              network: issued.network,
+            },
+          });
           setActivity((previous) =>
             previous.token === token
               ? { ...previous, error: operation }

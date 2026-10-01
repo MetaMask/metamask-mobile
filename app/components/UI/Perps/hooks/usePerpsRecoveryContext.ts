@@ -3,6 +3,7 @@ import { useStore } from 'react-redux';
 import type { Store } from 'redux';
 import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 import type { RootState } from '../../../../reducers';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   selectPerpsNetwork,
@@ -10,6 +11,7 @@ import {
 } from '../selectors/perpsController';
 
 interface RecoverySelection {
+  readonly connectionGeneration: number;
   readonly address?: string;
   readonly network?: 'mainnet' | 'testnet';
   readonly provider?: PerpsActiveProviderMode;
@@ -30,6 +32,7 @@ interface RecoveryTracker {
 const readSelection = (state: RootState): RecoverySelection => {
   const controllerState = state.engine.backgroundState.PerpsController;
   return {
+    connectionGeneration: PerpsConnectionManager.getConnectionGeneration(),
     address: selectPerpsSelectedAccountAddress(state),
     network:
       typeof controllerState?.isTestnet === 'boolean'
@@ -50,6 +53,7 @@ const isReady = (
  * Owns recovery request identity for one mounted surface. The local Redux
  * subscription observes every selection transition before React batches renders,
  * so returning to the original account does not revive an earlier request.
+ * Connection generations also retire same-selection reconnect authority.
  * This does not alter connection ownership or global market caches.
  *
  * @returns Current selection, a complete issuing-context capture, and a guard
@@ -71,6 +75,7 @@ export function usePerpsRecoveryContext() {
     const selection = readSelection(store.getState());
     const previous = tracker.snapshot;
     if (
+      selection.connectionGeneration !== previous.connectionGeneration ||
       selection.address !== previous.address ||
       selection.network !== previous.network ||
       selection.provider !== previous.provider
@@ -89,6 +94,8 @@ export function usePerpsRecoveryContext() {
     };
     trackerRef.current = tracker;
     const unsubscribe = store.subscribe(refresh);
+    const unsubscribeConnection =
+      PerpsConnectionManager.subscribeToConnectionGeneration(refresh);
     refresh();
     setContext(tracker.snapshot);
     return () => {
@@ -98,6 +105,7 @@ export function usePerpsRecoveryContext() {
         epoch: tracker.snapshot.epoch + 1,
       };
       unsubscribe();
+      unsubscribeConnection();
       if (trackerRef.current === tracker) {
         trackerRef.current = undefined;
       }
