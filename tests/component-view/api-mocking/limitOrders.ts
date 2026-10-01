@@ -2,6 +2,7 @@
 import nock, { type Scope } from 'nock';
 import Engine from '../../../app/core/Engine';
 import { BRIDGE_API_BASE_URL } from '../../../app/constants/bridge';
+import type { CreatedLimitOrderTransaction } from '../../../app/components/UI/Bridge/api/limitOrders/create/schema';
 import type { getLimitOrders } from '../../../app/components/UI/Bridge/api/limitOrders/getLimitOrders';
 import {
   LimitOrderState,
@@ -112,5 +113,47 @@ export function setupCancelLimitOrderApiMock({
 }
 
 export function clearCancelLimitOrderApiMock() {
+  teardownNock();
+}
+
+interface GetLimitOrderApiMockOptions {
+  /**
+   * The order being fetched. The request is only intercepted for its id and
+   * account, and a successful reply echoes it back.
+   */
+  order: LimitOrder;
+  /**
+   * The fill attempts made against the order.
+   */
+  transactions?: CreatedLimitOrderTransaction[];
+  /**
+   * HTTP status to reply with. Anything but 2xx fails the request.
+   */
+  status?: number;
+}
+
+/**
+ * Registers a `GET /v2/orders/limit?id={id}` interceptor on the Bridge API,
+ * replying with the order and its fill attempts. Pair with
+ * {@link clearGetLimitOrderApiMock} in `afterEach`.
+ *
+ * @param options - The order to fetch and how the API replies.
+ * @returns The nock scope.
+ */
+export function setupGetLimitOrderApiMock({
+  order,
+  transactions = [],
+  status = 200,
+}: GetLimitOrderApiMockOptions): Scope {
+  disableNetConnect();
+
+  return nock(BRIDGE_API_BASE_URL)
+    .get('/v2/orders/limit')
+    .query({ id: order.id, accountAddress: order.account })
+    .reply(status, { order, transactions })
+    .persist();
+}
+
+export function clearGetLimitOrderApiMock() {
   teardownNock();
 }
