@@ -31,3 +31,11 @@ The HTML content security policy permits only the four embedded scripts by
 SHA-256 hash and allows WASM compilation. It does not permit arbitrary inline
 scripts. `scripts/lighter-wasm-wrapper.test.ts` checks these hashes against the
 actual script contents; update the hashes whenever an embedded script changes.
+
+Grouped signing accepts exactly two orders for OCO or OTO and three for OTOCO.
+The bridge validates the grouping/count pair, every wire field and the nonce
+before invoking the signer. Offline checks on chains 300 and 304 establish
+signing of a parent plus one or two zero-size reduce-only children with this
+pinned binary. They do not establish venue acceptance, child activation or
+cancellation. Attached placement remains unavailable until the controller
+ownership lifecycle and testnet validation are complete.

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Yed0BHzHXJQ9cyoxuoR+WSNPskhE8cVak56F74ehLRs=' 'sha256-VAodnNKhyo8p4/2kLG3wD/5n6lifdu/Q0UlGw5PfGHY=' 'sha256-YeYnj2e6lbnJNexI+ZHX1tqp6IV5AYmv4ToFkNKshw4=' 'sha256-9QyWrJ3v2eN3eItsKNEzUj3MZubYlOoYqXd+SiI5ZZc=' 'wasm-unsafe-eval'; connect-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Yed0BHzHXJQ9cyoxuoR+WSNPskhE8cVak56F74ehLRs=' 'sha256-VAodnNKhyo8p4/2kLG3wD/5n6lifdu/Q0UlGw5PfGHY=' 'sha256-Mup/gs0nEcMvGLs7yksOY9Sol0xo/3gZ12fvnadNQwI=' 'sha256-pe6exnmuvIsoWM/R4ldXIVgs37LD4Po1WRWeIzKSKqA=' 'wasm-unsafe-eval'; connect-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
   <meta http-equiv="x-dns-prefetch-control" content="off">
   <title>Lighter WASM signer</title>
 </head>
@@ -592,6 +592,13 @@
     const flag = (value) => value === 0 || value === 1;
     const keyIndex = (value) => unsigned(value) && value <= 254;
     const orderParams = [unsigned, unsigned, decimal, decimal, flag, unsigned, unsigned, flag, decimal, integer];
+    function groupedOrderValidators(params) {
+      if (!Array.isArray(params)) return null;
+      const groupingType = params[1];
+      const orderCount = params[2];
+      if (!((orderCount === 2 && (groupingType === 1 || groupingType === 2)) || (orderCount === 3 && groupingType === 3))) return null;
+      return [unsigned, unsigned, (value) => value === orderCount, ...Array.from({ length: orderCount }, () => orderParams).flat(), unsigned];
+    }
     const signerOperations = Object.freeze({
       _createClient: [(value) => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value), (value) => value === 300 || value === 304, unsigned, unsigned, keyIndex],
       _signChangePubKey: [unsigned, (value) => typeof value === 'string' && /^0x[0-9a-f]{130}$/i.test(value), unsigned, keyIndex],
@@ -663,8 +670,10 @@
             try {
               if (typeof payload.executeId !== 'string' || !payload.executeId) throw new Error('Invalid execute identifier');
               if (!Object.prototype.hasOwnProperty.call(signerOperations, payload.function)) throw new Error('Unsupported signer operation');
-              const validators = signerOperations[payload.function];
-              if (!Array.isArray(payload.params) || payload.params.length !== validators.length || !validators.every((validate, index) => validate(payload.params[index]))) {
+              const validators = payload.function === '_signCreateGroupedOrders'
+                ? groupedOrderValidators(payload.params)
+                : signerOperations[payload.function];
+              if (!validators || !Array.isArray(payload.params) || payload.params.length !== validators.length || !validators.every((validate, index) => validate(payload.params[index]))) {
                 throw new Error('Invalid signer parameters');
               }
               if (!signerFunctions) throw new Error('Lighter signer is not ready');
