@@ -1,16 +1,16 @@
 name: AI PR risk analysis
 
-# Same shape as the extension workflow (MetaMask/metamask-extension#46745):
-# one Analyze job. opened / synchronize / reopened / ready_for_review cover
-# release branches and main pull requests that already have auto-merge.
-# labeled is the other entry point, so applying auto-merge on main runs
-# analysis without waiting for another push.
+# opened / synchronize / reopened / ready_for_review cover release branches
+# and main pull requests that already have auto-merge. Applying auto-merge
+# is handled by ai-pr-risk-analysis-label.yml.
+#
+# labeled is not a trigger here. A skipped Analyze job is reported as
+# success, and that newer check would replace an in-progress or failed
+# result on the same commit.
 #
 # There is no branches filter. Skipping the workflow that way leaves a
 # required check pending. Skipping this job still reports Analyze, which
-# branch protection treats as a success.
-#
-# Unrelated labels skip the job, so they do not take the concurrency group.
+# branch protection treats as a success for pushes to other bases.
 
 on:
   pull_request:
@@ -19,42 +19,29 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-      - labeled
 
 jobs:
   analyze:
     name: Analyze
     timeout-minutes: 10
-    # Main requires auto-merge. Release branches run on the normal events.
-    # A labeled event runs only when the label just added is auto-merge on
-    # main. A draft that already has the label is analyzed on ready_for_review.
+    # Main requires auto-merge. Release branches run on these events.
+    # A draft that already has the label is analyzed on ready_for_review.
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
       && github.event.pull_request.draft == false
       && (
         (
-          github.event.action != 'labeled'
-          && (
-            (
-              github.event.pull_request.base.ref == 'main'
-              && contains(github.event.pull_request.labels.*.name, 'auto-merge')
-            )
-            || startsWith(github.event.pull_request.base.ref, 'release/')
-          )
+          github.event.pull_request.base.ref == 'main'
+          && contains(github.event.pull_request.labels.*.name, 'auto-merge')
         )
-        || (
-          github.event.action == 'labeled'
-          && github.event.label.name == 'auto-merge'
-          && github.event.pull_request.base.ref == 'main'
-        )
+        || startsWith(github.event.pull_request.base.ref, 'release/')
       )
-    # One group per pull request. Label and ready_for_review runs queue
-    # instead of cancelling an in-progress analysis. A later push may cancel
-    # a stale label run.
+    # ready_for_review queues instead of cancelling an in-progress analysis.
+    # A later push may cancel a stale run.
     concurrency:
       group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: ${{ github.event.action != 'labeled' && github.event.action != 'ready_for_review' }}
+      cancel-in-progress: ${{ github.event.action != 'ready_for_review' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

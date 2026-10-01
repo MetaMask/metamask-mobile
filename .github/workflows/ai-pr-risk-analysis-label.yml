@@ -1,0 +1,105 @@
+name: AI PR risk analysis label gate
+
+# Applying auto-merge on main runs the same analysis as
+# ai-pr-risk-analysis.yml without a new push.
+#
+# This job is not named Analyze. Every label starts a workflow run, and a
+# skipped job named Analyze is reported as success. That check would replace
+# an in-progress or failed Analyze result on the same commit. Unrelated
+# labels skip this job and leave the existing Analyze check unchanged.
+# A run that does execute publishes an Analyze check for the real result.
+#
+# Release pull requests are not included. A label there must not start a run.
+# Keep the analysis inputs in sync with ai-pr-risk-analysis.yml.
+
+on:
+  pull_request:
+    types:
+      - labeled
+    branches:
+      - main
+
+jobs:
+  analyze-on-auto-merge:
+    name: Auto-merge label
+    timeout-minutes: 10
+    # No concurrency group. This job is skipped for every other label, and a
+    # skipped job must not cancel an analysis already running in
+    # ai-pr-risk-analysis.yml. That workflow only starts on main when
+    # auto-merge is already present, so it is not in progress when this
+    # label is first added.
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.action == 'labeled'
+      && github.event.label.name == 'auto-merge'
+      && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
+      && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # https://github.com/MetaMask/ai-analyzer/releases
+      - name: Checkout AI Analyzer
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+
+      - name: Run AI PR Analysis
+        id: analysis
+        uses: ./.ai-analyzer-action
+        with:
+          mode: pr-risk-analysis
+          add-comment: false
+          add-label: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          # Opt-in Langfuse tracing (redacted source; host is hardcoded in the analyzer)
+          langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
+          langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
+          # Gate override for Runway release-branch cherry-picks
+          gate-override-risk-threshold: medium
+          gate-override-base-pattern: '^release/'
+          gate-override-author: 'runway-github[bot]'
+          gate-override-title-pattern: 'cherry.?pick'
+
+      # The open or sync workflow may already have a skipped Analyze check on
+      # this commit. Publish the real conclusion so that skip is not the latest
+      # result. This step does not run when the job itself is skipped.
+      - name: Publish Analyze check
+        if: always() && !cancelled()
+        uses: actions/github-script@v9
+        env:
+          ANALYSIS_OUTCOME: ${{ steps.analysis.outcome }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const conclusion = process.env.ANALYSIS_OUTCOME === 'success' ? 'success' : 'failure';
+            const completedAt = new Date();
+            const startedAt = new Date(completedAt.getTime() - 1000);
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Analyze',
+              head_sha: context.payload.pull_request.head.sha,
+              status: 'completed',
+              conclusion,
+              started_at: startedAt.toISOString(),
+              completed_at: completedAt.toISOString(),
+              details_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              output: {
+                title: conclusion === 'success'
+                  ? 'AI PR risk analysis'
+                  : 'AI PR risk analysis failed',
+                summary: 'Ran because the auto-merge label was added. See the AI PR Analyzer / Gate check for the risk result.',
+              },
+            });
