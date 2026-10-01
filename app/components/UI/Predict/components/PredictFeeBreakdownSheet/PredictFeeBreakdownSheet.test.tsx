@@ -294,6 +294,25 @@ describe('PredictFeeBreakdownSheet', () => {
       expect(getByText('Total')).toBeOnTheScreen();
       expect(getByText('$10.15')).toBeOnTheScreen();
     });
+
+    it('displays original and waived totals for membership fees', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            feePolicyStatus="membership"
+            originalTotal={10.2}
+          />
+        );
+      };
+
+      const { getByText } = render(<TestComponent />);
+
+      expect(getByText('$10.20')).toBeOnTheScreen();
+      expect(getByText('$10.15')).toBeOnTheScreen();
+    });
   });
   describe('Bottom sheet behavior', () => {
     it('calls onClose callback when bottom sheet closes', () => {

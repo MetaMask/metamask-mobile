@@ -786,6 +786,8 @@ export interface OrderPreview {
   negRisk: boolean;
   feeRateBps?: string;
   fees?: PredictFees;
+  /** Standard fees before applying the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
   feePolicy?: PredictFeePolicy;
   rateLimited?: boolean;
   // For sell orders, we can store the position ID

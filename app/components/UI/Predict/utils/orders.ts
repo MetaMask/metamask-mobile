@@ -149,19 +149,21 @@ export function getPredictPositionNetValue(args: {
  * the rounding remainder. BUY rows add up to the total; SELL rows subtract
  * down to it.
  */
+export interface PredictFeeBreakdownAmounts {
+  order: number;
+  metamaskFee: number;
+  exchangeFee: number;
+  depositFee?: number;
+  total: number;
+}
+
 export function buildPredictFeeBreakdownAmounts(args: {
   side: Side;
   order: number;
   metamaskFee: number;
   depositFee?: number;
   total: number;
-}): {
-  order: number;
-  metamaskFee: number;
-  exchangeFee: number;
-  depositFee?: number;
-  total: number;
-} {
+}): PredictFeeBreakdownAmounts {
   const { side, order, metamaskFee, total, depositFee } = args;
   const snap = side === Side.BUY ? roundUpToCents : roundDownToCents;
   const snappedOrder = snap(order);
@@ -233,4 +235,71 @@ export function getPredictBuyAllInCost(preview?: OrderPreview | null): number {
       (fees?.providerFee ?? 0) +
       getPredictMarketFee(fees),
   );
+}
+
+/**
+ * Builds the effective fee breakdown and, when applicable, the standard
+ * breakdown before the membership fee waiver.
+ */
+export function buildPredictFeeBreakdowns({
+  preview,
+  side,
+  order,
+  metamaskFee,
+  depositFee,
+  total,
+}: {
+  preview?: OrderPreview | null;
+  side: Side;
+  order: number;
+  metamaskFee: number;
+  depositFee?: number;
+  total: number;
+}): {
+  feeBreakdown: PredictFeeBreakdownAmounts;
+  originalFeeBreakdown?: PredictFeeBreakdownAmounts;
+} {
+  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+    side,
+    order,
+    metamaskFee,
+    depositFee,
+    total,
+  });
+
+  if (preview?.feePolicy?.status !== 'membership') {
+    return { feeBreakdown };
+  }
+
+  if (!preview?.originalFees) {
+    return { feeBreakdown };
+  }
+
+  // if feePolicy.status is membership and originalFees is provided,
+  // we need to calculate the original fee breakdown
+  // this is just to show the original total fee in the UI
+  // beside the waived membership total fee
+
+  const originalFees = preview.originalFees;
+  const previewWithOriginalFees = {
+    ...preview,
+    fees: originalFees,
+  };
+  const originalTotal =
+    side === Side.BUY
+      ? getPredictBuyAllInCost(previewWithOriginalFees) + (depositFee ?? 0)
+      : getPredictSellNetProceeds(previewWithOriginalFees);
+
+  const originalFeeBreakdown = buildPredictFeeBreakdownAmounts({
+    side,
+    order,
+    metamaskFee: originalFees.metamaskFee,
+    depositFee,
+    total: originalTotal,
+  });
+
+  return {
+    feeBreakdown,
+    originalFeeBreakdown,
+  };
 }

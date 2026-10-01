@@ -61,7 +61,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictTradeStatus } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
-import { buildPredictFeeBreakdownAmounts } from '../../utils/orders';
+import { buildPredictFeeBreakdowns } from '../../utils/orders';
 import { getDisplayBuyPrice } from '../../utils/prices';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
@@ -243,7 +243,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isConfirming,
     isPlacingOrder,
   });
-  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
     side: Side.BUY,
     order: currentValue,
     metamaskFee,
@@ -610,6 +611,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             disabled={false}
             loading={isPayFeesLoading}
             total={total}
+            originalTotal={originalFeeBreakdown?.total}
+            feePolicyStatus={preview?.feePolicy?.status}
             rewardsFeeAmountUsd={rewardsFeeAmount}
             rewardsLoadingOverride={isUserChangeTriggeringCalculation}
             handleFeesInfoPress={handleFeesInfoPress}
@@ -675,6 +678,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
+          feePolicyStatus={preview?.feePolicy?.status}
+          originalTotal={originalFeeBreakdown?.total}
           depositFee={feeBreakdown.depositFee}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0

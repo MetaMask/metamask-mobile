@@ -3208,6 +3208,15 @@ describe('polymarket utils', () => {
         marketFee: 0.1,
       }),
     );
+    expect(preview.originalFees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        marketFee: 0.1,
+      }),
+    );
   });
 
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
@@ -3249,6 +3258,7 @@ describe('polymarket utils', () => {
         negRisk: false,
       }),
     );
+    expect(preview.originalFees).toBeUndefined();
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       expect.objectContaining({
@@ -3601,6 +3611,65 @@ describe('polymarket utils', () => {
       expect.objectContaining({
         method: 'GET',
         signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
+  it('returns original fees for a membership sell preview', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.05,
+            e: 1,
+            to: true,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.SELL,
+      size: 10,
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        status: 'membership',
+        effectiveMetamaskFee: 0,
+        builderCode: 'predict-pro-builder',
+      },
+    });
+
+    expect(preview.fees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0,
+        providerFee: expect.closeTo(0.147, 10),
+      }),
+    );
+    expect(preview.originalFees).toEqual(
+      expect.objectContaining({
+        metamaskFee: expect.closeTo(0.098, 10),
+        providerFee: expect.closeTo(0.147, 10),
+        totalFee: expect.closeTo(0.245, 10),
       }),
     );
   });
