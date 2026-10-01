@@ -9455,6 +9455,7 @@
       },
       "est_network_fee": "Delegation fee (one time)",
       "create_order": "Create Order",
+      "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
@@ -9484,7 +9485,8 @@
       "expired_at_status": "Expired (at {{date}})",
       "date_created": "Date created",
       "order_type": "Order type",
-      "order_type_limit": "Limit"
+      "order_type_limit": "Limit",
+      "create_new_order": "Create new order"
     },
     "recurring": {
       "you_get": "You get",
