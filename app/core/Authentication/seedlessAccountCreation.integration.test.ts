@@ -19,6 +19,7 @@ const KEYRING_ID = 'keyring-1';
 const FIRST_ATTEMPT_SRP = new Uint8Array(64).fill(1);
 const RETRY_SRP = new Uint8Array(64).fill(2);
 const IMPORTED_SRP = new Uint8Array(64).fill(9);
+const IMPORTED_PRIVATE_KEY = new Uint8Array(32).fill(7);
 
 const createAccount = async (
   install: SeedlessInstall,
@@ -179,38 +180,48 @@ describe('seedless add secret', () => {
     return { harness, install };
   };
 
-  const addImportedSrp = async (install: SeedlessInstall) =>
-    await install.controller.addNewSecretData(
-      IMPORTED_SRP,
-      EncAccountDataType.ImportedSrp,
-      { keyringId: 'keyring-2' },
-    );
+  describe.each([
+    {
+      secret: 'imported SRP',
+      data: IMPORTED_SRP,
+      dataType: EncAccountDataType.ImportedSrp,
+    },
+    {
+      secret: 'imported private key',
+      data: IMPORTED_PRIVATE_KEY,
+      dataType: EncAccountDataType.ImportedPrivateKey,
+    },
+  ])('$secret', ({ data, dataType }) => {
+    const addSecret = async (install: SeedlessInstall) =>
+      await install.controller.addNewSecretData(data, dataType, {
+        keyringId: 'keyring-2',
+      });
 
-  const importedSrpCount = (harness: SeedlessIntegrationHarness) =>
-    harness.backend.metadata
-      .get(harness.backend.savedKeyNamespace())
-      ?.filter((item) => item.dataType === EncAccountDataType.ImportedSrp)
-      .length;
+    const storedCount = (harness: SeedlessIntegrationHarness) =>
+      harness.backend.metadata
+        .get(harness.backend.savedKeyNamespace())
+        ?.filter((item) => item.dataType === dataType).length;
 
-  it('adds the secret once when the retry follows a failed write', async () => {
-    const { harness, install } = await createdAccount();
-    failNextCall(install, 'addSecretDataItem');
+    it('adds the secret once when the retry follows a failed write', async () => {
+      const { harness, install } = await createdAccount();
+      failNextCall(install, 'addSecretDataItem');
 
-    await expect(addImportedSrp(install)).rejects.toThrow();
-    await addImportedSrp(install);
+      await expect(addSecret(install)).rejects.toThrow();
+      await addSecret(install);
 
-    expect(importedSrpCount(harness)).toBe(1);
-  });
+      expect(storedCount(harness)).toBe(1);
+    });
 
-  // The write landed but the client never saw the response, so the retry
-  // writes again. ADR 0004 expects one entry.
-  it('writes the secret twice when the retry follows a lost response', async () => {
-    const { harness, install } = await createdAccount();
-    loseNextResponse(install, 'addSecretDataItem');
+    // The write landed but the client never saw the response, so the retry
+    // writes again. ADR 0004 expects one entry.
+    it('writes the secret twice when the retry follows a lost response', async () => {
+      const { harness, install } = await createdAccount();
+      loseNextResponse(install, 'addSecretDataItem');
 
-    await expect(addImportedSrp(install)).rejects.toThrow();
-    await addImportedSrp(install);
+      await expect(addSecret(install)).rejects.toThrow();
+      await addSecret(install);
 
-    expect(importedSrpCount(harness)).toBe(2);
+      expect(storedCount(harness)).toBe(2);
+    });
   });
 });

@@ -6,7 +6,7 @@ Domain detail for **seedless onboarding** (social login). Shared four-layer rule
 
 Integration for seedless proves what state a failed account creation or secret upload leaves behind, through the real `SeedlessOnboardingController` and Mobile's vault encryptor adapter. The TOPRF client is replaced by an in-memory SSS and metadata store, so a test can fail one write, repeat the step the way Mobile does, and check whether a new install recovers the SRP. Shape A only.
 
-These tests follow [ADR 0004](https://github.com/MetaMask/decisions/pull/291). They check the end state after a fault and a retry, because the controller does not record checkpoints for account creation or adding a secret yet.
+These tests follow [ADR 0004](https://github.com/MetaMask/decisions/blob/main/decisions/onboarding/0004-seedless-password-change-chaos-stress-test-framework.md). They check the end state after a fault and a retry, because the controller does not record checkpoints for account creation or adding a secret yet.
 
 ## Seedless integration harness shapes
 
