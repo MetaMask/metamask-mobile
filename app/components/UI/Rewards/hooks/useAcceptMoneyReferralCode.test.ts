@@ -333,7 +333,7 @@ describe('useAcceptMoneyReferralCode', () => {
       [
         403,
         'Accounts with recent trading activity cannot register as a referee',
-        'rewards.error_messages.something_went_wrong',
+        'rewards.error_messages.referrer_cannot_be_referred',
       ],
       [500, 'boom', 'rewards.error_messages.something_went_wrong'],
     ])(
