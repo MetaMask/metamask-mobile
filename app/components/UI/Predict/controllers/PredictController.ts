@@ -25,6 +25,7 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import type { SubscriptionControllerGetBenefitsAction } from '@metamask/subscription-controller';
 import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
@@ -106,6 +107,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictEligibility,
+  PredictFeePolicy,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarket,
@@ -140,6 +142,10 @@ import { validateMarketBettable } from '../utils/marketState';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
+import {
+  getStandardPredictFeePolicy,
+  resolvePredictFeePolicy,
+} from '../utils/predictFeePolicy';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
   findLiveMarket,
@@ -386,7 +392,8 @@ type AllowedActions =
   | TransactionControllerEstimateGasAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | SubscriptionControllerGetBenefitsAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -655,6 +662,50 @@ export class PredictController extends BaseController<
       'RemoteFeatureFlagController:getState',
     );
     return resolvePredictFeatureFlags(remoteFeatureFlagState);
+  }
+
+  /**
+   * Resolves the current Predict membership fee hint through the scoped
+   * messenger. Benefit lookup failures never grant a fee waiver.
+   *
+   * @returns The fail-closed Predict fee policy.
+   */
+  private async getPredictFeePolicy(): Promise<PredictFeePolicy> {
+    const { feeCollection } = this.resolveFeatureFlags();
+
+    try {
+      const benefits = await this.messenger.call(
+        'SubscriptionController:getBenefits',
+      );
+
+      return resolvePredictFeePolicy({
+        benefits,
+        standardMetamaskFee: feeCollection.metamaskFee,
+      });
+    } catch {
+      return getStandardPredictFeePolicy(feeCollection.metamaskFee);
+    }
+  }
+
+  /**
+   * Adds the current fee policy to provider parameters when a waiver is
+   * available. A previously attached policy is removed before revalidation so
+   * stale previews cannot carry a fee waiver into submission.
+   *
+   * @param params - Provider parameters that may contain a previous policy.
+   * @returns Provider parameters with the current waiver policy, if any.
+   */
+  private async withPredictFeePolicy<
+    T extends { feePolicy?: PredictFeePolicy },
+  >(params: T): Promise<T> {
+    const paramsWithFeePolicy = { ...params };
+    delete paramsWithFeePolicy.feePolicy;
+
+    const feePolicy = await this.getPredictFeePolicy();
+
+    return feePolicy.status === 'membership'
+      ? { ...paramsWithFeePolicy, feePolicy }
+      : paramsWithFeePolicy;
   }
 
   private getEvmAccountAddress(): string | undefined {
@@ -1781,8 +1832,12 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner();
+      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
 
-      return provider.previewOrder({ ...params, signer });
+      return provider.previewOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1805,8 +1860,12 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
       const signer = this.getSigner();
+      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
 
-      return provider.previewMaxBuyOrder({ ...params, signer });
+      return provider.previewMaxBuyOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -2116,6 +2175,7 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner(activeOrderAddress);
+      const previewWithFeePolicy = await this.withPredictFeePolicy(preview);
 
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
@@ -2142,6 +2202,7 @@ export class PredictController extends BaseController<
           await this.invalidateQueryCache(provider.chainId);
           result = await provider.placeOrder({
             ...params,
+            preview: previewWithFeePolicy,
             signer,
           });
 

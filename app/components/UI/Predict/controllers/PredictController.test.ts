@@ -10,6 +10,7 @@ import {
 
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { NetworkState } from '@metamask/network-controller';
+import type { SubscriptionBenefitsResponse } from '@metamask/subscription-controller';
 import {
   type TransactionMeta,
   TransactionStatus,
@@ -421,6 +422,9 @@ describe('PredictController', () => {
           (chainId: string) => string
         >;
         getNetworkClientById?: jest.MockedFunction<(clientId: string) => any>;
+        getBenefits?: jest.MockedFunction<
+          () => Promise<SubscriptionBenefitsResponse>
+        >;
       };
     } = {},
   ): ReturnValue {
@@ -498,6 +502,12 @@ describe('PredictController', () => {
         jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
+    rootMessenger.registerActionHandler(
+      'SubscriptionController:getBenefits',
+      mocks.getBenefits ??
+        jest.fn().mockRejectedValue(new Error('Benefits unavailable')),
+    );
+
     const messenger = new Messenger<
       'PredictController',
       AllPredictControllerMessengerActions,
@@ -519,6 +529,7 @@ describe('PredictController', () => {
         'KeyringController:signTypedMessage',
         'KeyringController:signPersonalMessage',
         'RemoteFeatureFlagController:getState',
+        'SubscriptionController:getBenefits',
       ],
       events: [
         'TransactionController:transactionSubmitted',
@@ -9293,6 +9304,59 @@ describe('PredictController', () => {
         await signer.signTypedMessage({} as never, 'V4' as never);
         await signer.signPersonalMessage({} as never);
       });
+    });
+
+    it('passes the resolved membership fee policy to the provider', async () => {
+      mockPolymarketProvider.previewOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
+      );
+      const getBenefits = jest.fn().mockResolvedValue({
+        eligible: true,
+        billingPeriodId: 'period-1',
+        products: {
+          swaps: {
+            feeBips: null,
+            remainingMicroUsd: null,
+            exhausted: false,
+          },
+          perps: {
+            builderFeeBips: null,
+            builderCode: null,
+            remainingMicroUsd: null,
+            exhausted: false,
+          },
+          predict: {
+            builderCode: 'predict-pro-builder',
+            remainingTxCount: 2,
+            exhausted: false,
+          },
+        },
+      } satisfies SubscriptionBenefitsResponse);
+
+      await withController(
+        async ({ controller }) => {
+          await controller.previewOrder({
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          });
+
+          expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              feePolicy: {
+                status: 'membership',
+                effectiveMetamaskFee: 0,
+                builderCode: 'predict-pro-builder',
+                isMetaMaskFeeWaived: true,
+                canPresentBenefit: true,
+              },
+            }),
+          );
+        },
+        { mocks: { getBenefits } },
+      );
     });
 
     it('handles preview errors', async () => {
