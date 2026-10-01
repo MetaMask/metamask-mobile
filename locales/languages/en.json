@@ -9464,7 +9464,7 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
       "activity_title_filled": "Swapped {{source}} to {{dest}}",
       "activity_title_expired": "{{source}} to {{dest}} expired",
       "activity_title_canceled": "{{source}} to {{dest}} canceled",
