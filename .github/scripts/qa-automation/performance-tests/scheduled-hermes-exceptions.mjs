@@ -170,6 +170,28 @@ function openedBugs(exception) {
   );
 }
 
+/**
+ * A finding is tracked only after issue sync stored a URL. The digest is
+ * also built when `--github-issues` is off or a create/comment failed, so
+ * the headline must not claim a bug that was never opened.
+ */
+function everyFindingHasBug(findings) {
+  return (
+    findings.length > 0 &&
+    findings.every((finding) => Boolean(finding.issue?.url))
+  );
+}
+
+function multiScenarioHeadline(exception, slack) {
+  const count = exception.findings.length;
+  const crossed = slack
+    ? `*${count} scenarios* each exceeded ${exception.meta.thresholdRatio}× their recent median.`
+    : `${count} scenarios each crossed the threshold.`;
+  return everyFindingHasBug(exception.findings)
+    ? `${crossed} Each one is tracked on its own bug.`
+    : crossed;
+}
+
 function findingComparison(finding) {
   const [current, baseline] = formatDurationsAlike([
     finding.jsWorkMs,
@@ -244,7 +266,7 @@ export function buildScheduledExceptionSlack(exception) {
     `_Baseline:_ median of the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~6h and ~12h)`,
     '',
     sharedRun
-      ? `*${exception.findings.length} scenarios* each exceeded ${exception.meta.thresholdRatio}× their recent median. Each one is tracked on its own bug.`
+      ? multiScenarioHeadline(exception, true)
       : `*Possible regression:* one scenario exceeded ${exception.meta.thresholdRatio}× its recent median.`,
     '_Owners are named for routing; no team is notified._',
     '',
@@ -283,7 +305,7 @@ export function buildScheduledExceptionMarkdown(exception) {
   }
   lines.push(
     exception.findings.length > 1
-      ? `${exception.findings.length} scenarios each crossed the threshold. Each one is tracked on its own bug.`
+      ? multiScenarioHeadline(exception, false)
       : 'One scenario crossed the notification threshold.',
     '',
   );

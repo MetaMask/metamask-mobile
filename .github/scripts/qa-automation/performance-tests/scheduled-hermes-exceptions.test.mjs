@@ -137,9 +137,24 @@ test('two scenarios crossing together are each named in the digest', () => {
 
   assert.equal(exception.findings.length, 2);
   assert.match(slack, /2 scenarios\* each exceeded 1\.5×/);
-  assert.match(slack, /tracked on its own bug/);
+  assert.doesNotMatch(slack, /tracked on its own bug/);
+  assert.doesNotMatch(buildScheduledExceptionMarkdown(exception), /tracked on its own bug/);
   assert.match(slack, /owner mm-perps-engineering-team/);
   assert.match(slack, /owner mm-earn-team/);
+
+  for (const [index, number] of [600, 601].entries()) {
+    exception.findings[index].issue = {
+      number,
+      url: `https://github.com/MetaMask/metamask-mobile/issues/${number}`,
+      created: true,
+    };
+  }
+  assert.match(buildScheduledExceptionSlack(exception), /tracked on its own bug/);
+  assert.match(buildScheduledExceptionMarkdown(exception), /tracked on its own bug/);
+
+  exception.findings[1].issue = { error: 'HTTP 403' };
+  assert.doesNotMatch(buildScheduledExceptionSlack(exception), /tracked on its own bug/);
+  assert.doesNotMatch(buildScheduledExceptionMarkdown(exception), /tracked on its own bug/);
 });
 
 test('a finding links the GitHub issue that tracks it', () => {
