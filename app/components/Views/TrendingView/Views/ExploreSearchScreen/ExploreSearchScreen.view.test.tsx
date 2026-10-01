@@ -112,6 +112,46 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     }
   });
 
+  it('redacts a clipboard-prefilled query from the abandoned event', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId } = renderExploreSearchScreenWithBackStack({
+        initialParams: {
+          entryPoint: 'home',
+          initialQuery: 'clipboard-secret',
+          initialQuerySource: 'clipboard',
+        },
+      });
+
+      await actButtonPress(
+        await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'abandoned',
+              search_query: '',
+              query_length: 16,
+            }),
+          }),
+        );
+      });
+      expect(trackEventSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            search_query: 'clipboard-secret',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
   it('cancels the homepage search handoff and returns to the previous route', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
       renderExploreSearchScreenWithBackStack({
@@ -493,6 +533,85 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       expect(
         await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
       ).toBeOnTheScreen();
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('tracks abandoned once with navigate_away when leaving through the browser tabs button', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        {
+          headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+          initialParams: { entryPoint: 'deeplink' },
+          overrides: {
+            browser: {
+              tabs: [{ id: 1, url: 'https://app.uniswap.org' }],
+            },
+          },
+        },
+      );
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(
+        await findByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+
+      const abandonedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'abandoned',
+      );
+      expect(abandonedEvents).toHaveLength(1);
+      expect(abandonedEvents[0][0]).toEqual(
+        expect.objectContaining({
+          name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+          properties: expect.objectContaining({
+            search_query: 'eth',
+            query_length: 3,
+            abandon_reason: 'navigate_away',
+            entry_point: 'deeplink',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('does not track abandoned when the user leaves through a footer result click', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        { initialParams: { entryPoint: 'deeplink' } },
+      );
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(
+        await findByTestId('trending-search-footer-search-link'),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+
+      const abandonedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'abandoned',
+      );
+      expect(abandonedEvents).toHaveLength(0);
     } finally {
       trackEventSpy.mockRestore();
     }
