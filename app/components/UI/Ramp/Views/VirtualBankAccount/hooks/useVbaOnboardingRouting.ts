@@ -18,6 +18,7 @@ import {
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes } from '../routes';
+import { applyVbaDevOverrides } from '../vbaDevOverrides';
 
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
@@ -110,9 +111,11 @@ export const useOpenVbaOnboarding = (
         }
 
         const accountSnapshot: RampsVbaOnboardingSnapshot =
-          await Engine.context.RampsController.hydrateVbaOnboarding({
-            walletAddress,
-          });
+          applyVbaDevOverrides(
+            await Engine.context.RampsController.hydrateVbaOnboarding({
+              walletAddress,
+            }),
+          );
         if (
           accountSnapshot.sessionExists &&
           !accountSnapshot.vendorDisclaimersComplete
