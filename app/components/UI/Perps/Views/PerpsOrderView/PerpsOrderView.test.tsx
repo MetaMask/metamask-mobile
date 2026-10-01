@@ -75,11 +75,8 @@ import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  CandlePeriod,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  type CandleData,
-  type PriceUpdate,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
@@ -634,11 +631,6 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
-let mockCandlePeriod: CandlePeriod = CandlePeriod.OneHour;
-let mockPriceSnapshot: Record<string, PriceUpdate> | null = null;
-let mockFocusedPriceSnapshot: PriceUpdate | null = null;
-let mockCachedCandles: CandleData | null = null;
-let mockIsChartCacheFresh = true;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -650,14 +642,8 @@ jest.mock('react-redux', () => ({
     const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
       '../../selectors/featureFlags',
     );
-    const { selectPerpsChartPreferredCandlePeriod } = jest.requireActual(
-      '../../selectors/chartPreferences',
-    );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
-    }
-    if (selector === selectPerpsChartPreferredCandlePeriod) {
-      return mockCandlePeriod;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -913,9 +899,6 @@ interface MockTradeScreenProps {
   onOrderTypeToggle: () => void;
   onPayWithPress: () => void;
   maxLeverage: number | null;
-  currentPrice: number;
-  percentChange24h: number | null;
-  isHeaderLoading: boolean;
   liquidationPrice: string;
   liquidationDistance?: string;
   isLiquidationLoading: boolean;
@@ -1173,18 +1156,16 @@ const createMockStreamManager = () => {
         };
       },
       subscribe: jest.fn(() => jest.fn()),
-      getSnapshot: jest.fn(() => mockPriceSnapshot),
-      getSnapshotForSymbol: jest.fn(
-        (symbol: string) => mockPriceSnapshot?.[symbol] ?? null,
-      ),
+      getSnapshot: jest.fn(() => null),
+      getSnapshotForSymbol: jest.fn(() => null),
     },
     focusedPrice: {
-      getSnapshot: jest.fn(() => mockFocusedPriceSnapshot),
+      getSnapshot: jest.fn(() => null),
       subscribeToSymbol: jest.fn(() => jest.fn()),
     },
     candles: {
-      getCachedData: jest.fn(() => mockCachedCandles),
-      isChartCacheFresh: jest.fn(() => mockIsChartCacheFresh),
+      getCachedData: jest.fn(() => null),
+      isChartCacheFresh: jest.fn(() => false),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
@@ -1335,11 +1316,6 @@ describe('PerpsOrderView', () => {
     mockLiquidationInfoScreenProps = undefined;
     mockTradeSheetContentSizedScreens = undefined;
     mockTradeWithAnyTokenEnabled = false;
-    mockCandlePeriod = CandlePeriod.OneHour;
-    mockPriceSnapshot = null;
-    mockFocusedPriceSnapshot = null;
-    mockCachedCandles = null;
-    mockIsChartCacheFresh = true;
     (useTransactionConfirm as jest.Mock).mockReturnValue({
       onConfirm: jest.fn(),
     });
@@ -1530,90 +1506,6 @@ describe('PerpsOrderView', () => {
     expect(getMockTradeScreenProps().liquidationPrice).toBe('$2,700');
     expect(getMockTradeScreenProps().liquidationDistance).toBe('10.00%');
     expect(getMockTradeScreenProps().isLiquidationLoading).toBe(false);
-  });
-
-  describe('trade sheet header cached price', () => {
-    const cachedEthPrice: PriceUpdate = {
-      symbol: 'ETH',
-      price: '2700',
-      percentChange24h: '0.02',
-      timestamp: 1,
-      isTradable: true,
-    };
-    const cachedEthChart: CandleData = {
-      symbol: 'ETH',
-      interval: CandlePeriod.FifteenMinutes,
-      candles: [
-        {
-          time: Date.now(),
-          open: '2737.9',
-          high: '2737.9',
-          low: '2737.9',
-          close: '2737.9',
-          volume: '1',
-        },
-      ],
-    };
-
-    beforeEach(() => {
-      (usePerpsLivePrices as jest.Mock).mockReturnValue({});
-      mockPriceSnapshot = { ETH: cachedEthPrice };
-      mockCandlePeriod = CandlePeriod.FifteenMinutes;
-      mockCachedCandles = cachedEthChart;
-      useTradeSheetRoute();
-    });
-
-    it('shows the cached asset-screen chart price before a new price tick', () => {
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
-      expect(getMockTradeScreenProps().currentPrice).toBe(2737.9);
-      expect(getMockTradeScreenProps().percentChange24h).toBe(0.02);
-    });
-
-    it('falls back to the cached mid when the chart cache is stale', () => {
-      mockIsChartCacheFresh = false;
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
-      expect(getMockTradeScreenProps().currentPrice).toBe(2700);
-      expect(getMockTradeScreenProps().percentChange24h).toBe(0.02);
-    });
-
-    it('does not use the chart close when the Advanced Chart is active', () => {
-      useTradeSheetRoute({
-        chartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
-      });
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(getMockTradeScreenProps().currentPrice).toBe(2700);
-    });
-
-    it('shows the header skeleton when nothing is cached yet', () => {
-      mockPriceSnapshot = null;
-      mockCachedCandles = null;
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(getMockTradeScreenProps().isHeaderLoading).toBe(true);
-      expect(getMockTradeScreenProps().currentPrice).toBe(0);
-    });
-
-    it('follows the live mid once the sheet subscription delivers', () => {
-      const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
-      expect(getMockTradeScreenProps().currentPrice).toBe(2737.9);
-
-      (usePerpsLivePrices as jest.Mock).mockReturnValue({
-        ETH: { price: '2740', percentChange24h: '1.5', markPrice: '2740' },
-      });
-      rerender(<PerpsOrderView />);
-
-      expect(getMockTradeScreenProps().currentPrice).toBe(2740);
-      expect(getMockTradeScreenProps().percentChange24h).toBe(1.5);
-      expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
-    });
   });
 
   it('shows a liquidation price skeleton while the API recalculates', () => {
