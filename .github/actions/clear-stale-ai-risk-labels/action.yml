@@ -1,0 +1,46 @@
+name: 'Clear stale AI risk labels'
+description: >
+  Remove risk:* labels the AI PR risk analysis workflow applies. Used when a
+  main pull request is not being analyzed, so an old label cannot outlive the
+  diff it described.
+
+inputs:
+  github-token:
+    description: 'Token with permission to edit pull request labels.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Remove stale risk labels
+      uses: actions/github-script@v9
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const riskLabels = [
+            'risk:critical',
+            'risk:high',
+            'risk:medium',
+            'risk:low',
+          ];
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+
+          for (const name of riskLabels) {
+            try {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number,
+                name,
+              });
+              core.info(`Removed label ${name}`);
+            } catch (error) {
+              const status = error.status ?? error.response?.status;
+              if (status === 404) {
+                core.info(`Label ${name} was not on the pull request`);
+                continue;
+              }
+              throw error;
+            }
+          }

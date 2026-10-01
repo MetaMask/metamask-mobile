@@ -417,7 +417,9 @@ tests/websocket/                                                @MetaMask/qa
 .github/actions/download-e2e-artifact/                          @MetaMask/qa
 .github/actions/dual-upload-e2e-artifact/                       @MetaMask/qa
 .github/actions/setup-e2e-env/                                  @MetaMask/qa
+.github/actions/clear-stale-ai-risk-labels/                     @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
+.github/workflows/ai-pr-risk-analysis-label.yml                 @MetaMask/qa
 .github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
