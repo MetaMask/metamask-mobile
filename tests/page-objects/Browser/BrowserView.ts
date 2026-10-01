@@ -5,6 +5,7 @@ import {
 } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { PhishingModalSelectorsIDs } from '../../../app/components/UI/PhishingModal/PhishingModal.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import type { AppiumElement } from '../../framework/AppiumElement';
@@ -101,8 +102,8 @@ class Browser {
   }
 
   get backToSafetyButton(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+    return Matchers.getElementByID(
+      PhishingModalSelectorsIDs.BACK_TO_SAFETY_BUTTON,
     );
   }
 
@@ -481,6 +482,14 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
+    // Product delays homepage navigation + modal dismiss by 500ms after tap
+    // (`goBackToSafety`). Asserting the URL bar while the full-screen phishing
+    // overlay is still up fails: `browser-url-display-text` is not in the
+    // accessibility tree. Wait until the modal is gone before callers continue.
+    await Assertions.expectElementToNotBeVisible(this.backToSafetyButton, {
+      description: 'Phishing warning dismissed after Back to safety',
+      timeout: 15_000,
+    });
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -510,7 +519,14 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
+    // Display text is also absent while the URL editor is focused — dismiss
+    // first (same readiness path as `expectUrlToContain`).
     await AppiumContextHelpers.switchToNativeContext();
+    await this.dismissUrlEditorIfOpen();
+    await Assertions.expectElementToBeVisible(this.urlBarDisplayText, {
+      description: 'URL bar display text is visible before not-equal assert',
+      timeout: 30_000,
+    });
     await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
       description: description ?? `URL input box text is not "${text}"`,
     });
