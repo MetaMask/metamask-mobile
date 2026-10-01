@@ -772,6 +772,7 @@ describe('QuoteDetailsCard', () => {
         priceImpact: '15.0%',
         slippage: '0.5%',
       },
+      shouldShowPriceImpactWarning: true,
     }));
 
     const { getByTestId } = renderScreen(
