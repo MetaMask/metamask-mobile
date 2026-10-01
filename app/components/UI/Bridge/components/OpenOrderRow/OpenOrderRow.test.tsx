@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import {
   FontWeight,
   Icon,
@@ -49,6 +50,14 @@ const RECURRING_PROPS = {
   }),
   primaryColor: TextColor.SuccessDefault,
 };
+
+const FILLED_TAG = (
+  <Tag severity={TagSeverity.Success}>{strings('bridge.limit.filled')}</Tag>
+);
+
+const TITLE_AND_ACCESSORY_TEST_ID = new RegExp(
+  `^(${OpenOrderRowSelectorsIDs.TITLE}|${OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY})$`,
+);
 
 function renderOpenOrderRow(props: OpenOrderRowProps) {
   return renderWithProvider(<OpenOrderRow {...props} />, {
@@ -142,5 +151,73 @@ describe('OpenOrderRow', () => {
     expect(getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveTextContent(
       '+0.325 USDC',
     );
+  });
+
+  it('places the title and its accessory side by side in one row that wraps', () => {
+    const { getByTestId } = renderOpenOrderRow({
+      ...LIMIT_PROPS,
+      titleEndAccessory: FILLED_TAG,
+    });
+
+    const titleRow = getByTestId(OpenOrderRowSelectorsIDs.TITLE_ROW);
+
+    expect(titleRow).toHaveStyle({
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+    });
+    expect(
+      within(titleRow)
+        .getAllByTestId(TITLE_AND_ACCESSORY_TEST_ID)
+        .map((titleElement) => titleElement.props.testID),
+    ).toEqual([
+      OpenOrderRowSelectorsIDs.TITLE,
+      OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY,
+    ]);
+  });
+
+  it('lets the title row shrink within the row so a long title wraps instead of overflowing', () => {
+    const { getByTestId } = renderOpenOrderRow({
+      ...LIMIT_PROPS,
+      titleEndAccessory: FILLED_TAG,
+    });
+
+    expect(getByTestId(OpenOrderRowSelectorsIDs.TITLE_ROW)).toHaveStyle({
+      flexGrow: 1,
+      flexShrink: 1,
+      minWidth: 0,
+    });
+  });
+
+  it('renders only the title in the title row without an accessory', () => {
+    const { getByTestId, queryByTestId } = renderOpenOrderRow(LIMIT_PROPS);
+
+    expect(
+      within(getByTestId(OpenOrderRowSelectorsIDs.TITLE_ROW)).getByTestId(
+        OpenOrderRowSelectorsIDs.TITLE,
+      ),
+    ).toHaveTextContent('ETH → USDC');
+    expect(
+      queryByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the title in the default text color when none is given', () => {
+    const { getByTestId } = renderOpenOrderRow(LIMIT_PROPS);
+
+    expect(getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
+      color: lightTheme.colors.text.default,
+    });
+  });
+
+  it('renders the title in the given color', () => {
+    const { getByTestId } = renderOpenOrderRow({
+      ...LIMIT_PROPS,
+      titleColor: TextColor.WarningDefault,
+    });
+
+    expect(getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
+      color: lightTheme.colors.warning.default,
+    });
   });
 });

@@ -71,6 +71,7 @@ import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/ge
 import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
@@ -211,6 +212,18 @@ const BridgeLimitOrderViewContent = () => {
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const isMissingPrice = useHasMissingAssetsPriceData();
+  const { isBelowMinAmount, minAmountUsd } = useLimitOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
+  const isCreateOrderDisabled =
+    isMissingPrice || isHardwareWallet || isBelowMinAmount;
+  const createOrderLabel =
+    isBelowMinAmount && minAmountUsd !== undefined
+      ? strings('bridge.limit.min_order_amount', {
+          amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
+        })
+      : strings('bridge.limit.create_order');
   const [expirationMinutes, setExpirationMinutes] =
     useState<SwapsLimitOrderExpirationMinutes>(
       SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
@@ -542,9 +555,9 @@ const BridgeLimitOrderViewContent = () => {
         </ScrollView>
 
         <BridgeLimitOrderFooterView
-          ctaDisabled={isMissingPrice || isHardwareWallet}
+          ctaDisabled={isCreateOrderDisabled}
           onCTAPress={handleCreateOrderPress}
-          ctaLabel={strings('bridge.limit.create_order')}
+          ctaLabel={createOrderLabel}
         />
 
         <SwapsKeypad
@@ -555,9 +568,9 @@ const BridgeLimitOrderViewContent = () => {
           {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
-              label={strings('bridge.limit.create_order')}
+              label={createOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-              disabled={isMissingPrice || isHardwareWallet}
+              disabled={isCreateOrderDisabled}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions
