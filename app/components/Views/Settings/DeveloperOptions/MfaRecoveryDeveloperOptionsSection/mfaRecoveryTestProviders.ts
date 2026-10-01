@@ -17,14 +17,24 @@ type SignPersonalMessage = (params: {
 
 /**
  * Test-only AuthController replacement for the developer flow.
+ *
+ * The AuthenticationController bearer token is carried in `signature` so the
+ * escrow receives the same SRP session token used for the Cubist OIDC login.
  */
 export class StubAuthProvider implements RecoveryAuthProvider {
   readonly #profileId: string;
 
+  readonly #accessToken: string;
+
   readonly #now: () => number;
 
-  constructor(profileId: string, now = () => Math.floor(Date.now() / 1000)) {
+  constructor(
+    profileId: string,
+    accessToken: string,
+    now = () => Math.floor(Date.now() / 1000),
+  ) {
     this.#profileId = profileId;
+    this.#accessToken = accessToken;
     this.#now = now;
   }
 
@@ -54,7 +64,7 @@ export class StubAuthProvider implements RecoveryAuthProvider {
           }),
       issuer: 'mfa-recovery-developer-test',
       expiresAt: this.#now() + AUTH_TOKEN_LIFETIME_SECONDS,
-      signature: 'stub-auth-signature',
+      signature: this.#accessToken,
     };
   }
 }

@@ -6,7 +6,11 @@ import {
 
 describe('mfa recovery test providers', () => {
   it('creates a request-bound auth token for the configured profile', async () => {
-    const provider = new StubAuthProvider('profile-1', () => 1_000);
+    const provider = new StubAuthProvider(
+      'profile-1',
+      'auth-token',
+      () => 1_000,
+    );
     const token = await provider.authorizeRecoveryRequest({
       requestHash: '0xrequest',
       requireTwoFactor: true,
@@ -27,7 +31,7 @@ describe('mfa recovery test providers', () => {
       identifierOwnershipApproved: true,
       issuer: 'mfa-recovery-developer-test',
       expiresAt: 4_600,
-      signature: 'stub-auth-signature',
+      signature: 'auth-token',
     });
     expect(token.identifiersHash).toEqual(expect.any(String));
   });

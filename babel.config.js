@@ -139,6 +139,16 @@ module.exports = {
   ],
   overrides: [
     {
+      // Prevent SDK helpers from reusing incompatible ambient tslib helpers.
+      test: pathIncludes('/node_modules/@cubist-labs/cubesigner-sdk/'),
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { allowTopLevelThis: false },
+        ],
+      ],
+    },
+    {
       test: pathIncludes('/node_modules/marked'),
       plugins: privateMethodsLoose,
     },

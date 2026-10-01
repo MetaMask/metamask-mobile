@@ -14,11 +14,21 @@ import styleSheet from '../DeveloperOptions.styles';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
+  runMfaRecoveryCubistRecover,
   runMfaRecoveryCubistTest,
+  type MfaRecoveryRecoverResult,
+  type MfaRecoveryTestResult,
   type MfaRecoveryTestStep,
 } from './runMfaRecoveryCubistTest';
 
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
+const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
+
+type MfaRecoveryRunResult = MfaRecoveryTestResult | MfaRecoveryRecoverResult;
+type MfaRecoveryRunner = (
+  onStep: (step: MfaRecoveryTestStep) => void,
+) => Promise<MfaRecoveryRunResult>;
+type MfaRecoveryResultFormatter = (result: MfaRecoveryRunResult) => string;
 
 const MfaRecoveryDeveloperOptionsSection = () => {
   const theme = useTheme();
@@ -28,47 +38,84 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleRun = useCallback(async () => {
-    if (isRunning) {
-      return;
-    }
+  const handleRun = useCallback(
+    async (
+      runner: MfaRecoveryRunner,
+      formatResult: MfaRecoveryResultFormatter,
+    ) => {
+      if (isRunning) {
+        return;
+      }
 
-    setIsRunning(true);
-    setStep(null);
-    setResult(null);
-    setError(null);
+      setIsRunning(true);
+      setStep(null);
+      setResult(null);
+      setError(null);
 
-    let currentStep: MfaRecoveryTestStep | null = null;
+      let currentStep: MfaRecoveryTestStep | null = null;
 
-    try {
-      const recoveryResult = await runMfaRecoveryCubistTest((nextStep) => {
-        currentStep = nextStep;
-        setStep(nextStep);
+      try {
+        const recoveryResult = await runner((nextStep) => {
+          currentStep = nextStep;
+          setStep(nextStep);
+        });
+        setResult(formatResult(recoveryResult));
+      } catch (runError) {
+        const code = getMfaRecoveryErrorCode(runError);
+        const detail = getMfaRecoveryErrorDetail(runError);
+        console.error('MFA recovery test failed', {
+          code,
+          detail,
+          step: currentStep,
+        });
+        setError(
+          strings('app_settings.developer_options.mfa_recovery.failure', {
+            code: detail === undefined ? code : `${code} (${detail})`,
+          }),
+        );
+      } finally {
+        setIsRunning(false);
+      }
+    },
+    [isRunning],
+  );
+
+  const handleRunCubistTest = useCallback(() => {
+    handleRun(runMfaRecoveryCubistTest, (recoveryResult) => {
+      if (!('ensureUserStatus' in recoveryResult)) {
+        throw new Error('Unexpected recovery result');
+      }
+      return strings('app_settings.developer_options.mfa_recovery.success', {
+        status: recoveryResult.ensureUserStatus,
+        epoch: recoveryResult.epoch,
+        matches: recoveryResult.matches ? 'yes' : 'no',
       });
-      setResult(
-        strings('app_settings.developer_options.mfa_recovery.success', {
-          status: recoveryResult.ensureUserStatus,
+    });
+  }, [handleRun]);
+
+  const handleRecoverSecret = useCallback(() => {
+    handleRun(runMfaRecoveryCubistRecover, (recoveryResult) => {
+      if ('ensureUserStatus' in recoveryResult) {
+        throw new Error('Unexpected recovery result');
+      }
+      if (recoveryResult.matches === undefined) {
+        return strings(
+          'app_settings.developer_options.mfa_recovery.recover_success_no_reference',
+          {
+            epoch: recoveryResult.epoch,
+            fingerprint: recoveryResult.fingerprint,
+          },
+        );
+      }
+      return strings(
+        'app_settings.developer_options.mfa_recovery.recover_success',
+        {
           epoch: recoveryResult.epoch,
           matches: recoveryResult.matches ? 'yes' : 'no',
-        }),
+        },
       );
-    } catch (runError) {
-      const code = getMfaRecoveryErrorCode(runError);
-      const detail = getMfaRecoveryErrorDetail(runError);
-      console.error('MFA recovery test failed', {
-        code,
-        detail,
-        step: currentStep,
-      });
-      setError(
-        strings('app_settings.developer_options.mfa_recovery.failure', {
-          code: detail === undefined ? code : `${code} (${detail})`,
-        }),
-      );
-    } finally {
-      setIsRunning(false);
-    }
-  }, [isRunning]);
+    });
+  }, [handleRun]);
 
   return (
     <>
@@ -89,7 +136,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        onPress={handleRun}
+        onPress={handleRunCubistTest}
         isDisabled={isRunning}
         isFullWidth
         style={styles.accessory}
@@ -97,6 +144,19 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       >
         {strings(
           'app_settings.developer_options.mfa_recovery.run_cubist_test_button',
+        )}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleRecoverSecret}
+        isDisabled={isRunning}
+        isFullWidth
+        style={styles.accessory}
+        testID={RECOVER_BUTTON_TEST_ID}
+      >
+        {strings(
+          'app_settings.developer_options.mfa_recovery.recover_secret_button',
         )}
       </Button>
       {(isRunning || error !== null) && step !== null && (

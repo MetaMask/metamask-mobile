@@ -5147,8 +5147,11 @@
         "title": "MFA recovery",
         "description": "Run the Cubist MFA recovery controller test with the primary account and configured developer services.",
         "run_cubist_test_button": "Run Cubist recovery test",
+        "recover_secret_button": "Recover secret (getRecoverySecret)",
         "running": "Running: {{step}}",
         "success": "Recovery test passed (Cubist user: {{status}}, epoch: {{epoch}}, secret matches: {{matches}}).",
+        "recover_success": "Recovery succeeded (epoch: {{epoch}}, secret matches last registration: {{matches}}).",
+        "recover_success_no_reference": "Recovery succeeded (epoch: {{epoch}}, fingerprint: {{fingerprint}}). No secret from a previous run in memory to compare.",
         "failure": "Recovery test failed: {{code}}",
         "steps": {
           "signing_in": "Signing in with SIWE",
