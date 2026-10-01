@@ -7,6 +7,7 @@ import ChangePassword from './ChangePassword/ChangePassword';
 import AutoLock from './AutoLock/AutoLock';
 import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
 import BlockaidSettings from './BlockaidSettings';
+import SupportConsentPreferenceSection from './SupportConsentPreferenceSection';
 
 export {
   ClearCookiesSection,
@@ -18,4 +19,5 @@ export {
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  SupportConsentPreferenceSection,
 };

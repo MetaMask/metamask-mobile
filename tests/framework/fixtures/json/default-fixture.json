@@ -979,7 +979,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}
