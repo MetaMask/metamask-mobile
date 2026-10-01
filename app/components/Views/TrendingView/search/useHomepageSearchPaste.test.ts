@@ -5,6 +5,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import { trackHomepageSearchPaste } from '../../../../util/analytics/homepageSearchPasteTracking';
 import {
   isNewHomepageClipboardRevision,
+  resetHomepageSearchPasteStateForTests,
   useHomepageSearchPaste,
 } from './useHomepageSearchPaste';
 
@@ -226,5 +227,31 @@ describe('useHomepageSearchPaste', () => {
     expect(onPaste).not.toHaveBeenCalled();
     expect(trackHomepageSearchPaste).not.toHaveBeenCalled();
     expect(result.current.showPastePill).toBe(false);
+  });
+
+  it('shows Paste again for the same clipboard revision after test state is reset', async () => {
+    const first = renderHook(() =>
+      useHomepageSearchPaste({ enabled: true, onPaste: jest.fn() }),
+    );
+
+    await waitFor(() => {
+      expect(first.result.current.showPastePill).toBe(true);
+    });
+
+    await act(async () => {
+      await first.result.current.handlePastePress();
+    });
+
+    expect(first.result.current.showPastePill).toBe(false);
+
+    resetHomepageSearchPasteStateForTests();
+
+    const second = renderHook(() =>
+      useHomepageSearchPaste({ enabled: true, onPaste: jest.fn() }),
+    );
+
+    await waitFor(() => {
+      expect(second.result.current.showPastePill).toBe(true);
+    });
   });
 });

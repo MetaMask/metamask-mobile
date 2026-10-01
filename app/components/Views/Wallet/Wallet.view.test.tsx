@@ -11,10 +11,12 @@ import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceC
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Routes from '../../../constants/navigation/Routes';
 import ClipboardManager from '../../../core/ClipboardManager';
+// eslint-disable-next-line import-x/no-restricted-paths -- test-only reset for the homepage paste module state
+import { resetHomepageSearchPasteStateForTests } from '../TrendingView/search/useHomepageSearchPaste';
 import {
   clearTrendingApiMocks,
   mockRwaTokensData,
@@ -68,7 +70,28 @@ const walletHomeOverrides = (variant?: 'control' | 'treatment') => ({
   } as unknown as Record<string, unknown>,
 });
 
+const restoreHomepageSearchClipboard = () => {
+  jest.mocked(Clipboard.hasString).mockReset();
+  jest
+    .mocked(Clipboard.hasString)
+    .mockImplementation(() => Promise.resolve(false));
+  jest.mocked(Clipboard.getString).mockReset();
+  jest
+    .mocked(Clipboard.getString)
+    .mockImplementation(() => Promise.resolve(''));
+  jest.mocked(Clipboard.setString).mockReset();
+  resetHomepageSearchPasteStateForTests();
+};
+
 describeForPlatforms('Wallet', () => {
+  beforeEach(() => {
+    restoreHomepageSearchClipboard();
+  });
+
+  afterEach(() => {
+    restoreHomepageSearchClipboard();
+  });
+
   it('renders wallet home with minimal state and shows key UI elements', () => {
     const { getByTestId } = renderWalletView({
       overrides: {
@@ -193,7 +216,12 @@ describeForPlatforms('Wallet', () => {
   });
 
   it('opens Explore search from the treatment header when the clipboard is empty', async () => {
-    jest.mocked(Clipboard.hasString).mockResolvedValue(false);
+    let resolveHasString: (hasClipboardString: boolean) => void = () =>
+      undefined;
+    const hasString = new Promise<boolean>((resolve) => {
+      resolveHasString = resolve;
+    });
+    jest.mocked(Clipboard.hasString).mockReturnValue(hasString);
 
     const { getByTestId, findByTestId, queryByTestId } =
       renderWalletViewWithRoutes({
@@ -207,6 +235,11 @@ describeForPlatforms('Wallet', () => {
 
     await waitFor(() => {
       expect(Clipboard.hasString).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      resolveHasString(false);
+      await hasString;
     });
 
     expect(
