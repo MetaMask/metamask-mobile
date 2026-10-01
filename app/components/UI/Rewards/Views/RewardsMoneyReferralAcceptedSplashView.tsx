@@ -26,7 +26,6 @@ import RewardsThemeImageComponent from '../components/ThemeImageComponent/Reward
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
 import { formatRewardsDateLabel } from '../utils/formatUtils';
-import { exitRewardsFlow } from '../utils';
 
 export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
   CONTAINER: 'rewards-money-referral-accepted-splash',
@@ -83,17 +82,30 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     [localizedText?.inviteAcceptedBody, referralMe?.referred_by?.earning_end],
   );
 
-  const handleDismiss = useCallback(() => {
-    exitRewardsFlow(navigation);
+  // The tab picked its home from the pre-accept persona and does not remount
+  // while this splash is the active screen. Popping back would reveal that
+  // earlier home, so every exit selects the Money dashboard explicitly.
+  const showMoneyDashboard = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.REWARDS_VIEW,
+      params: {
+        screen: Routes.REWARDS_MONEY_DASHBOARD,
+        initial: false,
+      },
+    });
   }, [navigation]);
 
+  const handleDismiss = useCallback(() => {
+    showMoneyDashboard();
+  }, [showMoneyDashboard]);
+
   const handleStartTrading = useCallback(() => {
-    exitRewardsFlow(navigation);
+    showMoneyDashboard();
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
       params: { hasBottomNotch: false },
     });
-  }, [navigation]);
+  }, [navigation, showMoneyDashboard]);
 
   return (
     <SafeAreaView
@@ -145,16 +157,21 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
         )}
       </Box>
 
+      {/*
+       * The theme image wraps its Image in a Box sized to its child, so this
+       * container must stretch that wrapper (no alignItems center) and the
+       * Image needs a fixed height: w-full/h-full against a shrink-wrapped
+       * parent resolve to 0.
+       */}
       <Box
-        alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 px-6 py-8"
+        twClassName="flex-1 w-full px-6 py-8"
         testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.HERO}
       >
         {inviteHero && (
           <RewardsThemeImageComponent
             themeImage={inviteHero}
-            style={tw.style('h-full w-full max-w-80')}
+            style={tw.style('h-[320px] w-full')}
           />
         )}
       </Box>
