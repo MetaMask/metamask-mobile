@@ -5,27 +5,17 @@ import type { BridgeToken } from '../../types';
 import { getCurrencySymbol } from '../../utils/currencyUtils';
 import { formatLimitOrderFiatPrice } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
-import { getLimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
 import type { TriggerPriceDisplay } from './types';
 
 /**
- * Formats a USD trigger price in the user's display currency. The order is
- * placed at a USD price, so whenever the row shows something else the USD
- * price comes along to be shown next to it, with the exchange rate for the
- * notice. Without a rate to convert with, the row shows the USD price as is
- * rather than a guessed one.
+ * Formats a USD trigger price in the given currency. Without a rate to
+ * convert with, the price shows in USD as is rather than a guessed one.
  */
 function getFiatTriggerPrice(
   usdPrice: string,
   currentCurrency: string,
   fiatToUsdRate: number | undefined,
-): Pick<
-  TriggerPriceDisplay,
-  'triggerPrice' | 'usdTriggerPrice' | 'usdExchangeRate'
-> {
-  const formattedUsdPrice = `${getCurrencySymbol('usd')}${
-    formatLimitOrderQuickPrice(usdPrice) ?? usdPrice
-  }`;
+): string {
   const displayPrice =
     currentCurrency?.toLowerCase() !== 'usd' && fiatToUsdRate
       ? formatLimitOrderFiatPrice(
@@ -34,19 +24,14 @@ function getFiatTriggerPrice(
       : undefined;
 
   if (!displayPrice) {
-    return { triggerPrice: formattedUsdPrice };
+    return `${getCurrencySymbol('usd')}${
+      formatLimitOrderQuickPrice(usdPrice) ?? usdPrice
+    }`;
   }
 
-  return {
-    triggerPrice: `${getCurrencySymbol(currentCurrency)}${
-      formatLimitOrderQuickPrice(displayPrice) ?? displayPrice
-    }`,
-    usdTriggerPrice: formattedUsdPrice,
-    usdExchangeRate: getLimitOrderUsdExchangeRate(
-      currentCurrency,
-      fiatToUsdRate,
-    ),
-  };
+  return `${getCurrencySymbol(currentCurrency)}${
+    formatLimitOrderQuickPrice(displayPrice) ?? displayPrice
+  }`;
 }
 
 /**
@@ -76,26 +61,36 @@ function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
 
 /**
  * Resolves how the trigger row reads: a price shown against the token it
- * prices, in fiat, or for a `ratio` as an amount of the counter token.
+ * prices, in fiat, or for a `ratio` as an amount of the counter token. A fiat
+ * price shows in USD, the currency the order is placed in, unless a display
+ * currency and its rate are given to convert it with.
  */
 export function getTriggerPrice(
   order: LimitOrder,
   sourceToken: BridgeToken,
   destinationToken: BridgeToken,
-  currentCurrency: string,
-  fiatToUsdRate: number | undefined,
+  currentCurrency = 'usd',
+  fiatToUsdRate?: number,
 ): TriggerPriceDisplay {
   const { trigger } = order;
 
   switch (trigger.kind) {
     case 'src_price':
       return {
-        ...getFiatTriggerPrice(trigger.price, currentCurrency, fiatToUsdRate),
+        triggerPrice: getFiatTriggerPrice(
+          trigger.price,
+          currentCurrency,
+          fiatToUsdRate,
+        ),
         triggerToken: sourceToken,
       };
     case 'dest_price':
       return {
-        ...getFiatTriggerPrice(trigger.price, currentCurrency, fiatToUsdRate),
+        triggerPrice: getFiatTriggerPrice(
+          trigger.price,
+          currentCurrency,
+          fiatToUsdRate,
+        ),
         triggerToken: destinationToken,
       };
     default: {
@@ -125,7 +120,7 @@ export function getUsdTriggerPrice(
   order: LimitOrder,
   sourceToken: BridgeToken,
   destinationToken: BridgeToken,
-): Omit<TriggerPriceDisplay, 'usdTriggerPrice'> {
+): TriggerPriceDisplay {
   return getTriggerPrice(
     order,
     sourceToken,

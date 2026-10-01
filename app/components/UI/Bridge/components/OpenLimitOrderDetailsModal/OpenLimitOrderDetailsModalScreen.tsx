@@ -1,12 +1,9 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
@@ -17,17 +14,12 @@ import { getTriggerPrice } from './utils';
 export const OpenLimitOrderDetailsModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<OpenLimitOrderDetailsModalParams>();
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
-  const fiatToUsdRate = useFiatToUsdRate(sourceToken.chainId);
-  const { triggerPrice, triggerToken, usdTriggerPrice, usdExchangeRate } =
-    getTriggerPrice(
-      order,
-      sourceToken,
-      destinationToken,
-      currentCurrency,
-      fiatToUsdRate,
-    );
+  const { triggerPrice, triggerToken } = getTriggerPrice(
+    order,
+    sourceToken,
+    destinationToken,
+  );
 
   const handleCancelOrder = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -52,8 +44,6 @@ export const OpenLimitOrderDetailsModalScreen = () => {
       })}
       triggerPrice={triggerPrice}
       triggerToken={triggerToken}
-      usdTriggerPrice={usdTriggerPrice}
-      usdExchangeRate={usdExchangeRate}
       expiry={formatLimitOrderDate(order.timingData.expiresAt)}
       onCancelOrder={
         order.isCancellable === false ? undefined : handleCancelOrder
