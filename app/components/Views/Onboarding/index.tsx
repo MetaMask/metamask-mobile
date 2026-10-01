@@ -147,11 +147,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  Theme,
-  ThemeProvider,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
 import { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -526,7 +522,7 @@ const Onboarding = () => {
       });
     };
 
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -575,7 +571,7 @@ const Onboarding = () => {
         account_type: AccountType.Imported,
       });
     };
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -591,7 +587,6 @@ const Onboarding = () => {
       createWallet: boolean,
       provider: string,
     ): void => {
-      const isIOS = Platform.OS === 'ios';
       endSocialLoginAttemptTrace(true);
 
       // Error case (result.type !== 'success') is not handled here because
@@ -642,24 +637,11 @@ const Onboarding = () => {
             parentContext: onboardingTraceCtx.current,
           });
 
-          if (isIOS) {
-            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-            navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-              {
-                accountName: result.accountName,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            );
-          } else {
-            // Direct navigation to ChoosePassword for Android
-            navigation.navigate('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-              provider,
-            });
-          }
+          navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+            provider,
+          });
         }
       } else if (result.existingUser) {
         trace({
@@ -668,19 +650,10 @@ const Onboarding = () => {
           tags: getTraceTags(store.getState()),
           parentContext: onboardingTraceCtx.current,
         });
-        isIOS
-          ? navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-              {
-                [PREVIOUS_SCREEN]: ONBOARDING,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            )
-          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-            });
+        navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
@@ -1193,7 +1166,7 @@ const Onboarding = () => {
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
-      handleExistingUser(action);
+      void handleExistingUser(action);
     },
     [
       navigation,
@@ -1306,41 +1279,26 @@ const Onboarding = () => {
           setStartFoxAnimation={setStartFoxAnimation}
           onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
-          {/*
-           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
-           * system theme setting: the "Create" button is always dark (black bg, white text) and the
-           * "Import" button is always light (white bg, black text). This design choice ensures both
-           * buttons remain visually distinct and accessible against the purple onboarding background
-           * in all theme contexts.
-           */}
-          <ThemeProvider
-            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
+          <Button
+            variant={ButtonVariant.Primary}
+            onPress={() => handleCtaActions('create')}
+            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            isFullWidth
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('create')}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {strings('onboarding.start_exploring_now')}
-            </Button>
-          </ThemeProvider>
-          <ThemeProvider
-            theme={Theme.Light} // Keep this button in light mode regardless of theme
+            {strings('onboarding.start_exploring_now')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            onPress={() => handleCtaActions('existing')}
+            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
+            isFullWidth
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('existing')}
-              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {SEEDLESS_ONBOARDING_ENABLED
-                ? strings('onboarding.import_using_srp_social_login')
-                : strings('onboarding.import_using_srp')}
-            </Button>
-          </ThemeProvider>
+            {SEEDLESS_ONBOARDING_ENABLED
+              ? strings('onboarding.import_using_srp_social_login')
+              : strings('onboarding.import_using_srp')}
+          </Button>
         </OnboardingAnimation>
       </Box>
     ),
@@ -1432,12 +1390,12 @@ const Onboarding = () => {
 
     unsetLoading();
     updateNavBar();
-    checkIfExistingUser();
+    void checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
-      checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
+      void checkForMigrationFailureAndVaultBackup();
+      void PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1607,7 +1565,7 @@ const Onboarding = () => {
 
   const onboardingCanvasColor =
     themeContext.themeAppearance === 'dark'
-      ? importedColors.gettingStartedTextColor
+      ? themeContext.colors.background.default
       : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   const ThrowErrorIfNeeded = () => {

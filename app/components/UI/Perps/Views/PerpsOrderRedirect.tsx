@@ -107,7 +107,9 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              ...(useBottomSheet
+                ? { useBottomSheet: true, forceBottomSheet: true }
+                : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },

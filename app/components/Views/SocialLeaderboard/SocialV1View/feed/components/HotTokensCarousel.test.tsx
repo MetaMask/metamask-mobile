@@ -7,6 +7,7 @@ import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken, SocialV1TokenFeedState } from '../types';
 import HotTokensCarousel from './HotTokensCarousel';
 import {
+  getSocialV1HotTokenCheckTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
@@ -37,6 +38,12 @@ const NVIDIA = mockHotToken({
   symbol: 'xyz:NVDA',
   label: 'NVIDIA',
 });
+
+/** Chip test IDs in rail order. Matches only the primary track, not the loop copy. */
+const railChipTestIds = () =>
+  screen
+    .getAllByTestId(/^social-v1-hot-token-chip-(?!.*-loop$)/)
+    .map((chip) => chip.props.testID);
 
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
@@ -174,6 +181,43 @@ describe('HotTokensCarousel', () => {
       screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')).props
         .accessibilityState,
     ).toEqual({ selected: false });
+  });
+
+  it('checks the selected chip and only that one', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenCheckTestId('hot-nvda')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getSocialV1HotTokenCheckTestId('hot-btc')),
+    ).toBeNull();
+  });
+
+  // The rail is parked while a filter is on, so the selected chip has to be the
+  // one at the resting left edge rather than wherever frequency put it.
+  it('moves the selected chip to the front of the rail', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+      getSocialV1HotTokenChipTestId('hot-btc'),
+    ]);
+  });
+
+  it('keeps frequency order while nothing is selected', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-btc'),
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+    ]);
   });
 
   // Pressing a chip with no handler is a no-op rather than a throw, so a page

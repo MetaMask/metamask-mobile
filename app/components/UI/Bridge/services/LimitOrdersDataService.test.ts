@@ -5,11 +5,15 @@ import {
 } from '@metamask/messenger';
 import { getLimitOrders } from '../api/limitOrders/getLimitOrders';
 import {
+  MOCK_LIMIT_CANCELLED_ORDER,
   MOCK_LIMIT_FILLED_ORDER,
   MOCK_LIMIT_OPEN_ORDER,
 } from '../api/limitOrders/getLimitOrders/mock';
 import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
-import type { LimitOrdersQueryParams } from '../queries/limitOrders';
+import {
+  limitOrdersQueries,
+  type LimitOrdersQueryParams,
+} from '../queries/limitOrders';
 import {
   LimitOrdersDataService,
   type LimitOrdersDataServiceActions,
@@ -118,6 +122,48 @@ describe('LimitOrdersDataService', () => {
       cursor: 'next-page',
     });
     expect(secondPage.orders).toStrictEqual([MOCK_LIMIT_FILLED_ORDER]);
+  });
+
+  // This is what `useCancelLimitOrder` relies on: without it, a cancelled
+  // order would stay in the open orders for as long as the cache is fresh.
+  it('fetches the open orders and the history again once every limit orders query is invalidated', async () => {
+    const historyParams: LimitOrdersQueryParams = {
+      ...PARAMS,
+      states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
+    };
+    mockGetLimitOrders.mockImplementation(async ({ states }) => ({
+      orders: states?.includes(LimitOrderState.Open)
+        ? [MOCK_LIMIT_OPEN_ORDER]
+        : [],
+    }));
+    // Freshness is measured against the clock, which the test setup stubs and
+    // `resetAllMocks` leaves returning nothing.
+    jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    const { messenger } = createMessenger();
+    const service = buildService(messenger);
+
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+    // Fresh lists are served from the cache.
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(2);
+
+    // The order is cancelled: it leaves the open orders for the history.
+    mockGetLimitOrders.mockImplementation(async ({ states }) => ({
+      orders: states?.includes(LimitOrderState.Cancelled)
+        ? [MOCK_LIMIT_CANCELLED_ORDER]
+        : [],
+    }));
+    await messenger.call('LimitOrdersDataService:invalidateQueries', {
+      queryKey: limitOrdersQueries.allOrdersKey(),
+    });
+
+    expect((await service.getLimitOrders(PARAMS)).orders).toStrictEqual([]);
+    expect((await service.getLimitOrders(historyParams)).orders).toStrictEqual([
+      MOCK_LIMIT_CANCELLED_ORDER,
+    ]);
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(4);
   });
 
   it('persists a successful fetch to StorageService so it survives a restart', async () => {
