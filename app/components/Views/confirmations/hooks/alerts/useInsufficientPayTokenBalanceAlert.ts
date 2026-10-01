@@ -10,6 +10,7 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -26,10 +27,30 @@ import {
 } from '@metamask/transaction-controller';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import {
+  PaymentOverride,
+  TransactionPayQuote,
+} from '@metamask/transaction-pay-controller';
+import { Json } from '@metamask/utils';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
+
+/**
+ * Relay quotes with `metamask.is7702 === false` are submitted as normal
+ * transactions, so the payer must cover source-chain native gas. EIP-7702
+ * quotes are gasless and must not raise that alert.
+ */
+function isNon7702PayQuote(quote: TransactionPayQuote<Json>): boolean {
+  if (!quote.original || typeof quote.original !== 'object') {
+    return false;
+  }
+
+  const metamask = (quote.original as { metamask?: { is7702?: boolean } })
+    .metamask;
+
+  return metamask?.is7702 === false;
+}
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -40,6 +61,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
   const isLoading = useIsTransactionPayLoading();
+  const quotes = useTransactionPayQuotes();
   const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
   const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
   const isMax = useTransactionPayIsMaxAmount();
@@ -139,12 +161,18 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
-  // Parent sponsorship does not cover hardware funding transactions.
+  // Sponsored payments are gasless except for a non-7702 quote, which is
+  // submitted as a normal transaction and needs source-chain native gas.
+  // Hardware payers are never gasless.
   const isHardwarePayer = isHardwareAccount(payingAccount ?? '');
+  const paysNativeGasOnSource = (quotes ?? []).some(isNon7702PayQuote);
+  const isSponsoredSourceChain =
+    isTransactionMarkedAsGasFeeSponsored(transactionMeta) &&
+    !paysNativeGasOnSource;
   const isGaslessSourceChain =
     !isHardwarePayer &&
     (sourceChainId === CHAIN_IDS.MONAD ||
-      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
+      isSponsoredSourceChain ||
       (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
 
   // A plain ERC-20 send also yields a required token, but it is not funded
