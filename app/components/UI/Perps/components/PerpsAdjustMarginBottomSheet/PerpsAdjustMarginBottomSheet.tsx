@@ -227,8 +227,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     [flooredMaxAmount, marginAmount],
   );
 
+  // The buffered Max is a suggestion; only the submit limit means nothing
+  // can be removed, including an amount selected before a price tick.
   const hasNoRemovableMargin =
-    !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
+    !isAddMode && !isLoading && hasValidPositionData && submitLimitAmount <= 0;
   // Close an open keypad once nothing is left to remove.
   useEffect(() => {
     if (hasNoRemovableMargin) {
