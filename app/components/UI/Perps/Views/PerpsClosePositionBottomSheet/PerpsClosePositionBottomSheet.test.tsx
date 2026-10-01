@@ -20,6 +20,7 @@ import {
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
 import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
+import { getLimitPriceTooFarMessage } from '../../utils/triggerOrderValidation';
 import PerpsClosePositionBottomSheet from './PerpsClosePositionBottomSheet';
 
 const mockGoBack = jest.fn();
@@ -746,19 +747,18 @@ describe('PerpsClosePositionBottomSheet', () => {
     };
 
     it('does not repeat a limit-price error already shown on the field', () => {
+      const tooFarError = getLimitPriceTooFarMessage(
+        Number.parseFloat(defaultPerpsLivePricesMock.ETH.price),
+      );
       usePerpsClosePositionValidationMock.mockReturnValue({
         ...defaultPerpsClosePositionValidationMock,
-        errors: [strings('perps.order.limit_price_modal.limit_price_too_far')],
+        errors: [tooFarError],
         isValid: false,
       });
 
       const { getAllByText } = selectLimitAndEnterPrice('6');
 
-      expect(
-        getAllByText(
-          strings('perps.order.limit_price_modal.limit_price_too_far'),
-        ),
-      ).toHaveLength(1);
+      expect(getAllByText(tooFarError)).toHaveLength(1);
     });
 
     it('does not warn when the limit price is a zero that renders as an empty field', () => {

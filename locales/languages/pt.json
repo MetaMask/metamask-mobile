@@ -610,10 +610,10 @@
     "steps": "Etapa {{currentStep}} de {{totalSteps}}",
     "password_error": "As senhas não coincidem.",
     "marketing_opt_in_description": "Receba atualizações de produtos, dicas e novidades, inclusive por e-mail. Podemos usar suas interações para aprimorar o que compartilharmos.",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "A MetaMask não pode redefinir sua senha",
+    "password_warning_description_part1": "Se você esquecer esta senha, a única maneira de acessar novamente será com a sua ",
     "password_warning_srp": "Frase de Recuperação Secreta",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " ou um dispositivo com biometria habilitada.",
     "password_warning_confirm": "Eu compreendo",
     "password_warning_cancel": "Cancelar"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Carteira",
     "search_accessibility_label": "Pesquisar",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Pesquisar",
     "rewards_accessibility_label": "Recompensas",
     "tokens": "Tokens",
     "view_all_nfts": "Ver todos os NFTs",
@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Sua assinatura",
       "plan": "Assinatura",
-      "earned_this_month": "Ganhos este mês",
       "payment_details": "Detalhes do pagamento",
       "total": "Total",
       "paying_with": "Pagando com",
@@ -12214,15 +12213,7 @@
       "manage": "Gerenciar",
       "invoices": "Faturas",
       "contact_support": "Falar com o suporte",
-      "cancel_membership": "Cancelar assinatura",
-      "earned_info": {
-        "title": "Ganhos este mês",
-        "description": "O valor que você ganhou em APY e mUSD de volta como assinante Pro."
-      },
-      "saved_info": {
-        "title": "Economia neste mês",
-        "description": "O valor que você economizou como assinante Pro nas taxas da MetaMask em trocas, perps e previsões este mês, além de taxas de caixa eletrônico e de transações internacionais."
-      }
+      "cancel_membership": "Cancelar assinatura"
     },
     "cancel_membership": {
       "title": "Por que você está cancelando?",

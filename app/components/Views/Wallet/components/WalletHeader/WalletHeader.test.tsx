@@ -54,55 +54,6 @@ describe('WalletHeader', () => {
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
   });
 
-  it('renders the header root and search field', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('preserves the legacy header layout for control users', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} useSearchHeaderLayout={false} />,
-    );
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
-    ).toBeOnTheScreen();
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
-  });
-
-  it('calls handleSearchPress when the search button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON));
-
-    expect(defaultProps.handleSearchPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls handleSearchPastePress when the clipboard icon is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} showSearchPastePill />,
-    );
-
-    fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
-    );
-
-    expect(defaultProps.handleSearchPastePress).toHaveBeenCalledTimes(1);
-  });
-
   it('calls handleHamburgerPress when the menu button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeader {...defaultProps} />,

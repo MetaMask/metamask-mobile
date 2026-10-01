@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
+import { getSocialEntryOptionsTriggerTestId } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
 import { MOCK_LIVE_TRADES_ITEMS } from '../mocks/liveTradesFeed.mock';
 import LiveTradeRow from './LiveTradeRow';
 import {
@@ -9,21 +9,18 @@ import {
   getLiveTradeRowTestId,
 } from './LiveTradeRow.testIds';
 
-jest.mock('../../components/PositionTokenAvatar', () => ({
+jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
 
-jest.mock(
-  '../../../Homepage/Sections/TopTraders/components/TraderAvatar',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    };
-  },
-);
+jest.mock('../../../../UI/SocialFeed/components/TraderAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
 
 jest.mock('react-native-linear-gradient', () => {
   const { View } = jest.requireActual('react-native');
