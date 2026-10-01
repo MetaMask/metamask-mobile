@@ -220,8 +220,7 @@ describe('usePerpsTPSLUpdate', () => {
       ...createMockPosition({ size: '-1.5' }),
       providerId: 'lighter' as const,
     };
-    const error =
-      'TP/SL expected position changed or is invalid; refresh before retrying';
+    const error = PERPS_ERROR_CODES.TPSL_UPDATE_FAILED;
     mockUpdatePositionTPSL.mockImplementation(async () => {
       position.size = '-2';
       position.entryPrice = '3100';
@@ -248,7 +247,7 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onSuccess).not.toHaveBeenCalled();
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith(error);
+    ).toHaveBeenCalledWith('perps.errors.tpslUpdateFailed');
   });
 
   it.each(['response', 'exception'] as const)(
