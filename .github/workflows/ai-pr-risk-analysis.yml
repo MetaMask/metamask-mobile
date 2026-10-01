@@ -1,13 +1,16 @@
 name: AI PR risk analysis
 
-# Label add/remove is handled by ai-pr-risk-analysis-label.yml, and only for
-# main. This workflow does not subscribe to those events, so a label on a
-# release pull request cannot replace a successful Analyze check with a skip.
-# The Gate check (AI PR Analyzer / Gate) from the last real run stays put.
+# Same shape as the extension workflow (MetaMask/metamask-extension#46745):
+# one Analyze job. opened / synchronize / reopened / ready_for_review cover
+# release branches and main pull requests that already have auto-merge.
+# labeled is the other entry point, so applying auto-merge on main runs
+# analysis without waiting for another push.
 #
-# There is no branches filter. Skipping the workflow with a branches filter
-# leaves a required check pending. Skipping the job still reports Analyze,
-# which branch protection treats as a success.
+# There is no branches filter. Skipping the workflow that way leaves a
+# required check pending. Skipping this job still reports Analyze, which
+# branch protection treats as a success.
+#
+# Unrelated labels skip the job, so they do not take the concurrency group.
 
 on:
   pull_request:
@@ -16,28 +19,42 @@ on:
       - synchronize
       - reopened
       - ready_for_review
+      - labeled
 
 jobs:
   analyze:
     name: Analyze
     timeout-minutes: 10
-    # Main requires auto-merge. Release branches always run (Runway cherry-picks).
+    # Main requires auto-merge. Release branches run on the normal events.
+    # A labeled event runs only when the label just added is auto-merge on
+    # main. A draft that already has the label is analyzed on ready_for_review.
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
       && github.event.pull_request.draft == false
       && (
         (
-          github.event.pull_request.base.ref == 'main'
-          && contains(github.event.pull_request.labels.*.name, 'auto-merge')
+          github.event.action != 'labeled'
+          && (
+            (
+              github.event.pull_request.base.ref == 'main'
+              && contains(github.event.pull_request.labels.*.name, 'auto-merge')
+            )
+            || startsWith(github.event.pull_request.base.ref, 'release/')
+          )
         )
-        || startsWith(github.event.pull_request.base.ref, 'release/')
+        || (
+          github.event.action == 'labeled'
+          && github.event.label.name == 'auto-merge'
+          && github.event.pull_request.base.ref == 'main'
+        )
       )
-    # Job-level so a skipped run does not take this group. A skipped job must
-    # not cancel an analysis that is already in progress.
+    # One group per pull request. Label and ready_for_review runs queue
+    # instead of cancelling an in-progress analysis. A later push may cancel
+    # a stale label run.
     concurrency:
       group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
+      cancel-in-progress: ${{ github.event.action != 'labeled' && github.event.action != 'ready_for_review' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -74,32 +91,3 @@ jobs:
           gate-override-base-pattern: '^release/'
           gate-override-author: 'runway-github[bot]'
           gate-override-title-pattern: 'cherry.?pick'
-
-  clear-stale-risk-labels:
-    name: Clear stale risk labels
-    timeout-minutes: 5
-    # Main pull requests without auto-merge are not analyzed. Remove risk:*
-    # labels so a result from an earlier commit cannot stay on the pull request.
-    # This job has no concurrency group: it is skipped for every pull request
-    # that is actually being analyzed, and must not cancel that run.
-    if: >-
-      github.event_name == 'pull_request'
-      && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
-      && github.event.pull_request.base.ref == 'main'
-      && !contains(github.event.pull_request.labels.*.name, 'auto-merge')
-      && (
-        contains(github.event.pull_request.labels.*.name, 'risk:critical')
-        || contains(github.event.pull_request.labels.*.name, 'risk:high')
-        || contains(github.event.pull_request.labels.*.name, 'risk:medium')
-        || contains(github.event.pull_request.labels.*.name, 'risk:low')
-      )
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
-    steps:
-      - name: Remove stale risk labels
-        uses: ./.github/actions/clear-stale-ai-risk-labels
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
