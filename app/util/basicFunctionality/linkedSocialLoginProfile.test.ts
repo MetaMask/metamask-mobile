@@ -1,10 +1,27 @@
-import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
+import type {
+  AuthenticationControllerState,
+  ProfileSignInInfo,
+} from '@metamask/profile-sync-controller/auth';
 
 import type { RootExtendedMessenger } from '../../core/Engine/types';
 import {
   authenticationStateIncludesLinkedSocialLogin,
+  profileAliasesIncludeSocialLogin,
   registerLinkedSocialLoginProfileSync,
 } from './linkedSocialLoginProfile';
+
+const createProfileAliases = (
+  identifierTypes: string[],
+): ProfileSignInInfo['profileAliases'] => [
+  {
+    aliasProfileId: 'alias-profile-id',
+    canonicalProfileId: 'canonical-profile-id',
+    identifierIds: identifierTypes.map((type) => ({
+      id: `${type}-id`,
+      type,
+    })),
+  },
+];
 
 const createAuthenticationState = (
   pairedIdentifierTypes: string[],
@@ -18,7 +35,10 @@ const createAuthenticationState = (
           metaMetricsId: 'metrics-id',
           profileId: 'profile-id',
           canonicalProfileId: 'profile-id',
-          pairedIdentifierIds: pairedIdentifierTypes.map((type) => ({ type })),
+          pairedIdentifierIds: pairedIdentifierTypes.map((type) => ({
+            id: `${type}-id`,
+            type,
+          })),
         },
         token: {
           accessToken: 'access-token',
@@ -87,5 +107,59 @@ describe('linkedSocialLoginProfile', () => {
     stateChangeHandler(createAuthenticationState(['GOOGLE']));
 
     expect(onLinkedSocialLoginProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('detects social identifiers in profile aliases', () => {
+    const profileAliases = createProfileAliases(['SRP', 'TELEGRAM']);
+
+    const result = profileAliasesIncludeSocialLogin(profileAliases);
+
+    expect(result).toBe(true);
+  });
+
+  it('ignores profile aliases containing only an SRP identifier', () => {
+    const profileAliases = createProfileAliases(['SRP']);
+
+    const result = profileAliasesIncludeSocialLogin(profileAliases);
+
+    expect(result).toBe(false);
+  });
+
+  it('reports linked social identifiers from the aliases reported at sign-in', () => {
+    const onLinkedSocialLoginProfile = jest.fn();
+    const { messenger, subscribe } = createMessenger(
+      createAuthenticationState([]),
+    );
+    registerLinkedSocialLoginProfileSync(messenger, onLinkedSocialLoginProfile);
+    const profileSignInHandler = subscribe.mock.calls.find(
+      ([eventName]) => eventName === 'AuthenticationController:profileSignIn',
+    )?.[1] as (profileSignInInfo: ProfileSignInInfo) => void;
+
+    profileSignInHandler({
+      profileId: 'profile-id',
+      profileIdChanged: false,
+      profileAliases: createProfileAliases(['APPLE']),
+    });
+
+    expect(onLinkedSocialLoginProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report a sign-in whose aliases have no social identifier', () => {
+    const onLinkedSocialLoginProfile = jest.fn();
+    const { messenger, subscribe } = createMessenger(
+      createAuthenticationState([]),
+    );
+    registerLinkedSocialLoginProfileSync(messenger, onLinkedSocialLoginProfile);
+    const profileSignInHandler = subscribe.mock.calls.find(
+      ([eventName]) => eventName === 'AuthenticationController:profileSignIn',
+    )?.[1] as (profileSignInInfo: ProfileSignInInfo) => void;
+
+    profileSignInHandler({
+      profileId: 'profile-id',
+      profileIdChanged: false,
+      profileAliases: createProfileAliases(['SRP']),
+    });
+
+    expect(onLinkedSocialLoginProfile).not.toHaveBeenCalled();
   });
 });

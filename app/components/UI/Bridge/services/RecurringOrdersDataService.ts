@@ -8,14 +8,18 @@ import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import {
   getRecurringOrders as fetchRecurringOrders,
+  getRecurringOrdersByAsset as fetchRecurringOrdersByAsset,
   getRecurringSwaps as fetchRecurringSwaps,
+  cancelRecurringOrder as cancelRecurringOrderRequest,
 } from '../api/recurringOrders';
 import type {
+  GetRecurringOrdersByAssetResponse,
   GetRecurringOrdersResponse,
   GetRecurringSwapsResponse,
 } from '../api/recurringOrders.types';
 import {
   recurringOrdersQueries,
+  type RecurringOrdersByAssetQueryParams,
   type RecurringOrdersQueryParams,
   type RecurringSwapsQueryParams,
 } from '../queries/recurringOrders';
@@ -40,9 +44,23 @@ export interface RecurringOrdersDataServiceGetRecurringSwapsAction {
   ) => Promise<GetRecurringSwapsResponse>;
 }
 
+export interface RecurringOrdersDataServiceGetRecurringOrdersByAssetAction {
+  type: 'RecurringOrdersDataService:getRecurringOrdersByAsset';
+  handler: (
+    params: RecurringOrdersByAssetQueryParams,
+  ) => Promise<GetRecurringOrdersByAssetResponse>;
+}
+
+export interface RecurringOrdersDataServiceCancelRecurringOrderAction {
+  type: 'RecurringOrdersDataService:cancelRecurringOrder';
+  handler: (orderId: string) => Promise<void>;
+}
+
 export type RecurringOrdersDataServiceActions =
   | RecurringOrdersDataServiceGetRecurringOrdersAction
+  | RecurringOrdersDataServiceGetRecurringOrdersByAssetAction
   | RecurringOrdersDataServiceGetRecurringSwapsAction
+  | RecurringOrdersDataServiceCancelRecurringOrderAction
   | DataServiceInvalidateQueriesAction<
       typeof RECURRING_ORDERS_DATA_SERVICE_NAME
     >;
@@ -78,8 +96,16 @@ export class RecurringOrdersDataService extends BaseDataService<
       this.getRecurringOrders.bind(this),
     );
     messenger.registerActionHandler(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      this.getRecurringOrdersByAsset.bind(this),
+    );
+    messenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringSwaps',
       this.getRecurringSwaps.bind(this),
+    );
+    messenger.registerActionHandler(
+      'RecurringOrdersDataService:cancelRecurringOrder',
+      this.cancelRecurringOrder.bind(this),
     );
   }
 
@@ -103,6 +129,21 @@ export class RecurringOrdersDataService extends BaseDataService<
       },
       cursor,
     );
+  }
+
+  async getRecurringOrdersByAsset(
+    params: RecurringOrdersByAssetQueryParams,
+  ): Promise<GetRecurringOrdersByAssetResponse> {
+    const descriptor = recurringOrdersQueries.getRecurringOrdersByAsset(params);
+
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: () =>
+        fetchRecurringOrdersByAsset(params) as Promise<
+          Json & GetRecurringOrdersByAssetResponse
+        >,
+    });
   }
 
   async getRecurringSwaps(
@@ -129,5 +170,9 @@ export class RecurringOrdersDataService extends BaseDataService<
       },
       cursor,
     );
+  }
+
+  async cancelRecurringOrder(orderId: string): Promise<void> {
+    await cancelRecurringOrderRequest(orderId);
   }
 }

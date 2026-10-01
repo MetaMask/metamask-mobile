@@ -101,7 +101,7 @@ jobs:
           inputs.platform == 'android' && vars.NAMESPACE_RUNNER_ANDROID ||
           inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' ||
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' ||
          (inputs.platform == 'android' && 'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux')) ||
         (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' ||
          (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest'))

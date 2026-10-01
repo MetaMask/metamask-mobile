@@ -8,35 +8,60 @@ import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/ramp
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
-  getVbaRouteForSnapshot,
-  type VbaOnboardingRoute,
+  getVbaDestinationForSnapshot,
+  type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
-import { hasAcceptedVbaTermsOne } from '../vbaTermsOneStorage';
+import {
+  getVbaVendorTermsAcceptance,
+  hasAcceptedVbaVendorTerms,
+} from '../vbaVendorTermsStorage';
+import { VbaOnboardingRoutes } from '../routes';
 
-export const navigateToVbaOnboardingRoute = (
+export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
-  route: VbaOnboardingRoute,
+  destinationId: VbaOnboardingDestinationId,
+  snapshot?: VbaOnboardingSnapshot,
 ): void => {
-  if (route === Routes.MONEY.HOME) {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+  if (destinationId === 'complete') {
+    navigation.navigate(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.DETAILS,
     });
     return;
   }
-  navigation.navigate(route);
+  if (destinationId === 'identityVerification') {
+    navigation.navigate(
+      Routes.RAMP.VBA_ONBOARDING,
+      snapshot
+        ? {
+            screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+            params: { snapshot },
+          }
+        : { screen: VbaOnboardingRoutes.ERROR },
+    );
+    return;
+  }
+
+  const screen = {
+    vendorTerms: VbaOnboardingRoutes.VENDOR_TERMS,
+    email: VbaOnboardingRoutes.EMAIL,
+    kycPending: VbaOnboardingRoutes.KYC_PENDING,
+    kycRejected: VbaOnboardingRoutes.KYC_REJECTED,
+    accountProvisioningError: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
+    error: VbaOnboardingRoutes.ERROR,
+  }[destinationId];
+
+  navigation.navigate(Routes.RAMP.VBA_ONBOARDING, { screen });
 };
 
 const openRecoverableError = (navigation: AppNavigationProp): void => {
-  navigateToVbaOnboardingRoute(navigation, Routes.RAMP.VBA_ONBOARDING_ERROR);
+  navigateToVbaOnboardingDestination(navigation, 'error');
 };
 
 /**
- * Hydrates VBA onboarding facts from RampsController and navigates to the
- * first incomplete funnel step. Use at entry points and retry, not after a
- * successful local CTA.
+ * Hydrates VBA onboarding facts and opens the first incomplete module. This is
+ * the single coordinator API used for entry, retry, and module completion.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
  * @returns An async callback accepting an optional `source` override.
@@ -61,15 +86,41 @@ export const useOpenVbaOnboarding = (
           await Engine.context.RampsController.hydrateVbaOnboarding({
             walletAddress,
           });
+        if (
+          accountSnapshot.sessionExists &&
+          !accountSnapshot.vendorDisclaimersComplete
+        ) {
+          try {
+            const vendorTermsAcceptance =
+              await getVbaVendorTermsAcceptance(walletAddress);
+            if (vendorTermsAcceptance?.disclaimerIds.length) {
+              await Engine.context.KycController.recordVendorDisclaimers({
+                disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+              });
+            }
+          } catch (error) {
+            Logger.error(error as Error, {
+              tags: { feature: 'vba-onboarding' },
+              context: {
+                name: 'useOpenVbaOnboarding',
+                data: { source, step: 'recordVendorDisclaimers' },
+              },
+            });
+          }
+        }
         const snapshot: VbaOnboardingSnapshot = {
           ...accountSnapshot,
-          termsOneAccepted:
+          vendorTermsAcceptedLocally:
             accountSnapshot.vendorDisclaimersComplete ||
-            (await hasAcceptedVbaTermsOne(walletAddress)),
+            (await hasAcceptedVbaVendorTerms(walletAddress)),
         };
-        const route = getVbaRouteForSnapshot(snapshot);
-        Logger.log('[vba-onboarding] resume', { source, snapshot, route });
-        navigateToVbaOnboardingRoute(navigation, route);
+        const destinationId = getVbaDestinationForSnapshot(snapshot);
+        Logger.log('[vba-onboarding] resume', {
+          source,
+          snapshot,
+          destinationId,
+        });
+        navigateToVbaOnboardingDestination(navigation, destinationId, snapshot);
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-onboarding' },

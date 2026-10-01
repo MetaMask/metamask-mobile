@@ -1,5 +1,11 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,11 +30,21 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { ToastContext } from '../../../component-library/components/Toast';
+import {
+  ButtonIconVariant,
+  ToastVariants,
+} from '../../../component-library/components/Toast/Toast.types';
+import { IconName as ToastIconName } from '../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import {
+  ADD_FUNDS_BANNER_KINDS,
+  ADD_FUNDS_DEMO_DELAY_MS,
   ALSO_INCLUDED_ITEMS,
+  AddFundsDemoOutcome,
   MEMBERSHIP_BANNER_STATES,
   MOCK_MEMBERSHIP_BANNER_KIND,
   MOCK_PRO_HUB_STATS,
@@ -91,9 +107,28 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
+  const addFundsToastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const [addFundsOutcome, setAddFundsOutcome] = useState<AddFundsDemoOutcome>(
+    AddFundsDemoOutcome.Success,
+  );
+  const addFundsOutcomeRef = useRef(addFundsOutcome);
+  addFundsOutcomeRef.current = addFundsOutcome;
   const [membershipBannerKind, setMembershipBannerKind] =
     useState<MembershipBannerKind>(MOCK_MEMBERSHIP_BANNER_KIND);
   const membershipBannerState = MEMBERSHIP_BANNER_STATES[membershipBannerKind];
+
+  const clearAddFundsToastTimeout = useCallback(() => {
+    if (addFundsToastTimeoutRef.current) {
+      clearTimeout(addFundsToastTimeoutRef.current);
+      addFundsToastTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearAddFundsToastTimeout, [clearAddFundsToastTimeout]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -107,9 +142,114 @@ const ProHub = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  const handleMembershipAlertAction = useCallback(() => {
-    /* TODO: Implement membership alert action */
-  }, []);
+  const startAddFundsDemoRef = useRef<() => void>(() => undefined);
+
+  const showAddFundsResult = useCallback(
+    (outcome: AddFundsDemoOutcome) => {
+      const closeToast = () => {
+        toastRef?.current?.closeToast();
+      };
+
+      if (outcome === AddFundsDemoOutcome.Failed) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: ToastIconName.Info,
+          iconColor: colors.error.default,
+          backgroundColor: 'transparent',
+          hasNoTimeout: true,
+          labelOptions: [
+            {
+              label: strings('pro_hub.add_funds_toast.failed_title'),
+              isBold: true,
+            },
+          ],
+          descriptionOptions: {
+            description: strings('pro_hub.add_funds_toast.failed_description'),
+          },
+          linkButtonOptions: {
+            label: strings('pro_hub.add_funds_toast.failed_action'),
+            onPress: () => {
+              startAddFundsDemoRef.current();
+            },
+          },
+          closeButtonOptions: {
+            variant: ButtonIconVariant.Icon,
+            iconName: ToastIconName.Close,
+            onPress: closeToast,
+          },
+        });
+        return;
+      }
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: ToastIconName.Confirmation,
+        iconColor: colors.success.default,
+        backgroundColor: 'transparent',
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('pro_hub.add_funds_toast.added_title'),
+            isBold: true,
+          },
+        ],
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: ToastIconName.Close,
+          onPress: closeToast,
+        },
+      });
+    },
+    [colors.error.default, colors.success.default, toastRef],
+  );
+
+  const startAddFundsDemo = useCallback(() => {
+    if (!ADD_FUNDS_BANNER_KINDS.has(membershipBannerKind)) {
+      return;
+    }
+
+    const outcome = addFundsOutcomeRef.current;
+    clearAddFundsToastTimeout();
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      hasNoTimeout: true,
+      startAccessory: (
+        <ActivityIndicator size="small" color={colors.icon.default} />
+      ),
+      labelOptions: [
+        {
+          label: strings('pro_hub.add_funds_toast.adding_title'),
+          isBold: true,
+        },
+      ],
+      descriptionOptions: {
+        description: strings('pro_hub.add_funds_toast.adding_description'),
+      },
+      closeButtonOptions: {
+        variant: ButtonIconVariant.Icon,
+        iconName: ToastIconName.Close,
+        onPress: () => {
+          clearAddFundsToastTimeout();
+          toastRef?.current?.closeToast();
+        },
+      },
+    });
+
+    addFundsToastTimeoutRef.current = setTimeout(() => {
+      addFundsToastTimeoutRef.current = null;
+      showAddFundsResult(outcome);
+    }, ADD_FUNDS_DEMO_DELAY_MS);
+  }, [
+    clearAddFundsToastTimeout,
+    colors.icon.default,
+    membershipBannerKind,
+    showAddFundsResult,
+    toastRef,
+  ]);
+
+  startAddFundsDemoRef.current = startAddFundsDemo;
+
+  const handleMembershipAlertAction = startAddFundsDemo;
 
   return (
     <SafeAreaView
@@ -149,6 +289,8 @@ const ProHub = () => {
             <ProDemoBannerSwitcher
               selectedKind={membershipBannerKind}
               onSelect={setMembershipBannerKind}
+              addFundsOutcome={addFundsOutcome}
+              onAddFundsOutcomeSelect={setAddFundsOutcome}
             />
           ) : null}
           <MembershipBanner

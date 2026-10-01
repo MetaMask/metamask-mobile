@@ -153,12 +153,15 @@ export class WalletHomeSections {
       await WalletHomeScroll.scrollAndTapSection(
         this.perpsSectionHeader,
         'Perpetuals section',
+        'down',
+        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
       );
     } catch {
       await WalletHomeScroll.scrollAndTapSection(
         this.perpsSectionHeader,
         'Perpetuals section',
         'up',
+        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
       );
     }
   }

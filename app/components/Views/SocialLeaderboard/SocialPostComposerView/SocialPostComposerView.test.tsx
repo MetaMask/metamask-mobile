@@ -1,6 +1,7 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
@@ -12,6 +13,7 @@ import {
   resetSocialV1ComposedFeedStore,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import { isComposerCommentValid } from './commentValidation';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../utils/klipyGifComment';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
@@ -37,6 +39,7 @@ jest.mock('../utils/perp', () => ({
 jest.mock('../utils/formatters', () => ({
   formatPercent: () => '+0.02%',
   formatSignedUsd: () => '+$1',
+  formatSignedAbbreviatedUsd: () => '+$1',
   formatTradeUnitPrice: () => '$1,842',
   formatUsd: () => '$720.00',
   formatFeedTimestamp: () => 'Now',
@@ -45,6 +48,12 @@ jest.mock('../utils/formatters', () => ({
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
+const mockCreateSwapComment = jest.fn();
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
 
 const openSpot: Position = {
   positionId: 'eth-spot',
@@ -91,11 +100,10 @@ jest.mock('../MyProfileView/hooks', () => ({
   }),
 }));
 
-const mockUseComposerSharePositions = jest.fn();
+const mockUseTraderPositions = jest.fn();
 
-jest.mock('./useComposerSharePositions', () => ({
-  useComposerSharePositions: (...args: unknown[]) =>
-    mockUseComposerSharePositions(...args),
+jest.mock('../TraderProfileView/hooks', () => ({
+  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -124,9 +132,40 @@ jest.mock('../components/PositionTokenAvatar', () => ({
   default: () => null,
 }));
 
+jest.mock('./GifPickerSheet', () => {
+  const { Pressable, View } = jest.requireActual('react-native');
+  const { KLIPY_STATIC_GIF_EXAMPLE: gifUrl } = jest.requireActual(
+    '../utils/klipyGifComment',
+  );
+  return {
+    __esModule: true,
+    default: ({ onSelect }: { onSelect: (gifUrl: string) => void }) => (
+      <View testID="gif-picker-sheet">
+        <Pressable
+          testID="gif-picker-select"
+          onPress={() => onSelect(gifUrl)}
+        />
+      </View>
+    ),
+  };
+});
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, unknown>) =>
     vars ? `${key}:${JSON.stringify(vars)}` : key,
+}));
+
+jest.mock('./createSwapCommentApi', () => ({
+  createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
+}));
+
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+    },
+  },
 }));
 
 describe('SocialPostComposerView', () => {
@@ -134,7 +173,12 @@ describe('SocialPostComposerView', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetSocialV1ComposedFeedStore();
-    mockUseComposerSharePositions.mockReturnValue({
+    mockCreateSwapComment.mockResolvedValue({
+      uid: 'comment-1',
+      commentText: 'this is alpha',
+      timestamp: 1700000000,
+    });
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [openSpot],
       closedPositions: [],
       isLoadingOpen: false,
@@ -149,7 +193,7 @@ describe('SocialPostComposerView', () => {
     jest.useRealTimers();
   });
 
-  it('keeps Post disabled until text and a position are valid', () => {
+  it('keeps Post disabled until a position is selected', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     expect(
@@ -164,6 +208,19 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('enables Post when a position is selected, even with an empty caption', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
   });
 
   it('clips typed text at 250 characters', () => {
@@ -233,22 +290,69 @@ describe('SocialPostComposerView', () => {
     ).toBe(true);
   });
 
-  it('focuses the comment field from the GIF chip without attaching a gif', () => {
+  it('opens the GIF picker from the GIF chip without attaching a gif', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
     );
 
+    expect(screen.getByTestId('gif-picker-sheet')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW),
     ).toBeNull();
-    expect(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-    ).toBeOnTheScreen();
   });
 
-  it('submits a pending post then returns to the social home', () => {
+  it('includes the selected gif on the submitted post', async () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: `this is alpha\n${KLIPY_STATIC_GIF_EXAMPLE}`,
+        positionUid: 'eth-spot',
+        source: 'metamask-mobile',
+      });
+    });
+
+    commitSocialV1PendingPost();
+
+    expect(getSocialV1ComposedPosts()[0]?.gifUri).toBe(
+      KLIPY_STATIC_GIF_EXAMPLE,
+    );
+  });
+
+  it('attaches the GIF chosen from the picker', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW).props
+        .source,
+    ).toEqual({ uri: KLIPY_STATIC_GIF_EXAMPLE });
+    expect(screen.queryByTestId('gif-picker-sheet')).toBeNull();
+  });
+
+  it('posts via swap-comments then returns to the social home', async () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
@@ -263,6 +367,20 @@ describe('SocialPostComposerView', () => {
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: 'this is alpha',
+        positionUid: 'eth-spot',
+        source: 'metamask-mobile',
+      });
+    });
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['SocialService:fetchFeed'],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['SocialService:fetchTraderFeed'],
+    });
     expect(getSocialV1PendingPost()).not.toBeNull();
     expect(mockGoBack).toHaveBeenCalled();
 
@@ -270,6 +388,37 @@ describe('SocialPostComposerView', () => {
 
     expect(getSocialV1PendingPost()).toBeNull();
     expect(getSocialV1ComposedPosts()).toHaveLength(1);
+    expect(getSocialV1ComposedPosts()[0]?.id).toBe('comment-1');
+  });
+
+  it('stays on the composer and shows a toast when createSwapComment fails', async () => {
+    mockCreateSwapComment.mockRejectedValue(new Error('409'));
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getSocialV1PendingPost()).toBeNull();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
   it('closes the composer from the header close button', () => {

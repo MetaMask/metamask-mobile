@@ -12,7 +12,9 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import {
+  AddFundsDemoOutcome,
   MembershipBannerKind,
+  type AddFundsDemoOutcome as AddFundsDemoOutcomeType,
   type MembershipBannerKind as MembershipBannerKindType,
 } from '../../ProHub.constants';
 
@@ -38,14 +40,30 @@ const DEMO_STATE_ORDER: MembershipBannerKindType[] = [
   MembershipBannerKind.Cancelled,
 ];
 
+const DEMO_ADD_FUNDS_OUTCOME_LABELS: Record<AddFundsDemoOutcomeType, string> = {
+  [AddFundsDemoOutcome.Success]: 'Funds added',
+  [AddFundsDemoOutcome.Failed]: 'Failed to add funds',
+};
+
+const DEMO_ADD_FUNDS_OUTCOME_ORDER: AddFundsDemoOutcomeType[] = [
+  AddFundsDemoOutcome.Success,
+  AddFundsDemoOutcome.Failed,
+];
+
 export const PRO_DEMO_SWITCHER_TEST_ID = 'pro-hub-demo-banner-switcher';
 export const proDemoSwitcherOptionTestId = (
   kind: MembershipBannerKindType,
 ): string => `${PRO_DEMO_SWITCHER_TEST_ID}-${kind}`;
 
+export const proDemoAddFundsOutcomeTestId = (
+  outcome: AddFundsDemoOutcomeType,
+): string => `${PRO_DEMO_SWITCHER_TEST_ID}-add-funds-${outcome}`;
+
 interface ProDemoBannerSwitcherProps {
   selectedKind: MembershipBannerKindType;
   onSelect: (kind: MembershipBannerKindType) => void;
+  addFundsOutcome: AddFundsDemoOutcomeType;
+  onAddFundsOutcomeSelect: (outcome: AddFundsDemoOutcomeType) => void;
 }
 
 /**
@@ -55,6 +73,8 @@ interface ProDemoBannerSwitcherProps {
 const ProDemoBannerSwitcher = ({
   selectedKind,
   onSelect,
+  addFundsOutcome,
+  onAddFundsOutcomeSelect,
 }: ProDemoBannerSwitcherProps) => {
   const tw = useTailwind();
 
@@ -88,6 +108,34 @@ const ProDemoBannerSwitcher = ({
             testID={proDemoSwitcherOptionTestId(kind)}
           >
             {DEMO_STATE_LABELS[kind]}
+          </Button>
+        ))}
+      </ScrollView>
+      <Text
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.WarningDefault}
+      >
+        DEMO — add funds result
+      </Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('gap-x-2')}
+      >
+        {DEMO_ADD_FUNDS_OUTCOME_ORDER.map((outcome) => (
+          <Button
+            key={outcome}
+            size={ButtonSize.Sm}
+            variant={
+              outcome === addFundsOutcome
+                ? ButtonVariant.Primary
+                : ButtonVariant.Secondary
+            }
+            onPress={() => onAddFundsOutcomeSelect(outcome)}
+            testID={proDemoAddFundsOutcomeTestId(outcome)}
+          >
+            {DEMO_ADD_FUNDS_OUTCOME_LABELS[outcome]}
           </Button>
         ))}
       </ScrollView>

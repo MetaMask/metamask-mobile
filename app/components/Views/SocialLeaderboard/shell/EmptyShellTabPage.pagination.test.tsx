@@ -58,9 +58,10 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
         id: 'post-1',
         authorHandle: 'aparjey',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
-        item: {} as UseSocialV1FeedResult['posts'][number]['item'],
+        reactions: [],
+        item: {
+          author: { id: 'author-1' },
+        } as UseSocialV1FeedResult['posts'][number]['item'],
       },
     ],
     ...overrides,

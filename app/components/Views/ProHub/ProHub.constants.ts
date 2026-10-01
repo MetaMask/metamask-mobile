@@ -119,6 +119,29 @@ export const MEMBERSHIP_BANNER_STATES: Record<
 export const MOCK_MEMBERSHIP_BANNER_KIND =
   MembershipBannerKind.ActiveLowBalance;
 
+/**
+ * Demo pause between the "Adding funds" toast and the success or failure toast.
+ * The real add-funds request is not wired up yet.
+ */
+export const ADD_FUNDS_DEMO_DELAY_MS = 2000;
+
+export const AddFundsDemoOutcome = {
+  Success: 'success',
+  Failed: 'failed',
+} as const;
+
+export type AddFundsDemoOutcome =
+  (typeof AddFundsDemoOutcome)[keyof typeof AddFundsDemoOutcome];
+
+/** Banner states whose action starts the demo add-funds toast sequence. */
+export const ADD_FUNDS_BANNER_KINDS: ReadonlySet<MembershipBannerKind> =
+  new Set([
+    MembershipBannerKind.ActiveLowBalance,
+    MembershipBannerKind.ActiveRenewalFailed,
+    MembershipBannerKind.Overdue,
+    MembershipBannerKind.Deactivated,
+  ]);
+
 export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [
   {
     id: 'transaction_protection',
@@ -135,18 +158,53 @@ export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [
   },
 ];
 
-export type TradeAllowanceKind = 'currency' | 'count';
+export const TRADE_ALLOWANCE_IDS = {
+  SWAPS: 'swaps',
+  PERPS: 'perps',
+  PREDICT: 'predict',
+} as const;
+
+export type TradeAllowanceId =
+  (typeof TRADE_ALLOWANCE_IDS)[keyof typeof TRADE_ALLOWANCE_IDS];
+
+export const TRADE_ALLOWANCE_KINDS = {
+  CURRENCY: 'currency',
+  COUNT: 'count',
+} as const;
+
+export type TradeAllowanceKind =
+  (typeof TRADE_ALLOWANCE_KINDS)[keyof typeof TRADE_ALLOWANCE_KINDS];
 
 export interface TradeAllowanceItem {
-  id: 'swaps' | 'perps' | 'predict';
+  id: TradeAllowanceId;
   used: number;
   allowance: number;
   kind: TradeAllowanceKind;
+  /**
+   * When true, the period cap is spent even if used/allowance would otherwise
+   * compute a 0% bar (missing consumed with remaining 0).
+   */
+  exhausted?: boolean;
 }
 
 // TODO: replace with real API data once the membership endpoint is available.
 export const MOCK_TRADE_ALLOWANCES: TradeAllowanceItem[] = [
-  { id: 'swaps', used: 310, allowance: 500, kind: 'currency' },
-  { id: 'perps', used: 240, allowance: 1000, kind: 'currency' },
-  { id: 'predict', used: 0, allowance: 1, kind: 'count' },
+  {
+    id: TRADE_ALLOWANCE_IDS.SWAPS,
+    used: 310,
+    allowance: 500,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
+  },
+  {
+    id: TRADE_ALLOWANCE_IDS.PERPS,
+    used: 240,
+    allowance: 1000,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
+  },
+  {
+    id: TRADE_ALLOWANCE_IDS.PREDICT,
+    used: 0,
+    allowance: 1,
+    kind: TRADE_ALLOWANCE_KINDS.COUNT,
+  },
 ];

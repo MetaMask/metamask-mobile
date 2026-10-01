@@ -1,12 +1,30 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
+import { ToastContext } from '../../../component-library/components/Toast';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import {
+  ADD_FUNDS_DEMO_DELAY_MS,
+  ALSO_INCLUDED_ITEMS,
+  AddFundsDemoOutcome,
+  MembershipBannerKind,
+  MOCK_PRO_HUB_STATS,
+  MOCK_TRADE_ALLOWANCES,
+  TRADE_ALLOWANCE_IDS,
+} from './ProHub.constants';
+import {
+  proDemoAddFundsOutcomeTestId,
+  proDemoSwitcherOptionTestId,
+} from './components/ProDemoBannerSwitcher/ProDemoBannerSwitcher';
 import { formatMembershipDueDate } from './components/MembershipBanner';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  MoneyAccountPlusBenefitsStatus,
+  useMoneyAccountPlusBenefits,
+} from './hooks/useMoneyAccountPlusBenefits';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -29,9 +47,33 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
+// ─── Plus benefits ────────────────────────────────────────────────────────────
+
+const mockUseMoneyAccountPlusBenefits = jest.mocked(
+  useMoneyAccountPlusBenefits,
+);
+jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('./hooks/useMoneyAccountPlusBenefits'),
+  useMoneyAccountPlusBenefits: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const renderProHub = () => render(<ProHub />);
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
+
+const renderProHub = () =>
+  render(
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: mockCloseToast },
+        },
+      }}
+    >
+      <ProHub />
+    </ToastContext.Provider>,
+  );
 
 /**
  * Escapes all regex special characters so a plain string can be used
@@ -40,7 +82,7 @@ const renderProHub = () => render(<ProHub />);
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-const TRADE_ALLOWANCE_IDS = ['swaps', 'perps', 'predict'] as const;
+const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
 // CV cannot cover this screen yet: it is still mock-data UI with no Redux /
 // Engine state, so focused unit tests remain the coverage layer.
@@ -52,6 +94,14 @@ describe('ProHub', () => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
+    mockShowToast.mockReset();
+    mockCloseToast.mockReset();
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+    });
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -176,7 +226,7 @@ describe('ProHub', () => {
       expect(section).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
 
-      TRADE_ALLOWANCE_IDS.forEach((id) => {
+      TRADE_ALLOWANCE_ID_LIST.forEach((id) => {
         const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
         const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
 
@@ -231,6 +281,151 @@ describe('ProHub', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Add funds toast ──────────────────────────────────────────────────────
+
+  describe('add funds toast', () => {
+    it('shows a processing toast and then a funds added toast', () => {
+      jest.useFakeTimers();
+      try {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION));
+
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            hasNoTimeout: true,
+            labelOptions: [
+              {
+                label: strings('pro_hub.add_funds_toast.adding_title'),
+                isBold: true,
+              },
+            ],
+            descriptionOptions: {
+              description: strings(
+                'pro_hub.add_funds_toast.adding_description',
+              ),
+            },
+          }),
+        );
+
+        act(() => {
+          jest.advanceTimersByTime(ADD_FUNDS_DEMO_DELAY_MS);
+        });
+
+        expect(mockShowToast).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            iconName: IconName.Confirmation,
+            labelOptions: [
+              {
+                label: strings('pro_hub.add_funds_toast.added_title'),
+                isBold: true,
+              },
+            ],
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('shows a processing toast and then a failed to add funds toast', () => {
+      jest.useFakeTimers();
+      try {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(
+          getByTestId(proDemoAddFundsOutcomeTestId(AddFundsDemoOutcome.Failed)),
+        );
+        fireEvent.press(getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION));
+
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: [
+              {
+                label: strings('pro_hub.add_funds_toast.adding_title'),
+                isBold: true,
+              },
+            ],
+          }),
+        );
+
+        act(() => {
+          jest.advanceTimersByTime(ADD_FUNDS_DEMO_DELAY_MS);
+        });
+
+        expect(mockShowToast).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            iconName: IconName.Danger,
+            hasNoTimeout: true,
+            labelOptions: [
+              {
+                label: strings('pro_hub.add_funds_toast.failed_title'),
+                isBold: true,
+              },
+            ],
+            descriptionOptions: {
+              description: strings(
+                'pro_hub.add_funds_toast.failed_description',
+              ),
+            },
+            linkButtonOptions: expect.objectContaining({
+              label: strings('pro_hub.add_funds_toast.failed_action'),
+            }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('restarts the adding funds toast when try again is pressed', () => {
+      jest.useFakeTimers();
+      try {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(
+          getByTestId(proDemoAddFundsOutcomeTestId(AddFundsDemoOutcome.Failed)),
+        );
+        fireEvent.press(getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION));
+        act(() => {
+          jest.advanceTimersByTime(ADD_FUNDS_DEMO_DELAY_MS);
+        });
+
+        const failedToast = mockShowToast.mock.calls.at(-1)?.[0] as {
+          linkButtonOptions: { onPress: () => void };
+        };
+        mockShowToast.mockClear();
+        failedToast.linkButtonOptions.onPress();
+
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: [
+              {
+                label: strings('pro_hub.add_funds_toast.adding_title'),
+                isBold: true,
+              },
+            ],
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not show the add funds toast for renew membership', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          proDemoSwitcherOptionTestId(MembershipBannerKind.Cancelled),
+        ),
+      );
+      fireEvent.press(getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION));
+
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 
