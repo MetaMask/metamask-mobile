@@ -100,6 +100,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
       }
       size={ButtonSize.Md}
       variant={ButtonVariant.Secondary}
+      twClassName="shrink"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}

@@ -130,6 +130,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
         }
         size={ButtonSize.Md}
         variant={ButtonVariant.Secondary}
+        twClassName="shrink"
       >
         {category.label}
       </Button>
