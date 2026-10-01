@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import { meetsClaimMinimum } from '../../utils/claimEarnings';
 
 export const CLAIMABLE_REWARDS_CARD_TEST_IDS = {
   CONTAINER: 'claimable-rewards-card',
@@ -40,14 +41,15 @@ function isPositiveBaseUnits(value: string | undefined): boolean {
 }
 
 /**
- * Claim when something is payable now. Otherwise a disabled Claimed button
- * only after a payout has already landed. Both missing or zero hides it.
+ * Claim when at least $1 is payable on a route. Otherwise a disabled Claimed
+ * button only after a payout has already landed. Both missing or zero hides it.
  */
 export function claimButtonState(
   claimable: string | undefined,
   claimed: string | undefined,
+  canClaim: boolean = meetsClaimMinimum(claimable),
 ): ClaimButtonState {
-  if (isPositiveBaseUnits(claimable)) {
+  if (canClaim && meetsClaimMinimum(claimable)) {
     return 'claim';
   }
   if (isPositiveBaseUnits(claimed)) {
@@ -68,6 +70,10 @@ export interface ClaimableRewardsCardProps {
   last7Amount: string | null;
   isSummaryLoading: boolean;
   isLast7Loading: boolean;
+  /** A family clears $1, so the press can call a claim route. */
+  canClaim?: boolean;
+  isClaiming?: boolean;
+  onClaim?: () => void;
 }
 
 const ClaimableRewardsCardSkeleton: React.FC<{
@@ -117,8 +123,8 @@ const ClaimableRewardsCardSkeleton: React.FC<{
 };
 
 /**
- * Available-to-claim card. The Claim button is present when money is payable
- * and does not start a claim: eligibility and tax verification are not wired.
+ * Available-to-claim card. Claim is enabled only when `canClaim` is set,
+ * which means a route's balance is at least $1.
  */
 const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   localizedText,
@@ -129,6 +135,9 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   last7Amount,
   isSummaryLoading,
   isLast7Loading,
+  canClaim = false,
+  isClaiming = false,
+  onClaim,
 }) => {
   const tw = useTailwind();
 
@@ -136,7 +145,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     return <ClaimableRewardsCardSkeleton localizedText={localizedText} />;
   }
 
-  const button = claimButtonState(claimable, claimed);
+  const button = claimButtonState(claimable, claimed, canClaim);
   const showLast7Skeleton = isLast7Loading && last7Amount === null;
 
   return (
@@ -166,8 +175,8 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
-              isDisabled={button === 'claimed'}
-              onPress={() => undefined}
+              isDisabled={button === 'claimed' || isClaiming}
+              onPress={button === 'claim' ? onClaim : undefined}
               testID={
                 button === 'claim'
                   ? CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON

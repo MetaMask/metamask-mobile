@@ -522,18 +522,63 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeNull();
   });
 
-  it('renders the earnings indicator when there is a claimable balance', () => {
+  it('renders the earnings indicator when a referee can claim at least $1', () => {
     const { getByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+      },
       earningsSummaryEntry: {
         loading: false,
         error: false,
-        data: { ...EARNINGS_SUMMARY, claimable: '50' },
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          self_earned: {
+            ...EARNINGS_SUMMARY.self_earned,
+            by_claim_family: {
+              REFERRAL_TRADE_FEE_CASHBACK: {
+                ...emptyBranch,
+                lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
       },
     });
 
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
     ).toBeOnTheScreen();
+  });
+
+  it('renders no earnings indicator for a referrer with cashback of at least $1', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          self_earned: {
+            ...EARNINGS_SUMMARY.self_earned,
+            by_claim_family: {
+              REFERRAL_TRADE_FEE_CASHBACK: {
+                ...emptyBranch,
+                lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
   });
 
   it('switches to the Earnings tab body', () => {

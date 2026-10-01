@@ -12,6 +12,7 @@ const LOCALIZED_TEXT = {
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   historyClaimed: 'Claimed',
+  historyClaimPending: 'Pending',
 } as unknown as ReferralLocalizedText;
 
 const earning: LedgerEarningEntryDto = {
@@ -58,6 +59,23 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('-$2.50')).toBeOnTheScreen();
+  });
+
+  it('shows an in-flight claim as pending', () => {
+    const { getByText } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{
+          kind: 'pending-claim',
+          id: 'claim-open',
+          net_amount: '2500000',
+        }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(getByText('-$2.50')).toBeOnTheScreen();
   });
 });

@@ -11,6 +11,9 @@ import {
   REWARDS_MONEY_CONTROLLER_NAME,
   type ClaimDto,
   type ClaimHistoryPageDto,
+  type ClaimRouteSlug,
+  type InitiateClaimBody,
+  type InitiateClaimResult,
   type CommissionsPageDto,
   type EarningOriginType,
   type EarningsLedgerPageDto,
@@ -185,6 +188,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClaimHistory',
   'getCommissions',
   'getClaimById',
+  'initiateClaim',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -563,6 +567,21 @@ export class RewardsMoneyController extends BaseController<
       writeCache: (cacheKey, payload) =>
         this.#writeCommissionsFirstPage(cacheKey, payload),
     });
+  }
+
+  async initiateClaim(
+    route: ClaimRouteSlug,
+    body: InitiateClaimBody,
+  ): Promise<InitiateClaimResult> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call(
+      'RewardsMoneyDataService:initiateClaim',
+      route,
+      body,
+    );
   }
 
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
