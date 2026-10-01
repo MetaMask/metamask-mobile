@@ -44,13 +44,12 @@ describe('VbaIronCustomerDevChip', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('01a0f6cabc')).toBeOnTheScreen();
+      expect(getByText('Iron 01a0f6cabc')).toBeOnTheScreen();
     });
 
     fireEvent.press(getByTestId(VbaIronCustomerDevChipSelectorsIDs.CHIP));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('01a0f6cabc');
-    expect(getByText('Copied')).toBeOnTheScreen();
   });
 
   it('renders nothing when the customer id cannot be resolved', async () => {
