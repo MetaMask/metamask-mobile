@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -10,6 +10,7 @@ import {
   TextVariant,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { RectButton } from 'react-native-gesture-handler';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 
@@ -77,6 +78,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   children,
   isDisabled,
   boxWrapperProps,
+  onPress,
   ...props
 }) => {
   const { colors } = useTheme();
@@ -85,11 +87,13 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
     <Box twClassName="flex-1" {...boxWrapperProps}>
-      <Pressable
+      <RectButton
         style={[styles.keypadButton, style]}
-        disabled={isDisabled}
+        enabled={!isDisabled}
+        exclusive={false}
         accessibilityRole="button"
         accessible
+        onPress={() => onPress?.()}
         {...props}
       >
         <Text
@@ -99,7 +103,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
         >
           {children}
         </Text>
-      </Pressable>
+      </RectButton>
     </Box>
   );
 };
@@ -116,6 +120,7 @@ interface KeypadDeleteButtonProps {
 const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   style,
   boxWrapperProps,
+  onPress,
   ...props
 }) => {
   const { colors } = useTheme();
@@ -124,14 +129,16 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   return (
     // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
     <Box twClassName="flex-1" {...boxWrapperProps}>
-      <Pressable
+      <RectButton
         style={[styles.keypadDeleteButton, style]}
+        exclusive={false}
         accessibilityRole="button"
         accessible
+        onPress={() => onPress?.()}
         {...props}
       >
         <Icon name={IconName.Backspace} size={IconSize.Xl} />
-      </Pressable>
+      </RectButton>
     </Box>
   );
 };
