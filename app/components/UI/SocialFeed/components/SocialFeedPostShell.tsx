@@ -31,9 +31,13 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
+  onAuthorPress?: (post: SocialV1FeedPost) => void;
 }
 
-const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
+const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
+  post,
+  onAuthorPress,
+}) => {
   const tw = useTailwind();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -80,6 +84,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
     [pickEmotion],
   );
 
+  const handleIdentityPress = useCallback(() => {
+    onAuthorPress?.(post);
+  }, [onAuthorPress, post]);
+
   // Only a position that is still open can be copied, so only those can have
   // been. Zero copies say nothing worth the row space.
   const copyCount = isCopyTradeable(post.item) ? mockCopyCount(post.id) : 0;
@@ -100,6 +108,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         timestampMs={post.timestampMs}
         recyclingKey={post.id}
         onMorePress={openOptions}
+        onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
         twClassName="mb-2"
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
@@ -108,6 +117,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
+          identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
         }}
       />
 

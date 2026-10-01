@@ -71,13 +71,16 @@ const basePost = (
   ...overrides,
 });
 
-const renderShell = (post: SocialV1FeedPost) => {
+const renderShell = (
+  post: SocialV1FeedPost,
+  options?: { onAuthorPress?: (post: SocialV1FeedPost) => void },
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return renderWithProvider(
     <QueryClientProvider client={queryClient}>
-      <SocialFeedPostShell post={post} />
+      <SocialFeedPostShell post={post} onAuthorPress={options?.onAuthorPress} />
     </QueryClientProvider>,
   );
 };
@@ -335,6 +338,33 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`)
         .props.imageUrl,
     ).toBe('https://cdn.test/alice.png');
+  });
+
+  describe('author identity press', () => {
+    it('calls onAuthorPress when the identity is pressed', () => {
+      const onAuthorPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onAuthorPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onAuthorPress).toHaveBeenCalledTimes(1);
+      expect(onAuthorPress).toHaveBeenCalledWith(post);
+    });
+
+    it('does not wrap the identity in a pressable when onAuthorPress is omitted', () => {
+      renderShell(basePost());
+
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      ).toBeNull();
+    });
   });
 
   it('opens the report reason sheet from the post options', () => {
