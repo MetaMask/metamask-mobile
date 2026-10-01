@@ -38,13 +38,3 @@ export const CANCEL_REASONS: CancelReason[] = [
 ];
 
 export const MAX_STAY_FEEDBACK_LENGTH = 280;
-
-export interface CancelMembershipStats {
-  earnedAsMember: string;
-  membershipCost: string;
-}
-
-export const MOCK_CANCEL_STATS: CancelMembershipStats = {
-  earnedAsMember: '+$503.51',
-  membershipCost: '$49.99/yr',
-};

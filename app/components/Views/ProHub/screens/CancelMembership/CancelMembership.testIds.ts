@@ -1,17 +1,17 @@
 export const CancelMembershipTestIds = {
   CONTAINER: 'cancel-membership-container',
-  // ── Survey step ──────────────────────────────────────────────────────────
+  // ── Shared survey chrome ─────────────────────────────────────────────────
   BACK_BUTTON: 'cancel-membership-back-button',
-  TITLE: 'cancel-membership-title',
-  SUBTITLE: 'cancel-membership-subtitle',
-  STATS_CARD: 'cancel-membership-stats-card',
-  REASONS_LIST: 'cancel-membership-reasons-list',
   KEEP_BUTTON: 'cancel-membership-keep-button',
   CANCEL_BUTTON: 'cancel-membership-cancel-button',
+  ERROR_MESSAGE: 'cancel-membership-error-message',
+  // ── Reason step ──────────────────────────────────────────────────────────
+  TITLE: 'cancel-membership-title',
+  REASONS_LIST: 'cancel-membership-reasons-list',
+  // ── Stay step ────────────────────────────────────────────────────────────
   STAY_QUESTION: 'cancel-membership-stay-question',
   STAY_QUESTION_INPUT: 'cancel-membership-stay-question-input',
   OTHER_REASON_INPUT: 'cancel-membership-other-reason-input',
-  ERROR_MESSAGE: 'cancel-membership-error-message',
   // ── Success step ─────────────────────────────────────────────────────────
   SUCCESS_CHECK_ICON_BOX: 'cancel-membership-success-check-icon-box',
   SUCCESS_TITLE: 'cancel-membership-success-title',

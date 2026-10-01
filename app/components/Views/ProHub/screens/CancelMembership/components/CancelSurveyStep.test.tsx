@@ -1,5 +1,4 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelSurveyStep from './CancelSurveyStep';
 import {
@@ -7,11 +6,7 @@ import {
   getCancelReasonCheckmarkTestId,
   getCancelReasonTestId,
 } from '../CancelMembership.testIds';
-import {
-  CANCEL_REASONS,
-  MOCK_CANCEL_STATS,
-  OTHER_REASON_ID,
-} from '../CancelMembership.constants';
+import { CANCEL_REASONS } from '../CancelMembership.constants';
 import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
@@ -24,27 +19,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Escapes all regex special characters so a plain string can be used
- * as a partial-match pattern inside toHaveTextContent().
- */
-const toRegex = (s: string) =>
-  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-
-const createLayoutEvent = (y: number) => ({
-  nativeEvent: { layout: { x: 0, y, width: 300, height: 200 } },
-});
-
 const renderStep = (
   overrides: Partial<React.ComponentProps<typeof CancelSurveyStep>> = {},
 ) => {
   const props: React.ComponentProps<typeof CancelSurveyStep> = {
     selectedReasonId: null,
-    stayFeedback: '',
-    otherReasonText: '',
     onReasonSelect: jest.fn(),
-    onStayFeedbackChange: jest.fn(),
-    onOtherReasonChange: jest.fn(),
     onBack: jest.fn(),
     onKeepMembership: jest.fn(),
     onCancelConfirm: jest.fn(),
@@ -82,55 +62,18 @@ describe('CancelSurveyStep', () => {
       );
     });
 
-    it('renders the subtitle from i18n', () => {
-      const { getByTestId } = renderStep();
+    it('does not render the stay question or its inputs', () => {
+      const { queryByTestId } = renderStep({
+        selectedReasonId: CANCEL_REASONS[0].id,
+      });
 
-      expect(getByTestId(CancelMembershipTestIds.SUBTITLE)).toHaveTextContent(
-        strings('pro_hub.cancel_membership.subtitle'),
-      );
-    });
-  });
-
-  // ── Stats card ─────────────────────────────────────────────────────────────
-
-  describe('stats card', () => {
-    it('renders the stats card', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toBeOnTheScreen();
-    });
-
-    it('shows earned as member value', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(MOCK_CANCEL_STATS.earnedAsMember),
-      );
-    });
-
-    it('shows membership cost value', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(MOCK_CANCEL_STATS.membershipCost),
-      );
-    });
-
-    it('shows earned as member label from i18n', () => {
-      const { getByTestId } = renderStep();
-
-      // Use toRegex for partial match — the card contains multiple text nodes.
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(strings('pro_hub.cancel_membership.earned_as_member')),
-      );
-    });
-
-    it('shows membership cost label from i18n', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(strings('pro_hub.cancel_membership.membership_cost')),
-      );
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(
+        queryByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      ).toBeNull();
+      expect(
+        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      ).toBeNull();
     });
   });
 
@@ -228,7 +171,7 @@ describe('CancelSurveyStep', () => {
 
       expect(
         getByTestId(CancelMembershipTestIds.KEEP_BUTTON),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent(strings('pro_hub.cancel_membership.keep_membership'));
     });
 
     it('renders the cancel button with i18n label', () => {
@@ -236,7 +179,7 @@ describe('CancelSurveyStep', () => {
 
       expect(
         getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent(strings('pro_hub.cancel_membership.cancel'));
     });
 
     it('calls onKeepMembership when keep membership is pressed', () => {
@@ -291,269 +234,7 @@ describe('CancelSurveyStep', () => {
     });
   });
 
-  // ── Stay question ─────────────────────────────────────────────────────────
-
-  describe('stay question', () => {
-    it('hides the stay question when no reason is selected', () => {
-      const { queryByTestId } = renderStep();
-
-      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
-    });
-
-    it('shows the stay question and its input after a reason is selected', () => {
-      const firstReason = CANCEL_REASONS[0];
-      const { getByTestId } = renderStep({
-        selectedReasonId: firstReason.id,
-      });
-
-      expect(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-      ).toBeOnTheScreen();
-    });
-
-    it('scrolls the stay question into view when it lays out', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const firstReason = CANCEL_REASONS[0];
-      const { getByTestId } = renderStep({
-        selectedReasonId: firstReason.id,
-      });
-
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(320),
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledWith({ y: 304, animated: true });
-    });
-
-    it('scrolls to the top of the content when the stay question sits within the inset', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const firstReason = CANCEL_REASONS[0];
-      const { getByTestId } = renderStep({
-        selectedReasonId: firstReason.id,
-      });
-
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(8),
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledWith({ y: 0, animated: true });
-    });
-
-    it('does not scroll again on a later layout pass, such as the input growing', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const firstReason = CANCEL_REASONS[0];
-      const { getByTestId } = renderStep({
-        selectedReasonId: firstReason.id,
-      });
-      const stayQuestion = getByTestId(CancelMembershipTestIds.STAY_QUESTION);
-
-      fireEvent(stayQuestion, 'layout', createLayoutEvent(320));
-      fireEvent(stayQuestion, 'layout', createLayoutEvent(480));
-
-      expect(scrollToSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('scrolls the stay question into view again after switching to another non-other reason', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId, rerender, props } = renderStep({
-        selectedReasonId: CANCEL_REASONS[0].id,
-      });
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(320),
-      );
-
-      rerender(
-        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[1].id} />,
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledTimes(2);
-      expect(scrollToSpy).toHaveBeenLastCalledWith({ y: 304, animated: true });
-    });
-
-    it('does not scroll again when the same reason remains selected', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId, rerender, props } = renderStep({
-        selectedReasonId: CANCEL_REASONS[0].id,
-      });
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(320),
-      );
-
-      rerender(
-        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[0].id} />,
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onStayFeedbackChange when the stay input text changes', () => {
-      const firstReason = CANCEL_REASONS[0];
-      const { getByTestId, props } = renderStep({
-        selectedReasonId: firstReason.id,
-      });
-
-      fireEvent.changeText(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-        'Lower price',
-      );
-
-      expect(props.onStayFeedbackChange).toHaveBeenCalledWith('Lower price');
-    });
-  });
-
-  // ── Other reason input ────────────────────────────────────────────────────
-
-  describe('other reason input', () => {
-    it('hides the other reason input when no reason is selected', () => {
-      const { queryByTestId } = renderStep();
-
-      expect(
-        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toBeNull();
-    });
-
-    it('hides the other reason input when a non-other reason is selected', () => {
-      const firstReason = CANCEL_REASONS[0];
-      const { queryByTestId } = renderStep({
-        selectedReasonId: firstReason.id,
-      });
-
-      expect(
-        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toBeNull();
-    });
-
-    it('shows the other reason input when other is selected', () => {
-      const { getByTestId } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      expect(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onOtherReasonChange when the other reason input text changes', () => {
-      const { getByTestId, props } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      fireEvent.changeText(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-        'Too many emails',
-      );
-
-      expect(props.onOtherReasonChange).toHaveBeenCalledWith('Too many emails');
-    });
-
-    it('scrolls the other reason input into view when it lays out', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-        'layout',
-        createLayoutEvent(320),
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledWith({ y: 304, animated: true });
-    });
-
-    it('keeps the other reason input in view when the stay question lays out', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-        'layout',
-        createLayoutEvent(320),
-      );
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(460),
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledTimes(1);
-      expect(scrollToSpy).toHaveBeenCalledWith({ y: 304, animated: true });
-    });
-
-    it('scrolls the other reason input into view after switching from another reason', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId, rerender, props } = renderStep({
-        selectedReasonId: CANCEL_REASONS[0].id,
-      });
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(320),
-      );
-
-      rerender(
-        <CancelSurveyStep {...props} selectedReasonId={OTHER_REASON_ID} />,
-      );
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-        'layout',
-        createLayoutEvent(280),
-      );
-
-      expect(scrollToSpy).toHaveBeenLastCalledWith({ y: 264, animated: true });
-    });
-
-    it('does not scroll again when the other reason input grows after switching reasons', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId, rerender, props } = renderStep({
-        selectedReasonId: CANCEL_REASONS[0].id,
-      });
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(320),
-      );
-      rerender(
-        <CancelSurveyStep {...props} selectedReasonId={OTHER_REASON_ID} />,
-      );
-      const otherReasonInput = getByTestId(
-        CancelMembershipTestIds.OTHER_REASON_INPUT,
-      );
-
-      fireEvent(otherReasonInput, 'layout', createLayoutEvent(280));
-      fireEvent(otherReasonInput, 'layout', createLayoutEvent(340));
-
-      expect(scrollToSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not scroll to the stay question when it lays out before the other reason input', () => {
-      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-      const { getByTestId } = renderStep({
-        selectedReasonId: OTHER_REASON_ID,
-      });
-
-      fireEvent(
-        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-        'layout',
-        createLayoutEvent(460),
-      );
-
-      expect(scrollToSpy).not.toHaveBeenCalled();
-    });
-  });
+  // ── Cancellation state ────────────────────────────────────────────────────
 
   describe('cancellation state', () => {
     it('shows the cancellation error', () => {
@@ -563,6 +244,12 @@ describe('CancelSurveyStep', () => {
       expect(
         getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
       ).toHaveTextContent(errorMessage);
+    });
+
+    it('hides the error message when there is none', () => {
+      const { queryByTestId } = renderStep();
+
+      expect(queryByTestId(CancelMembershipTestIds.ERROR_MESSAGE)).toBeNull();
     });
 
     it('disables both actions while cancellation is submitting', () => {

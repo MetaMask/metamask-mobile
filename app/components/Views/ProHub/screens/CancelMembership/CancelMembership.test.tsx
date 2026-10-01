@@ -12,6 +12,7 @@ import {
 import CancelMembership from './CancelMembership';
 import {
   CancelMembershipTestIds,
+  getCancelReasonCheckmarkTestId,
   getCancelReasonTestId,
 } from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -160,69 +161,17 @@ describe('CancelMembership', () => {
     expect(getByTestId(CancelMembershipTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('starts on the survey step', () => {
+  it('starts on the reason step', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
     expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+    expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
     expect(
       queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows the stay question after a reason is selected', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
-
-    expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-
-    expect(
-      getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the other reason input after other is selected', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
-
-    expect(
-      queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-    ).toBeNull();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-
-    expect(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the other reason input after switching from other to a different reason', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-
-    expect(
-      queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-    ).toBeNull();
-  });
-
-  it('keeps typed other reason text after switching away from other and back', () => {
-    const { getByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.changeText(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      'Too many emails',
-    );
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-
-    expect(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT).props.value,
-    ).toBe('Too many emails');
-  });
-
-  it('calls goBack when the back button on the survey step is pressed', () => {
+  it('calls goBack when the back button on the reason step is pressed', () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
@@ -236,6 +185,169 @@ describe('CancelMembership', () => {
     fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Two-step survey ───────────────────────────────────────────────────────
+
+  describe('two-step survey', () => {
+    it('advances to the stay step when a reason is selected', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.TITLE)).toBeNull();
+      expect(queryByTestId(CancelMembershipTestIds.REASONS_LIST)).toBeNull();
+    });
+
+    it('shows the other reason input on the stay step only when other is selected', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      expect(
+        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      ).toBeNull();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+
+      expect(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      ).toBeOnTheScreen();
+    });
+
+    it('returns to the reason step with the selection preserved when back is pressed', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+      expect(
+        getByTestId(getCancelReasonCheckmarkTestId('too_expensive')),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('keeps typed other reason text after going back and re-selecting other', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+      fireEvent.changeText(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+        'Too many emails',
+      );
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+
+      expect(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT).props.value,
+      ).toBe('Too many emails');
+    });
+
+    it('keeps typed stay feedback after going back and selecting another reason', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.changeText(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+        'Lower the price',
+      );
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT).props.value,
+      ).toBe('Lower the price');
+    });
+
+    it('calls goBack when keep membership is pressed on the stay step', () => {
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not block leaving by gesture on the stay step', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+
+      expect(mockSetOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: true,
+      });
+    });
+
+    it('redirects beforeRemove on the stay step back to the reason step', () => {
+      let beforeRemoveHandler:
+        | ((e: { preventDefault: () => void }) => void)
+        | undefined;
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          handler: (e: { preventDefault: () => void }) => void,
+        ) => {
+          if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler;
+          }
+          return jest.fn();
+        },
+      );
+      const { getByTestId, queryByTestId } = renderScreen();
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      expect(beforeRemoveHandler).toBeDefined();
+
+      const mockPreventDefault = jest.fn();
+      act(() => {
+        beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
+      });
+
+      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
+      expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not register a beforeRemove listener on the reason step', () => {
+      renderScreen();
+
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('redirects the Android hardware back button on the stay step to the reason step', () => {
+      let backPressHandler: (() => boolean) | undefined;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          backPressHandler = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+      const { getByTestId, queryByTestId } = renderScreen();
+      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      expect(backPressHandler).toBeDefined();
+
+      let handled: boolean | undefined;
+      act(() => {
+        handled = backPressHandler?.();
+      });
+
+      expect(handled).toBe(true);
+      expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
   });
 
   it('cancels at period end without a reason when the survey is skipped', async () => {
