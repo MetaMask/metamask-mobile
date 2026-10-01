@@ -107,6 +107,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const acceptInFlightRef = useRef(false);
 
   const profileId = useSelector(selectSessionProfileId);
+  const isProfileResolved = Boolean(profileId);
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
@@ -124,6 +125,10 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
+  // Copy is keyed by a profile id that resolves asynchronously, and the
+  // entry can still be loading after that. Until both have settled, an
+  // absent invite is not a decision this sheet can track.
+  const isCopyPending = !isProfileResolved || Boolean(referralMeEntry?.loading);
 
   const {
     referralCode,
