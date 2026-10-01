@@ -15,6 +15,7 @@ import {
   useEnableNotifications,
   useListNotifications,
   useMarkNotificationAsRead,
+  useNotificationsCategories,
 } from './useNotifications';
 // eslint-disable-next-line import-x/no-namespace
 import * as UsePushNotifications from './usePushNotifications';
@@ -30,6 +31,56 @@ jest.mock('./usePushNotifications', () => ({
 beforeEach(() => {
   jest.clearAllMocks();
   jest.resetAllMocks();
+});
+
+describe('useNotifications - useNotificationsCategories()', () => {
+  const arrangeMocks = () => {
+    const mockFetchNotificationsCategories = jest
+      .spyOn(Actions, 'fetchNotificationsCategories')
+      .mockResolvedValue(undefined);
+
+    return { mockFetchNotificationsCategories };
+  };
+
+  it('stays loading when the category request does not settle', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockFetchNotificationsCategories.mockImplementation(
+      () => new Promise<void>(() => undefined),
+    );
+    const hook = renderHookWithProvider(() => useNotificationsCategories());
+
+    await act(async () => {
+      hook.result.current.fetchCategories();
+    });
+
+    expect(mocks.mockFetchNotificationsCategories).toHaveBeenCalledTimes(1);
+    expect(hook.result.current.isLoading).toBe(true);
+    expect(hook.result.current.error).toBeNull();
+    hook.unmount();
+  });
+
+  it('settles on category request failure and exposes fallback categories', async () => {
+    const mocks = arrangeMocks();
+    const fetchError = new Error('Category service unavailable');
+    mocks.mockFetchNotificationsCategories.mockRejectedValue(fetchError);
+    const hook = renderHookWithProvider(() => useNotificationsCategories());
+
+    await act(async () => {
+      await hook.result.current.fetchCategories();
+    });
+
+    expect(hook.result.current.isLoading).toBe(false);
+    expect(hook.result.current.error).toBe(fetchError);
+    expect(
+      hook.result.current.categoriesData.map(({ category_id }) => category_id),
+    ).toEqual([
+      'wallet_activity',
+      'trading_activity',
+      'agentic_cli',
+      'trading_signals',
+      'updates_and_rewards',
+    ]);
+  });
 });
 
 describe('useNotifications - useListNotifications()', () => {

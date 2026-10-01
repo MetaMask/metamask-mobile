@@ -14,6 +14,7 @@ import { Skeleton } from '../../../../component-library/components-temp/Skeleton
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 // Mirrors NotificationRow's exact JSX tree (same Box/Text/Icon components,
 // same styles.switchElement, no invented gaps) — only the icon/text nodes are
@@ -33,7 +34,7 @@ const NotificationsSettingsRowSkeleton = () => {
           key={index}
           style={styles.switchElement}
           disabled
-          testID="notifications-settings-row-skeleton"
+          testID={NotificationSettingsViewSelectorsIDs.ROW_SKELETON}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}

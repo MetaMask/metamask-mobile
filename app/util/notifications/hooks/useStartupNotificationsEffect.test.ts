@@ -13,6 +13,7 @@ import * as SettingsSelectors from '../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as IdentitySelectors from '../../../selectors/identity';
 import storageWrapper from '../../../store/storage-wrapper';
+import Logger from '../../Logger';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 // eslint-disable-next-line import-x/no-namespace
 import * as Constants from '../constants/config';
@@ -267,6 +268,31 @@ describe('useRegisterAndFetchNotifications', () => {
       expect(mocks.hooks.enableNotifications).toHaveBeenCalled();
       expect(mocks.hooks.listNotifications).toHaveBeenCalled();
     });
+  });
+
+  it('skips re-enabling notifications when the AUS preference check fails', async () => {
+    const mocks = arrange();
+    mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
+    mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
+    mocks.helpers.mockGetStorageItem.mockResolvedValue(Date.now() + 1000);
+    mocks.helpers.mockHasNotificationPreferences.mockRejectedValue(
+      new Error('AUS unavailable'),
+    );
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+
+    renderHookWithProvider(() => useRegisterAndFetchNotifications(), {});
+
+    await waitFor(() => {
+      expect(mocks.hooks.listNotifications).toHaveBeenCalled();
+    });
+    expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.any(Error),
+      'Failed to check notification preferences initialization',
+    );
+    loggerSpy.mockRestore();
   });
 
   it('deos not fetch notifications when basic functionality is disabled', async () => {
