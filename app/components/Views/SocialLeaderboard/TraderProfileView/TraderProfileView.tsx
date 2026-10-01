@@ -55,7 +55,10 @@ import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
+import {
+  HYPERLIQUID_CHAIN_NAME,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
