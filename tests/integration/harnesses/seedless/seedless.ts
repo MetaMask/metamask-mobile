@@ -5,22 +5,13 @@ import {
   SeedlessOnboardingController,
   Web3AuthNetwork,
 } from '@metamask/seedless-onboarding-controller';
-// The controller detects an expired token with `instanceof TOPRFError`, so the
-// harness needs the same class the controller loads from its own dependency.
+// Same class the controller uses for its `instanceof` token-expiry check.
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import { TOPRFError, TOPRFErrorCode } from '@metamask/toprf-secure-backup';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { seedlessOnboardingEncryptorAdapter } from '../../../../app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller';
 
-/**
- * Seedless onboarding integration-test harness.
- *
- * REAL: SeedlessOnboardingController (lock, token-refresh retry, vault
- * creation, backup-metadata state) and Mobile's
- * `seedlessOnboardingEncryptorAdapter` for the local vault.
- * MOCKED: the TOPRF client that talks to SSS and the metadata store, backed
- * by an in-memory store, and the auth-server token callbacks.
- */
+/** Seedless onboarding integration harness. See STRATEGY.md for what is real and mocked. */
 
 type ToprfClient = SeedlessOnboardingController['toprfClient'];
 type KeyPair = Parameters<ToprfClient['addSecretDataItem']>[0]['authKeyPair'];
@@ -28,27 +19,16 @@ type SecretItem = Awaited<
   ReturnType<ToprfClient['fetchAllSecretDataItems']>
 >[number];
 
-/** One saved OPRF key: the key SSS hands back on recovery. */
 interface SavedKey {
   keyId: number;
   password: string;
 }
 
-/**
- * In-memory stand-in for SSS and the metadata store.
- *
- * SSS keeps one key per user. The metadata store keeps secret items per auth
- * public key, so an SRP written under one key is invisible to an install that
- * recovers a different key. That separation is what a key split looks like.
- */
 export class FakeToprfBackend {
-  /** The key SSS returns on recovery, or undefined for a new user. */
   persistedKey: SavedKey | undefined;
 
-  /** Secret items, keyed by the hex of the auth public key they were written under. */
   readonly metadata = new Map<string, SecretItem[]>();
 
-  /** Every key id `createLocalKey` handed out, in order. */
   readonly createdKeyIds: number[] = [];
 
   readonly #passwordByKeyId = new Map<number, string>();
@@ -107,14 +87,12 @@ export class FakeToprfBackend {
     return this.metadata.get(this.namespaceOf(authKeyPair)) ?? [];
   }
 
-  /** Namespaces that hold at least one secret item. */
   namespacesWithSecrets(): string[] {
     return [...this.metadata.entries()]
       .filter(([, items]) => items.length > 0)
       .map(([namespace]) => namespace);
   }
 
-  /** The namespace of the key SSS would hand back on recovery. */
   savedKeyNamespace(): string {
     if (!this.persistedKey) {
       throw new Error('No key saved in SSS');
@@ -125,7 +103,6 @@ export class FakeToprfBackend {
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-/** A JWT that is valid for a day, so the controller's real expiry checks pass. */
 export const longLivedJwt = (subject: string): string => {
   const encode = (value: object) =>
     Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -136,7 +113,6 @@ export const longLivedJwt = (subject: string): string => {
   ].join('.');
 };
 
-/** A node auth token: base64 JSON, not a JWT. Valid for a day. */
 export const longLivedNodeAuthToken = (nodeIndex: number): string =>
   Buffer.from(
     JSON.stringify({ nodeIndex, exp: nowSeconds() + 86_400 }),
@@ -144,13 +120,11 @@ export const longLivedNodeAuthToken = (nodeIndex: number): string =>
 
 export interface SeedlessInstall {
   controller: SeedlessOnboardingController;
-  /** Sign in with social login; the backend decides new vs existing user. */
   signIn: () => Promise<{ isNewUser: boolean }>;
 }
 
 export interface SeedlessIntegrationHarness {
   backend: FakeToprfBackend;
-  /** A fresh install: a new controller with no local state, same backend. */
   newInstall: () => SeedlessInstall;
 }
 
@@ -226,23 +200,15 @@ const installFakeToprfClient = (
   });
 };
 
-/** TOPRF client methods a fault can target. */
 export type FaultableToprfMethod =
   | 'addSecretDataItem'
   | 'persistLocalKey'
   | 'fetchAllSecretDataItems';
 
-/** The error the nodes return when the auth token has expired. */
 export const authTokenExpiredError = () =>
   new TOPRFError(TOPRFErrorCode.AuthTokenExpired, 'Auth token expired');
 
-/**
- * Fail the next call to `method` before it reaches the backend.
- *
- * @param install - The install whose client should fail.
- * @param method - The TOPRF client method.
- * @param error - The error to throw.
- */
+/** Fails the next call before it reaches the backend. */
 export const failNextCall = (
   install: SeedlessInstall,
   method: FaultableToprfMethod,
@@ -253,13 +219,7 @@ export const failNextCall = (
     .mockRejectedValueOnce(error);
 };
 
-/**
- * Let the next call to `method` reach the backend, then throw as if the
- * response never arrived. The write is committed; the client does not know.
- *
- * @param install - The install whose client should lose the response.
- * @param method - The TOPRF client method.
- */
+/** Commits the next call, then throws as if the response was lost. */
 export const loseNextResponse = (
   install: SeedlessInstall,
   method: FaultableToprfMethod,
@@ -274,11 +234,6 @@ export const loseNextResponse = (
   }) as never);
 };
 
-/**
- * Build a harness with one shared backend. Call `newInstall()` for each install.
- *
- * @returns The harness.
- */
 export const buildSeedlessIntegrationHarness =
   (): SeedlessIntegrationHarness => {
     const backend = new FakeToprfBackend();

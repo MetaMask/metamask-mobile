@@ -15,7 +15,6 @@ import {
 
 const PASSWORD = 'integration-password';
 const KEYRING_ID = 'keyring-1';
-// Mobile creates a new wallet on every attempt, so each attempt backs up a different SRP.
 const FIRST_ATTEMPT_SRP = new Uint8Array(64).fill(1);
 const RETRY_SRP = new Uint8Array(64).fill(2);
 const IMPORTED_SRP = new Uint8Array(64).fill(9);
@@ -31,11 +30,7 @@ const createAccount = async (
     KEYRING_ID,
   );
 
-/**
- * What `Authentication.createAndBackupSeedPhrase` does after a failure: clear
- * the controller, then the user signs in again. The backend decides whether
- * they create a new account or recover an existing one.
- */
+/** Mirrors the catch block in `Authentication.createAndBackupSeedPhrase`. */
 const startOver = async (install: SeedlessInstall) => {
   await install.controller.clearState();
   return await install.signIn();
@@ -97,10 +92,7 @@ describe('seedless account creation', () => {
     expect(secrets.map((secret) => secret.data)).toStrictEqual([RETRY_SRP]);
   });
 
-  // The controller refreshes the token and repeats the create step, including
-  // the SRP write that already landed. The metadata store allows one primary
-  // SRP per key, so the repeat is rejected and creation fails. The SRP from
-  // that attempt stays under a key SSS never saved.
+  // Current behaviour; ADR 0004 expects creation to succeed.
   it('fails creation and leaves an orphaned SRP when the key-share save hits an expired token', async () => {
     const harness = buildSeedlessIntegrationHarness();
     const install = harness.newInstall();
@@ -212,8 +204,7 @@ describe('seedless add secret', () => {
       expect(storedCount(harness)).toBe(1);
     });
 
-    // The write landed but the client never saw the response, so the retry
-    // writes again. ADR 0004 expects one entry.
+    // Current behaviour; ADR 0004 expects one entry.
     it('writes the secret twice when the retry follows a lost response', async () => {
       const { harness, install } = await createdAccount();
       loseNextResponse(install, 'addSecretDataItem');
