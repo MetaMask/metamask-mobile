@@ -60,8 +60,11 @@ import {
 } from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import { TOKEN_DETAILS_HEADER_V2_ENABLED } from '../components/tokenDetailsHeaderConfig';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { useTokenHeaderScroll } from '../hooks/useTokenHeaderScroll';
+import { formatTokenAge } from '../utils/formatTokenAge';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
@@ -538,6 +541,19 @@ const TokenDetails: React.FC<{
     trackActionTapped(TokenDetailsAction.CopyTokenAddress);
   }, [trackActionTapped]);
 
+  const { scrollY: headerScrollY, onScroll: onHeaderScrollY } =
+    useTokenHeaderScroll();
+  const handleTransactionsScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+      onHeaderScrollY(event.nativeEvent.contentOffset.y);
+    },
+    [onHeaderScrollY],
+  );
+  const tokenAge = useMemo(
+    () => formatTokenAge(securityData?.created) ?? undefined,
+    [securityData?.created],
+  );
+
   const handleMarketInsightsDisclaimerPress = useCallback(() => {
     setIsInsightsDisclaimerVisible(true);
   }, []);
@@ -668,6 +684,8 @@ const TokenDetails: React.FC<{
             : undefined
         }
         onCopyAddress={handleCopyAddress}
+        scrollY={TOKEN_DETAILS_HEADER_V2_ENABLED ? headerScrollY : undefined}
+        tokenAge={TOKEN_DETAILS_HEADER_V2_ENABLED ? tokenAge : undefined}
       />
 
       {txIsNonEvmAsset ? (
@@ -681,6 +699,11 @@ const TokenDetails: React.FC<{
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
+          onScroll={
+            TOKEN_DETAILS_HEADER_V2_ENABLED
+              ? handleTransactionsScroll
+              : undefined
+          }
         />
       ) : (
         <Transactions
@@ -700,6 +723,9 @@ const TokenDetails: React.FC<{
           skipScrollOnClick
           hideEmptyState
           location={TransactionDetailLocation.AssetDetails}
+          onScrollThroughContent={
+            TOKEN_DETAILS_HEADER_V2_ENABLED ? onHeaderScrollY : undefined
+          }
         />
       )}
       <TokenDetailsStickyFooter
