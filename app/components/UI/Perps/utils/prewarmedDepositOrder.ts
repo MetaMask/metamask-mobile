@@ -288,6 +288,12 @@ function rejectWhenPrepared(transactionId: Promise<string>): void {
 }
 
 function rejectTransaction(transactionId: string): void {
+  const { ApprovalController } = Engine.context;
+  // ApprovalController removes the request before this returns. Transaction
+  // Rejected is emitted later, and that handler only skips metrics while the
+  // id is still unclaimed. Dropping it here would count a blur discard as a
+  // started-and-abandoned deposit.
+  const hadApproval = ApprovalController.hasRequest({ id: transactionId });
   try {
     Engine.rejectPendingApproval(
       transactionId,
@@ -300,9 +306,11 @@ function rejectTransaction(transactionId: string): void {
       error,
     );
   }
-  // The rejected handler drops the id when the approval exists. This covers a
-  // missing approval, which returns without emitting Transaction Rejected.
-  dropUnclaimedPrewarmTransaction(transactionId);
+  const rejectionWillEmit =
+    hadApproval && !ApprovalController.hasRequest({ id: transactionId });
+  if (!rejectionWillEmit) {
+    dropUnclaimedPrewarmTransaction(transactionId);
+  }
 }
 
 /** Test-only: clears module state without touching the controllers. */

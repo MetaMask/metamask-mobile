@@ -341,7 +341,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             );
             // Added was held back at prewarm time. Emit it now, after
             // attribution is registered, because the user actually started.
-            trackStashedPrewarmTransactionAdded(transactionId);
+            // eslint-disable-next-line no-void -- metric builders must not delay opening confirmation
+            void trackStashedPrewarmTransactionAdded(transactionId);
             return;
           } catch {
             // Prewarm failed or became unusable; create a fresh transaction.

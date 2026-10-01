@@ -86,6 +86,8 @@ const depositThatStashes = (
 describe('prewarmedDepositOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    hasRequest.mockReset();
+    mockedEngine.rejectPendingApproval.mockReset();
     resetPrewarmedDepositOrderForTesting();
     resetUnclaimedPrewarmTransactionMetricsForTesting();
     Engine.context.TransactionController.state.transactions = [];
@@ -239,6 +241,40 @@ describe('prewarmedDepositOrder', () => {
       await trackStashedPrewarmTransactionAdded('tx-2');
 
       expect(emitted).toEqual(['tx-2']);
+    });
+
+    it('keeps a discarded prewarm unclaimed until Transaction Rejected is handled', async () => {
+      const emitted: string[] = [];
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(
+        CRITERIA,
+        depositThatStashes('tx-1', Promise.resolve('tx-1'), emitted),
+      );
+      mockedEngine.rejectPendingApproval.mockImplementation((id: string) => {
+        hasRequest.mockImplementation(
+          (request: { id: string }) => request.id !== id,
+        );
+      });
+
+      discardPrewarmedDepositOrder();
+
+      expect(emitted).toEqual([]);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(true);
+    });
+
+    it('drops metrics immediately when discard finds no approval to reject', async () => {
+      const emitted: string[] = [];
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(
+        CRITERIA,
+        depositThatStashes('tx-1', Promise.resolve('tx-1'), emitted),
+      );
+      hasRequest.mockReturnValue(false);
+
+      discardPrewarmedDepositOrder();
+
+      expect(emitted).toEqual([]);
+      expect(isUnclaimedPrewarmTransaction('tx-1')).toBe(false);
     });
 
     it('does not emit Transaction Added when an unclaimed prewarm is discarded', async () => {

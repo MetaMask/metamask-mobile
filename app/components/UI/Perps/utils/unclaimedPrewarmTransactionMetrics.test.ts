@@ -151,6 +151,22 @@ describe('unclaimed prewarm transaction metrics', () => {
     expect(isUnclaimedPrewarmTransaction('prewarm-tx')).toBe(false);
   });
 
+  it('does not reject when a held-back Transaction Added emit fails', async () => {
+    beginUnclaimedPrewarmTransaction();
+    suppressUnclaimedPrewarmTransactionAdded({
+      id: 'prewarm-tx',
+      type: TransactionType.perpsDepositAndOrder,
+    });
+    stashUnclaimedPrewarmTransactionAdded('prewarm-tx', () =>
+      Promise.reject(new Error('metrics failed')),
+    );
+
+    await expect(
+      trackStashedPrewarmTransactionAdded('prewarm-tx'),
+    ).resolves.toBeUndefined();
+    expect(isUnclaimedPrewarmTransaction('prewarm-tx')).toBe(false);
+  });
+
   it('drops a rejected prewarm without emitting Transaction Added', () => {
     beginUnclaimedPrewarmTransaction();
     const emitted: string[] = [];

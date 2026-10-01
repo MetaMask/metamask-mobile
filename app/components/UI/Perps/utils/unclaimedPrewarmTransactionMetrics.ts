@@ -1,4 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Deposit prewarming inserts a real `perpsDepositAndOrder` before the user taps
@@ -20,21 +21,19 @@ interface PrewarmTransactionIdentity {
   type?: string;
 }
 
-type PrewarmGeneration = number;
-
-let nextGeneration: PrewarmGeneration = 1;
+let nextGeneration = 1;
 let emittingStashed = false;
-const activeGenerations = new Set<PrewarmGeneration>();
+const activeGenerations = new Set<number>();
 const unclaimedIds = new Set<string>();
 const stashedAdded = new Map<string, () => void | Promise<void>>();
-const ownersById = new Map<string, Set<PrewarmGeneration>>();
+const ownersById = new Map<string, Set<number>>();
 
 /**
  * Marks the next in-flight `perpsDepositAndOrder` insert as an unclaimed prewarm.
  *
  * @returns Generation token. Pass it to the matching end and settlement calls.
  */
-export function beginUnclaimedPrewarmTransaction(): PrewarmGeneration {
+export function beginUnclaimedPrewarmTransaction(): number {
   const generation = nextGeneration;
   nextGeneration += 1;
   activeGenerations.add(generation);
@@ -45,9 +44,7 @@ export function beginUnclaimedPrewarmTransaction(): PrewarmGeneration {
  * Pairs with {@link beginUnclaimedPrewarmTransaction} once that creation settles.
  * Closes the suppression window. It does not emit or drop a held-back insert.
  */
-export function endUnclaimedPrewarmTransaction(
-  generation: PrewarmGeneration,
-): void {
+export function endUnclaimedPrewarmTransaction(generation: number): void {
   activeGenerations.delete(generation);
 }
 
@@ -85,7 +82,7 @@ export function stashUnclaimedPrewarmTransactionAdded(
  * newer in-flight prewarm also holds stays stashed.
  */
 export function retainOnlyUnclaimedPrewarmTransaction(
-  generation: PrewarmGeneration,
+  generation: number,
   transactionId: string,
 ): void {
   settleGeneration(generation, transactionId, 'release');
@@ -97,7 +94,7 @@ export function retainOnlyUnclaimedPrewarmTransaction(
  * its own stash.
  */
 export function releaseAllStashedPrewarmTransactionAdded(
-  generation: PrewarmGeneration,
+  generation: number,
 ): void {
   settleGeneration(generation, undefined, 'release');
 }
@@ -111,9 +108,7 @@ export function dropUnclaimedPrewarmTransaction(transactionId: string): void {
  * Drops inserts this generation held alone, without emitting. The transaction
  * is being rejected. A newer in-flight prewarm keeps its own stash.
  */
-export function dropAllUnclaimedPrewarmTransactions(
-  generation: PrewarmGeneration,
-): void {
+export function dropAllUnclaimedPrewarmTransactions(generation: number): void {
   settleGeneration(generation, undefined, 'drop');
 }
 
@@ -142,7 +137,7 @@ export async function trackStashedPrewarmTransactionAdded(
  * generation cannot emit the transaction this one prepared.
  */
 function settleGeneration(
-  generation: PrewarmGeneration,
+  generation: number,
   keepTransactionId: string | undefined,
   action: 'release' | 'drop',
 ): void {
@@ -167,7 +162,8 @@ function settleGeneration(
     const emit = stashedAdded.get(id);
     forget(id);
     if (action === 'release' && emit) {
-      emitHeldBack(emit);
+      // eslint-disable-next-line no-void -- held-back metrics must not block settlement
+      void emitHeldBack(emit);
     }
   }
 }
@@ -180,14 +176,28 @@ function forget(transactionId: string): void {
 
 function emitHeldBack(emit: () => void | Promise<void>): Promise<void> {
   emittingStashed = true;
+  let result: void | Promise<void>;
   try {
-    return Promise.resolve(emit()).finally(() => {
-      emittingStashed = false;
-    });
+    result = emit();
   } catch (error) {
     emittingStashed = false;
-    throw error;
+    logHeldBackEmitFailure(error);
+    return Promise.resolve();
   }
+  return Promise.resolve(result)
+    .catch((error: unknown) => {
+      logHeldBackEmitFailure(error);
+    })
+    .finally(() => {
+      emittingStashed = false;
+    });
+}
+
+function logHeldBackEmitFailure(error: unknown): void {
+  DevLogger.log(
+    '[unclaimedPrewarmTransactionMetrics] Failed to emit held-back Transaction Added',
+    error,
+  );
 }
 
 /** Test-only. */
