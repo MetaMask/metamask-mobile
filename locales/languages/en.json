@@ -9467,8 +9467,7 @@
       "expired_at_status": "Expired (at {{date}})",
       "date_created": "Date created",
       "order_type": "Order type",
-      "order_type_limit": "Limit",
-      "duplicate_order": "Duplicate order"
+      "order_type_limit": "Limit"
     },
     "recurring": {
       "you_get": "You get",
