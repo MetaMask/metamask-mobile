@@ -283,6 +283,47 @@ describeForPlatforms('PerpsRecoveryPanel', () => {
     ).toBeOnTheScreen();
   });
 
+  it.each(['succeeded', 'failed'] as const)(
+    'shows a local-only %s outcome without allowing acknowledgment',
+    async (outcome) => {
+      const entry: PerpsRecoveredDispatch = {
+        ...DISPATCH,
+        outcome,
+        acknowledgeable: false,
+        providerId: 'lighter',
+        network: 'testnet',
+        walletAddress: '0x0000000000000000000000000000000000000001',
+      };
+      getDispatches.mockResolvedValue([entry]);
+      getProtections.mockResolvedValue([]);
+      const { controls } = renderPanel({ review: venueFor(entry) });
+      await screen.findByTestId(IDs.VENUE);
+      await waitFor(() =>
+        expect(screen.queryByTestId(IDs.LOADING)).not.toBeOnTheScreen(),
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsRecoveryEntryTestId(IDs.REVIEW, entry)),
+      );
+
+      expect(
+        within(screen.getByTestId(IDs.DISPATCH)).getByText(
+          strings(`perps.recovery.outcome_${outcome}`),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('perps.recovery.pending')),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, entry),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(controls.onReview).toHaveBeenCalledWith(entry);
+      expect(controls.onAcknowledge).not.toHaveBeenCalled();
+    },
+  );
+
   it('requires the selected entry review before showing acknowledgment', async () => {
     getDispatches.mockResolvedValue([DISPATCH]);
     getProtections.mockResolvedValue([]);

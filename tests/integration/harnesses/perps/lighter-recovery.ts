@@ -120,7 +120,7 @@ const MARKET_FIXTURE = {
 
 /**
  * Builds real controller recovery with explicit external I/O boundaries.
- * The parked-source, market and trigger shapes follow Strict05 Core's
+ * The parked-source, market and trigger shapes follow the installed Core
  * LighterProvider selected durable protection fixtures. Only isolated-write
  * mode admits synthetic create/grouped-create/cancel signing and HTTP.
  *

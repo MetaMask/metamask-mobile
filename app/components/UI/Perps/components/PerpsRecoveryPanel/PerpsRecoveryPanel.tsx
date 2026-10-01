@@ -204,9 +204,9 @@ const PerpsRecoveryPanel = ({
         <Box key={entry.recoveryId} gap={2} testID={IDs.DISPATCH}>
           <Text variant={TextVariant.BodyMd}>
             {strings(
-              entry.acknowledgeable !== false
-                ? `perps.recovery.outcome_${entry.outcome}`
-                : 'perps.recovery.pending',
+              entry.acknowledgeable === false && entry.outcome === 'unknown'
+                ? 'perps.recovery.pending'
+                : `perps.recovery.outcome_${entry.outcome}`,
             )}
           </Text>
           <Button
