@@ -21,7 +21,7 @@ export function createLimitOrdersTab({
   return {
     items: orders,
     renderItem: (order) => <LimitOrderTabRow order={order} />,
-    keyExtractor: (order) => order.orderId,
+    keyExtractor: (order) => order.id,
     isLoading,
     isError,
     isFetchingNextPage,

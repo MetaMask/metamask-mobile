@@ -2,6 +2,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxFlexWrap,
   BoxJustifyContent,
   Button,
   ButtonSize,
@@ -34,6 +35,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   SectionList,
+  View,
+  type LayoutChangeEvent,
   type ScrollView,
   type SectionListData,
   type SectionListRenderItemInfo,
@@ -77,6 +80,14 @@ import type {
 } from './types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
+
+/**
+ * Mirror the filter row's own `px-4` and `gap={3}` in points. The row decides
+ * between its side-by-side and stacked layouts from measured widths, so these
+ * must be kept in step with the Tailwind classes on that `Box`.
+ */
+const FILTER_ROW_PADDING_X = 16;
+const FILTER_ROW_GAP = 12;
 
 const SKELETON_ROW_COUNT = 6;
 const SKELETON_KEYS = Array.from(
@@ -184,6 +195,31 @@ const FeedView: React.FC<FeedViewProps> = ({
   // Fires when the Feed tab first becomes active (pager mounts both pages).
   const hasFiredScreenViewedRef = useRef(false);
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
+
+  const [filterRowWidth, setFilterRowWidth] = useState(0);
+  const [typeFilterWidth, setTypeFilterWidth] = useState(0);
+  const [audienceToggleWidth, setAudienceToggleWidth] = useState(0);
+
+  const handleFilterRowLayout = useCallback((event: LayoutChangeEvent) => {
+    setFilterRowWidth(event.nativeEvent.layout.width);
+  }, []);
+  const handleTypeFilterLayout = useCallback((event: LayoutChangeEvent) => {
+    setTypeFilterWidth(event.nativeEvent.layout.width);
+  }, []);
+  const handleAudienceToggleLayout = useCallback((event: LayoutChangeEvent) => {
+    setAudienceToggleWidth(event.nativeEvent.layout.width);
+  }, []);
+
+  // Neither control shrinks, so each measures at its natural width in both the
+  // side-by-side and stacked layouts. That makes this comparison stable: the
+  // re-render it triggers cannot change the widths it was derived from, so
+  // there is no measure/relayout feedback loop.
+  const isFilterRowStacked =
+    filterRowWidth > 0 &&
+    typeFilterWidth > 0 &&
+    audienceToggleWidth > 0 &&
+    typeFilterWidth + audienceToggleWidth + FILTER_ROW_GAP >
+      filterRowWidth - FILTER_ROW_PADDING_X * 2;
 
   // Only one of these is mounted at a time (skeletons vs. loaded sections), so
   // the handle forwards the offset to both and lets the unmounted one no-op.
@@ -523,27 +559,66 @@ const FeedView: React.FC<FeedViewProps> = ({
 
   // The filter row rides inside the scroll (as the list header) so it scrolls
   // away with the feed rows instead of staying pinned.
+  //
+  // Wraps because neither control shrinks: the type pill and the audience
+  // segments are sized to their labels on purpose (see FeedAudienceToggle),
+  // so in locales with longer strings (e.g. es "Todos los tipos" +
+  // "Siguiendo"/"Todas") the pair overflows the row. Wrapping drops the toggle
+  // onto its own line instead of letting it clip off-screen.
+  //
+  // `justifyContent` is switched rather than left on Between because it is a
+  // per-line rule: once wrapped, each line holds a single control that Between
+  // would pin to the leading edge. Centering the stacked pair keeps it visually
+  // balanced, and the measured `isFilterRowStacked` is what tells the two
+  // layouts apart — flexbox alone cannot express "spread on one line, centered
+  // once wrapped". The slot Views exist only to measure their control.
   const filterRow = useMemo(
     () => (
       <Box
         flexDirection={BoxFlexDirection.Row}
+        flexWrap={BoxFlexWrap.Wrap}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+        justifyContent={
+          isFilterRowStacked
+            ? BoxJustifyContent.Center
+            : BoxJustifyContent.Between
+        }
         twClassName="px-4 py-3"
         gap={3}
+        onLayout={handleFilterRowLayout}
+        testID={FeedViewSelectorsIDs.FILTER_ROW}
       >
-        <TypeFilterSelector
-          value={typeFilter}
-          onPress={() => setIsTypeSheetOpen(true)}
-        />
-        <FeedAudienceToggle
-          value={audience}
-          order={audienceOrder}
-          onChange={handleAudienceChange}
-        />
+        <View
+          onLayout={handleTypeFilterLayout}
+          testID={FeedViewSelectorsIDs.TYPE_FILTER_SLOT}
+        >
+          <TypeFilterSelector
+            value={typeFilter}
+            onPress={() => setIsTypeSheetOpen(true)}
+          />
+        </View>
+        <View
+          onLayout={handleAudienceToggleLayout}
+          testID={FeedViewSelectorsIDs.AUDIENCE_SLOT}
+        >
+          <FeedAudienceToggle
+            value={audience}
+            order={audienceOrder}
+            onChange={handleAudienceChange}
+          />
+        </View>
       </Box>
     ),
-    [typeFilter, audience, audienceOrder, handleAudienceChange],
+    [
+      typeFilter,
+      audience,
+      audienceOrder,
+      handleAudienceChange,
+      isFilterRowStacked,
+      handleFilterRowLayout,
+      handleTypeFilterLayout,
+      handleAudienceToggleLayout,
+    ],
   );
 
   const content = useMemo(() => {

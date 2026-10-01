@@ -18,11 +18,11 @@ import type {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
+import { SocialV1TraderRow } from './components';
 import { readSnapshot } from './leaderboardSnapshot';
 import { REVEAL_DWELL_MS } from './components/useLeaderboardReveal';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
-  getCohortFilterOptionTestId,
   getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,
@@ -346,6 +346,11 @@ jest.mock('../analytics', () => {
   };
 });
 
+const mockUseMyProfile = jest.fn();
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => mockUseMyProfile(),
+}));
+
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -362,6 +367,18 @@ describe('TopTradersView', () => {
     mockRouteParams = {};
     mockNotificationPreferences = { ...defaultNotificationPreferences };
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockUseMyProfile.mockReturnValue({
+      profile: {
+        profileId: 'current-user',
+        displayName: 'Giga Whale',
+        handle: 'giga-whale',
+        shareUrl: 'https://metamask.io/social/giga-whale',
+        pnlUsd: 7100,
+      },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
   });
 
   it('renders all traders', () => {
@@ -781,21 +798,24 @@ describe('TopTradersView', () => {
   });
 
   describe('Social V1 filters', () => {
-    it('shows type, cohort, date range, and ranking chips', () => {
+    it('shows ranking and custom filters without type, cohort, or date chips', () => {
       renderWithProvider(<TopTradersView useV1Filters />);
 
       expect(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.FILTER_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+      ).toBeNull();
       expect(
         screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
       ).toBeNull();
@@ -807,6 +827,25 @@ describe('TopTradersView', () => {
       expectLatestQueryEnabledStates({
         all: true,
         tokens: false,
+        perps: false,
+      });
+    });
+
+    it('enables the tokens query when Custom filters apply the tokens type', () => {
+      const { DEFAULT_FILTERS } = jest.requireActual(
+        '../shell/filters/filterDefaults',
+      ) as typeof import('../shell/filters/filterDefaults');
+
+      renderWithProvider(
+        <TopTradersView
+          useV1Filters
+          v1AppliedFilters={{ ...DEFAULT_FILTERS, type: 'tokens' }}
+        />,
+      );
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: true,
         perps: false,
       });
     });
@@ -827,15 +866,77 @@ describe('TopTradersView', () => {
       });
     });
 
-    it('selects a trader cohort without changing the fetch sort', () => {
-      renderWithProvider(<TopTradersView useV1Filters />);
+    it('pins the signed-in user above the list when they are not ranked in the page', () => {
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+      expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    });
+
+    it('omits the signed-in user from the list body when they appear in the ranking', () => {
+      mockUseMyProfile.mockReturnValue({
+        profile: {
+          profileId: fixtureTraders[0].id,
+          displayName: fixtureTraders[0].username,
+          handle: fixtureTraders[0].username,
+          shareUrl: '',
+          linkedAccountAddress: fixtureTraders[0].address,
+        },
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getAllByText('alpha.eth')).toHaveLength(1);
+    });
+
+    it('opens the V1 profile from a V1 list row', () => {
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      fireEvent.press(screen.getByText('alpha.eth'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.V1_PROFILE,
+        {
+          traderId: fixtureTraders[0].id,
+          traderName: fixtureTraders[0].username,
+          traderAddress: fixtureTraders[0].address,
+          traderAvatarUri: fixtureTraders[0].avatarUri,
+          source: 'leaderboard',
+          traderRank: 1,
+        },
+        {},
+      );
+    });
+
+    it('opens the owner V1 profile from the pinned viewer card', () => {
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
 
       fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
       );
-      fireEvent.press(screen.getByTestId(getCohortFilterOptionTestId('whale')));
 
-      expect(screen.getByText('Whale')).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.V1_PROFILE,
+        undefined,
+        {},
+      );
     });
   });
 

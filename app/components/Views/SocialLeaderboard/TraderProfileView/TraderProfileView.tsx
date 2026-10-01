@@ -67,6 +67,8 @@ import {
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
+import TraderStatsSheet from './components/TraderStatsSheet';
+import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
@@ -162,6 +164,7 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
@@ -421,6 +424,7 @@ const TraderProfileView = () => {
                       <StatsRow
                         stats={headlineStats}
                         holdTimeMinutes={profile.stats.medianHoldMinutes}
+                        onPress={() => setIsStatsSheetOpen(true)}
                       />
                     ) : (
                       <StatsRowSkeleton />
@@ -541,6 +545,12 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
+      {isStatsSheetOpen && profile ? (
+        <TraderStatsSheet
+          profile={profile as TraderProfileWithSheetStats}
+          onClose={() => setIsStatsSheetOpen(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

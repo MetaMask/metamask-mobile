@@ -12,4 +12,5 @@ export const LimitOrderConfirmationModalSelectorsIDs = {
     'limit-order-confirmation-modal-cost-tolerance-tooltip',
   NETWORK_FEE: 'limit-order-confirmation-modal-network-fee',
   FEE_DISCLAIMER: 'limit-order-confirmation-modal-fee-disclaimer',
+  USD_PRICE_NOTICE: 'limit-order-confirmation-modal-usd-price-notice',
 } as const;

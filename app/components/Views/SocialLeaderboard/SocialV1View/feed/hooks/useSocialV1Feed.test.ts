@@ -51,8 +51,7 @@ const composedPost = () => ({
   id: 'composed-1',
   authorHandle: 'giga-whale',
   timestampMs: Date.now(),
-  likeCount: 0,
-  commentCount: 0,
+  reactions: [],
   item: mockOpenPerpsFeedItem({
     id: 'composed-item',
     comment: 'this is alpha',

@@ -11,6 +11,7 @@ import {
   BridgeTabKey,
   TAB_TO_FEATURE_ID,
 } from '../../Views/BridgeView/BridgeView.constants';
+import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
@@ -87,6 +88,24 @@ describe('BridgeSessionProvider', () => {
 
     expect(result.current.session.selectedTab).toBe(BridgeTabKey.Market);
     expect(result.current.session.renderedTab).toBe(BridgeTabKey.Market);
+  });
+
+  it('defaults recurring orders to Open and updates it independently', () => {
+    const { result } = renderSession();
+
+    expect(result.current.session.recurringOrdersTab).toBe(
+      OrdersTabKey.OpenOrders,
+    );
+
+    act(() => {
+      result.current.session.setSelectedTab(BridgeTabKey.Limit);
+      result.current.session.setRecurringOrdersTab?.(OrdersTabKey.History);
+    });
+
+    expect(result.current.session.selectedTab).toBe(BridgeTabKey.Limit);
+    expect(result.current.session.recurringOrdersTab).toBe(
+      OrdersTabKey.History,
+    );
   });
 
   it('scopes SwapsFeatureId to UNIFIED_SWAP_BRIDGE on the Market tab', () => {

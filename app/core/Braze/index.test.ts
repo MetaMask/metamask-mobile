@@ -7,15 +7,18 @@ import {
   logBrazeBannerClick,
   dismissBrazeBanner,
   refreshBrazeBanners,
+  syncBrazeEventBlocklist,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
+import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
 
 const mockSetBrazeProfileId = jest.fn();
+const mockSetBlockedEvents = jest.fn();
 const mockSetLanguage = jest.fn();
 const mockHasPendingBrazePushUnregistrationSync = jest.fn();
 
@@ -24,6 +27,7 @@ jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
     type: 'destination',
     key: 'Appboy',
     setBrazeProfileId: mockSetBrazeProfileId,
+    setBlockedEvents: mockSetBlockedEvents,
     setLanguage: mockSetLanguage,
   })),
 }));
@@ -33,7 +37,12 @@ jest.mock('./pushRegistrationState', () => ({
     mockHasPendingBrazePushUnregistrationSync(),
 }));
 
+jest.mock('../../selectors/featureFlagController/brazeEventBlocklist', () => ({
+  getBrazeBlockedEventNames: jest.fn(),
+}));
+
 const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
+const mockGetBrazeBlockedEventNames = jest.mocked(getBrazeBlockedEventNames);
 
 describe('Braze service', () => {
   beforeEach(() => {
@@ -45,6 +54,7 @@ describe('Braze service', () => {
           type: 'destination',
           key: 'Appboy',
           setBrazeProfileId: mockSetBrazeProfileId,
+          setBlockedEvents: mockSetBlockedEvents,
           setLanguage: mockSetLanguage,
         }) as unknown as BrazePlugin,
     );
@@ -161,6 +171,32 @@ describe('Braze service', () => {
       refreshBrazeBanners(['placement-1']);
 
       expect(Braze.requestBannersRefresh).toHaveBeenCalledWith(['placement-1']);
+    });
+  });
+
+  describe('syncBrazeEventBlocklist', () => {
+    it('applies the event names returned for the flag value', () => {
+      const flagValue = {
+        enabled: true,
+        minimumVersion: '8.14.0',
+        blockedEvents: ['App Opened'],
+      };
+      mockGetBrazeBlockedEventNames.mockReturnValue(['App Opened']);
+
+      syncBrazeEventBlocklist(flagValue);
+
+      expect(mockGetBrazeBlockedEventNames).toHaveBeenCalledWith(flagValue);
+      expect(mockSetBlockedEvents).toHaveBeenCalledWith(['App Opened']);
+    });
+
+    it('clears the blocklist when parsing the flag throws', () => {
+      mockGetBrazeBlockedEventNames.mockImplementation(() => {
+        throw new Error('flag parse failed');
+      });
+
+      syncBrazeEventBlocklist({ enabled: true });
+
+      expect(mockSetBlockedEvents).toHaveBeenCalledWith([]);
     });
   });
 

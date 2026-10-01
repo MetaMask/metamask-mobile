@@ -9,7 +9,7 @@ export const wrapMockFeedPosts = (
     authorHandle: 'alpha-queen',
     authorImageUrl: null,
     timestampMs: nowMs - index * 120_000,
-    likeCount: 0,
-    commentCount: 0,
+    commentId: `mock-comment-${item.id}`,
+    reactions: [],
     item,
   }));

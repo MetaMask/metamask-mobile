@@ -52,6 +52,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('../../../../util/activity', () => ({
+  ...jest.requireActual('../../../../util/activity'),
   sortTransactions: jest.fn((txs: unknown[]) => txs),
 }));
 
@@ -145,22 +146,25 @@ const createAsset = (overrides: Partial<TokenI> = {}): TokenI => ({
 
 const setupMocks = (
   transactions: unknown[] = [],
-  { bridgeHistory = {} as Record<string, unknown> } = {},
+  {
+    bridgeHistory = {} as Record<string, unknown>,
+    selectedAddress = MOCK_ADDRESS,
+  } = {},
 ) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectTransactions) return transactions;
     if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
     if (selector === selectTokens) return [];
     if (selector === selectSelectedInternalAccount) {
-      return { address: MOCK_ADDRESS, metadata: { importTime: 0 } };
+      return { address: selectedAddress, metadata: { importTime: 0 } };
     }
     if (selector === selectSelectedInternalAccountByScope) {
-      return () => ({ address: MOCK_ADDRESS });
+      return () => ({ address: selectedAddress });
     }
     if (selector === selectConversionRate) return 1;
     if (selector === selectCurrentCurrency) return 'usd';
     // Inline selector for selectedAddressForAsset
-    return MOCK_ADDRESS;
+    return selectedAddress;
   });
 };
 
@@ -264,6 +268,43 @@ describe('useTokenTransactions', () => {
       });
 
       expect(result.current.confirmedTxs.length).toBe(1);
+    });
+
+    it('includes an ERC20 transfer on the recipient token page', async () => {
+      const transferData =
+        `0xa9059cbb${MOCK_RECIPIENT.slice(2).padStart(64, '0')}` +
+        '1'.padStart(64, '0');
+      const tx = createMockTransaction({
+        chainId: ETH_CHAIN_ID,
+        txParams: {
+          from: MOCK_ADDRESS,
+          to: MOCK_TOKEN_ADDRESS,
+          data: transferData,
+        },
+        isTransfer: true,
+        transferInformation: {
+          contractAddress: MOCK_TOKEN_ADDRESS,
+        },
+      });
+      setupMocks([tx], { selectedAddress: MOCK_RECIPIENT });
+
+      const asset = createAsset({
+        symbol: 'DAI',
+        isETH: false,
+        isNative: false,
+        address: MOCK_TOKEN_ADDRESS,
+        chainId: ETH_CHAIN_ID,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs).toEqual([
+        expect.objectContaining({ id: 'tx-1' }),
+      ]);
     });
 
     it('excludes unrelated transactions from ERC20 token view', async () => {
