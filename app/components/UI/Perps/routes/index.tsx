@@ -85,12 +85,21 @@ const styles = StyleSheet.create({
   },
 });
 
-const getPerpsConversionScreenOptions = (
+/**
+ * The bottom sheet draws its own backdrop fade and slide, so the native stack
+ * animation must be cleared. Otherwise the stack would slide the whole
+ * transparent screen, backdrop included, on dismiss instead of fading it.
+ */
+export const getPerpsConversionScreenOptions = (
   isBottomSheet: boolean,
   baseOptions: NativeStackNavigationOptions,
 ): NativeStackNavigationOptions =>
   isBottomSheet
-    ? { ...baseOptions, ...transparentModalScreenOptions }
+    ? {
+        ...baseOptions,
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }
     : baseOptions;
 
 export function getRedesignedConfirmationsHeaderOptions(

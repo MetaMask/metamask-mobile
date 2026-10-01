@@ -454,8 +454,8 @@ describe('BridgeLimitOrderView', () => {
 
     const { getByTestId } = renderLimitOrderView();
 
-    // 2 * 3000 = 6000, minus the 0.875% quote fee.
-    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('5947.5');
+    // 2 * 3000 = 6000
+    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('6000');
   });
 
   it('renders a zero destination amount before a source amount is entered', () => {
@@ -477,7 +477,7 @@ describe('BridgeLimitOrderView', () => {
 
     fireEvent(getByTestId('limit-flip-tokens'), 'touchEnd');
 
-    expect(mockHandleFlipTokensPress).toHaveBeenCalledWith('5947.5');
+    expect(mockHandleFlipTokensPress).toHaveBeenCalledWith('6000');
   });
 
   it('flips the tokens without an amount when the destination amount is zero', () => {

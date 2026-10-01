@@ -8,8 +8,8 @@ import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
-import { mockOpenPerpsFeedItem } from '../SocialV1View/feed/mocks/socialV1Feed.mock';
-import type { SocialV1FeedPost } from '../SocialV1View/feed/types';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -64,7 +64,7 @@ jest.mock('../TraderProfileView/hooks', () => ({
   useTraderProfile: () => mockUseTraderProfile(),
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,

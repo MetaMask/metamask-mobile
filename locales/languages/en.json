@@ -1304,6 +1304,9 @@
         },
         "description": "No matching trades in the activity so far."
       },
+      "empty_filtered": {
+        "title": "No trades yet"
+      },
       "load_more": "Load more",
       "error": {
         "title": "Couldn't load the feed",
@@ -1835,6 +1838,8 @@
       "cancel_trade": "Cancel trade",
       "trade_canceled": "Trade canceled",
       "funds_returned_to_account": "Funds returned to your account",
+      "order_not_placed": "Deposit received, order not placed",
+      "order_not_placed_description": "Your deposit went through, but it hasn't shown up in your Perps balance yet. Check your balance before placing the order again.",
       "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
@@ -2213,7 +2218,8 @@
         "difference_from_market": "Difference from market:",
         "limit_price_above": "Limit price is above current price",
         "limit_price_below": "Limit price is below current price",
-        "limit_price_too_far": "Price can't be more than 95% away from the market price"
+        "limit_price_too_far": "Price can't be more than 95% away from the market price",
+        "limit_price_too_far_range": "Enter a price between {{min}} and {{max}}."
       },
       "leverage_modal": {
         "title": "Leverage",
@@ -4173,6 +4179,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "homepage_search_placeholder": "Search",
     "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
@@ -9465,8 +9472,7 @@
       "expired_at_status": "Expired (at {{date}})",
       "date_created": "Date created",
       "order_type": "Order type",
-      "order_type_limit": "Limit",
-      "duplicate_order": "Duplicate order"
+      "order_type_limit": "Limit"
     },
     "recurring": {
       "you_get": "You get",
@@ -12200,9 +12206,9 @@
       "add_money": "Add money"
     },
     "membership": {
-      "title": "Your membership",
-      "plan": "Membership",
-      "earned_this_month": "Earned this month",
+      "title": "Your plan",
+      "plan": "Plan",
+      "lifetime_earnings": "Lifetime earnings",
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
@@ -12210,18 +12216,10 @@
       "renews_on": "Renews on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
-      "manage": "Manage",
+      "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership",
-      "earned_info": {
-        "title": "Earned this month",
-        "description": "The amount you earned in APY and mUSD back as a Pro member."
-      },
-      "saved_info": {
-        "title": "Saved this month",
-        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
-      }
+      "cancel_membership": "Cancel membership"
     },
     "cancel_membership": {
       "title": "Why are you canceling?",
@@ -12252,13 +12250,14 @@
     }
   },
   "pro_subscription": {
-    "title": "Earn more with Pro",
+    "title": "MetaMask Orange",
     "description": "{{monthlyPrice}}/mo ({{annualPrice}} for annual membership)",
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
-    "join_pro": "Join Pro",
+    "join_pro": "Upgrade",
+    "join_orange": "Join Orange",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
-    "pro": "Pro",
+    "pro": "Orange",
     "pricing": {
       "loading": "Loading plans...",
       "error": "We couldn't load plan prices. Try again.",

@@ -20,9 +20,9 @@ import {
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { renderSocialV1ViewWithRoutes } from '../../../../../tests/component-view/renderers/socialLeaderboard';
-import { mockPerpFeedItem } from '../FeedView/mocks/coreFeed.mock';
-import { getSocialFeedPositionCardCopyTradeTestId } from './feed/components/SocialFeedPositionCard.testIds';
-import { SocialFeedPostShellSelectorsIDs } from './feed/components/SocialFeedPostShell.testIds';
+import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
+import { getSocialFeedPositionCardCopyTradeTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
+import { SocialFeedPostShellSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedPostShell.testIds';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';

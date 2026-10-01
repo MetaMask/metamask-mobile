@@ -167,8 +167,8 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
   });
 
-  // A ratio trigger is priced in the destination token, so no exchange rate
-  // takes part in placing the order.
+  // A ratio trigger is priced in the counter token, so no exchange rate takes
+  // part in placing the order.
   it('does not show the USD price notice for a ratio trigger', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
       renderOpenLimitOrderDetailsModal({
