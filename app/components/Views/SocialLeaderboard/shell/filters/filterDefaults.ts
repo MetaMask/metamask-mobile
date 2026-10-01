@@ -13,7 +13,7 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
-import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../components/Filters/filterOptions';
+import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   SocialTimeframe,
   SocialTypeFilter,

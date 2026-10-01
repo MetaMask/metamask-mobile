@@ -16,7 +16,7 @@ import { TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import {
   RankMedal,
   isTopRank,
@@ -28,8 +28,8 @@ import { SocialGradientCardSurfaceSelectorsIDs } from '../../components/SocialGr
 import {
   resolveTraderCohort,
   traderCohortEmoji,
-} from '../../SocialV1View/feed/utils/traderStats';
-import { formatSignedUsd } from '../../utils/formatters';
+} from '../../../../UI/SocialFeed/utils/traderStats';
+import { formatSignedUsd } from '../../../../UI/SocialFeed/utils/formatters';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
 const AVATAR_SIZE = 40;

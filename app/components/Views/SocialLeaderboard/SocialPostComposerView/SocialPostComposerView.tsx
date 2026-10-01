@@ -54,10 +54,10 @@ import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import { PositionCardBody } from '../SocialV1View/feed/components/SocialFeedPositionCard';
+import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
-import type { SocialV1FeedItem } from '../SocialV1View/feed/types';
-import { appendKlipyGifUrlToCommentText } from '../utils/klipyGifComment';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { createSwapComment } from './createSwapCommentApi';
 import {
   clipComposerComment,
