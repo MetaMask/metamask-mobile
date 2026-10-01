@@ -5,8 +5,7 @@ import { strings } from '../../../../../locales/i18n';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import { useReferralMe } from './useReferralMe';
-import type { FetchReferralMeResult } from './useReferralMe';
+import { useReferralMe, type FetchReferralMeResult } from './useReferralMe';
 import {
   MONEY_REFERRAL_CODE_UNKNOWN_ERROR,
   normalizeMoneyReferralCode,
