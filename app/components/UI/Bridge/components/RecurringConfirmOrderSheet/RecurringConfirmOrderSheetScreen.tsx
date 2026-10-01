@@ -16,6 +16,7 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { createRecurringOrder } from '../../api/recurringOrders';
 import {
   convertPriceRangeToUsd,
   USD_PRICE_RANGE_CURRENCY,
@@ -24,7 +25,6 @@ import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
   showRecurringOrderCreatedToast,
-  submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -84,7 +84,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
     try {
       await autoUpgradeEIP7702Account();
       isAccountUpgraded = true;
-      await submitRecurringOrder();
+      await createRecurringOrder();
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
           .addProperties({

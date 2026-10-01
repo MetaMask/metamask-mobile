@@ -43,9 +43,7 @@ export function isRecurringSwapEligibleForAddFunds(
     return false;
   }
 
-  const swapIndex = orderedSwaps.findIndex(
-    ({ swapId }) => swapId === swap.swapId,
-  );
+  const swapIndex = orderedSwaps.findIndex(({ id }) => id === swap.id);
   if (swapIndex === -1) {
     return false;
   }
@@ -67,9 +65,7 @@ export function getRecurringOrderFilledPercent(order: RecurringOrder): number {
     return 0;
   }
 
-  return Math.round(
-    (order.filledSwapsCount / order.schedule.repeatCount) * 100,
-  );
+  return Math.round((order.fillData.count / order.schedule.repeatCount) * 100);
 }
 
 export function formatRecurringInterval(schedule: RecurringSchedule): string {

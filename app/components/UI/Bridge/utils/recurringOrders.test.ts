@@ -67,7 +67,8 @@ describe('recurring order formatting', () => {
   });
 
   it('omits average execution price from an unfilled fixture', () => {
-    const result = MOCK_RECURRING_OPEN_ORDER_2.averageExecutionPriceUsd;
+    const result =
+      MOCK_RECURRING_OPEN_ORDER_2.fillData.averageExecutionPriceUsd;
 
     expect(result).toBeUndefined();
   });
@@ -114,7 +115,7 @@ describe('recurring order formatting', () => {
   it('preserves a one-sided historical price range during conversion', () => {
     const result = formatRecurringPriceRange({
       priceRange: {
-        tokenSide: 'dest',
+        side: 'dest',
         currency: 'USD',
         min: '1800',
       },
