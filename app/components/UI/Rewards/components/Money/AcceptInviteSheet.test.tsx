@@ -5,6 +5,7 @@ import configureStore from '../../../../../util/test/configureStore';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { setReferralMe } from '../../../../../reducers/rewardsMoney';
+import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -532,7 +533,7 @@ describe('AcceptInviteSheet', () => {
     );
   });
 
-  it('disables Accept and shows the region error when the device country is excluded', async () => {
+  it('closes without rendering the invite when the device country is excluded', () => {
     referralMeEntries = {
       [PROFILE_ID]: {
         loading: false,
@@ -541,17 +542,10 @@ describe('AcceptInviteSheet', () => {
       },
     };
 
-    const { getByTestId } = await renderSheet('KOL1', { geoLocation: 'GB' });
+    const { queryByTestId } = renderSheetSync('KOL1', { geoLocation: 'GB' });
 
-    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
-      strings('rewards.onboarding.not_supported_region_description'),
-    );
-    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
-      { disabled: true },
-    );
-
-    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockAcceptReferralCode).not.toHaveBeenCalled();
   });
 
@@ -578,7 +572,7 @@ describe('AcceptInviteSheet', () => {
     expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
   });
 
-  it('treats a country-region geo string as its country prefix for exclusion', async () => {
+  it('treats a country-region geo string as its country prefix for exclusion', () => {
     referralMeEntries = {
       [PROFILE_ID]: {
         loading: false,
@@ -587,15 +581,37 @@ describe('AcceptInviteSheet', () => {
       },
     };
 
-    const { getByTestId } = await renderSheet('KOL1', {
+    const { queryByTestId } = renderSheetSync('KOL1', {
       geoLocation: 'US-CA',
     });
 
+    expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a server region refusal on the field when client geo failed open', async () => {
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings(
+        'rewards.onboarding.not_supported_region_description',
+      ),
+      clearError: jest.fn(),
+    });
+
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({ excluded_regions: ['GB'] }),
+      },
+    };
+
+    const { getByTestId } = await renderSheet('KOL1', { geoLocation: null });
+
+    expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
       strings('rewards.onboarding.not_supported_region_description'),
-    );
-    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
-      { disabled: true },
     );
   });
 
@@ -669,6 +685,56 @@ describe('AcceptInviteSheet', () => {
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks no offer for a geo-excluded country that closes itself', () => {
+      referralMeEntries = {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: buildReferralMe({ excluded_regions: ['GB'] }),
+        },
+      };
+
+      renderSheetSync('KOL1', { geoLocation: 'GB' });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('answers a viewed offer as dismissed when geo later resolves to excluded', async () => {
+      referralMeEntries = {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: buildReferralMe({ excluded_regions: ['GB'] }),
+        },
+      };
+
+      const { queryByTestId, store } = await renderSheet('KOL1', {
+        geoLocation: null,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+
+      await act(async () => {
+        store.dispatch(
+          setGeoRewardsMetadata({
+            geoLocation: 'GB',
+            optinAllowedForGeo: true,
+          }),
+        );
+      });
+
+      expect(queryByTestId(TEST_IDS.CONTAINER)).toBeNull();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+      const dismissedBuilder = mockCreateEventBuilder.mock.results[1]?.value;
+      expect(dismissedBuilder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'dismissed',
+      });
     });
 
     it('tracks no offer when a pending referral-me load settles as already referred', async () => {
