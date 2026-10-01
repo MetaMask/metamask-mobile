@@ -3,22 +3,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
   Label,
   HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -61,7 +64,6 @@ import type {
 import type { RootState } from '../../../../../reducers';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import type { BottomSheetRef as NetworkBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { createStyles } from './ContactForm.styles';
 import { ContactNetworkSelector } from './ContactNetworkSelector';
 import { ContactFormFields } from './ContactFormFields';
 import {
@@ -197,8 +199,8 @@ const ContactForm = ({
   chainId,
   route,
 }: ContactFormProps) => {
-  const { colors, themeAppearance = 'light' } = useTheme();
-  const styles = createStyles(colors);
+  const { themeAppearance = 'light' } = useTheme();
+  const tw = useTailwind();
   const [state, setState] = useState<ContactFormState>(() =>
     createInitialState({
       address: route.params?.address ?? '',
@@ -238,7 +240,7 @@ const ContactForm = ({
         onPress={onEdit}
         testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
       >
-        <Text style={styles.headerEndActionText}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
           {state.editable
             ? strings('address_book.cancel')
             : strings('address_book.edit')}
@@ -440,7 +442,7 @@ const ContactForm = ({
 
   return (
     <SafeAreaView
-      style={styles.wrapper}
+      style={tw.style('flex-1 flex-col bg-default')}
       testID={AddContactViewSelectorsIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
@@ -459,11 +461,11 @@ const ContactForm = ({
           time. */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.formBody}
+        style={tw.style('flex-1')}
       >
         <ScrollView
-          style={styles.informationWrapper}
-          contentContainerStyle={styles.scrollWrapper}
+          style={tw.style('flex-1 px-6')}
+          contentContainerStyle={tw.style('gap-4 py-3')}
           keyboardShouldPersistTaps="handled"
         >
           <ContactFormFields
@@ -484,7 +486,7 @@ const ContactForm = ({
             toEnsName={toEnsName}
           />
 
-          <View style={styles.networkField}>
+          <Box twClassName="gap-2">
             <Label>{strings('address_book.network')}</Label>
             <ContactNetworkSelector
               chainId={contactChainId || chainId}
@@ -492,7 +494,7 @@ const ContactForm = ({
               networkName={networkName}
               onOpen={() => setOpenNetworkSelector(true)}
             />
-          </View>
+          </Box>
 
           {addressError && (
             <ErrorMessage
@@ -503,7 +505,7 @@ const ContactForm = ({
           )}
         </ScrollView>
         {!!editable && (
-          <View style={styles.buttonsWrapper}>
+          <Box twClassName="gap-2 px-6 pb-4 pt-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
@@ -527,7 +529,7 @@ const ContactForm = ({
                 {strings(`address_book.delete`)}
               </Button>
             )}
-          </View>
+          </Box>
         )}
       </KeyboardAvoidingView>
       {state.openDeleteSheet ? (
