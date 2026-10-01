@@ -111,6 +111,110 @@ describe('RewardsDataService', () => {
     jest.useRealTimers();
   });
 
+  describe('getTradingFeeGrants', () => {
+    const grant = {
+      programId: 'perps-builder-fee-experiment',
+      hyperliquid: {
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '2.5',
+      },
+      expiresAt: '2026-10-01T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockResolvedValue('profile-token');
+    });
+
+    it('uses only the Profile Sync bearer token and no query parameters', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant }),
+      } as Response);
+
+      expect(await service.getTradingFeeGrants()).toEqual({ grant });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.UAT}/trading-fee-grants`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer profile-token',
+          }),
+        }),
+      );
+      expect(mockFetch.mock.calls[0][1]?.headers).not.toHaveProperty(
+        'rewards-access-token',
+      );
+      expect(mockGetSubscriptionToken).not.toHaveBeenCalled();
+    });
+
+    it('returns null grants as a successful response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant: null }),
+      } as Response);
+      expect(await service.getTradingFeeGrants()).toEqual({ grant: null });
+    });
+
+    it('does not fall back to a rewards session when the profile token is unavailable', async () => {
+      mockMessenger.call.mockResolvedValue('');
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Profile Sync',
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockGetSubscriptionToken).not.toHaveBeenCalled();
+    });
+
+    it.each([401, 500])(
+      'rejects HTTP %s without treating it as no grant',
+      async (status) => {
+        mockFetch.mockResolvedValue({ ok: false, status } as Response);
+        await expect(service.getTradingFeeGrants()).rejects.toThrow(
+          String(status),
+        );
+      },
+    );
+
+    it.each(['0', '1.25', '10001'])(
+      'accepts a nonnegative decimal fee of %s',
+      async (builderFeeBips) => {
+        const response = {
+          grant: {
+            ...grant,
+            hyperliquid: { ...grant.hyperliquid, builderFeeBips },
+          },
+        };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => response,
+        } as Response);
+        expect(await service.getTradingFeeGrants()).toEqual(response);
+      },
+    );
+
+    it.each([
+      {},
+      { grant: {} },
+      { grant: { ...grant, expiresAt: 'invalid' } },
+      ...['', '-1', '2.5oops', 'Infinity'].map((builderFeeBips) => ({
+        grant: {
+          ...grant,
+          hyperliquid: { ...grant.hyperliquid, builderFeeBips },
+        },
+      })),
+    ])('rejects malformed responses: %j', async (response) => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => response,
+      } as Response);
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Invalid trading fee grant',
+      );
+    });
+  });
+
   describe('initialization', () => {
     it('should register all action handlers', () => {
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
