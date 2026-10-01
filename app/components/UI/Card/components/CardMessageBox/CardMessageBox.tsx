@@ -124,6 +124,19 @@ const CardMessageBox = ({
         description: strings('card.credit_banner.description_no_money_account'),
         confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
       },
+      [CardMessageBoxType.CreditLoadFailed]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_banner.load_failed.title'),
+        description: values?.reference
+          ? strings(
+              'card.credit_banner.load_failed.description_with_reference',
+              values,
+            )
+          : strings('card.credit_banner.load_failed.description', values),
+        confirmButtonLabel: strings(
+          'card.credit_banner.load_failed.confirm_button_label',
+        ),
+      },
       [CardMessageBoxType.UkMigrationSoft]: {
         variant: CardMessageBoxVariant.Warning,
         title: strings('card.uk_migration_soft.title'),

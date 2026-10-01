@@ -45,6 +45,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.credit_banner.description':
         'Spend it or move it to your Money account to keep earning on your balance.',
       'card.credit_banner.confirm_button_label': 'Move funds',
+      'card.credit_banner.load_failed.title':
+        "Couldn't load your refund balance",
+      'card.credit_banner.load_failed.description': '{{message}}',
+      'card.credit_banner.load_failed.description_with_reference':
+        '{{message}} Reference: {{reference}}',
+      'card.credit_banner.load_failed.confirm_button_label': 'Try again',
       'card.uk_migration_soft.title': 'Update your MetaMask Card',
       'card.uk_migration_soft.description':
         'Set up by {{deadline}} to avoid interruptions.',
@@ -354,6 +360,27 @@ describe('CardMessageBox', () => {
 
       fireEvent.press(getByTestId('dismiss-button'));
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders a credit load failure with a reference and retry', () => {
+      const onConfirm = jest.fn();
+      const { getByText, getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditLoadFailed}
+          values={{
+            message: 'Server error. Please try again later.',
+            reference: 'abcd1234',
+          }}
+          onConfirm={onConfirm}
+        />
+      ));
+
+      expect(getByText("Couldn't load your refund balance")).toBeOnTheScreen();
+      expect(
+        getByText('Server error. Please try again later. Reference: abcd1234'),
+      ).toBeOnTheScreen();
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(onConfirm).toHaveBeenCalledTimes(1);
     });
 
     it('renders all message types as banners', () => {
