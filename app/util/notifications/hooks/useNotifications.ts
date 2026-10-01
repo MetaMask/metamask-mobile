@@ -7,6 +7,7 @@ import {
   disableNotifications as disableNotificationsHelper,
   enableNotifications as enableNotificationsHelper,
   fetchNotifications,
+  fetchNotificationsCategories,
   markNotificationsAsRead as markNotificationsAsReadHelper,
 } from '../../../actions/notification/helpers';
 import {
@@ -15,6 +16,7 @@ import {
   selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotifications,
+  getNotificationsCategories,
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
@@ -226,4 +228,22 @@ export function useMarkNotificationAsRead() {
     markNotificationAsRead,
     loading,
   };
+}
+
+export function useNotificationsCategories() {
+  const loading = useSelector(selectIsFetchingMetamaskNotifications);
+  const data = useSelector(getNotificationsCategories);
+  const [error, setError] = useState<unknown>(null);
+  const fetchCategories = useCallback(async () => {
+    assertIsFeatureEnabled();
+    setError(null);
+    await fetchNotificationsCategories().catch((e) => setError(e));
+  }, []);
+
+  return {
+    fetchCategories,
+    categoriesData: data,
+    isLoading: loading,
+    error,
+  }
 }

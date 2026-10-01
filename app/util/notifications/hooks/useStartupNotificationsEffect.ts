@@ -13,6 +13,7 @@ import { isNotificationsFeatureEnabled } from '../constants';
 import {
   useEnableNotifications,
   useListNotifications,
+  useNotificationsCategories,
 } from './useNotifications';
 import {
   hasNotificationSubscriptionExpired,
@@ -25,12 +26,14 @@ const silentPushCheck = { nudgeEnablePush: false };
 const useEnableAndRefresh = () => {
   const { enableNotifications } = useEnableNotifications(silentPushCheck);
   const { listNotifications } = useListNotifications();
+  const { fetchCategories } = useNotificationsCategories();
   return useCallback(
     async (shouldEnable = true) => {
       shouldEnable && (await enableNotifications());
       await listNotifications();
+      await fetchCategories();
     },
-    [enableNotifications, listNotifications],
+    [enableNotifications, listNotifications, fetchCategories],
   );
 };
 

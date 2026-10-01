@@ -225,3 +225,13 @@ export const markNotificationsAsRead = async (
     notifications,
   );
 };
+
+/**
+ * Fetch notifications Categories
+ * - Load categories manifest that enables BE-driven UI
+ * @throws Error if fails to fetch notifications categories
+ */
+export const fetchNotificationsCategories = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.fetchMetamaskNotificationsCategories();
+}
