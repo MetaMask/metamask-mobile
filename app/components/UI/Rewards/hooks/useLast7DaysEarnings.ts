@@ -84,12 +84,12 @@ export const useLast7DaysEarnings = (
 
   useFocusEffect(
     useCallback(() => {
-      fetchLast7Days();
+      void fetchLast7Days();
     }, [fetchLast7Days]),
   );
 
   const retry = useCallback(() => {
-    fetchLast7Days({ forceFresh: true });
+    void fetchLast7Days({ forceFresh: true });
   }, [fetchLast7Days]);
 
   return { data, isLoading, error, retry };
