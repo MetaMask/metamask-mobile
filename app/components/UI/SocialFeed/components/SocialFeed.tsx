@@ -5,7 +5,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ActivityIndicator, Dimensions, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeed } from '../data/useSocialFeed';
@@ -29,6 +29,15 @@ const VISIBILITY_CHECK_MS = 400;
 
 export const SOCIAL_FEED_NEXT_PAGE_TEST_ID = 'social-feed-next-page';
 export const SOCIAL_FEED_SENTINEL_TEST_ID = 'social-feed-sentinel';
+
+const styles = StyleSheet.create({
+  // An empty view measures as height 0, and the visibility check ignores that,
+  // so the footer would never ask for another page. One pixel is enough to
+  // measure, and `collapsable={false}` stops Android from dropping the view.
+  sentinel: {
+    height: 1,
+  },
+});
 
 export interface SocialFeedProps {
   /** Which slice to load. The component fetches it; the host does not. */
@@ -80,7 +89,13 @@ const LoadMoreSentinel: React.FC<{
   }
 
   return (
-    <View ref={ref} onLayout={check} testID={SOCIAL_FEED_SENTINEL_TEST_ID} />
+    <View
+      ref={ref}
+      collapsable={false}
+      style={styles.sentinel}
+      onLayout={check}
+      testID={SOCIAL_FEED_SENTINEL_TEST_ID}
+    />
   );
 };
 
