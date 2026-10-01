@@ -13,7 +13,8 @@ import {
   type ButtonProps,
 } from '@metamask/design-system-react-native';
 
-export interface ExplorePillProps {
+export interface ExplorePillProps
+  extends Pick<ButtonProps, 'accessibilityState' | 'twClassName'> {
   onPress: () => void;
   testID: string;
   /** Icon or logo on the left (e.g. token logo, with or without a network badge wrapper). */
@@ -23,8 +24,6 @@ export interface ExplorePillProps {
   changeTextColor?: TextColor;
   /** Accessory after the label (e.g. a check on the active filter). */
   trailing?: React.ReactNode;
-  /** Optional Button overrides for callers with specialized accessibility or styling needs. */
-  buttonProps?: Pick<ButtonProps, 'accessibilityState' | 'twClassName'>;
 }
 
 /**
@@ -39,7 +38,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
   trailing,
-  buttonProps,
+  ...props
 }) => {
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
 
@@ -51,7 +50,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
       variant={ButtonVariant.Secondary}
       startAccessory={leading}
       endAccessory={trailing}
-      {...buttonProps}
+      {...props}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
