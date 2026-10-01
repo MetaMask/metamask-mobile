@@ -1574,6 +1574,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const validateOrderNow = orderValidation.validateNow;
   const navigateToMarketAfterOrder = useCallback(() => {
     if (stayOnCurrentScreen) {
+      // A pay-token deposit already dismissed back to the presenting screen.
+      // Funds arriving later re-enter via `handlePlaceOrder(true)` so the
+      // order still places; do not goBack again or the feed (or whatever is
+      // now on top) gets popped.
+      if (hasDismissedAfterSubmitRef.current) {
+        return;
+      }
       hasDismissedAfterSubmitRef.current = true;
       navigation.goBack();
       return;
