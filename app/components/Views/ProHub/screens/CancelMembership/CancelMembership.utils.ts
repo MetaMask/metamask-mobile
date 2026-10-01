@@ -6,10 +6,7 @@ import {
   type CancelType,
 } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  OTHER_REASON_ID,
-  type CancelReason,
-} from './CancelMembership.constants';
+import { type CancelReason } from './CancelMembership.constants';
 
 /**
  * Shuffles cancel reasons for display so option order does not bias answers.
@@ -20,7 +17,7 @@ export const shuffleCancelReasons = (
 ): CancelReason[] => {
   const shuffled = [...reasons];
   const other = shuffled.splice(
-    shuffled.findIndex((reason) => reason.id === OTHER_REASON_ID),
+    shuffled.findIndex((reason) => reason.id === CANCELLATION_REASONS.OTHER),
     1,
   );
 

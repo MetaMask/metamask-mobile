@@ -4,7 +4,7 @@ import {
   CANCEL_TYPES,
 } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CANCEL_REASONS, OTHER_REASON_ID } from './CancelMembership.constants';
+import { CANCEL_REASONS } from './CancelMembership.constants';
 import {
   CANCELLATION_TIMINGS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
@@ -34,7 +34,7 @@ describe('shuffleCancelReasons', () => {
   it('pins other as the last item', () => {
     const result = shuffleCancelReasons(CANCEL_REASONS);
 
-    expect(result[result.length - 1]?.id).toBe(OTHER_REASON_ID);
+    expect(result[result.length - 1]?.id).toBe(CANCELLATION_REASONS.OTHER);
   });
 
   it('keeps the same reason ids as the input', () => {

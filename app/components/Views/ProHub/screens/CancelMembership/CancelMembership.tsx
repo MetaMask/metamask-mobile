@@ -22,17 +22,17 @@ import {
   type CancellationTiming,
 } from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
+import CancelStayStep from './components/CancelStayStep';
 import CancelSuccessStep from './components/CancelSuccessStep';
 
-type CancelStep = 'survey' | 'success';
+type CancelStep = 'reason' | 'stay' | 'success';
 
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const [step, setStep] = useState<CancelStep>('survey');
+  const [step, setStep] = useState<CancelStep>('reason');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
-  const [otherReasonText, setOtherReasonText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cancelledSubscription, setCancelledSubscription] = useState<{
@@ -43,11 +43,18 @@ const CancelMembership = () => {
 
   const handleBack = useCallback(() => {
     if (isSubmitting) return;
+    if (step === 'stay') {
+      setStep('reason');
+      return;
+    }
     navigation.goBack();
-  }, [isSubmitting, navigation]);
+  }, [isSubmitting, step, navigation]);
 
   const handleKeepMembership = useCallback(() => {
     if (isSubmitting) return;
+    // Mark as intentionally leaving so the stay-step beforeRemove interception
+    // does not redirect this back to the reason step.
+    isNavigatingRef.current = true;
     navigation.goBack();
   }, [isSubmitting, navigation]);
 
@@ -102,14 +109,11 @@ const CancelMembership = () => {
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
+    setStep('stay');
   }, []);
 
   const handleStayFeedbackChange = useCallback((value: string) => {
     setStayFeedback(value);
-  }, []);
-
-  const handleOtherReasonChange = useCallback((value: string) => {
-    setOtherReasonText(value);
   }, []);
 
   const handleDone = useCallback(() => {
@@ -133,6 +137,10 @@ const CancelMembership = () => {
   // is cancelled (the Membership screen below is now stale).
   const isLeaveBlocked = isSubmitting || step === 'success';
 
+  // On the stay step, leaving via back gesture / hardware back should return
+  // to the reason step instead of popping the whole screen.
+  const shouldInterceptLeave = isLeaveBlocked || step === 'stay';
+
   // Disable iOS swipe-back so the user cannot leave by gesture.
   useEffect(() => {
     navigation.setOptions({ gestureEnabled: !isLeaveBlocked });
@@ -142,7 +150,7 @@ const CancelMembership = () => {
   // programmatic goBack() and acts as defense-in-depth alongside the disabled
   // gesture.
   useEffect(() => {
-    if (!isLeaveBlocked) {
+    if (!shouldInterceptLeave) {
       return undefined;
     }
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -150,15 +158,17 @@ const CancelMembership = () => {
       e.preventDefault();
       if (step === 'success') {
         handleDone();
+      } else if (step === 'stay' && !isSubmitting) {
+        setStep('reason');
       }
     });
     return () => unsubscribe();
-  }, [isLeaveBlocked, step, navigation, handleDone]);
+  }, [shouldInterceptLeave, step, isSubmitting, navigation, handleDone]);
 
-  // Android hardware back button: swallow it while submitting, and redirect to
-  // handleDone on the success step.
+  // Android hardware back button: swallow it while submitting, return to the
+  // reason step from the stay step, and redirect to handleDone on success.
   useEffect(() => {
-    if (!isLeaveBlocked) {
+    if (!shouldInterceptLeave) {
       return undefined;
     }
     const subscription = BackHandler.addEventListener(
@@ -166,12 +176,14 @@ const CancelMembership = () => {
       () => {
         if (step === 'success') {
           handleDone();
+        } else if (step === 'stay' && !isSubmitting) {
+          setStep('reason');
         }
         return true;
       },
     );
     return () => subscription.remove();
-  }, [isLeaveBlocked, step, handleDone]);
+  }, [shouldInterceptLeave, step, isSubmitting, handleDone]);
 
   return (
     <SafeAreaView
@@ -179,28 +191,34 @@ const CancelMembership = () => {
       edges={['top', 'bottom']}
       testID={CancelMembershipTestIds.CONTAINER}
     >
-      {step === 'survey' ? (
+      {step === 'reason' && (
         <CancelSurveyStep
           selectedReasonId={selectedReasonId}
-          stayFeedback={stayFeedback}
-          otherReasonText={otherReasonText}
           onReasonSelect={handleReasonSelect}
-          onStayFeedbackChange={handleStayFeedbackChange}
-          onOtherReasonChange={handleOtherReasonChange}
           onBack={handleBack}
           onKeepMembership={handleKeepMembership}
           onCancelConfirm={handleCancelConfirm}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
         />
-      ) : (
-        cancelledSubscription && (
-          <CancelSuccessStep
-            onDone={handleDone}
-            timing={cancelledSubscription.timing}
-            cancellationEndDate={cancelledSubscription.endDate}
-          />
-        )
+      )}
+      {step === 'stay' && (
+        <CancelStayStep
+          stayFeedback={stayFeedback}
+          onStayFeedbackChange={handleStayFeedbackChange}
+          onBack={handleBack}
+          onKeepMembership={handleKeepMembership}
+          onCancelConfirm={handleCancelConfirm}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+        />
+      )}
+      {step === 'success' && cancelledSubscription && (
+        <CancelSuccessStep
+          onDone={handleDone}
+          timing={cancelledSubscription.timing}
+          cancellationEndDate={cancelledSubscription.endDate}
+        />
       )}
     </SafeAreaView>
   );
