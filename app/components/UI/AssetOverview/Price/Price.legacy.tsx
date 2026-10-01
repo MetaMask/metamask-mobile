@@ -8,7 +8,13 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+} from '@metamask/design-system-react-native';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -17,7 +23,6 @@ import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConf
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import ChartNavigationButton from '../ChartNavigationButton';
 import { useSelector } from 'react-redux';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import {
@@ -116,7 +121,7 @@ const PriceLegacy = ({
     ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
 
-  // Initial ambient color for chart/buttons - based on non-hover price diff
+  // Initial ambient color for the chart - based on non-hover price diff
   const initialAmbientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
     return priceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
@@ -137,6 +142,21 @@ const PriceLegacy = ({
     }
     return undefined;
   };
+
+  const renderTimePeriodSelector = () => (
+    <FilterButtonGroup
+      value={timePeriod}
+      onChange={(period) => onTimePeriodChange?.(period as TimePeriod)}
+      variant={FilterButtonVariant.Secondary}
+      twClassName="w-full justify-between"
+    >
+      {chartNavigationButtons.map((period) => (
+        <FilterButton key={period} value={period} size={FilterButtonSize.Sm}>
+          {strings(`asset_overview.chart_time_period_navigation.${period}`)}
+        </FilterButton>
+      ))}
+    </FilterButtonGroup>
+  );
 
   return (
     <>
@@ -175,17 +195,7 @@ const PriceLegacy = ({
           <View style={styles.intervalBarContainer}>
             <Box twClassName="w-full px-4">
               <View style={styles.chartNavigationWrapper}>
-                {chartNavigationButtons.map((label) => (
-                  <ChartNavigationButton
-                    key={label}
-                    label={strings(
-                      `asset_overview.chart_time_period_navigation.${label}`,
-                    )}
-                    onPress={() => onTimePeriodChange(label)}
-                    selected={timePeriod === label}
-                    selectedColor={initialAmbientColor}
-                  />
-                ))}
+                {renderTimePeriodSelector()}
               </View>
             </Box>
           </View>
@@ -214,17 +224,7 @@ const PriceLegacy = ({
           <View style={styles.timeRangeContainer}>
             <Box twClassName="w-full px-4">
               <View style={styles.chartNavigationWrapper}>
-                {chartNavigationButtons.map((label) => (
-                  <ChartNavigationButton
-                    key={label}
-                    label={strings(
-                      `asset_overview.chart_time_period_navigation.${label}`,
-                    )}
-                    onPress={() => onTimePeriodChange(label)}
-                    selected={timePeriod === label}
-                    selectedColor={initialAmbientColor}
-                  />
-                ))}
+                {renderTimePeriodSelector()}
               </View>
             </Box>
           </View>

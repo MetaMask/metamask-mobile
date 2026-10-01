@@ -29,16 +29,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../ChartNavigationButton', () => {
-  const { Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ onPress }: { onPress: () => void }) => (
-      <Pressable testID="chart-navigation-button" onPress={onPress} />
-    ),
-  };
-});
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 /** Matches CHART_DATA_THRESHOLD (tokenOverviewChart.constants) — enough points for a non-empty line chart. */
@@ -224,7 +214,7 @@ describe('PriceLegacy', () => {
     it('calls onTimePeriodChange when a button is pressed with flag OFF (below chart)', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
       const onTimePeriodChange = jest.fn();
-      const { getAllByTestId } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <PriceLegacy
           {...baseProps}
           chartNavigationButtons={['1d', '7d']}
@@ -232,15 +222,15 @@ describe('PriceLegacy', () => {
         />,
       );
 
-      fireEvent.press(getAllByTestId('chart-navigation-button')[0]);
+      fireEvent.press(getByText('7D'));
 
-      expect(onTimePeriodChange).toHaveBeenCalledWith('1d');
+      expect(onTimePeriodChange).toHaveBeenCalledWith('7d');
     });
 
     it('calls onTimePeriodChange when a button is pressed with flag ON (above chart)', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       const onTimePeriodChange = jest.fn();
-      const { getAllByTestId } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <PriceLegacy
           {...baseProps}
           chartNavigationButtons={['1d', '7d']}
@@ -248,17 +238,17 @@ describe('PriceLegacy', () => {
         />,
       );
 
-      fireEvent.press(getAllByTestId('chart-navigation-button')[1]);
+      fireEvent.press(getByText('7D'));
 
       expect(onTimePeriodChange).toHaveBeenCalledWith('7d');
     });
 
     it('does not render navigation buttons when onTimePeriodChange is omitted', () => {
-      const { queryAllByTestId } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <PriceLegacy {...baseProps} chartNavigationButtons={['1d', '7d']} />,
       );
 
-      expect(queryAllByTestId('chart-navigation-button')).toHaveLength(0);
+      expect(queryByText('1D')).toBeNull();
     });
   });
 });
