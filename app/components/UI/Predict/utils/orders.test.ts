@@ -129,6 +129,11 @@ describe('orders utils', () => {
       expect(roundUpToCents(10.01)).toBe(10.01);
     });
 
+    it('returns positive zero for zero input', () => {
+      expect(Object.is(roundUpToCents(0), -0)).toBe(false);
+      expect(roundUpToCents(0)).toBe(0);
+    });
+
     it('keeps cent values with floating-point representation noise unchanged', () => {
       expect(roundUpToCents(10000.1 + 0.04)).toBe(10000.14);
     });

@@ -37,8 +37,11 @@ export function roundUpToCents(amount: number): number {
     return 0;
   }
 
-  const amountInCents = amount * CENTS_PER_UNIT;
+  if (amount === 0) {
+    return 0;
+  }
 
+  const amountInCents = amount * CENTS_PER_UNIT;
   return Math.ceil(amountInCents - CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
 }
 
