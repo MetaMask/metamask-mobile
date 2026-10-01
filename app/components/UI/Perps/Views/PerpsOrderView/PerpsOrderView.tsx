@@ -99,7 +99,6 @@ import {
   PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
-  CandlePeriod,
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
   calculatePositionSize,
@@ -166,8 +165,7 @@ import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPref
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import {
   getCachedPerpsHeaderQuote,
-  resolveTradeSheetHeaderChange,
-  resolveTradeSheetHeaderPrice,
+  type CachedPerpsHeaderQuote,
 } from '../../utils/cachedPerpsHeaderQuote';
 import {
   BUTTON_COLOR_VARIANTS,
@@ -2278,37 +2276,36 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const tradeSheetPercentChange = Number.isFinite(rawPercentChange)
       ? rawPercentChange
       : null;
-    // The asset screen already has this market's chart close and price-stream
-    // snapshot. Read them during render so the header matches that price on
-    // the first frame instead of waiting for this sheet's own subscription.
-    const chartCandlePeriod = Object.values(CandlePeriod).includes(
-      selectedCandlePeriod,
-    )
-      ? selectedCandlePeriod
-      : null;
-    const cachedChart = chartCandlePeriod
-      ? stream.candles.getCachedData(orderForm.asset, chartCandlePeriod)
-      : null;
-    const freshChart =
-      cachedChart && stream.candles.isChartCacheFresh(cachedChart)
-        ? cachedChart
-        : null;
-    const cachedHeaderQuote = getCachedPerpsHeaderQuote({
-      asset: orderForm.asset,
-      candleData: freshChart,
-      focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
-      priceSnapshot: stream.prices.getSnapshot(),
-    });
+    // Until this sheet's own subscription delivers, seed the header from what
+    // the asset screen already has in memory so the first frame shows that
+    // price instead of a skeleton. Once a live mid exists the header follows
+    // it, matching the price the order math validates against. The cache
+    // reads are skipped on live renders so keystrokes and ticks stay cheap.
     const hasLiveHeaderPrice = Boolean(currentPrice) && assetData.price > 0;
-    const tradeSheetHeaderPrice = resolveTradeSheetHeaderPrice({
-      cachedQuote: cachedHeaderQuote,
-      livePrice: assetData.price,
-    });
-    const tradeSheetHeaderChange = resolveTradeSheetHeaderChange({
-      cachedQuote: cachedHeaderQuote,
-      hasLivePrice: hasLiveHeaderPrice,
-      livePercent: tradeSheetPercentChange,
-    });
+    let cachedHeaderQuote: CachedPerpsHeaderQuote | null = null;
+    if (!hasLiveHeaderPrice) {
+      // The Advanced Chart renders TradingView's own bar close, which is not
+      // in the candle cache, so only the Lite chart close can seed the header.
+      const cachedChart =
+        chartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+          ? null
+          : stream.candles.getCachedData(orderForm.asset, selectedCandlePeriod);
+      cachedHeaderQuote = getCachedPerpsHeaderQuote({
+        asset: orderForm.asset,
+        candleData:
+          cachedChart && stream.candles.isChartCacheFresh(cachedChart)
+            ? cachedChart
+            : null,
+        focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
+        cachedPrice: stream.prices.getSnapshotForSymbol(orderForm.asset),
+      });
+    }
+    const tradeSheetHeaderPrice = hasLiveHeaderPrice
+      ? assetData.price
+      : (cachedHeaderQuote?.price ?? 0);
+    const tradeSheetHeaderChange = hasLiveHeaderPrice
+      ? tradeSheetPercentChange
+      : (cachedHeaderQuote?.percentChange24h ?? null);
     const isTradeSheetHeaderLoading = tradeSheetHeaderPrice <= 0;
     // Keep the selected pay token visible while its quote refreshes after form
     // changes. The token and balance are still valid during that refetch.

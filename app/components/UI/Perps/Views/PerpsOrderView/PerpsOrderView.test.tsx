@@ -634,10 +634,11 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
-let mockCandlePeriod: CandlePeriod | null = null;
+let mockCandlePeriod: CandlePeriod = CandlePeriod.OneHour;
 let mockPriceSnapshot: Record<string, PriceUpdate> | null = null;
 let mockFocusedPriceSnapshot: PriceUpdate | null = null;
 let mockCachedCandles: CandleData | null = null;
+let mockIsChartCacheFresh = true;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -1173,6 +1174,9 @@ const createMockStreamManager = () => {
       },
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => mockPriceSnapshot),
+      getSnapshotForSymbol: jest.fn(
+        (symbol: string) => mockPriceSnapshot?.[symbol] ?? null,
+      ),
     },
     focusedPrice: {
       getSnapshot: jest.fn(() => mockFocusedPriceSnapshot),
@@ -1180,9 +1184,7 @@ const createMockStreamManager = () => {
     },
     candles: {
       getCachedData: jest.fn(() => mockCachedCandles),
-      isChartCacheFresh: jest.fn(
-        (data: CandleData | null) => data?.candles.length,
-      ),
+      isChartCacheFresh: jest.fn(() => mockIsChartCacheFresh),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
@@ -1333,10 +1335,11 @@ describe('PerpsOrderView', () => {
     mockLiquidationInfoScreenProps = undefined;
     mockTradeSheetContentSizedScreens = undefined;
     mockTradeWithAnyTokenEnabled = false;
-    mockCandlePeriod = null;
+    mockCandlePeriod = CandlePeriod.OneHour;
     mockPriceSnapshot = null;
     mockFocusedPriceSnapshot = null;
     mockCachedCandles = null;
+    mockIsChartCacheFresh = true;
     (useTransactionConfirm as jest.Mock).mockReturnValue({
       onConfirm: jest.fn(),
     });
@@ -1529,19 +1532,15 @@ describe('PerpsOrderView', () => {
     expect(getMockTradeScreenProps().isLiquidationLoading).toBe(false);
   });
 
-  it('shows the cached asset-screen price in the trade sheet header before a new price tick', () => {
-    (usePerpsLivePrices as jest.Mock).mockReturnValue({});
-    mockPriceSnapshot = {
-      ETH: {
-        symbol: 'ETH',
-        price: '2700',
-        percentChange24h: '0.02',
-        timestamp: 1,
-        isTradable: true,
-      },
+  describe('trade sheet header cached price', () => {
+    const cachedEthPrice: PriceUpdate = {
+      symbol: 'ETH',
+      price: '2700',
+      percentChange24h: '0.02',
+      timestamp: 1,
+      isTradable: true,
     };
-    mockCandlePeriod = CandlePeriod.FifteenMinutes;
-    mockCachedCandles = {
+    const cachedEthChart: CandleData = {
       symbol: 'ETH',
       interval: CandlePeriod.FifteenMinutes,
       candles: [
@@ -1555,38 +1554,66 @@ describe('PerpsOrderView', () => {
         },
       ],
     };
-    useTradeSheetRoute();
 
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    beforeEach(() => {
+      (usePerpsLivePrices as jest.Mock).mockReturnValue({});
+      mockPriceSnapshot = { ETH: cachedEthPrice };
+      mockCandlePeriod = CandlePeriod.FifteenMinutes;
+      mockCachedCandles = cachedEthChart;
+      useTradeSheetRoute();
+    });
 
-    expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
-    expect(getMockTradeScreenProps().currentPrice).toBe(2737.9);
-    expect(getMockTradeScreenProps().percentChange24h).toBe(0.02);
-  });
+    it('shows the cached asset-screen chart price before a new price tick', () => {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-  it('keeps the cached chart price when a later mid price arrives', () => {
-    mockCandlePeriod = CandlePeriod.FifteenMinutes;
-    mockCachedCandles = {
-      symbol: 'ETH',
-      interval: CandlePeriod.FifteenMinutes,
-      candles: [
-        {
-          time: Date.now(),
-          open: '2737.9',
-          high: '2737.9',
-          low: '2737.9',
-          close: '2737.9',
-          volume: '1',
-        },
-      ],
-    };
-    useTradeSheetRoute();
+      expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
+      expect(getMockTradeScreenProps().currentPrice).toBe(2737.9);
+      expect(getMockTradeScreenProps().percentChange24h).toBe(0.02);
+    });
 
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    it('falls back to the cached mid when the chart cache is stale', () => {
+      mockIsChartCacheFresh = false;
 
-    expect(getMockTradeScreenProps().currentPrice).toBe(2737.9);
-    expect(getMockTradeScreenProps().percentChange24h).toBe(2.5);
-    expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
+      expect(getMockTradeScreenProps().currentPrice).toBe(2700);
+      expect(getMockTradeScreenProps().percentChange24h).toBe(0.02);
+    });
+
+    it('does not use the chart close when the Advanced Chart is active', () => {
+      useTradeSheetRoute({
+        chartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().currentPrice).toBe(2700);
+    });
+
+    it('shows the header skeleton when nothing is cached yet', () => {
+      mockPriceSnapshot = null;
+      mockCachedCandles = null;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().isHeaderLoading).toBe(true);
+      expect(getMockTradeScreenProps().currentPrice).toBe(0);
+    });
+
+    it('follows the live mid once the sheet subscription delivers', () => {
+      const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+      expect(getMockTradeScreenProps().currentPrice).toBe(2737.9);
+
+      (usePerpsLivePrices as jest.Mock).mockReturnValue({
+        ETH: { price: '2740', percentChange24h: '1.5', markPrice: '2740' },
+      });
+      rerender(<PerpsOrderView />);
+
+      expect(getMockTradeScreenProps().currentPrice).toBe(2740);
+      expect(getMockTradeScreenProps().percentChange24h).toBe(1.5);
+      expect(getMockTradeScreenProps().isHeaderLoading).toBe(false);
+    });
   });
 
   it('shows a liquidation price skeleton while the API recalculates', () => {

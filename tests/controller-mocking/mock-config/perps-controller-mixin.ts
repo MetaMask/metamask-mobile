@@ -644,6 +644,8 @@ export function buildE2EMockStreamManagerPlain(): Record<
   return {
     prices: {
       getSnapshot: (): Record<string, PriceUpdate> => mockPrices,
+      getSnapshotForSymbol: (symbol: string): PriceUpdate | null =>
+        mockPrices[symbol] ?? null,
       subscribe: (params: {
         callback: (data: Record<string, PriceUpdate>) => void;
       }) => {

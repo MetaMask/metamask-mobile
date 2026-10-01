@@ -3,11 +3,7 @@ import {
   type CandleData,
   type PriceUpdate,
 } from '@metamask/perps-controller';
-import {
-  getCachedPerpsHeaderQuote,
-  resolveTradeSheetHeaderChange,
-  resolveTradeSheetHeaderPrice,
-} from './cachedPerpsHeaderQuote';
+import { getCachedPerpsHeaderQuote } from './cachedPerpsHeaderQuote';
 
 const priceUpdate = (
   overrides: Partial<PriceUpdate> & Pick<PriceUpdate, 'symbol' | 'price'>,
@@ -34,28 +30,26 @@ const chartCandles = (close: string, symbol = 'ETH'): CandleData => ({
 });
 
 describe('getCachedPerpsHeaderQuote', () => {
-  it('uses the chart close and the cached 24h change', () => {
+  it('uses the chart close and the allMids 24h change', () => {
     const quote = getCachedPerpsHeaderQuote({
       asset: 'ETH',
       candleData: chartCandles('2737.9'),
-      focusedPrice: priceUpdate({ symbol: 'ETH', price: '2740' }),
-      priceSnapshot: {
-        ETH: priceUpdate({
-          symbol: 'ETH',
-          price: '2700',
-          percentChange24h: '0.02',
-        }),
-      },
+      focusedPrice: priceUpdate({
+        symbol: 'ETH',
+        price: '2740',
+        percentChange24h: '1.2',
+      }),
+      cachedPrice: priceUpdate({
+        symbol: 'ETH',
+        price: '2700',
+        percentChange24h: '0.02',
+      }),
     });
 
-    expect(quote).toEqual({
-      price: 2737.9,
-      percentChange24h: 0.02,
-      matchesChartPrice: true,
-    });
+    expect(quote).toEqual({ price: 2737.9, percentChange24h: 0.02 });
   });
 
-  it('prefers the focused price cache over allMids when the chart is missing', () => {
+  it('prefers the focused price over allMids when the chart is missing', () => {
     const quote = getCachedPerpsHeaderQuote({
       asset: 'ETH',
       candleData: null,
@@ -64,20 +58,40 @@ describe('getCachedPerpsHeaderQuote', () => {
         price: '2737.9',
         percentChange24h: '1.2',
       }),
-      priceSnapshot: {
-        ETH: priceUpdate({
-          symbol: 'ETH',
-          price: '2700',
-          percentChange24h: '0.02',
-        }),
-      },
+      cachedPrice: priceUpdate({
+        symbol: 'ETH',
+        price: '2700',
+        percentChange24h: '0.02',
+      }),
     });
 
-    expect(quote).toEqual({
-      price: 2737.9,
-      percentChange24h: 1.2,
-      matchesChartPrice: false,
+    expect(quote).toEqual({ price: 2737.9, percentChange24h: 0.02 });
+  });
+
+  it('falls back to the focused 24h change when allMids has no entry', () => {
+    const quote = getCachedPerpsHeaderQuote({
+      asset: 'ETH',
+      candleData: null,
+      focusedPrice: priceUpdate({
+        symbol: 'ETH',
+        price: '2737.9',
+        percentChange24h: '1.2',
+      }),
+      cachedPrice: null,
     });
+
+    expect(quote).toEqual({ price: 2737.9, percentChange24h: 1.2 });
+  });
+
+  it('uses the allMids price when neither chart nor focused price exists', () => {
+    const quote = getCachedPerpsHeaderQuote({
+      asset: 'ETH',
+      candleData: null,
+      focusedPrice: null,
+      cachedPrice: priceUpdate({ symbol: 'ETH', price: '2700' }),
+    });
+
+    expect(quote).toEqual({ price: 2700, percentChange24h: 0.02 });
   });
 
   it('ignores a cached update for a different symbol', () => {
@@ -85,9 +99,18 @@ describe('getCachedPerpsHeaderQuote', () => {
       asset: 'ETH',
       candleData: chartCandles('100', 'BTC'),
       focusedPrice: priceUpdate({ symbol: 'BTC', price: '100' }),
-      priceSnapshot: {
-        BTC: priceUpdate({ symbol: 'BTC', price: '100' }),
-      },
+      cachedPrice: priceUpdate({ symbol: 'BTC', price: '100' }),
+    });
+
+    expect(quote).toBeNull();
+  });
+
+  it('returns null when every cached price is non-positive', () => {
+    const quote = getCachedPerpsHeaderQuote({
+      asset: 'ETH',
+      candleData: chartCandles('0'),
+      focusedPrice: priceUpdate({ symbol: 'ETH', price: 'NaN' }),
+      cachedPrice: priceUpdate({ symbol: 'ETH', price: '-1' }),
     });
 
     expect(quote).toBeNull();
@@ -98,83 +121,24 @@ describe('getCachedPerpsHeaderQuote', () => {
       asset: 'ETH',
       candleData: null,
       focusedPrice: null,
-      priceSnapshot: {
-        ETH: priceUpdate({
-          symbol: 'ETH',
-          price: '2737.9',
-          percentChange24h: '0',
-        }),
-      },
+      cachedPrice: priceUpdate({
+        symbol: 'ETH',
+        price: '2737.9',
+        percentChange24h: '0',
+      }),
     });
 
     expect(quote?.percentChange24h).toBe(0);
   });
-});
 
-describe('resolveTradeSheetHeaderPrice', () => {
-  const chartQuote = {
-    price: 2737.9,
-    percentChange24h: 0.02,
-    matchesChartPrice: true,
-  };
-  const cachedMid = {
-    price: 2700,
-    percentChange24h: 0.02,
-    matchesChartPrice: false,
-  };
+  it('returns a null 24h change when no cached update has one', () => {
+    const quote = getCachedPerpsHeaderQuote({
+      asset: 'ETH',
+      candleData: chartCandles('2737.9'),
+      focusedPrice: null,
+      cachedPrice: null,
+    });
 
-  it('keeps the chart price when a live mid arrives', () => {
-    expect(
-      resolveTradeSheetHeaderPrice({
-        cachedQuote: chartQuote,
-        livePrice: 2740,
-      }),
-    ).toBe(2737.9);
-  });
-
-  it('uses the live price ahead of a cached mid', () => {
-    expect(
-      resolveTradeSheetHeaderPrice({
-        cachedQuote: cachedMid,
-        livePrice: 2740,
-      }),
-    ).toBe(2740);
-  });
-
-  it('uses the cached mid before the live subscription has a price', () => {
-    expect(
-      resolveTradeSheetHeaderPrice({
-        cachedQuote: cachedMid,
-        livePrice: 0,
-      }),
-    ).toBe(2700);
-  });
-});
-
-describe('resolveTradeSheetHeaderChange', () => {
-  const cachedQuote = {
-    price: 2737.9,
-    percentChange24h: 0.02,
-    matchesChartPrice: true,
-  };
-
-  it('uses the live change once a live price exists', () => {
-    expect(
-      resolveTradeSheetHeaderChange({
-        cachedQuote,
-        hasLivePrice: true,
-        livePercent: 1.5,
-      }),
-    ).toBe(1.5);
-  });
-
-  it('uses the cached change before the live price exists', () => {
-    expect(
-      resolveTradeSheetHeaderChange({
-        cachedQuote,
-        hasLivePrice: false,
-        livePercent: null,
-      }),
-    ).toBe(0.02);
+    expect(quote).toEqual({ price: 2737.9, percentChange24h: null });
   });
 });

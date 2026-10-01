@@ -307,6 +307,8 @@ const pricesChannel = (initialPrices: Record<string, PriceUpdate> = {}) => {
 
   return {
     ...channel,
+    getSnapshotForSymbol: (symbol: string): PriceUpdate | null =>
+      channel.getSnapshot()?.[symbol] ?? null,
     subscribeToSymbols: (params?: {
       callback?: (data: Record<string, PriceUpdate> | null) => void;
     }): (() => void) => {
