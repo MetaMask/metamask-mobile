@@ -17,9 +17,9 @@ import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfileAvatar from './ProfileAvatar';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
-/* eslint-enable import-x/no-restricted-paths */
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
+
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
 import MyProfileStats from './MyProfileStats';

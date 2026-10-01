@@ -610,10 +610,10 @@
     "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
     "password_error": "Kata sandi tidak cocok.",
     "marketing_opt_in_description": "Dapatkan pembaruan produk, kiat, dan berita, termasuk melalui email. Kami dapat menggunakan interaksi Anda untuk meningkatkan konten yang kami bagikan.",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "MetaMask tidak dapat mereset kata sandi Anda",
+    "password_warning_description_part1": "Jika lupa kata sandi ini, satu-satunya cara untuk masuk kembali adalah dengan ",
     "password_warning_srp": "Frasa Pemulihan Rahasia",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " atau perangkat dengan fitur biometrik yang diaktifkan.",
     "password_warning_confirm": "Saya mengerti",
     "password_warning_cancel": "Batal"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Dompet",
     "search_accessibility_label": "Cari",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Cari",
     "rewards_accessibility_label": "Reward",
     "tokens": "Token",
     "view_all_nfts": "Lihat semua NFT",
@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Keanggotaan Anda",
       "plan": "Keanggotaan",
-      "earned_this_month": "Diperoleh bulan ini",
       "payment_details": "Detail pembayaran",
       "total": "Total",
       "paying_with": "Membayar dengan",
@@ -12214,15 +12213,7 @@
       "manage": "Kelola",
       "invoices": "Faktur",
       "contact_support": "Hubungi dukungan",
-      "cancel_membership": "Batalkan keanggotaan",
-      "earned_info": {
-        "title": "Diperoleh bulan ini",
-        "description": "Jumlah yang Anda peroleh dalam cashback APY dan mUSD sebagai anggota Pro."
-      },
-      "saved_info": {
-        "title": "Disimpan bulan ini",
-        "description": "Jumlah yang Anda hemat sebagai anggota Pro pada biaya MetaMask untuk swap, perp, dan prediksi bulan ini, ditambah biaya ATM dan FX."
-      }
+      "cancel_membership": "Batalkan keanggotaan"
     },
     "cancel_membership": {
       "title": "Mengapa Anda membatalkannya?",

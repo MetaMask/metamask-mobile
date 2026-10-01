@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Cüzdan",
     "search_accessibility_label": "Ara",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Ara",
     "rewards_accessibility_label": "Ödüller",
     "tokens": "Token'lar",
     "view_all_nfts": "Tüm NFT'leri görüntüle",
@@ -8887,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Pay",
+    "stake": "Stake",
     "earn": "Kazan",
     "tron": {
       "stake_completed": "Stake işlemi tamamlandı",
@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Üyeliğiniz",
       "plan": "Üyelik",
-      "earned_this_month": "Bu ay kazanılan",
       "payment_details": "Ödeme bilgileri",
       "total": "Toplam",
       "paying_with": "Ödeme aracı",
@@ -12214,15 +12213,7 @@
       "manage": "Yönet",
       "invoices": "Faturalar",
       "contact_support": "Destek ile iletişime geç",
-      "cancel_membership": "Üyeliği iptal et",
-      "earned_info": {
-        "title": "Bu ay kazanılan",
-        "description": "Pro üye olarak APY ve mUSD iadesi olarak kazandığınız tutar."
-      },
-      "saved_info": {
-        "title": "Bu ay tasarruf edilen",
-        "description": "Bu ay Pro üye olarak takas, perps işlemleri ve tahminlerde MetaMask ücretlerinde ve ATM ve FX ücretlerinde tasarruf ettiğiniz tutar."
-      }
+      "cancel_membership": "Üyeliği iptal et"
     },
     "cancel_membership": {
       "title": "Neden iptal ediyorsunuz?",

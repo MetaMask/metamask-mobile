@@ -161,6 +161,12 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
+import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
+import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  getCachedPerpsHeaderQuote,
+  type CachedPerpsHeaderQuote,
+} from '../../utils/cachedPerpsHeaderQuote';
 import {
   BUTTON_COLOR_VARIANTS,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
@@ -180,7 +186,10 @@ import {
   calculateRoEForPrice,
   getPerpsOrderTpSlWarnings,
 } from '../../utils/tpslValidation';
-import { deriveOrderSizing } from '../../utils/orderSizing';
+import {
+  deriveOrderSizing,
+  getPayWithTokenDepositAmount,
+} from '../../utils/orderSizing';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
@@ -285,6 +294,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const selectedCandlePeriod = useSelector(
+    selectPerpsChartPreferredCandlePeriod,
+  );
+  const stream = usePerpsStream();
   const chartLibrary =
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
@@ -908,13 +921,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
 
+  // Margin plus fees plus a slippage buffer, so the order still fits the
+  // credited funds at its submitted price.
+  const depositAmount = useMemo(
+    () =>
+      getPayWithTokenDepositAmount({
+        marginRequired,
+        estimatedFeesUsd: estimatedFees,
+        orderType: orderForm.type,
+        maxSlippageBps,
+      }),
+    [marginRequired, estimatedFees, orderForm.type, maxSlippageBps],
+  );
+
   const hasInsufficientPayTokenBalance = useMemo(() => {
-    if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
+    if (!depositAmount || !payToken || !hasCustomTokenSelected) {
       return false;
     }
-    const requiredUsd = Number(marginRequired);
-    return requiredUsd > Number(payTokenBalanceUsd);
-  }, [hasCustomTokenSelected, marginRequired, payToken, payTokenBalanceUsd]);
+    return Number(depositAmount) > Number(payTokenBalanceUsd);
+  }, [hasCustomTokenSelected, depositAmount, payToken, payTokenBalanceUsd]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -1177,15 +1202,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }),
     [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
   );
-
-  const depositAmount = useMemo(() => {
-    if (marginRequired !== undefined && marginRequired !== null) {
-      return new BigNumber(marginRequired)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-        .toString(10);
-    }
-    return '';
-  }, [marginRequired]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice, isCalculating: isCalculatingLiquidationPrice } =
@@ -1703,9 +1719,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
 
         // Show deposit toast and set up tracking before confirming
-        handleDepositConfirm(activeTransactionMeta, () => {
-          handlePlaceOrder(true);
-        });
+        handleDepositConfirm(
+          activeTransactionMeta,
+          () => {
+            handlePlaceOrder(true);
+          },
+          marginRequired,
+        );
         // useTransactionConfirm swallows confirm errors and reports them via
         // onError, so capture failure explicitly instead of assuming success.
         // Hold the deposit lock across the await so a second tap cannot start
@@ -2271,7 +2291,37 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const tradeSheetPercentChange = Number.isFinite(rawPercentChange)
       ? rawPercentChange
       : null;
-    const isTradeSheetHeaderLoading = !currentPrice || assetData.price <= 0;
+    // Until this sheet's own subscription delivers, seed the header from what
+    // the asset screen already has in memory so the first frame shows that
+    // price instead of a skeleton. Once a live mid exists the header follows
+    // it, matching the price the order math validates against. The cache
+    // reads are skipped on live renders so keystrokes and ticks stay cheap.
+    const hasLiveHeaderPrice = Boolean(currentPrice) && assetData.price > 0;
+    let cachedHeaderQuote: CachedPerpsHeaderQuote | null = null;
+    if (!hasLiveHeaderPrice) {
+      // The Advanced Chart renders TradingView's own bar close, which is not
+      // in the candle cache, so only the Lite chart close can seed the header.
+      const cachedChart =
+        chartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+          ? null
+          : stream.candles.getCachedData(orderForm.asset, selectedCandlePeriod);
+      cachedHeaderQuote = getCachedPerpsHeaderQuote({
+        asset: orderForm.asset,
+        candleData:
+          cachedChart && stream.candles.isChartCacheFresh(cachedChart)
+            ? cachedChart
+            : null,
+        focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
+        cachedPrice: stream.prices.getSnapshotForSymbol(orderForm.asset),
+      });
+    }
+    const tradeSheetHeaderPrice = hasLiveHeaderPrice
+      ? assetData.price
+      : (cachedHeaderQuote?.price ?? 0);
+    const tradeSheetHeaderChange = hasLiveHeaderPrice
+      ? tradeSheetPercentChange
+      : (cachedHeaderQuote?.percentChange24h ?? null);
+    const isTradeSheetHeaderLoading = tradeSheetHeaderPrice <= 0;
     // Keep the selected pay token visible while its quote refreshes after form
     // changes. The token and balance are still valid during that refetch.
     const isTradeSheetPayWithLoading = isLoadingAccount;
@@ -2395,8 +2445,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 direction={orderForm.direction}
                 leverage={orderForm.leverage}
                 maxLeverage={maxLeverage}
-                currentPrice={assetData.price}
-                percentChange24h={tradeSheetPercentChange}
+                currentPrice={tradeSheetHeaderPrice}
+                percentChange24h={tradeSheetHeaderChange}
                 orderType={tradeSheetOrderType}
                 limitPrice={orderForm.limitPrice}
                 limitPriceWarning={limitPriceWarning}

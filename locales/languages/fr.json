@@ -610,10 +610,10 @@
     "steps": "Étape {{currentStep}} sur {{totalSteps}}",
     "password_error": "Les mots de passe ne correspondent pas.",
     "marketing_opt_in_description": "Recevez des mises à jour sur les produits, des conseils et des nouvelles, notamment par e-mail. Nous pouvons utiliser vos interactions pour trier le contenu que nous partageons avec vous.",
-    "password_warning_title": "MetaMask can’t reset your password",
-    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_title": "MetaMask ne peut pas réinitialiser votre mot de passe",
+    "password_warning_description_part1": "Si vous oubliez ce mot de passe, la seule façon de récupérer l'accès à votre compte est d'utiliser votre ",
     "password_warning_srp": "Phrase secrète de récupération",
-    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_description_part2": " ou un appareil sur lequel la reconnaissance biométrique est déjà activée.",
     "password_warning_confirm": "Je comprends",
     "password_warning_cancel": "Annuler"
   },
@@ -4173,7 +4173,7 @@
   "wallet": {
     "title": "Portefeuille",
     "search_accessibility_label": "Rechercher",
-    "homepage_search_placeholder": "Search",
+    "homepage_search_placeholder": "Rechercher",
     "rewards_accessibility_label": "Récompenses",
     "tokens": "Jetons",
     "view_all_nfts": "Afficher tous les NFT",
@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Votre abonnement",
       "plan": "Abonnement",
-      "earned_this_month": "Montant gagné ce mois-ci",
       "payment_details": "Détails du paiement",
       "total": "Total",
       "paying_with": "Payer avec",
@@ -12214,15 +12213,7 @@
       "manage": "Gérer",
       "invoices": "Factures",
       "contact_support": "Contacter le service d’assistance",
-      "cancel_membership": "Résilier l'abonnement",
-      "earned_info": {
-        "title": "Montant gagné ce mois-ci",
-        "description": "Le montant que vous avez gagné en taux de rendement annuel et en mUSD en tant que membre Pro."
-      },
-      "saved_info": {
-        "title": "Économies réalisées ce mois-ci",
-        "description": "Le montant que vous avez économisé ce mois-ci en tant que membre Pro sur les frais MetaMask liés aux swaps, aux contrats à terme perpétuels et aux prédictions, ainsi que sur les frais de retrait aux distributeurs automatiques et de change."
-      }
+      "cancel_membership": "Résilier l'abonnement"
     },
     "cancel_membership": {
       "title": "Pourquoi résiliez-vous votre abonnement ?",
