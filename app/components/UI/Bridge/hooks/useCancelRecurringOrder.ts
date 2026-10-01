@@ -1,9 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { parseCaipAssetType, createProjectLogger } from '@metamask/utils';
+import { assetIdsMatch } from '@metamask/bridge-controller';
+import {
+  createProjectLogger,
+  isCaipAccountId,
+  isCaipAssetType,
+  parseCaipAccountId,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import type { InfiniteData } from '@tanstack/query-core';
 import Engine from '../../../../core/Engine';
 import {
-  RecurringOrderStatus,
+  RecurringOrderState,
   type GetRecurringOrdersByAssetResponse,
   type GetRecurringOrdersResponse,
   type RecurringOrder,
@@ -30,6 +37,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function recurringAssetIdsMatch(left: string, right: string): boolean {
+  return (
+    isCaipAssetType(left) &&
+    isCaipAssetType(right) &&
+    assetIdsMatch(left, right)
+  );
+}
+
 function isRecurringOrdersQueryKey(
   queryKey: readonly unknown[],
 ): queryKey is RecurringOrdersQueryKey {
@@ -44,8 +59,9 @@ function isRecurringOrdersQueryKey(
   const params = queryKey[1];
   return (
     typeof params.walletAddress === 'string' &&
-    (params.status === undefined || Array.isArray(params.status)) &&
+    (params.orderStates === undefined || Array.isArray(params.orderStates)) &&
     (params.chainId === undefined || typeof params.chainId === 'string') &&
+    (params.assetId === undefined || typeof params.assetId === 'string') &&
     (params.limit === undefined || typeof params.limit === 'number')
   );
 }
@@ -66,9 +82,16 @@ function updateRecurringOrdersCaches(
 ): void {
   const cancelledOrder = {
     ...order,
-    status: RecurringOrderStatus.Cancelled,
+    state: RecurringOrderState.Cancelled,
   };
-  const sourceChainId = parseCaipAssetType(order.src.asset.assetId).chainId;
+  const sourceAssetId = order.src.asset.assetId;
+  const destinationAssetId = order.dest.asset.assetId;
+  const sourceChainId = isCaipAssetType(sourceAssetId)
+    ? parseCaipAssetType(sourceAssetId).chainId
+    : undefined;
+  const orderWalletAddress = isCaipAccountId(order.account)
+    ? parseCaipAccountId(order.account).address
+    : order.account;
 
   queryClient
     .getQueryCache()
@@ -89,22 +112,29 @@ function updateRecurringOrdersCaches(
           // Remove stale copies from every loaded page, including Open Orders.
           const pages = data.pages.map((page) => ({
             ...page,
-            orders: page.orders.filter(
-              ({ orderId }) => orderId !== order.orderId,
-            ),
+            orders: page.orders.filter(({ id }) => id !== order.id),
           }));
 
           // Reinsert only into compatible History caches for this wallet and chain.
           const isHistoryQuery =
-            params.status === undefined ||
-            params.status.includes(RecurringOrderStatus.Cancelled);
+            params.orderStates === undefined ||
+            params.orderStates.includes(RecurringOrderState.Cancelled);
           const isMatchingWallet =
             params.walletAddress.toLowerCase() ===
-            order.src.walletAddress.toLowerCase();
+            orderWalletAddress.toLowerCase();
           const isMatchingChain =
             params.chainId === undefined || params.chainId === sourceChainId;
+          const isMatchingAsset =
+            params.assetId === undefined ||
+            recurringAssetIdsMatch(params.assetId, sourceAssetId) ||
+            recurringAssetIdsMatch(params.assetId, destinationAssetId);
 
-          if (!isHistoryQuery || !isMatchingWallet || !isMatchingChain) {
+          if (
+            !isHistoryQuery ||
+            !isMatchingWallet ||
+            !isMatchingChain ||
+            !isMatchingAsset
+          ) {
             return { ...data, pages };
           }
 
@@ -120,7 +150,8 @@ function updateRecurringOrdersCaches(
                 ...firstPage,
                 orders: [...firstPage.orders, cancelledOrder].sort(
                   (left, right) =>
-                    Date.parse(right.createdAt) - Date.parse(left.createdAt),
+                    Date.parse(right.timingData.createdAt) -
+                    Date.parse(left.timingData.createdAt),
                 ),
               },
               ...remainingPages,
@@ -133,11 +164,11 @@ function updateRecurringOrdersCaches(
   queryClient.setQueriesData<GetRecurringOrdersByAssetResponse>(
     { queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY] },
     (data) => {
-      if (!data?.some(({ orderId }) => orderId === order.orderId)) {
+      if (!data?.some(({ id }) => id === order.id)) {
         return data;
       }
 
-      return data.filter(({ orderId }) => orderId !== order.orderId);
+      return data.filter(({ id }) => id !== order.id);
     },
   );
 }
@@ -148,7 +179,8 @@ export function useCancelRecurringOrder() {
     mutationFn: (order) =>
       Engine.controllerMessenger.call(
         'RecurringOrdersDataService:cancelRecurringOrder',
-        order.orderId,
+        order.id,
+        order.account,
       ),
     onSuccess: async (_data, order) => {
       updateRecurringOrdersCaches(queryClient, order);
