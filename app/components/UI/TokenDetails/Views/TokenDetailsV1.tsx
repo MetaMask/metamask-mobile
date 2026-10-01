@@ -48,12 +48,11 @@ import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
-import { TokenDetailsV1Header } from '../components/TokenDetailsV1Header';
+import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { useTokenHeaderScroll } from '../hooks/useTokenHeaderScroll';
+import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
-import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 
@@ -103,15 +102,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
-
-  const { scrollY, onScroll } = useTokenHeaderScroll();
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScroll(event.nativeEvent.contentOffset.y);
-    },
-    [onScroll],
-  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -178,11 +168,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
     prefetchedData: token.securityData,
   });
 
-  const tokenAge = useMemo(
-    () => formatTokenAge(securityData?.created) ?? undefined,
-    [securityData?.created],
-  );
-
   const isNativeToken = Boolean(token.isETH || token.isNative);
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
@@ -211,6 +196,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
 
   const { currentPrice, priceDiff, comparePrice, currentCurrency } =
     useTokenPrice({ token });
+
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      onScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [onScrollOffset],
+  );
 
   const currentPriceUsd = useMemo(() => {
     if (!Number.isFinite(currentPrice)) {
@@ -253,17 +248,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
 
   return (
     <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
-      <TokenDetailsV1Header
+      <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
-        tokenAge={tokenAge}
-        scrollY={scrollY}
         onBackPress={handleBackPress}
         onSharePress={shareUrl ? handleShare : undefined}
         starButton={starButton}
         onPriceAlertPress={
           isPriceAlertsSupported ? handlePriceAlertPress : undefined
         }
+        description={headerDescription}
       />
 
       <ScrollView

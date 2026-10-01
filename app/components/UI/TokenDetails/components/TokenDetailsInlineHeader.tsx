@@ -40,6 +40,7 @@ export const TokenDetailsInlineHeader = ({
   onSharePress,
   starButton,
   onCopyAddress,
+  description,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -49,6 +50,11 @@ export const TokenDetailsInlineHeader = ({
   /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
   starButton?: ReactNode;
   onCopyAddress?: () => void;
+  /**
+   * Replaces the contract-address row. The meme token page passes the live
+   * price here once the page has scrolled.
+   */
+  description?: ReactNode;
 }) => {
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
@@ -216,7 +222,7 @@ export const TokenDetailsInlineHeader = ({
       }
       title={token.ticker || token.symbol}
       titleEndAccessory={titleEndAccessory}
-      description={inlineDescription}
+      description={description ?? inlineDescription}
     />
   );
 };

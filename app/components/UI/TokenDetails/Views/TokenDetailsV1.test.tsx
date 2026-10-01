@@ -3,7 +3,11 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import { TokenDetailsV1, TOKEN_DETAILS_V1_TEST_ID } from './TokenDetailsV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import type { TokenDetailsV1HeaderProps } from '../components/TokenDetailsV1Header';
+import {
+  LIVE_PRICE_HEADER_TEST_ID,
+  LIVE_PRICE_SCROLL_THRESHOLD_PX,
+} from '../hooks/useLivePriceHeaderDescription';
+import type { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -29,9 +33,10 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+let mockCurrentPrice = 1;
 jest.mock('../hooks/useTokenPrice', () => ({
   useTokenPrice: () => ({
-    currentPrice: 1,
+    currentPrice: mockCurrentPrice,
     priceDiff: 0,
     comparePrice: 1,
     currentCurrency: 'usd',
@@ -64,18 +69,20 @@ jest.mock('../components/ShareTokenBottomSheet', () => {
   return () => <MockText testID="share-token-bottom-sheet">share</MockText>;
 });
 
-jest.mock('../components/TokenDetailsV1Header', () => {
+jest.mock('../components/TokenDetailsInlineHeader', () => {
   const { Pressable: MockPressable, Text: MockText } =
     jest.requireActual('react-native');
   return {
-    TokenDetailsV1Header: ({
+    TokenDetailsInlineHeader: ({
       token,
+      description,
       onBackPress,
       onPriceAlertPress,
       onSharePress,
-    }: TokenDetailsV1HeaderProps) => (
+    }: React.ComponentProps<typeof TokenDetailsInlineHeader>) => (
       <>
         <MockText>{token.symbol}</MockText>
+        {description}
         <MockPressable testID="mock-back" onPress={onBackPress} />
         {onPriceAlertPress && (
           <MockPressable
@@ -108,6 +115,7 @@ const baseToken = {
 describe('TokenDetailsV1', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
   });
 
@@ -190,5 +198,47 @@ describe('TokenDetailsV1', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(getByTestId('share-token-bottom-sheet')).toBeTruthy();
+  });
+
+  it('keeps the contract address until the page is scrolled', () => {
+    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
+  });
+
+  it('replaces the contract address with the live price after scrolling', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1 token={baseToken} />,
+    );
+
+    fireEvent.scroll(getByTestId('token-details-v1-scroll-view'), {
+      nativeEvent: {
+        contentOffset: { y: LIVE_PRICE_SCROLL_THRESHOLD_PX },
+      },
+    });
+
+    expect(getByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeOnTheScreen();
+
+    fireEvent.scroll(getByTestId('token-details-v1-scroll-view'), {
+      nativeEvent: { contentOffset: { y: 0 } },
+    });
+
+    expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
+  });
+
+  it('keeps the contract address when there is no live price', () => {
+    mockCurrentPrice = 0;
+
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1 token={baseToken} />,
+    );
+
+    fireEvent.scroll(getByTestId('token-details-v1-scroll-view'), {
+      nativeEvent: {
+        contentOffset: { y: LIVE_PRICE_SCROLL_THRESHOLD_PX },
+      },
+    });
+
+    expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
   });
 });
