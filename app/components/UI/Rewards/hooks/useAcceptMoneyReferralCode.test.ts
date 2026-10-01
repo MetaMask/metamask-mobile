@@ -408,7 +408,7 @@ describe('useAcceptMoneyReferralCode', () => {
   });
 
   describe('refresh after a successful registration', () => {
-    it('dismisses and reports a fetch error when the refresh fails', async () => {
+    it('opens the splash when the refresh fails', async () => {
       mockMessenger({ referralMeError: new Error('Network error') });
 
       const { result } = renderAcceptHook();
@@ -421,10 +421,30 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
         1,
       );
-      expect(mockErrorToast).toHaveBeenCalledWith(
-        strings('rewards.referral_details_error.error_fetching_title'),
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
       );
-      expect(mockSuccessToast).not.toHaveBeenCalled();
+    });
+
+    it('opens the splash when the refreshed persona is still NONE', async () => {
+      mockMessenger({
+        referralMe: {
+          ...buildReferralMe(),
+          role: 'NONE',
+          variant: 'NONE',
+        },
+      });
+
+      const { result } = renderAcceptHook();
+      let accepted: boolean | undefined;
+      await act(async () => {
+        accepted = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(accepted).toBe(true);
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
@@ -489,10 +509,7 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(callsFor('RewardsMoneyController:getReferralMe')).toHaveLength(
         MAX_REFERRAL_ME_REFRESH_ATTEMPTS,
       );
-      expect(mockErrorToast).toHaveBeenCalledWith(
-        strings('rewards.referral_details_error.error_fetching_title'),
-      );
-      expect(mockSuccessToast).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,

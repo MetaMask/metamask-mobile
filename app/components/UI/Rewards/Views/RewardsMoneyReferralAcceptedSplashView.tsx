@@ -166,7 +166,9 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleStartTrading}
-            testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.START_TRADING}
+            testID={
+              REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.START_TRADING
+            }
           >
             {localizedText?.inviteAcceptedStartTrading}
           </Button>
@@ -177,7 +179,9 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleDismiss}
-            testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.VIEW_REWARDS}
+            testID={
+              REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.VIEW_REWARDS
+            }
           >
             {localizedText?.inviteAcceptedViewRewards}
           </Button>

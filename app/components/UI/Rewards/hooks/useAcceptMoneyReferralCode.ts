@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useStore } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
-import type { RootState } from '../../../../reducers';
-import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import useRewardsToast from './useRewardsToast';
 import { useReferralMe } from './useReferralMe';
+import type { FetchReferralMeResult } from './useReferralMe';
 import {
   MONEY_REFERRAL_CODE_UNKNOWN_ERROR,
   normalizeMoneyReferralCode,
@@ -56,11 +53,35 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
   return strings('rewards.error_messages.something_went_wrong');
 }
 
+/**
+ * Reads referral me back with `forceFresh`, retrying while the session
+ * changes mid-read. The caller does not act on the result — a failed or
+ * discarded read still lets the accepted splash open — so this reports
+ * nothing back; it only drives `fetchReferralMe` enough times to land one
+ * settled read under whichever identity is current when it stops retrying.
+ */
+async function refreshReferralMeWithRetries(
+  fetchReferralMe: (options?: {
+    forceFresh?: boolean;
+  }) => Promise<FetchReferralMeResult>,
+): Promise<void> {
+  for (
+    let attempt = 0;
+    attempt < MAX_REFERRAL_ME_REFRESH_ATTEMPTS;
+    attempt += 1
+  ) {
+    const result = await fetchReferralMe({ forceFresh: true });
+    if (result.status === 'settled') {
+      return;
+    }
+  }
+}
+
 export interface UseAcceptMoneyReferralCodeResult {
   /**
    * Validates the code, registers the session profile as a referee, then reads
-   * referral me back. Resolves to whether the registration itself succeeded —
-   * a failed read back after a successful registration still resolves true.
+   * referral me back. Resolves to whether the registration itself succeeded.
+   * A failed read back still resolves true and still opens the accepted splash.
    */
   acceptReferralCode: (code: string) => Promise<boolean>;
   /**
@@ -86,14 +107,13 @@ export interface UseAcceptMoneyReferralCodeResult {
  * Validation runs first so a malformed or unknown code never reaches
  * `POST /wr/referral/referee`. A refusal keeps the sheet open and writes the
  * reason onto {@link UseAcceptMoneyReferralCodeResult.errorMessage}; only a
- * successful registration dismisses it, after the referral role has been
- * read back with `forceFresh`, then navigates to the accepted splash.
+ * successful registration dismisses it and opens the accepted splash. The
+ * `forceFresh` read back updates the persona when it succeeds; a failed read
+ * does not block the splash.
  */
 export const useAcceptMoneyReferralCode =
   (): UseAcceptMoneyReferralCodeResult => {
     const navigation = useNavigation<AppNavigationProp>();
-    const store = useStore();
-    const { showToast, RewardsToastOptions } = useRewardsToast();
     const { validateCode } = useValidateMoneyReferralCode();
     const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
     const [isLoading, setIsLoading] = useState(false);
@@ -112,34 +132,10 @@ export const useAcceptMoneyReferralCode =
       };
     }, []);
 
-    /**
-     * Reads referral me back under the identity that is current when it
-     * settles. Returns the profile the entry landed under, or undefined when
-     * the read failed or no identity settled in time.
-     */
-    const refreshReferralMe = useCallback(async (): Promise<
-      string | undefined
-    > => {
-      for (
-        let attempt = 0;
-        attempt < MAX_REFERRAL_ME_REFRESH_ATTEMPTS;
-        attempt += 1
-      ) {
-        const result = await fetchReferralMe({ forceFresh: true });
-        if (result.status !== 'settled') {
-          continue;
-        }
-        if (!result.profileId) {
-          return undefined;
-        }
-        const entry = selectReferralMeEntry(
-          store.getState() as RootState,
-          result.profileId,
-        );
-        return entry && !entry.error ? result.profileId : undefined;
-      }
-      return undefined;
-    }, [fetchReferralMe, store]);
+    const refreshReferralMe = useCallback(
+      () => refreshReferralMeWithRetries(fetchReferralMe),
+      [fetchReferralMe],
+    );
 
     const acceptReferralCode = useCallback(
       async (code: string): Promise<boolean> => {
@@ -181,27 +177,19 @@ export const useAcceptMoneyReferralCode =
             return false;
           }
 
-          let refreshedProfileId: string | undefined;
           try {
-            refreshedProfileId = await refreshReferralMe();
+            await refreshReferralMe();
           } catch {
-            refreshedProfileId = undefined;
+            // A failed read does not block the splash.
           }
 
           if (!isMountedRef.current) {
             return true;
           }
 
-          // The registration stands either way, so the sheet closes either
-          // way; a failed read back is reported as the fetch failure it is.
-          if (!refreshedProfileId) {
-            showToast(
-              RewardsToastOptions.error(
-                strings('rewards.referral_details_error.error_fetching_title'),
-              ),
-            );
-          }
-
+          // Registration already succeeded. Open the splash either way: a
+          // failed read leaves the previous persona in place, and the Rewards
+          // tab refetches referral me the next time it is focused.
           navigation.goBack();
           navigation.navigate(
             Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
@@ -214,14 +202,7 @@ export const useAcceptMoneyReferralCode =
           }
         }
       },
-      [
-        RewardsToastOptions,
-        navigation,
-        refreshReferralMe,
-        showToast,
-        store,
-        validateCode,
-      ],
+      [navigation, refreshReferralMe, validateCode],
     );
 
     return { acceptReferralCode, isLoading, errorMessage, clearError };
