@@ -17,12 +17,7 @@ const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockExitRewardsFlow = jest.fn();
 const mockUseSessionProfileId = jest.fn();
-
-jest.mock('../utils', () => ({
-  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
-}));
 
 jest.mock('../hooks/useReferralMe', () => ({
   useSessionProfileId: () => mockUseSessionProfileId(),
@@ -194,32 +189,53 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(queryByTestId('theme-image-hero')).toBeNull();
   });
 
-  it('exits the rewards flow when view rewards is pressed', () => {
+  it('opens the money dashboard when view rewards is pressed', () => {
     const { getByTestId } = renderSplash();
 
     fireEvent.press(getByTestId(TEST_IDS.VIEW_REWARDS));
 
-    expect(mockExitRewardsFlow).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.REWARDS_VIEW,
+      params: {
+        screen: Routes.REWARDS_MONEY_DASHBOARD,
+        initial: false,
+      },
+    });
   });
 
-  it('exits the rewards flow when the splash is closed', () => {
+  it('opens the money dashboard when the splash is closed', () => {
     const { getByTestId } = renderSplash();
 
     fireEvent.press(getByTestId(TEST_IDS.CLOSE));
 
-    expect(mockExitRewardsFlow).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.REWARDS_VIEW,
+      params: {
+        screen: Routes.REWARDS_MONEY_DASHBOARD,
+        initial: false,
+      },
+    });
   });
 
-  it('opens the trade actions sheet when start trading is pressed', () => {
+  it('opens the trade actions sheet over the money dashboard when start trading is pressed', () => {
     const { getByTestId } = renderSplash();
 
     fireEvent.press(getByTestId(TEST_IDS.START_TRADING));
 
-    expect(mockExitRewardsFlow).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
-      params: { hasBottomNotch: false },
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.HOME_TABS, {
+      screen: Routes.REWARDS_VIEW,
+      params: {
+        screen: Routes.REWARDS_MONEY_DASHBOARD,
+        initial: false,
+      },
     });
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      {
+        screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+        params: { hasBottomNotch: false },
+      },
+    );
   });
 });
