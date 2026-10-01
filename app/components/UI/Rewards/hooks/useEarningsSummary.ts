@@ -57,7 +57,7 @@ export const useEarningsSummary = (
 
   useFocusEffect(
     useCallback(() => {
-      fetchEarningsSummary();
+      void fetchEarningsSummary();
     }, [fetchEarningsSummary]),
   );
 

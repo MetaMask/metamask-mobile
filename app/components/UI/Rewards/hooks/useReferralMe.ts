@@ -89,7 +89,7 @@ export const useSessionProfileId = (): SessionProfileIdResult => {
         setResult({ profileId: sessionProfileId, isResolved: true });
       }
     };
-    resolve();
+    void resolve();
 
     return () => {
       active = false;
@@ -236,7 +236,7 @@ export const useReferralMe = ({
       if (!fetchOnMount) {
         return;
       }
-      fetchReferralMe();
+      void fetchReferralMe();
     }, [fetchOnMount, fetchReferralMe]),
   );
 
