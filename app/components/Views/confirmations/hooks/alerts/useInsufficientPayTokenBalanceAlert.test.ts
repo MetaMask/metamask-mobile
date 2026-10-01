@@ -6,11 +6,12 @@ import {
 } from '@metamask/transaction-controller';
 import {
   PaymentOverride,
+  TransactionPayQuote,
   TransactionPayRequiredToken,
   TransactionPayTotals,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import { merge } from 'lodash';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -23,6 +24,7 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -111,6 +113,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -127,6 +130,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesMock.mockReturnValue([]);
     useTransactionPayingAccountMock.mockReturnValue(PAYER_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
@@ -613,12 +617,86 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('keeps sponsored software payments exempt from native gas checks', () => {
+    it('alerts when a sponsored deposit uses a non-7702 quote on the sponsored chain', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
+        chainId: PAY_TOKEN_MOCK.chainId,
         isGasFeeSponsored: true,
       } as unknown as TransactionMeta);
+      useTransactionPayQuotesMock.mockReturnValue([
+        {
+          original: { metamask: { is7702: false } },
+        } as unknown as TransactionPayQuote<Json>,
+      ]);
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.InsufficientPayTokenNative,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('alerts when a sponsored deposit uses a non-7702 quote on another chain', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(false);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        chainId: CHAIN_IDS.MONAD,
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          chainId: '0x144' as Hex,
+        },
+        setPayToken: jest.fn(),
+      });
+      useTransactionPayQuotesMock.mockReturnValue([
+        {
+          original: { metamask: { is7702: false } },
+        } as unknown as TransactionPayQuote<Json>,
+      ]);
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.InsufficientPayTokenNative,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('does not alert when a sponsored deposit uses a 7702 quote on another chain', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(false);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        chainId: CHAIN_IDS.MONAD,
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          chainId: '0x2105' as Hex,
+        },
+        setPayToken: jest.fn(),
+      });
+      useTransactionPayQuotesMock.mockReturnValue([
+        {
+          original: { metamask: { is7702: true } },
+        } as unknown as TransactionPayQuote<Json>,
+      ]);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
