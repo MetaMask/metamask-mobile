@@ -379,6 +379,7 @@ export const PerpsTPSLViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-tpsl-cancel-button',
   DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
+  RECOVERY_REVIEW_EXPIRED: 'perps-tpsl-recovery-review-expired',
   TAKE_PROFIT_CLEAR_BUTTON: 'perps-tpsl-tp-clear-button',
   STOP_LOSS_CLEAR_BUTTON: 'perps-tpsl-sl-clear-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',

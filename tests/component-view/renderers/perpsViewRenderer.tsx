@@ -220,6 +220,8 @@ export interface PerpsStreamControls {
   emitFillsError: (error: Error) => void;
   getOrdersReconnectCount: () => number;
   getFillsReconnectCount: () => number;
+  getPositionsReconnectCount: () => number;
+  getAccountReconnectCount: () => number;
   emitPositions: (positions: Position[] | null) => void;
   emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
 }
@@ -455,6 +457,8 @@ function createTestStreamManager(
       emitFillsError: fills.emitError,
       getOrdersReconnectCount: orders.getReconnectCount,
       getFillsReconnectCount: fills.getReconnectCount,
+      getPositionsReconnectCount: positions.getReconnectCount,
+      getAccountReconnectCount: account.getReconnectCount,
       // Mirror production stream channels: notify CUF matchers when test
       // doubles deliver positions/orders so place/cancel waits resolve.
       emitOrders: (nextOrders) => {

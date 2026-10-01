@@ -301,6 +301,19 @@ export type PerpsStackParamList = {
      */
     useBottomSheet?: boolean;
     /**
+     * Claims the recovery owner's current reviewed action before dismissal.
+     * When supplied, must return true to submit. The owner must still fence
+     * forwarding in onConfirm after the editor has dismissed.
+     */
+    onBeforeConfirm?: () => boolean;
+    /**
+     * Validates the recovery owner's exact authoritative position review when
+     * ordinary position streams are unavailable. Without this callback, the
+     * view uses its existing live-position guard. The owner must also fence
+     * forwarding after dismissal; the provider rechecks size and entry price.
+     */
+    isPositionReviewCurrent?: (position: Position) => boolean;
+    /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
      */

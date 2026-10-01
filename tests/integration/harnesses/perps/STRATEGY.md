@@ -68,6 +68,16 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Returns:** `{ renderWithFlow, renderScreenWithFlow, harness, tradingService, mocks, teardown }`
 - **Use when:** the rendered button press is the integration surface, e.g. `PerpsOrderView` place-order or `PerpsFlipPositionConfirmSheet` reverse-position. Prefer CV tests for pure UI variants that do not need real controller code.
 
+### Lighter recovery — [`lighter-recovery.ts`](lighter-recovery.ts)
+
+- **Shape:** A, real controller and provider with actual Mobile messenger delegation.
+- **Real:** installed Core `PerpsController`, `LighterProvider`, wallet/client services, response validation and account session guards.
+- **Mocked:** venue HTTP, keyring actions, signer WASM, disk storage and observability. No controller/provider/recovery method is replaced. The harness refuses financial signer calls and unknown HTTP endpoints.
+- **Factory:** `buildLighterRecoveryHarness()`.
+- **Returns:** controller, external-I/O mocks, recorded requests, response overrides, selected-account switch and teardown.
+- **Use when:** recovery must read authoritative wallet-owned positions/orders through the installed Core package without granting financial readiness. Component-view tests own the mounted controls; live recipes still own real native signing/storage and venue proof.
+- **Availability:** the recovery review tests require the strict Core recovery APIs in the installed package. A failure on their absence is an adoption failure, not a reason to replace the real controller with a shim.
+
 ## Coverage plan (summary)
 
 Driven by [`perps-use-cases.md`](perps-use-cases.md):

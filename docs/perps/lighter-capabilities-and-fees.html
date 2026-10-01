@@ -385,7 +385,55 @@
         <a href="#core-sources">[C1–C4]</a>
       </p>
       <p>
-        October 1 capability stage uses the additive contract in
+        The installed October 1 snapshot uses Core
+        <code>7eba1e8835d603700d3a068a30ea9bf3dd171a60</code> and local Mobile
+        changes based on
+        <code>64a2d49393e54035edf0f8f5b3013cd507a50439</code> with a working
+        controller 19.0.0 patch. All 324 installed build files match that
+        independently reviewed Core build. The published stack comprises
+        <a href="https://github.com/MetaMask/core/pull/10618">#10618 recovery</a
+        >,
+        <a href="https://github.com/MetaMask/core/pull/10629"
+          >#10629 capabilities</a
+        >,
+        <a href="https://github.com/MetaMask/core/pull/10638"
+          >#10638 native triggers</a
+        >
+        and
+        <a href="https://github.com/MetaMask/core/pull/10644"
+          >#10644 position protection</a
+        >. All four remain open. Capabilities, native triggers and position
+        protection passed CI at their published heads. Recovery #10618 now
+        passes CI at <code>0f69c2726586f5a6cd928879c99070735e299cc4</code>
+        after the reviewed test-only Node 22 correction and still needs
+        maintainer review. Forward-only integration of that correction into the
+        dependent stages is underway. The installed consumer correction adds
+        explicit non-financial dispatch reconciliation and rejects a changed
+        wallet, network or provider before forwarding the request. Authoritative
+        recovery review and previous-key protection resolution are now
+        installed. Final Mobile review and live validation remain unfinished. No
+        live recipe pass at this installed build is claimed; the older runs
+        below retain their original source identities.
+      </p>
+      <p>
+        The installed strict recovery build at Core
+        <code>7eba1e8835d603700d3a068a30ea9bf3dd171a60</code> passes 4,552
+        package tests and has paired independent source approval. Its installed
+        package passes eight Mobile integration cases through the real
+        controller, Lighter provider and Mobile messenger. These cover
+        authoritative venue reads, registered-key mismatch, missing orders,
+        foreign-wallet data, account A-to-B-to-A rebinding and network changes.
+        The affected Mobile checks also pass 238 component-view cases and 146
+        hook and controller-boundary tests. Integration HTTP, signer, keyring
+        and storage are mocked; component-view Engine actions are mocked.
+        Neither result establishes native signer recovery or live venue
+        behavior. All 324 installed build files and four unchanged package
+        metadata files match the approved transport; the SDK is unchanged. The
+        full installed-package Mobile type check passes. Independent Mobile
+        review and live testnet validation remain pending.
+      </p>
+      <p>
+        The earlier October 1 capability stage used the additive contract in
         <a href="https://github.com/MetaMask/core/pull/10629">Core #10629</a>,
         inspected at <code>64e799fab9aaee5c9198d71fe9731aa7ed915b4e</code>,
         stacked on recovery
@@ -589,9 +637,11 @@
               <td>
                 <code>updatePositionTPSL</code> implemented for full-position
                 protection; partial TP/SL sizes refused. Core-created protection
-                retains durable client/venue IDs after resizing, restart and
-                key-slot recovery. Legacy full-quantity closing triggers use an
-                in-lock position read.
+                retains durable client/venue IDs across resizing and restart.
+                Pending submissions block conflicting writes. Manual obligations
+                from previous trading keys remain visible; their explicit
+                resolution is not yet implemented. Legacy full-quantity closing
+                triggers use an in-lock position read.
               </td>
               <td>
                 Growth/shrink/removal, lost-response, restart, storage-failure
@@ -668,6 +718,28 @@
               </td>
               <td>
                 No Lighter start, repricing, reconnect or termination proof.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Trading-key recovery</th>
+              <td>
+                Account-bound agent authorization. Reinstall recovery was not
+                proved by this comparison.
+              </td>
+              <td>
+                Matching retained keys are reused, registration allocation is
+                bounded and other devices' keys are preserved. Local recovery
+                listing, explicit dispatch reconciliation and acknowledgment
+                APIs are present. Ambiguous outcomes remain blocked until
+                resolved or explicitly acknowledged when eligible. Mobile
+                recovery review and previous-key protection resolution are
+                installed; final Mobile review and live validation are pending.
+              </td>
+              <td>
+                Earlier key-loss/reconnect recipes passed without additional
+                registrations. Latest source tests cover account/network changes
+                and quarantine. Reinstall, device isolation and trading recipes
+                still need to pass against the latest integrated build.
               </td>
             </tr>
             <tr>
@@ -762,10 +834,13 @@
           The current <code>package.json</code> and
           <code>yarn.lock</code> resolve controller 19.0.0 with a local Yarn
           patch for wallet-key recovery, stream failures/history, unknown
-          closing-fill PnL, capability gating and native standalone triggers.
-          Core #10605 is merged; #10618, #10629 and #10638 are follow-ups.
-          Remove the patch after all corrections are published upstream. No
-          <code>.yalc</code> package or <code>yalc.lock</code> is committed.
+          closing-fill PnL, capability gating, native standalone triggers,
+          position protection and non-financial dispatch reconciliation. Core
+          #10605 is merged; #10618, #10629, #10638 and #10644 are open
+          follow-ups. The latest consumer correction is locally reviewed and is
+          not yet published upstream. Remove the patch after all corrections are
+          published upstream. No <code>.yalc</code> package or
+          <code>yalc.lock</code> is committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,

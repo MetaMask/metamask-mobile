@@ -4,6 +4,7 @@
  * Run with: yarn test:view --testPathPattern="PerpsTPSLView.view.test"
  */
 import '../../../../../../tests/component-view/mocks';
+import type { Position } from '@metamask/perps-controller';
 import {
   cleanup,
   fireEvent,
@@ -176,6 +177,181 @@ describe('PerpsTPSLView', () => {
         ),
       ).toHaveAccessibilityValue({ text: '-' });
     });
+  });
+
+  describe('pre-dismissal submission guard', () => {
+    const position = {
+      ...defaultPositionForViews,
+      entryPrice: '2500',
+      liquidationPrice: '2100',
+    };
+
+    it.each(['screen', 'sheet'] as const)(
+      'keeps the %s editor open when the recovery owner refuses submission',
+      async (variant) => {
+        const onBeforeConfirm = jest.fn(() => false);
+        const onConfirm = jest.fn(async () => undefined);
+        renderPerpsTPSLView({
+          variant,
+          initialParams: {
+            position,
+            currentPrice: '2500',
+            onBeforeConfirm,
+            onConfirm,
+          },
+          streamOverrides: { positions: [position] },
+        });
+
+        fireEvent.changeText(
+          await screen.findByTestId(
+            PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+          ),
+          '2300',
+        );
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+
+        expect(onBeforeConfirm).toHaveBeenCalledTimes(1);
+        expect(onConfirm).not.toHaveBeenCalled();
+        expect(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        ).toBeEnabled();
+      },
+    );
+
+    it.each(['screen', 'sheet'] as const)(
+      'claims the recovery action before the %s editor submits',
+      async (variant) => {
+        const lifecycle: string[] = [];
+        const onBeforeConfirm = jest.fn(() => {
+          lifecycle.push('claimed');
+          return true;
+        });
+        const onConfirm = jest.fn(async () => {
+          lifecycle.push('submitted');
+        });
+        renderPerpsTPSLView({
+          variant,
+          initialParams: {
+            position,
+            currentPrice: '2500',
+            onBeforeConfirm,
+            onConfirm,
+          },
+          streamOverrides: { positions: [position] },
+        });
+
+        fireEvent.changeText(
+          await screen.findByTestId(
+            PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+          ),
+          '2300',
+        );
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+
+        await waitFor(() => {
+          expect(onConfirm).toHaveBeenCalledWith(
+            position,
+            undefined,
+            '2300',
+            expect.objectContaining({ direction: 'long' }),
+          );
+        });
+        expect(onBeforeConfirm).toHaveBeenCalledTimes(1);
+        expect(lifecycle).toEqual(['claimed', 'submitted']);
+      },
+    );
+  });
+
+  describe('authoritative recovery position review', () => {
+    const position = {
+      ...defaultPositionForViews,
+      entryPrice: '2500',
+      liquidationPrice: '2100',
+    };
+
+    it.each(['screen', 'sheet'] as const)(
+      'allows the %s editor to use a current strict position review when streams are unavailable',
+      async (variant) => {
+        const isPositionReviewCurrent = jest.fn(
+          (reviewedPosition: Position) => reviewedPosition === position,
+        );
+        const onConfirm = jest.fn(async () => undefined);
+        renderPerpsTPSLView({
+          variant,
+          initialParams: {
+            position,
+            currentPrice: '2500',
+            isPositionReviewCurrent,
+            onConfirm,
+          },
+          streamOverrides: { positions: [] },
+        });
+
+        fireEvent.changeText(
+          await screen.findByTestId(
+            PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+          ),
+          '2300',
+        );
+        expect(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        ).toBeEnabled();
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+
+        await waitFor(() => {
+          expect(onConfirm).toHaveBeenCalledWith(
+            position,
+            undefined,
+            '2300',
+            expect.objectContaining({ direction: 'long' }),
+          );
+        });
+        expect(isPositionReviewCurrent).toHaveBeenCalledWith(position);
+      },
+    );
+
+    it.each(['screen', 'sheet'] as const)(
+      'blocks the %s editor after review authority is lost even if the position stream still contains the market',
+      async (variant) => {
+        const isPositionReviewCurrent = jest.fn(() => false);
+        const onConfirm = jest.fn(async () => undefined);
+        renderPerpsTPSLView({
+          variant,
+          initialParams: {
+            position,
+            currentPrice: '2500',
+            isPositionReviewCurrent,
+            onConfirm,
+          },
+          streamOverrides: { positions: [position] },
+        });
+
+        fireEvent.changeText(
+          await screen.findByTestId(
+            PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+          ),
+          '2300',
+        );
+
+        expect(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        ).toBeDisabled();
+        expect(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.RECOVERY_REVIEW_EXPIRED),
+        ).toBeOnTheScreen();
+        expect(isPositionReviewCurrent).toHaveBeenCalledWith(position);
+        expect(onConfirm).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('sheet variant', () => {

@@ -101,6 +101,7 @@ import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarn
 import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsHomeSection from '../../components/PerpsHomeSection/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
+import PerpsRecoveryPanelContainer from '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -2016,6 +2017,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 />
               ) : undefined
             }
+          />
+
+          <PerpsRecoveryPanelContainer
+            key={`${market.providerId}:${market.symbol}`}
+            symbol={market.symbol}
+            providerId={market.providerId}
           />
 
           {/* TradingView Chart Section */}
