@@ -8,8 +8,6 @@ export interface CancelReason {
   labelKey: string;
 }
 
-export const OTHER_REASON_ID = CANCELLATION_REASONS.OTHER;
-
 export const CANCEL_REASONS: CancelReason[] = [
   {
     id: CANCELLATION_REASONS.TOO_EXPENSIVE,
@@ -32,7 +30,7 @@ export const CANCEL_REASONS: CancelReason[] = [
     labelKey: 'pro_hub.cancel_membership.reason_support',
   },
   {
-    id: OTHER_REASON_ID,
+    id: CANCELLATION_REASONS.OTHER,
     labelKey: 'pro_hub.cancel_membership.reason_other',
   },
 ];

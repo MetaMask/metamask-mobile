@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { CANCELLATION_REASONS } from '@metamask/subscription-controller';
 import CancelSurveyStep from './CancelSurveyStep';
 import {
   CancelMembershipTestIds,
@@ -140,7 +141,7 @@ describe('CancelSurveyStep', () => {
 
       expect(radios[radios.length - 1]).toHaveProp(
         'testID',
-        getCancelReasonTestId('other'),
+        getCancelReasonTestId(CANCELLATION_REASONS.OTHER),
       );
     });
 

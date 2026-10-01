@@ -2,6 +2,7 @@ import React from 'react';
 import { BackHandler } from 'react-native';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import {
+  CANCELLATION_REASONS,
   CANCEL_TYPES,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
@@ -193,7 +194,9 @@ describe('CancelMembership', () => {
     it('advances to the stay step when a reason is selected', () => {
       const { getByTestId, queryByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
 
       expect(
         getByTestId(CancelMembershipTestIds.STAY_QUESTION),
@@ -208,7 +211,9 @@ describe('CancelMembership', () => {
     it('advances to the stay step when other is selected', () => {
       const { getByTestId, queryByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.OTHER)),
+      );
 
       expect(
         getByTestId(CancelMembershipTestIds.STAY_QUESTION),
@@ -218,13 +223,17 @@ describe('CancelMembership', () => {
 
     it('returns to the reason step with the selection preserved when back is pressed', () => {
       const { getByTestId, queryByTestId } = renderScreen();
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
 
       fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
 
       expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
       expect(
-        getByTestId(getCancelReasonCheckmarkTestId('too_expensive')),
+        getByTestId(
+          getCancelReasonCheckmarkTestId(CANCELLATION_REASONS.TOO_EXPENSIVE),
+        ),
       ).toBeOnTheScreen();
       expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
       expect(mockGoBack).not.toHaveBeenCalled();
@@ -233,13 +242,19 @@ describe('CancelMembership', () => {
     it('keeps typed stay feedback after going back and selecting another reason', () => {
       const { getByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
       fireEvent.changeText(
         getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
         'Lower the price',
       );
       fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
-      fireEvent.press(getByTestId(getCancelReasonTestId('not_using_benefits')));
+      fireEvent.press(
+        getByTestId(
+          getCancelReasonTestId(CANCELLATION_REASONS.NOT_USING_BENEFITS),
+        ),
+      );
 
       expect(
         getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT).props.value,
@@ -248,7 +263,9 @@ describe('CancelMembership', () => {
 
     it('calls goBack when keep membership is pressed on the stay step', () => {
       const { getByTestId } = renderScreen();
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
 
       fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
 
@@ -258,7 +275,9 @@ describe('CancelMembership', () => {
     it('does not block leaving by gesture on the stay step', () => {
       const { getByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
 
       expect(mockSetOptions).toHaveBeenLastCalledWith({
         gestureEnabled: true,
@@ -281,7 +300,9 @@ describe('CancelMembership', () => {
         },
       );
       const { getByTestId, queryByTestId } = renderScreen();
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
       expect(beforeRemoveHandler).toBeDefined();
 
       const mockPreventDefault = jest.fn();
@@ -314,7 +335,9 @@ describe('CancelMembership', () => {
           return { remove: jest.fn() };
         });
       const { getByTestId, queryByTestId } = renderScreen();
-      fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
       expect(backPressHandler).toBeDefined();
 
       let handled: boolean | undefined;
@@ -364,7 +387,9 @@ describe('CancelMembership', () => {
   it('includes the selected reason code and omits free-text feedback', async () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+    );
     fireEvent.changeText(
       getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
       'Lower the price',
@@ -375,7 +400,7 @@ describe('CancelMembership', () => {
       expect(mockCancelSubscription).toHaveBeenCalledWith({
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
-        cancellationReason: 'too_expensive',
+        cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
       }),
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
@@ -386,14 +411,16 @@ describe('CancelMembership', () => {
   it('sends other as the reason code', async () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.OTHER)),
+    );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
     await waitFor(() =>
       expect(mockCancelSubscription).toHaveBeenCalledWith({
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
-        cancellationReason: 'other',
+        cancellationReason: CANCELLATION_REASONS.OTHER,
       }),
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
