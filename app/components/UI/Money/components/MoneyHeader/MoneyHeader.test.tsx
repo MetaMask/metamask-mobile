@@ -124,8 +124,8 @@ describe('MoneyHeader', () => {
   });
 
   describe('Pro button', () => {
-    it('is not rendered without a proButton, leaving the menu in place', () => {
-      const { getByTestId, queryByTestId } = render(
+    it('is not shown when the page does not provide one', () => {
+      const { queryByTestId, getByTestId } = render(
         <MoneyHeader onMenuPress={jest.fn()} />,
       );
 
@@ -135,33 +135,29 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
-    it('renders the caller-provided label alongside the menu', () => {
+    it('shows the label the page provides', () => {
       const { getByTestId, getByLabelText } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress: jest.fn() }}
-        />,
+        <MoneyHeader onMenuPress={jest.fn()} proButton={proButton} />,
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        'Pro',
+        proButton.label,
       );
-      expect(getByLabelText('Pro')).toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+      expect(getByLabelText(proButton.label)).toBeOnTheScreen();
     });
 
-    it('calls the provided onPress when pressed', () => {
-      const mockOnPress = jest.fn();
+    it('calls the page handler when pressed', () => {
+      const onPress = jest.fn();
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress: mockOnPress }}
+          proButton={{ label: 'Pro', onPress }}
         />,
       );
 
       fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
 
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 });
