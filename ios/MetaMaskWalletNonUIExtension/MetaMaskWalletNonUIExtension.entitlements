@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)io.metamask.MetaMask</string>
+	</array>
 	<key>com.apple.developer.pass-type-identifiers</key>
 	<array/>
 	<key>com.apple.developer.payment-pass-provisioning</key>

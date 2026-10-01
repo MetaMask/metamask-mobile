@@ -180,11 +180,13 @@ function buildController(
   provider: ICardProvider,
   stateOverrides: Partial<typeof defaultCardControllerState> = {},
   cardService: CardService = buildMockCardService(),
+  refreshLock?: { acquire: jest.Mock; release: jest.Mock },
 ) {
   return new CardController({
     messenger: buildMessenger(),
     providers: { baanx: provider },
     cardService,
+    refreshLock,
     state: {
       activeProviderId: 'baanx',
       ...stateOverrides,
@@ -1031,6 +1033,81 @@ describe('CardController — auth methods', () => {
 
       expect(provider.refreshTokens).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', refreshedTokens);
+      expect(result).toStrictEqual({
+        isAuthenticated: true,
+        location: 'international',
+      });
+    });
+
+    it('uses tokens another process refreshed instead of refreshing again', async () => {
+      const provider = buildMockProvider();
+      const fresh = { ...mockTokenSet, accessToken: 'from-extension' };
+      mockTokenStore.get
+        .mockResolvedValueOnce(mockTokenSet)
+        .mockResolvedValueOnce(fresh);
+      provider.validateTokens
+        .mockReturnValueOnce('needs_refresh')
+        .mockReturnValueOnce('valid');
+      const refreshLock = {
+        acquire: jest.fn().mockResolvedValue(true),
+        release: jest.fn().mockResolvedValue(undefined),
+      };
+      const controller = buildController(
+        provider,
+        {},
+        buildMockCardService(),
+        refreshLock,
+      );
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(provider.refreshTokens).not.toHaveBeenCalled();
+      expect(refreshLock.release).toHaveBeenCalled();
+      expect(result).toStrictEqual({
+        isAuthenticated: true,
+        location: 'international',
+      });
+    });
+
+    it('does not refresh when the cross-process lock times out', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('needs_refresh');
+      const controller = buildController(provider, {}, buildMockCardService(), {
+        acquire: jest.fn().mockResolvedValue(false),
+        release: jest.fn(),
+      });
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(provider.refreshTokens).not.toHaveBeenCalled();
+      expect(mockTokenStore.remove).not.toHaveBeenCalled();
+      expect(result).toStrictEqual({ isAuthenticated: false });
+    });
+
+    it('keeps tokens another process refreshed after a rejected refresh', async () => {
+      const provider = buildMockProvider();
+      const fresh = { ...mockTokenSet, accessToken: 'from-extension' };
+      mockTokenStore.get
+        .mockResolvedValueOnce(mockTokenSet)
+        .mockResolvedValueOnce(mockTokenSet)
+        .mockResolvedValueOnce(fresh);
+      provider.validateTokens
+        .mockReturnValueOnce('needs_refresh')
+        .mockReturnValueOnce('needs_refresh')
+        .mockReturnValueOnce('valid');
+      provider.refreshTokens.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidCredentials,
+          'Refresh token rejected',
+          401,
+        ),
+      );
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(mockTokenStore.remove).not.toHaveBeenCalled();
       expect(result).toStrictEqual({
         isAuthenticated: true,
         location: 'international',

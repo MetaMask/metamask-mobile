@@ -9,6 +9,7 @@ import { ImmersveProvider } from './providers/ImmersveProvider';
 import { resolveImmersveConfig } from './services/immersve-config';
 import { CardService } from './services/CardService';
 import { CardProviderIds } from './provider-types';
+import { startCardWalletExtensionSync } from './CardWalletExtensionSync';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
 import {
   readCardFeatureFlag,
@@ -74,6 +75,8 @@ export const cardControllerInit: MessengerClientInitFunction<
     },
     cardService,
   });
+
+  startCardWalletExtensionSync(controller, controllerMessenger);
 
   return { controller };
 };
