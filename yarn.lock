@@ -9606,21 +9606,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/chomp-api-service@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@metamask/chomp-api-service@npm:6.0.0"
-  dependencies:
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.89.0"
-  checksum: 10/34916f11dbb5b5901aede99f2d7db4f109fe6dfa561cc13d94a5eb605a86d62dbf7ac8383846ec3674fd5e6fdefe46939c911f58f119ecd783ec3f8715a1dc2c
-  languageName: node
-  linkType: hard
-
-"@metamask/chomp-api-service@npm:^6.0.1":
+"@metamask/chomp-api-service@npm:^6.0.0, @metamask/chomp-api-service@npm:^6.0.1":
   version: 6.0.1
   resolution: "@metamask/chomp-api-service@npm:6.0.1"
   dependencies:
