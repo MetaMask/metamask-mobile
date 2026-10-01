@@ -12,6 +12,7 @@ import type {
   ReferralFunnelDto,
   ReferralMeDto,
   ReferrerOriginType,
+  RegisterRefereeDto,
 } from '../types';
 import {
   canChangeRewardsMoneyEnvUrl,
@@ -45,6 +46,24 @@ export class RewardsMoneyAuthorizationError extends Error {
   }
 }
 
+/**
+ * A non-OK Rewards Money response whose status and body the caller has to act
+ * on. Register refuses a referee with a 403 or 409 that carries the product
+ * reason, so the status cannot be flattened into a generic Error.
+ */
+export class RewardsMoneyHttpError extends Error {
+  readonly status: number;
+
+  readonly bodyText: string | undefined;
+
+  constructor(message: string, status: number, bodyText?: string) {
+    super(message);
+    this.name = 'RewardsMoneyHttpError';
+    this.status = status;
+    this.bodyText = bodyText;
+  }
+}
+
 // ─── Action types ─────────────────────────────────────────────────────────────
 
 export interface RewardsMoneyDataServiceGetReferralMeAction {
@@ -65,6 +84,11 @@ export interface RewardsMoneyDataServiceGetReferralCodesAction {
 export interface RewardsMoneyDataServiceValidateReferralCodeAction {
   type: `${typeof SERVICE_NAME}:validateReferralCode`;
   handler: RewardsMoneyDataService['validateReferralCode'];
+}
+
+export interface RewardsMoneyDataServiceRegisterRefereeAction {
+  type: `${typeof SERVICE_NAME}:registerReferee`;
+  handler: RewardsMoneyDataService['registerReferee'];
 }
 
 export interface RewardsMoneyDataServiceGetEarningsSummaryAction {
@@ -117,6 +141,7 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetReferralFunnelAction
   | RewardsMoneyDataServiceGetReferralCodesAction
   | RewardsMoneyDataServiceValidateReferralCodeAction
+  | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
@@ -205,6 +230,10 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateReferralCode`,
       this.validateReferralCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:registerReferee`,
+      this.registerReferee.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getEarningsSummary`,
@@ -328,6 +357,31 @@ export class RewardsMoneyDataService {
     }
 
     return (await response.json()) as { success: boolean };
+  }
+
+  /**
+   * Enrols the session profile under a referrer's code. The server identifies
+   * the referee from the bearer token, so the body carries the code alone.
+   */
+  async registerReferee(params: RegisterRefereeDto): Promise<void> {
+    const response = await this.#makeRequest('/wr/referral/referee', {
+      method: 'POST',
+      body: JSON.stringify({ code: params.code }),
+    });
+
+    if (!response.ok) {
+      let bodyText: string | undefined;
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = undefined;
+      }
+      throw new RewardsMoneyHttpError(
+        `Register referee failed: ${response.status}`,
+        response.status,
+        bodyText,
+      );
+    }
   }
 
   async getEarningsSummary(
@@ -491,10 +545,10 @@ export class RewardsMoneyDataService {
         signal: controller.signal,
       });
 
-      if (
-        authenticated &&
-        (response.status === 401 || response.status === 403)
-      ) {
+      // 401 only. The API answers a refused registration with 403 carrying the
+      // product reason (self-referral, KOL, active trader), and that has to
+      // reach the endpoint rather than read as a dead bearer token.
+      if (authenticated && response.status === 401) {
         throw new RewardsMoneyAuthorizationError(
           `Authorization failed: ${response.status}`,
         );

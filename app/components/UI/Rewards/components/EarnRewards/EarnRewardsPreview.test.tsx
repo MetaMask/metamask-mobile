@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
@@ -138,6 +139,22 @@ describe('EarnRewardsPreview', () => {
   });
 
   describe('geo loading state', () => {
+    it('shows a header spinner while mUSD geo is loading', () => {
+      setupSelectors({ geoStatus: 'loading' });
+
+      const { UNSAFE_getByType } = render(<EarnRewardsPreview />);
+
+      expect(UNSAFE_getByType(ActivityIndicator)).toBeDefined();
+    });
+
+    it('hides the header spinner after geo has settled', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'complete' });
+
+      const { UNSAFE_queryByType } = render(<EarnRewardsPreview />);
+
+      expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
+
     it('shows mUSD skeleton and renders MetaMask Card row while mUSD geo is loading', () => {
       setupSelectors({ geoStatus: 'loading' });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);

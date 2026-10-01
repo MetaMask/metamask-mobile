@@ -265,6 +265,7 @@ describe('RewardsMoneyController', () => {
           'getReferralFunnel',
           'getReferralCodes',
           'validateReferralCode',
+          'registerReferee',
           'getEarningsSummary',
           'getEarningsLedger',
           'getClaimHistory',
@@ -390,6 +391,15 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('does not call data service when flag is off for registerReferee', async () => {
+      await expect(controller.registerReferee({ code: 'ABC' })).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
     it('reports feature disabled via isRewardsMoneyFeatureEnabled', () => {
       expect(controller.isRewardsMoneyFeatureEnabled()).toBe(false);
     });
@@ -448,6 +458,46 @@ describe('RewardsMoneyController', () => {
       await controller.getReferralMe({ forceFresh: true });
 
       expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+    });
+
+    it('keeps the later forceFresh result when an older normal fetch resolves last', async () => {
+      const requestResolvers: ((value: ReferralMeDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return new Promise<ReferralMeDto>((resolve) => {
+            requestResolvers.push(resolve);
+          });
+        }
+        return undefined;
+      });
+      const none = {
+        ...mockReferralMe,
+        role: 'NONE',
+        variant: 'NONE',
+      } as const;
+      const referee = {
+        ...mockReferralMe,
+        role: 'REFEREE',
+        variant: 'REFEREE',
+      } as const;
+
+      const normal = controller.getReferralMe();
+      await Promise.resolve();
+      await Promise.resolve();
+      const forceFresh = controller.getReferralMe({ forceFresh: true });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(requestResolvers).toHaveLength(2);
+
+      requestResolvers[1](referee);
+      await expect(forceFresh).resolves.toEqual(referee);
+      requestResolvers[0](none);
+      await expect(normal).resolves.toEqual(none);
+
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(referee);
     });
 
     it('caches earnings summary by origin-type scope', async () => {
@@ -603,6 +653,44 @@ describe('RewardsMoneyController', () => {
         'RewardsMoneyDataService:validateReferralCode',
         'ABC',
       );
+    });
+  });
+
+  describe('registerReferee', () => {
+    it('forwards the code to the data service when enabled', async () => {
+      const registerReferee = jest.fn().mockResolvedValue(undefined);
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return registerReferee(args[0]);
+        }
+        return undefined;
+      });
+
+      await expect(
+        controller.registerReferee({ code: 'KOL1' }),
+      ).resolves.toBeUndefined();
+
+      expect(registerReferee).toHaveBeenCalledWith({ code: 'KOL1' });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:registerReferee',
+        { code: 'KOL1' },
+      );
+    });
+
+    it('does not write any controller cache for a register', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        return undefined;
+      });
+
+      await controller.registerReferee({ code: 'KOL1' });
+
+      expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
     });
   });
 

@@ -5,6 +5,7 @@ export type {
   RewardsMoneyDataServiceGetReferralFunnelAction,
   RewardsMoneyDataServiceGetReferralCodesAction,
   RewardsMoneyDataServiceValidateReferralCodeAction,
+  RewardsMoneyDataServiceRegisterRefereeAction,
   RewardsMoneyDataServiceGetEarningsSummaryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
   RewardsMoneyDataServiceGetClaimHistoryAction,
@@ -19,6 +20,7 @@ export type {
 export {
   RewardsMoneyDataService,
   RewardsMoneyAuthorizationError,
+  RewardsMoneyHttpError,
   buildOriginTypeQuery,
   EARNINGS_LEDGER_PAGE_SIZE,
   CLAIM_HISTORY_PAGE_SIZE,

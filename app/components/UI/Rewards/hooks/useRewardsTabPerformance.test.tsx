@@ -3,6 +3,7 @@ import React, { type ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { TraceName, TraceOperation } from '../../../../util/trace';
+import type { ReferralVariant } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useRewardsTabPerformance } from './useRewardsTabPerformance';
 
 jest.mock('../../../../util/trace', () => ({
@@ -51,6 +52,20 @@ const buildState = ({
   },
 });
 
+const buildConfig = ({
+  isVersionBlocked = false,
+  moneyEnabled = false,
+  moneyReferralResolved = false,
+  moneyVariant = undefined as ReferralVariant | undefined,
+  navigatorKey = 'disabled',
+} = {}) => ({
+  isVersionBlocked,
+  moneyEnabled,
+  moneyReferralResolved,
+  moneyVariant,
+  navigatorKey,
+});
+
 describe('useRewardsTabPerformance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,7 +74,7 @@ describe('useRewardsTabPerformance', () => {
   it('starts the Rewards tab TTC span on mount without ending while pending', () => {
     const store = mockStore(buildState());
 
-    renderHook(() => useRewardsTabPerformance({ isVersionBlocked: false }), {
+    renderHook(() => useRewardsTabPerformance(buildConfig()), {
       wrapper: createWrapper(store),
     });
 
@@ -76,7 +91,7 @@ describe('useRewardsTabPerformance', () => {
   it('ends with onboarding when candidate is already resolved', () => {
     const store = mockStore(buildState({ candidateSubscriptionId: 'error' }));
 
-    renderHook(() => useRewardsTabPerformance({ isVersionBlocked: false }), {
+    renderHook(() => useRewardsTabPerformance(buildConfig()), {
       wrapper: createWrapper(store),
     });
 
@@ -91,7 +106,7 @@ describe('useRewardsTabPerformance', () => {
   it('ends with dashboard when subscription is present', () => {
     const store = mockStore(buildState({ subscriptionId: 'sub-1' }));
 
-    renderHook(() => useRewardsTabPerformance({ isVersionBlocked: false }), {
+    renderHook(() => useRewardsTabPerformance(buildConfig()), {
       wrapper: createWrapper(store),
     });
 
@@ -106,9 +121,12 @@ describe('useRewardsTabPerformance', () => {
   it('ends with update_required when version-blocked', () => {
     const store = mockStore(buildState());
 
-    renderHook(() => useRewardsTabPerformance({ isVersionBlocked: true }), {
-      wrapper: createWrapper(store),
-    });
+    renderHook(
+      () => useRewardsTabPerformance(buildConfig({ isVersionBlocked: true })),
+      {
+        wrapper: createWrapper(store),
+      },
+    );
 
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -122,7 +140,7 @@ describe('useRewardsTabPerformance', () => {
     const store = mockStore(buildState({ candidateSubscriptionId: 'pending' }));
 
     const { unmount } = renderHook(
-      () => useRewardsTabPerformance({ isVersionBlocked: false }),
+      () => useRewardsTabPerformance(buildConfig()),
       { wrapper: createWrapper(store) },
     );
 

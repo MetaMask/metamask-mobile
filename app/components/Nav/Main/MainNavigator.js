@@ -60,13 +60,20 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityScreen from '../../Views/ActivityScreen';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
+import {
+  selectCandidateSubscriptionId,
+  selectIsRewardsVersionBlocked,
+} from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
 import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
+import { useRewardsMoneyTabRouting } from '../../UI/Rewards/hooks/useRewardsMoneyTabRouting';
+import { getRewardsTabContentState } from '../../UI/Rewards/utils/rewardsTabContentState';
+import RewardsTabSkeleton from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
+import RewardsMoneyDashboard from '../../UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
@@ -210,6 +217,8 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
+import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
@@ -345,9 +354,16 @@ const TransactionsHome = () => {
   );
 };
 
+const REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT = {
+  money_dashboard: Routes.REWARDS_MONEY_DASHBOARD,
+  dashboard: Routes.REWARDS_DASHBOARD,
+  onboarding: Routes.REWARDS_ONBOARDING_FLOW,
+};
+
 const RewardsHome = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   // Fetch client version requirements at the Rewards tab entry point, before the
   // onboarding/dashboard branch below. Both opted-in and onboarding users mount
@@ -361,20 +377,57 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
-  // Tab time-to-content: tap Rewards → onboarding content or dashboard shell.
-  useRewardsTabPerformance({ isVersionBlocked });
+  // Same altitude, same reason: the Money referral persona decides which of the
+  // three homes this stack opens on, so it is resolved once here rather than by
+  // whichever screen happened to mount.
+  const { moneyEnabled, moneyReferralResolved, moneyVariant, navigatorKey } =
+    useRewardsMoneyTabRouting();
+  // Tab time-to-content: tap Rewards → onboarding content, dashboard shell, or
+  // the Money dashboard.
+  useRewardsTabPerformance({
+    isVersionBlocked,
+    moneyEnabled,
+    moneyReferralResolved,
+    moneyVariant,
+  });
 
-  if (isVersionBlocked) {
+  // Shared with the time-to-content trace above, so the screen the tab opens on
+  // and the state it reports can never disagree.
+  const tabContent = getRewardsTabContentState({
+    isVersionBlocked,
+    subscriptionId,
+    candidateSubscriptionId,
+    moneyEnabled,
+    moneyReferralResolved,
+    moneyVariant,
+  });
+
+  if (
+    tabContent.status === 'ready' &&
+    tabContent.variant === 'update_required'
+  ) {
     return <RewardsUpdateRequired />;
   }
 
+  // Only the Money persona gate holds the whole stack back. Candidate
+  // subscription pending still mounts onboarding as the discovery surface;
+  // OnboardingMainStep owns that skeleton and replace-to-dashboard.
+  if (
+    tabContent.status === 'pending' &&
+    tabContent.reason === 'money_referral'
+  ) {
+    return <RewardsTabSkeleton />;
+  }
+
+  const initialRouteName =
+    tabContent.status === 'ready'
+      ? REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT[tabContent.variant]
+      : Routes.REWARDS_ONBOARDING_FLOW;
+
   return (
     <NativeStack.Navigator
-      initialRouteName={
-        subscriptionId
-          ? Routes.REWARDS_DASHBOARD
-          : Routes.REWARDS_ONBOARDING_FLOW
-      }
+      key={navigatorKey}
+      initialRouteName={initialRouteName}
       screenOptions={{ ...defaultScreenOptions, animation: 'none' }}
     >
       <NativeStack.Screen
@@ -384,6 +437,11 @@ const RewardsHome = () => {
       <NativeStack.Screen
         name={Routes.REWARDS_DASHBOARD}
         component={RewardsDashboard}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.REWARDS_MONEY_DASHBOARD}
+        component={RewardsMoneyDashboard}
         options={slideFromRightNativeOptions}
       />
     </NativeStack.Navigator>
@@ -982,7 +1040,21 @@ const MainNavigator = () => {
           name={Routes.MODAL.REWARDS_SELECT_SHEET}
           component={RewardsSelectSheet}
         />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
+          component={AcceptInviteSheet}
+        />
       </NativeStack.Group>
+      {/*
+       * Post-accept confirmation. Registered on the root stack (not inside
+       * RewardsNavigator) so it can fade over the Money dashboard after the
+       * invite sheet dismisses — same pattern as Money onboarding.
+       */}
+      <NativeStack.Screen
+        name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
+        component={RewardsMoneyReferralAcceptedSplashView}
+        options={{ headerShown: false, ...fadeNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}

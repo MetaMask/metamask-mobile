@@ -702,6 +702,14 @@ export type RootStackParamList = {
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
     | undefined;
+  RewardsMoneyInviteSheet:
+    | RewardsNavigationParamList['RewardsMoneyInviteSheet']
+    | undefined;
+  /**
+   * Post-accept confirmation. Registered on the root stack so it can fade
+   * over the Money dashboard after the invite sheet dismisses.
+   */
+  RewardsMoneyReferralAcceptedSplashView: undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
