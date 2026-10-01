@@ -57,7 +57,7 @@ import {
   withCardProvider,
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { TouchableOpacity } from 'react-native';
+import { Keyboard, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -767,8 +767,9 @@ const SignUp = () => {
                       'card.card_onboarding.set_phone_number.phone_number_label',
                     ),
                     testID: 'signup-immersve-phone-number-input',
-                    onSubmitEditing: handleImmersveContinue,
+                    onSubmitEditing: Keyboard.dismiss,
                     returnKeyType: 'done',
+                    blurOnSubmit: true,
                   }}
                 />
               </Box>
