@@ -8,6 +8,7 @@ import Logger from '../../util/Logger';
 import {
   ControllerStorage,
   createPersistController,
+  createPersistedStateReadStats,
 } from '../../store/persistConfig';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
@@ -18,6 +19,11 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
+import {
+  markStartup,
+  setStartupPersistedStateStats,
+  timeStartupStep,
+} from '../Performance/startupStageSpans';
 
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
@@ -144,8 +150,13 @@ export class EngineService {
    * - V8: SES_UNHANDLED_REJECTION
    */
   start = async () => {
+    markStartup('engineStart');
     const reduxState = ReduxService.store.getState();
-    const persistedState = await ControllerStorage.getAllPersistedState();
+    const persistedStateStats = createPersistedStateReadStats();
+    const persistedState =
+      await ControllerStorage.getAllPersistedState(persistedStateStats);
+    setStartupPersistedStateStats(persistedStateStats);
+    markStartup('controllerStateLoaded');
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -176,14 +187,29 @@ export class EngineService {
       // It is also used as a random source for other controllers like RemoteFeatureFlagController.
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
       // The persisted controller copy is passed as a recovery source for MMKV loss.
+      const stopAnalyticsId = timeStartupStep(
+        'engine_initialization',
+        'startup.engine.analytics_id_ms',
+      );
       const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
+      stopAnalyticsId();
+      const stopEngineInit = timeStartupStep(
+        'engine_initialization',
+        'startup.engine.init_ms',
+      );
       Engine.init(analyticsId, state);
+      stopEngineInit();
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
+      const stopInitializeControllers = timeStartupStep(
+        'engine_initialization',
+        'startup.engine.redux_and_persistence_ms',
+      );
       this.initializeControllers(
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
       );
+      stopInitializeControllers();
 
       // Fire-and-forget: refresh social following state from the server.
       // Non-blocking — persisted state covers the UI until this resolves.
@@ -208,6 +234,7 @@ export class EngineService {
         });
       }, 150);
     }
+    markStartup('engineEnd');
     endTrace({ name: TraceName.EngineInitialization });
   };
 

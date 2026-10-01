@@ -38,6 +38,36 @@ export enum TraceName {
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
+  /** Process start to the later of splash gone and the app waiting on the user. */
+  StartupColdStartToUnlockReady = 'Cold Start To Unlock Ready',
+  // Stages of Cold Start To Unlock Ready, see docs/performance/startup-telemetry.md
+  StartupNativeLaunch = 'Startup - Native Launch',
+  StartupHostSetup = 'Startup - Host Setup',
+  StartupJsBundleLoad = 'Startup - JS Bundle Load',
+  StartupPostBundleGap = 'Startup - Post Bundle Gap',
+  StartupStoreInitialization = 'Startup - Store Initialization',
+  StartupReduxPersistRehydration = 'Startup - Redux Persist Rehydration',
+  StartupPostStoreGap = 'Startup - Post Store Gap',
+  StartupNavigationInitialization = 'Startup - Navigation Initialization',
+  StartupControllerStateRehydration = 'Startup - Controller State Rehydration',
+  StartupEngineInitialization = 'Startup - Engine Initialization',
+  StartupPostInitGap = 'Startup - Post Init Gap',
+  StartupRootNavigatorFirstRender = 'Startup - Root Navigator First Render',
+  StartupSplashRevealTax = 'Startup - Splash Reveal Tax',
+  StartupUnlockPromptDelay = 'Startup - Unlock Prompt Delay',
+  /** The unlock has its password, to the homepage showing usable content. */
+  UnlockToHomepageReady = 'Unlock To Homepage Ready',
+  // Stages of Unlock To Homepage Ready, see docs/performance/startup-telemetry.md
+  UnlockSubmitToUnlock = 'Unlock - Submit To Unlock',
+  UnlockCredentialDecrypt = 'Unlock - Credential Decrypt',
+  UnlockSeedlessRehydrate = 'Unlock - Seedless Rehydrate',
+  UnlockSeedlessPasswordCheck = 'Unlock - Seedless Password Check',
+  UnlockSeedlessPasswordSync = 'Unlock - Seedless Password Sync',
+  UnlockVaultUnlock = 'Unlock - Vault Unlock',
+  UnlockFinalize = 'Unlock - Unlock Finalize',
+  UnlockBeforeNavigate = 'Unlock - Before Navigate',
+  UnlockHomeVisible = 'Unlock - Home Visible',
+  UnlockHomepageContent = 'Unlock - Homepage Content',
   HomepageReady = 'Homepage Ready',
   UiSlotsLoad = 'UI Slots Load',
   DeeplinkProcessed = 'Deeplink Processed',
@@ -328,6 +358,10 @@ export enum TraceOperation {
   EngineInitialization = 'engine.initialization',
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
+  StartupColdStart = 'startup.cold_start',
+  StartupStage = 'startup.stage',
+  UnlockHomepageReady = 'unlock.homepage_ready',
+  UnlockStage = 'unlock.stage',
   HomepagePerformance = 'homepage.performance',
   DeeplinkPerformance = 'deeplink.performance',
   NavInit = 'navigation.initialization',
@@ -1088,7 +1122,7 @@ export async function hasMetricsConsent(): Promise<boolean> {
  * Get cached consent state synchronously
  * Note: When null, traces are buffered to ensure we don't accidentally send data before consent is checked
  */
-function getCachedConsent(): boolean | null {
+export function getCachedConsent(): boolean | null {
   return cachedConsent;
 }
 
@@ -1408,6 +1442,18 @@ export function getPerformanceTimestamp(): number {
     return Date.now();
   }
   return performanceMs;
+}
+
+/**
+ * Offset that converts a raw `performance.now()` mark into the clock
+ * {@link getPerformanceTimestamp} returns: `mark + offset`.
+ *
+ * Read it when the span is created and reuse the converted values for its
+ * children. The monotonic clock stops while the device sleeps, so an offset
+ * read earlier can be off by the whole sleep.
+ */
+export function getPerformanceTimestampOffset(): number {
+  return getPerformanceTimestamp() - performance.now();
 }
 
 function tryCatchMaybePromise<T>(

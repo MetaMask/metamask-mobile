@@ -15,6 +15,10 @@ import {
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import {
+  markStartup,
+  noteStartupRouteChange,
+} from '../../../core/Performance/startupStageSpans';
 import { AppThemeKey } from '../../../util/theme/models';
 
 jest.mock('../../../util/trace', () => {
@@ -55,6 +59,11 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../core/Performance/DeeplinkPerformance', () => ({
   handleDeeplinkNavigationStateChange: jest.fn(),
+}));
+
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
+  noteStartupRouteChange: jest.fn(),
 }));
 
 const mockCapturedNavContainerProps: {
@@ -242,6 +251,10 @@ describe('NavigationProvider', () => {
     expect(handleDeeplinkNavigationStateChange).toHaveBeenCalledWith({
       focusedRouteNames: ['HomeNav', 'TrendingView'],
     });
+    expect(noteStartupRouteChange).toHaveBeenCalledWith([
+      'HomeNav',
+      'TrendingView',
+    ]);
   });
 
   it('ignores an undefined navigation state', () => {
@@ -254,6 +267,20 @@ describe('NavigationProvider', () => {
     mockCapturedNavContainerProps.onStateChange?.(undefined);
 
     expect(handleDeeplinkNavigationStateChange).not.toHaveBeenCalled();
+    expect(noteStartupRouteChange).not.toHaveBeenCalled();
+  });
+
+  it('marks the start and end of navigation initialization for the startup recorder', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(jest.mocked(markStartup).mock.calls).toEqual([
+      ['navInitStart'],
+      ['navReady'],
+    ]);
   });
 
   it('Measures performance trace order when navigation provider is initialized', () => {

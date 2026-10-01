@@ -59,11 +59,12 @@ import { createDataDeletionTask as createDataDeletionTaskMock } from '../../util
 import {
   Authentication,
   identifyIncident1745AffectedUser,
+  type SeedlessPasswordCheckTimings,
 } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 // eslint-disable-next-line import-x/no-namespace
 import * as Keychain from 'react-native-keychain';
-import SecureKeychain from '../SecureKeychain';
+import SecureKeychain, { type CredentialReadTimings } from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
 import AuthenticationError from './AuthenticationError';
 import {
@@ -268,6 +269,20 @@ const mockCancelDeeplinkNavigatedTrace = jest.fn();
 const mockClearUnlockAppStartType = jest.fn();
 const mockGetUnlockAppStartType = jest.fn(() => 'warm');
 const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
+const MOCK_UNLOCK_TOKEN = 11;
+const mockStartUnlockToHomepageReady = jest
+  .fn()
+  .mockReturnValue(MOCK_UNLOCK_TOKEN);
+const mockDropUnlockToHomepageReady = jest.fn();
+const mockMarkUnlockCompleted = jest.fn();
+const mockStopUnlockStages: Record<string, jest.Mock> = {};
+const mockStartUnlockStage = jest.fn((stage: string) => {
+  mockStopUnlockStages[stage] = jest.fn();
+  return mockStopUnlockStages[stage];
+});
+const mockRecordUnlockStage = jest.fn();
+const mockMarkUnlockNavigate = jest.fn();
+const mockNoteStartupCredentialRequest = jest.fn();
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
@@ -295,6 +310,22 @@ jest.mock('../Performance/unlockTraces', () => ({
   getUnlockAppStartType: () => mockGetUnlockAppStartType(),
   resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
     mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
+}));
+
+jest.mock('../Performance/unlockToHomepageReady', () => ({
+  dropUnlockToHomepageReady: (...args: unknown[]) =>
+    mockDropUnlockToHomepageReady(...args),
+  markUnlockCompleted: () => mockMarkUnlockCompleted(),
+  markUnlockNavigate: () => mockMarkUnlockNavigate(),
+  recordUnlockStage: (...args: unknown[]) => mockRecordUnlockStage(...args),
+  startUnlockStage: (stage: string) => mockStartUnlockStage(stage),
+  startUnlockToHomepageReady: (...args: unknown[]) =>
+    mockStartUnlockToHomepageReady(...args),
+}));
+
+jest.mock('../Performance/startupStageSpans', () => ({
+  noteStartupCredentialRequest: (...args: unknown[]) =>
+    mockNoteStartupCredentialRequest(...args),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -3360,6 +3391,58 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith({ skipCache: true });
       expect(Logger.log).toHaveBeenCalled();
       expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['succeeds', jest.fn().mockResolvedValue(false)],
+      ['fails', jest.fn().mockRejectedValue(new Error('controller failed'))],
+    ])(
+      'fills in the timings around the controller check when it %s',
+      async (_, checkIsPasswordOutdated) => {
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: jest.fn(),
+          getState: jest.fn(() => ({
+            engine: {
+              backgroundState: {
+                SeedlessOnboardingController: {
+                  vault: 'existing vault data',
+                  socialBackupsMetadata: [],
+                },
+              },
+            },
+          })),
+        } as unknown as ReduxStore);
+        Engine.context.SeedlessOnboardingController = {
+          state: { vault: {} },
+          checkIsPasswordOutdated,
+        } as unknown as SeedlessOnboardingController<EncryptionKey>;
+        const timings: SeedlessPasswordCheckTimings = {};
+
+        await Authentication.checkIsSeedlessPasswordOutdated({ timings });
+
+        expect(timings.startedAt).toEqual(expect.any(Number));
+        expect(timings.endedAt).toBeGreaterThanOrEqual(
+          timings.startedAt as number,
+        );
+      },
+    );
+
+    it('leaves the timings unset when the user is not seedless', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: { socialBackupsMetadata: [] },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+      const timings: SeedlessPasswordCheckTimings = {};
+
+      await Authentication.checkIsSeedlessPasswordOutdated({ timings });
+
+      expect(timings).toEqual({});
     });
   });
 
@@ -6558,6 +6641,376 @@ describe('Authentication', () => {
 
           alertSpy.mockRestore();
         });
+      });
+    });
+
+    describe('Unlock To Homepage Ready', () => {
+      const credentialReadTimings = {
+        requestedAt: 100,
+        returnedAt: 2_100,
+        empty: false,
+        decryptedAt: 2_400,
+      };
+
+      const rejectVaultUnlock = (error: Error) => {
+        const Engine = jest.requireMock('../Engine');
+        (
+          Engine.context.KeyringController.submitPassword as jest.Mock
+        ).mockRejectedValueOnce(error);
+      };
+
+      beforeEach(() => {
+        mockStartUnlockToHomepageReady.mockClear();
+        mockDropUnlockToHomepageReady.mockClear();
+        mockMarkUnlockCompleted.mockClear();
+      });
+
+      it('starts at the typed submit for an existing user', async () => {
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          handBackAt: 1_234,
+        });
+
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith({
+          handBack: { source: 'typed', submittedAt: 1_234 },
+          unlockEnteredAt: expect.any(Number),
+          existingUser: true,
+          beforeNavigate: false,
+        });
+      });
+
+      it('starts at the keychain return when no password is given', async () => {
+        jest
+          .spyOn(SecureKeychain, 'getGenericPassword')
+          .mockImplementation(async (timings) => {
+            if (timings) {
+              Object.assign(timings, credentialReadTimings);
+            }
+            return {
+              password: passwordToUse,
+              username: 'test-username',
+              service: 'test-service',
+              storage: Keychain.STORAGE_TYPE.AES_GCM,
+            };
+          });
+
+        await Authentication.unlockWallet();
+
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith({
+          handBack: { source: 'keychain', credentialReadTimings },
+          unlockEnteredAt: expect.any(Number),
+          existingUser: true,
+          beforeNavigate: false,
+        });
+      });
+
+      it('passes a new user for a social login rehydration', async () => {
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          getState: () => ({
+            user: { existingUser: false },
+            security: { allowLoginWithRememberMe: false },
+          }),
+          dispatch: mockDispatch,
+        } as unknown as ReduxStore);
+        jest
+          .spyOn(Authentication, 'rehydrateSeedPhrase')
+          .mockResolvedValueOnce();
+
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          handBackAt: 1_234,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        });
+
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith(
+          expect.objectContaining({ existingUser: false }),
+        );
+      });
+
+      it('flags unlocks that run onBeforeNavigate', async () => {
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          onBeforeNavigate: jest.fn().mockResolvedValue(undefined),
+        });
+
+        expect(mockStartUnlockToHomepageReady).toHaveBeenCalledWith(
+          expect.objectContaining({ beforeNavigate: true }),
+        );
+      });
+
+      it('starts before unlocking the vault', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(
+          mockStartUnlockToHomepageReady.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+          Engine.context.KeyringController.submitPassword.mock
+            .invocationCallOrder[0],
+        );
+      });
+
+      it('does not start when the keychain has no password', async () => {
+        jest
+          .spyOn(SecureKeychain, 'getGenericPassword')
+          .mockResolvedValueOnce(null);
+
+        await Authentication.unlockWallet();
+
+        expect(mockStartUnlockToHomepageReady).not.toHaveBeenCalled();
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.LOGIN }],
+        });
+      });
+
+      it('does not start, and has nothing to drop, when the keychain read fails', async () => {
+        jest
+          .spyOn(SecureKeychain, 'getGenericPassword')
+          .mockRejectedValueOnce(new Error('Keychain read failed'));
+
+        await expect(Authentication.unlockWallet()).rejects.toThrow(
+          'Keychain read failed',
+        );
+
+        expect(mockStartUnlockToHomepageReady).not.toHaveBeenCalled();
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'unlock_failed',
+          null,
+        );
+      });
+
+      it('drops the unlock when it diverts to metrics opt-in', async () => {
+        jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+        jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'metrics_opt_in',
+          MOCK_UNLOCK_TOKEN,
+        );
+      });
+
+      it('keeps the unlock when it goes straight home', async () => {
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockDropUnlockToHomepageReady).not.toHaveBeenCalled();
+      });
+
+      it('marks the unlock completed after navigating home', async () => {
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockMarkUnlockCompleted).toHaveBeenCalledTimes(1);
+        expect(
+          mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockMarkUnlockCompleted.mock.invocationCallOrder[0]);
+      });
+
+      it('marks the unlock completed after routing to metrics opt-in', async () => {
+        jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+        jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockMarkUnlockCompleted).toHaveBeenCalledTimes(1);
+      });
+
+      it('drops the unlock and leaves it incomplete when the unlock fails', async () => {
+        rejectVaultUnlock(new Error('Incorrect password'));
+
+        await expect(
+          Authentication.unlockWallet({ password: passwordToUse }),
+        ).rejects.toThrow('Incorrect password');
+
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'unlock_failed',
+          MOCK_UNLOCK_TOKEN,
+        );
+        expect(mockMarkUnlockCompleted).not.toHaveBeenCalled();
+      });
+
+      it('drops the unlock before the biometric changed alert waits on the user', async () => {
+        rejectVaultUnlock(new Error('User not authenticated'));
+        const alertSpy = jest
+          .spyOn(Alert, 'alert')
+          .mockImplementation((_title, _message, buttons) => {
+            buttons?.[0]?.onPress?.();
+          });
+
+        await expect(
+          Authentication.unlockWallet({ password: passwordToUse }),
+        ).rejects.toThrow('User not authenticated');
+
+        expect(mockDropUnlockToHomepageReady).toHaveBeenCalledWith(
+          'unlock_failed',
+          MOCK_UNLOCK_TOKEN,
+        );
+        expect(
+          mockDropUnlockToHomepageReady.mock.invocationCallOrder[0],
+        ).toBeLessThan(alertSpy.mock.invocationCallOrder[0]);
+      });
+    });
+
+    describe('Unlock To Homepage Ready stages', () => {
+      beforeEach(() => {
+        mockStartUnlockStage.mockClear();
+        mockRecordUnlockStage.mockClear();
+        mockMarkUnlockNavigate.mockClear();
+        mockNavigateToPostUnlockHome.mockClear();
+      });
+
+      it('times the vault unlock and the unlock finalize, then marks the navigation home', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockStartUnlockStage.mock.calls).toEqual([
+          ['vault_unlock'],
+          ['unlock_finalize'],
+        ]);
+        expect(
+          Engine.context.KeyringController.submitPassword.mock
+            .invocationCallOrder[0],
+        ).toBeLessThan(
+          mockStopUnlockStages.vault_unlock.mock.invocationCallOrder[0],
+        );
+        expect(
+          mockStopUnlockStages.unlock_finalize.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockMarkUnlockNavigate.mock.invocationCallOrder[0]);
+        expect(mockMarkUnlockNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+          mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('times onBeforeNavigate before marking the navigation home', async () => {
+        const onBeforeNavigate = jest.fn().mockResolvedValue(undefined);
+
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          onBeforeNavigate,
+        });
+
+        expect(mockStartUnlockStage).toHaveBeenCalledWith('before_navigate');
+        const stopBeforeNavigate = mockStopUnlockStages.before_navigate;
+        expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+          stopBeforeNavigate.mock.invocationCallOrder[0],
+        );
+        expect(stopBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+          mockMarkUnlockNavigate.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('times the seedless rehydrate of a social login', async () => {
+        const rehydrateSpy = jest
+          .spyOn(Authentication, 'rehydrateSeedPhrase')
+          .mockResolvedValueOnce();
+
+        await Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        });
+
+        expect(mockStartUnlockStage).toHaveBeenCalledWith('seedless_rehydrate');
+        expect(rehydrateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+          mockStopUnlockStages.seedless_rehydrate.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('records the seedless password check from the timings it filled in', async () => {
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockImplementationOnce(async ({ timings } = {}) => {
+            if (timings) {
+              timings.startedAt = 10;
+              timings.endedAt = 30;
+            }
+            return false;
+          });
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockRecordUnlockStage).toHaveBeenCalledWith(
+          'seedless_password_check',
+          10,
+          30,
+        );
+      });
+
+      it('times the password sync of an outdated seedless password before the vault unlock', async () => {
+        jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValueOnce(true);
+        const syncSpy = jest
+          .spyOn(Authentication, 'syncPasswordAndUnlockWallet')
+          .mockResolvedValueOnce();
+        const authTypeSpy = jest.spyOn(
+          Authentication,
+          'componentAuthenticationType',
+        );
+
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockStartUnlockStage.mock.calls).toEqual([
+          ['seedless_password_sync'],
+          ['vault_unlock'],
+          ['unlock_finalize'],
+        ]);
+        const stopSync = mockStopUnlockStages.seedless_password_sync;
+        expect(mockStartUnlockStage.mock.invocationCallOrder[0]).toBeLessThan(
+          syncSpy.mock.invocationCallOrder[0],
+        );
+        expect(authTypeSpy.mock.invocationCallOrder[0]).toBeLessThan(
+          stopSync.mock.invocationCallOrder[0],
+        );
+        expect(stopSync.mock.invocationCallOrder[0]).toBeLessThan(
+          mockStartUnlockStage.mock.invocationCallOrder[1],
+        );
+      });
+    });
+
+    describe('startup credential request', () => {
+      beforeEach(() => {
+        mockNoteStartupCredentialRequest.mockClear();
+      });
+
+      it('gives the startup recorder the keychain read timings while the read is pending', async () => {
+        let readTimings: CredentialReadTimings | undefined;
+        let notedWhileReading = false;
+        jest
+          .spyOn(SecureKeychain, 'getGenericPassword')
+          .mockImplementationOnce(async (timings) => {
+            readTimings = timings;
+            await Promise.resolve();
+            notedWhileReading =
+              mockNoteStartupCredentialRequest.mock.calls.length === 1;
+            return {
+              password: passwordToUse,
+              username: 'test-username',
+              service: 'test-service',
+              storage: Keychain.STORAGE_TYPE.AES_GCM,
+            };
+          });
+
+        await Authentication.unlockWallet();
+
+        expect(mockNoteStartupCredentialRequest).toHaveBeenCalledTimes(1);
+        expect(mockNoteStartupCredentialRequest.mock.calls[0][0]).toBe(
+          readTimings,
+        );
+        expect(notedWhileReading).toBe(true);
+      });
+
+      it('does not note a typed password', async () => {
+        await Authentication.unlockWallet({ password: passwordToUse });
+
+        expect(mockNoteStartupCredentialRequest).not.toHaveBeenCalled();
       });
     });
   });

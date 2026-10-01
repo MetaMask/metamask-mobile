@@ -134,6 +134,7 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
 import { endTrace, TraceName } from '../../../util/trace';
+import { markStartup } from '../../../core/Performance/startupStageSpans';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
 import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
@@ -1453,6 +1454,7 @@ const App: React.FC = () => {
   );
 
   useEffect(() => {
+    markStartup('appFirstCommit');
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);

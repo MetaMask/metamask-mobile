@@ -17,6 +17,7 @@ import {
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
+import { dropUnlockToHomepageReadyForDeeplink } from '../../Performance/unlockToHomepageReady';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
 // the unlock-session app_start_type. Cleared after one read.
@@ -123,6 +124,7 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 };
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
+  dropUnlockToHomepageReadyForDeeplink();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;

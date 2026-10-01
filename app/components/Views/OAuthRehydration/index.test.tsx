@@ -1,5 +1,6 @@
 import React from 'react';
 import { Alert } from 'react-native';
+import performance from 'react-native-performance';
 import type { ReactTestInstance } from 'react-test-renderer';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
@@ -1494,6 +1495,55 @@ describe('OAuthRehydration', () => {
       ).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
+    });
+
+    describe('unlock hand-back', () => {
+      const SUBMITTED_AT = 4_321;
+
+      beforeEach(() => {
+        jest.spyOn(performance, 'now').mockReturnValue(SUBMITTED_AT);
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('passes the submit time to unlockWallet on rehydration login', async () => {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+
+        await enterPasswordAndSubmit(getByTestId);
+
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalledWith(
+            expect.objectContaining({
+              handBackAt: SUBMITTED_AT,
+              authPreference: expect.objectContaining({ oauth2Login: true }),
+            }),
+          );
+        });
+      });
+
+      it('passes the submit time to unlockWallet after a global password change', async () => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: true,
+            isSeedlessPasswordOutdated: true,
+          },
+        });
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+
+        await enterPasswordAndSubmit(getByTestId, 'newPassword123');
+
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalledWith(
+            expect.objectContaining({
+              handBackAt: SUBMITTED_AT,
+              authPreference: expect.objectContaining({ oauth2Login: false }),
+            }),
+          );
+        });
+      });
     });
   });
 
