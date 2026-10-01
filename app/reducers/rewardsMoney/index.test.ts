@@ -6,9 +6,12 @@ import type {
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
   resetRewardsMoneyState,
+  setCashbackLedger,
+  setCommissions,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
+  setReferralFunnel,
   setReferralMe,
   setReferralMeError,
   setReferralMeLoading,
@@ -73,13 +76,22 @@ describe('rewardsMoneyReducer', () => {
       type: 'unknown',
     } as Action);
 
-    expect(state).toEqual({ referralMe: {}, earningsSummary: {} });
+    expect(state).toEqual({
+      referralMe: {},
+      earningsSummary: {},
+      referralFunnel: {},
+      commissions: {},
+      cashbackLedger: {},
+    });
   });
 
   it('seeds initialRootState with empty rewardsMoney slice', () => {
     expect(initialRootState.rewardsMoney).toEqual({
       referralMe: {},
       earningsSummary: {},
+      referralFunnel: {},
+      commissions: {},
+      cashbackLedger: {},
     });
   });
 
@@ -250,7 +262,79 @@ describe('rewardsMoneyReducer', () => {
 
       const state = rewardsMoneyReducer(withSummary, resetRewardsMoneyState());
 
-      expect(state).toEqual({ referralMe: {}, earningsSummary: {} });
+      expect(state).toEqual({
+        referralMe: {},
+        earningsSummary: {},
+        referralFunnel: {},
+        commissions: {},
+        cashbackLedger: {},
+      });
+    });
+  });
+
+  describe('performance caches', () => {
+    it('writes funnel data under the asked-for profile', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setReferralFunnel({
+          profileId: PROFILE_A,
+          data: { enrolled: 12, earning_generating: 5 },
+        }),
+      );
+
+      expect(state.referralFunnel[PROFILE_A]?.data).toEqual({
+        enrolled: 12,
+        earning_generating: 5,
+      });
+    });
+
+    it('caches the first commissions page by profile', () => {
+      const items = [
+        {
+          id: 'SOCIAL_FOLLOW_TRADE:2026-09-01:perps:BTC',
+          earning_origin_type: 'SOCIAL_FOLLOW_TRADE' as const,
+          day: '2026-09-01',
+          token: { key: 'perps:BTC', symbol: 'BTC', source: 'PERPS' as const },
+          musd_amount: '2500000',
+          fee_amount_usd: '10.00000000',
+          fill_count: 3,
+          copied_times: 2,
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setCommissions({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.commissions[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches cashback ledger rows by profile', () => {
+      const items = [
+        {
+          type: 'earning' as const,
+          id: 'earn-1',
+          earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+          musd_amount: '1000000',
+          fee_amount_usd: '1',
+          entry_count: 1,
+          transaction_hash: null,
+          chain_id: null,
+          ledger_timestamp: '2026-09-01T00:00:00.000Z',
+          claim_status: 'unclaimed',
+          claim_expires_at: null,
+          swaps_source: null,
+          perps_source: null,
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setCashbackLedger({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.cashbackLedger[PROFILE_A]).toEqual(items);
     });
   });
 });
