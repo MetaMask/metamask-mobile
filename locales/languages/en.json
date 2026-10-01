@@ -1719,8 +1719,10 @@
     },
     "service_interruption": {
       "title": "We're experiencing an outage",
-      "description": "Some services may be unavailable while the team works on a fix.",
-      "contact_support": "Contact support"
+      "description": "Some services are temporarily unavailable. {{faqLink}}, or {{supportLink}}.",
+      "faq_link": "See your options in FAQs",
+      "contact_support": "contact support",
+      "faq_title": "Perps FAQs"
     },
     "competition_banner": {
       "title": "Competition leaderboard",
