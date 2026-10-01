@@ -17,6 +17,7 @@ import {
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -63,6 +64,12 @@ jest.mock('../../UI/Money/hooks/useMoneyPremiumAccountInterest', () => ({
   default: jest.fn(),
 }));
 
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -76,9 +83,9 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-// The money-balance row is covered by mocking useMoneyPremiumAccountInterest.
-// The rest of this screen is still mock-data UI with no Engine state, so
-// focused unit tests remain the coverage layer.
+// The money-balance row is covered by mocking useMoneyPremiumAccountInterest
+// and useMoneyPremiumVaultRate. The rest of this screen is still mock-data UI
+// with no Engine state, so focused unit tests remain the coverage layer.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -100,12 +107,16 @@ describe('ProHub', () => {
       sinceInceptionQuery: {
         data: { interest_earned_usd: '12.5' },
       },
-      positionsQuery: {
-        data: undefined,
-      },
       sinceInceptionInterest: '+$12.50',
-      apyPercent: 4.1,
     } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+    mockUseMoneyPremiumVaultRate.mockReturnValue({
+      vaultRateQuery: {
+        data: { rate: '0.041' },
+      },
+      rate: '0.041',
+      ratePercent: 4.1,
+      ratePercentFormatted: '4.1%',
+    } as ReturnType<typeof useMoneyPremiumVaultRate>);
   });
 
   // ── Access guard ───────────────────────────────────────────────────────────
@@ -229,13 +240,17 @@ describe('ProHub', () => {
       );
     });
 
-    it('shows placeholders while premium interest and APY are unavailable', () => {
+    it('shows placeholders while premium interest and vault rate are unavailable', () => {
       mockUseMoneyPremiumAccountInterest.mockReturnValue({
         sinceInceptionQuery: { data: undefined },
-        positionsQuery: { data: undefined },
         sinceInceptionInterest: '$0.00',
-        apyPercent: undefined,
       } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        vaultRateQuery: { data: undefined },
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+      } as ReturnType<typeof useMoneyPremiumVaultRate>);
 
       const { getByTestId } = renderProHub();
       const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);

@@ -2,10 +2,9 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
-import useMoneyPremiumAccountInterest from './useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -16,15 +15,12 @@ jest.mock('@metamask/react-data-query', () => ({
   useQuery: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
-}));
-
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
 
-const MOCK_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 const MOCK_VAULT_ADDRESS = '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7';
+const MOCK_RATE = '1.000000000000000000';
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const MOCK_QUERY_RESULT = {
   data: undefined,
   isLoading: false,
@@ -32,20 +28,15 @@ const MOCK_QUERY_RESULT = {
 };
 
 function setSelectors({
-  address = MOCK_ADDRESS,
   tokenAddress = MOCK_VAULT_ADDRESS,
   paymentType = 'crypto',
   premiumChainId = '0x8f',
 }: {
-  address?: string;
   tokenAddress?: string;
   paymentType?: 'crypto' | 'card';
   premiumChainId?: string;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectPrimaryMoneyAccount) {
-      return address ? { address } : undefined;
-    }
     if (selector === selectMoneyAccountPremiumVaultConfig) {
       return premiumChainId
         ? {
@@ -93,66 +84,88 @@ function setSelectors({
   });
 }
 
-describe('useMoneyPremiumAccountInterest', () => {
+describe('useMoneyPremiumVaultRate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setSelectors();
     mockUseQuery.mockReturnValue(MOCK_QUERY_RESULT as never);
   });
 
-  it('queries since-inception interest using the premium vault chain id', () => {
-    renderHook(() => useMoneyPremiumAccountInterest());
+  it('queries the premium vault rate using the premium vault chain id', () => {
+    renderHook(() => useMoneyPremiumVaultRate());
 
-    expect(mockUseQuery).toHaveBeenCalledTimes(1);
     expect(mockUseQuery).toHaveBeenCalledWith({
       queryKey: [
-        MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST,
-        MOCK_ADDRESS,
-        {
-          vaultAddress: MOCK_VAULT_ADDRESS,
-          chainId: 143,
-          window: 'since_inception',
-        },
+        MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
+        MOCK_VAULT_ADDRESS,
+        { chainId: 143 },
       ],
       enabled: true,
+      refetchInterval: FIVE_MINUTES_MS,
     });
   });
 
   it.each([
-    ['account address', { address: '' }],
     ['subscription token address', { tokenAddress: '' }],
     ['premium vault config', { premiumChainId: '' }],
     ['valid premium vault chain id', { premiumChainId: 'invalid' }],
     ['crypto payment method', { paymentType: 'card' as const }],
-  ])(
-    'disables the interest query without a %s',
-    (_label, selectorOverrides) => {
-      setSelectors(selectorOverrides);
+  ])('disables the rate query without a %s', (_label, selectorOverrides) => {
+    setSelectors(selectorOverrides);
 
-      renderHook(() => useMoneyPremiumAccountInterest());
+    renderHook(() => useMoneyPremiumVaultRate());
 
-      expect(mockUseQuery).toHaveBeenCalledTimes(1);
-      expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
-      );
-    },
-  );
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
 
-  it('formats since-inception interest', () => {
+  it('returns the raw rate and a one-decimal percentage', () => {
     mockUseQuery.mockReturnValue({
-      data: { interest_earned_usd: '12.5' },
+      data: { rate: MOCK_RATE },
       isLoading: false,
       isError: false,
     } as never);
 
-    const { result } = renderHook(() => useMoneyPremiumAccountInterest());
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
 
-    expect(result.current.sinceInceptionInterest).toBe('+$12.50');
+    expect(result.current.rate).toBe(MOCK_RATE);
+    expect(result.current.ratePercent).toBe(100);
+    expect(result.current.ratePercentFormatted).toBe('100%');
   });
 
-  it('uses a zero placeholder when interest is unavailable', () => {
-    const { result } = renderHook(() => useMoneyPremiumAccountInterest());
+  it('rounds a fractional rate to one decimal place', () => {
+    mockUseQuery.mockReturnValue({
+      data: { rate: '0.07149' },
+      isLoading: false,
+      isError: false,
+    } as never);
 
-    expect(result.current.sinceInceptionInterest).toBe('$0.00');
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.ratePercent).toBe(7.1);
+    expect(result.current.ratePercentFormatted).toBe('7.1%');
+  });
+
+  it('returns no percentage for a rate that is not a number', () => {
+    mockUseQuery.mockReturnValue({
+      data: { rate: 'not-a-rate' },
+      isLoading: false,
+      isError: false,
+    } as never);
+
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.rate).toBe('not-a-rate');
+    expect(result.current.ratePercent).toBeUndefined();
+    expect(result.current.ratePercentFormatted).toBeUndefined();
+  });
+
+  it('returns no rate when the vault rate query has no data', () => {
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.rate).toBeUndefined();
+    expect(result.current.ratePercent).toBeUndefined();
+    expect(result.current.ratePercentFormatted).toBeUndefined();
   });
 });

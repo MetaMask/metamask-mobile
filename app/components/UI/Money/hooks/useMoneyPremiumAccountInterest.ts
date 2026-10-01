@@ -5,7 +5,6 @@ import type {
   InterestOptions,
   InterestResponse,
   InterestWindow,
-  PositionResponse,
 } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
 import BigNumber from 'bignumber.js';
@@ -26,11 +25,8 @@ interface CryptoSubscriptionPayment {
 
 interface UseMoneyPremiumAccountInterestResult {
   sinceInceptionQuery: UseQueryResult<InterestResponse>;
-  positionsQuery: UseQueryResult<PositionResponse>;
   /** Formatted since-inception interest, or `$0.00` when it is not available. */
   sinceInceptionInterest: string;
-  /** APY as a percentage (for example `7.1` for 7.1%), when the position has one. */
-  apyPercent: number | undefined;
 }
 
 /**
@@ -80,34 +76,13 @@ const formatInterestEarned = (
 };
 
 /**
- * Converts a decimal APY string (`0.071`) into a one-decimal percentage (`7.1`).
- *
- * @param currentApy - Decimal APY from the vault position.
- * @returns The percentage, or undefined when the value is not a finite number.
- */
-const parseApyPercent = (
-  currentApy: string | undefined,
-): number | undefined => {
-  if (currentApy === undefined) {
-    return undefined;
-  }
-
-  const apyDecimal = new BigNumber(currentApy);
-  if (!apyDecimal.isFinite() || apyDecimal.isNaN()) {
-    return undefined;
-  }
-
-  return apyDecimal.multipliedBy(100).dp(1, BigNumber.ROUND_HALF_UP).toNumber();
-};
-
-/**
- * Since-inception interest and current APY for the premium vault.
+ * Since-inception interest for the premium vault.
  *
  * Uses the primary Money account address. The vault address comes from the
  * Plus subscription's crypto payment method. The chain id comes from
  * `moneyAccountPremiumVaultConfig`.
  *
- * @returns The interest query, the positions query, and display values.
+ * @returns The interest query and the formatted earnings.
  */
 const useMoneyPremiumAccountInterest =
   (): UseMoneyPremiumAccountInterestResult => {
@@ -149,14 +124,6 @@ const useMoneyPremiumAccountInterest =
       enabled: isEnabled,
     }) as UseQueryResult<InterestResponse>;
 
-    const positionsQuery = useQuery({
-      queryKey: [
-        MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
-        address as string,
-      ],
-      enabled: isEnabled,
-    }) as UseQueryResult<PositionResponse>;
-
     const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
     const sinceInceptionInterest = useMemo(
@@ -168,24 +135,9 @@ const useMoneyPremiumAccountInterest =
       [formattedZero, sinceInceptionQuery.data?.interest_earned_usd],
     );
 
-    const apyPercent = useMemo(() => {
-      if (!vaultAddress) {
-        return undefined;
-      }
-
-      const vaultKey = vaultAddress.toLowerCase();
-      const currentApy = positionsQuery.data?.positions.find(
-        (position) => position.vault_address.toLowerCase() === vaultKey,
-      )?.current_apy;
-
-      return parseApyPercent(currentApy);
-    }, [positionsQuery.data?.positions, vaultAddress]);
-
     return {
       sinceInceptionQuery,
-      positionsQuery,
       sinceInceptionInterest,
-      apyPercent,
     };
   };
 
