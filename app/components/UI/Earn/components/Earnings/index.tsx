@@ -19,13 +19,8 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import useEarnings from '../../../Earn/hooks/useEarnings';
-import {
-  selectPooledStakingServiceInterruptionBannerEnabledFlag,
-  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
 import { getTooltipMetricProperties } from '../../../Stake/utils/metaMetrics/tooltipMetaMetricsUtils';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import { TokenI } from '../../../Tokens/types';
@@ -58,14 +53,6 @@ export const EARNINGS_TEST_IDS = {
 const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
-
-  const isEarnLendingServiceInterruptionBannerEnabled = useSelector(
-    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
-  );
-
-  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
-    selectPooledStakingServiceInterruptionBannerEnabledFlag,
-  );
 
   const { navigate } = useNavigation<AppNavigationProp>();
 
@@ -113,10 +100,6 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
         )}
       </Text>
       <View>
-        {(isEarnLendingServiceInterruptionBannerEnabled ||
-          isPooledStakingServiceInterruptionBannerEnabled) && (
-          <EarnMaintenanceBanner />
-        )}
         {/* Annual Rate */}
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapper}>

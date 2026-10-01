@@ -40,6 +40,7 @@ import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderProfile } from '../TraderProfileView/hooks';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
@@ -263,268 +264,273 @@ const MyProfileView: React.FC = () => {
     !isPostsLoading && posts.length === 0 && !postsError;
 
   return (
-    <SafeAreaView
-      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
-      style={tw.style('flex-1 bg-default')}
-      testID={MyProfileViewSelectorsIDs.CONTAINER}
-    >
-      <HeaderStandard
-        includesTopInset
-        title=""
-        onBack={handleBack}
-        backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
-        testID={MyProfileViewSelectorsIDs.HEADER}
-      />
+    <SocialFeedSurfaceProvider location="my_profile" showMockedFields>
+      <SafeAreaView
+        edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
+        style={tw.style('flex-1 bg-default')}
+        testID={MyProfileViewSelectorsIDs.CONTAINER}
+      >
+        <HeaderStandard
+          includesTopInset
+          title=""
+          onBack={handleBack}
+          backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
+          testID={MyProfileViewSelectorsIDs.HEADER}
+        />
 
-      {isLoading && isOwner && !displayProfile ? (
-        <Box
-          twClassName="flex-1"
-          alignItems={BoxAlignItems.Center}
-          paddingTop={12}
-          testID={MyProfileViewSelectorsIDs.LOADING}
-        >
-          <Spinner />
-        </Box>
-      ) : error && isOwner && !displayProfile ? (
-        <Box
-          twClassName="flex-1"
-          alignItems={BoxAlignItems.Center}
-          paddingHorizontal={4}
-          paddingTop={12}
-          gap={4}
-          testID={MyProfileViewSelectorsIDs.ERROR}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {error}
-          </Text>
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={refresh}
-            testID={MyProfileViewSelectorsIDs.RETRY_BUTTON}
-          >
-            {strings('social_leaderboard.my_profile.retry')}
-          </Button>
-        </Box>
-      ) : displayProfile && overlayedStats ? (
-        <Animated.ScrollView
-          testID={MyProfileViewSelectorsIDs.SCROLL}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('flex-grow pb-6')}
-          onMomentumScrollEnd={handleScrollSettled}
-          onScrollEndDrag={handleScrollSettled}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-            />
-          }
-        >
-          <MyProfileHeader
-            profile={displayProfile}
-            overlayedStats={overlayedStats}
-            followingCount={following.length}
-            isOwner={isOwner}
-            onFollowersPress={handleFollowersPress}
-            onFollowingPress={handleFollowingPress}
-            onStatsPress={() => setIsStatsSheetOpen(true)}
-          />
-
+        {isLoading && isOwner && !displayProfile ? (
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            gap={2}
-            paddingHorizontal={4}
-            paddingBottom={8}
+            twClassName="flex-1"
+            alignItems={BoxAlignItems.Center}
+            paddingTop={12}
+            testID={MyProfileViewSelectorsIDs.LOADING}
           >
-            {isOwner ? (
-              <>
+            <Spinner />
+          </Box>
+        ) : error && isOwner && !displayProfile ? (
+          <Box
+            twClassName="flex-1"
+            alignItems={BoxAlignItems.Center}
+            paddingHorizontal={4}
+            paddingTop={12}
+            gap={4}
+            testID={MyProfileViewSelectorsIDs.ERROR}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {error}
+            </Text>
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={refresh}
+              testID={MyProfileViewSelectorsIDs.RETRY_BUTTON}
+            >
+              {strings('social_leaderboard.my_profile.retry')}
+            </Button>
+          </Box>
+        ) : displayProfile && overlayedStats ? (
+          <Animated.ScrollView
+            testID={MyProfileViewSelectorsIDs.SCROLL}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('flex-grow pb-6')}
+            onMomentumScrollEnd={handleScrollSettled}
+            onScrollEndDrag={handleScrollSettled}
+            refreshControl={
+              <RefreshControl
+                colors={[colors.primary.default]}
+                tintColor={colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            <MyProfileHeader
+              profile={displayProfile}
+              overlayedStats={overlayedStats}
+              followingCount={following.length}
+              isOwner={isOwner}
+              onFollowersPress={handleFollowersPress}
+              onFollowingPress={handleFollowingPress}
+              onStatsPress={() => setIsStatsSheetOpen(true)}
+            />
+
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              gap={2}
+              paddingHorizontal={4}
+              paddingBottom={8}
+            >
+              {isOwner ? (
+                <>
+                  <Box twClassName="flex-1">
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      isFullWidth
+                      onPress={handleEditProfile}
+                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                    >
+                      {strings('social_leaderboard.my_profile.edit_profile')}
+                    </Button>
+                  </Box>
+                  <Box twClassName="flex-1">
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      isFullWidth
+                      onPress={handleShareProfile}
+                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                    >
+                      {strings('social_leaderboard.my_profile.share_profile')}
+                    </Button>
+                  </Box>
+                </>
+              ) : (
                 <Box twClassName="flex-1">
                   <Button
-                    variant={ButtonVariant.Secondary}
+                    variant={
+                      isFollowing
+                        ? ButtonVariant.Secondary
+                        : ButtonVariant.Primary
+                    }
                     isFullWidth
-                    onPress={handleEditProfile}
-                    testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                    onPress={handleFollowPress}
+                    testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
                   >
-                    {strings('social_leaderboard.my_profile.edit_profile')}
+                    {isFollowing
+                      ? strings('social_leaderboard.following')
+                      : strings('social_leaderboard.follow')}
                   </Button>
                 </Box>
-                <Box twClassName="flex-1">
-                  <Button
-                    variant={ButtonVariant.Secondary}
-                    isFullWidth
-                    onPress={handleShareProfile}
-                    testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
-                  >
-                    {strings('social_leaderboard.my_profile.share_profile')}
-                  </Button>
-                </Box>
-              </>
-            ) : (
-              <Box twClassName="flex-1">
-                <Button
-                  variant={
-                    isFollowing
-                      ? ButtonVariant.Secondary
-                      : ButtonVariant.Primary
-                  }
-                  isFullWidth
-                  onPress={handleFollowPress}
-                  testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
+              )}
+            </Box>
+
+            <Box twClassName="border-b border-muted">
+              <Box
+                twClassName="self-start border-b-2 border-default"
+                paddingHorizontal={4}
+                paddingBottom={3}
+                testID={MyProfileViewSelectorsIDs.POSTS_TAB}
+              >
+                <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+                  {strings('social_leaderboard.my_profile.posts')}
+                </Text>
+              </Box>
+            </Box>
+
+            {showInitialPostSkeletons ? (
+              <Box paddingTop={4}>
+                {INITIAL_POST_SKELETON_KEYS.map((key, index) => (
+                  <Fragment key={key}>
+                    {index > 0 ? (
+                      <SectionDivider
+                        marginVertical={1}
+                        testID={getSocialV1FeedEntryDividerTestId(
+                          `loading-${index}`,
+                        )}
+                      />
+                    ) : null}
+                    <Box twClassName="px-4">
+                      <SocialFeedPostSkeleton index={index} />
+                    </Box>
+                  </Fragment>
+                ))}
+              </Box>
+            ) : showPostsEmptyState ? (
+              <ProfilePostsEmptyState
+                isOwner={isOwner}
+                onShareFirstTrade={handleShareFirstTrade}
+                onResetProfile={handleResetProfile}
+              />
+            ) : postsError && posts.length === 0 ? (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="w-full px-4 py-16 gap-3"
+                testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  twClassName="text-center"
                 >
-                  {isFollowing
-                    ? strings('social_leaderboard.following')
-                    : strings('social_leaderboard.follow')}
+                  {strings('social_leaderboard.feed.error.title')}
+                </Text>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Sm}
+                  onPress={refreshPosts}
+                  twClassName="self-center"
+                  testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
+                >
+                  {strings('social_leaderboard.feed.error.retry')}
                 </Button>
               </Box>
-            )}
-          </Box>
-
-          <Box twClassName="border-b border-muted">
-            <Box
-              twClassName="self-start border-b-2 border-default"
-              paddingHorizontal={4}
-              paddingBottom={3}
-              testID={MyProfileViewSelectorsIDs.POSTS_TAB}
-            >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-                {strings('social_leaderboard.my_profile.posts')}
-              </Text>
-            </Box>
-          </Box>
-
-          {showInitialPostSkeletons ? (
-            <Box paddingTop={4}>
-              {INITIAL_POST_SKELETON_KEYS.map((key, index) => (
-                <Fragment key={key}>
-                  {index > 0 ? (
-                    <SectionDivider
-                      marginVertical={1}
-                      testID={getSocialV1FeedEntryDividerTestId(
-                        `loading-${index}`,
-                      )}
-                    />
-                  ) : null}
-                  <Box twClassName="px-4">
-                    <SocialFeedPostSkeleton index={index} />
-                  </Box>
-                </Fragment>
-              ))}
-            </Box>
-          ) : showPostsEmptyState ? (
-            <ProfilePostsEmptyState
-              isOwner={isOwner}
-              onShareFirstTrade={handleShareFirstTrade}
-              onResetProfile={handleResetProfile}
-            />
-          ) : postsError && posts.length === 0 ? (
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="w-full px-4 py-16 gap-3"
-              testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                twClassName="text-center"
-              >
-                {strings('social_leaderboard.feed.error.title')}
-              </Text>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Sm}
-                onPress={refreshPosts}
-                twClassName="self-center"
-                testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
-              >
-                {strings('social_leaderboard.feed.error.retry')}
-              </Button>
-            </Box>
-          ) : (
-            <Box testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
-              <SocialV1FeedPostList
-                posts={posts}
-                dividerKeyPrefix="my-profile"
-                renderPost={(post) => <SocialFeedPostShell post={post} />}
-              />
-            </Box>
-          )}
-          {isFetchingNextPage ? (
-            <Box
-              alignItems={BoxAlignItems.Center}
-              twClassName="px-4"
-              testID={MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING}
-            >
-              <ActivityIndicator size="small" />
-            </Box>
-          ) : null}
-        </Animated.ScrollView>
-      ) : (
-        <Box
-          twClassName="flex-1"
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          paddingHorizontal={4}
-          gap={3}
-          testID={MyProfileViewSelectorsIDs.NO_PROFILE}
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            twClassName="text-center"
-          >
-            {strings('social_leaderboard.my_profile.no_profile_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings('social_leaderboard.my_profile.no_profile_description')}
-          </Text>
-          <Button
-            variant={ButtonVariant.Primary}
-            isFullWidth
-            onPress={handleCreateProfile}
-            testID={MyProfileViewSelectorsIDs.CREATE_PROFILE_BUTTON}
-          >
-            {strings('social_leaderboard.my_profile.create_profile')}
-          </Button>
-        </Box>
-      )}
-      {isStatsSheetOpen && displayProfile && overlayedStats ? (
-        <TraderStatsSheet
-          profile={overlayedStats.sheetProfile}
-          profileHandle={displayProfile.handle}
-          fallbackFields={overlayedStats.fallbackFields}
-          includeHoldTime={false}
-          openPositionsCount={openPositionsCount}
-          profileAgeLabel={overlayedStats.profileAgeLabel}
-          copySuccessRateLabel={overlayedStats.copySuccessRateLabel}
-          headerAvatar={
-            isOwner ? (
-              <ProfileAvatar
-                imageUrl={displayProfile.imageUrl}
-                avatarPresetId={displayProfile.avatarPresetId}
-                size="sm"
-                testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
-              />
             ) : (
-              <TraderAvatar
-                imageUrl={displayProfile.imageUrl}
-                address={displayProfile.linkedAccountAddress ?? undefined}
-                size={40}
-                recyclingKey={displayProfile.profileId}
-                testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
-              />
-            )
-          }
-          onClose={() => setIsStatsSheetOpen(false)}
-        />
-      ) : null}
-    </SafeAreaView>
+              <Box testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
+                <SocialV1FeedPostList
+                  posts={posts}
+                  dividerKeyPrefix="my-profile"
+                  renderPost={(post) => <SocialFeedPostShell post={post} />}
+                />
+              </Box>
+            )}
+            {isFetchingNextPage ? (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                twClassName="px-4"
+                testID={MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING}
+              >
+                <ActivityIndicator size="small" />
+              </Box>
+            ) : null}
+          </Animated.ScrollView>
+        ) : (
+          <Box
+            twClassName="flex-1"
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            paddingHorizontal={4}
+            gap={3}
+            testID={MyProfileViewSelectorsIDs.NO_PROFILE}
+          >
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-center"
+            >
+              {strings('social_leaderboard.my_profile.no_profile_title')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('social_leaderboard.my_profile.no_profile_description')}
+            </Text>
+            <Button
+              variant={ButtonVariant.Primary}
+              isFullWidth
+              onPress={handleCreateProfile}
+              testID={MyProfileViewSelectorsIDs.CREATE_PROFILE_BUTTON}
+            >
+              {strings('social_leaderboard.my_profile.create_profile')}
+            </Button>
+          </Box>
+        )}
+        {isStatsSheetOpen && displayProfile && overlayedStats ? (
+          <TraderStatsSheet
+            profile={overlayedStats.sheetProfile}
+            profileHandle={displayProfile.handle}
+            fallbackFields={overlayedStats.fallbackFields}
+            includeHoldTime={false}
+            openPositionsCount={openPositionsCount}
+            profileAgeLabel={overlayedStats.profileAgeLabel}
+            copySuccessRateLabel={overlayedStats.copySuccessRateLabel}
+            headerAvatar={
+              isOwner ? (
+                <ProfileAvatar
+                  imageUrl={displayProfile.imageUrl}
+                  avatarPresetId={displayProfile.avatarPresetId}
+                  size="sm"
+                  testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+                />
+              ) : (
+                <TraderAvatar
+                  imageUrl={displayProfile.imageUrl}
+                  address={displayProfile.linkedAccountAddress ?? undefined}
+                  size={40}
+                  recyclingKey={displayProfile.profileId}
+                  testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+                />
+              )
+            }
+            onClose={() => setIsStatsSheetOpen(false)}
+          />
+        ) : null}
+      </SafeAreaView>
+    </SocialFeedSurfaceProvider>
   );
 };
 

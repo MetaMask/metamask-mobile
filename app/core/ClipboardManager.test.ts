@@ -42,6 +42,15 @@ describe('ClipboardManager', () => {
       expect(ClipboardManager.getRevision()).toEqual(expect.any(Number));
     });
 
+    it('increments the local revision when a string is stored', async () => {
+      const revisionBefore = ClipboardManager.getRevision();
+      mockClipboard.setString.mockResolvedValue(undefined);
+
+      await ClipboardManager.setString('0xabc');
+
+      expect(ClipboardManager.getRevision()).toBe(revisionBefore + 1);
+    });
+
     it('checks whether the clipboard has string content', async () => {
       mockClipboard.hasString.mockResolvedValue(true);
 
