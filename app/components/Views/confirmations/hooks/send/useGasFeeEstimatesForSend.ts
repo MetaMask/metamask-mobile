@@ -6,7 +6,7 @@ import { useSendContext } from '../../context/send-context';
 import { useGasFeeEstimates } from '../gas/useGasFeeEstimates';
 import { useSendType } from './useSendType';
 
-export const useGasFeeEstimatesForSend = () => {
+export const useGasFeeEstimatesForSend = (enabled = true) => {
   const { chainId } = useSendContext();
   const { isNonEvmSendType } = useSendType();
 
@@ -22,7 +22,9 @@ export const useGasFeeEstimatesForSend = () => {
     [chainId, isNonEvmSendType], // eslint-disable-line react-hooks/exhaustive-deps,
   );
 
-  const { gasFeeEstimates } = useGasFeeEstimates(networkClientId ?? '');
+  const { gasFeeEstimates } = useGasFeeEstimates(
+    enabled ? (networkClientId ?? '') : '',
+  );
 
   return { gasFeeEstimates };
 };

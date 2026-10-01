@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +24,10 @@ import TagBase, {
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import {
+  AnimatedNumericText,
+  NUMERIC_LAYOUT_TRANSITION,
+} from '../../../../../../component-library/components-temp/AnimatedNumericText';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Device from '../../../../../../util/device';
 import { AssetType, TokenStandard } from '../../../types/token';
@@ -37,7 +42,7 @@ import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
-import { styleSheet } from './amount.styles';
+import { getFontSizeForInputLength, styleSheet } from './amount.styles';
 import { InitSendLocation } from '../../../constants/send';
 import {
   Text,
@@ -56,7 +61,7 @@ export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, updateValue, value } = useSendContext();
   const { balance } = useBalance();
-  const { amountError } = useAmountValidation();
+  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
   const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
@@ -64,6 +69,7 @@ export const Amount = () => {
     fiatCurrencySymbol,
     getFiatValue,
     getFiatDisplayValue,
+    getNativeValue,
   } = useCurrencyConversions();
   const isNFT =
     asset?.standard === TokenStandard.ERC721 ||
@@ -72,9 +78,15 @@ export const Amount = () => {
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
-  const { styles } = useStyles(styleSheet, {
-    contentLength: amount.length + assetDisplaySymbol.length,
-  });
+  // Passing the bucketed font size rather than the raw length keeps the style
+  // sheet identity stable between size steps. Keying it on length rebuilt every
+  // style on every keypress, which handed each child a new style object and
+  // defeated memoisation of the amount's character slots.
+  const inputFontSize = getFontSizeForInputLength(
+    amount.length + assetDisplaySymbol.length,
+  );
+  const styleVars = useMemo(() => ({ inputFontSize }), [inputFontSize]);
+  const { styles } = useStyles(styleSheet, styleVars);
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
@@ -197,33 +209,43 @@ export const Amount = () => {
         )}
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
-            <Text
+            <AnimatedNumericText
               color={textColor}
+              rollDigits={false}
               style={styles.inputText}
-              numberOfLines={1}
-              variant={TextVariant.DisplayMd}
-              adjustsFontSizeToFit
               testID="send_amount"
-            >
-              {amount?.length ? amount : defaultValue}
-            </Text>
-            <AnimatedCursor />
-            <Text
-              style={styles.inputText}
-              color={amountError ? TextColor.ErrorDefault : TextColor.TextMuted}
-              numberOfLines={1}
-              variant={TextVariant.DisplayLg}
-            >
-              {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
-            </Text>
+              value={amount.length ? amount : defaultValue}
+              variant={TextVariant.DisplayMd}
+            />
+            {/* The amount row changes width as digits are typed, which shifts
+                everything after it; the shared transition keeps the cursor and
+                ticker sliding on the same curve instead of snapping. */}
+            <Animated.View layout={NUMERIC_LAYOUT_TRANSITION}>
+              <AnimatedCursor />
+            </Animated.View>
+            <Animated.View layout={NUMERIC_LAYOUT_TRANSITION}>
+              <Text
+                style={styles.inputText}
+                color={
+                  amountError ? TextColor.ErrorDefault : TextColor.TextMuted
+                }
+                numberOfLines={1}
+                variant={TextVariant.DisplayLg}
+              >
+                {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
+              </Text>
+            </Animated.View>
           </View>
         </View>
         {conversionSupportedForAsset && (
           <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.TextAlternative}>
-                {alternateDisplayValue}
-              </Text>
+              <AnimatedNumericText
+                color={TextColor.TextAlternative}
+                deferRolling
+                testID="send_amount_alternate"
+                value={alternateDisplayValue}
+              />
               <Icon
                 color={IconColor.Alternative}
                 name={IconName.SwapVertical}
@@ -234,15 +256,23 @@ export const Amount = () => {
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
         ) : (
-          <Text style={styles.balanceText} color={TextColor.TextAlternative}>
-            {balanceDisplayValue}
-          </Text>
+          <AnimatedNumericText
+            color={TextColor.TextAlternative}
+            containerStyle={styles.balanceText}
+            deferRolling
+            testID="send_balance"
+            value={balanceDisplayValue}
+          />
         )}
       </View>
       <AmountKeyboard
         amount={amount}
+        amountError={amountError}
         fiatMode={fiatMode}
+        getFiatValue={getFiatValue}
+        getNativeValue={getNativeValue}
         updateAmount={setAmount}
+        validateNonEvmAmountAsync={validateNonEvmAmountAsync}
       />
     </SafeAreaView>
   );
