@@ -28,8 +28,28 @@ const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
 const SEGMENT_FILE_PREFIX = 'metamask-performance.segment-';
 // The dump is written before the app is allowed to settle in the background,
 // so this only has to cover writing and transferring a multi-megabyte trace.
-const SEGMENT_WAIT_TIMEOUT_MS = 30_000;
-const SEGMENT_POLL_INTERVAL_MS = 1_000;
+// Keep this short on BrowserStack: a missing path makes `pullFile` fail, and
+// WDIO connection retries re-run the same adb failure with backoff — a 30s
+// budget routinely burned ~3 full retry chains (~30s) of WARN spam per test.
+const SEGMENT_WAIT_TIMEOUT_MS = 12_000;
+// Local sleep between our polls. Each failed pull already spends seconds in
+// WDIO retries, so a longer interval mainly avoids stacking another chain
+// immediately after the previous one finishes.
+const SEGMENT_POLL_INTERVAL_MS = 2_500;
+
+/**
+ * Hermes `.cpuprofile` harvest is opt-in. PR performance runs skip it (profiles
+ * are only analyzed after schedule/manual runs). Set
+ * `COLLECT_HERMES_CPUPROFILES=true` to enable.
+ *
+ * Bracket access + babel exclude (see babel.config.tests.js /
+ * transform-inline-environment-variables) keep this readable at runtime —
+ * same pattern as sessionReuse.
+ */
+export function isHermesCpuProfileCollectionEnabled(): boolean {
+  // eslint-disable-next-line dot-notation
+  return process.env['COLLECT_HERMES_CPUPROFILES'] === 'true';
+}
 // Segment indices are assigned by the app and probed until the first gap; this
 // only bounds the probing if a device ever returns nonsense.
 const MAX_SEGMENTS_PER_TEST = 20;
@@ -121,11 +141,12 @@ async function waitForSegment(
     if (buffer) {
       return buffer;
     }
-    if (Date.now() >= deadline) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
       return null;
     }
     await new Promise<void>((resolve) => {
-      setTimeout(resolve, SEGMENT_POLL_INTERVAL_MS);
+      setTimeout(resolve, Math.min(SEGMENT_POLL_INTERVAL_MS, remainingMs));
     });
   }
 }
@@ -254,6 +275,10 @@ export async function collectAppProfiling(
   platform: 'android' | 'ios',
   options: { segmentWaitTimeoutMs?: number } = {},
 ): Promise<number> {
+  if (!isHermesCpuProfileCollectionEnabled()) {
+    return 0;
+  }
+
   if (platform !== 'android') {
     logger.info(
       'Skipping Hermes cpuprofile collection on iOS (app-scoped export is Android-only)',
