@@ -903,11 +903,25 @@ describe('PerpsClosePositionBottomSheet', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
         feeDiscountPercentage: 15,
+        feeDiscountKind: 'vip',
       });
 
       const { getByTestId } = renderSheet();
 
       expect(getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+    });
+
+    it('shows the promotional label without VIP branding', () => {
+      usePerpsOrderFeesMock.mockReturnValue({
+        ...defaultPerpsOrderFeesMock,
+        feeDiscountPercentage: 15,
+        feeDiscountKind: 'targeted',
+      });
+
+      const { getByText, queryByTestId } = renderSheet();
+
+      expect(getByText('Promotional discount')).toBeOnTheScreen();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
     });
   });
 

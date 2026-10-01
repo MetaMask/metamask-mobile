@@ -109,6 +109,97 @@ describe('usePerpsCloseAllCalculations', () => {
     mockGetPerpsDiscount.mockResolvedValue(0); // Default: no discount
   });
 
+  it('uses Core resolved close fees without applying a second account discount', async () => {
+    mockGetPerpsDiscount.mockResolvedValue({
+      discountBips: 7500,
+      targetedDiscountApplied: true,
+    });
+    mockCalculateFees.mockResolvedValue({
+      ...createMockFeeResult(),
+      feeAmount: 0.7,
+      protocolFeeAmount: 0.45,
+      metamaskFeeAmount: 0.25,
+      metamaskFeeRate: 0.00025,
+      protocolFeeRate: 0.00045,
+      feeRate: 0.0007,
+      feeResolution: {
+        feeBips: 2.5,
+        discountBips: 7500,
+        source: 'rewards',
+        subscription: { eligible: false, reason: 'no-source' },
+        targetedDiscountApplied: true,
+      },
+    });
+    const positions = [createMockPosition()];
+    const { result } = renderHook(() =>
+      usePerpsCloseAllCalculations({ positions, priceData: {} }),
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.totalFees).toBeCloseTo(0.7);
+    expect(result.current.avgFeeDiscountPercentage).toBe(75);
+    expect(result.current.feeDiscountKind).toBe('targeted');
+  });
+
+  it('retains targeted attribution for a completely free close', async () => {
+    mockCalculateFees.mockResolvedValue({
+      feeAmount: 0,
+      protocolFeeAmount: 0,
+      metamaskFeeAmount: 0,
+      metamaskFeeRate: 0,
+      protocolFeeRate: 0,
+      feeRate: 0,
+      feeResolution: {
+        feeBips: 0,
+        discountBips: 10000,
+        source: 'rewards',
+        subscription: { eligible: false, reason: 'no-source' },
+        targetedDiscountApplied: true,
+      },
+    });
+    const positions = [createMockPosition()];
+    const { result } = renderHook(() =>
+      usePerpsCloseAllCalculations({ positions, priceData: {} }),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.totalFees).toBe(0);
+    expect(result.current.originalTotalFees).toBe(25);
+    expect(result.current.avgFeeDiscountPercentage).toBe(100);
+    expect(result.current.feeDiscountKind).toBe('targeted');
+  });
+
+  it('does not brand mixed targeted and VIP close fees as VIP', async () => {
+    mockCalculateFees.mockImplementation(
+      async ({ symbol }: { symbol: string }) => ({
+        ...createMockFeeResult(),
+        feeAmount: 0.7,
+        protocolFeeAmount: 0.45,
+        metamaskFeeAmount: 0.25,
+        metamaskFeeRate: 0.00025,
+        protocolFeeRate: 0.00045,
+        feeRate: 0.0007,
+        feeResolution: {
+          feeBips: 2.5,
+          discountBips: 7500,
+          source: 'rewards',
+          subscription: { eligible: false, reason: 'no-source' },
+          targetedDiscountApplied: symbol === 'BTC',
+        },
+      }),
+    );
+    const positions = [
+      createMockPosition({ symbol: 'BTC' }),
+      createMockPosition({ symbol: 'ETH' }),
+    ];
+    const { result } = renderHook(() =>
+      usePerpsCloseAllCalculations({ positions, priceData: {} }),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.avgFeeDiscountPercentage).toBe(75);
+    expect(result.current.feeDiscountKind).toBeUndefined();
+  });
+
   describe('Initial State', () => {
     it('returns zero values for empty positions array', () => {
       // Arrange

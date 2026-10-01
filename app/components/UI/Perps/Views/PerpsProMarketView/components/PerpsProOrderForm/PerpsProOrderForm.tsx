@@ -239,6 +239,7 @@ const OrderSummary = ({
   fee,
   originalFee,
   feeDiscountPercentage,
+  feeDiscountKind,
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
@@ -324,6 +325,7 @@ const OrderSummary = ({
           fee={fee}
           originalFee={originalFee}
           feeDiscountPercentage={feeDiscountPercentage}
+          feeDiscountKind={feeDiscountKind}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}

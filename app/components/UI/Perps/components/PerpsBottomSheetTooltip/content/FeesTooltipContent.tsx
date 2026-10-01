@@ -1,3 +1,4 @@
+import { type PerpsFeeDiscountKind } from '../../../utils/feeDiscount';
 import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -19,6 +20,7 @@ interface FeesTooltipContentProps extends TooltipContentProps {
     protocolFeeRate?: number;
     originalMetamaskFeeRate?: number;
     feeDiscountPercentage?: number;
+    feeDiscountKind?: PerpsFeeDiscountKind;
     bridgeFeeFormatted?: string;
   };
 }
@@ -31,16 +33,19 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const originalFee = formatFeeRate(data?.originalMetamaskFeeRate);
   const discountPercentage = data?.feeDiscountPercentage;
 
-  const hasDiscount =
-    discountPercentage !== undefined && discountPercentage > 0;
+  const hasDiscount = discountPercentage !== undefined && discountPercentage > 0;
+  const isVipDiscount = hasDiscount && data?.feeDiscountKind === 'vip';
+  const discountMessage = data?.feeDiscountKind === 'vip' ? 'perps.tooltips.fees.discount_message_vip' : data?.feeDiscountKind === 'targeted' ? 'perps.tooltips.fees.promotional_discount_message' : 'perps.tooltips.fees.discount_message';
 
   return (
     <View testID={testID}>
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          <VipIcon name="VipIcon" width={14} height={14} />
+          {isVipDiscount && (
+            <VipIcon name="VipIcon" width={14} height={14} />
+          )}
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('perps.tooltips.fees.discount_message', {
+            {strings(discountMessage, {
               percentage: discountPercentage.toString(),
             })}
           </Text>
@@ -52,7 +57,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
-          {hasDiscount && <RewardsVipBadge />}
+          {isVipDiscount && <RewardsVipBadge />}
           {hasDiscount && (
             <Text
               variant={TextVariant.BodyMd}
