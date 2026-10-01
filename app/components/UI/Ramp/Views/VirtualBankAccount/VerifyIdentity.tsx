@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Linking, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -16,6 +19,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  ButtonsAlignment,
   FontWeight,
   HeaderStandard,
   Icon,
@@ -25,11 +29,13 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
@@ -129,6 +135,8 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
+  const [isConfirmSheetOpen, setIsConfirmSheetOpen] = useState(false);
+  const confirmSheetRef = useRef<BottomSheetRef>(null);
   const chevronRotation = useSharedValue(0);
 
   // The user can't continue without seeing idOS / SumSub terms.
@@ -138,7 +146,33 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
     transform: [{ rotate: `${chevronRotation.value}deg` }],
   }));
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const handleBack = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
+
+  const handleOpenConfirmSheet = useCallback(() => {
+    if (!canContinue) {
+      return;
+    }
+    setIsConfirmSheetOpen(true);
+  }, [canContinue]);
+
+  const handleConfirmSheetClosed = useCallback(() => {
+    setIsConfirmSheetOpen(false);
+  }, []);
+
+  const handleDismissConfirmSheet = useCallback(() => {
+    confirmSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleConfirmSheetConfirm = useCallback(() => {
+    confirmSheetRef.current?.onCloseBottomSheet(() => {
+      onSuccess();
+    });
+  }, [onSuccess]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -339,12 +373,59 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           size={ButtonSize.Lg}
           isFullWidth
           isDisabled={!canContinue}
-          onPress={onSuccess}
+          onPress={handleOpenConfirmSheet}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
           {strings('virtual_bank_account.verify_identity.button')}
         </Button>
       </Box>
+      {isConfirmSheetOpen ? (
+        <BottomSheet
+          ref={confirmSheetRef}
+          onClose={handleConfirmSheetClosed}
+          testID={VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET}
+        >
+          <BottomSheetHeader>
+            <Text variant={TextVariant.HeadingMd}>
+              {strings(
+                'virtual_bank_account.verify_identity.confirm_sheet_title',
+              )}
+            </Text>
+          </BottomSheetHeader>
+          <Box twClassName="px-4 pb-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.confirm_sheet_description',
+              )}
+            </Text>
+          </Box>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Vertical}
+            secondaryButtonProps={{
+              children: strings(
+                'virtual_bank_account.verify_identity.confirm_sheet_cancel',
+              ),
+              onPress: handleDismissConfirmSheet,
+              size: ButtonSize.Lg,
+              isFullWidth: true,
+              testID: VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET_CANCEL_BUTTON,
+            }}
+            primaryButtonProps={{
+              children: strings(
+                'virtual_bank_account.verify_identity.confirm_sheet_confirm',
+              ),
+              onPress: handleConfirmSheetConfirm,
+              size: ButtonSize.Lg,
+              isFullWidth: true,
+              testID:
+                VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET_CONFIRM_BUTTON,
+            }}
+          />
+        </BottomSheet>
+      ) : null}
     </SafeAreaView>
   );
 };

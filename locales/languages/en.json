@@ -1154,7 +1154,11 @@
       "metamask_terms": "MetaMask T&C",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "button": "Continue"
+      "button": "Continue",
+      "confirm_sheet_title": "Ready to verify?",
+      "confirm_sheet_description": "You'll be taken to our verification partner to upload your ID and take a selfie. By continuing you agree to the terms above.",
+      "confirm_sheet_confirm": "Continue",
+      "confirm_sheet_cancel": "Not now"
     },
     "kyc_email": {
       "title": "What's your email?",

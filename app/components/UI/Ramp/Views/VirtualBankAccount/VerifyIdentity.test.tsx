@@ -6,6 +6,7 @@ import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
@@ -70,14 +71,18 @@ describe('VbaVerifyIdentity', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates back when the header back button is pressed', () => {
+  it('navigates to Money home when the header back button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
 
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('shows the legal links regardless of the data and privacy toggle state', () => {
@@ -223,14 +228,49 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('advances within the identity module when continue is pressed', () => {
-    const { getByTestId } = renderWithProvider(
+  it('opens the confirm sheet when continue is pressed', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
+    expect(
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET),
+    ).not.toBeOnTheScreen();
+
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET),
+    ).toBeOnTheScreen();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('calls onSuccess when the confirm sheet continue button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET_CONFIRM_BUTTON),
+    );
+
     expect(mockOnSuccess).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('closes the confirm sheet when cancel is pressed', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET_CANCEL_BUTTON),
+    );
+
+    expect(
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.CONFIRM_SHEET),
+    ).not.toBeOnTheScreen();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 });
