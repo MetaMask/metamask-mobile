@@ -558,7 +558,7 @@
     "biometric_authentication_cancelled_description": "Set up biometric authentication again from the settings.",
     "biometric_authentication_cancelled_button": "Confirm",
     "biometric_changed": "Biometric Changed",
-    "biometric_changed_alert_desc": "Your biometric has been changed. Re-enable biometric from settings.",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Re-enable biometric in Settings.",
     "biometric_changed_alert_confirm": "Confirm"
   },
   "connect_hardware": {
