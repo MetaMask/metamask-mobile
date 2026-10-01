@@ -21,6 +21,8 @@ import type { RootState } from '../../../../../reducers';
 import { selectReferralMeEntry } from '../../../../../reducers/rewardsMoney/selectors';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
 import { useSessionProfileId } from '../../hooks/useReferralMe';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
@@ -92,10 +94,14 @@ export interface AcceptInviteSheetProps {
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
+  const hasTrackedOfferViewedRef = useRef(false);
+  const hasRespondedRef = useRef(false);
+  const acceptInFlightRef = useRef(false);
 
-  const { profileId } = useSessionProfileId();
+  const { profileId, isResolved: isProfileResolved } = useSessionProfileId();
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
@@ -113,6 +119,10 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     referralMe.variant !== 'NONE' &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
+  // Copy is keyed by a profile id that resolves asynchronously, and the
+  // entry can still be loading after that. Until both have settled, an
+  // absent invite is not a decision this sheet can track.
+  const isCopyPending = !isProfileResolved || Boolean(referralMeEntry?.loading);
 
   const {
     referralCode,
@@ -146,6 +156,59 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const canAccept =
     hasCodeToValidate && !isValidating && !isRejectedCode && !isAccepting;
 
+  // An offer is viewed only once this sheet is showing one: never on a
+  // payload still in flight, and never for a stale deeplink or an existing
+  // referee, which close themselves without the user seeing an invite. Those
+  // closes answer nothing, so a viewed interaction here would have no answer
+  // to pair with.
+  const isOfferOnScreen = !isCopyPending && !shouldDismissForReferralVariant;
+
+  useEffect(() => {
+    if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
+      return;
+    }
+    hasTrackedOfferViewedRef.current = true;
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      )
+        .addProperties({
+          interaction_type: 'viewed',
+          ...(initialReferralCode
+            ? { referral_code: initialReferralCode }
+            : {}),
+        })
+        .build(),
+    );
+  }, [createEventBuilder, initialReferralCode, isOfferOnScreen, trackEvent]);
+
+  // One answer per sheet, and the first one recorded is the answer: a close
+  // that follows Accept or Decline is the sheet acting on that press, not a
+  // second interaction. An answer also requires the matching viewed
+  // interaction, since the sheet can be dismissed while its copy is pending.
+  const trackResponded = useCallback(
+    (interactionType: 'accepted' | 'declined' | 'dismissed') => {
+      if (hasRespondedRef.current) {
+        return;
+      }
+      hasRespondedRef.current = true;
+      if (!hasTrackedOfferViewedRef.current) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+        )
+          .addProperties({
+            referral_code: referralCode,
+            interaction_type: interactionType,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, referralCode, trackEvent],
+  );
+
   const handleChangeReferralCode = useCallback(
     (code: string) => {
       clearError();
@@ -154,34 +217,63 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     [clearError, setReferralCode],
   );
 
-  const handleClose = useCallback(() => {
-    if (isAccepting) {
-      return;
-    }
-    sheetRef.current?.onCloseBottomSheet();
-  }, [isAccepting]);
-
+  // Only this button refuses the invite. Every other way out of the sheet
+  // leaves the offer standing, so it reports `dismissed` instead.
   const handleDecline = useCallback(() => {
-    if (isAccepting) {
+    // Dismissing mid-registration would leave the write unattended, and it is
+    // about to dismiss the sheet itself.
+    if (isAccepting || acceptInFlightRef.current) {
       return;
     }
+    trackResponded('declined');
     sheetRef.current?.onCloseBottomSheet();
-  }, [isAccepting]);
+  }, [isAccepting, trackResponded]);
+
+  const handleClose = useCallback(() => {
+    if (isAccepting || acceptInFlightRef.current) {
+      return;
+    }
+    trackResponded('dismissed');
+    sheetRef.current?.onCloseBottomSheet();
+  }, [isAccepting, trackResponded]);
 
   const handleAccept = useCallback(() => {
-    if (!canAccept) {
+    if (!canAccept || acceptInFlightRef.current) {
       return;
     }
     // Accept is about to refresh me to a non-NONE variant. Record that this
     // sheet was the invite, so that write cannot be read as a stale deeplink.
     hasSeenEligibleInviteRef.current = true;
-    // The hook owns the outcome: it reports a refusal and dismisses the sheet
-    // only once the registration has landed.
-    acceptReferralCode(referralCode).catch(() => undefined);
-  }, [acceptReferralCode, canAccept, referralCode]);
+    // Registration is the accept. A refused write leaves the sheet open, so
+    // `accepted` must not lock the funnel until the hook returns true.
+    acceptInFlightRef.current = true;
+    acceptReferralCode(referralCode)
+      .then((didAccept) => {
+        if (didAccept) {
+          trackResponded('accepted');
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        acceptInFlightRef.current = false;
+      });
+  }, [acceptReferralCode, canAccept, referralCode, trackResponded]);
+
+  const handleGoBack = useCallback(() => {
+    if (isAccepting || acceptInFlightRef.current) {
+      return;
+    }
+    // Reached by a swipe, the overlay and hardware back, and also by the sheet
+    // finishing a close this screen asked for — which the one-answer guard
+    // above is what keeps from overwriting that answer.
+    trackResponded('dismissed');
+    navigation.goBack();
+  }, [isAccepting, navigation, trackResponded]);
 
   useEffect(() => {
     if (shouldDismissForReferralVariant) {
+      // Deliberately not `handleGoBack`: no offer was on screen to answer, so
+      // this close is not a response and no viewed was recorded for it.
       navigation.goBack();
     }
   }, [navigation, shouldDismissForReferralVariant]);
@@ -196,7 +288,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   return (
     <BottomSheet
       ref={sheetRef}
-      goBack={navigation.goBack}
+      goBack={handleGoBack}
       testID={ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER}
     >
       <BottomSheetHeader
