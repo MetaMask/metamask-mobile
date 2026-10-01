@@ -461,9 +461,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     onOpened: () => {
       inFlight.refresh().catch(() => undefined);
     },
-    onSubmitted: () => {
-      fetchEarningsSummary({ forceFresh: true }).catch(() => undefined);
-    },
+    onSubmitted: () =>
+      fetchEarningsSummary({ forceFresh: true }).catch(() => undefined),
   });
 
   if (!localizedText) {

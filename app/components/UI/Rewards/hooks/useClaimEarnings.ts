@@ -55,7 +55,8 @@ export function useClaimEarnings(
   }: {
     variant?: ReferralVariant;
     onOpened?: () => void;
-    onSubmitted?: () => void;
+    /** Runs after a confirmed claim, before Claim is enabled again. */
+    onSubmitted?: () => void | Promise<void>;
   } = {},
 ): {
   claim: (summary: EarningsSummaryDto) => Promise<void>;
@@ -158,7 +159,7 @@ export function useClaimEarnings(
         const key = claimToastKey(outcomes);
         if (key === 'claimSuccessToast') {
           showToast(RewardsToastOptions.success(localizedText[key]));
-          onSubmitted?.();
+          await onSubmitted?.();
         } else {
           showToast(RewardsToastOptions.error(localizedText[key]));
         }
