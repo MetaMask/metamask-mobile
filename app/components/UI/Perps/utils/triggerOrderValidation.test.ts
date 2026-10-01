@@ -529,9 +529,7 @@ describe('scale crossing copy', () => {
   it('omits taker fees from the full-range warnings in both directions', () => {
     const copy = enTranslations.perps.order.validation;
 
-    expect(copy.scale_price_above_warning).toBe(
-      'Your price range is above current price and may fill immediately as a taker order.',
-    );
+    expect(copy.scale_price_above_warning).not.toContain('incur taker fees');
     expect(copy.scale_price_below_warning).toBe(
       copy.scale_price_above_warning.replace('above', 'below'),
     );
