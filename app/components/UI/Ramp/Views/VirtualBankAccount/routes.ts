@@ -28,6 +28,7 @@ export type VbaOnboardingParamList = {
 
 export const VbaIdentityVerificationRoutes = {
   PROVIDER_TERMS: 'VbaIdentityVerificationProviderTerms',
+  NEED_INFO: 'VbaIdentityVerificationNeedInfo',
   PROVIDER: 'VbaIdentityVerificationProvider',
 } as const;
 
@@ -38,6 +39,7 @@ export type VbaIdentityVerificationRoute =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaIdentityVerificationParamList = {
   VbaIdentityVerificationProviderTerms: undefined;
+  VbaIdentityVerificationNeedInfo: undefined;
   VbaIdentityVerificationProvider: {
     initialNeedsMoreInfo: boolean;
   };
