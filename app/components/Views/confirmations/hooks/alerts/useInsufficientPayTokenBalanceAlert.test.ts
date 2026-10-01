@@ -627,7 +627,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         {
           original: { metamask: { is7702: false } },
-        } as TransactionPayQuote<Json>,
+        } as unknown as TransactionPayQuote<Json>,
       ]);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -661,7 +661,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         {
           original: { metamask: { is7702: false } },
-        } as TransactionPayQuote<Json>,
+        } as unknown as TransactionPayQuote<Json>,
       ]);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -695,7 +695,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionPayQuotesMock.mockReturnValue([
         {
           original: { metamask: { is7702: true } },
-        } as TransactionPayQuote<Json>,
+        } as unknown as TransactionPayQuote<Json>,
       ]);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
