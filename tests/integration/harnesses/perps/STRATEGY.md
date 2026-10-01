@@ -70,12 +70,12 @@ When a harness is added or its public boundary changes, update this section. Fol
 
 ### Lighter recovery — [`lighter-recovery.ts`](lighter-recovery.ts)
 
-- **Shape:** A, real controller and provider with actual Mobile messenger delegation.
-- **Real:** installed Core `PerpsController`, `LighterProvider`, wallet/client services, response validation and account session guards.
-- **Mocked:** venue HTTP, keyring actions, signer WASM, disk storage and observability. No controller/provider/recovery method is replaced. The harness refuses financial signer calls and unknown HTTP endpoints.
-- **Factory:** `buildLighterRecoveryHarness()`.
-- **Returns:** controller, external-I/O mocks, recorded requests, response overrides, in-memory disk fixture, selected-account switch and teardown.
-- **Use when:** recovery must read authoritative wallet-owned positions/orders or consume stored outcomes through the installed Core package without granting financial readiness. The hook consumer uses only an Engine shell shim and real Redux. Component-view tests own the mounted controls; live recipes still own real native signing/storage and venue proof.
+- **Shape:** A for controller/provider reads and B for the real Mobile recovery-hook consumer seam, both with actual Mobile messenger delegation.
+- **Real:** installed Core `PerpsController`, `LighterProvider`, wallet/client services, response validation, account session guards and the Mobile recovery list/action/context hooks in consumer suites.
+- **Mocked:** venue HTTP, keyring actions, signer WASM, disk storage, observability and a reusable Engine shell binding. No controller/provider/recovery method or Mobile hook is replaced. The default read mode refuses financial signer calls and financial HTTP submissions, including with valid market/source fixtures. Unconfigured endpoints and key registration remain refused in both modes. Response overrides cannot bypass the submission boundary.
+- **Factory:** `buildLighterRecoveryHarness()` for reads; explicit `buildLighterRecoveryHarness({ mode: 'isolated-write' })` for selected protection integration. Optional shared `disk` and `venue` fixtures exercise controller recreation without native storage or real network access.
+- **Returns:** controller, external-I/O mocks, recorded requests/submissions/storage writes, response overrides, disk, market and venue fixtures, parked-source/trigger seed helpers, selected-account switch, `bindEngine()` and teardown.
+- **Use when:** recovery must read authoritative wallet-owned positions/orders or consume stored outcomes through the installed Core package. The isolated write mode additionally proves exact parked-source replacement/removal, signed position/price preconditions, source-to-successor persistence, unrelated obligation preservation and unresolved no-replay behavior through real Mobile hooks. Account and real-controller network A-to-B-to-A transitions retire the original editor's authority before confirmation. Its fixture shapes follow Strict05 Core's selected durable protection tests; mocked venue mutation occurs only on accepted HTTP submission, never on signing alone. The consumer runs real Redux and uses only the documented Engine shell shim. Component-view tests own mounted warning/editor controls; live recipes still own real native signing/storage and venue proof.
 - **Availability:** the recovery review tests require the strict Core recovery APIs in the installed package. A failure on their absence is an adoption failure, not a reason to replace the real controller with a shim.
 
 ## Coverage plan (summary)

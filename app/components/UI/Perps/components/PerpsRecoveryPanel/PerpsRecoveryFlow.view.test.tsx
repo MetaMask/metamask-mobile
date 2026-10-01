@@ -40,7 +40,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import PerpsTPSLView from '../../Views/PerpsTPSLView/PerpsTPSLView';
 import { PerpsTPSLViewSelectorsIDs as TPSL } from '../../Perps.testIds';
-import { PerpsRecoveryPanelTestIds as IDs } from './PerpsRecoveryPanel.testIds';
+import {
+  PerpsRecoveryPanelTestIds as IDs,
+  getPerpsRecoveryEntryTestId,
+} from './PerpsRecoveryPanel.testIds';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 import { formatOrderTypeLabel } from '../../utils/orderUtils';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
@@ -141,8 +144,16 @@ const renderHome = () =>
 
 const openProtectionEditor = async () => {
   const row = await screen.findByTestId(IDs.PROTECTION);
-  fireEvent.press(within(row).getByTestId(IDs.REVIEW));
-  fireEvent.press(await screen.findByTestId(IDs.EDIT_PROTECTION));
+  fireEvent.press(
+    within(row).getByTestId(
+      getPerpsRecoveryEntryTestId(IDs.REVIEW, PROTECTION),
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      getPerpsRecoveryEntryTestId(IDs.EDIT_PROTECTION, PROTECTION),
+    ),
+  );
   await screen.findByTestId(TPSL.STOP_LOSS_PRICE_INPUT);
 };
 
@@ -267,8 +278,16 @@ describe('Mounted Perps recovery flow', () => {
     });
     const row = await screen.findByTestId(IDs.DISPATCH);
 
-    fireEvent.press(within(row).getByTestId(IDs.REVIEW));
-    fireEvent.press(await screen.findByTestId(IDs.ACKNOWLEDGE));
+    fireEvent.press(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, DISPATCH),
+      ),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, DISPATCH),
+      ),
+    );
 
     await screen.findByText('Cached ETH size 0.008');
     expect(
@@ -295,7 +314,11 @@ describe('Mounted Perps recovery flow', () => {
     const { stream } = renderHome();
     const row = await screen.findByTestId(IDs.DISPATCH);
 
-    fireEvent.press(within(row).getByTestId(IDs.REVIEW));
+    fireEvent.press(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, DISPATCH),
+      ),
+    );
 
     const venue = within(await screen.findByTestId(IDs.VENUE));
     expect(venue.getByTestId(IDs.POSITION)).toHaveTextContent(
@@ -314,7 +337,11 @@ describe('Mounted Perps recovery flow', () => {
         price: formatPerpsFiat(ORDER.price),
       }),
     );
-    fireEvent.press(screen.getByTestId(IDs.ACKNOWLEDGE));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, DISPATCH),
+      ),
+    );
 
     await waitFor(() =>
       expect(acknowledge).toHaveBeenCalledWith(DISPATCH.recoveryId),
@@ -360,7 +387,11 @@ describe('Mounted Perps recovery flow', () => {
       });
       const row = await screen.findByTestId(IDs.PROTECTION);
 
-      fireEvent.press(within(row).getByTestId(IDs.REVIEW));
+      fireEvent.press(
+        within(row).getByTestId(
+          getPerpsRecoveryEntryTestId(IDs.REVIEW, PROTECTION),
+        ),
+      );
 
       await screen.findByTestId(IDs.VENUE);
       expect(screen.getAllByTestId(IDs.PROTECTION)).toHaveLength(1);
@@ -375,7 +406,11 @@ describe('Mounted Perps recovery flow', () => {
         ),
       ).not.toBeOnTheScreen();
       expect(reviewVenue).toHaveBeenCalledWith({ providerId: 'lighter' });
-      expect(screen.getByTestId(IDs.EDIT_PROTECTION)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsRecoveryEntryTestId(IDs.EDIT_PROTECTION, PROTECTION),
+        ),
+      ).toBeOnTheScreen();
     },
   );
 
@@ -547,9 +582,17 @@ describe('Mounted Perps recovery flow', () => {
     renderHome();
     const row = await screen.findByTestId(IDs.DISPATCH);
 
-    fireEvent.press(within(row).getByTestId(IDs.REVIEW));
+    fireEvent.press(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, DISPATCH),
+      ),
+    );
 
-    expect(within(row).getByTestId(IDs.REVIEW)).toBeDisabled();
+    expect(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, DISPATCH),
+      ),
+    ).toBeDisabled();
     expect(reviewVenue).not.toHaveBeenCalled();
     expect(acknowledge).not.toHaveBeenCalled();
   });
@@ -563,11 +606,23 @@ describe('Mounted Perps recovery flow', () => {
     });
     const { stream } = renderHome();
     const row = await screen.findByTestId(IDs.PROTECTION);
-    fireEvent.press(within(row).getByTestId(IDs.REVIEW));
-    fireEvent.press(await screen.findByTestId(IDs.REMOVE_PROTECTION));
+    fireEvent.press(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, PROTECTION),
+      ),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REMOVE_PROTECTION, PROTECTION),
+      ),
+    );
     expect(resolveProtection).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByTestId(IDs.CONFIRM_REMOVAL));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.CONFIRM_REMOVAL, PROTECTION),
+      ),
+    );
 
     await waitFor(() =>
       expect(resolveProtection).toHaveBeenCalledWith({
@@ -597,10 +652,22 @@ describe('Mounted Perps recovery flow', () => {
     });
     const { stream } = renderHome();
     const row = await screen.findByTestId(IDs.PROTECTION);
-    fireEvent.press(within(row).getByTestId(IDs.REVIEW));
-    fireEvent.press(await screen.findByTestId(IDs.REMOVE_PROTECTION));
+    fireEvent.press(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, PROTECTION),
+      ),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REMOVE_PROTECTION, PROTECTION),
+      ),
+    );
 
-    fireEvent.press(screen.getByTestId(IDs.CONFIRM_REMOVAL));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.CONFIRM_REMOVAL, PROTECTION),
+      ),
+    );
 
     expect(await screen.findByTestId(IDs.ACTION_ERROR)).toHaveTextContent(
       strings('perps.recovery.unresolved_error'),
@@ -632,8 +699,16 @@ describe('Mounted Perps recovery flow', () => {
     );
     const { store, stream } = renderHome();
     const row = await screen.findByTestId(IDs.DISPATCH);
-    fireEvent.press(within(row).getByTestId(IDs.REVIEW));
-    fireEvent.press(await screen.findByTestId(IDs.ACKNOWLEDGE));
+    fireEvent.press(
+      within(row).getByTestId(
+        getPerpsRecoveryEntryTestId(IDs.REVIEW, DISPATCH),
+      ),
+    );
+    fireEvent.press(
+      await screen.findByTestId(
+        getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, DISPATCH),
+      ),
+    );
     await waitFor(() => expect(acknowledge).toHaveBeenCalledTimes(1));
 
     act(() => {

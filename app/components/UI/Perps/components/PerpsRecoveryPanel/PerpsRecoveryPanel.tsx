@@ -20,7 +20,10 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import type { usePerpsRecovery } from '../../hooks/usePerpsRecovery';
-import { PerpsRecoveryPanelTestIds as IDs } from './PerpsRecoveryPanel.testIds';
+import {
+  PerpsRecoveryPanelTestIds as IDs,
+  getPerpsRecoveryEntryTestId,
+} from './PerpsRecoveryPanel.testIds';
 import { formatOrderTypeLabel } from '../../utils/orderUtils';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
 
@@ -113,7 +116,7 @@ const VenueSnapshot = ({ review }: { review: PerpsRecoveryVenueSnapshot }) => (
 );
 
 /**
- * Presents interrupted trading activity without exposing recovery identifiers,
+ * Presents interrupted trading activity without displaying recovery identifiers,
  * trading-key slots or internal failure messages. The owner supplies fenced
  * action authority and a strict venue snapshot for the exact selected entry.
  * A failed refresh retains known rows, and pending dispatches cannot acknowledge.
@@ -207,7 +210,7 @@ const PerpsRecoveryPanel = ({
             )}
           </Text>
           <Button
-            testID={IDs.REVIEW}
+            testID={getPerpsRecoveryEntryTestId(IDs.REVIEW, entry)}
             variant={ButtonVariant.Secondary}
             isDisabled={!actionsAvailable || !canReview(entry)}
             onPress={() => onReview(entry)}
@@ -219,7 +222,7 @@ const PerpsRecoveryPanel = ({
               <VenueSnapshot review={review} />
               {entry.acknowledgeable !== false && (
                 <Button
-                  testID={IDs.ACKNOWLEDGE}
+                  testID={getPerpsRecoveryEntryTestId(IDs.ACKNOWLEDGE, entry)}
                   isDisabled={!actionsAvailable || !canReview(entry)}
                   onPress={() => onAcknowledge(entry)}
                 >
@@ -236,7 +239,7 @@ const PerpsRecoveryPanel = ({
             {strings('perps.recovery.protection', { symbol: entry.symbol })}
           </Text>
           <Button
-            testID={IDs.REVIEW}
+            testID={getPerpsRecoveryEntryTestId(IDs.REVIEW, entry)}
             variant={ButtonVariant.Secondary}
             isDisabled={!actionsAvailable || !canReview(entry)}
             onPress={() => onReview(entry)}
@@ -247,7 +250,7 @@ const PerpsRecoveryPanel = ({
             <>
               <VenueSnapshot review={review} />
               <Button
-                testID={IDs.EDIT_PROTECTION}
+                testID={getPerpsRecoveryEntryTestId(IDs.EDIT_PROTECTION, entry)}
                 variant={ButtonVariant.Secondary}
                 isDisabled={!actionsAvailable || !canEditProtection(entry)}
                 onPress={() => onEditProtection(entry)}
@@ -262,7 +265,10 @@ const PerpsRecoveryPanel = ({
                     description={strings('perps.recovery.removal_warning')}
                   />
                   <Button
-                    testID={IDs.CONFIRM_REMOVAL}
+                    testID={getPerpsRecoveryEntryTestId(
+                      IDs.CONFIRM_REMOVAL,
+                      entry,
+                    )}
                     isDisabled={
                       !actionsAvailable || !canRemoveProtection(entry)
                     }
@@ -274,7 +280,10 @@ const PerpsRecoveryPanel = ({
                     {strings('perps.recovery.confirm_removal')}
                   </Button>
                   <Button
-                    testID={IDs.CANCEL_REMOVAL}
+                    testID={getPerpsRecoveryEntryTestId(
+                      IDs.CANCEL_REMOVAL,
+                      entry,
+                    )}
                     variant={ButtonVariant.Tertiary}
                     isDisabled={busy}
                     onPress={() => setRemoval(undefined)}
@@ -284,7 +293,10 @@ const PerpsRecoveryPanel = ({
                 </>
               ) : (
                 <Button
-                  testID={IDs.REMOVE_PROTECTION}
+                  testID={getPerpsRecoveryEntryTestId(
+                    IDs.REMOVE_PROTECTION,
+                    entry,
+                  )}
                   variant={ButtonVariant.Secondary}
                   isDisabled={!actionsAvailable || !canRemoveProtection(entry)}
                   onPress={() => setRemoval(entry)}

@@ -295,8 +295,8 @@ describe('Lighter WASM page', () => {
 
   describe('grouped orders', () => {
     it.each([
-      ['OCO', 1, 2],
-      ['OTO', 2, 2],
+      ['OTO', 1, 2],
+      ['OCO', 2, 2],
       ['OTOCO', 3, 3],
     ] as const)(
       'forwards the exact %s tuple to the signer',
@@ -354,8 +354,8 @@ describe('Lighter WASM page', () => {
     );
 
     it.each([
-      ['truncated OTO', createGroupedOrderParams(2, 2).slice(0, -1)],
-      ['extra OTO parameter', [...createGroupedOrderParams(2, 2), 0]],
+      ['truncated OCO', createGroupedOrderParams(2, 2).slice(0, -1)],
+      ['extra OCO parameter', [...createGroupedOrderParams(2, 2), 0]],
       ['truncated OTOCO', createGroupedOrderParams(3, 3).slice(0, -1)],
       ['extra OTOCO parameter', [...createGroupedOrderParams(3, 3), 0]],
       [
