@@ -16,6 +16,8 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
+import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -54,6 +56,20 @@ jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
+const mockUseMoneyPremiumAccountInterest = jest.mocked(
+  useMoneyPremiumAccountInterest,
+);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumAccountInterest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -67,8 +83,9 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-// CV cannot cover this screen yet: it is still mock-data UI with no Redux /
-// Engine state, so focused unit tests remain the coverage layer.
+// The money-balance row is covered by mocking useMoneyPremiumAccountInterest
+// and useMoneyPremiumVaultRate. The rest of this screen is still mock-data UI
+// with no Engine state, so focused unit tests remain the coverage layer.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +103,20 @@ describe('ProHub', () => {
       resetsOn: 'Sep 15',
       retry: jest.fn(),
     });
+    mockUseMoneyPremiumAccountInterest.mockReturnValue({
+      sinceInceptionQuery: {
+        data: { interest_earned_usd: '12.5' },
+      },
+      sinceInceptionInterest: '+$12.50',
+    } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+    mockUseMoneyPremiumVaultRate.mockReturnValue({
+      vaultRateQuery: {
+        data: { rate: '0.041' },
+      },
+      rate: '0.041',
+      ratePercent: 4.1,
+      ratePercentFormatted: '4.1%',
+    } as ReturnType<typeof useMoneyPremiumVaultRate>);
   });
 
   // ── Access guard ───────────────────────────────────────────────────────────
@@ -195,10 +226,11 @@ describe('ProHub', () => {
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.money_balance', {
-            apy: `${MOCK_PRO_HUB_STATS.moneyBalanceApy}%`,
+            apy: '4.1%',
           }),
         ),
       );
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$12.50'));
       expect(musdBackRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.musd_back', {
@@ -206,6 +238,27 @@ describe('ProHub', () => {
           }),
         ),
       );
+    });
+
+    it('shows placeholders while premium interest and vault rate are unavailable', () => {
+      mockUseMoneyPremiumAccountInterest.mockReturnValue({
+        sinceInceptionQuery: { data: undefined },
+        sinceInceptionInterest: '$0.00',
+      } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        vaultRateQuery: { data: undefined },
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+      } as ReturnType<typeof useMoneyPremiumVaultRate>);
+
+      const { getByTestId } = renderProHub();
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(moneyBalanceRow).toHaveTextContent(
+        toRegex(strings('pro_hub.money_balance', { apy: '—' })),
+      );
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('$0.00'));
     });
 
     it('renders the physical card banner with title and description', () => {
