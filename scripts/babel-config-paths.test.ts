@@ -86,6 +86,7 @@ describe('babel.config.js path matching', () => {
       '/node_modules/@metamask/profile-sync-controller/dist/index.js',
       '/node_modules/@metamask/notification-services-controller/dist/index.js',
       '/node_modules/@metamask/bridge-controller/dist/index.js',
+      '/node_modules/@metamask/assets-controller/dist/index.js',
       '/node_modules/@nktkas/hyperliquid/dist/index.js',
       '/node_modules/@metamask/perps-controller/dist/index.js',
       '/node_modules/@noble/secp256k1/index.js',

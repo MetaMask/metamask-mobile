@@ -933,6 +933,8 @@ describe('Engine', () => {
         },
         customAssets: {},
         assetPreferences: {},
+        assetsLoadingStatus: {},
+        assetsLoadingTokens: {},
       } as AssetsControllerState;
     };
 

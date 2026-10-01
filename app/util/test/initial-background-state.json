@@ -480,7 +480,9 @@
     },
     "assetsPrice": {},
     "customAssets": {},
-    "selectedCurrency": "usd"
+    "selectedCurrency": "usd",
+    "assetsLoadingStatus": {},
+    "assetsLoadingTokens": {}
   },
   "PermissionController": {
     "subjects": {}

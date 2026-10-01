@@ -192,6 +192,9 @@
     ]
   },
   "resolutions": {
+    "@metamask/assets-controller@^16.0.0": "npm:@metamask-previews/assets-controller@17.0.0-preview-772d48ed6",
+    "@metamask/assets-controller@^16.1.0": "npm:@metamask-previews/assets-controller@17.0.0-preview-772d48ed6",
+    "@metamask/assets-controller@16.1.1": "npm:@metamask-previews/assets-controller@17.0.0-preview-772d48ed6",
     "@tanstack/query-core": "5.101.4",
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
@@ -273,7 +276,9 @@
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
-    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
+    "@metamask/assets-controller@^16.1.1": "npm:@metamask-previews/assets-controller@17.0.0-preview-772d48ed6",
+    "@metamask/assets-controller@^17.0.0": "npm:@metamask-previews/assets-controller@17.0.0-preview-772d48ed6"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -301,7 +306,7 @@
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^10.0.0",
-    "@metamask/assets-controller": "^17.0.0",
+    "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@17.0.0-preview-772d48ed6",
     "@metamask/assets-controllers": "^112.0.2",
     "@metamask/authenticated-user-storage": "^4.0.0",
     "@metamask/base-controller": "^10.0.0",

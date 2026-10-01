@@ -689,6 +689,8 @@ describe('assets balance and balance change selectors (mobile)', () => {
             assetPreferences: {},
             customAssets: {},
             selectedCurrency: 'usd',
+            assetsLoadingStatus: {},
+            assetsLoadingTokens: {},
           },
           accountTreeState,
           'wallet-1/group-1',
