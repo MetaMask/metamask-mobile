@@ -1,5 +1,6 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { getFailoverUrlsForChainId } from './network-failover';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Network } from '../../components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import {
@@ -17,40 +18,12 @@ import {
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
-export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
-  'ethereum-mainnet': () => process.env.QUICKNODE_MAINNET_URL,
-  'linea-mainnet': () => process.env.QUICKNODE_LINEA_MAINNET_URL,
-  'arbitrum-mainnet': () => process.env.QUICKNODE_ARBITRUM_URL,
-  'avalanche-mainnet': () => process.env.QUICKNODE_AVALANCHE_URL,
-  'optimism-mainnet': () => process.env.QUICKNODE_OPTIMISM_URL,
-  'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
-  'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
-  'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
-  'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
-  'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
-  'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
-  'arc-mainnet': () => process.env.QUICKNODE_ARC_URL,
-  'robinhood-mainnet': () => process.env.QUICKNODE_ROBINHOOD_URL,
-  'zksync-mainnet': () => process.env.QUICKNODE_ZKSYNC_URL,
-  'megaeth-mainnet': () => process.env.QUICKNODE_MEGAETH_URL,
-};
-
-export function getFailoverUrlsForInfuraNetwork(
-  infuraNetwork: keyof typeof QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME,
-) {
-  const url = QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME[infuraNetwork]();
-  if (url) {
-    return [url];
-  }
-  return [];
-}
-
 export const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('43114')),
     ticker: 'AVAX',
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
@@ -62,7 +35,7 @@ export const PopularList = [
     chainId: toHex('42161'),
     nickname: 'Arbitrum',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('42161')),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
@@ -74,7 +47,7 @@ export const PopularList = [
     chainId: toHex('56'),
     nickname: 'BNB Chain',
     rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('56')),
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -87,7 +60,7 @@ export const PopularList = [
     chainId: toHex('8453'),
     nickname: 'Base',
     rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('base-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('8453')),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -100,7 +73,7 @@ export const PopularList = [
     chainId: toHex('999'),
     nickname: 'HyperEVM',
     rpcUrl: `https://hyperevm-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('999')),
     ticker: 'HYPE',
     warning: true,
     rpcPrefs: {
@@ -113,7 +86,7 @@ export const PopularList = [
     chainId: toHex('10'),
     nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('10')),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
@@ -125,7 +98,7 @@ export const PopularList = [
     chainId: toHex('137'),
     nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('137')),
     ticker: 'POL',
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
@@ -137,7 +110,7 @@ export const PopularList = [
     chainId: toHex('324'),
     nickname: 'zkSync Era',
     rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('zksync-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('324')),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -150,7 +123,7 @@ export const PopularList = [
     chainId: toHex('1329'),
     nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('1329')),
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
@@ -163,7 +136,7 @@ export const PopularList = [
     chainId: toHex('143'),
     nickname: 'Monad',
     rpcUrl: `https://monad-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('monad-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('143')),
     ticker: 'MON',
     warning: true,
     rpcPrefs: {
@@ -176,7 +149,7 @@ export const PopularList = [
     chainId: toHex('4326'),
     nickname: 'MegaETH',
     rpcUrl: `https://megaeth-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('megaeth-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('4326')),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -202,7 +175,7 @@ export const PopularList = [
     chainId: toHex('5042'),
     nickname: 'Arc',
     rpcUrl: `https://arc-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('5042')),
     ticker: 'USDC',
     warning: true,
     rpcPrefs: {
@@ -215,7 +188,7 @@ export const PopularList = [
     chainId: toHex('4663'),
     nickname: 'Robinhood Chain',
     rpcUrl: `https://robinhood-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('robinhood-mainnet'),
+    failoverRpcUrls: getFailoverUrlsForChainId(toHex('4663')),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
