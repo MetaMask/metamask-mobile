@@ -1,3 +1,4 @@
+import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useCallback } from 'react';
 import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -41,6 +42,7 @@ export interface PerpsCloseSummaryProps {
   originalTotalFees?: number;
   /** Fee discount percentage (0-100, undefined when unavailable) */
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) - undefined means unavailable/error state */
   metamaskFeeRate?: number;
   /** Protocol fee rate (as decimal, e.g. 0.00045 for 0.045%) - undefined means unavailable/error state */
@@ -102,6 +104,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalFees,
   originalTotalFees,
   feeDiscountPercentage,
+  feeDiscountKind,
   metamaskFeeRate,
   protocolFeeRate,
   originalMetamaskFeeRate,
@@ -156,6 +159,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   ) : totalFees !== undefined ? (
     <PerpsFeesDisplay
       feeDiscountPercentage={feeDiscountPercentage}
+      feeDiscountKind={feeDiscountKind}
       fee={totalFees}
       originalFee={originalTotalFees}
       testID={testIDs?.feesValue}
@@ -231,6 +235,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 protocolFeeRate,
                 originalMetamaskFeeRate,
                 feeDiscountPercentage,
+                feeDiscountKind,
               }),
             testID: testIDs?.feesTooltip,
           },

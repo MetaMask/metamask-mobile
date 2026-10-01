@@ -1,3 +1,4 @@
+import { getPerpsFeeDiscountKind, type PerpsFeeDiscountKind, } from '../utils/feeDiscount';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -18,6 +19,7 @@ import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
+  type PerpsFeeResolution,
   type OrderType,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
@@ -70,6 +72,9 @@ export interface OrderFeesResult {
   originalMetamaskFeeRate?: number;
   /** Fee discount percentage applied (e.g., 30 for 30% off) */
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
+  /** Attribution from the same Core snapshot used to price this preview. */
+  feeResolution?: PerpsFeeResolution;
   /** Estimated points to be earned from this trade */
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
@@ -200,17 +205,18 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips = await RewardsController.getPerpsDiscountForAccount(
+        const response = await RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
           BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
         );
-        if (discountBips === null) {
+        if (response === null) {
           DevLogger.log('Rewards: No fee discount available', {
             address,
             caipAccountId,
           });
           return { discountBips: undefined };
         }
+        const discountBips = typeof response === 'number' ? response : response.discountBips;
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance
@@ -227,12 +233,12 @@ export function usePerpsOrderFees({
         });
 
         // Cache the discount for configured duration
-        feeDiscountCache = {
+        feeDiscountCache = typeof response === 'number' ? {
           address,
           discountBips,
           timestamp: Date.now(),
           ttl: PERFORMANCE_CONFIG.FeeDiscountCacheDurationMs,
-        };
+        } : null;
 
         return { discountBips };
       } catch (error) {
@@ -348,6 +354,7 @@ export function usePerpsOrderFees({
   const [error, setError] = useState<string | null>(null);
 
   // State for rewards data
+  const [feeResolution, setFeeResolution] = useState<PerpsFeeResolution>();
   const [feeDiscountPercentage, setFeeDiscountPercentage] = useState<
     number | undefined
   >();
@@ -519,6 +526,7 @@ export function usePerpsOrderFees({
       discountPercentage?: number,
       points?: number,
       bonusBipsValue?: number,
+      resolution?: PerpsFeeResolution,
     ) => {
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
@@ -530,6 +538,7 @@ export function usePerpsOrderFees({
           : undefined,
       );
       setFeeDiscountPercentage(discountPercentage);
+      setFeeResolution(resolution);
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
     },
@@ -548,6 +557,7 @@ export function usePerpsOrderFees({
     setOriginalMetamaskFeeRate(0);
     setTotalFeeRate(0);
     setFeeDiscountPercentage(undefined);
+    setFeeResolution(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
   }, []);
@@ -591,10 +601,17 @@ export function usePerpsOrderFees({
           return;
         }
 
-        // Step 3: Apply fee discount if rewards are enabled (rates are guaranteed defined here)
-        const { adjustedRate, discountPercentage } = await applyFeeDiscount(
-          coreFeesResult.metamaskFeeRate,
-        );
+        // Core already applied the winning resolution. Do not resolve or discount it again.
+        const resolution = coreFeesResult.feeResolution;
+        const { adjustedRate, discountPercentage } = resolution
+          ? {
+            adjustedRate: coreFeesResult.metamaskFeeRate,
+            discountPercentage:
+              resolution.discountBips === undefined
+                ? undefined
+                : resolution.discountBips / 100,
+          }
+          : await applyFeeDiscount(coreFeesResult.metamaskFeeRate);
 
         if (!isComponentMounted) return;
 
@@ -621,7 +638,7 @@ export function usePerpsOrderFees({
         // Step 5: Update all state with actual values (all rates are defined)
         updateFeeState(
           coreFeesResult.protocolFeeRate,
-          coreFeesResult.metamaskFeeRate,
+          resolution ? BUILDER_FEE_CONFIG.MaxFeeDecimal : coreFeesResult.metamaskFeeRate,
           adjustedRate,
           discountPercentage,
           pointsResult.points,
@@ -690,6 +707,8 @@ export function usePerpsOrderFees({
       // Rewards data
       originalMetamaskFeeRate,
       feeDiscountPercentage,
+      feeResolution,
+      feeDiscountKind: getPerpsFeeDiscountKind(feeResolution),
       estimatedPoints,
       bonusBips,
     };
@@ -702,6 +721,7 @@ export function usePerpsOrderFees({
     error,
     originalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeResolution,
     estimatedPoints,
     bonusBips,
   ]);

@@ -1,3 +1,4 @@
+import PerpsFeeDiscountLabel from '../../components/PerpsFeesDisplay/PerpsFeeDiscountLabel';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -17,7 +18,6 @@ import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -302,9 +302,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               twClassName="flex-row items-center justify-center gap-2 pt-2"
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
-              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
-              ) : null}
+              <PerpsFeeDiscountLabel
+                feeDiscountPercentage={feeResults.feeDiscountPercentage}
+                feeDiscountKind={feeResults.feeDiscountKind}
+              />
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}

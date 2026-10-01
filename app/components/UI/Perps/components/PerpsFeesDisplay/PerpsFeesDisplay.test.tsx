@@ -13,6 +13,31 @@ jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
 });
 
 describe('PerpsFeesDisplay', () => {
+  it('shows a promotional label and original fee without a VIP badge', () => {
+    const { getByText, getByTestId, queryByTestId } = render(
+      <PerpsFeesDisplay
+        fee={0}
+        originalFee={10}
+        feeDiscountPercentage={100}
+        feeDiscountKind="targeted"
+        testID="fee"
+      />,
+    );
+
+    expect(getByText('Promotional discount')).toBeTruthy();
+    expect(getByTestId('fee-original')).toBeTruthy();
+    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+  });
+
+  it('uses a generic label when attribution is unknown', () => {
+    const { getByText, queryByTestId } = render(
+      <PerpsFeesDisplay fee={5} originalFee={10} feeDiscountPercentage={50} />,
+    );
+
+    expect(getByText('Fee discount')).toBeTruthy();
+    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+  });
+
   describe('Discount visibility', () => {
     it('does not show discounted fee when feeDiscountPercentage is undefined', () => {
       const { queryByTestId, getByTestId } = render(
@@ -42,6 +67,7 @@ describe('PerpsFeesDisplay', () => {
       const { queryByTestId } = render(
         <PerpsFeesDisplay
           fee={10}
+          feeDiscountKind="vip"
           feeDiscountPercentage={-5}
           originalFee={12}
           testID="fee"
@@ -77,6 +103,7 @@ describe('PerpsFeesDisplay', () => {
       const { getByTestId } = render(
         <PerpsFeesDisplay
           fee={8.5}
+          feeDiscountKind="vip"
           feeDiscountPercentage={15}
           originalFee={10}
           testID="fee"
