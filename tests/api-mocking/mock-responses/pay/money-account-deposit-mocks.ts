@@ -131,58 +131,77 @@ export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(
   await mockRelayStatusSuccess(mockServer);
 }
 
+function isExactMainnetRpcUrl(url: string | null): boolean {
+  // Other Infura hosts contain "mainnet.infura.io" (polygon-mainnet, and so on).
+  return Boolean(
+    url?.includes('://mainnet.infura.io/') || url?.includes('eth.llamarpc.com'),
+  );
+}
+
+// Gas, block, and transaction methods the fiat test-funding transfer needs on
+// mainnet. `eth_call` and `eth_getBalance` are deliberately absent: balance
+// reads and Multicall3 aggregate3 belong to the holdings mocks, which keep
+// seeded balances consistent and return `0x` so AssetsController falls back
+// to per-call reads.
+const MAINNET_DEPOSIT_RPC_METHODS = new Set([
+  'eth_blockNumber',
+  'eth_chainId',
+  'eth_estimateGas',
+  'eth_feeHistory',
+  'eth_gasPrice',
+  'eth_getBlockByNumber',
+  'eth_getCode',
+  'eth_getTransactionByHash',
+  'eth_getTransactionCount',
+  'eth_getTransactionReceipt',
+  'eth_maxPriorityFeePerGas',
+  'eth_sendRawTransaction',
+  'eth_sendTransaction',
+  'net_version',
+]);
+
 async function mockMainnetRpc(mockServer: Mockttp) {
   await mockServer
     .forPost('/proxy')
     .asPriority(1001)
     .matching(async (request) => {
       const url = new URL(request.url).searchParams.get('url');
-      if (!url?.includes('mainnet.infura.io')) return false;
+      if (!isExactMainnetRpcUrl(url)) return false;
 
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : {};
-        const method = body.method as string | undefined;
+        const calls = (Array.isArray(body) ? body : [body]) as Record<
+          string,
+          unknown
+        >[];
+        // Only claim requests made up entirely of these methods. A batch that
+        // also carries a balance read or aggregate3 is left to the holdings
+        // mocks so their fallback semantics are untouched.
         return (
-          method === 'eth_sendRawTransaction' ||
-          method === 'eth_sendTransaction' ||
-          method === 'eth_getTransactionReceipt'
+          calls.length > 0 &&
+          calls.every((call) =>
+            MAINNET_DEPOSIT_RPC_METHODS.has(String(call?.method)),
+          )
         );
       } catch {
         return false;
       }
     })
     .thenCallback(async (request) => {
-      const body = (await request.body.getJson()) as Record<string, unknown>;
-      const method = body?.method as string;
+      const body = (await request.body.getJson()) as
+        | Record<string, unknown>
+        | Record<string, unknown>[];
 
-      let result: unknown = '0x';
-      const mockHash =
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-
-      if (method === 'eth_getTransactionReceipt') {
-        const requestedHash = (body?.params as string[])?.[0] ?? mockHash;
-        result = {
-          transactionHash: requestedHash,
-          transactionIndex: '0x0',
-          blockNumber: '0x1234568',
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          from: '0x0000000000000000000000000000000000000000',
-          to: '0x0000000000000000000000000000000000000000',
-          cumulativeGasUsed: '0x94670',
-          gasUsed: '0x94670',
-          contractAddress: null,
-          logs: [],
-          status: '0x1',
-          logsBloom:
-            '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+      if (Array.isArray(body)) {
+        return {
+          statusCode: 200,
+          json: body.map((call) => ({
+            jsonrpc: '2.0',
+            id: call?.id ?? 1,
+            result: resolveMainnetDepositRpc(call),
+          })),
         };
-      } else if (
-        method === 'eth_sendRawTransaction' ||
-        method === 'eth_sendTransaction'
-      ) {
-        result = mockHash;
       }
 
       return {
@@ -190,7 +209,7 @@ async function mockMainnetRpc(mockServer: Mockttp) {
         json: {
           id: body?.id ?? 1,
           jsonrpc: '2.0',
-          result,
+          result: resolveMainnetDepositRpc(body),
         },
       };
     });
@@ -206,6 +225,95 @@ const ERC20_BALANCE_OF_SELECTOR = '0x70a08231';
 const ERC20_ALLOWANCE_SELECTOR = '0xdd62ed3e';
 const ERC20_DECIMALS_SELECTOR = '0x313ce567';
 const MULTICALL3_AGGREGATE3_SELECTOR = '0x82ad56cb';
+
+const MAINNET_TX_HASH =
+  '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+
+function mainnetSuccessReceipt(hash: string) {
+  return {
+    transactionHash: hash,
+    transactionIndex: '0x0',
+    blockNumber: '0x1234568',
+    blockHash:
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+    from: DEFAULT_FIXTURE_ACCOUNT,
+    to: DEFAULT_FIXTURE_ACCOUNT,
+    cumulativeGasUsed: '0x94670',
+    gasUsed: '0x94670',
+    contractAddress: null,
+    logs: [],
+    status: '0x1',
+    logsBloom:
+      '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+  };
+}
+
+function resolveMainnetDepositRpc(body: Record<string, unknown>): unknown {
+  const method = body?.method as string | undefined;
+  const params = body?.params as unknown[] | undefined;
+  const requestedHash =
+    typeof params?.[0] === 'string' ? params[0] : MAINNET_TX_HASH;
+
+  switch (method) {
+    case 'eth_getTransactionReceipt':
+      return mainnetSuccessReceipt(requestedHash);
+    case 'eth_getTransactionByHash':
+      return {
+        hash: requestedHash,
+        blockNumber: '0x1234568',
+        blockHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        transactionIndex: '0x0',
+        from: DEFAULT_FIXTURE_ACCOUNT,
+        to: DEFAULT_FIXTURE_ACCOUNT,
+        value: '0x0',
+        input: '0x',
+        nonce: '0x1',
+        gas: '0x186a0',
+        gasPrice: '0x3b9aca00',
+      };
+    case 'eth_sendRawTransaction':
+    case 'eth_sendTransaction':
+      return MAINNET_TX_HASH;
+    case 'eth_chainId':
+      return '0x1';
+    case 'net_version':
+      return '1';
+    case 'eth_blockNumber':
+      return '0x1234568';
+    case 'eth_getTransactionCount':
+      return '0x1';
+    case 'eth_estimateGas':
+      return '0x186a0';
+    case 'eth_gasPrice':
+    case 'eth_maxPriorityFeePerGas':
+      return '0x3b9aca00';
+    case 'eth_getBlockByNumber':
+      // A type-2 funding transfer reads baseFeePerGas. The default Infura
+      // stub returns `0x0` for this method, which fails the transfer.
+      return {
+        number: '0x1234568',
+        hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        parentHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        gasLimit: '0x1c9c380',
+        gasUsed: '0x94670',
+        baseFeePerGas: '0x989680',
+        timestamp: '0x68c0c0c0',
+      };
+    case 'eth_feeHistory':
+      return {
+        oldestBlock: '0x1234568',
+        baseFeePerGas: ['0x989680', '0x989680'],
+        gasUsedRatio: [0.5],
+        reward: [['0x3b9aca00']],
+      };
+    case 'eth_getCode':
+      return '0x';
+    default:
+      return '0x';
+  }
+}
 
 // Multicall3 aggregate3 returns a dynamic tuple(bool success, bytes returnData)[];
 // a flat 32-byte zero cannot be decoded, so the array must be encoded for the exact
