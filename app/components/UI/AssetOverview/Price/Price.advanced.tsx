@@ -849,7 +849,10 @@ const PriceAdvanced = ({
   const displayPrice =
     crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
-    if (dynamicComparePrice === null) return null;
+    if (dynamicComparePrice === null) {
+      // Fall back to parent-provided priceDiff when OHLCV compare price is unavailable
+      return chartType === ChartType.Candles ? priceDiff : null;
+    }
     return (
       (crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
@@ -860,6 +863,8 @@ const PriceAdvanced = ({
     lastBarClose,
     currentPrice,
     dynamicComparePrice,
+    chartType,
+    priceDiff,
   ]);
 
   const isCrosshairActive = !!crosshairData && chartType === ChartType.Candles;
@@ -1121,7 +1126,10 @@ const PriceAdvanced = ({
             <TokenPriceTitleHub
               price={displayPrice}
               displayDiff={displayDiff}
-              comparePrice={dynamicComparePrice}
+              comparePrice={
+                dynamicComparePrice ??
+                (chartType === ChartType.Candles ? comparePrice : null)
+              }
               periodLabel={displayDate}
               currentCurrency={currentCurrency}
               isLoading={isLoading}
