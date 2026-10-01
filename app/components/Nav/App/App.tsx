@@ -933,25 +933,6 @@ const MultichainAccountDetails = () => {
   );
 };
 
-const MultichainAddressList = () => {
-  const route = useRoute();
-
-  return (
-    <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-      }}
-    >
-      <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={MultichainAccountAddressList}
-        initialParams={route?.params}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
 const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
@@ -1007,7 +988,7 @@ const MultichainAccountGroupDetails = () => {
 
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={MultichainAddressList}
+        component={MultichainAccountAddressList}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
@@ -1273,7 +1254,7 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={MultichainAddressList}
+        component={MultichainAccountAddressList}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
