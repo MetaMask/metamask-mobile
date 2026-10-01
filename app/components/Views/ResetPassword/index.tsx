@@ -57,6 +57,11 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { useTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID,
+  isSeedlessPasswordChangeKillHalt,
+  subscribeSeedlessPasswordChangeKillReady,
+} from '../../../core/Authentication/seedlessPasswordChangeKillSwitch';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -136,6 +141,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [killReadyHop, setKillReadyHop] = useState<string | undefined>();
   const [view, setView] = useState(ViewState.ConfirmCurrent);
   const [originalPassword, setOriginalPassword] = useState<string | null>(null);
   const [ready, setReady] = useState(true);
@@ -179,6 +185,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     }
     setReady(true);
   }, []);
+
+  useEffect(
+    () => subscribeSeedlessPasswordChangeKillReady(setKillReadyHop),
+    [],
+  );
 
   useEffect(() => {
     const initAuth = async () => {
@@ -247,9 +258,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         type: 'error',
         icon: IconName.Danger,
         isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
-        },
         closeOnPrimaryButtonPress: true,
       },
     });
@@ -285,6 +293,41 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       selectedAddress || '',
     );
   }, [originalPassword, password, selectedAddress]);
+
+  const handleChangePasswordError = useCallback(
+    async (castError: Error) => {
+      if (castError.toString() === PASSCODE_NOT_SET_ERROR) {
+        Alert.alert(
+          strings('choose_password.security_alert_title'),
+          strings('choose_password.security_alert_message'),
+        );
+        return;
+      }
+      if (!isSeedlessOnboardingLoginFlow) {
+        return;
+      }
+
+      Logger.error(castError);
+      try {
+        await Authentication.lockApp({ locked: true });
+      } catch (lockError) {
+        Logger.error(lockError as Error);
+      }
+      if (
+        castError.message ===
+        SeedlessOnboardingControllerErrorMessage.OutdatedPassword
+      ) {
+        handleSeedlessPasswordOutdated();
+      } else {
+        handleSeedlessChangePasswordError();
+      }
+    },
+    [
+      isSeedlessOnboardingLoginFlow,
+      handleSeedlessPasswordOutdated,
+      handleSeedlessChangePasswordError,
+    ],
+  );
 
   const onPressCreate = useCallback(async () => {
     if (loading) return;
@@ -347,26 +390,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       });
     } catch (err) {
       const castError = err as Error;
-      if (castError.toString() === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('choose_password.security_alert_title'),
-          strings('choose_password.security_alert_message'),
-        );
-        setLoading(false);
-      } else if (castError.message.includes('SeedlessOnboardingController')) {
-        Logger.error(castError);
-        if (
-          castError.message ===
-          SeedlessOnboardingControllerErrorMessage.OutdatedPassword
-        ) {
-          handleSeedlessPasswordOutdated();
-        } else {
-          handleSeedlessChangePasswordError();
-        }
-        setLoading(false);
-      } else {
-        setLoading(false);
+      if (isSeedlessPasswordChangeKillHalt(castError)) {
+        return;
       }
+      await handleChangePasswordError(castError);
+      setLoading(false);
     }
   }, [
     loading,
@@ -376,8 +404,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     rememberMe,
     biometryType,
     recreateVault,
+    handleChangePasswordError,
     handleSeedlessPasswordOutdated,
-    handleSeedlessChangePasswordError,
     dispatch,
     navigation,
   ]);
@@ -512,6 +540,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       alignItems={BoxAlignItems.Center}
       paddingHorizontal={10}
       twClassName="flex-1 pb-[30px]"
+      testID={
+        killReadyHop
+          ? SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID
+          : 'reset-password-changing-password'
+      }
+      accessibilityLabel={killReadyHop}
     >
       <Box
         twClassName={`mt-[30px] mb-[30px] ${

@@ -119,6 +119,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
+  '@metamask/seedless-onboarding-controller',
   '@metamask/signature-controller',
   '@metamask/smart-transactions-controller',
   '@metamask/storage-service',

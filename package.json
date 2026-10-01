@@ -198,7 +198,7 @@
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
     "@metamask/remote-feature-flag-controller": "^6.1.1",
-    "@metamask/seedless-onboarding-controller": "11.0.1",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@11.0.0-preview-0a1dd02ad",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",
@@ -921,5 +921,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/seedless-onboarding-controller": {
+      "type": "breaking",
+      "previewVersion": "11.0.0-preview-0a1dd02ad"
+    }
   }
 }
