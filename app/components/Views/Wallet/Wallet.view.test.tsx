@@ -85,6 +85,8 @@ const restoreHomepageSearchClipboard = () => {
 
 describeForPlatforms('Wallet', () => {
   beforeEach(() => {
+    // Clipboard mocks and consumed paste revisions are module singletons
+    // shared by the iOS and Android suites in this file.
     restoreHomepageSearchClipboard();
   });
 
