@@ -109,12 +109,19 @@ export const PredictSearchScreen = () => {
       .params;
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const hasInput = query.trim().length > 0;
   const hasQuery = debouncedQuery.trim().length > 0;
   const isDebouncing = query.trim() !== debouncedQuery.trim();
   const { data, isError, isLoading, refetch } = useSearchEvents(
     venueId,
     debouncedQuery,
   );
+  // `isLoading` is `isPending && isFetching`; a fresh query key commits one
+  // frame as pending-but-not-fetching before the observer starts the request.
+  // Treat any enabled query without results as pending so that frame cannot
+  // fall through to the empty state. `isFetching` is deliberately excluded so
+  // cached results stay visible during background refetches.
+  const isPendingResults = hasQuery && !isError && data === undefined;
   const resultEvents = data?.events ?? NO_EVENTS;
   const events = useEventsWithLiveData(venueId, resultEvents, {
     marketScope: 'card',
@@ -151,14 +158,17 @@ export const PredictSearchScreen = () => {
   );
 
   let content: React.ReactNode;
-  if (!hasQuery && !isDebouncing) {
+  if (!hasInput) {
+    // Idle follows the live input, not the debounced value, so clearing the
+    // field returns to idle immediately instead of showing a skeleton for the
+    // remainder of the debounce window.
     content = (
       <Message
         testID={PredictSearchScreenTestIds.IDLE}
         text={strings('predict_next.search.idle')}
       />
     );
-  } else if (isLoading || isDebouncing) {
+  } else if (isDebouncing || isLoading || isPendingResults) {
     content = <SearchLoading />;
   } else if (isError) {
     content = <SearchError onRetry={handleRetry} />;

@@ -8,7 +8,7 @@ import {
   makePredictNextEvent,
   messengerCall,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
@@ -101,9 +101,42 @@ describe('PredictSearchScreen', () => {
 
     fireEvent.press(view.getByTestId(PredictSearchScreenTestIds.CLEAR));
 
+    // Idle follows the live input: no skeleton while the debounce drains.
+    expect(view.getByTestId(PredictSearchScreenTestIds.IDLE)).toBeOnTheScreen();
     expect(
-      await view.findByTestId(PredictSearchScreenTestIds.IDLE),
+      view.queryByTestId(PredictSearchScreenTestIds.LOADING),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the skeleton up and never flashes the empty state while a fresh search is in flight', async () => {
+    const base = messengerCall.getMockImplementation();
+    messengerCall.mockImplementation((action: string, ...args: unknown[]) =>
+      action === 'PredictMarketDataService:searchEvents'
+        ? new Promise(() => undefined)
+        : base?.(action, ...args),
+    );
+    const view = renderPredictSearchScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictSearchScreenTestIds.IDLE);
+    messengerCall.mockClear();
+
+    typeQuery(view, 'chiefs');
+    // Well past the debounce: the query is enabled and the request has been
+    // issued but can never resolve.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    });
+
+    expect(
+      view.getByTestId(PredictSearchScreenTestIds.LOADING),
     ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictSearchScreenTestIds.EMPTY),
+    ).not.toBeOnTheScreen();
+    expect(searchCalls()).toHaveLength(1);
+
+    fireEvent.press(view.getByTestId(PredictSearchScreenTestIds.CLEAR));
+
+    expect(view.getByTestId(PredictSearchScreenTestIds.IDLE)).toBeOnTheScreen();
   });
 
   it('shows an error with retry that re-runs the search', async () => {
