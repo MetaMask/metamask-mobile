@@ -124,10 +124,16 @@ export function useClaimEarnings(
             }
             const data = ('0x' +
               Buffer.from(message, 'utf8').toString('hex')) as Hex;
-            return Engine.context.KeyringController.signPersonalMessage({
-              data,
-              from: from as Hex,
-            });
+            try {
+              return await Engine.context.KeyringController.signPersonalMessage(
+                {
+                  data,
+                  from: from as Hex,
+                },
+              );
+            } catch {
+              throw new Error('SIGN_FAILED');
+            }
           },
           submitVoucher: async (voucher: ClaimVoucherDto) => {
             navigateToConfirmation({
