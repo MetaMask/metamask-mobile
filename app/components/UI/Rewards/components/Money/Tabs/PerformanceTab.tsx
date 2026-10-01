@@ -223,7 +223,7 @@ const ReferralFunnelSkeleton: React.FC = () => {
 
 const FunnelSection: React.FC<{
   localizedText: ReferralLocalizedText;
-  funnel: ReferralFunnelDto | undefined;
+  funnel: ReferralFunnelDto | null | undefined;
   loading: boolean;
 }> = ({ localizedText, funnel, loading }) => {
   const funnelMax = Math.max(funnel?.enrolled ?? 0, 1);
