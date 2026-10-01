@@ -8,7 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -22,18 +22,6 @@ export interface AnnualRateRowProps {
   testID: string;
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-  },
-  labelWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-});
-
 const AnnualRateRow = ({
   annualRewardRate,
   isLoading,
@@ -45,8 +33,8 @@ const AnnualRateRow = ({
   const tw = useTailwind();
 
   return (
-    <View style={styles.row}>
-      <View style={styles.labelWrapper}>
+    <View style={tw.style('py-2 flex-row justify-between')}>
+      <View style={tw.style('flex-row items-center')}>
         <Pressable
           testID={testID}
           accessibilityRole="button"
