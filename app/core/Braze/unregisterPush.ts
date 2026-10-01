@@ -84,8 +84,9 @@ export async function unregisterBrazePush(): Promise<boolean> {
 /**
  * Retry a previously persisted Braze push unregistration.
  *
- * The pending marker is retained on failure so the next app launch can try
- * again.
+ * On iOS this can wait until the APNs token arrives, because the Swift SDK
+ * does not keep that token across launches. The pending marker is retained
+ * on failure so the next app launch can try again.
  *
  * @returns Whether no unregistration remains pending.
  */
