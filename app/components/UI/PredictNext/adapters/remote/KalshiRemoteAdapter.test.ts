@@ -573,11 +573,84 @@ describe('KalshiRemoteAdapter', () => {
       potentialProfit: '22.14',
       expiresAt: '2026-03-01T12:00:30.000Z',
     };
+    const sellPreviewPayload = {
+      previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+      venueId: 'kalshi',
+      marketId: 'market-1',
+      side: 'yes',
+      action: 'sell',
+      requestedContracts: 70,
+      estimatedContracts: 65,
+      averagePrice: '0.4800',
+      limitPrice: '0.4000',
+      fee: '0.31',
+      feeBreakdown: [
+        { source: 'venue', amount: '0.16' },
+        { source: 'metamask', amount: '0.15' },
+      ],
+      estimatedProceeds: '31.20',
+      estimatedNetProceeds: '30.89',
+      expiresAt: '2026-03-01T12:00:30.000Z',
+    };
     const previewParams = {
       marketId,
       side: 'yes' as const,
+      action: 'buy' as const,
       amount: '20' as never,
     };
+    const sellPreviewParams = {
+      marketId,
+      side: 'yes' as const,
+      action: 'sell' as const,
+      contracts: '70' as never,
+    };
+
+    it('sends the sell intent through the transport unchanged', async () => {
+      client.fetchOrderPreview.mockResolvedValue(sellPreviewPayload);
+
+      await adapter.trading.previewOrder(sellPreviewParams);
+
+      expect(client.fetchOrderPreview).toHaveBeenCalledWith(
+        adapter.venueId,
+        sellPreviewParams,
+        undefined,
+      );
+    });
+
+    it('parses a canonical sell Order Preview for the exact intent', async () => {
+      client.fetchOrderPreview.mockResolvedValue(sellPreviewPayload);
+
+      const result = await adapter.trading.previewOrder(sellPreviewParams);
+
+      expect(result).toMatchObject({
+        action: 'sell',
+        requestedContracts: 70,
+        estimatedNetProceeds: '30.89',
+      });
+    });
+
+    it('rejects a sell Order Preview bound to a different contract count', async () => {
+      client.fetchOrderPreview.mockResolvedValue({
+        ...sellPreviewPayload,
+        requestedContracts: 65,
+      });
+
+      await expect(
+        adapter.trading.previewOrder(sellPreviewParams),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
+
+    it('rejects a sell Order Preview that answers a buy intent', async () => {
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+
+      await expect(
+        adapter.trading.previewOrder(sellPreviewParams),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
 
     it('parses a canonical Order Preview for the exact intent', async () => {
       client.fetchOrderPreview.mockResolvedValue(previewPayload);
@@ -585,7 +658,31 @@ describe('KalshiRemoteAdapter', () => {
       const result = await adapter.trading.previewOrder(previewParams);
 
       expect(result.previewId).toBe(previewPayload.previewId);
-      expect(result.requestedAmount).toBe('20.00');
+      expect(result).toMatchObject({ requestedAmount: '20.00' });
+    });
+
+    it('sends the legacy buy wire shape without an action key', async () => {
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+
+      await adapter.trading.previewOrder(previewParams);
+
+      expect(client.fetchOrderPreview).toHaveBeenCalledWith(
+        adapter.venueId,
+        // Version tolerance: no `action` key reaches the wire for a buy.
+        { marketId, side: 'yes', amount: '20' },
+        undefined,
+      );
+    });
+
+    it('parses a buy Preview that carries an explicit action (new backend)', async () => {
+      client.fetchOrderPreview.mockResolvedValue({
+        ...previewPayload,
+        action: 'buy',
+      });
+
+      await expect(
+        adapter.trading.previewOrder(previewParams),
+      ).resolves.toMatchObject({ action: 'buy', requestedAmount: '20.00' });
     });
 
     it('accepts an amount echo that differs only in trailing zeros', async () => {
@@ -638,6 +735,32 @@ describe('KalshiRemoteAdapter', () => {
       );
     });
 
+    it('maps the over-sell and position-read backend codes', async () => {
+      client.fetchOrderPreview.mockRejectedValue(
+        new PredictHttpError(422, 'insufficient_position'),
+      );
+
+      await expect(
+        adapter.trading.previewOrder(sellPreviewParams),
+      ).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.INSUFFICIENT_POSITION,
+        }),
+      );
+
+      client.fetchOrderPreview.mockRejectedValue(
+        new PredictHttpError(503, 'position_unavailable'),
+      );
+
+      await expect(
+        adapter.trading.previewOrder(sellPreviewParams),
+      ).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.POSITION_UNAVAILABLE,
+        }),
+      );
+    });
+
     const receiptPayload = {
       operationId: 'd8f1c0aa-2222-4333-9444-555566667777',
       previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -654,6 +777,51 @@ describe('KalshiRemoteAdapter', () => {
       fee: null,
       payoutExposure: null,
     };
+
+    const sellReceiptPayload = {
+      operationId: 'd8f1c0aa-2222-4333-9444-555566667777',
+      previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+      venueId: 'kalshi',
+      marketId,
+      side: 'yes',
+      action: 'sell',
+      status: 'filled',
+      quotedContracts: 70,
+      venueOrderId: 'venue-order-1',
+      filledContracts: '70.00',
+      averageFillPrice: '0.4800',
+      fee: '0.31',
+      actualProceeds: '31.20',
+      netProceeds: '30.89',
+    };
+
+    it('parses a canonical sell Order Receipt for the committed preview', async () => {
+      client.commitOrder.mockResolvedValue(sellReceiptPayload);
+
+      const result = await adapter.trading.commitOrder(
+        sellReceiptPayload.previewId,
+      );
+
+      expect(result).toMatchObject({
+        action: 'sell',
+        status: 'filled',
+        filledContracts: '70.00',
+        netProceeds: '30.89',
+      });
+    });
+
+    it('rejects a sell Order Receipt carrying buy-only fields', async () => {
+      client.commitOrder.mockResolvedValue({
+        ...sellReceiptPayload,
+        payoutExposure: '70.00',
+      });
+
+      await expect(
+        adapter.trading.commitOrder(sellReceiptPayload.previewId),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
 
     it('parses a canonical Order Receipt for the committed preview', async () => {
       client.commitOrder.mockResolvedValue(receiptPayload);
