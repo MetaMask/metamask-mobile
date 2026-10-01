@@ -133,7 +133,7 @@ interface GetLimitOrderApiMockOptions {
 }
 
 /**
- * Registers a `GET /v2/orders/limit?id={id}` interceptor on the Bridge API,
+ * Registers a `GET /v2/orders/limit/{id}` interceptor on the Bridge API,
  * replying with the order and its fill attempts. Pair with
  * {@link clearGetLimitOrderApiMock} in `afterEach`.
  *
@@ -148,8 +148,8 @@ export function setupGetLimitOrderApiMock({
   disableNetConnect();
 
   return nock(BRIDGE_API_BASE_URL)
-    .get('/v2/orders/limit')
-    .query({ id: order.id, accountAddress: order.account })
+    .get(`/v2/orders/limit/${encodeURIComponent(order.id)}`)
+    .query({ accountAddress: order.account })
     .reply(status, { order, transactions })
     .persist();
 }
