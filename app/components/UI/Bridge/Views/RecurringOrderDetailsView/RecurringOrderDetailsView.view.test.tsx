@@ -25,7 +25,10 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
 } from '../../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
-import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
+import {
+  type GetRecurringSwapsResponse,
+  RecurringOrderState,
+} from '../../api/recurringOrders.types';
 import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
 import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
@@ -47,7 +50,7 @@ async function openInProgressOrderDetails(
   await userEvent.press(
     await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-        MOCK_RECURRING_OPEN_ORDER.orderId,
+        MOCK_RECURRING_OPEN_ORDER.id,
       ),
     ),
   );
@@ -182,7 +185,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     });
     const historyRow = await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
-        MOCK_RECURRING_OPEN_ORDER.orderId,
+        MOCK_RECURRING_OPEN_ORDER.id,
       ),
     );
     expect(
@@ -197,7 +200,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       expect(
         renderResult.queryByTestId(
           RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-            MOCK_RECURRING_OPEN_ORDER.orderId,
+            MOCK_RECURRING_OPEN_ORDER.id,
           ),
         ),
       ).toBeNull();
@@ -208,8 +211,14 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     let resolveCancellation: () => void = () => undefined;
     const cancelRecurringOrder = jest.fn(
       () =>
-        new Promise<void>((resolve) => {
-          resolveCancellation = resolve;
+        new Promise<{ order: typeof MOCK_RECURRING_OPEN_ORDER }>((resolve) => {
+          resolveCancellation = () =>
+            resolve({
+              order: {
+                ...MOCK_RECURRING_OPEN_ORDER,
+                state: RecurringOrderState.Cancelled,
+              },
+            });
         }),
     );
     clearRecurringOrdersDataServiceMock();
@@ -370,7 +379,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     for (const { swap, status, received, spent } of expectedRows) {
       const row = within(
         await renderResult.findByTestId(
-          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId),
+          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id),
         ),
       );
 
@@ -405,7 +414,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     await userEvent.press(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].id,
         ),
       ),
     );
@@ -496,7 +505,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
 
     const row = await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-        malformedSkippedSwap.swapId,
+        malformedSkippedSwap.id,
       ),
     );
     expect(
@@ -549,7 +558,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].id,
         ),
       ),
     ).toBeOnTheScreen();
@@ -577,7 +586,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     await openOrderDetails(renderResult);
     await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-        MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+        MOCK_RECURRING_OPEN_ORDER_SWAPS[0].id,
       ),
     );
 
@@ -603,13 +612,13 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SWAPS[1].swapId,
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[1].id,
         ),
       ),
     ).toBeOnTheScreen();
     expect(recurringSwaps).toHaveBeenNthCalledWith(
       2,
-      MOCK_RECURRING_OPEN_ORDER.orderId,
+      MOCK_RECURRING_OPEN_ORDER.id,
       { limit: 20, cursor: 'next-page' },
     );
   });
