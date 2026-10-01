@@ -1,27 +1,29 @@
 import { MockEventsObject } from '../../../framework';
 
 /**
- * Mock data for external RPC endpoints used in E2E testing.
- * Blocks actual requests to external RPC providers that are not needed for testing.
- *
- * Hosts used by builds.yml (`main` → rewards.api, `dev`/`uat` → rewards.dev-api /
- * rewards.uat-api). All three are matched so RewardsController traffic stays
- * mocked regardless of the build variant under test.
+ * Hosts used by builds.yml. `main-e2e` merges `public_envs`, which points
+ * REWARDS_API_URL at the production host (`rewards.api.cx.metamask.io`).
+ * Dev and exp builds use `rewards.dev-api` / `rewards.uat-api`.
+ * Match all three so Appium smoke cleanup does not fail on unmocked
+ * RewardsDataService traffic.
  */
+const REWARDS_HOST = String.raw`https:\/\/rewards\.(?:dev-|uat-)?api\.cx\.metamask\.io`;
 
+/**
+ * Mock data for the rewards API used in E2E testing.
+ * Blocks live requests that the rewards controller makes in the background.
+ */
 export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
   POST: [
     {
-      urlEndpoint:
-        /^https:\/\/rewards\.(dev-api|uat-api|api)\.cx\.metamask\.io\/auth\/mobile-login$/,
+      urlEndpoint: new RegExp(`^${REWARDS_HOST}\\/auth\\/mobile-login$`),
       responseCode: 401,
       response: {
         error: 'Unauthorized',
       },
     },
     {
-      urlEndpoint:
-        /^https:\/\/rewards\.(dev-api|uat-api|api)\.cx\.metamask\.io\/public\/rewards\/ois$/,
+      urlEndpoint: new RegExp(`^${REWARDS_HOST}\\/public\\/rewards\\/ois$`),
       responseCode: 200,
       response: {
         ois: [],
@@ -30,8 +32,7 @@ export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
   ],
   GET: [
     {
-      urlEndpoint:
-        /^https:\/\/rewards\.(dev-api|uat-api|api)\.cx\.metamask\.io\/public\/seasons\/status$/,
+      urlEndpoint: new RegExp(`^${REWARDS_HOST}\\/public\\/seasons\\/status$`),
       responseCode: 200,
       response: {
         previous: null,
@@ -40,8 +41,9 @@ export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint:
-        /^https:\/\/rewards\.(dev-api|uat-api|api)\.cx\.metamask\.io\/public\/seasons\/[a-f0-9-]+\/metadata$/,
+      urlEndpoint: new RegExp(
+        `^${REWARDS_HOST}\\/public\\/seasons\\/[a-f0-9-]+\\/metadata$`,
+      ),
       responseCode: 200,
       response: {},
     },
