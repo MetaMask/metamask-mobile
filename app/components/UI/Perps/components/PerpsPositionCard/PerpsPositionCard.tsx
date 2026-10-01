@@ -19,10 +19,7 @@ import {
   ButtonVariant,
   Card,
   FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   KeyValueRow,
   KeyValueRowVariant,
   SectionDivider,
@@ -37,7 +34,6 @@ import {
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
-  PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
   type Order,
   type Position,
@@ -50,8 +46,8 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import PerpsCrossMarginInfoButton from '../PerpsCrossMarginInfoButton';
+import PerpsLiquidationPriceValue from '../PerpsLiquidationPriceValue';
 
 /**
  * PerpsPositionCard Component
@@ -157,14 +153,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const handleSizeToggle = () => {
     setShowSizeInUSD(!showSizeInUSD);
   };
-
-  // Calculate liquidation distance percentage
-  const liquidationDistance = useMemo(() => {
-    if (!currentPrice || !position.liquidationPrice) return null;
-    const liqPrice = parseFloat(String(position.liquidationPrice));
-    if (liqPrice <= 0 || currentPrice <= 0) return null;
-    return (Math.abs(currentPrice - liqPrice) / currentPrice) * 100;
-  }, [currentPrice, position.liquidationPrice]);
 
   // Resolve TP/SL from position-level or parent order-level values
   const resolvedTPSL = useMemo(() => {
@@ -291,48 +279,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   })();
 
   const liquidationValue = (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName={isCross ? 'shrink' : undefined}
-      accessible={false}
-    >
-      <SensitiveText
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Short}
-        testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
-        twClassName={isCross ? 'shrink text-right' : undefined}
-      >
-        {position.liquidationPrice !== undefined &&
-        position.liquidationPrice !== null
-          ? formatPerpsFiat(position.liquidationPrice, {
-              ranges: PRICE_RANGES_UNIVERSAL,
-            })
-          : isCross
-            ? strings('perps.cross_position.no_liquidation_price')
-            : PERPS_CONSTANTS.FallbackPriceDisplay}
-      </SensitiveText>
-      {liquidationDistance !== null && !privacyMode && (
-        <>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE}
-          >
-            {' '}
-            {liquidationDistance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%
-          </Text>
-          <Icon
-            name={isLong ? IconName.TrendDown : IconName.TrendUp}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </>
-      )}
-    </Box>
+    <PerpsLiquidationPriceValue
+      liquidationPrice={position.liquidationPrice}
+      currentPrice={currentPrice}
+      isLong={isLong}
+      isCross={isCross}
+      privacyMode={privacyMode}
+      priceTestID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+      distanceTestID={PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE}
+    />
   );
 
   const cardTestID = testID ?? PerpsPositionCardSelectorsIDs.CARD;
