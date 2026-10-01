@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -9,17 +10,21 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from './hooks/useLaunchSumSub';
 import type { VbaIdentityVerificationCompletion } from './modules/types';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
+  BACK_BUTTON: 'vba-sumsub-kyc-back-button',
   MORE_INFO_NEEDED: 'vba-sumsub-kyc-more-info-needed',
   CONTINUE_BUTTON: 'vba-sumsub-kyc-continue-button',
   ERROR: 'vba-sumsub-kyc-error',
@@ -44,11 +49,30 @@ const VbaSumSubKyc = ({
   onSubmitted,
   initialNeedsMoreInfo = false,
 }: VbaSumSubKycProps) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { needsMoreInfo, hasError, retry } = useLaunchSumSub(
     onSubmitted,
     initialNeedsMoreInfo,
   );
+
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    const parent = navigation.getParent();
+    if (parent?.canGoBack()) {
+      parent.goBack();
+      return;
+    }
+
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -56,6 +80,13 @@ const VbaSumSubKyc = ({
       style={tw.style('flex-1 bg-default')}
       testID={VbaSumSubKycSelectorsIDs.CONTAINER}
     >
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{
+          testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON,
+        }}
+        includesTopInset
+      />
       {needsMoreInfo ? (
         <Box
           flexDirection={BoxFlexDirection.Column}

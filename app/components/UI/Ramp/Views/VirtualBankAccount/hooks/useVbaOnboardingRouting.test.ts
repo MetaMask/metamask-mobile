@@ -191,6 +191,46 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
+  it('opens the KYC failure page when verification is rejected', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      kycStatus: 'rejected',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.KYC_REJECTED,
+    });
+  });
+
+  it('opens identity verification when retrying a still-rejected KYC session', async () => {
+    const rejectedSnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'rejected' as const,
+    };
+    mockHydrate.mockResolvedValue(rejectedSnapshot);
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current({ retryRejectedKyc: true });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...rejectedSnapshot,
+          vendorTermsAcceptedLocally: true,
+        },
+      },
+    });
+  });
+
   it('opens a retryable status when account provisioning fails', async () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
