@@ -24,9 +24,10 @@ import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profi
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
-import { useSocialEntryModeration } from '../components/SocialEntryOptionsBottomSheet';
+import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import { useFeedNow } from '../FeedView/hooks/useFeedNow';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
@@ -136,58 +137,60 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   );
 
   return (
-    <Box
-      twClassName="flex-1 bg-default"
-      testID={LiveTradesViewSelectorsIDs.CONTAINER}
-    >
-      <Animated.ScrollView
-        ref={scrollRef}
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('flex-grow pb-8')}
-        showsVerticalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
+    <SocialFeedSurfaceProvider location="social_live_trades" showMockedFields>
+      <Box
+        twClassName="flex-1 bg-default"
+        testID={LiveTradesViewSelectorsIDs.CONTAINER}
       >
-        <SocialTabFilterBar
-          onOpenFilters={onOpenFilters}
-          isFilterActive={isFilterActive}
-          filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
+        <Animated.ScrollView
+          ref={scrollRef}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-grow pb-8')}
+          showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
         >
-          <FilterButton
-            isSelected
-            variant={FilterButtonVariant.Primary}
-            size={FilterButtonSize.Md}
-            onPress={handleStreamToggle}
-            testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
-            accessibilityLabel={streamLabel}
-            startAccessory={
-              <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
-            }
+          <SocialTabFilterBar
+            onOpenFilters={onOpenFilters}
+            isFilterActive={isFilterActive}
+            filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
           >
-            {streamLabel}
-          </FilterButton>
-        </SocialTabFilterBar>
-        {visibleItems.map((item, index) => (
-          <Fragment key={item.id}>
-            {index > 0 ? (
-              <SectionDivider
-                marginVertical={1}
-                testID={getSocialV1FeedEntryDividerTestId(
-                  `live-trades-${index}`,
-                )}
+            <FilterButton
+              isSelected
+              variant={FilterButtonVariant.Primary}
+              size={FilterButtonSize.Md}
+              onPress={handleStreamToggle}
+              testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
+              accessibilityLabel={streamLabel}
+              startAccessory={
+                <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
+              }
+            >
+              {streamLabel}
+            </FilterButton>
+          </SocialTabFilterBar>
+          {visibleItems.map((item, index) => (
+            <Fragment key={item.id}>
+              {index > 0 ? (
+                <SectionDivider
+                  marginVertical={1}
+                  testID={getSocialV1FeedEntryDividerTestId(
+                    `live-trades-${index}`,
+                  )}
+                />
+              ) : null}
+              <LiveTradeRow
+                item={item}
+                now={now}
+                onPositionPress={handlePositionPress}
+                onTraderPress={handleTraderPress}
               />
-            ) : null}
-            <LiveTradeRow
-              item={item}
-              now={now}
-              onPositionPress={handlePositionPress}
-              onTraderPress={handleTraderPress}
-            />
-          </Fragment>
-        ))}
-      </Animated.ScrollView>
-    </Box>
+            </Fragment>
+          ))}
+        </Animated.ScrollView>
+      </Box>
+    </SocialFeedSurfaceProvider>
   );
 };
 

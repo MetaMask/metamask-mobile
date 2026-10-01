@@ -74,6 +74,9 @@ jest.mock('@metamask/key-tree', () => ({
 }));
 
 import ChoosePassword from './index.tsx';
+import PreventScreenshot, {
+  CAPTURE_KEYS,
+} from '../../../core/PreventScreenshot';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   AccountType,
@@ -145,7 +148,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
@@ -458,7 +461,7 @@ describe('ChoosePassword', () => {
   });
 
   describe('UI State', () => {
-    it('shows FoxRiveLoaderAnimation and hides form inputs during loading', async () => {
+    it('shows the onboarding fox loader and hides form inputs during loading', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
@@ -548,6 +551,46 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNavigation.replace).toHaveBeenCalled();
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('keeps screen capture blocked while the wallet is created', async () => {
+      const forbidSpy = jest.spyOn(PreventScreenshot, 'forbid');
+      const allowSpy = jest.spyOn(PreventScreenshot, 'allow');
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      let resolveWalletCreation: () => void;
+      mockNewWalletAndKeychain.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveWalletCreation = resolve;
+        }),
+      );
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      expect(forbidSpy).toHaveBeenCalledWith(CAPTURE_KEYS.credentialScreens);
+      allowSpy.mockClear();
+
+      await fillAndSubmitForm(component);
+
+      expect(
+        component.getByTestId('fox-rive-loader-animation'),
+      ).toBeOnTheScreen();
+
+      // Past ScreenshotDeterrent's 500ms delay before it releases capture.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      });
+
+      expect(allowSpy).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveWalletCreation();
       });
 
       mockNewWalletAndKeychain.mockRestore();

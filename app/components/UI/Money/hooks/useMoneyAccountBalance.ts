@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import { type CanonicalMoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import { useQuery } from '@metamask/react-data-query';
 import type { UseQueryResult } from '@tanstack/react-query';
@@ -7,13 +7,19 @@ import BigNumber from 'bignumber.js';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
-import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
+import {
+  FRESH_MONEY_BALANCE_WINDOW_MS,
+  getFreshMoneyBalanceOptionsFromLocalFlow,
+  getMoneyAccountBalanceQueryKey,
+} from '../utils/moneyAccountBalanceQueryKey';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 import {
+  getUsableLastLocalFlowConfirmedAt,
   isPersistedMoneyBalanceUsable,
   selectLastKnownMoneyBalance,
+  selectLastLocalMoneyFlow,
   setLastKnownMoneyBalance,
   setMoneyAccountRedeemableRaw,
 } from '../../../../core/redux/slices/moneyBalance';
@@ -69,12 +75,45 @@ const useMoneyAccountBalance = ({
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
+  const lastLocalFlow = useSelector(selectLastLocalMoneyFlow);
+  // Bumped when the post-confirm fresh window elapses so the query key drops
+  // `{ fresh, minBlock }` without waiting for the next 30s poll.
+  const [freshWindowGeneration, setFreshWindowGeneration] = useState(0);
+
+  const freshOptions = useMemo(
+    () =>
+      getFreshMoneyBalanceOptionsFromLocalFlow(
+        lastLocalFlow,
+        moneyAccountAddress,
+      ),
+    // freshWindowGeneration forces recomputation when the window timer fires.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+    [lastLocalFlow, moneyAccountAddress, freshWindowGeneration],
+  );
+
+  useEffect(() => {
+    const confirmedAt = getUsableLastLocalFlowConfirmedAt(
+      lastLocalFlow,
+      moneyAccountAddress,
+    );
+    if (confirmedAt === undefined) {
+      return;
+    }
+    const remaining = confirmedAt + FRESH_MONEY_BALANCE_WINDOW_MS - Date.now();
+    if (remaining <= 0) {
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      setFreshWindowGeneration((generation) => generation + 1);
+    }, remaining);
+    return () => clearTimeout(timeoutId);
+  }, [lastLocalFlow, moneyAccountAddress]);
 
   const moneyBalanceQuery = useQuery({
-    queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
+    queryKey: getMoneyAccountBalanceQueryKey(
       moneyAccountAddress as string,
-    ],
+      freshOptions,
+    ),
     enabled: enabled && Boolean(moneyAccountAddress),
     refetchInterval,
   }) as UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
@@ -101,21 +140,23 @@ const useMoneyAccountBalance = ({
 
   const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
     useMemo(() => {
-      // Total balance (mUSD + vmUSD) from the canonical facade response.
-      const totalDecimal = moneyBalanceQuery.data?.totalBalance
+      // Missing cache is not a zero balance. A new post-confirm query key has
+      // no data until the fresh read lands; treating that as 0 flashes $0.00.
+      const hasBalanceData = moneyBalanceQuery.data !== undefined;
+      const totalDecimal = hasBalanceData
         ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
             -MUSD_DECIMALS,
           )
-        : new BigNumber(0);
+        : undefined;
 
-      // the withdrawable amount.
-      const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
+      const vmusdDecimal = hasBalanceData
         ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
             -MUSD_DECIMALS,
           )
-        : new BigNumber(0);
+        : undefined;
 
-      // Undefined while loading or on error so callers can distinguish from a genuine zero.
+      // Undefined while loading, on error, or with no cached data so callers
+      // can distinguish that from a genuine zero.
       const computedWithdrawableMusd =
         isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
 

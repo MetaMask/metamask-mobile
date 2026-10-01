@@ -11,6 +11,8 @@ import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuil
 const MUSD_MONAD = '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const MUSD_MONAD_HEX = 'aca92e438df0b2401ff60da7e4337b687a2435da';
 const DEV_BORING_VAULT = '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae';
+const MONEY_POSITIONS_CHAIN_ID = 143;
+const MUSD_DECIMALS = 6;
 const DEV_LENS = '0xa816ecd922de94c6879ad23b9a884db257f20947';
 const DEV_LENS_HEX = 'a816ecd922de94c6879ad23b9a884db257f20947';
 // Deterministic e2e Money Account address (matches deposit receipt logs).
@@ -410,11 +412,75 @@ function isPositionsPath(url: string): boolean {
   }
 }
 
+function fundedPositionsUsd(fundedBaseUnits: string): string {
+  return (Number(fundedBaseUnits) / 10 ** MUSD_DECIMALS).toString();
+}
+
+/**
+ * Positions body accepted by `@metamask/money-account-api-data-service` 2.x.
+ * Wallet mUSD stays 0; the funded amount sits in the vault, matching the
+ * previous mock's `total_balance`.
+ */
+function buildFundedPositionsResponse(
+  fundedBaseUnits: string,
+  includeBalance: boolean,
+) {
+  const fundedUsd = fundedPositionsUsd(fundedBaseUnits);
+  return {
+    address: DEFAULT_FIXTURE_ACCOUNT,
+    as_of_block: 1234568,
+    as_of_timestamp: new Date().toISOString(),
+    data_freshness: 'live' as const,
+    indexer_lag_seconds: 0,
+    positions: [
+      {
+        chain_id: MONEY_POSITIONS_CHAIN_ID,
+        vault_key: 'musd',
+        name: 'mUSD',
+        asset_symbol: 'mUSD',
+        asset_decimals: MUSD_DECIMALS,
+        vault_address: DEV_BORING_VAULT,
+        shares_held: fundedBaseUnits,
+        current_rate: '1000000000000000000',
+        current_value_assets: fundedBaseUnits,
+        current_value_usd: fundedUsd,
+        cost_basis_assets: fundedBaseUnits,
+        cost_basis_usd: fundedUsd,
+        realized_interest_usd: '0',
+        unrealised_interest_usd: '0',
+        lifetime_interest_usd: '0',
+        current_apy: '0.05',
+        effective_apy: '0.05',
+      },
+    ],
+    ...(includeBalance
+      ? {
+          balance: {
+            musd_balance: '0',
+            vmusd_value_in_musd: fundedBaseUnits,
+            total_balance: fundedBaseUnits,
+            total_balance_usd: fundedUsd,
+            by_asset: [
+              {
+                asset_contract_address: MUSD_MONAD,
+                asset_symbol: 'mUSD',
+                asset_decimals: MUSD_DECIMALS,
+                wallet_balance: '0',
+                vault_value: fundedBaseUnits,
+                total: fundedBaseUnits,
+                total_usd: fundedUsd,
+              },
+            ],
+          },
+        }
+      : {}),
+  };
+}
+
 async function mockMoneyAccountBalance(
   mockServer: Mockttp,
   fundedBaseUnits: string,
 ) {
-  const fundedUsd = (Number(fundedBaseUnits) / 1e6).toString();
   await mockServer
     .forGet('/proxy')
     .asPriority(1002)
@@ -424,34 +490,7 @@ async function mockMoneyAccountBalance(
     })
     .thenCallback(() => ({
       statusCode: 200,
-      json: {
-        address: DEFAULT_FIXTURE_ACCOUNT,
-        as_of_block: 1234568,
-        as_of_timestamp: new Date().toISOString(),
-        data_freshness: 'live',
-        indexer_lag_seconds: 0,
-        positions: [
-          {
-            vault_address: DEV_BORING_VAULT,
-            shares_held: fundedBaseUnits,
-            current_rate: '1000000000000000000',
-            current_value_assets: fundedBaseUnits,
-            current_value_usd: fundedUsd,
-            cost_basis_assets: fundedBaseUnits,
-            cost_basis_usd: fundedUsd,
-            realized_interest_usd: '0',
-            unrealised_interest_usd: '0',
-            lifetime_interest_usd: '0',
-            current_apy: '0.05',
-            effective_apy: '0.05',
-          },
-        ],
-        balance: {
-          musd_balance: '0',
-          vmusd_value_in_musd: fundedBaseUnits,
-          total_balance: fundedBaseUnits,
-        },
-      },
+      json: buildFundedPositionsResponse(fundedBaseUnits, true),
     }));
 }
 
@@ -459,7 +498,6 @@ async function mockMoneyAccountApis(
   mockServer: Mockttp,
   fundedBaseUnits: string,
 ) {
-  const fundedUsd = (Number(fundedBaseUnits) / 1e6).toString();
   await mockServer
     .forGet('/proxy')
     .asPriority(1001)
@@ -469,29 +507,7 @@ async function mockMoneyAccountApis(
     })
     .thenCallback(() => ({
       statusCode: 200,
-      json: {
-        address: DEFAULT_FIXTURE_ACCOUNT,
-        as_of_block: 1234568,
-        as_of_timestamp: new Date().toISOString(),
-        data_freshness: 'live',
-        indexer_lag_seconds: 0,
-        positions: [
-          {
-            vault_address: DEV_BORING_VAULT,
-            shares_held: fundedBaseUnits,
-            current_rate: '1000000000000000000',
-            current_value_assets: fundedBaseUnits,
-            current_value_usd: fundedUsd,
-            cost_basis_assets: fundedBaseUnits,
-            cost_basis_usd: fundedUsd,
-            realized_interest_usd: '0',
-            unrealised_interest_usd: '0',
-            lifetime_interest_usd: '0',
-            current_apy: '0.05',
-            effective_apy: '0.05',
-          },
-        ],
-      },
+      json: buildFundedPositionsResponse(fundedBaseUnits, false),
     }));
 }
 
