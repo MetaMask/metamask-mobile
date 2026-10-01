@@ -61,9 +61,15 @@ function KeypadComponent({
 }: KeypadComponentProps): React.JSX.Element {
   const { handler, decimalSeparator } = useCurrency(currency, decimals);
 
+  // Read through a ref so the per-key callbacks below keep their identity as
+  // the value changes. Depending on `value` directly rebuilt all twelve of them
+  // on every press, re-rendering the whole keypad.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
   const handleKeypadPress = useCallback(
     (pressedKey: Keys) => {
-      const newValue = handler(value, pressedKey);
+      const newValue = handler(valueRef.current, pressedKey);
       let valueAsNumber = 0;
       try {
         valueAsNumber = decimalSeparator
@@ -74,7 +80,7 @@ function KeypadComponent({
       }
       onChange({ value: newValue, valueAsNumber, pressedKey });
     },
-    [decimalSeparator, handler, onChange, value],
+    [decimalSeparator, handler, onChange],
   );
 
   const handleKeypadPress1 = useCallback(

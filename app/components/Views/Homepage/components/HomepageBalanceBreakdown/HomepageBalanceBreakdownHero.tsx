@@ -13,7 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import BalanceEmptyState from '../../../../UI/BalanceEmptyState';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -40,6 +40,7 @@ const HomepageBalanceBreakdownHero = ({
     privacyMode,
     shouldShowEmptyState,
     togglePrivacy,
+    zeroBalance,
   } = useHomepageBalanceBreakdownHero(hero);
 
   if (!isLoading && shouldShowEmptyState) {
@@ -64,8 +65,8 @@ const HomepageBalanceBreakdownHero = ({
       testID={HomepageBalanceBreakdownTestIds.HERO}
       twClassName="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
     >
-      <Skeleton hideChildren={isLoading}>
-        <Animated.View style={animatedBalanceStyle}>
+      <Animated.View style={animatedBalanceStyle}>
+        {privacyMode ? (
           <SensitiveText
             color={
               hero.isPartiallyLoaded || hero.hasErroredSlice
@@ -79,47 +80,58 @@ const HomepageBalanceBreakdownHero = ({
           >
             {displayBalance}
           </SensitiveText>
-        </Animated.View>
-      </Skeleton>
+        ) : (
+          <AnimatedBalanceText
+            color={
+              hero.isPartiallyLoaded || hero.hasErroredSlice
+                ? TextColor.TextMuted
+                : TextColor.TextDefault
+            }
+            isLoading={isLoading}
+            loadingValue={zeroBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            value={displayBalance}
+            variant={TextVariant.DisplayLg}
+          />
+        )}
+      </Animated.View>
 
-      {hero.delta && amountText ? (
-        <Skeleton hideChildren={isLoading}>
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-1.5"
+      {!isLoading && hero.delta && amountText ? (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-1.5"
+        >
+          <SensitiveText
+            color={deltaColor}
+            fontWeight={FontWeight.Medium}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT}
+            variant={TextVariant.BodyMd}
           >
+            {amountText}
+          </SensitiveText>
+          {percentText ? (
             <SensitiveText
               color={deltaColor}
               fontWeight={FontWeight.Medium}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
-              testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT}
+              testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_PERCENT}
               variant={TextVariant.BodyMd}
             >
-              {amountText}
+              {percentText}
             </SensitiveText>
-            {percentText ? (
-              <SensitiveText
-                color={deltaColor}
-                fontWeight={FontWeight.Medium}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_PERCENT}
-                variant={TextVariant.BodyMd}
-              >
-                {percentText}
-              </SensitiveText>
-            ) : null}
-            <Text
-              color={TextColor.TextAlternative}
-              testID={HomepageBalanceBreakdownTestIds.HERO_PERIOD}
-              variant={TextVariant.BodyMd}
-            >
-              {strings('asset_overview.chart_time_period.1d')}
-            </Text>
-          </Box>
-        </Skeleton>
+          ) : null}
+          <Text
+            color={TextColor.TextAlternative}
+            testID={HomepageBalanceBreakdownTestIds.HERO_PERIOD}
+            variant={TextVariant.BodyMd}
+          >
+            {strings('asset_overview.chart_time_period.1d')}
+          </Text>
+        </Box>
       ) : null}
     </ButtonBase>
   );
