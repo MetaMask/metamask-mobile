@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -20,7 +21,6 @@ import {
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
   areAddressesEqual,
@@ -453,11 +453,15 @@ const ContactForm = ({
         }}
         endAccessory={headerEndAccessory ?? undefined}
       />
+      {/* KeyboardAvoidingView is the only keyboard handler here: it insets the
+          form body so the sticky actions below stay above the keyboard. A
+          keyboard-aware scroll view inside it would apply the inset a second
+          time. */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.formBody}
       >
-        <KeyboardAwareScrollView
+        <ScrollView
           style={styles.informationWrapper}
           contentContainerStyle={styles.scrollWrapper}
           keyboardShouldPersistTaps="handled"
@@ -497,7 +501,7 @@ const ContactForm = ({
               onContinue={onErrorContinue}
             />
           )}
-        </KeyboardAwareScrollView>
+        </ScrollView>
         {!!editable && (
           <View style={styles.buttonsWrapper}>
             <Button

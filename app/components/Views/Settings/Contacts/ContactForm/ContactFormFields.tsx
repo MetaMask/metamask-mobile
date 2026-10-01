@@ -7,6 +7,7 @@ import {
   IconName,
   Label,
   Text,
+  TextArea,
   TextColor,
   TextField,
   TextVariant,
@@ -107,20 +108,22 @@ export const ContactFormFields = ({
     </Box>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.memo')}</Label>
-      <TextField
+      {/* TextArea rather than TextField: a memo accepts line breaks, and
+          TextField forces multiline={false} on a fixed h-12. min-h-12 keeps
+          the collapsed field aligned with the fields above while still
+          growing with content. */}
+      <TextArea
         value={memo ?? ''}
         onChangeText={onChangeMemo}
         placeholder={strings('address_book.memo')}
         isReadOnly={!editable}
-        inputRef={memoInputRef}
-        inputProps={{
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          spellCheck: false,
-          numberOfLines: 1,
-          keyboardAppearance: themeAppearance,
-          testID: AddContactViewSelectorsIDs.MEMO_INPUT,
-        }}
+        ref={memoInputRef}
+        twClassName="min-h-12"
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        keyboardAppearance={themeAppearance}
+        testID={AddContactViewSelectorsIDs.MEMO_INPUT}
       />
     </Box>
   </Box>

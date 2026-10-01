@@ -239,6 +239,49 @@ describe('ContactForm', () => {
     });
   });
 
+  it('keeps line breaks typed into the memo field', async () => {
+    const validateAddressOrENSMock = jest.requireMock(
+      '../../../../../util/address',
+    ).validateAddressOrENS;
+
+    validateAddressOrENSMock.mockResolvedValue({
+      addressError: null,
+      toEnsName: null,
+      addressReady: true,
+      toEnsAddress: null,
+      errorContinue: false,
+    });
+
+    const { findByTestId } = renderContactForm();
+
+    const nameInput = await findByTestId(AddContactViewSelectorsIDs.NAME_INPUT);
+    const addressInput = await findByTestId(
+      AddContactViewSelectorsIDs.ADDRESS_INPUT,
+    );
+    const memoInput = await findByTestId(AddContactViewSelectorsIDs.MEMO_INPUT);
+
+    expect(memoInput.props.multiline).toBe(true);
+
+    fireEvent.changeText(nameInput, 'Test Contact');
+    fireEvent.changeText(addressInput, MOCK_ADDRESS_2);
+    fireEvent.changeText(memoInput, 'First line\nSecond line');
+
+    await waitFor(() => {
+      expect(validateAddressOrENSMock).toHaveBeenCalled();
+    });
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.ADD_BUTTON));
+
+    await waitFor(() => {
+      expect(Engine.context.AddressBookController.set).toHaveBeenCalledWith(
+        MOCK_ADDRESS_2,
+        'Test Contact',
+        '0x1',
+        'First line\nSecond line',
+      );
+    });
+  });
+
   it('shows error message when address is invalid', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',

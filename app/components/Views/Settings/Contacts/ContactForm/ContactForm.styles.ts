@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
 import type { Colors } from '../../../../../util/theme/models';
 
 export const createStyles = (colors: Colors) =>
