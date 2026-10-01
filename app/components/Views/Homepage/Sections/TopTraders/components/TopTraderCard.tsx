@@ -15,9 +15,9 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
-import TraderAvatar from './TraderAvatar';
+
+import { formatSignedAbbreviatedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
 
 export interface TopTraderCardProps {
   trader: TopTrader;

@@ -26,8 +26,11 @@ import {
 } from 'react-native';
 import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import { formatTradeDayLabel, getTradeDayKey } from '../../utils/formatters';
-import type { TradeAction } from '../../utils/tradeAction';
+import {
+  formatTradeDayLabel,
+  getTradeDayKey,
+} from '../../../../UI/SocialFeed/utils/formatters';
+import type { TradeAction } from '../../../../UI/SocialFeed/utils/tradeAction';
 import { computeSectionStartOffsets } from '../utils/traderPositionScrollLayout';
 import TradeRow from './TradeRow';
 
