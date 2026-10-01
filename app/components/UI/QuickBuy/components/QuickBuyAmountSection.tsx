@@ -20,7 +20,7 @@ import {
 } from '../../Bridge/utils/currencyUtils';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
-import { formatTokenAmount } from '../../../Views/SocialLeaderboard/utils/formatters';
+import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
 import { strings } from '../../../../../locales/i18n';
 
 interface QuickBuyAmountSectionProps {
