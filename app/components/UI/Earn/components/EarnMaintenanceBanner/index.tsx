@@ -1,8 +1,8 @@
 import React from 'react';
-import Banner, {
-  BannerVariant,
+import {
+  BannerAlert,
   BannerAlertSeverity,
-} from '../../../../../component-library/components/Banners/Banner';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
 const EarnMaintenanceBanner = () => {
@@ -11,10 +11,11 @@ const EarnMaintenanceBanner = () => {
   );
 
   return (
-    <Banner
+    <BannerAlert
       severity={BannerAlertSeverity.Warning}
-      variant={BannerVariant.Alert}
       description={maintenanceMessage}
+      // A single wrapping description centers the icon. Pin it to the first line.
+      iconProps={{ twClassName: 'self-start' }}
     />
   );
 };
