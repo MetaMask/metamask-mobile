@@ -39573,7 +39573,7 @@ __metadata:
     react-native-jazzicon: "npm:^0.1.2"
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:1.22.5"
-    react-native-keychain: "npm:^10.0.0"
+    react-native-keychain: "patch:react-native-keychain@npm%3A10.0.0#~/.yarn/patches/react-native-keychain-npm-10.0.0-66d5ef899d.patch"
     react-native-launch-arguments: "patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch"
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
@@ -45453,10 +45453,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-keychain@npm:^10.0.0":
+"react-native-keychain@npm:10.0.0":
   version: 10.0.0
   resolution: "react-native-keychain@npm:10.0.0"
   checksum: 10/f06f2214ec7f8ac6fe63a30bee8a434e2d14c316be4b67821d7c25f1f540869ca852a567949783a560b0f7ca97f18be50c409cb35cb2cde3d49fb0700338604a
+  languageName: node
+  linkType: hard
+
+"react-native-keychain@patch:react-native-keychain@npm%3A10.0.0#~/.yarn/patches/react-native-keychain-npm-10.0.0-66d5ef899d.patch":
+  version: 10.0.0
+  resolution: "react-native-keychain@patch:react-native-keychain@npm%3A10.0.0#~/.yarn/patches/react-native-keychain-npm-10.0.0-66d5ef899d.patch::version=10.0.0&hash=15f9ec"
+  checksum: 10/051f1c8fa438097c184318f11c2d9d212224f7400136e8e48ab6903563d901fa5e75c02e9da2806d3d2d1ccdb8959f14399753dd0c5a2a1224982e7896480b00
   languageName: node
   linkType: hard
 
