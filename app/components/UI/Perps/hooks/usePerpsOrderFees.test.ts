@@ -92,6 +92,41 @@ describe('usePerpsOrderFees', () => {
     [FeeCalculationParams]
   >();
 
+  it('uses the resolved Core fee once and preserves targeted attribution', async () => {
+    const feeResolution = {
+      feeBips: 2.5,
+      discountBips: 7500,
+      source: 'rewards' as const,
+      subscription: { eligible: false, reason: 'no-source' as const },
+      targetedDiscountApplied: true,
+    };
+    mockCalculateFees.mockResolvedValue({
+      feeRate: 0.0007,
+      feeAmount: 0.7,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 0.45,
+      metamaskFeeRate: 0.00025,
+      metamaskFeeAmount: 0.25,
+      feeResolution,
+    });
+    const { result } = renderHook(() =>
+      usePerpsOrderFees({ orderType: 'market', amount: '1000', symbol: 'BTC' }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.isLoadingMetamaskFee).toBe(false),
+    );
+    expect(result.current.metamaskFee).toBe(0.25);
+    expect(result.current.totalFee).toBeCloseTo(0.7);
+    expect(result.current.undiscountedTotalFee).toBeCloseTo(1.45);
+    expect(result.current.feeDiscountPercentage).toBe(75);
+    expect(result.current.feeResolution).toEqual(feeResolution);
+    expect(result.current.feeDiscountKind).toBe('targeted');
+    expect(
+      mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+    ).not.toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     clearRewardsCaches();
