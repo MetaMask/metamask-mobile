@@ -59,6 +59,32 @@ function seedUnresolvedDispatch(perps: RecoveryHarness) {
   return { key, bytes };
 }
 
+function seedResolvedDispatch(
+  perps: RecoveryHarness,
+  outcome: 'succeeded' | 'failed',
+) {
+  const key = `lighterNonceLedger:testnet:${perps.accountIndex}:7`;
+  const recovered = {
+    recoveryId: '42:beef',
+    kind: 14,
+    intent: 'order:BTC',
+    txHash: 'beef',
+    outcome,
+    evidence: 'stored-venue-result',
+  };
+  const bytes = JSON.stringify({
+    version: 4,
+    consumedFloor: 43,
+    entries: [],
+    recovered: [recovered],
+  });
+  const rememberedKey = `lighterRecoveryAccounts:testnet:${perps.walletAddress}`;
+  const rememberedBytes = JSON.stringify([perps.accountIndex]);
+  perps.disk.set(key, bytes);
+  perps.disk.set(rememberedKey, rememberedBytes);
+  return { key, bytes, rememberedKey, rememberedBytes, recovered };
+}
+
 async function withInventory(
   perps: RecoveryHarness,
   proof: (
@@ -145,6 +171,52 @@ describe('Lighter recovery inventory through the real Mobile hook', () => {
         expectLoadedInventory(result.current, errors);
         expect(result.current.dispatches).toEqual([]);
         expect(result.current.protections).toEqual([]);
+        expectNoFinancialIO(perps);
+      });
+    },
+  );
+
+  it.each([
+    ['absent', 'succeeded'],
+    ['absent', 'failed'],
+    ['premium', 'succeeded'],
+    ['premium', 'failed'],
+  ] as const)(
+    "preserves a %s account's local-only %s outcome without acknowledgment authority",
+    async (account, outcome) => {
+      const perps = buildLighterRecoveryHarness();
+      const dispatch = seedResolvedDispatch(perps, outcome);
+      setVenueAccount(perps, account);
+      await withInventory(perps, async ({ result }, errors) => {
+        expectLoadedInventory(result.current, errors);
+        expect(result.current.protections).toEqual([]);
+        expect(result.current.dispatches).toHaveLength(1);
+        expect(result.current.dispatches[0]).toMatchObject({
+          apiKeyIndex: 7,
+          acknowledgeable: false,
+          kind: dispatch.recovered.kind,
+          intent: dispatch.recovered.intent,
+          txHash: dispatch.recovered.txHash,
+          outcome,
+          evidence: dispatch.recovered.evidence,
+          providerId: 'lighter',
+          walletAddress: perps.walletAddress,
+          network: 'testnet',
+        });
+        const before = result.current.dispatches;
+
+        await act(async () => expect(await result.current.reload()).toBe(true));
+        await act(async () =>
+          expect(await result.current.checkStatus()).toBe(true),
+        );
+
+        expectLoadedInventory(result.current, errors);
+        expect(result.current.dispatches).toEqual(before);
+        expect(perps.disk.get(dispatch.key)).toBe(dispatch.bytes);
+        expect(perps.disk.get(dispatch.rememberedKey)).toBe(
+          dispatch.rememberedBytes,
+        );
+        expect(perps.storageWrites).toEqual([]);
         expectNoFinancialIO(perps);
       });
     },
