@@ -19,6 +19,7 @@ import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
+  getRampsActivityServiceMessenger,
   getOHLCVServiceMessenger,
 } from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -474,6 +475,10 @@ export const MESSENGER_FACTORIES = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RampsActivityService: {
+    getMessenger: getRampsActivityServiceMessenger,
     getInitMessenger: noop,
   },
   OHLCVService: {
