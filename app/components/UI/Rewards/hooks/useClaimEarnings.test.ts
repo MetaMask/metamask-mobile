@@ -332,6 +332,42 @@ describe('useClaimEarnings', () => {
     expect(result.current.isClaiming).toBe(false);
   });
 
+  it('keeps Claim disabled until the summary refresh settles', async () => {
+    let releaseRefresh: () => void = () => undefined;
+    onSubmitted.mockReturnValue(
+      new Promise<void>((resolve) => {
+        releaseRefresh = resolve;
+      }),
+    );
+    const { result } = renderClaim();
+    let claimPromise: Promise<void> = Promise.resolve();
+
+    await act(async () => {
+      claimPromise = result.current.claim(summary(ONE_DOLLAR));
+      while (onSubmitted.mock.calls.length === 0) {
+        await Promise.resolve();
+      }
+    });
+
+    expect(mockSuccessToast).toHaveBeenCalledWith(
+      localizedText.claimSuccessToast,
+    );
+    expect(result.current.isClaiming).toBe(true);
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      releaseRefresh();
+      await claimPromise;
+    });
+
+    expect(result.current.isClaiming).toBe(false);
+  });
+
   it('signs a proof challenge and retries the same route', async () => {
     mockEngineCall.mockImplementation(
       async (_action: string, _route: string, body: InitiateClaimBody) => {
