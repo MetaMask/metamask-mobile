@@ -276,12 +276,7 @@ const SocialEntryOptionsBottomSheet: React.FC<
   return <SocialEntryOptionsBottomSheetInner {...innerProps} />;
 };
 
-/**
- * Hosts the options sheet outside `PagerView`. On iOS this is a
- * FullWindowOverlay (PagerView page 0 cannot present RN Modal); on Android
- * it remains a Modal.
- */
-export const SocialEntryOptionsProvider: React.FC<{
+const SocialEntryOptionsHost: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const { toastRef } = useContext(ToastContext);
@@ -350,6 +345,25 @@ export const SocialEntryOptionsProvider: React.FC<{
       />
     </SocialEntryOptionsContext.Provider>
   );
+};
+
+/**
+ * Hosts the options sheet outside `PagerView`. On iOS this is a
+ * FullWindowOverlay (PagerView page 0 cannot present RN Modal); on Android
+ * it remains a Modal.
+ *
+ * Nested providers reuse the outermost one, so a feed embedded in a screen
+ * that already hosts the sheet shares its hidden posts and blocked authors
+ * instead of opening a second sheet.
+ */
+export const SocialEntryOptionsProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const outer = useContext(SocialEntryOptionsContext);
+  if (outer) {
+    return <>{children}</>;
+  }
+  return <SocialEntryOptionsHost>{children}</SocialEntryOptionsHost>;
 };
 
 /**

@@ -23,10 +23,12 @@ import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/H
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1TokenFeedState } from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
-  SOCIAL_V1_FEED_ERROR_TEST_ID,
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
-  SOCIAL_V1_FEED_RETRY_TEST_ID,
 } from './EmptyShellTabPage';
+import {
+  SOCIAL_FEED_ERROR_TEST_ID,
+  SOCIAL_FEED_RETRY_TEST_ID,
+} from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -562,10 +564,8 @@ describe('EmptyShellTabPage', () => {
       expect(loadMore).toHaveBeenCalledTimes(1);
 
       reportTokenFeed({ ...idle, error: 'token feed down', posts: [] });
-      expect(
-        screen.getByTestId(SOCIAL_V1_FEED_ERROR_TEST_ID),
-      ).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId(SOCIAL_V1_FEED_RETRY_TEST_ID));
+      expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
       expect(refresh).toHaveBeenCalledTimes(1);
       expect(mainRefresh).not.toHaveBeenCalled();
 

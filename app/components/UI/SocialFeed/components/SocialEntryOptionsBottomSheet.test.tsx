@@ -247,4 +247,40 @@ describe('SocialEntryOptionsBottomSheet', () => {
     expect(screen.queryByTestId('post-one')).toBeNull();
     expect(screen.queryByTestId('post-two')).toBeNull();
   });
+
+  it('shares moderation state across nested providers', () => {
+    const Entry = ({ postId }: { postId: string }) => {
+      const { open, isHidden } = useSocialEntryOptions({
+        postId,
+        authorId: 'author-1',
+        authorHandle: 'alice',
+      });
+      if (isHidden) {
+        return null;
+      }
+      return (
+        <>
+          <Pressable testID={`trigger-${postId}`} onPress={open} />
+          <View testID={`post-${postId}`} />
+        </>
+      );
+    };
+
+    renderWithProvider(
+      <SocialEntryOptionsProvider>
+        <Entry postId="outer" />
+        <SocialEntryOptionsProvider>
+          <Entry postId="inner" />
+        </SocialEntryOptionsProvider>
+      </SocialEntryOptionsProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('trigger-inner'));
+    fireEvent.press(
+      screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER),
+    );
+
+    expect(screen.queryByTestId('post-inner')).toBeNull();
+    expect(screen.queryByTestId('post-outer')).toBeNull();
+  });
 });
