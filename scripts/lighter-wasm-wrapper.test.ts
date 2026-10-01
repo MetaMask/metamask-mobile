@@ -4,7 +4,10 @@ import vm from 'node:vm';
 import { createHash } from 'node:crypto';
 
 const html = fs.readFileSync(
-  path.join(__dirname, '../app/components/UI/Perps/Lighter/wasm-wrapper.standalone.html'),
+  path.join(
+    __dirname,
+    '../app/components/UI/Perps/Lighter/wasm-wrapper.standalone.html',
+  ),
   'utf8',
 );
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/gu)].map(
@@ -87,10 +90,7 @@ function createPage(
   vm.runInContext('window = globalThis', context);
   // Use the actual producer and dispatcher; only the Go engine is substituted.
   for (const index of [0, 2, 3]) {
-    vm.runInContext(
-      withStubbedWasm(scripts[index]),
-      context,
-    );
+    vm.runInContext(withStubbedWasm(scripts[index]), context);
   }
   return {
     context,
@@ -106,6 +106,22 @@ function createPage(
   };
 }
 
+function createGroupedOrderParams(groupingType: number, orderCount: number) {
+  const orders = Array.from({ length: orderCount }, (_unused, index) => [
+    4095,
+    100 + index,
+    index === 0 || groupingType === 1 ? '100' : '0',
+    '270000',
+    index === 0 ? 0 : 1,
+    index === 0 ? 0 : index === 1 ? 2 : 4,
+    1,
+    index === 0 ? 0 : 1,
+    index === 0 ? '0' : '260000',
+    -1,
+  ]).flat();
+  return [64, groupingType, orderCount, ...orders, 7];
+}
+
 describe('Lighter WASM page', () => {
   it('allows only the exact embedded scripts in its content security policy', () => {
     const policy = html.match(
@@ -116,7 +132,8 @@ describe('Lighter WASM page', () => {
       .map((directive) => directive.trim())
       .find((directive) => directive.startsWith('script-src '));
     const hashes = scripts.map(
-      (script) => `'sha256-${createHash('sha256').update(script).digest('base64')}'`,
+      (script) =>
+        `'sha256-${createHash('sha256').update(script).digest('base64')}'`,
     );
 
     expect(scripts).toHaveLength(4);
@@ -274,5 +291,148 @@ describe('Lighter WASM page', () => {
       executeId: 'cancel',
       result: { txInfo: 'signed' },
     });
+  });
+
+  describe('grouped orders', () => {
+    it.each([
+      ['OCO', 1, 2],
+      ['OTO', 2, 2],
+      ['OTOCO', 3, 3],
+    ] as const)(
+      'forwards the exact %s tuple to the signer',
+      async (_name, groupingType, orderCount) => {
+        const page = createPage();
+        const params = createGroupedOrderParams(groupingType, orderCount);
+        await page.load();
+
+        await page.send({
+          type: 'execute',
+          function: '_signCreateGroupedOrders',
+          params,
+          executeId: 'grouped',
+        });
+
+        expect(page.context._signCreateGroupedOrders).toHaveBeenCalledWith(
+          ...params,
+        );
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeResult',
+          executeId: 'grouped',
+          result: { txInfo: 'signed' },
+        });
+      },
+    );
+
+    it.each([
+      [0, 2],
+      [1, 3],
+      [2, 3],
+      [3, 2],
+      [4, 2],
+      [3, 4],
+    ])(
+      'rejects grouping %i with count %i before signing',
+      async (groupingType, orderCount) => {
+        const page = createPage();
+        const params = createGroupedOrderParams(groupingType, orderCount);
+        await page.load();
+
+        await page.send({
+          type: 'execute',
+          function: '_signCreateGroupedOrders',
+          params,
+          executeId: 'wrong-group',
+        });
+
+        expect(page.context._signCreateGroupedOrders).not.toHaveBeenCalled();
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeError',
+          executeId: 'wrong-group',
+          message: 'Invalid signer parameters',
+        });
+      },
+    );
+
+    it.each([
+      ['truncated OTO', createGroupedOrderParams(2, 2).slice(0, -1)],
+      ['extra OTO parameter', [...createGroupedOrderParams(2, 2), 0]],
+      ['truncated OTOCO', createGroupedOrderParams(3, 3).slice(0, -1)],
+      ['extra OTOCO parameter', [...createGroupedOrderParams(3, 3), 0]],
+      [
+        'missing third order',
+        createGroupedOrderParams(3, 3).filter(
+          (_value, index) => index < 23 || index === 33,
+        ),
+      ],
+      ['object parameters', { account: 64 }],
+    ])('rejects %s before signing', async (_name, params) => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signCreateGroupedOrders',
+        params,
+        executeId: 'wrong-arity',
+      });
+
+      expect(page.context._signCreateGroupedOrders).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'wrong-arity',
+        message: 'Invalid signer parameters',
+      });
+    });
+
+    const malformedOrderFields = [
+      ['market ID', -1],
+      ['client order ID', Number.MAX_SAFE_INTEGER + 1],
+      ['base amount', '1.2'],
+      ['price', '270000USD'],
+      ['side', 2],
+      ['order type', -1],
+      ['time in force', 1.5],
+      ['reduce only', 2],
+      ['trigger price', '-1'],
+      ['expiry', Number.MAX_SAFE_INTEGER + 1],
+    ] as const;
+    const malformedFields = [
+      ...[0, 1, 2].flatMap((orderIndex) =>
+        malformedOrderFields.map(
+          ([field, value], fieldIndex) =>
+            [
+              `order ${orderIndex + 1} ${field}`,
+              3 + orderIndex * 10 + fieldIndex,
+              value,
+            ] as const,
+        ),
+      ),
+      ['account', 0, -1] as const,
+      ['nonce', 33, -1] as const,
+    ];
+
+    it.each(malformedFields)(
+      'rejects malformed %s before signing',
+      async (_field, index, value) => {
+        const page = createPage();
+        const params = createGroupedOrderParams(3, 3);
+        params[index] = value;
+        await page.load();
+
+        await page.send({
+          type: 'execute',
+          function: '_signCreateGroupedOrders',
+          params,
+          executeId: 'malformed-field',
+        });
+
+        expect(page.context._signCreateGroupedOrders).not.toHaveBeenCalled();
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeError',
+          executeId: 'malformed-field',
+          message: 'Invalid signer parameters',
+        });
+      },
+    );
   });
 });
