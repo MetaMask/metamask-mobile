@@ -14,7 +14,7 @@ import { CandlePeriodBottomSheetSelectorsIDs as PerpsCandlePeriodBottomSheetSele
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
-import type { TradeAction } from '../utils/tradeAction';
+import type { TradeAction } from '../../../UI/SocialFeed/utils/tradeAction';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
@@ -333,7 +333,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));

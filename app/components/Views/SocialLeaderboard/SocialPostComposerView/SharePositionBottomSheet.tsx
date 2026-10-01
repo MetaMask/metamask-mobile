@@ -22,7 +22,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { useTraderPositions } from '../TraderProfileView/hooks';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
-import { isPerpPosition } from '../utils/perp';
+import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 
 const styles = StyleSheet.create({
