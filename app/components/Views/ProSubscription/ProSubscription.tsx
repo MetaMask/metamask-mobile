@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -29,6 +30,7 @@ import {
 } from './screens/Benefits/Benefits.constants';
 import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
+import { PRO_DEMO_MODE, setProDemoSubscriber } from '../shared/pro/proDemo';
 
 const ProSubscriptionScreen = {
   Benefits: 'benefits',
@@ -37,6 +39,12 @@ const ProSubscriptionScreen = {
 
 type ProSubscriptionScreen =
   (typeof ProSubscriptionScreen)[keyof typeof ProSubscriptionScreen];
+
+// iOS presents this route as a page sheet that already clears the status bar.
+// Android has no sheet: the modal is full-screen and edge-to-edge, so without
+// the top inset the close button renders under the status bar.
+const SAFE_AREA_EDGES: readonly Edge[] =
+  Platform.OS === 'android' ? ['top', 'bottom'] : ['bottom'];
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -93,7 +101,12 @@ const ProSubscription = () => {
 
   const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
     setCheckoutPlan(plan);
-    setCurrentScreen(ProSubscriptionScreen.Success);
+    setCurrentScreen('success');
+    // DEMO ONLY: treat the CTA as a completed checkout so the Money header
+    // reads `Pro` and routes to Pro Hub for the rest of the session.
+    if (PRO_DEMO_MODE) {
+      setProDemoSubscriber(true);
+    }
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(async () => {
@@ -130,7 +143,7 @@ const ProSubscription = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={SAFE_AREA_EDGES}
     >
       {/* Shared close button — sits above both Benefits and Success screens */}
       <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
