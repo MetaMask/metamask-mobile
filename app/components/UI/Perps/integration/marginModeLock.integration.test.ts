@@ -1,7 +1,7 @@
 /**
  * Integration tests — perps margin-mode lock and placement validation.
  *
- * Real `HyperLiquidProvider` (the patched `@metamask/perps-controller`
+ * Real `HyperLiquidProvider` (the released `@metamask/perps-controller`
  * build) runs. The harness mocks the venue I/O boundary and also the generic
  * `validateOrderParams` helper; the margin-mode lock read and its placement
  * validation run unmocked inside the provider. Covers the lock read
@@ -41,8 +41,8 @@ const btcPosition = (type: 'isolated' | 'cross') => ({
   type: 'oneWay',
 });
 
-// Not exported from the package root; loaded from the patched dist so the
-// routing added by the patch runs for real.
+// Not exported from the package root; loaded from dist so the provider
+// routing runs for real.
 const { AggregatedPerpsProvider } = jest.requireActual<{
   AggregatedPerpsProvider: new (
     config: AggregatedProviderConfig,

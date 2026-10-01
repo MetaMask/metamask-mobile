@@ -467,6 +467,7 @@ const PerpsProOrderFormPanel = ({
             onClose={closeLeverage}
             onConfirm={onLeverageConfirm}
             leverage={leverage}
+            marginMode={marginMode}
             minLeverage={minLeverage}
             maxLeverage={maxLeverage}
             currentPrice={currentPrice}
