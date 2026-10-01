@@ -12,6 +12,8 @@ export interface PriceAlertRouteParams {
   mode?: 'spot' | 'perps';
   /** Perp market identifier (e.g. 'btc-hyperliquid-mainnet'). Required when mode='perps'. */
   marketId?: string;
+  /** Hyperliquid size decimals; used for venue price precision when mode='perps'. */
+  szDecimals?: number;
 }
 
 /** Route params for the Create Price Alert screen. */
