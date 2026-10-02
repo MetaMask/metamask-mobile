@@ -372,92 +372,53 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        The September 30 comparison uses Core
-        <code>2e6a4d94532653c40dba4de6d586911fa7b2adfa</code> and Mobile
-        <code>d00b308c1e865903962d034e189c2f152ef2bb8d</code> with the matching
-        closing-fill PnL patch. Mobile was rebased after #37025 merged and
-        consumes <code>@metamask/perps-controller@19.0.0</code> and Hyperliquid
-        SDK 0.33.3. Market and passive-limit controller lifecycles were
-        re-proved on both testnets with the same funded <code>dev1</code>
-        account. Advanced capabilities remain source findings until separately
-        validated. These local proofs do not certify a published release or
-        mainnet financial execution.
-        <a href="#core-sources">[C1–C4]</a>
+        October 2 status: the installed local Mobile build is
+        <code>2bd94dc5e564da70895f1f23612b9a0270b92234</code> with Core
+        <code>821f980c9b8a8e6feeb6f7ede5c318c6713889ea</code> patched into
+        controller 19.0.0. Mobile includes merged #37025 and Hyperliquid SDK
+        0.33.3. Earlier basic-order and full-position-protection recipes passed
+        on both testnets using the same funded <code>dev1</code> account. Those
+        dated runs retain their original source identities below. They do not
+        prove current advanced forms or mainnet financial execution.
       </p>
       <p>
-        The last frozen host validation pairs installed Core
-        <code>821f980c9b8a8e6feeb6f7ede5c318c6713889ea</code> with Mobile
-        <code>6462f6b6941453c0a4ec3eb0784ef58f7fc7214d</code>. The controller
-        19.0.0 patch matches all 324 build files from the approved Core build.
-        Its 432 passing cases comprise 6 inventory, 77 integration, 93 hook, 27
-        iOS and 27 Android recovery-view, 62 signer-wrapper and 140
-        affected-screen executions. Full-project types, scoped lint and
-        formatting pass. These tests mock external I/O. Final Mobile review and
-        native testnet validation remain pending. Earlier live runs below retain
-        their original source identities.
-      </p>
-      <p>
-        The published stack comprises
-        <a href="https://github.com/MetaMask/core/pull/10618">#10618 recovery</a
-        >,
-        <a href="https://github.com/MetaMask/core/pull/10629"
-          >#10629 capabilities</a
-        >,
-        <a href="https://github.com/MetaMask/core/pull/10638"
-          >#10638 native triggers</a
+        Two Core PRs remain open as drafts:
+        <a href="https://github.com/MetaMask/core/pull/10618"
+          >#10618 recovery</a
         >
         and
-        <a href="https://github.com/MetaMask/core/pull/10644"
-          >#10644 position protection</a
-        >. All four remain open and pass CI at their published heads. Recovery
-        #10618 at <code>732ace0a0c92050fb3c44b934529fb3ad2788a3c</code> and
-        capabilities #10629 at
-        <code>555868431e416cc2a958d788b053bda2517a9b85</code>, native triggers
-        #10638 at <code>372eda657e3fb7e72f489c54c30c71fd038161a6</code> and
-        position protection #10644 at
-        <code>26612eb8814c7f1939a5798cea0265272013bf96</code> have independent
-        source approval. Recovery rejects actions after account, network,
-        provider or connection changes and preserves uncertain submissions
-        across restarts. The installed local build includes these corrections
-        and separately approved strict recovery review. Published package
-        availability and live proof remain separate.
-        <a href="#current-source-state">[C5, C6, C8–C10]</a>
+        <a href="https://github.com/MetaMask/core/pull/10638"
+          >#10638 trigger orders and position protection</a
+        >. #10629 was closed and #10644 was incorporated into #10638's feature
+        branch, not merged to main. Recovery is based on main. Advanced orders
+        temporarily depend on recovery and will move to main after it merges.
+        The recovery correction must preserve an accepted key registration
+        through visibility delays and reconnect, without allocating another
+        slot. Final reviews, CI and published-package availability remain
+        separate from local source checks.
       </p>
       <p>
-        The earlier October 1 capability stage used the additive contract in
-        <a href="https://github.com/MetaMask/core/pull/10629">Core #10629</a>,
-        inspected at <code>64e799fab9aaee5c9198d71fe9731aa7ed915b4e</code>,
-        stacked on recovery
-        <code>797e923865a03c997b34b298995bbd0c8396d19d</code>. This Mobile
-        branch backported it into controller 19.0.0. That completed stage
-        declared Hyperliquid's four standalone types and kept Lighter
-        unavailable. Native standalone Lighter support now follows in
-        <a href="https://github.com/MetaMask/core/pull/10638">Core #10638</a>,
-        inspected at <code>76a86aefc391b2313e2d19df157aa256e731f41d</code>
-        before the corrections listed above. The installed controller 19.0.0
-        patch declares all four native trigger types for active markets;
-        strategies remain empty. It still refuses attached and partial TP/SL.
-        The unpublished partial-protection successor includes the corrected
-        foundation, fixed positive single-leg coverage and equal-size OCO pairs,
-        with cancellation before replacement. It passes 4,603 package tests;
-        independent review, Mobile adoption and live proof remain pending. Its
-        capability declaration does not imply attached-order or dynamic
-        whole-position support.
-        <a href="#current-source-state">[C7]</a>
+        Isolated advanced candidates add equal-size partial protection, Scale
+        and testnet strategy operations. They are not installed in the live
+        simulator or released. Mobile Scale candidate
+        <code>8e204d2daa388e4f203beaa02ed2f98b1c4a84be</code> passes 712 unit,
+        22 selected view and 97 integration cases with types, lint and format.
+        Its private Core preview dependency still needs public-input ownership
+        and metadata checks at later signing and dispatch boundaries. Chase's
+        latest correction preserves cancellation capacity when a local stop has
+        no venue authority. Actual advanced UI receipts, durable strategy
+        children, venue reconciliation and owned cleanup remain to be proved.
+        <a href="#current-source-state">[C5–C13]</a>
       </p>
       <p class="note">
-        September 30 source audit: Hyperliquid has advanced strategies that the
-        Lighter integration does not implement. Lighter's controller capability
-        response at that audit was <code>unavailable / not_implemented</code>.
-        The native follow-up changes standalone trigger support; it does not add
-        strategies. The wallet-key recovery patch passed two local key-loss
-        cycles and reconnect on September 30, with no additional registrations
-        and unchanged existing testnet and mainnet keys. Its testnet trading
-        recipe passed exact receipt matching for limit placement/cancellation
-        and market placement/close. The orders and activity Retry recipe also
-        passed against real subsequent channel snapshots. These are local patch
-        proofs; they do not certify a published release, hardware-wallet
-        recovery or mainnet trading.
+        Reinstall validation is incomplete. A fixture-name collision interrupted
+        reset before recovery or trading. All 47 wallet accounts were restored
+        through the supported fixture operation, with
+        <code>dev1</code> selected. The original failure and registration budget
+        remain preserved. The restored app has a new transient inspector
+        identity; its continuation needs reviewed native and source binding
+        before recovery or trading. Local key-scope absence does not itself
+        establish uninstall-caused loss.
       </p>
       <p>
         Current audit paths:
@@ -480,29 +441,23 @@
         >.
       </p>
       <p>
-        Recipe discovery: register the Perps library, inspect
-        <code>perps.pro-order-start-state</code> and
-        <code>perps.pro-order-setup</code> with <code>--describe</code>, then
-        expand callers with <code>--plan</code>. The library has separate Scale,
-        Chase and TWAP recipes. Their provider/network parameters select a
-        context; they do not establish parity. Shared
-        <code>perps.order-receipt</code> and
-        <code>perps.order-lifecycle</code> compose provider, network, market and
-        Pro/Lite setup. Account selection defaults to the current wallet;
-        <code>account=dev1</code> or an EVM address overrides it. Receipts bind
-        the resolved address. All 48 provider/network/mode/order plans pass.
-        Testnet market/limit proofs match exact venue receipts and restore only
-        owned state. Mainnet examples require explicit confirmation and leave
-        state for the operator. Native standalone trigger receipt proof checks
-        exact type, side, quantity, prices, reduce-only, time-in-force and
-        future expiry. Lighter offsets round to declared price precision before
-        sizing; explicit off-grid prices refuse. Linked protection remains
-        unfinished. The independently approved library at
-        <code>def92b7033d6148d3d5a47a5ddf9da7355f1e5c6</code> now defaults
-        Scale, Chase and TWAP setup to the selected account and waits for the
-        requested order option. Its 84 host tests and 59 successful composition
-        plans establish recipe preparation; fresh runtime validation remains
-        pending.
+        Recipe discovery: register the existing Perps library, inspect the
+        closest recipe with <code>--describe</code>, and expand its composition
+        with <code>--plan</code>. Shared <code>perps.order-receipt</code> and
+        <code>perps.order-lifecycle</code> accept provider, network, market and
+        Pro/Lite choices. Account defaults to the current selection;
+        <code>account=dev1</code> or an EVM address overrides it. Testnet
+        lifecycles bind exact venue receipts and clean only owned orders and
+        positions. Mainnet examples are operator-executed.
+      </p>
+      <p>
+        The advanced library extension reuses Scale, Chase and TWAP journeys.
+        Pressing Submit or observing a new order count cannot prove acceptance
+        or authorize cleanup. Complete UI proof needs an observable result
+        correlated with that request, and strategy teardown needs every durable
+        child identity through the public controller. These are explicit
+        remaining integration requirements. Current host checks and composition
+        plans do not establish native UI or venue success.
       </p>
       <div class="table-wrap">
         <table>
@@ -593,13 +548,15 @@
               <th scope="row">Cancel / edit resting order</th>
               <td>Both implemented.</td>
               <td>
-                Cancel implemented. Edit explicitly refused because the
-                documented ModifyOrder path accepted but did not apply changes;
-                cancel and re-place is the stated alternative.
+                Cancel implemented. The installed provider refuses native edit.
+                Offline proof confirms the embedded signer's seven-argument
+                ModifyOrder ABI and exact int64 identity, but the product
+                bridge/provider implementation is unfinished.
               </td>
               <td>
-                Individual cancel validated. Cancel/re-place is not atomic and
-                was not separately validated as an edit workflow.
+                Individual cancel validated. Same-order price/size changes,
+                partial-fill races and uncertain edit settlement need venue
+                proof. Cancel/re-place is not an atomic native edit.
               </td>
             </tr>
             <tr>
@@ -628,59 +585,47 @@
               <th scope="row">TP/SL at placement</th>
               <td>Implemented.</td>
               <td>
-                Unavailable: rejects attached TP/SL; directs callers to
-                post-entry update.
+                The installed provider refuses attached TP/SL. The grouped
+                signer transport and isolated implementation candidates remain
+                separate from enabled product support.
               </td>
               <td>
-                Native OTO uses two orders; OTOCO uses three. The Mobile bridge
-                now accepts only grouping/count pairs 1/2, 2/2 and 3/3, with
-                exact parameter counts. All 62 wrapper regressions pass and the
-                embedded WASM is unchanged. Offline signing proves the grouped
-                transport, not venue acceptance or lifecycle behavior. Attached
-                placement remains disabled pending separate Core implementation,
-                independent review and live lifecycle proof.
+                Offline OTO/OCO/OTOCO signing and wrapper regressions pass on
+                unchanged WASM. Attached UI placement, exact child receipts,
+                activation and cleanup remain unproved.
               </td>
             </tr>
             <tr>
               <th scope="row">Existing-position TP/SL</th>
               <td>Implemented.</td>
               <td>
-                <code>updatePositionTPSL</code> implemented for full-position
-                snapshot protection. Core-created protection retains durable
-                client/venue IDs across resizing and restart. Pending
-                submissions block conflicting writes. Manual obligations from
-                previous trading keys remain visible. Explicit resolution is
-                implemented in the installed local Core build. Mobile consumer
-                integration passes with external I/O mocked; final independent
-                Mobile review and live validation remain pending. Legacy
-                full-quantity closing triggers use an in-lock position read.
+                Full-position snapshot protection implemented with durable
+                client/venue identities, cancellation-first replacement and
+                uncertain-submission recovery. Outstanding journals and manual
+                obligations across trading keys fence conflicting mutations.
               </td>
               <td>
-                Growth/shrink/removal, lost-response, restart, storage-failure
-                and key-slot regressions pass. Live advanced protection proof
-                remains pending; standalone receipts do not prove this path.
+                Recorded create/replace/remove/close controller and venue
+                lifecycles passed on both testnets. Current Mobile form proof
+                and final published-head review remain separate requirements.
               </td>
             </tr>
             <tr>
               <th scope="row">Partial-position TP/SL</th>
               <td>
-                Implemented independent fixed-size legs, including unequal TP/SL
-                quantities. This differs from native OCO linkage.
+                Independent fixed-size legs, including unequal TP/SL quantities.
               </td>
               <td>
-                The installed build refuses partial sizes. Unpublished Core
-                candidate <code>ff0e20cacc74d25fa1073d07dc9be3f6856bcaf6</code>
-                accepts one fixed-size leg or an equal-quantity OCO pair. It
-                rejects unequal pairs and partial/full mixed pairs. Replacement
-                settles owned cancellation before creating the new set;
-                interrupted pre-create recovery requires fresh explicit intent.
+                The installed build refuses partial sizes. Isolated Core
+                candidates support one fixed-size leg or an equal-size OCO pair
+                with cancellation before replacement. Unequal and mixed
+                partial/full coverage remain unsupported.
+              </td>
+              <td>
+                Offline signing and mocked-I/O regressions pass. Current Mobile
+                integration and actual venue receipts/cleanup remain pending.
+                Snapshot quantities do not resize automatically with positions.
                 <a href="#current-source-state">[C7]</a>
-              </td>
-              <td>
-                Offline signing and mocked-I/O regressions pass. Candidate
-                review, Mobile integration and live venue proof remain pending.
-                Fixed snapshot quantities do not resize automatically with the
-                position.
               </td>
             </tr>
             <tr>
@@ -713,47 +658,52 @@
             <tr>
               <th scope="row">TWAP</th>
               <td>
-                Implemented native strategy; advertised after market readiness.
-                Mobile additionally requires its rollout flag and Hyperliquid.
+                Native strategy, subject to market readiness and Mobile rollout.
               </td>
               <td>
-                Unavailable: no TWAP strategy implementation. Ready standalone
-                capabilities advertise an empty strategy list.
+                Isolated native signer and controller candidates exist behind
+                testnet gates. Current public capabilities do not advertise
+                Lighter TWAP, and the installed app does not offer it.
               </td>
               <td>
-                No Lighter placement proof. A parameterized recipe cannot add
-                missing provider support.
+                Complete public parent/child inventory, Mobile receipt
+                observation, venue execution and exact cleanup are pending. A
+                parameterized recipe does not add missing product support.
               </td>
             </tr>
             <tr>
               <th scope="row">Scale</th>
               <td>
-                Implemented ladder strategy; advertised after market readiness.
-                Mobile requires rollout and Hyperliquid capability checks.
+                Ladder strategy, subject to market readiness and Mobile rollout.
               </td>
               <td>
-                Unavailable: no Scale strategy in the ready capability
-                declaration.
+                Isolated Core candidate advertises Scale and persists exact
+                group/rung identities. Mobile candidate binds the displayed
+                normalized ladder to placement. Neither is released or adopted
+                in the live simulator.
               </td>
               <td>
-                Grouped OTO/OCO/OTOCO transactions cannot carry an arbitrary
-                ladder. Independent transactions require distinct nonces and
-                durable per-rung recovery. Ordinary limit-order support does not
-                prove partial-failure handling or ladder ownership.
+                Host tests pass. Public-request ownership and fresh metadata
+                checks at later write boundaries need correction. Final review,
+                actual UI submission, venue receipts and exact group cleanup
+                remain pending. <a href="#current-source-state">[C11, C13]</a>
               </td>
             </tr>
             <tr>
               <th scope="row">Chase</th>
               <td>
-                Implemented managed repricing strategy; advertised after market
-                readiness. Mobile requires rollout and a ready Chase capability.
+                Managed repricing, subject to market readiness and rollout.
               </td>
               <td>
-                Unavailable: no Chase strategy or ready capability declaration;
-                resting-order edit is also refused.
+                Isolated testnet candidate has managed repricing and durable
+                cancellation. Current public capabilities do not advertise
+                Lighter Chase; ordinary resting-order edit is still refused.
               </td>
               <td>
-                No Lighter start, repricing, reconnect or termination proof.
+                The local-stop cancellation-budget correction passes 4,913
+                package tests. Final review, complete public child identities,
+                Mobile integration and native/venue lifecycle proof remain
+                pending. <a href="#current-source-state">[C12]</a>
               </td>
             </tr>
             <tr>
@@ -872,11 +822,12 @@
           patch for wallet-key recovery, stream failures/history, unknown
           closing-fill PnL, capability gating, native standalone triggers,
           position protection and non-financial dispatch reconciliation. Core
-          #10605 is merged; #10618, #10629, #10638 and #10644 are open
-          follow-ups. The latest consumer correction passes local checks and
-          still needs final independent review. Remove the patch after all
-          corrections are published upstream. No <code>.yalc</code> package or
-          <code>yalc.lock</code> is committed.
+          #10605 is merged. #10618 and #10638 are the two open draft follow-ups;
+          #10629 is closed and #10644 is incorporated into #10638's feature
+          branch. Final corrections, review and current UI/venue proof remain
+          pending. Remove the patch after all corrections are published
+          upstream. No <code>.yalc</code> package or <code>yalc.lock</code> is
+          committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,
@@ -1128,14 +1079,14 @@
       <ul>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/732ace0a0c92050fb3c44b934529fb3ad2788a3c/packages/perps-controller/src/PerpsController.ts"
+            href="https://github.com/MetaMask/core/blob/e9b0ba30c004b5d174f5267ce68cf1caa69862bd/packages/perps-controller/src/PerpsController.ts"
             >C5 · Published recovery controller</a
           >: account, network, provider and connection lifetime checks for
           recovery actions.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/555868431e416cc2a958d788b053bda2517a9b85/packages/perps-controller/src/types/index.ts"
+            href="https://github.com/MetaMask/core/blob/5ca7c853f894644190e751e2755553e9d3f4339b/packages/perps-controller/src/types/index.ts"
             >C6 · Published standalone capability contract</a
           >: optional trigger-type declarations; omitted support stays unknown.
         </li>
@@ -1149,13 +1100,13 @@
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/372eda657e3fb7e72f489c54c30c71fd038161a6/packages/perps-controller/src/providers/LighterProvider.ts"
+            href="https://github.com/MetaMask/core/blob/5ca7c853f894644190e751e2755553e9d3f4339b/packages/perps-controller/src/providers/LighterProvider.ts"
             >C8 · Published standalone trigger implementation</a
           >: durable ownership, session checks and signed expiry.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/26612eb8814c7f1939a5798cea0265272013bf96/packages/perps-controller/src/providers/LighterProvider.ts"
+            href="https://github.com/MetaMask/core/blob/5ca7c853f894644190e751e2755553e9d3f4339b/packages/perps-controller/src/providers/LighterProvider.ts"
             >C9 · Published position protection implementation</a
           >: cancellation-first updates and exact protection receipts.
         </li>
@@ -1164,6 +1115,24 @@
           <code>821f980c9b8a8e6feeb6f7ede5c318c6713889ea</code>. Independently
           approved local source and matching installed build; no published
           package or live validation claim.
+        </li>
+        <li>
+          C11 · Isolated Scale preview source
+          <code>45c0a72326f3243226e4b605d16874d2a3c5b72c</code>: public
+          expected-ladder contract and provider comparison. Later public awaits
+          and financial-write boundaries require correction.
+        </li>
+        <li>
+          C12 · Isolated Chase correction source
+          <code>c7e86d67da4793bc99e16f3aaef2b8dbcc47aa3a</code>: local stops
+          persist without consuming venue cancellation attempts. Source tests
+          pass; final review and native/venue proof remain pending.
+        </li>
+        <li>
+          C13 · Isolated Mobile Scale source
+          <code>8e204d2daa388e4f203beaa02ed2f98b1c4a84be</code>: production
+          payload, expected preview, pending/refusal copy and group selectors.
+          Private dependency matches C11; no live adoption claim.
         </li>
       </ul>
       <p id="mobile-sources">
