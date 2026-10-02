@@ -144,6 +144,21 @@ describe('waitForMembershipTopUp', () => {
     );
   });
 
+  it('rejects when the matching top-up is cancelled', async () => {
+    const { promise } = waitForMembershipTopUp(BATCH_ID);
+    const { statusUpdatedHandler } = getHandlers();
+
+    statusUpdatedHandler({
+      transactionMeta: createTransactionMeta({
+        status: TransactionStatus.cancelled,
+      }),
+    });
+
+    await expect(promise).rejects.toThrow(
+      'Membership subscription top-up cancelled',
+    );
+  });
+
   it('ignores events for a different batch id', async () => {
     const { promise, cancel } = waitForMembershipTopUp(BATCH_ID);
     const { statusUpdatedHandler, confirmedHandler } = getHandlers();

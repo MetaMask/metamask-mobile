@@ -99,6 +99,7 @@ export function waitForMembershipTopUp(
           break;
         case TransactionStatus.failed:
         case TransactionStatus.dropped:
+        case TransactionStatus.cancelled:
           rejectTopUp(new Error(topUpFailureMessage(transactionMeta)));
           break;
         default:
