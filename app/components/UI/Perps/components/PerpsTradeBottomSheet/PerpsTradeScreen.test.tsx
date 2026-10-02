@@ -517,7 +517,13 @@ describe('PerpsTradeScreen errors', () => {
   });
 
   it('shows the VIP badge beside the fee for discounted users', () => {
-    render(<PerpsTradeScreen {...defaultProps} feeDiscountPercentage={15} />);
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        feeDiscountPercentage={15}
+        feeDiscountKind="vip"
+      />,
+    );
 
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
   });

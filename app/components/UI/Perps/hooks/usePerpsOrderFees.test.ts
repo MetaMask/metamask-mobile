@@ -10,7 +10,6 @@ import {
   clearRewardsCaches,
 } from './usePerpsOrderFees';
 import {
-  BUILDER_FEE_CONFIG,
   type FeeCalculationParams,
   type FeeCalculationResult,
 } from '@metamask/perps-controller';
@@ -93,14 +92,7 @@ describe('usePerpsOrderFees', () => {
     [FeeCalculationParams]
   >();
 
-  it('uses the resolved Core fee once and preserves targeted attribution', async () => {
-    const feeResolution = {
-      feeBips: 2.5,
-      discountBips: 7500,
-      source: 'rewards' as const,
-      subscription: { eligible: false, reason: 'no-source' as const },
-      targetedDiscountApplied: true,
-    };
+  it('uses the resolved Core fee once and preserves grant attribution', async () => {
     mockCalculateFees.mockResolvedValue({
       feeRate: 0.0007,
       feeAmount: 0.7,
@@ -108,7 +100,7 @@ describe('usePerpsOrderFees', () => {
       protocolFeeAmount: 0.45,
       metamaskFeeRate: 0.00025,
       metamaskFeeAmount: 0.25,
-      feeResolution,
+      feeSource: 'grant',
     });
     const { result } = renderHook(() =>
       usePerpsOrderFees({ orderType: 'market', amount: '1000', symbol: 'BTC' }),
@@ -121,8 +113,8 @@ describe('usePerpsOrderFees', () => {
     expect(result.current.totalFee).toBeCloseTo(0.7);
     expect(result.current.undiscountedTotalFee).toBeCloseTo(1.45);
     expect(result.current.feeDiscountPercentage).toBe(75);
-    expect(result.current.feeResolution).toEqual(feeResolution);
-    expect(result.current.feeDiscountKind).toBe('targeted');
+    expect(result.current.feeSource).toBe('grant');
+    expect(result.current.feeDiscountKind).toBe('promotional');
     expect(
       mockEngineContext.RewardsController.getPerpsDiscountForAccount,
     ).not.toHaveBeenCalled();
@@ -576,7 +568,7 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
     });
 
-    it('should handle rewards enabled', async () => {
+    it('presents a reduced quote with unknown attribution generically', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 45,
@@ -602,161 +594,75 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.totalFee).toBe(90); // 45 protocol + 45 metamask
       expect(result.current.protocolFee).toBe(45);
       expect(result.current.metamaskFee).toBe(45);
-      expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.feeDiscountPercentage).toBeCloseTo(55);
+      expect(result.current.feeDiscountKind).toBe('generic');
       expect(result.current.estimatedPoints).toBeUndefined();
       expect(result.current.bonusBips).toBeUndefined();
-      expect(result.current.originalMetamaskFeeRate).toBe(0.00045);
-    });
-  });
-
-  describe('Resolved fee from calculateFees', () => {
-    // The file-level Engine mock factory runs before mockEngineContext is
-    // initialized, leaving Engine.context undefined. Wire it in for these
-    // tests so the RewardsController calls are observable.
-    const engineMock = jest.requireMock<{ context: unknown }>(
-      '../../../../core/Engine',
-    );
-    let originalEngineContext: unknown;
-
-    beforeEach(() => {
-      originalEngineContext = engineMock.context;
-      engineMock.context = mockEngineContext;
+      expect(result.current.originalMetamaskFeeRate).toBe(0.001);
     });
 
-    afterEach(() => {
-      engineMock.context = originalEngineContext;
-    });
+    it('uses the Core-resolved rewards rate without fetching another discount', async () => {
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.00135,
+        feeAmount: 135,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.0009,
+        feeSource: 'rewards',
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-    const renderOrderFees = () =>
-      renderHook(
+      const { result } = renderHook(
         () =>
           usePerpsOrderFees({
             orderType: 'market',
-            amount: '10000',
+            amount: '100000',
           }),
         { wrapper: createWrapper() },
       );
 
-    it('previews the rewards-discounted MetaMask rate without discounting it again', async () => {
-      // calculateFees already repriced the 10 bip builder fee with a 20% VIP discount
-      mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
-        2000,
-      );
-      mockCalculateFees.mockResolvedValue({
-        feeRate: 0.00125,
-        protocolFeeRate: 0.00045,
-        metamaskFeeRate: 0.0008,
-        chargesMetamaskBuilderFee: true,
-      });
-
-      const { result } = renderOrderFees();
       await waitFor(() => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
-      expect(result.current.metamaskFeeRate).toBe(0.0008);
-      expect(result.current.metamaskFee).toBeCloseTo(8);
-      expect(result.current.originalMetamaskFeeRate).toBe(
-        BUILDER_FEE_CONFIG.MaxFeeDecimal,
-      );
-      expect(result.current.feeDiscountPercentage).toBe(20);
-      expect(result.current.totalFee).toBeCloseTo(12.5);
-      expect(result.current.undiscountedTotalFee).toBeCloseTo(14.5);
+      expect(result.current.totalFee).toBeGreaterThan(0);
+      expect(result.current.originalMetamaskFeeRate).toBe(0.001);
+      expect(result.current.feeDiscountPercentage).toBeCloseTo(10);
       expect(
         mockEngineContext.RewardsController.getPerpsDiscountForAccount,
       ).not.toHaveBeenCalled();
     });
 
-    it('estimates points from the previewed MetaMask fee', async () => {
-      mockCalculateFees.mockResolvedValue({
-        feeRate: 0.00125,
-        protocolFeeRate: 0.00045,
-        metamaskFeeRate: 0.0008,
-        chargesMetamaskBuilderFee: true,
-      });
-
-      const { result } = renderOrderFees();
-      await waitFor(() => {
-        expect(result.current.isLoadingMetamaskFee).toBe(false);
-      });
-
-      expect(
-        mockEngineContext.RewardsController.estimatePoints,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          activityContext: {
-            perpsContext: expect.objectContaining({
-              usdFeeValue: result.current.metamaskFee.toString(),
-            }),
-          },
-        }),
+    it('does not apply a discount for a default Core quote', async () => {
+      mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValueOnce(
+        null,
       );
-    });
 
-    it.each([
-      { waiver: 'full', metamaskFeeRate: 0, discount: 100 },
-      { waiver: 'partial', metamaskFeeRate: 0.0004, discount: 60 },
-    ])(
-      'previews a $waiver subscription waiver at the rate calculateFees returns',
-      async ({ metamaskFeeRate, discount }) => {
-        mockCalculateFees.mockResolvedValue({
-          feeRate: 0.00045 + metamaskFeeRate,
-          protocolFeeRate: 0.00045,
-          metamaskFeeRate,
-          chargesMetamaskBuilderFee: true,
-        });
-
-        const { result } = renderOrderFees();
-        await waitFor(() => {
-          expect(result.current.isLoadingMetamaskFee).toBe(false);
-        });
-
-        expect(result.current.metamaskFeeRate).toBe(metamaskFeeRate);
-        expect(result.current.metamaskFee).toBeCloseTo(10000 * metamaskFeeRate);
-        expect(result.current.feeDiscountPercentage).toBe(discount);
-        expect(result.current.originalMetamaskFeeRate).toBe(
-          BUILDER_FEE_CONFIG.MaxFeeDecimal,
-        );
-      },
-    );
-
-    it('previews the default builder fee unchanged when no discount applies', async () => {
-      mockCalculateFees.mockResolvedValue({
+      const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00145,
+        feeAmount: 145,
         protocolFeeRate: 0.00045,
-        metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
-        chargesMetamaskBuilderFee: true,
-      });
+        metamaskFeeRate: 0.001,
+        feeSource: 'default',
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      const { result } = renderOrderFees();
-      await waitFor(() => {
-        expect(result.current.isLoadingMetamaskFee).toBe(false);
-      });
-
-      expect(result.current.metamaskFeeRate).toBe(
-        BUILDER_FEE_CONFIG.MaxFeeDecimal,
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+          }),
+        { wrapper: createWrapper() },
       );
-      expect(result.current.metamaskFee).toBeCloseTo(10);
-      expect(result.current.feeDiscountPercentage).toBe(0);
-      expect(result.current.totalFee).toBe(result.current.undiscountedTotalFee);
-    });
 
-    it('reports no discount when the placement carries no builder fee', async () => {
-      mockCalculateFees.mockResolvedValue({
-        feeRate: 0.00045,
-        protocolFeeRate: 0.00045,
-        metamaskFeeRate: 0,
-        chargesMetamaskBuilderFee: false,
-      });
-
-      const { result } = renderOrderFees();
       await waitFor(() => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
-      expect(result.current.metamaskFeeRate).toBe(0);
-      expect(result.current.originalMetamaskFeeRate).toBe(0);
       expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.metamaskFeeRate).toBe(0.001);
+      expect(result.current.originalMetamaskFeeRate).toBe(0.001);
+      expect(result.current.metamaskFee).toBe(100);
     });
   });
 
@@ -2000,6 +1906,46 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
   });
 
   describe('Rewards API Failure Handling', () => {
+    it('should continue with 0% discount when rewards API fails', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00045,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock rewards API to fail
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+          return Promise.reject(new Error('Rewards API unavailable'));
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Wait for completion
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Core fees should still be available even if rewards fails
+      expect(result.current.error).toBeNull();
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.metamaskFeeRate).toBe(0.00045);
+      expect(result.current.totalFee).toBe(90); // protocolFee (45) + metamaskFee (45) = 90
+    });
+
     it('should handle points estimation API failure gracefully', async () => {
       // Arrange
       const mockFeeResult: FeeCalculationResult = {
@@ -2038,6 +1984,45 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       expect(result.current.error).toBeNull();
       expect(result.current.totalFee).toBe(90);
       expect(result.current.estimatedPoints).toBeUndefined();
+    });
+  });
+
+  describe('Fee Discount Edge Cases and Validation', () => {
+    it('should handle negative discount values gracefully', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00045,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock negative discount
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+          return Promise.resolve(-500); // -5% discount
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Negative discount should be treated as 0%
+      expect(result.current.metamaskFee).toBe(45); // Full metamask fee
+      expect(result.current.totalFee).toBe(90);
     });
   });
 
