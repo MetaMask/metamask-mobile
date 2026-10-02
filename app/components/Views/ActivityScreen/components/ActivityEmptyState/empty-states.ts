@@ -13,7 +13,21 @@ export enum ActivityEmptyStateAction {
   OpenMetamaskCard = 'openMetamaskCard',
 }
 
+/**
+ * Spot illustration shown above the empty-state copy. The component resolves
+ * each value to its light/dark asset.
+ */
+export enum ActivityEmptyStateIllustration {
+  Search = 'search',
+  Predictions = 'predictions',
+  Perps = 'perps',
+}
+
 export interface ActivityEmptyStateConfig {
+  /** Spot illustration to show. */
+  illustration: ActivityEmptyStateIllustration;
+  /** i18n key for the empty-state title. */
+  titleKey: string;
   /** i18n key for the empty-state description. */
   descriptionKey: string;
   /** i18n key for the CTA button label. */
@@ -26,6 +40,8 @@ interface GetEmptyStateArgs {
   filter: ActivityTypeFilter;
   hasFunds: boolean;
   perpsSubFilterActive?: boolean;
+  /** Whether the selected account holds a MetaMask Card. */
+  isCardholder?: boolean;
 }
 
 /**
@@ -39,10 +55,13 @@ export function getActivityEmptyState({
   filter,
   hasFunds,
   perpsSubFilterActive = false,
+  isCardholder = false,
 }: GetEmptyStateArgs): ActivityEmptyStateConfig {
   switch (filter) {
     case ActivityTypeFilter.Predictions:
       return {
+        illustration: ActivityEmptyStateIllustration.Predictions,
+        titleKey: 'activity_view.empty_state.predictions.title',
         descriptionKey: 'activity_view.empty_state.predictions.description',
         actionLabelKey: 'activity_view.empty_state.predictions.action',
         action: ActivityEmptyStateAction.MakePrediction,
@@ -51,6 +70,8 @@ export function getActivityEmptyState({
     case ActivityTypeFilter.Perps:
       if (perpsSubFilterActive) {
         return {
+          illustration: ActivityEmptyStateIllustration.Perps,
+          titleKey: 'activity_view.empty_state.perps_sub_filter.title',
           descriptionKey:
             'activity_view.empty_state.perps_sub_filter.description',
           actionLabelKey: 'activity_view.empty_state.perps.action',
@@ -58,6 +79,8 @@ export function getActivityEmptyState({
         };
       }
       return {
+        illustration: ActivityEmptyStateIllustration.Perps,
+        titleKey: 'activity_view.empty_state.perps.title',
         descriptionKey: 'activity_view.empty_state.perps.description',
         actionLabelKey: 'activity_view.empty_state.perps.action',
         action: ActivityEmptyStateAction.BrowsePerpsMarkets,
@@ -66,6 +89,8 @@ export function getActivityEmptyState({
     case ActivityTypeFilter.Transactions:
       return hasFunds
         ? {
+            illustration: ActivityEmptyStateIllustration.Search,
+            titleKey: 'activity_view.empty_state.transactions_funded.title',
             descriptionKey:
               'activity_view.empty_state.transactions_funded.description',
             actionLabelKey:
@@ -73,6 +98,8 @@ export function getActivityEmptyState({
             action: ActivityEmptyStateAction.Swap,
           }
         : {
+            illustration: ActivityEmptyStateIllustration.Search,
+            titleKey: 'activity_view.empty_state.transactions_unfunded.title',
             descriptionKey:
               'activity_view.empty_state.transactions_unfunded.description',
             actionLabelKey:
@@ -82,29 +109,52 @@ export function getActivityEmptyState({
 
     case ActivityTypeFilter.BuySell:
       return {
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.buy_sell.title',
         descriptionKey: 'activity_view.empty_state.buy_sell.description',
         actionLabelKey: 'activity_view.empty_state.buy_sell.action',
         action: ActivityEmptyStateAction.AddFunds,
       };
 
     case ActivityTypeFilter.MetamaskCard:
+      // Both CTAs open the card flow, which routes cardholders to Card Home
+      // and everyone else to Card Welcome.
       // TODO: confirm card empty state copy with product
-      return {
-        descriptionKey: 'activity_view.empty_state.metamask_card.description',
-        actionLabelKey: 'activity_view.empty_state.metamask_card.action',
-        action: ActivityEmptyStateAction.OpenMetamaskCard,
-      };
+      return isCardholder
+        ? {
+            illustration: ActivityEmptyStateIllustration.Search,
+            titleKey:
+              'activity_view.empty_state.metamask_card_cardholder.title',
+            descriptionKey:
+              'activity_view.empty_state.metamask_card_cardholder.description',
+            actionLabelKey:
+              'activity_view.empty_state.metamask_card_cardholder.action',
+            action: ActivityEmptyStateAction.OpenMetamaskCard,
+          }
+        : {
+            illustration: ActivityEmptyStateIllustration.Search,
+            titleKey: 'activity_view.empty_state.metamask_card_no_card.title',
+            descriptionKey:
+              'activity_view.empty_state.metamask_card_no_card.description',
+            actionLabelKey:
+              'activity_view.empty_state.metamask_card_no_card.action',
+            action: ActivityEmptyStateAction.OpenMetamaskCard,
+          };
 
     case ActivityTypeFilter.All:
     default:
       return hasFunds
         ? {
+            illustration: ActivityEmptyStateIllustration.Search,
+            titleKey: 'activity_view.empty_state.default_funded.title',
             descriptionKey:
               'activity_view.empty_state.default_funded.description',
             actionLabelKey: 'activity_view.empty_state.default_funded.action',
             action: ActivityEmptyStateAction.Swap,
           }
         : {
+            illustration: ActivityEmptyStateIllustration.Search,
+            titleKey: 'activity_view.empty_state.default_unfunded.title',
             descriptionKey:
               'activity_view.empty_state.default_unfunded.description',
             actionLabelKey: 'activity_view.empty_state.default_unfunded.action',

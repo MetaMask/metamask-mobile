@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -9,6 +10,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { ACTIVITY_TYPE_FILTER_ORDER, ActivityTypeFilter } from '../../types';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
+import { selectIsCardResidencyBlocked } from '../../../../../selectors/cardController';
 import { FilterOptionSheet } from '../FilterOptionSheet';
 
 export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
@@ -45,6 +47,18 @@ export const createActivityTypeFilterNavDetails =
 const ActivityTypeFilterSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { selected, onSelect } = useParams<ActivityTypeFilterSheetParams>();
+  const isCardResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
+
+  // Card isn't offered where the user lives, so there's nothing to filter by.
+  const options = useMemo(
+    () =>
+      isCardResidencyBlocked
+        ? ACTIVITY_TYPE_FILTER_ORDER.filter(
+            (filter) => filter !== ActivityTypeFilter.MetamaskCard,
+          )
+        : ACTIVITY_TYPE_FILTER_ORDER,
+    [isCardResidencyBlocked],
+  );
 
   const handleGoBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -55,7 +69,7 @@ const ActivityTypeFilterSheet: React.FC = () => {
   return (
     <FilterOptionSheet
       title={strings('activity_view.type_filter.title')}
-      options={ACTIVITY_TYPE_FILTER_ORDER}
+      options={options}
       selected={selected}
       getLabel={(filter) => strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[filter])}
       onSelect={onSelect}
