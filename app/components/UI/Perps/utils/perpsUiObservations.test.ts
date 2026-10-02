@@ -170,6 +170,47 @@ describe('Perps UI observation ownership', () => {
     expect(store.read().submissions[0].state).toBe('settled');
   });
 
+  it('preserves unknown independent leg quantities and drops untyped leg fields', () => {
+    const receipt = {
+      linkage: 'independent' as const,
+      legs: [
+        {
+          role: 'take-profit' as const,
+          requestedSize: '0.0049',
+          normalizedSize: '0.004',
+          clientOrderId: '101',
+          orderId: '301',
+          status: 'resting' as const,
+        },
+        {
+          role: 'stop-loss' as const,
+          normalizedSize: '0.01',
+          status: 'unknown' as const,
+        },
+      ],
+    };
+    const result = {
+      success: false,
+      positionProtection: {
+        ...receipt,
+        legs: receipt.legs.map((leg) => ({ ...leg, authToken: 'secret' })),
+      },
+    };
+    const id = store.begin(scope, request());
+
+    store.settle(id, result);
+    result.positionProtection.legs[0].normalizedSize = '0.01';
+
+    expect(store.read().submissions[0].result).toEqual({
+      success: false,
+      positionProtection: receipt,
+    });
+    expect(
+      store.read().submissions[0].result?.positionProtection?.legs[1],
+    ).not.toHaveProperty('requestedSize');
+    expect(JSON.stringify(store.read())).not.toContain('secret');
+  });
+
   it('keeps lost results pending and missing settlements unknown', () => {
     const lost = store.begin(scope, request());
     const thrown = store.begin(scope, request());

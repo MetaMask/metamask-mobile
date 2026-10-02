@@ -17,6 +17,7 @@ import {
   type PerpsControllerMessenger,
   type LighterSignerBridge,
   type LighterWasmCall,
+  type PerpsControllerConfig,
 } from '@metamask/perps-controller';
 import {
   MOCK_ANY_NAMESPACE,
@@ -54,6 +55,8 @@ interface RecoveryTrigger {
   ownerAccountIndex: number;
   initialBaseAmount: string;
   remainingBaseAmount: string;
+  filledBaseAmount?: string;
+  filledQuoteAmount?: string;
   price: string;
   isAsk: boolean;
   type: string;
@@ -62,6 +65,7 @@ interface RecoveryTrigger {
   status: string;
   orderExpiry: number;
   timestamp: number;
+  nonce?: number;
   triggerPrice: string;
   toCancelOrderId0?: string;
 }
@@ -92,6 +96,8 @@ interface RecoveryVenue {
 
 interface RecoveryHarnessOptions {
   mode?: 'read' | 'isolated-write';
+  clientConfig?: PerpsControllerConfig;
+  isTestnet?: boolean;
   disk?: Map<string, string>;
   venue?: RecoveryVenue;
 }
@@ -339,6 +345,9 @@ export function buildLighterRecoveryHarness(
           }
           payload = { code: 200, orderBooks: [marketFixture] };
           break;
+        case '/api/v1/accountOrders':
+          payload = { code: 200, orders: [...venue.active, ...venue.inactive] };
+          break;
         case '/api/v1/accountActiveOrders':
           payload = { code: 200, orders: venue.active };
           break;
@@ -411,6 +420,9 @@ export function buildLighterRecoveryHarness(
               clientOrderIndex: Number(wire[1]),
               marketIndex: Number(wire[0]),
               ownerAccountIndex: ACCOUNT_INDEX,
+              nonce,
+              filledBaseAmount: '0',
+              filledQuoteAmount: '0',
               initialBaseAmount: String(
                 Number(wire[2]) / 10 ** marketFixture.supportedSizeDecimals,
               ),
@@ -430,7 +442,9 @@ export function buildLighterRecoveryHarness(
               timeInForce:
                 Number(wire[6]) === 1
                   ? 'good-till-time'
-                  : 'immediate-or-cancel',
+                  : Number(wire[6]) === 2
+                    ? 'post-only'
+                    : 'immediate-or-cancel',
               reduceOnly: Number(wire[7]),
               status: 'open',
               orderExpiry:
@@ -466,10 +480,22 @@ export function buildLighterRecoveryHarness(
     });
   const controller = new PerpsController({
     messenger: getPerpsControllerMessenger(rootMessenger),
-    state: { activeProvider: 'lighter', isTestnet: true, isEligible: true },
+    state: {
+      activeProvider: 'lighter',
+      isTestnet: options.isTestnet ?? true,
+      isEligible: true,
+    },
     infrastructure,
     clientConfig: {
-      providerCredentials: { lighter: { enabled: true, signerBridge: bridge } },
+      ...options.clientConfig,
+      providerCredentials: {
+        ...options.clientConfig?.providerCredentials,
+        lighter: {
+          enabled: true,
+          ...options.clientConfig?.providerCredentials?.lighter,
+          signerBridge: bridge,
+        },
+      },
     },
     deferEligibilityCheck: true,
   });
