@@ -104,6 +104,12 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
       getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
+      getPerpsTradingFeeGrant: jest.fn().mockResolvedValue({
+        providerId: 'hyperliquid',
+        isTestnet: false,
+        feeBips: 2.5,
+        expiresAt: 1_800_000_000_000,
+      }),
     },
   },
 }));
@@ -407,7 +413,7 @@ describe('createMobileInfrastructure', () => {
       expect(result).toBe(5);
     });
 
-    it('returns 0 discount when vipProgramEnabled is false', async () => {
+    it('leaves VIP eligibility to RewardsController', async () => {
       mockSelectVipProgramEnabled.mockReturnValue(false);
       const infra = createMobileInfrastructure();
       const caipAccountId =
@@ -420,8 +426,27 @@ describe('createMobileInfrastructure', () => {
 
       expect(
         Engine.context.RewardsController.getPerpsDiscountForAccount,
-      ).not.toHaveBeenCalled();
-      expect(result).toBe(0);
+      ).toHaveBeenCalledWith(caipAccountId, 10);
+      expect(result).toBe(5);
+    });
+
+    it('delegates a route-aware grant independently of VIP eligibility', async () => {
+      mockSelectVipProgramEnabled.mockReturnValue(false);
+      const infra = createMobileInfrastructure();
+      const scope = { providerId: 'hyperliquid', isTestnet: false };
+
+      const result = await infra.rewards.getPerpsTradingFeeGrant?.(scope);
+
+      expect(
+        Engine.context.RewardsController.getPerpsTradingFeeGrant,
+      ).toHaveBeenCalledWith(scope);
+      expect(result).toEqual(
+        expect.objectContaining({
+          providerId: 'hyperliquid',
+          isTestnet: false,
+          feeBips: 2.5,
+        }),
+      );
     });
   });
 

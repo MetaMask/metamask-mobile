@@ -1,3 +1,5 @@
+import { default as PerpsFeeDiscountLabel } from '../PerpsFeesDisplay/PerpsFeeDiscountLabel';
+import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import {
   Box,
   BoxAlignItems,
@@ -26,7 +28,6 @@ import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
@@ -91,6 +92,7 @@ interface PerpsTradeScreenProps {
   isPayWithDisabled: boolean;
   feePercentage?: string;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -283,6 +285,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isPayWithDisabled,
   feePercentage,
   feeDiscountPercentage,
+  feeDiscountKind,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -833,7 +836,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={2}
               >
-                {(feeDiscountPercentage ?? 0) > 0 ? <RewardsVipBadge /> : null}
+                <PerpsFeeDiscountLabel
+                  feeDiscountPercentage={feeDiscountPercentage}
+                  feeDiscountKind={feeDiscountKind}
+                />
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}

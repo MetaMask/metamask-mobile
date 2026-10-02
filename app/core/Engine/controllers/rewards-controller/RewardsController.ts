@@ -71,12 +71,15 @@ import {
   type PaginatedVipTransactionsDto,
   type VipTransactionDto,
   type VipTransactionsState,
+  type PerpsFeeResolverScope,
+  type PerpsTradingFeeGrant,
   CampaignType,
 } from './types';
 import {
   defaultRewardsControllerState,
   getRewardsControllerDefaultState,
 } from './defaultState';
+import { getHyperliquidMainnetBuilderAddress } from './utils/hyperliquid-builder-address';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
   storeSubscriptionToken,
@@ -614,6 +617,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getMoneyAccountSweepstakesDrawProof',
   'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
+  'getPerpsTradingFeeGrant',
   'getVipTierForAccount',
   'getVipTransactions',
   'getVipTransactionsIfChanged',
@@ -2039,6 +2043,58 @@ export class RewardsController extends BaseController<
       baseFeeBips,
     );
     return vipDiscountBips;
+  }
+
+  /**
+   * Fetch an uncached trading-fee grant for the requested Perps route.
+   * Grant lookup is intentionally independent of Rewards and VIP feature
+   * gates, account opt-in, and Rewards subscription state.
+   */
+  async getPerpsTradingFeeGrant(
+    scope: PerpsFeeResolverScope,
+  ): Promise<PerpsTradingFeeGrant | null> {
+    if (scope.providerId !== 'hyperliquid' || scope.isTestnet) {
+      return null;
+    }
+
+    try {
+      const response = await this.messenger.call(
+        'RewardsDataService:getTradingFeeGrants',
+      );
+      const grant = response.grant;
+      if (!grant) {
+        return null;
+      }
+
+      const configuredBuilderAddress =
+        getHyperliquidMainnetBuilderAddress().toLowerCase();
+      if (
+        grant.hyperliquid.builderCode.toLowerCase() !== configuredBuilderAddress
+      ) {
+        return null;
+      }
+
+      const feeBips = Number(grant.hyperliquid.builderFeeBips);
+      const expiresAt = Date.parse(grant.expiresAt);
+      if (
+        !Number.isFinite(feeBips) ||
+        feeBips < 0 ||
+        feeBips > 999.99 ||
+        !Number.isFinite(expiresAt) ||
+        expiresAt <= Date.now()
+      ) {
+        return null;
+      }
+
+      return {
+        providerId: 'hyperliquid',
+        isTestnet: false,
+        feeBips,
+        expiresAt,
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**

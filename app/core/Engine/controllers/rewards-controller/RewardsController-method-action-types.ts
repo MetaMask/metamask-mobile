@@ -199,6 +199,16 @@ export type RewardsControllerGetPerpsDiscountForAccountAction = {
 };
 
 /**
+ * Fetch an uncached trading-fee grant for the requested Perps route.
+ * Grant lookup is intentionally independent of Rewards and VIP feature
+ * gates, account opt-in, and Rewards subscription state.
+ */
+export type RewardsControllerGetPerpsTradingFeeGrantAction = {
+  type: `RewardsController:getPerpsTradingFeeGrant`;
+  handler: RewardsController['getPerpsTradingFeeGrant'];
+};
+
+/**
  * Get points events for a given season
  * @param params - The request parameters
  * @returns Promise<PaginatedPointsEventsDto> - The points events data
@@ -968,6 +978,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOptInStatusAction
   | RewardsControllerGetVipTierForAccountAction
   | RewardsControllerGetPerpsDiscountForAccountAction
+  | RewardsControllerGetPerpsTradingFeeGrantAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerGetPointsEventsIfChangedAction
   | RewardsControllerGetPointsEventsLastUpdatedAction
