@@ -155,6 +155,17 @@ export function stubHomepageSectionMeasurement(): jest.SpyInstance {
 
 const HOMEPAGE_SECTION_ROUTE = 'HomepageTopTradersSection';
 
+let restoreHomeTopTradersReduxStore: (() => void) | undefined;
+
+/**
+ * Puts back the `ReduxService.store` that was current before the last
+ * `renderHomeTopTradersSection` call. Call from `afterEach` so later suites on
+ * the same Jest worker do not read this test's store.
+ */
+export function restoreHomeTopTradersSectionStore(): void {
+  restoreHomeTopTradersReduxStore?.();
+}
+
 /**
  * Renders the homepage `TopTradersSection` as a navigator screen inside a
  * homepage scroll context with a real viewport, so the section's visibility
@@ -164,6 +175,7 @@ const HOMEPAGE_SECTION_ROUTE = 'HomepageTopTradersSection';
  * Also points `ReduxService.store` at the rendered store: the section's
  * "View all" entry goes through `navigateToSocialLeaderboard`, which reads the
  * onboarding gate and the Social V1 assignment straight from the store.
+ * `restoreHomeTopTradersSectionStore` puts the previous store back.
  */
 export function renderHomeTopTradersSection(
   extraRoutes: ExtraRoute[] = [],
@@ -198,7 +210,20 @@ export function renderHomeTopTradersSection(
     extraRoutes,
     { state },
   );
+  restoreHomeTopTradersSectionStore();
+  let previousStore: ReduxStore | undefined;
+  try {
+    previousStore = ReduxService.store;
+  } catch {
+    previousStore = undefined;
+  }
   ReduxService.store = result.store as unknown as ReduxStore;
+  restoreHomeTopTradersReduxStore = () => {
+    restoreHomeTopTradersReduxStore = undefined;
+    if (previousStore) {
+      ReduxService.store = previousStore;
+    }
+  };
   return result;
 }
 
