@@ -569,6 +569,20 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('retains a supplied definite refusal reason without changing default failure copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            undefined,
+            'Review existing Scale orders before placing another',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Review existing Scale orders before placing another',
+          isBold: false,
+        });
+      });
+
       it('strips hip3 prefix from asset symbol in limit order submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =

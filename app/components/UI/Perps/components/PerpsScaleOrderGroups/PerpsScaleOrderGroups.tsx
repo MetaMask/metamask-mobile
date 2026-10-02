@@ -14,6 +14,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
+import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 import { usePerpsScaleOrderGroups } from '../../hooks/usePerpsScaleOrderGroups';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { translatePerpsError } from '../../utils/translatePerpsError';
@@ -35,6 +37,7 @@ const PerpsScaleOrderGroups = ({
   providerId,
 }: PerpsScaleOrderGroupsProps) => {
   const stream = usePerpsStream();
+  const network = usePerpsNetwork();
   const refreshOrders = useCallback(() => {
     try {
       stream.retryOrderStreams();
@@ -44,10 +47,16 @@ const PerpsScaleOrderGroups = ({
           feature: PERPS_CONSTANTS.FeatureName,
           component: 'PerpsScaleOrderGroups',
           provider: providerId,
+          network,
+          action: 'refreshOrders',
+        },
+        context: {
+          name: 'PerpsScaleOrderGroups.refreshOrders',
+          data: { providerId, network },
         },
       });
     }
-  }, [stream, providerId]);
+  }, [stream, providerId, network]);
   const activity = usePerpsScaleOrderGroups({ onOrdersChanged: refreshOrders });
   const navigation = useNavigation();
   useEffect(
@@ -76,13 +85,22 @@ const PerpsScaleOrderGroups = ({
           gap={2}
           testID={IDS.row(group.providerId, group.groupId)}
         >
+          <Text variant={TextVariant.BodyMd}>
+            {strings('perps.pro_order_form.scale.groups.market_provider', {
+              assetSymbol: group.symbol,
+              providerName: PROVIDER_DISPLAY_INFO[group.providerId].name,
+            })}
+          </Text>
           <Text
-            variant={TextVariant.BodyMd}
-          >{`${group.symbol} · ${group.providerId}`}</Text>
-          <Text variant={TextVariant.BodySm}>
+            variant={TextVariant.BodySm}
+            testID={IDS.state(group.providerId, group.groupId)}
+          >
             {strings(`perps.pro_order_form.scale.groups.state.${group.state}`)}
           </Text>
-          <Text variant={TextVariant.BodySm}>
+          <Text
+            variant={TextVariant.BodySm}
+            testID={IDS.accepted(group.providerId, group.groupId)}
+          >
             {strings('perps.pro_order_form.scale.groups.accepted', {
               count:
                 group.acceptedChildren?.length ??
@@ -91,7 +109,10 @@ const PerpsScaleOrderGroups = ({
               assetSymbol: group.symbol,
             })}
           </Text>
-          <Text variant={TextVariant.BodySm}>
+          <Text
+            variant={TextVariant.BodySm}
+            testID={IDS.filled(group.providerId, group.groupId)}
+          >
             {strings('perps.pro_order_form.scale.groups.filled', {
               size: group.filledSize ?? PERPS_CONSTANTS.FallbackDataDisplay,
               assetSymbol: group.symbol,
@@ -100,6 +121,7 @@ const PerpsScaleOrderGroups = ({
           {group.acceptedChildren?.map((child, index) => (
             <Text
               key={child.orderId ?? `${child.state}:${index}`}
+              testID={IDS.child(group.providerId, group.groupId, index)}
               variant={TextVariant.BodySm}
             >
               {strings(

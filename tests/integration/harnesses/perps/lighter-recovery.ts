@@ -130,6 +130,7 @@ const MARKET_FIXTURE = {
 export function buildLighterRecoveryHarness(
   options: RecoveryHarnessOptions = {},
 ) {
+  const marketFixture = { ...MARKET_FIXTURE };
   const mode = options.mode ?? 'read';
   let selectedAccount: InternalAccount = {
     ...createMockEvmAccount(),
@@ -326,14 +327,14 @@ export function buildLighterRecoveryHarness(
         case '/api/v1/orderBookDetails':
           payload = {
             code: 200,
-            orderBookDetails: mode === 'isolated-write' ? [MARKET_FIXTURE] : [],
+            orderBookDetails: mode === 'isolated-write' ? [marketFixture] : [],
           };
           break;
         case '/api/v1/orderBooks':
           if (mode !== 'isolated-write') {
             throw new Error('Recovery read harness has no trading markets');
           }
-          payload = { code: 200, orderBooks: [MARKET_FIXTURE] };
+          payload = { code: 200, orderBooks: [marketFixture] };
           break;
         case '/api/v1/accountActiveOrders':
           payload = { code: 200, orders: venue.active };
@@ -408,13 +409,13 @@ export function buildLighterRecoveryHarness(
               marketIndex: Number(wire[0]),
               ownerAccountIndex: ACCOUNT_INDEX,
               initialBaseAmount: String(
-                Number(wire[2]) / 10 ** MARKET_FIXTURE.supportedSizeDecimals,
+                Number(wire[2]) / 10 ** marketFixture.supportedSizeDecimals,
               ),
               remainingBaseAmount: String(
-                Number(wire[2]) / 10 ** MARKET_FIXTURE.supportedSizeDecimals,
+                Number(wire[2]) / 10 ** marketFixture.supportedSizeDecimals,
               ),
               price: String(
-                Number(wire[3]) / 10 ** MARKET_FIXTURE.supportedPriceDecimals,
+                Number(wire[3]) / 10 ** marketFixture.supportedPriceDecimals,
               ),
               isAsk: Number(wire[4]) === 1,
               type:
@@ -435,7 +436,7 @@ export function buildLighterRecoveryHarness(
                   : Number(wire[9]),
               timestamp: Date.now(),
               triggerPrice: String(
-                Number(wire[8]) / 10 ** MARKET_FIXTURE.supportedPriceDecimals,
+                Number(wire[8]) / 10 ** marketFixture.supportedPriceDecimals,
               ),
             }));
             if (created.length === 2) {
@@ -477,7 +478,7 @@ export function buildLighterRecoveryHarness(
     responses,
     disk,
     accountFixture,
-    marketFixture: MARKET_FIXTURE,
+    marketFixture,
     venue,
     submissions,
     storageWrites,

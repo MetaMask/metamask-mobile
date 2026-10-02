@@ -1,5 +1,6 @@
 import type {
   GetScalePriceLadderParams,
+  ExpectedScaleLadder,
   PerpsScalePriceLadder,
   OrderResult,
 } from '@metamask/perps-controller';
@@ -55,6 +56,15 @@ export const getVenueScalePreview = (
   ) {
     return undefined;
   }
+  const expectedScaleLadder: ExpectedScaleLadder = {
+    prices: [...result.prices],
+    sizes: [...sizing.sizes],
+    totalSize: sizing.totalSize,
+    totalNotional: sizing.totalNotional,
+    minimumBaseSize: sizing.minimumBaseSize,
+    minimumQuoteAmount: sizing.minimumQuoteAmount,
+    sizeDecimals: sizing.sizeDecimals,
+  };
   return {
     success: true as const,
     rungs,
@@ -65,6 +75,7 @@ export const getVenueScalePreview = (
     orderValue: sizing.totalNotional,
     totalSize: sizing.totalSize,
     sizingIntent: request.sizing,
+    expectedScaleLadder,
   };
 };
 
