@@ -189,7 +189,7 @@ export function usePerpsRecovery() {
     if (capture() !== context) {
       return;
     }
-    reload();
+    void reload();
     return () => {
       operationRef.current = undefined;
     };
