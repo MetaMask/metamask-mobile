@@ -399,17 +399,18 @@
       </p>
       <p>
         The assembled local candidate uses Core
-        <code>13d3226905f3eb93a0b3adaf06cf8790536176c0</code> through a
+        <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code> through a
         reproducible 19.0.0 package patch. Its 367 package outputs match the
         frozen Core inventory. This includes recovery, explicit independent
         partial protection, attached probes, margin handling, native edit, Scale
         preview ownership and bounded testnet Chase configuration. Mobile
-        integrated05 builds on frozen integrated04
-        <code>8089aa1dda74088e9a52126ce24922cc68ee4d60</code> with a complete
+        integrated06 builds on frozen integrated05
+        <code>753a58a68344e56235386d4f97a1cfd8cedb7a03</code> with a complete
         unsigned Scale expectation and an atomically scoped Chase UI press.
-        These are local source contracts. Independent review, runtime adoption,
-        native signing and venue proof on the final combined head remain
-        separate. <a href="#current-source-state">[C15]</a>
+        Every normalized Scale child also respects the native single-order
+        amount bound. These are local source contracts. Independent review,
+        runtime adoption, native signing and venue proof on the final combined
+        head remain separate. <a href="#current-source-state">[C16]</a>
       </p>
       <p class="note">
         Reinstall validation is incomplete. A fixture-name collision interrupted
@@ -452,7 +453,7 @@
         positions. Mainnet examples are operator-executed.
       </p>
       <p>
-        Recipe06 reuses the existing Scale UI journey and correlates one
+        Recipe07 reuses the existing Scale UI journey and correlates one
         journaled Submit press with its exact unsigned request and controller
         result. The pre-press expectation uses the same production builder as
         submission. Intent fields and current quote fields remain in the digest;
@@ -1195,6 +1196,20 @@
           successor source heads and host-check evidence are in their freeze
           handoffs. Earlier runtime evidence retains its original source and
           runtime identities.
+        </li>
+        <li>
+          C16 · Corrected frozen Core
+          <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code>, closure
+          <code
+            >3ee696ce8903fe9f146ab52f6c56b69ce3e93beb73f16d6ff4e4f4528020ca39</code
+          >. Mobile integrated06 and Recipe07 adopt its 367 exact package
+          outputs. This successor adds native Scale child amount bounds and
+          clean-dist source type mappings. Public protection, receipts, signer
+          ABI and default-off testnet Chase gates are unchanged. C15 and both
+          failed full Mobile lint attempts remain preserved. Exact successor
+          source, dependency identity and changed-contract checks are in the
+          handoffs; native UI, signing and venue effects still require separate
+          proof.
         </li>
       </ul>
       <p id="mobile-sources">
