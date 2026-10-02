@@ -26,8 +26,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -35,6 +33,7 @@ import {
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -44,17 +43,37 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import Price from '../../AssetOverview/Price/Price';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../../AssetOverview/PriceChart/PriceChart.context';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
+import TokenDetailsV1Overview from '../components/TokenDetailsV1Overview';
+import TokenDetailsV1TabBar from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
-import type { TokenDetailsRouteParams } from '../constants/constants';
+import type {
+  TokenDetailsRouteParams,
+  TokenDetailsV1TabKey,
+} from '../constants/constants';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
+export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
+  'token-details-v1-scroll-view';
+export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
+  'token-details-v1-tab-panel';
+
+/**
+ * Direct-child index of the tab bar inside the body ScrollView — registered in
+ * `stickyHeaderIndices` so the tab bar docks below the nav header when the
+ * price hero, chart and tab content scroll under it.
+ */
+export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 1;
 
 interface ShareTokenBottomSheetControllerRef {
   open: () => void;
@@ -74,6 +93,32 @@ const ShareTokenBottomSheetController = forwardRef<
 });
 
 ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
+
+/**
+ * Lightweight placeholder panel for the Security / Feed tabs. Their content
+ * ships with follow-up stories (ASSETS-4022 / ASSETS-4021) — the tab bar is
+ * rendered "as is" so navigation and layout stay final.
+ */
+const TokenDetailsV1TabPlaceholder = ({
+  tab,
+}: {
+  tab: TokenDetailsV1TabKey;
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Column}
+    alignItems={BoxAlignItems.Center}
+    twClassName="py-8"
+    testID={`${TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX}-${tab}`}
+  >
+    <Text
+      variant={TextVariant.BodyMd}
+      color={TextColor.TextAlternative}
+      twClassName="text-center"
+    >
+      {strings('token_details_v1.tab_placeholder')}
+    </Text>
+  </Box>
+);
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -194,8 +239,20 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
   );
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
 
-  const { currentPrice, priceDiff, comparePrice, currentCurrency } =
-    useTokenPrice({ token });
+  const {
+    currentPrice,
+    priceDiff,
+    comparePrice,
+    prices,
+    isLoading: isPriceLoading,
+    timePeriod,
+    setTimePeriod,
+    chartNavigationButtons,
+    currentCurrency,
+    hasInsufficientCoverage,
+  } = useTokenPrice({ token });
+
+  const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>('overview');
 
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
@@ -247,65 +304,81 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
   }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
 
   return (
-    <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        onBackPress={handleBackPress}
-        onSharePress={shareUrl ? handleShare : undefined}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsSupported ? handlePriceAlertPress : undefined
-        }
-        description={headerDescription}
-      />
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        testID="token-details-v1-scroll-view"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 gap-2 px-6 py-20"
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            color={TextColor.TextDefault}
-            fontWeight={FontWeight.Bold}
-          >
-            Dedicated meme coin view
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {`A tailored experience for ${
-              token.symbol ?? 'this token'
-            } is being built. Check back soon.`}
-          </Text>
-        </Box>
-      </ScrollView>
-
-      {shareUrl && (
-        <ShareTokenBottomSheetController
-          ref={shareSheetRef}
-          shareUrl={shareUrl}
+    <PriceChartProvider>
+      <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
+        <TokenDetailsInlineHeader
           token={token}
-          currentPrice={currentPrice ?? 0}
-          priceDiff={priceDiff ?? 0}
-          comparePrice={comparePrice ?? 0}
-          currentCurrency={currentCurrency ?? 'usd'}
           securityData={securityData}
-          networkName={networkConfigurationByChainId?.name}
+          onBackPress={handleBackPress}
+          onSharePress={shareUrl ? handleShare : undefined}
+          starButton={starButton}
+          onPriceAlertPress={
+            isPriceAlertsSupported ? handlePriceAlertPress : undefined
+          }
+          description={headerDescription}
         />
-      )}
-    </View>
+
+        {/* The tab bar is a direct ScrollView child registered in
+            `stickyHeaderIndices`, so it docks right below the nav header
+            while the price hero, chart and tab content scroll under it. */}
+        <PriceChartContext.Consumer>
+          {({ isChartBeingTouched }) => (
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+              stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              scrollEnabled={!isChartBeingTouched}
+              testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
+            >
+              <Price
+                asset={token}
+                prices={prices}
+                timePeriod={timePeriod}
+                chartNavigationButtons={chartNavigationButtons}
+                setTimePeriod={setTimePeriod}
+                currentPrice={currentPrice}
+                priceDiff={priceDiff}
+                comparePrice={comparePrice}
+                currentCurrency={currentCurrency}
+                isLoading={isPriceLoading}
+                hasInsufficientCoverage={hasInsufficientCoverage}
+              />
+
+              <TokenDetailsV1TabBar
+                activeTab={activeTab}
+                onTabPress={setActiveTab}
+              />
+
+              {activeTab === 'overview' ? (
+                <TokenDetailsV1Overview
+                  token={token}
+                  assetId={caip19AssetId}
+                  currentCurrency={currentCurrency}
+                />
+              ) : (
+                <TokenDetailsV1TabPlaceholder tab={activeTab} />
+              )}
+            </ScrollView>
+          )}
+        </PriceChartContext.Consumer>
+
+        {shareUrl && (
+          <ShareTokenBottomSheetController
+            ref={shareSheetRef}
+            shareUrl={shareUrl}
+            token={token}
+            currentPrice={currentPrice ?? 0}
+            priceDiff={priceDiff ?? 0}
+            comparePrice={comparePrice ?? 0}
+            currentCurrency={currentCurrency ?? 'usd'}
+            securityData={securityData}
+            networkName={networkConfigurationByChainId?.name}
+          />
+        )}
+      </View>
+    </PriceChartProvider>
   );
 };
 
