@@ -64,6 +64,11 @@ export interface InitiateDepositOptions {
    */
   launchedFrom?: ConfirmationLaunchSource;
   transactionType?: TransactionType;
+  /**
+   * Optional batch id so a caller can subscribe to transaction events before
+   * `addTransactionBatch` runs and avoid missing the confirmed/rejected race.
+   */
+  batchId?: Hex;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -150,7 +155,8 @@ export function useMoneyAccountDeposit() {
         throw error;
       }
 
-      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      const batchId =
+        options?.batchId ?? bytesToHex(new Uint8Array(uuidParse(uuidv4())));
       // Only record an explicit funding intent (card / addMusd). Generic deposits
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.
