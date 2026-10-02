@@ -116,6 +116,7 @@ interface AgenticHudStep {
 }
 
 interface AgenticBridge {
+  pressTestIdScopeVersion: 1;
   readPerpsUiObservations: typeof readPerpsUiObservations;
   platform: string;
   replayHarnessPatch?: string;
@@ -126,7 +127,10 @@ interface AgenticBridge {
   goBack: () => void;
   listAccounts: () => { id: string; address: string; name: string }[];
   getSelectedAccount: () => { id: string; address: string; name: string };
-  pressTestId: (testId: string) => Promise<{
+  pressTestId: (
+    testId: string,
+    options?: { ancestorTestId: string },
+  ) => Promise<{
     ok: boolean;
     testId?: string;
     error?: string;
@@ -1229,23 +1233,76 @@ const AgenticService = {
         toAccountSummary(
           Engine.context.AccountsController.getSelectedAccount(),
         ),
-      pressTestId: async (testId: string) => {
+      pressTestIdScopeVersion: 1,
+      pressTestId: async (
+        testId: string,
+        options?: { ancestorTestId: string },
+      ) => {
         try {
-          const candidates: FiberNode[] = [];
-          walkFiberRoots((rootFiber) => {
-            walkFiber(rootFiber, (fiber) => {
-              if (
-                fiber.memoizedProps?.testID === testId &&
-                typeof fiber.memoizedProps?.onPress === 'function' &&
-                !isFiberInactive(fiber)
-              ) {
-                candidates.push(fiber);
-              }
+          const scoped = () => {
+            const ancestors: FiberNode[] = [];
+            walkFiberRoots((rootFiber) => {
+              walkFiber(rootFiber, (fiber) => {
+                if (
+                  fiber.memoizedProps?.testID === options?.ancestorTestId &&
+                  !isFiberInactive(fiber)
+                )
+                  ancestors.push(fiber);
+                return false;
+              });
               return false;
             });
-            return false;
-          });
+            const distinctAncestors = collapseNestedFibers(ancestors);
+            const ancestor =
+              distinctAncestors.length === 1 ? distinctAncestors[0] : null;
+            const controls: FiberNode[] = [];
+            if (ancestor?.child)
+              walkFiber(ancestor.child, (fiber) => {
+                if (
+                  fiber.memoizedProps?.testID === testId &&
+                  typeof fiber.memoizedProps?.onPress === 'function' &&
+                  !isFiberInactive(fiber)
+                )
+                  controls.push(fiber);
+                return false;
+              });
+            return { ancestor, controls: collapseNestedFibers(controls) };
+          };
+          if (options && !options.ancestorTestId)
+            return {
+              ok: false,
+              testId,
+              error: 'Exact ancestor scope is required',
+            };
+          const originalScope = options ? scoped() : null;
+          if (
+            originalScope &&
+            (!originalScope.ancestor || originalScope.controls.length !== 1)
+          )
+            return {
+              ok: false,
+              testId,
+              error: 'Scoped control or ancestor is missing or ambiguous',
+            };
+          const candidates: FiberNode[] = [];
+          if (originalScope) candidates.push(...originalScope.controls);
+          else
+            walkFiberRoots((rootFiber) => {
+              walkFiber(rootFiber, (fiber) => {
+                if (
+                  fiber.memoizedProps?.testID === testId &&
+                  typeof fiber.memoizedProps?.onPress === 'function' &&
+                  !isFiberInactive(fiber)
+                ) {
+                  candidates.push(fiber);
+                }
+                return false;
+              });
+              return false;
+            });
           const distinctCandidates = collapseNestedFibers(candidates);
+          const originalHandler =
+            originalScope?.controls[0].memoizedProps?.onPress;
           const viewport = Dimensions.get('window');
           const measuredCandidates = await Promise.all(
             distinctCandidates.map(async (fiber) => ({
@@ -1285,6 +1342,29 @@ const AgenticService = {
               testId,
               error: `Component with testID="${testId}" is disabled`,
             };
+          }
+          if (originalScope) {
+            const currentScope = scoped();
+            const rect = measuredCandidates.find(
+              (value) => value.fiber === candidate,
+            )?.rect;
+            if (
+              currentScope.ancestor !== originalScope.ancestor ||
+              currentScope.controls.length !== 1 ||
+              currentScope.controls[0] !== candidate ||
+              candidate.memoizedProps?.onPress !== originalHandler ||
+              isFiberInactive(candidate) ||
+              !currentScope.ancestor ||
+              isFiberDisabled(currentScope.ancestor) ||
+              !rect ||
+              !visibleCandidate
+            )
+              return {
+                ok: false,
+                testId,
+                error:
+                  'Scoped control changed or is not visible; no press attempted',
+              };
           }
           candidate.memoizedProps?.onPress?.();
           return { ok: true, testId };

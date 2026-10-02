@@ -53,6 +53,8 @@ export interface PerpsUiScaleForm {
   displayedLeverage: number;
   preview: PerpsScalePriceLadder | null;
   ladder: { price: string; size: string }[] | null;
+  expectedRequest?: PerpsUiUnsignedOrder | null;
+  expectedRequestDigest?: string | null;
 }
 export interface PerpsUiObservationSnapshot {
   version: 1;
@@ -291,7 +293,9 @@ export class PerpsUiObservationStore {
     }
   }
 
-  form(value: Omit<PerpsUiScaleForm, 'inputDigest'>): void {
+  form(
+    value: Omit<PerpsUiScaleForm, 'inputDigest' | 'expectedRequestDigest'>,
+  ): void {
     try {
       const scope = publicScope(value.scope);
       const input = primitives(value.input, [
@@ -305,6 +309,10 @@ export class PerpsUiObservationStore {
         'reduceOnly',
         'leverage',
       ]) as PerpsUiScaleForm['input'];
+      const expectedRequest =
+        value.mounted && !value.loading && !value.stale && value.expectedRequest
+          ? unsignedOrder(value.expectedRequest)
+          : null;
       const record: PerpsUiScaleForm = copy({
         formId: value.formId,
         mounted: value.mounted,
@@ -317,6 +325,10 @@ export class PerpsUiObservationStore {
         stale: value.stale,
         source: value.source,
         displayedLeverage: value.displayedLeverage,
+        expectedRequest,
+        expectedRequestDigest: expectedRequest
+          ? perpsUiInputDigest(expectedRequest)
+          : null,
         preview: publicPreview(value.preview),
         ladder:
           value.ladder?.map(
@@ -339,6 +351,8 @@ export class PerpsUiObservationStore {
     if (record) {
       record.mounted = false;
       record.stale = true;
+      record.expectedRequest = null;
+      record.expectedRequestDigest = null;
     }
   }
 
@@ -375,7 +389,7 @@ export const settlePerpsUiSubmission = (
   if (__DEV__) observations.settle(requestId, result);
 };
 export const recordPerpsUiScaleForm = (
-  form: Omit<PerpsUiScaleForm, 'inputDigest'>,
+  form: Omit<PerpsUiScaleForm, 'inputDigest' | 'expectedRequestDigest'>,
 ) => {
   if (__DEV__) observations.form(form);
 };
