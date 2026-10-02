@@ -373,8 +373,8 @@
       </p>
       <p>
         October 2 status: the installed local Mobile build is
-        <code>2bd94dc5e564da70895f1f23612b9a0270b92234</code> with Core
-        <code>821f980c9b8a8e6feeb6f7ede5c318c6713889ea</code> patched into
+        <code>0f7f91c5f57a1a92c7f6869065131cb4dc32eaa5</code> with Core
+        <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code> patched into
         controller 19.0.0. Mobile includes merged #37025 and Hyperliquid SDK
         0.33.3. Earlier basic-order and full-position-protection recipes passed
         on both testnets using the same funded <code>dev1</code> account. Those
@@ -402,25 +402,45 @@
         <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code> through a
         reproducible 19.0.0 package patch. Its 367 package outputs match the
         frozen Core inventory. This includes recovery, explicit independent
-        partial protection, attached probes, margin handling, native edit, Scale
-        preview ownership and bounded testnet Chase configuration. Mobile
-        integrated06 builds on frozen integrated05
+        partial protection, attached full-position submission, margin handling,
+        native edit, Scale preview ownership and bounded testnet Chase
+        configuration. Mobile integrated06 builds on frozen integrated05
         <code>753a58a68344e56235386d4f97a1cfd8cedb7a03</code> with a complete
         unsigned Scale expectation and an atomically scoped Chase UI press.
         Every normalized Scale child also respects the native single-order
         amount bound. These are local source contracts. Independent review,
         runtime adoption, native signing and venue proof on the final combined
-        head remain separate. <a href="#current-source-state">[C16]</a>
+        head remain separate. Native source binding, authenticated key reuse,
+        reconnect and testnet provider switching passed on this build. Lighter
+        testnet market fill and exact close proof now pass, as does the limit
+        placement, resting-order proof and exact cancellation recipe. The
+        original market recipe failure remains preserved beside its corrected
+        proof and close. Hyperliquid market fill/close and limit rest/cancel
+        also pass on this build with the same selected account. Lighter Scale's
+        two resting children and exact group cancellation pass. Order-form
+        submission, account/network isolation and reinstall reconstruction still
+        need final validation.
+        <a href="#current-source-state">[C16]</a>
       </p>
       <p class="note">
         Reinstall validation is incomplete. A fixture-name collision interrupted
         reset before recovery or trading. All 47 wallet accounts were restored
         through the supported fixture operation, with
         <code>dev1</code> selected. The original failure and registration budget
-        remain preserved. The restored app has a new transient inspector
-        identity; its continuation needs reviewed native and source binding
-        before recovery or trading. Local key-scope absence does not itself
-        establish uninstall-caused loss.
+        remain preserved. Native source binding and authenticated reuse now pass
+        on the restored app. These do not turn the interrupted reset into a
+        successful reinstall or establish uninstall-caused key loss.
+      </p>
+      <p class="note" id="tpsl-follow-up">
+        Further TP/SL parity work is deferred. Keep the current implementation
+        while completing reliable basic trading and automatic key recovery.
+        Follow-up work covers partial-sizing controls in Mobile, final-build
+        native and venue validation of position and attached protection, and
+        partial attached children if venue and signer support can be verified.
+        The shared Mobile form protects the full position on both protocols.
+        Lighter's linked pair requires equal quantities; independent unequal
+        legs do not automatically cancel each other. No Hyperliquid TP/SL defect
+        has been identified.
       </p>
       <p>
         Current audit paths:
@@ -603,14 +623,15 @@
               <td>Implemented.</td>
               <td>
                 Native OTO/OTOCO submission and durable exact group identities
-                are implemented behind the default-off testnet probe. Child
-                coverage uses venue-native zero size. Partial attached child
-                sizes remain unsupported, and lifecycle verification is pending.
+                are implemented in the inspected source. Child coverage uses
+                venue-native zero size. Partial attached child sizes remain
+                unsupported, and lifecycle verification is pending.
               </td>
               <td>
                 Offline OTO/OCO/OTOCO signing and wrapper regressions pass on
                 unchanged WASM. Attached UI placement, exact child receipts,
-                activation and cleanup remain unproved.
+                activation and cleanup remain unproved and are deferred to the
+                <a href="#tpsl-follow-up">TP/SL follow-up</a>.
               </td>
             </tr>
             <tr>
@@ -624,8 +645,10 @@
               </td>
               <td>
                 Recorded create/replace/remove/close controller and venue
-                lifecycles passed on both testnets. Current Mobile form proof
-                and final published-head review remain separate requirements.
+                lifecycles passed on both testnets on earlier builds. Current
+                Mobile form and final-build lifecycle proof are deferred to the
+                <a href="#tpsl-follow-up">TP/SL follow-up</a>. Published-head
+                review remains a delivery requirement.
               </td>
             </tr>
             <tr>
@@ -652,9 +675,10 @@
                 carries exact partial quantities and linkage through the
                 existing controller composition, then checks each normalized leg
                 against its receipt and independent resting intent. This is API
-                validation. Partial sizing UI, native signing and actual venue
-                receipts/cleanup are separate. Snapshot quantities do not resize
-                with positions.
+                validation. Partial sizing UI and final-build native signing,
+                actual venue receipts and cleanup are deferred to the
+                <a href="#tpsl-follow-up">TP/SL follow-up</a>. Snapshot
+                quantities do not resize with positions.
                 <a href="#current-source-state">[C15]</a>
               </td>
             </tr>
@@ -716,9 +740,10 @@
               </td>
               <td>
                 Host tests cover preview/request ownership, stale/loading
-                retirement and exact result correlation. Final independent
-                review, actual UI submission, venue receipts and exact group
-                cleanup remain pending.
+                retirement and exact result correlation. The testnet controller
+                lifecycle passes with two exact resting children, cancellation,
+                zero fills and no remaining exposure. Actual UI submission and
+                its final review/validation remain pending.
                 <a href="#current-source-state">[C15]</a>
               </td>
             </tr>
@@ -741,7 +766,11 @@
                 the original wallet/network/account/key owner. It is local
                 history, not fresh venue proof. Recipe cleanup requires every
                 independent exact child and scopes the existing UI button to its
-                stable handle. Final native/venue proof remains pending.
+                stable handle. The latest bounded testnet attempt refused a
+                stale quote before dispatch. Exact transaction, nonce and venue
+                reads show no acceptance; its failed recipe receipt still needs
+                guarded reconciliation. A successful child lifecycle remains
+                unproved.
                 <a href="#current-source-state">[C15]</a>
               </td>
             </tr>
