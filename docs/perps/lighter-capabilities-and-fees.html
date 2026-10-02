@@ -88,16 +88,16 @@
   <body>
     <header>
       <p class="meta">
-        MetaMask Perps · Advanced-order matrix checked October 2, 2026; earlier
+        MetaMask Perps · Advanced-order matrix checked October 3, 2026; earlier
         evidence retains its original dates
       </p>
       <h1>Lighter: fees, capabilities and integration status</h1>
       <p>
-        Reviewer companion for
+        The Lighter integration began in
         <a href="https://github.com/MetaMask/metamask-mobile/pull/34865"
           >Mobile #34865</a
-        >. This compares the MetaMask integrations, not everything each venue
-        offers.
+        >. This page compares the MetaMask integrations, not everything each
+        venue offers.
       </p>
       <nav aria-label="Contents">
         <a href="#fees">Fee capture</a><a href="#matrix">Capability matrix</a
@@ -372,17 +372,17 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        October 2 status: the installed local Mobile build is
-        <code>0f7f91c5f57a1a92c7f6869065131cb4dc32eaa5</code> with Core
-        <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code> patched into
-        controller 19.0.0. Mobile includes merged #37025 and Hyperliquid SDK
-        0.33.3. Earlier basic-order and full-position-protection recipes passed
-        on both testnets using the same funded <code>dev1</code> account. Those
-        dated runs retain their original source identities below. They do not
-        prove current advanced forms or mainnet financial execution.
+        October 3 source and runtime: the pushed Mobile branch and bound local
+        app use <code>4d8bcf236bff7c43ab9cc62ca27c8f439ac3c6fa</code>, with Core
+        <code>1c87013ccef08f4830c632fb0ac713cf3241dee5</code> patched into
+        controller 19.0.0. The active validation library is
+        <code>6bda9513764f564e9c30d14840386e8a13b732e5</code>. Mobile includes
+        merged #37025 and Hyperliquid SDK 0.33.3. These development revisions
+        are separate from production rollout and the historical proofs below.
+        <a href="#current-source-state">[C17]</a>
       </p>
       <p>
-        Two Core PRs remain open as drafts:
+        As recorded on October 3, two Core PRs remain open as drafts:
         <a href="https://github.com/MetaMask/core/pull/10618"
           >#10618 recovery</a
         >
@@ -395,41 +395,61 @@
         The recovery correction must preserve an accepted key registration
         through visibility delays and reconnect, without allocating another
         slot. Final reviews, CI and published-package availability remain
-        separate from local source checks.
+        separate from local source checks. An audit of the Core branch stack is
+        underway; the final PR structure is not yet settled.
       </p>
       <p>
-        The assembled local candidate uses Core
-        <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code> through a
-        reproducible 19.0.0 package patch. Its 367 package outputs match the
-        frozen Core inventory. This includes recovery, explicit independent
-        partial protection, attached full-position submission, margin handling,
-        native edit, Scale preview ownership and bounded testnet Chase
-        configuration. Mobile integrated06 builds on frozen integrated05
-        <code>753a58a68344e56235386d4f97a1cfd8cedb7a03</code> with a complete
-        unsigned Scale expectation and an atomically scoped Chase UI press.
-        Every normalized Scale child also respects the native single-order
-        amount bound. These are local source contracts. Independent review,
-        runtime adoption, native signing and venue proof on the final combined
-        head remain separate. Native source binding, authenticated key reuse,
-        reconnect and testnet provider switching passed on this build. Lighter
-        testnet market fill and exact close proof now pass, as does the limit
-        placement, resting-order proof and exact cancellation recipe. The
-        original market recipe failure remains preserved beside its corrected
-        proof and close. Hyperliquid market fill/close and limit rest/cancel
-        also pass on this build with the same selected account. Lighter Scale's
-        two resting children and exact group cancellation pass. Order-form
-        submission, account/network isolation and reinstall reconstruction still
-        need final validation.
-        <a href="#current-source-state">[C16]</a>
+        Current source includes bounded key recovery, standalone triggers,
+        post-only, native edit, Scale, isolated margin support and bounded
+        testnet Chase. Earlier testnet runs passed market/fill/close and
+        limit/rest/cancel on both protocols, and Lighter's controller Scale
+        lifecycle with two exact children and group cancellation. They prove
+        their recorded builds, not complete validation of the current app.
+        <a href="#evidence">Dated evidence</a> retains those source identities.
+      </p>
+      <p>
+        Two of the seven remaining-order cases have been attempted. Lighter's
+        post-only order was accepted, proved resting unfilled and exactly
+        canceled. Its recipe still failed because management received an empty
+        default. The active library corrects that default; the original failed
+        run is preserved and has not been replayed.
+      </p>
+      <p>
+        The native-edit case accepted and rested its opening SOL limit order,
+        then returned a pending edit response. Durable reconciliation proved the
+        edit failed before signing or dispatch because Mobile's signer allowlist
+        omitted <code>_signModifyOrder</code>. The exact original order was
+        canceled once, with independent zero-fill proof. Fresh reads found no
+        positions, resting orders or pending orders, and all four original
+        trading-key maps were unchanged. The failed recipe and original pending
+        response remain preserved; no edit was replayed.
+      </p>
+      <p>
+        A local Mobile correction at
+        <code>d6e6577786b8028554b9f1497427b07e0fcad5a9</code> adds the validated
+        seven-argument signer operation. All 111 host tests pass, including a
+        regression that fails against the original allowlist. Independent
+        review, adoption and native/venue proof remain pending. This commit is
+        not the current runtime. <a href="#current-source-state">[C18]</a>
+      </p>
+      <p>
+        Five original cases remain unused: Scale UI on both protocols,
+        Hyperliquid post-only, Lighter isolated margin addition and bounded
+        testnet Chase. Final recovery proof still needs genuine reinstall and
+        reconstruction, reconnect reuse, account/network isolation and
+        order-loading/error recovery. Deposits and withdrawals are excluded.
+        Financial validation is testnet-only; mainnet examples are
+        operator-executed, with no mainnet trading pass claimed.
       </p>
       <p class="note">
         Reinstall validation is incomplete. A fixture-name collision interrupted
         reset before recovery or trading. All 47 wallet accounts were restored
         through the supported fixture operation, with
         <code>dev1</code> selected. The original failure and registration budget
-        remain preserved. Native source binding and authenticated reuse now pass
-        on the restored app. These do not turn the interrupted reset into a
-        successful reinstall or establish uninstall-caused key loss.
+        remain preserved. Earlier native source binding and authenticated reuse
+        passed on the restored app. Current source binding also passes; neither
+        establishes successful reinstall, uninstall-caused key loss or final
+        recovery validation.
       </p>
       <p class="note" id="tpsl-follow-up">
         Further TP/SL parity work is deferred. Keep the current implementation
@@ -473,15 +493,15 @@
         positions. Mainnet examples are operator-executed.
       </p>
       <p>
-        Recipe07 reuses the existing Scale UI journey and correlates one
+        The Scale recipe reuses the existing UI journey and correlates one
         journaled Submit press with its exact unsigned request and controller
         result. The pre-press expectation uses the same production builder as
         submission. Intent fields and current quote fields remain in the digest;
         a changed quote is a mismatch, with no resubmit. Chase cleanup uses
         complete public handle ownership and an exact ancestor-scoped existing
-        button, then independent venue reconciliation. The frozen Core
-        advertises Chase only for an explicitly configured testnet provider with
-        its signer. Mobile passes the public probe config through
+        button, then independent venue reconciliation. Current Core advertises
+        Chase only for an explicitly configured testnet provider with its
+        signer. Mobile passes the public probe config through
         <code>MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE=true</code>; it remains
         default-off, with actual-network guards and the existing version-gated
         Pro and Chase UI rollout gates. The Pro USD request must agree with the
@@ -536,8 +556,8 @@
                 without changing mode.
               </td>
               <td>
-                Lite entry, Back and restored Lite controls validated; Pro limit
-                flow validated. <a href="#mobile-sources">[M1]</a>
+                Earlier Lite entry, Back and restored Lite controls validated;
+                Pro limit flow validated. <a href="#mobile-sources">[M1]</a>
               </td>
             </tr>
             <tr>
@@ -548,24 +568,30 @@
                 signer.
               </td>
               <td>
-                Testnet ETH long market/fill/close and passive limit/cancel
-                validated on controller 19.0.0 with dev1. Same flows also passed
-                on Hyperliquid. No separate short cycle claimed.
+                Earlier testnet ETH long market/fill/close and passive
+                limit/cancel passed on controller 19.0.0 with dev1 on both
+                protocols. No separate short cycle or complete current-build
+                pass claimed.
               </td>
             </tr>
             <tr>
               <th scope="row">Post-only</th>
               <td>ALO order handling implemented.</td>
-              <td>Unavailable: placement and validation reject ALO.</td>
-              <td>No post-only proof; excluded from basic acceptance.</td>
+              <td>Post-only placement and validation implemented.</td>
+              <td>
+                Latest Lighter order accepted, rested unfilled and exactly
+                canceled. The recipe failed on an empty management default; that
+                correction is active, but the failed run is not a pass.
+                Hyperliquid comparison remains unused.
+              </td>
             </tr>
             <tr>
               <th scope="row">Positions and open orders</th>
               <td>Implemented reads/subscriptions.</td>
               <td>Implemented reads/subscriptions.</td>
               <td>
-                Visible position, resting order and independent empty final
-                state validated.
+                Earlier visible position, resting order and independent empty
+                final state validated.
               </td>
             </tr>
             <tr>
@@ -580,18 +606,22 @@
               <th scope="row">Cancel / edit resting order</th>
               <td>Both implemented.</td>
               <td>
-                Cancel and native edit implemented in the assembled source. Edit
-                requires the exact unfilled ordinary active perpetual GTC or
-                post-only limit, original client and venue identity, fresh
-                remaining quantity and current owner. Strategy and protection
-                children, partial fills and unsupported order types refuse. The
-                seven-argument signer ABI carries no order version or expiry
-                compare, so the final venue race remains.
+                Cancel and native edit implemented in Core. Current Mobile
+                rejects the edit signer operation; the local correction awaits
+                review and adoption. Edit requires the exact unfilled ordinary
+                active perpetual GTC or post-only limit, original client and
+                venue identity, fresh remaining quantity and current owner.
+                Strategy and protection children, partial fills and unsupported
+                order types refuse. The seven-argument signer ABI carries no
+                order version or expiry compare, so the final venue race
+                remains.
               </td>
               <td>
-                Individual cancel validated. Same-order price/size changes,
-                partial-fill races and uncertain edit settlement need venue
-                proof. Cancel/re-place is not an atomic native edit.
+                Individual cancel validated. Latest edit failed unsent; its
+                exact opening order was canceled with zero fill. The signer
+                correction passes 111 host tests, but same-order price/size
+                changes and edit settlement still need native/venue proof.
+                Cancel/re-place is not an atomic native edit.
               </td>
             </tr>
             <tr>
@@ -603,11 +633,14 @@
               <td>
                 Leverage and explicit cross/isolated order margin modes are
                 implemented and advertised for active perpetual markets in the
-                assembled source. Fresh identity, execution, existing position
-                and collateral checks remain required; venue risk limits can
-                still refuse the request.
+                current source. Fresh identity, execution, existing position and
+                collateral checks remain required; venue risk limits can still
+                refuse the request.
               </td>
-              <td>2x order cycle validated; no margin-mode switching proof.</td>
+              <td>
+                Earlier 2x order cycle validated; no margin-mode switching
+                proof.
+              </td>
             </tr>
             <tr>
               <th scope="row">Add/remove margin</th>
@@ -616,7 +649,10 @@
                 <code>updateMargin</code> implemented;
                 <code>previewPositionModify</code> returns unsupported.
               </td>
-              <td>No UI parity or device proof claimed.</td>
+              <td>
+                The original isolated-margin addition case remains unused. No
+                final UI parity or device proof claimed.
+              </td>
             </tr>
             <tr>
               <th scope="row">TP/SL at placement</th>
@@ -671,15 +707,16 @@
                 controls as Hyperliquid.
               </td>
               <td>
-                Offline signing and mocked-I/O regressions pass. Recipe06
-                carries exact partial quantities and linkage through the
-                existing controller composition, then checks each normalized leg
-                against its receipt and independent resting intent. This is API
-                validation. Partial sizing UI and final-build native signing,
-                actual venue receipts and cleanup are deferred to the
+                Offline signing and mocked-I/O regressions pass.
+                Controller-level recipe support carries exact partial quantities
+                and linkage through the existing controller composition, then
+                checks each normalized leg against its receipt and independent
+                resting intent. This is API validation. Partial sizing UI and
+                final-build native signing, actual venue receipts and cleanup
+                are deferred to the
                 <a href="#tpsl-follow-up">TP/SL follow-up</a>. Snapshot
                 quantities do not resize with positions.
-                <a href="#current-source-state">[C15]</a>
+                <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
             <tr>
@@ -698,13 +735,13 @@
                 default expiry. Existing-position TP/SL is a separate path.
               </td>
               <td>
-                Fixed in this branch: Pro mode and rollout now require an
-                explicit standalone type declaration. Omitted, unavailable and
-                pending declarations offer only Basic choices. Fresh placement
-                checks bind the declared provider and current wallet/network.
-                The completed capability stage passed Lighter Basic-only and
-                Hyperliquid's four trigger choices. Native Lighter follow-up
-                passed all eight type/side combinations through exact controller
+                Pro mode and rollout require an explicit standalone type
+                declaration. Omitted, unavailable and pending declarations offer
+                only Basic choices. Fresh placement checks bind the declared
+                provider and current wallet/network. The completed capability
+                stage passed Lighter Basic-only and Hyperliquid's four trigger
+                choices. Native Lighter follow-up passed all eight type/side
+                combinations on its dated build through exact controller
                 receipt, resting venue intent, cancellation and flat cleanup.
                 Activation/fills and Pro form submission remain unproved.
               </td>
@@ -732,19 +769,19 @@
                 Ladder strategy, subject to market readiness and Mobile rollout.
               </td>
               <td>
-                The assembled Core advertises Scale and persists exact
-                group/rung identities. Public input ownership and fresh metadata
-                are checked at later signing and dispatch boundaries. Mobile
-                copies the venue ladder and exposes the complete production
-                request before the existing Submit handler.
+                Current Core advertises Scale and persists exact group/rung
+                identities. Public input ownership and fresh metadata are
+                checked at later signing and dispatch boundaries. Mobile copies
+                the venue ladder and exposes the complete production request
+                before the existing Submit handler.
               </td>
               <td>
                 Host tests cover preview/request ownership, stale/loading
-                retirement and exact result correlation. The testnet controller
-                lifecycle passes with two exact resting children, cancellation,
-                zero fills and no remaining exposure. Actual UI submission and
-                its final review/validation remain pending.
-                <a href="#current-source-state">[C15]</a>
+                retirement and exact result correlation. An earlier testnet
+                controller lifecycle passed with two exact resting children,
+                cancellation, zero fills and no remaining exposure. The current
+                Scale UI cases on both protocols remain unused.
+                <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
             <tr>
@@ -759,19 +796,19 @@
                 and advertises Chase only with a signer. Pro USD sizing is
                 supported within the existing 20 USD, actual 1x and opening-only
                 guards. Mainnet remains unavailable. Ordinary native
-                resting-limit edit is a separate implemented path.
+                resting-limit edit is a separate Core path awaiting Mobile's
+                signer correction and runtime proof.
               </td>
               <td>
                 Public history includes superseded and unresolved children plus
                 the original wallet/network/account/key owner. It is local
                 history, not fresh venue proof. Recipe cleanup requires every
                 independent exact child and scopes the existing UI button to its
-                stable handle. The latest bounded testnet attempt refused a
+                stable handle. An earlier bounded testnet attempt refused a
                 stale quote before dispatch. Exact transaction, nonce and venue
-                reads show no acceptance; its failed recipe receipt still needs
-                guarded reconciliation. A successful child lifecycle remains
-                unproved.
-                <a href="#current-source-state">[C15]</a>
+                reads showed no acceptance. The remaining bounded testnet case
+                is unused; a successful child lifecycle remains unproved.
+                <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
             <tr>
@@ -792,8 +829,9 @@
               <td>
                 Earlier key-loss/reconnect recipes passed without additional
                 registrations. Latest source tests cover account/network changes
-                and quarantine. Reinstall, device isolation and trading recipes
-                still need to pass against the latest integrated build.
+                and quarantine. Genuine reinstall/reconstruction, reconnect
+                reuse, account/network isolation and order-loading/error
+                recovery still need final runtime proof.
               </td>
             </tr>
             <tr>
@@ -807,7 +845,8 @@
               </td>
               <td>
                 Existing funded testnet account used. Funded Lite order entry is
-                not a deposit implementation.
+                not a deposit implementation. Deposits are excluded from this
+                validation.
               </td>
             </tr>
             <tr>
@@ -817,7 +856,10 @@
                 Signed withdrawal implemented; mainnet route advertised, testnet
                 route withheld because devnet L1 is unreachable per source.
               </td>
-              <td>No withdrawal or mainnet financial proof.</td>
+              <td>
+                Withdrawals are excluded from this validation. No withdrawal or
+                mainnet financial proof.
+              </td>
             </tr>
             <tr>
               <th scope="row">Trade/order history</th>
@@ -890,25 +932,31 @@
           patch for wallet-key recovery, stream failures/history, unknown
           closing-fill PnL, capability gating, native standalone triggers,
           position protection and non-financial dispatch reconciliation. Core
-          #10605 is merged. #10618 and #10638 are the two open draft follow-ups;
-          #10629 is closed and #10644 is incorporated into #10638's feature
-          branch. Final corrections, review and current UI/venue proof remain
-          pending. Remove the patch after all corrections are published
-          upstream. No <code>.yalc</code> package or <code>yalc.lock</code> is
-          committed.
+          #10605 is merged. As recorded on October 3, #10618 and #10638 are the
+          two open draft follow-ups; #10629 is closed and #10644 is incorporated
+          into #10638's feature branch. Final corrections, review and current
+          UI/venue proof remain pending, including the Core stack simplification
+          audit. Mobile
+          <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
+            >#37161</a
+          >
+          and the validation-library PR remain drafts. The locally committed
+          signer correction is not yet adopted. Remove the patch after all
+          corrections are published upstream. No <code>.yalc</code> package or
+          <code>yalc.lock</code> is committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,
           lint, format, unit, integration, security, bundle-size and Android
-          smoke checks pass. Component-view shards and the intentional PR
-          max-lines policy were red; the branch was labeled
+          smoke checks passed in that snapshot. Component-view shards and the
+          intentional PR max-lines policy were red; the branch was labeled
           <code>size-XL</code> and requires the normal review/policy approvals.
         </li>
         <li>
-          An automated Bugbot finding about Android new-window navigation was
-          addressed with explicit navigation filtering and
-          <code>setSupportMultipleWindows={false}</code>. Automated review is
-          not an independent security certification.
+          Android new-window navigation was corrected with explicit filtering
+          and
+          <code>setSupportMultipleWindows={false}</code>. Those controls are not
+          an independent security certification.
         </li>
       </ul>
       <p class="note">
@@ -1042,12 +1090,13 @@
           awaits separate consent.
         </li>
         <li>
-          Current migration checks include focused signer, provider, navigation,
-          order-execution and controller-integration suites, component-view
-          coverage for funded and aggregated Lighter orders, and passing CI
-          TypeScript, lint, format, unit and integration jobs. A post-upgrade
-          iOS provider-selector recipe passed 36/36 nodes. The earlier funded
-          trading cycles remain the financial evidence.
+          Earlier migration checks included focused signer, provider,
+          navigation, order-execution and controller-integration suites,
+          component-view coverage for funded and aggregated Lighter orders, and
+          passing CI TypeScript, lint, format, unit and integration jobs. A
+          post-upgrade iOS provider-selector recipe passed 36/36 nodes. The
+          earlier funded trading cycles remain dated financial evidence; these
+          checks do not establish a pass for the latest complete app.
         </li>
       </ul>
     </section>
@@ -1142,7 +1191,9 @@
         </li>
       </ul>
       <p id="current-source-state">
-        Current source additions are separate from the September 30 audit:
+        Current development revisions and historical source references are
+        separate from the September 30 audit. Historical source checks do not
+        prove the latest runtime:
       </p>
       <ul>
         <li>
@@ -1159,7 +1210,7 @@
           >: optional trigger-type declarations; omitted support stays unknown.
         </li>
         <li>
-          C7 · Unpublished partial-protection source at
+          C7 · Historical partial-protection source at
           <code>ff0e20cacc74d25fa1073d07dc9be3f6856bcaf6</code>:
           <code>LighterProvider.ts</code>, <code>types/index.ts</code> and
           <code>constants/hyperLiquidConfig.ts</code>. Frozen local source and
@@ -1179,70 +1230,71 @@
           >: cancellation-first updates and exact protection receipts.
         </li>
         <li>
-          C10 · Installed recovery source at
+          C10 · Historical recovery source at
           <code>821f980c9b8a8e6feeb6f7ede5c318c6713889ea</code>. Independently
           approved local source and matching installed build; no published
           package or live validation claim.
         </li>
         <li>
-          C11 · Isolated Scale preview source
+          C11 · Historical Scale preview source
           <code>45c0a72326f3243226e4b605d16874d2a3c5b72c</code>: public
           expected-ladder contract and provider comparison. Later public awaits
           and financial-write boundaries require correction.
         </li>
         <li>
-          C12 · Isolated Chase correction source
+          C12 · Historical Chase correction source
           <code>c7e86d67da4793bc99e16f3aaef2b8dbcc47aa3a</code>: local stops
           persist without consuming venue cancellation attempts. Source tests
           pass; final review and native/venue proof remain pending.
         </li>
         <li>
-          C13 · Isolated Mobile Scale source
+          C13 · Historical Mobile Scale source
           <code>8e204d2daa388e4f203beaa02ed2f98b1c4a84be</code>: production
           payload, expected preview, pending/refusal copy and group selectors.
           Private dependency matches C11; no live adoption claim.
         </li>
         <li>
-          C14 · Frozen assembled Core
-          <code>f0ad5c63746fd255108f9e2534dbbee32b7cb911</code>, closure
-          <code
-            >840626e5bfd74c6c4319835202fff8d023db6b9faa07b85ca48524c55c453087</code
-          >. Earlier C7 and C11–C13 describe historical donors. Mobile
-          integrated04 includes this held documentation and the exact package
-          patch; its final source head and canonical check evidence are recorded
-          in its freeze handoff. This reference establishes source provenance
-          only.
+          C14 · Historical assembled Core
+          <code>f0ad5c63746fd255108f9e2534dbbee32b7cb911</code>. Earlier C7 and
+          C11–C13 describe its source inputs. Its preserved package and check
+          evidence establish source provenance only.
         </li>
         <li>
-          C15 · Frozen successor Core
-          <code>13d3226905f3eb93a0b3adaf06cf8790536176c0</code>, closure
-          <code
-            >e07ddd7b7908f324e38384331f80cfb7c2bb6aaa9ca757a2c241aea1f853c5f9</code
-          >. Mobile integrated05 and Recipe06 consume its exact public
-          contracts. Independent quantities, per-leg outcomes and public bounded
-          testnet Chase configuration supersede the C14 source limits. The
-          shared Mobile TP/SL screen retains full-position controls. Exact
-          successor source heads and host-check evidence are in their freeze
-          handoffs. Earlier runtime evidence retains its original source and
-          runtime identities.
+          C15 · Historical Core
+          <code>13d3226905f3eb93a0b3adaf06cf8790536176c0</code>. This added
+          independent protection quantities, per-leg outcomes and public bounded
+          testnet Chase configuration beyond C14. The shared Mobile TP/SL screen
+          retains full-position controls. Its source and host checks remain
+          historical evidence.
         </li>
         <li>
-          C16 · Corrected frozen Core
-          <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code>, closure
-          <code
-            >3ee696ce8903fe9f146ab52f6c56b69ce3e93beb73f16d6ff4e4f4528020ca39</code
-          >. Mobile integrated06 and Recipe07 adopt its 367 exact package
-          outputs. This successor adds native Scale child amount bounds and
-          clean-dist source type mappings. Public protection, receipts, signer
-          ABI and default-off testnet Chase gates are unchanged. C15 and both
-          failed full Mobile lint attempts remain preserved. Exact successor
-          source, dependency identity and changed-contract checks are in the
-          handoffs; native UI, signing and venue effects still require separate
-          proof.
+          C16 · Historical Core
+          <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code>. Its 367 package
+          outputs included Scale child amount bounds and source type mappings.
+          Its checks and failed full Mobile lint attempts remain preserved; they
+          do not identify the current runtime.
+        </li>
+        <li>
+          C17 · Current development source as of October 3: Core
+          <code>1c87013ccef08f4830c632fb0ac713cf3241dee5</code>, Mobile
+          <code>4d8bcf236bff7c43ab9cc62ca27c8f439ac3c6fa</code> and validation
+          library <code>6bda9513764f564e9c30d14840386e8a13b732e5</code>. The
+          local runtime is bound to these revisions. Remaining-order and final
+          recovery validation are incomplete; earlier passes retain their
+          original revisions.
+        </li>
+        <li>
+          C18 · Locally committed Mobile signer correction
+          <code>d6e6577786b8028554b9f1497427b07e0fcad5a9</code>. The exact
+          seven-argument ModifyOrder ABI was established with the unchanged
+          embedded binary. All 111 host wrapper tests pass. Independent review,
+          adoption and native/venue validation are pending; this source is not
+          the current runtime.
         </li>
       </ul>
       <p id="mobile-sources">
-        Mobile snapshot: <code>18764146836007e1a789dbd7fc164f5d93c05403</code>.
+        Historical Mobile audit snapshot:
+        <code>18764146836007e1a789dbd7fc164f5d93c05403</code>.
       </p>
       <ul>
         <li>
