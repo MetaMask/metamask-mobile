@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Yed0BHzHXJQ9cyoxuoR+WSNPskhE8cVak56F74ehLRs=' 'sha256-VAodnNKhyo8p4/2kLG3wD/5n6lifdu/Q0UlGw5PfGHY=' 'sha256-Mup/gs0nEcMvGLs7yksOY9Sol0xo/3gZ12fvnadNQwI=' 'sha256-pe6exnmuvIsoWM/R4ldXIVgs37LD4Po1WRWeIzKSKqA=' 'wasm-unsafe-eval'; connect-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Yed0BHzHXJQ9cyoxuoR+WSNPskhE8cVak56F74ehLRs=' 'sha256-VAodnNKhyo8p4/2kLG3wD/5n6lifdu/Q0UlGw5PfGHY=' 'sha256-+FKCsiQ4lHXrEXSAefuYnKks9+aviGQOyCgvuNCuS8k=' 'sha256-pe6exnmuvIsoWM/R4ldXIVgs37LD4Po1WRWeIzKSKqA=' 'wasm-unsafe-eval'; connect-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
   <meta http-equiv="x-dns-prefetch-control" content="off">
   <title>Lighter WASM signer</title>
 </head>
@@ -591,6 +591,23 @@
     const decimal = (value) => typeof value === 'string' && /^\d+$/.test(value);
     const flag = (value) => value === 0 || value === 1;
     const keyIndex = (value) => unsigned(value) && value <= 254;
+    const MAX_MODIFY_ACCOUNT_INDEX = 281474976710654;
+    const MAX_MODIFY_BASE_AMOUNT = 281474976710655;
+    const MAX_MODIFY_PRICE = 4294967295;
+    const MAX_MODIFY_MARKET_INDEX = 32767;
+    const RESERVED_MODIFY_MARKET_INDEX = 255;
+    const MAX_MODIFY_ORDER_INDEX = '1152921504606846975';
+    const modifyOrderIndex = (value) => typeof value === 'string' && value.length <= MAX_MODIFY_ORDER_INDEX.length && /^[1-9]\d*$/.test(value) && (value.length < MAX_MODIFY_ORDER_INDEX.length || value <= MAX_MODIFY_ORDER_INDEX);
+    // ModifyOrder uses numeric size/price and has no expiry or order-version argument.
+    const modifyOrderParams = [
+      (value) => unsigned(value) && value <= MAX_MODIFY_ACCOUNT_INDEX,
+      (value) => unsigned(value) && value <= MAX_MODIFY_MARKET_INDEX && value !== RESERVED_MODIFY_MARKET_INDEX,
+      modifyOrderIndex,
+      (value) => unsigned(value) && value > 0 && value <= MAX_MODIFY_BASE_AMOUNT,
+      (value) => unsigned(value) && value > 0 && value <= MAX_MODIFY_PRICE,
+      (value) => value === 0,
+      unsigned,
+    ];
     const orderParams = [unsigned, unsigned, decimal, decimal, flag, unsigned, unsigned, flag, decimal, integer];
     function groupedOrderValidators(params) {
       if (!Array.isArray(params)) return null;
@@ -604,6 +621,7 @@
       _signChangePubKey: [unsigned, (value) => typeof value === 'string' && /^0x[0-9a-f]{130}$/i.test(value), unsigned, keyIndex],
       _signCreateOrder: [unsigned, ...orderParams, unsigned],
       _signCreateGroupedOrders: [unsigned, unsigned, (value) => value === 2, ...orderParams, ...orderParams, unsigned],
+      _signModifyOrder: modifyOrderParams,
       _signCancelOrder: [unsigned, unsigned, decimal, unsigned],
       _signUpdateLeverage: [unsigned, unsigned, unsigned, flag, unsigned],
       _signUpdateMargin: [unsigned, unsigned, unsigned, flag, unsigned],
