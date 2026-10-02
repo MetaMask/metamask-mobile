@@ -101,7 +101,7 @@ jobs:
           inputs.platform == 'android' && vars.NAMESPACE_RUNNER_ANDROID ||
           inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' ||
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' ||
          (inputs.platform == 'android' && 'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux')) ||
         (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' ||
          (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest'))
@@ -211,7 +211,7 @@ jobs:
 
       - name: Install Foundry if cache missed
         if: ${{ inputs.platform != '' && (env.RESOLVED_RUNNER_PROVIDER == 'namespace' || steps.restore-metamask.outputs.cache-hit != 'true') }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -219,7 +219,7 @@ jobs:
           command: yarn install:foundryup
 
       - name: Setup project
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         if: inputs.platform != ''
         with:
           timeout_minutes: 10

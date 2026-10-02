@@ -67,7 +67,7 @@ const Consumer = () => {
 runQuoteProviderCases({
   name: 'BridgeQuoteDataContext',
   missingProviderError:
-    'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
+    'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider and SwapQuotesProvider',
   renderProvider: (state) =>
     renderWithProvider(
       <BridgeQuoteDataProvider>

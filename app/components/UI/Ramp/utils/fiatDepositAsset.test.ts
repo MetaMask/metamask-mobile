@@ -2,7 +2,10 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { deriveFiatDepositAssetId } from './fiatDepositAsset';
+import {
+  deriveFiatDepositAssetId,
+  isMonadMusdAssetId,
+} from './fiatDepositAsset';
 
 const tx = (meta: Partial<TransactionMeta>) => meta as TransactionMeta;
 
@@ -12,6 +15,18 @@ const tx = (meta: Partial<TransactionMeta>) => meta as TransactionMeta;
  */
 const MUSD_MONAD_ASSET_ID =
   'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
+
+describe('isMonadMusdAssetId', () => {
+  it('matches the Monad mUSD asset ID case-insensitively', () => {
+    expect(isMonadMusdAssetId(MUSD_MONAD_ASSET_ID.toLowerCase())).toBe(true);
+  });
+
+  it('rejects mUSD on a different chain', () => {
+    expect(
+      isMonadMusdAssetId(MUSD_MONAD_ASSET_ID.replace('eip155:143', 'eip155:1')),
+    ).toBe(false);
+  });
+});
 
 describe('deriveFiatDepositAssetId', () => {
   it('uses the hardcoded default for a non-batch deposit type', () => {

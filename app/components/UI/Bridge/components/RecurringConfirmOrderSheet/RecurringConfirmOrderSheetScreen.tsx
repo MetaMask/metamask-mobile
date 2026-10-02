@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -7,14 +7,19 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
-  selectBridgeBalanceRefreshKey,
   selectDestToken,
+  selectRecurringPriceRange,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import {
+  convertPriceRangeToUsd,
+  USD_PRICE_RANGE_CURRENCY,
+} from '../../utils/priceRange';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
@@ -27,21 +32,33 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const autoUpgradeEIP7702Account = useAutoUpgradeEIP7702Account();
+  const priceRange = useSelector(selectRecurringPriceRange);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const sourceWalletAddress = useSelector(selectSourceWalletAddress);
+  const fiatToUsdRate = useFiatToUsdRate(sourceToken?.chainId);
+  const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
+    address: sourceWalletAddress,
+    chainId: sourceToken?.chainId,
+  });
   const delegationFee = useEIP7702UpgradeFee();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
+  const canConvertStoredCurrency =
+    !priceRange ||
+    priceRange.currency.toUpperCase() === USD_PRICE_RANGE_CURRENCY ||
+    priceRange.currency.toUpperCase() === currentCurrency?.toUpperCase();
+  const usdPriceRange = useMemo(
+    () =>
+      canConvertStoredCurrency
+        ? convertPriceRangeToUsd(priceRange, fiatToUsdRate)
+        : undefined,
+    [canConvertStoredCurrency, fiatToUsdRate, priceRange],
+  );
+  const isPriceRangeConversionReady =
+    !priceRange || usdPriceRange !== undefined;
 
   const handleConfirm = useCallback(async () => {
-    if (isSubmittingRef.current) {
+    if (isSubmittingRef.current || !isPriceRangeConversionReady) {
       return;
     }
 
@@ -62,7 +79,12 @@ export const RecurringConfirmOrderSheetScreen = () => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [autoUpgradeEIP7702Account, dispatch, navigation]);
+  }, [
+    autoUpgradeEIP7702Account,
+    dispatch,
+    isPriceRangeConversionReady,
+    navigation,
+  ]);
 
   const handleEditSlippagePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -81,18 +103,16 @@ export const RecurringConfirmOrderSheetScreen = () => {
   }, [navigation]);
 
   return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <RecurringConfirmOrderSheet
-        delegationFee={delegationFee}
-        isSubmitting={isSubmitting}
-        latestSourceBalance={latestSourceBalance}
-        onConfirm={handleConfirm}
-        onEditSlippagePress={handleEditSlippagePress}
-        onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
-        goBack={navigation.goBack}
-      />
-    </BridgeQuoteDataProvider>
+    <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency ?? USD_PRICE_RANGE_CURRENCY}
+      delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
+      isPriceRangeConversionReady={isPriceRangeConversionReady}
+      isSubmitting={isSubmitting}
+      onConfirm={handleConfirm}
+      onEditSlippagePress={handleEditSlippagePress}
+      onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
+      goBack={navigation.goBack}
+    />
   );
 };

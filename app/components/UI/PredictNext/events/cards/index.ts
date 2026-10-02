@@ -1,3 +1,4 @@
+export { getEventCardLiveMarketIds } from './getEventCardLiveMarketIds';
 export { EventCardGame } from './EventCardGame';
 export type { EventCardGameProps, EventCardGameVariant } from './EventCardGame';
 export { EventCardStandard } from './EventCardStandard';

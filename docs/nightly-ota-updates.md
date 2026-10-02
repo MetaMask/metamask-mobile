@@ -91,9 +91,13 @@ Once the PR is ready:
    - **`base_branch`**: `chore/temp-nightly`
      (this is the baseline used for Expo fingerprint comparison).
    - **`build_attribution`**: `nightly` — **required for nightly pushes**. An OTA update rebuilds the
-     JS bundle, so this value is re-inlined as `METAMASK_BUILD_ATTRIBUTION`. Leaving it empty makes
-     the update report its analytics App Version as `X.Y.Z-release-candidate` instead of
-     `X.Y.Z-rc-nightly`, mixing nightly data in with the Runway release candidates.
+     JS bundle, so this value is re-inlined as `METAMASK_BUILD_ATTRIBUTION`.
+     Analytics App Version rules for `rc`:
+     - `official` (set only by release-channel workflows) → `X.Y.Z-release-candidate`
+     - `nightly` → `X.Y.Z-rc-nightly`
+     - omitted / unofficial / any other value → `X.Y.Z-rc-unofficial`
+       Leaving this empty on a nightly OTA therefore reports `X.Y.Z-rc-unofficial`, not
+       `X.Y.Z-release-candidate`. Experimental suffixes (`-experimental`, `-exp-nightly`) are unchanged.
 
 6. Click **“Run workflow”**.
 

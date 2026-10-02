@@ -36,7 +36,10 @@ import {
   Box,
   Button,
   ButtonVariant,
+  IconName as DSIconName,
 } from '@metamask/design-system-react-native';
+import BasicFunctionalityEmptyState from '../BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import BaseControlBar from '../shared/BaseControlBar';
@@ -113,6 +116,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     const selectedGroupAccounts = useSelector(
       selectSelectedAccountGroupInternalAccounts,
+    );
+    const isBasicFunctionalityEnabled = useSelector(
+      selectBasicFunctionalityEnabled,
     );
 
     const addressesOverride = useMemo(
@@ -322,6 +328,17 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       ],
     );
 
+    // NFT media, metadata, and detection all come from external services, so
+    // the whole surface is unavailable rather than partially usable.
+    if (!isBasicFunctionalityEnabled) {
+      return (
+        <BasicFunctionalityEmptyState
+          title={strings('wallet.nfts_unavailable_title')}
+          iconName={DSIconName.Warning}
+        />
+      );
+    }
+
     return (
       <>
         <BaseControlBar
@@ -330,7 +347,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           additionalButtons={
             <ButtonIcon
               testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSizes.Md}
               onPress={goToAddCollectible}
               iconName={IconName.Add}
             />

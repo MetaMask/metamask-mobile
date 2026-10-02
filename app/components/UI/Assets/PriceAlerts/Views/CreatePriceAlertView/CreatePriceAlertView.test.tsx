@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import I18n from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -10,6 +11,7 @@ import {
   type PercentChangeAlert,
 } from '../../constants';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import type { usePerpsLiveFocusedPrice } from '../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice';
 import CreatePriceAlertView from './CreatePriceAlertView';
 
 const mockGoBack = jest.fn();
@@ -43,6 +45,20 @@ jest.mock('../../hooks/useAlertSaveFlow', () => ({
   default: jest.fn(() => ({ saveAlert: jest.fn() })),
 }));
 
+jest.mock('../../perpApi', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ saveAlert: jest.fn() })),
+  perpAlertsQueryKey: jest.fn((marketId: string) => ['perp-alerts', marketId]),
+  fetchPerpAlerts: jest.fn(),
+  createPerpAlert: jest.fn(),
+  updatePerpAlert: jest.fn(),
+  deletePerpAlert: jest.fn(),
+  useSubmitPerpAlert: jest.fn(() => ({
+    submit: jest.fn(),
+    isSubmitting: false,
+  })),
+}));
+
 jest.mock('./AbsolutePriceAlertForm', () => ({
   __esModule: true,
   default: (props: unknown) => mockAbsoluteForm(props),
@@ -59,6 +75,18 @@ jest.mock(
     FeatureNotificationsGate: (props: unknown) => mockFeatureGate(props),
   }),
 );
+
+const mockUsePerpsLiveFocusedPrice = jest.fn<
+  ReturnType<typeof usePerpsLiveFocusedPrice>,
+  []
+>(() => undefined);
+jest.mock('../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice', () => ({
+  usePerpsLiveFocusedPrice: () => mockUsePerpsLiveFocusedPrice(),
+}));
+jest.mock('../../../../Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 const absoluteAlert: AbsolutePriceAlert = {
   id: 'absolute-alert-1',
@@ -99,6 +127,7 @@ describe('CreatePriceAlertView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = baseRoute;
+    mockUsePerpsLiveFocusedPrice.mockReturnValue(undefined);
   });
 
   it('switches from the absolute form to the percent-change form', () => {
@@ -153,6 +182,7 @@ describe('CreatePriceAlertView', () => {
       asset_id: 'eip155:1/slip44:60',
       token_symbol: 'ETH',
       has_existing_alert: false,
+      alert_market_type: 'spot',
     });
   });
 
@@ -267,5 +297,101 @@ describe('CreatePriceAlertView', () => {
 
     expect(screen.getByText('Edit ETH price alert')).toBeOnTheScreen();
     expect(screen.getByText('$1,201.98')).toBeOnTheScreen();
+  });
+
+  it('centers the header title and subtitle text', () => {
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(CreatePriceAlertTestIds.HEADER_TITLE).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(CreatePriceAlertTestIds.HEADER_SUBTITLE).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+  });
+
+  it('centers the longest localized title when it wraps', () => {
+    const originalLocale = I18n.locale;
+    I18n.locale = 'el';
+
+    try {
+      const screen = render(<CreatePriceAlertView />);
+
+      expect(
+        screen.getByText('Δημιουργία ειδοποίησης τιμής για ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId(CreatePriceAlertTestIds.HEADER_TITLE).props.style,
+        ),
+      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    } finally {
+      I18n.locale = originalLocale;
+    }
+  });
+
+  it('formats a Perps BTC header like the live market header', () => {
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      szDecimals: 5,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$83,714')).toBeOnTheScreen();
+  });
+
+  it('formats a Perps kPEPE header like the live market header', () => {
+    mockRouteParams = {
+      symbol: 'kPEPE',
+      ticker: 'kPEPE',
+      currentPrice: 0.008764,
+      currentCurrency: 'usd',
+      assetId: 'kPEPE',
+      mode: 'perps',
+      marketId: 'kpepe-hyperliquid-mainnet',
+      szDecimals: 0,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$0.008764')).toBeOnTheScreen();
+  });
+
+  it('updates the Perps header subtitle when a live tick arrives', () => {
+    mockUsePerpsLiveFocusedPrice.mockReturnValue({
+      symbol: 'BTC',
+      price: '84000',
+      markPrice: '84000',
+      timestamp: 1,
+      isTradable: true,
+    });
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      szDecimals: 5,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$84,000')).toBeOnTheScreen();
+    expect(mockAbsoluteForm).toHaveBeenCalledWith(
+      expect.objectContaining({ currentPrice: 84000, szDecimals: 5 }),
+    );
   });
 });

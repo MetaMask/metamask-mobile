@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -70,12 +70,6 @@ const PerpsOrderTransactionViewContent: React.FC = () => {
     transaction?.asset ?? '',
     transaction?.timestamp,
   );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   if (!transaction) {
     return (

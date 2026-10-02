@@ -61,6 +61,10 @@ import {
 } from '../../../core/Analytics/events/filters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+import {
+  getPerpsAggregateFillsPreference,
+  setPerpsAggregateFillsPreference,
+} from '../../UI/Perps/utils/perpsFillDisplayStorage';
 
 const ActivityScreen = () => {
   const tw = useTailwind();
@@ -259,6 +263,27 @@ const ActivityScreen = () => {
     ? getPerpsSubFilterKinds(perpsFilter)
     : undefined;
 
+  // Perps fills are the only rows that can be collapsed per order, so the control is offered
+  // on the Trades sub-filter and nowhere else. The choice persists across sessions.
+  const [aggregateFills, setAggregateFills] = useState(
+    getPerpsAggregateFillsPreference,
+  );
+  const handleAggregateFillsChange = useCallback((isSelected: boolean) => {
+    setAggregateFills(isSelected);
+    setPerpsAggregateFillsPreference(isSelected);
+  }, []);
+  const aggregatedToggle = useMemo(
+    () =>
+      showPerpsFilter && perpsFilter === PerpsActivityFilter.Trades
+        ? {
+            isSelected: aggregateFills,
+            onChange: handleAggregateFillsChange,
+            testID: ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX,
+          }
+        : null,
+    [showPerpsFilter, perpsFilter, aggregateFills, handleAggregateFillsChange],
+  );
+
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -311,10 +336,11 @@ const ActivityScreen = () => {
         <AssetListControlBar
           typeChip={typeChip}
           secondaryChip={secondaryChip}
+          aggregatedToggle={aggregatedToggle}
         />
       </Box>
     ),
-    [handleTitleLayout, typeChip, secondaryChip],
+    [handleTitleLayout, typeChip, secondaryChip, aggregatedToggle],
   );
 
   return (
@@ -348,6 +374,7 @@ const ActivityScreen = () => {
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
               subFilterKinds={subFilterKinds}
+              aggregateFills={aggregateFills}
               trackScreenViewed
               entryPoint={entryPoint}
             />
@@ -367,6 +394,7 @@ const ActivityScreen = () => {
                 <AssetListControlBar
                   typeChip={typeChip}
                   secondaryChip={secondaryChip}
+                  aggregatedToggle={aggregatedToggle}
                   suppressTestIDs
                 />
               </Box>

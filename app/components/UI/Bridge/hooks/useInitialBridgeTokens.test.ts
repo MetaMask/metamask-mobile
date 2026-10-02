@@ -1,6 +1,7 @@
 import { act, waitFor } from '@testing-library/react-native';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useInitialBridgeTokens } from './useInitialBridgeTokens';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 import { createMockPopularToken, MOCK_CHAIN_IDS } from '../testUtils/fixtures';
 import { SecurityDataType } from '../types';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -24,6 +25,12 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: () => mockHasMinimumRequiredVersion(),
 }));
 
+jest.mock('./useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+
 const mockPopularTokens = [
   createMockPopularToken({
     symbol: 'TEST',
@@ -44,6 +51,7 @@ describe('useInitialBridgeTokens', () => {
     globalFetchSpy = jest.spyOn(global, 'fetch');
     mockHasMinimumRequiredVersion.mockReturnValue(true);
     popularTokensCache.clear();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
   });
 
   afterEach(() => {
@@ -56,7 +64,6 @@ describe('useInitialBridgeTokens', () => {
         () =>
           useInitialBridgeTokens({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -76,6 +83,7 @@ describe('useInitialBridgeTokens', () => {
             assetId: 'eip155:1/slip44:60',
           }),
         ],
+        tokensWithBalance: expect.any(Array),
         fetchPopularTokens: expect.any(Function),
         balancesByAssetId: expect.objectContaining({
           'eip155:1/erc20:0x0000000000000000000000000000000000000002':
@@ -103,7 +111,6 @@ describe('useInitialBridgeTokens', () => {
         () =>
           useInitialBridgeTokens({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -149,6 +156,7 @@ describe('useInitialBridgeTokens', () => {
     });
 
     it('forwards featureId to the popular tokens request body', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
       globalFetchSpy.mockResolvedValueOnce({
         json: async () => mockPopularTokens,
       });
@@ -157,7 +165,6 @@ describe('useInitialBridgeTokens', () => {
         () =>
           useInitialBridgeTokens({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.LIMIT_ORDER,
           }),
         { state: initialState },
       );
@@ -198,7 +205,6 @@ describe('useInitialBridgeTokens', () => {
         () =>
           useInitialBridgeTokens({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -222,7 +228,6 @@ describe('useInitialBridgeTokens', () => {
         () =>
           useInitialBridgeTokens({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -250,7 +255,6 @@ describe('useInitialBridgeTokens', () => {
         (chainIds?: CaipChainId[]) =>
           useInitialBridgeTokens({
             chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -297,7 +301,6 @@ describe('useInitialBridgeTokens', () => {
         (chainIds?: CaipChainId[]) =>
           useInitialBridgeTokens({
             chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -332,7 +335,6 @@ describe('useInitialBridgeTokens', () => {
         () =>
           useInitialBridgeTokens({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -371,7 +373,6 @@ describe('useInitialBridgeTokens', () => {
         (chainIds?: CaipChainId[]) =>
           useInitialBridgeTokens({
             chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -429,7 +430,6 @@ describe('useInitialBridgeTokens', () => {
               MOCK_CHAIN_IDS.polygon,
               MOCK_CHAIN_IDS.ethereum,
             ],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );
@@ -460,7 +460,6 @@ describe('useInitialBridgeTokens', () => {
         (chainIds?: CaipChainId[]) =>
           useInitialBridgeTokens({
             chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
-            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
           }),
         { state: initialState },
       );

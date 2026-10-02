@@ -1,10 +1,11 @@
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 
 export interface RecurringConfirmOrderSheetProps {
+  currentCurrency: string;
   delegationFee: EIP7702UpgradeFee;
+  fiatToUsdRate?: number;
+  isPriceRangeConversionReady: boolean;
   isSubmitting: boolean;
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   onConfirm: () => void;
   onEditSlippagePress: () => void;
   onDelegationFeeInfoPress: () => void;

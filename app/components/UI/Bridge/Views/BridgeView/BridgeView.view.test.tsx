@@ -1,6 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
+import {
+  BridgeViewWithSession as BridgeView,
+  renderBridgeView,
+  renderBridgeViewWithTokenSelector,
+} from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
@@ -11,7 +15,6 @@ import {
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
-import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -24,7 +27,6 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeViewMode, type BridgeToken } from '../../types';
-import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
@@ -49,6 +51,14 @@ import {
   clearTrendingApiMocks,
   mockTrendingTokensData,
 } from '../../../../../../tests/component-view/api-mocking/trending';
+import {
+  clearRecurringOrdersDataServiceMock,
+  setupRecurringOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/recurringOrders';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/limitOrders';
 import { merge } from 'lodash';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -105,6 +115,8 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
 
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
+    setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock();
     // testSetup.js mocks Date.now to always return 123, which breaks lodash debounce
     // (timeSinceLastCall = 123 - 123 = 0 never reaches the wait threshold).
     // Restore it to a real implementation so debounce-based tests work correctly.
@@ -112,6 +124,8 @@ describeForPlatforms('BridgeView', () => {
   });
 
   afterEach(() => {
+    clearRecurringOrdersDataServiceMock();
+    clearLimitOrdersDataServiceMock();
     jest.restoreAllMocks();
   });
 
@@ -567,6 +581,25 @@ describeForPlatforms('BridgeView', () => {
                 },
               },
             },
+            AssetsController: {
+              assetsInfo: {
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+                  assetPriceType: 'fungible',
+                  id: 'usdc',
+                  price: 1,
+                  usdPrice: 1,
+                  lastUpdated: 1700000000000,
+                },
+              },
+            },
           },
         },
       } as unknown as DeepPartial<RootState>)
@@ -600,12 +633,14 @@ describeForPlatforms('BridgeView', () => {
       bridgeControllerState.quotes = [quoteWithTrade];
     }
 
-    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
+    const { getByTestId, getByText, queryByText, findByText } =
+      renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
 
+    expect(await findByText('1 USDC')).toBeOnTheScreen();
     await waitFor(() => {
       expect(
         getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
@@ -1244,18 +1279,7 @@ describeForPlatforms('BridgeView', () => {
         .build() as unknown as Record<string, unknown>;
 
       const { getByTestId, getByText, findByText, getAllByText } =
-        renderScreenWithRoutes(
-          BridgeView as unknown as React.ComponentType,
-          { name: Routes.BRIDGE.BRIDGE_VIEW },
-          [
-            {
-              name: Routes.BRIDGE.TOKEN_SELECTOR,
-              Component:
-                BridgeTokenSelector as unknown as React.ComponentType<unknown>,
-            },
-          ],
-          { state },
-        );
+        renderBridgeViewWithTokenSelector(state);
 
       fireEvent.press(await findByText('Swap to'));
 

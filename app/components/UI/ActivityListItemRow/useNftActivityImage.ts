@@ -11,6 +11,8 @@ import type { RootState } from '../../../reducers';
 import { selectNftByIdentity } from '../../../selectors/nftController';
 import { areAddressesEqual } from '../../../util/address';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
+/* eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list cache hook */
+import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 const NFT_ACTIVITY_KINDS = new Set<ActivityListItem['type']>([
   'nftBuy',
@@ -50,18 +52,13 @@ function toHexChainId(chainId: string): Hex | undefined {
  * @param item - The activity list item.
  * @returns The NFT identity, or `undefined`.
  */
-function getNftIdentity(item: ActivityListItem): NftIdentity | undefined {
+function getNftIdentity(
+  item: ActivityListItem,
+  transfers: NftValueTransfer[] | undefined,
+): NftIdentity | undefined {
   if (!NFT_ACTIVITY_KINDS.has(item.type)) {
     return undefined;
   }
-
-  if (item.raw?.type !== 'apiEvmTransaction') {
-    return undefined;
-  }
-
-  const transfers = item.raw.data.valueTransfers as
-    | NftValueTransfer[]
-    | undefined;
 
   const { from, to } = item.data as { from?: string; to?: string };
   const nftTransfer =
@@ -117,7 +114,18 @@ export function useNftActivityImage(
   item: ActivityListItem,
 ): string | undefined {
   const ipfsGateway = useIpfsGateway();
-  const identity = useMemo(() => getNftIdentity(item), [item]);
+  const cachedEvmTransaction = useCachedEvmTransaction({
+    chainId: NFT_ACTIVITY_KINDS.has(item.type) ? item.chainId : undefined,
+    txHash: item.hash,
+  });
+  const identity = useMemo(
+    () =>
+      getNftIdentity(
+        item,
+        cachedEvmTransaction?.valueTransfers as NftValueTransfer[] | undefined,
+      ),
+    [item, cachedEvmTransaction],
+  );
   const hexChainId = useMemo(() => toHexChainId(item.chainId), [item.chainId]);
 
   const nft = useSelector((state: RootState) =>

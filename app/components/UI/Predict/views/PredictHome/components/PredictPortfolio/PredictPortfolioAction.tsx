@@ -1,16 +1,18 @@
 import React from 'react';
-import { Pressable } from 'react-native';
 import {
   BadgeCount,
   BadgeCountSize,
-  Box,
-  ButtonIcon,
-  ButtonIconSize,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
+  ButtonAnimated,
   FontWeight,
+  Icon,
   IconColor,
   IconName,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -39,53 +41,53 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   const showBadge = badgeCount > 0;
 
   return (
-    <Pressable
+    <ButtonAnimated
       accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      accessible
       disabled={disabled}
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
+      testID={testID}
       style={({ pressed }) =>
         tw.style(
-          'flex-1 min-h-[74px] rounded-lg bg-muted items-center justify-center p-3',
-          pressed && 'opacity-80',
-          disabled && 'opacity-50',
+          'flex-1 items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]',
+          pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted',
+          disabled ? 'opacity-50' : 'opacity-100',
         )
       }
-      testID={testID}
     >
-      <Box twClassName="items-center gap-[2px]">
-        <Box twClassName="relative h-6 w-6 items-center justify-center">
-          <ButtonIcon
-            accessible={false}
-            iconName={iconName}
-            iconProps={{
-              color: disabled ? IconColor.IconMuted : IconColor.IconAlternative,
-              size: IconSize.Md,
-            }}
-            importantForAccessibility="no"
-            pointerEvents="none"
-            size={ButtonIconSize.Md}
-          />
-          {showBadge && (
+      <BadgeWrapper
+        badge={
+          showBadge ? (
             <BadgeCount
               count={badgeCount}
               max={99}
               size={BadgeCountSize.Md}
-              style={tw.style('absolute -right-2.5 -top-1.5')}
               testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
             />
-          )}
-        </Box>
-        <Text
-          fontWeight={FontWeight.Medium}
-          twClassName={disabled ? 'text-muted' : 'text-default'}
-          variant={TextVariant.BodySm}
-        >
-          {label}
-        </Text>
-      </Box>
-    </Pressable>
+          ) : null
+        }
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        positionXOffset={8}
+        twClassName="self-center"
+      >
+        <Icon
+          name={iconName}
+          size={IconSize.Lg}
+          color={IconColor.IconAlternative}
+        />
+      </BadgeWrapper>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        twClassName="mt-0.5 w-full text-center shrink"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {label}
+      </Text>
+    </ButtonAnimated>
   );
 };
 
