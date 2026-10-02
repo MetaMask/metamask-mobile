@@ -17,6 +17,25 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
 }));
 
+// Keeps the security fetch off the network. Tokens carrying `securityData`
+// from navigation short-circuit the hook before it reaches this.
+jest.mock('@metamask/assets-controllers', () => ({
+  fetchTokenAssets: jest.fn().mockResolvedValue([]),
+}));
+
+/** Minimal shape that satisfies the hook's prefetched-data validation. */
+const securityDataWithLinks = {
+  resultType: 'Benign',
+  features: [],
+  metadata: {
+    externalLinks: {
+      homepage: 'https://pepe.vip',
+      twitterPage: 'pepecoineth',
+      telegramChannelId: 'pepecoineth',
+    },
+  },
+} as unknown as TokenDetailsRouteParams['securityData'];
+
 const baseToken = {
   address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chainId: '0x1',
@@ -60,5 +79,48 @@ describe('TokenDetailsV1', () => {
     // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
     // cover the label for each verdict.
     expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
+  });
+
+  it('renders the token social links from its security data', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={{ ...baseToken, securityData: securityDataWithLinks }}
+      />,
+    );
+
+    expect(
+      getByTestId(SecuritySocialSectionSelectors.LINK_X),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(SecuritySocialSectionSelectors.LINK_WEBSITE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(SecuritySocialSectionSelectors.LINK_TELEGRAM),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders no social links for a token without security data', () => {
+    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    expect(queryByTestId(SecuritySocialSectionSelectors.LINK_X)).toBeNull();
+  });
+
+  it('offers the contract address for copying', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    expect(
+      getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
+    ).toBeOnTheScreen();
+  });
+
+  // A native token's `address` is a placeholder, not something worth copying.
+  it('hides the copy chip for a native token', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsV1 token={{ ...baseToken, isNative: true }} />,
+    );
+
+    expect(
+      queryByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
+    ).toBeNull();
   });
 });
