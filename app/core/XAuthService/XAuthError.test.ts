@@ -17,14 +17,23 @@ describe('XAuthError', () => {
     const types = [
       XAuthErrorType.UserCancelled,
       XAuthErrorType.NetworkFailure,
-      XAuthErrorType.TokenExchangeFailed,
       XAuthErrorType.StateMismatch,
-      XAuthErrorType.NoStoredTokens,
+      XAuthErrorType.MissingCode,
+      XAuthErrorType.BackendError,
     ];
 
     for (const type of types) {
       const error = new XAuthError(type, `message for ${type}`);
       expect(error.type).toBe(type);
     }
+  });
+
+  it('preserves the underlying cause when provided', () => {
+    const cause = new Error('original failure');
+    const error = new XAuthError(XAuthErrorType.BackendError, 'wrapped', {
+      cause,
+    });
+
+    expect(error.cause).toBe(cause);
   });
 });

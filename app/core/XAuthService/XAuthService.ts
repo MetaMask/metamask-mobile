@@ -1,31 +1,38 @@
-import {
-  AuthRequest,
-  CodeChallengeMethod,
-  ResponseType,
-  exchangeCodeAsync,
-  refreshAsync,
-  type AuthSessionResult,
-  type TokenResponse,
-} from 'expo-auth-session';
-import { XAuthError, XAuthErrorType } from './XAuthError';
-import {
-  X_AUTHORIZATION_ENDPOINT,
-  X_TOKEN_ENDPOINT,
-  X_REDIRECT_URI,
-  X_OAUTH_SCOPES,
-  getXClientId,
-} from './XAuthConfig';
-import { setTokens, getTokens, clearTokens } from './XTokenStorage';
-import type { XTokens } from './types';
+import { openAuthSessionAsync } from 'expo-web-browser';
+import { Linking } from 'react-native';
+import { toCaipAccountId, type CaipAccountId } from '@metamask/utils';
+import type { XProfile, XConnectResult } from '@metamask/profile-controller';
+import Engine from '../Engine';
 import Logger from '../../util/Logger';
+import { isEthAccount } from '../Multichain/utils';
+import { XAuthError, XAuthErrorType } from './XAuthError';
+import { X_REDIRECT_URI } from './XAuthConfig';
+
+/**
+ * How long to wait for a react-native Linking 'url' event carrying the OAuth
+ * redirect before falling back to Linking.getInitialURL() (cold-start case)
+ * and then giving up. Matches the TelegramLoginHandler fallback window —
+ * needed for universal-link redirects on iOS < 17.4 where openAuthSessionAsync
+ * does not resolve with the redirect URL itself.
+ */
+const REDIRECT_LINKING_FALLBACK_TIMEOUT_MS = 1500;
+
+/**
+ * CAIP-2 namespace/reference used for the linked address sent with the X
+ * connect flow. The `0` reference is the repo-wide "any EVM chain" wildcard
+ * convention (see CardController, RewardsController, selectAccountByScope) —
+ * identity is chain-agnostic for the profile backend, which accepts plain
+ * CAIP-10 strings in `linked_addresses`.
+ */
+const EIP155_NAMESPACE = 'eip155';
+const EIP155_ANY_CHAIN_REFERENCE = '0';
 
 /**
  * Flow logging for developer debugging in Metro/console output
  * (console.log in __DEV__, Sentry breadcrumb in production for opted-in
- * users). SECURITY: never log tokens, authorization codes, verifiers,
- * state values, raw URLs/params/responses, or the client_id value —
- * metadata only (step names, result types, OAuth error codes, booleans,
- * numbers, scopes, redirect URI, endpoints).
+ * users). SECURITY: never log authorization codes, state values, raw
+ * URLs/params/responses, profile ids, or account addresses — metadata only
+ * (step names, result types, OAuth error codes, booleans, redirect URI).
  */
 const log = (
   message: string,
@@ -34,8 +41,8 @@ const log = (
 
 /**
  * Safe metadata for logging caught errors: the error class name and, for
- * XAuthError, its OAuth error type. Never the full message — token
- * endpoint error_description values can echo server-provided text.
+ * XAuthError, its error type. Never the full message — backend error text
+ * can echo server-provided details.
  */
 function logErrorMetadata(
   error: unknown,
@@ -55,216 +62,342 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/**
- * Initiates the X (Twitter) OAuth 2.0 Authorization Code + PKCE flow,
- * opens the system browser for the user to authorize, exchanges the
- * returned code for tokens, and stores them. X issues authorization
- * codes with a 30-second expiry, so the exchange happens immediately
- * after promptAsync resolves — no intermediate steps.
- *
- * X's OAuth app is registered as a "Native App" (public client), so no
- * client_secret exists or is needed for this exchange.
- */
-export async function connectX(): Promise<XTokens> {
-  log('connectX: start', {
-    redirectUri: X_REDIRECT_URI,
-    scopes: X_OAUTH_SCOPES.join(' '),
-  });
-  const clientId = getXClientId();
-  log('connectX: client id resolved', { hasClientId: Boolean(clientId) });
+const waitForRedirectUrl = (
+  redirectUrlPromise: Promise<string>,
+  timeoutMs: number,
+) =>
+  new Promise<string | undefined>((resolve) => {
+    const timeout = setTimeout(() => resolve(undefined), timeoutMs);
 
-  const authRequest = new AuthRequest({
-    clientId,
-    redirectUri: X_REDIRECT_URI,
-    scopes: X_OAUTH_SCOPES,
-    responseType: ResponseType.Code,
-    codeChallengeMethod: CodeChallengeMethod.S256,
-    usePKCE: true,
-  });
-
-  log('connectX: opening authorization session');
-  let result: AuthSessionResult;
-  try {
-    result = await authRequest.promptAsync(
-      { authorizationEndpoint: X_AUTHORIZATION_ENDPOINT },
-      { preferUniversalLinks: true },
+    redirectUrlPromise.then(
+      (url) => {
+        clearTimeout(timeout);
+        resolve(url);
+      },
+      () => {
+        clearTimeout(timeout);
+        resolve(undefined);
+      },
     );
+  });
+
+/**
+ * Query params carried by the backend's x-oauth-redirect universal link.
+ */
+interface XRedirectParams {
+  code?: string;
+  state?: string;
+  error?: string;
+}
+
+/**
+ * Parses the x-oauth-redirect universal link query params.
+ */
+function parseRedirectParams(redirectUrl: string): XRedirectParams {
+  const url = new URL(redirectUrl);
+  return {
+    code: url.searchParams.get('code') ?? undefined,
+    state: url.searchParams.get('state') ?? undefined,
+    error: url.searchParams.get('error') ?? undefined,
+  };
+}
+
+/**
+ * Resolves the canonical profile ID from the auth service session. The
+ * canonical profile ID is the identity the backend derives from the JWT
+ * `sub` — the X account is linked to it.
+ *
+ * @returns The canonical profile ID.
+ * @throws {XAuthError} NotSignedIn when the user has no auth session.
+ */
+async function getSessionProfileId(): Promise<string> {
+  let profileId: string | undefined;
+  try {
+    const profile =
+      await Engine.context.AuthenticationController.getSessionProfile();
+    profileId = profile?.canonicalProfileId;
   } catch (error) {
-    log('connectX: promptAsync rejected', logErrorMetadata(error));
+    log('session profile resolution failed', logErrorMetadata(error));
     throw new XAuthError(
-      XAuthErrorType.NetworkFailure,
-      `Failed to open X authorization session: ${getErrorMessage(error)}`,
+      XAuthErrorType.NotSignedIn,
+      `Not signed in to the MetaMask auth service: ${getErrorMessage(error)}`,
+      { cause: error },
     );
   }
+  if (!profileId) {
+    log('session profile has no canonical profile id');
+    throw new XAuthError(
+      XAuthErrorType.NotSignedIn,
+      'Not signed in to the MetaMask auth service',
+    );
+  }
+  return profileId;
+}
 
-  log('connectX: promptAsync resolved', {
-    resultType: result.type,
-    errorCode: result.type === 'error' ? result.error?.code : undefined,
+/**
+ * Resolves the currently selected EVM account as a CAIP-10 account ID in the
+ * `eip155:0:<address>` wildcard-chain form (the repo-wide "any EVM chain"
+ * convention — identity is chain-agnostic for the profile backend).
+ *
+ * @returns The CAIP-10 account ID.
+ * @throws {XAuthError} NoEvmAccount when no EVM account is selected.
+ */
+function getSelectedEvmAccountId(): CaipAccountId {
+  const account = Engine.context.AccountsController.getSelectedAccount();
+  if (!account || !isEthAccount(account)) {
+    log('no EVM account selected for X connect');
+    throw new XAuthError(
+      XAuthErrorType.NoEvmAccount,
+      'No EVM account is selected — an EVM account is required to connect X',
+    );
+  }
+  return toCaipAccountId(
+    EIP155_NAMESPACE,
+    EIP155_ANY_CHAIN_REFERENCE,
+    // CAIP-10 EVM account addresses are lowercase.
+    account.address.toLowerCase(),
+  );
+}
+
+/**
+ * Opens the backend-issued X authorization URL in a system browser session
+ * and resolves with the x-oauth-redirect URL. Mirrors the TelegramLoginHandler
+ * session handling: openAuthSessionAsync result first, then a react-native
+ * Linking 'url' event fallback, then the getInitialURL() cold-start fallback
+ * (needed for universal-link redirects on iOS < 17.4).
+ *
+ * @param authorizationUrl - The authorization URL issued by the backend.
+ * @returns The redirect URL (x-oauth-redirect scheme/host) with OAuth params.
+ * @throws {XAuthError} UserCancelled when the session is cancelled/dismissed.
+ * @throws {XAuthError} NetworkFailure when the session cannot be opened or no
+ * redirect is observed.
+ */
+async function openAuthorizationSession(
+  authorizationUrl: string,
+): Promise<string> {
+  let removeRedirectListener: (() => void) | undefined;
+  const redirectUrlPromise = new Promise<string>((resolve) => {
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      const matchesRedirectUri = url.startsWith(X_REDIRECT_URI);
+
+      if (matchesRedirectUri) {
+        resolve(url);
+      }
+    });
+
+    removeRedirectListener = () => subscription.remove();
   });
 
-  if (result.type === 'cancel' || result.type === 'dismiss') {
-    log('connectX: user cancelled or dismissed the authorization session', {
+  try {
+    log('connectX: opening authorization session');
+    let result: Awaited<ReturnType<typeof openAuthSessionAsync>>;
+    try {
+      result = await openAuthSessionAsync(
+        authorizationUrl,
+        X_REDIRECT_URI,
+        // createTask: false — iOS 17.4+ ASWebAuthenticationSession resolves
+        // with the redirect URL directly. preferUniversalLinks routes the
+        // redirect through the app's universal link on older iOS, where the
+        // Linking fallback below captures it.
+        { createTask: false, preferUniversalLinks: true },
+      );
+    } catch (error) {
+      log('connectX: openAuthSessionAsync rejected', logErrorMetadata(error));
+      throw new XAuthError(
+        XAuthErrorType.NetworkFailure,
+        `Failed to open X authorization session: ${getErrorMessage(error)}`,
+      );
+    }
+
+    log('connectX: openAuthSessionAsync resolved', {
       resultType: result.type,
     });
+
+    if (result.type === 'success') {
+      return result.url;
+    }
+
+    const linkingRedirectUrl = await waitForRedirectUrl(
+      redirectUrlPromise,
+      REDIRECT_LINKING_FALLBACK_TIMEOUT_MS,
+    );
+
+    if (linkingRedirectUrl) {
+      log('connectX: captured redirect via Linking event fallback');
+      return linkingRedirectUrl;
+    }
+
+    const initialUrl = await Linking.getInitialURL();
+
+    if (initialUrl?.startsWith(X_REDIRECT_URI)) {
+      log('connectX: captured redirect via getInitialURL cold-start fallback');
+      return initialUrl;
+    }
+
+    if (result.type === 'cancel' || result.type === 'dismiss') {
+      log('connectX: user cancelled or dismissed the authorization session', {
+        resultType: result.type,
+      });
+      throw new XAuthError(
+        XAuthErrorType.UserCancelled,
+        'User cancelled the X authorization process',
+      );
+    }
+
     throw new XAuthError(
-      XAuthErrorType.UserCancelled,
-      'User cancelled the X authorization process',
+      XAuthErrorType.NetworkFailure,
+      `X authorization did not succeed: ${result.type}`,
+    );
+  } finally {
+    removeRedirectListener?.();
+  }
+}
+
+/**
+ * Connects the user's X (Twitter) account through the backend-mediated
+ * app-relay OAuth flow:
+ *
+ * 1. Resolve identity — the canonical profile ID from the auth session and
+ * the selected EVM account as a CAIP-10 linked address.
+ * 2. Ask the backend for the X authorization URL
+ * (ProfileController.startXConnect). The backend creates the profile during
+ * the connect if it does not exist yet.
+ * 3. Open it in a system browser auth session.
+ * 4. Capture the x-oauth-redirect universal link (session result, Linking
+ * event, or cold-start initial URL).
+ * 5. Relay the authorization code + state to the backend
+ * (ProfileController.connectX) — X codes expire in ~30s, so this happens
+ * immediately after the redirect. On success the profile and the linked X
+ * profile are persisted in ProfileController state.
+ *
+ * @returns The connect result: the (possibly newly created) profile, the
+ * linked X profile, and whether the backend created the profile.
+ * @throws {XAuthError} NotSignedIn — the user has no auth service session.
+ * @throws {XAuthError} NoEvmAccount — no EVM account is selected.
+ * @throws {XAuthError} UserCancelled — user cancelled the session or denied
+ * consent on X's consent screen (backend redirects back with an `error` param).
+ * @throws {XAuthError} StateMismatch — the redirect's `state` did not match
+ * the state issued with the authorization URL.
+ * @throws {XAuthError} MissingCode — the redirect carried no `code` param.
+ * @throws {XAuthError} BackendError — the backend rejected the start or
+ * connect call.
+ * @throws {XAuthError} NetworkFailure — the auth session could not be opened
+ * or no redirect was captured.
+ */
+export async function connectX(): Promise<XConnectResult> {
+  log('connectX: start', { redirectUri: X_REDIRECT_URI });
+
+  const { ProfileController } = Engine.context;
+
+  const profileId = await getSessionProfileId();
+  const linkedAddress = getSelectedEvmAccountId();
+  log('connectX: identity resolved', {
+    hasProfileId: Boolean(profileId),
+    hasLinkedAddress: Boolean(linkedAddress),
+  });
+
+  log('connectX: requesting authorization URL from backend');
+  let session: { authorizationUrl: string; state: string };
+  try {
+    session = await ProfileController.startXConnect({ linkedAddress });
+  } catch (error) {
+    log('connectX: backend failed to issue authorization URL', {
+      ...logErrorMetadata(error),
+    });
+    throw new XAuthError(
+      XAuthErrorType.BackendError,
+      `Failed to start X connect flow: ${getErrorMessage(error)}`,
+      { cause: error },
     );
   }
+  log('connectX: authorization URL issued', {
+    hasAuthorizationUrl: Boolean(session.authorizationUrl),
+    hasState: Boolean(session.state),
+  });
 
-  if (result.type === 'error' && result.error?.code === 'state_mismatch') {
-    log('connectX: state mismatch', { errorCode: result.error.code });
-    throw new XAuthError(
-      XAuthErrorType.StateMismatch,
-      'X authorization state mismatch — the returned state did not match the sent state',
-    );
-  }
+  const redirectUrl = await openAuthorizationSession(session.authorizationUrl);
 
-  if (result.type === 'error' && result.error?.code === 'access_denied') {
-    log('connectX: user denied consent', { errorCode: result.error.code });
+  const params = parseRedirectParams(redirectUrl);
+  log('connectX: redirect captured', {
+    hasCode: Boolean(params.code),
+    hasState: Boolean(params.state),
+    hasError: Boolean(params.error),
+  });
+
+  if (params.error) {
+    // The backend relays X's OAuth error (e.g. access_denied when the user
+    // denies consent) — treat denial/cancellation as a cancel, not an error.
+    log('connectX: redirect returned an OAuth error', {
+      hasError: true,
+    });
     throw new XAuthError(
       XAuthErrorType.UserCancelled,
       'User denied the X authorization request',
     );
   }
 
-  if (result.type !== 'success') {
-    const code = result.type === 'error' ? result.error?.code : undefined;
-    log('connectX: authorization did not succeed', {
-      resultType: result.type,
-      errorCode: code,
-    });
+  if (!params.code) {
+    log('connectX: redirect missing code param');
     throw new XAuthError(
-      XAuthErrorType.TokenExchangeFailed,
-      `X authorization did not succeed: ${result.type}${code ? ` (${code})` : ''}`,
+      XAuthErrorType.MissingCode,
+      'X authorization redirect did not include an authorization code',
     );
   }
 
-  log('connectX: exchanging authorization code');
-  let tokenResponse: TokenResponse;
+  // Client-side state verification before relaying to the backend.
+  if (params.state !== session.state) {
+    log('connectX: state mismatch');
+    throw new XAuthError(
+      XAuthErrorType.StateMismatch,
+      'X authorization state mismatch — the returned state did not match the issued state',
+    );
+  }
+
+  log('connectX: relaying code to backend');
   try {
-    tokenResponse = await exchangeCodeAsync(
-      {
-        clientId,
-        code: result.params.code,
-        redirectUri: X_REDIRECT_URI,
-        extraParams: { code_verifier: authRequest.codeVerifier ?? '' },
-      },
-      { tokenEndpoint: X_TOKEN_ENDPOINT },
-    );
-  } catch (error) {
-    log('connectX: code exchange failed', logErrorMetadata(error));
-    throw new XAuthError(
-      XAuthErrorType.TokenExchangeFailed,
-      `Failed to exchange X authorization code: ${getErrorMessage(error)}`,
-    );
-  }
-
-  log('connectX: code exchange succeeded', {
-    hasRefreshToken: Boolean(tokenResponse.refreshToken),
-    expiresIn: tokenResponse.expiresIn,
-  });
-
-  if (!tokenResponse.refreshToken) {
-    log('connectX: token response missing refresh token', {
-      hasRefreshToken: false,
+    const result = await ProfileController.connectX({
+      code: params.code,
+      state: params.state,
+      profileId,
     });
+    log('connectX: done', {
+      connected: true,
+      profileCreated: result.profileCreated,
+    });
+    return result;
+  } catch (error) {
+    log('connectX: backend connect failed', logErrorMetadata(error));
     throw new XAuthError(
-      XAuthErrorType.TokenExchangeFailed,
-      'X token response did not include a refresh token — check that the offline.access scope was granted',
+      XAuthErrorType.BackendError,
+      `Failed to connect X account: ${getErrorMessage(error)}`,
+      { cause: error },
     );
   }
-
-  const tokens: XTokens = {
-    accessToken: tokenResponse.accessToken,
-    refreshToken: tokenResponse.refreshToken,
-    expiresAt:
-      tokenResponse.issuedAt * 1000 + (tokenResponse.expiresIn ?? 0) * 1000,
-  };
-
-  await setTokens(tokens);
-  log('connectX: tokens stored', { expiresAt: tokens.expiresAt });
-
-  log('connectX: done', { expiresAt: tokens.expiresAt });
-  return tokens;
 }
 
 /**
- * Refreshes the access token using the stored refresh token. X rotates
- * refresh tokens on every refresh — if the response includes a new
- * refresh_token, it MUST overwrite the stored one, since X invalidates
- * the old one immediately after rotation. If the response omits it, the
- * existing stored refresh token remains valid and is kept.
- */
-export async function refreshXToken(): Promise<XTokens> {
-  log('refreshXToken: start');
-  const stored = await getTokens();
-  if (!stored) {
-    log('refreshXToken: no stored tokens');
-    throw new XAuthError(
-      XAuthErrorType.NoStoredTokens,
-      'No stored X tokens to refresh',
-    );
-  }
-
-  log('refreshXToken: refreshing', { hasStoredTokens: true });
-  const clientId = getXClientId();
-
-  let tokenResponse: TokenResponse;
-  try {
-    tokenResponse = await refreshAsync(
-      { clientId, refreshToken: stored.refreshToken },
-      { tokenEndpoint: X_TOKEN_ENDPOINT },
-    );
-  } catch (error) {
-    log('refreshXToken: refresh failed', logErrorMetadata(error));
-    throw new XAuthError(
-      XAuthErrorType.TokenExchangeFailed,
-      `Failed to refresh X token: ${getErrorMessage(error)}`,
-    );
-  }
-
-  log('refreshXToken: refresh succeeded', {
-    refreshTokenRotated: Boolean(tokenResponse.refreshToken),
-    expiresIn: tokenResponse.expiresIn,
-  });
-
-  const tokens: XTokens = {
-    accessToken: tokenResponse.accessToken,
-    refreshToken: tokenResponse.refreshToken ?? stored.refreshToken,
-    expiresAt:
-      tokenResponse.issuedAt * 1000 + (tokenResponse.expiresIn ?? 0) * 1000,
-  };
-
-  await setTokens(tokens);
-  log('refreshXToken: tokens stored', { expiresAt: tokens.expiresAt });
-
-  return tokens;
-}
-
-/**
- * Clears the locally stored X tokens. Does not call any X revocation
- * endpoint — local clear only (server-side revocation is out of scope).
+ * Disconnects the X account linked to the user's profile. Resolves the
+ * profile ID from the auth session, then clears the linked X profile in
+ * ProfileController state.
  */
 export async function disconnectX(): Promise<void> {
   log('disconnectX: start');
-  await clearTokens();
-  log('disconnectX: tokens cleared');
+  const profileId = await getSessionProfileId();
+  await Engine.context.ProfileController.disconnectX(profileId);
+  log('disconnectX: done');
 }
 
 /**
- * Returns whether X OAuth tokens are stored locally. Used to decide
- * whether the UI should offer connecting X or show a connected state.
- * A failed keychain read (e.g. corrupt stored JSON) is treated as
- * "not connected" rather than propagating the error.
+ * Refetches the X account linked to the user's profile from the backend and
+ * updates ProfileController state. The backend resolves the profile from the
+ * verified bearer token, so no profile ID is required.
+ *
+ * @returns The linked X profile.
  */
-export async function isXConnected(): Promise<boolean> {
-  try {
-    const tokens = await getTokens();
-    log('isXConnected: result', { connected: tokens !== null });
-    return tokens !== null;
-  } catch {
-    log('isXConnected: token read failed', { connected: false });
-    return false;
-  }
+export async function fetchAndUpdateXAccount(): Promise<XProfile> {
+  log('fetchAndUpdateXAccount: start');
+  const xProfile =
+    await Engine.context.ProfileController.fetchAndUpdateXAccount();
+  log('fetchAndUpdateXAccount: done', { updated: true });
+  return xProfile;
 }

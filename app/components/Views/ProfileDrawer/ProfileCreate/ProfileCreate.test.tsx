@@ -8,13 +8,12 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import { connectX, disconnectX } from '../../../../core/XAuthService';
 import {
-  connectX,
-  disconnectX,
-  isXConnected,
   XAuthError,
   XAuthErrorType,
-} from '../../../../core/XAuthService';
+} from '../../../../core/XAuthService/XAuthError';
+import { getDefaultProfileControllerState } from '@metamask/profile-controller';
 import Logger from '../../../../util/Logger';
 
 const mockGoBack = jest.fn();
@@ -33,11 +32,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+// Fully mock the XAuthService module — the real module imports Engine.
 jest.mock('../../../../core/XAuthService', () => ({
-  ...jest.requireActual('../../../../core/XAuthService'),
   connectX: jest.fn(),
   disconnectX: jest.fn(),
-  isXConnected: jest.fn(),
+  XAuthError: jest.requireActual('../../../../core/XAuthService/XAuthError')
+    .XAuthError,
+  XAuthErrorType: jest.requireActual('../../../../core/XAuthService/XAuthError')
+    .XAuthErrorType,
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -45,18 +47,50 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+const PROFILE_WITH_ID = {
+  ...getDefaultProfileControllerState().profile,
+  profileId: 'profile-1',
+};
+
+const X_PROFILE = {
+  xUserId: 'x-user-1',
+  xProfileUrl: 'https://x.com/tester',
+  username: 'tester',
+  displayName: 'Tester',
+  avatarUrl: 'https://example.com/x.png',
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+};
+
+const stateWithProfileController = (
+  controllerState: Record<string, unknown> = {},
+) => ({
+  engine: {
+    backgroundState: {
+      ProfileController: {
+        ...getDefaultProfileControllerState(),
+        ...controllerState,
+      },
+    },
+  },
+});
+
 const ProfileCreateWrapper = () => (
   <ToastContext.Provider value={{ toastRef: mockToastRef }}>
     <ProfileCreate />
   </ToastContext.Provider>
 );
 
-const renderProfileCreate = async () => {
-  const utils = renderScreen(ProfileCreateWrapper, {
-    name: Routes.PROFILE_DRAWER.PROFILE_CREATE,
-  });
-  // Flush the on-mount isXConnected() check so its state update happens
-  // inside act() and no act() warnings are emitted.
+const renderProfileCreate = async (state = stateWithProfileController()) => {
+  const utils = renderScreen(
+    ProfileCreateWrapper,
+    {
+      name: Routes.PROFILE_DRAWER.PROFILE_CREATE,
+    },
+    { state },
+  );
+  // Flush selector-driven subscriptions so state updates happen inside act()
+  // and no act() warnings are emitted.
   await act(async () => {
     /* flush microtasks */
   });
@@ -70,8 +104,11 @@ describe('ProfileCreate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     originalDev = globalWithDev.__DEV__;
-    (isXConnected as jest.Mock).mockResolvedValue(false);
-    (connectX as jest.Mock).mockResolvedValue(undefined);
+    (connectX as jest.Mock).mockResolvedValue({
+      profile: PROFILE_WITH_ID,
+      xProfile: X_PROFILE,
+      profileCreated: true,
+    });
     (disconnectX as jest.Mock).mockResolvedValue(undefined);
   });
 
@@ -114,7 +151,8 @@ describe('ProfileCreate', () => {
   });
 
   describe('X connection', () => {
-    it('shows the Connect X CTA and advances to step 2 after a successful connect', async () => {
+    it('shows the Connect X CTA and advances to step 2 after a successful connect (backend auto-creates the profile)', async () => {
+      // No profile exists in state yet — connecting X creates it server-side.
       await renderProfileCreate();
 
       expect(screen.getByText('Connect X')).toBeOnTheScreen();
@@ -129,8 +167,16 @@ describe('ProfileCreate', () => {
     });
 
     it('shows Connecting... while in flight and ignores a second press', async () => {
-      let resolveConnect!: (value: undefined) => void;
-      const connectPromise = new Promise<undefined>((resolve) => {
+      let resolveConnect!: (value: {
+        profile: typeof PROFILE_WITH_ID;
+        xProfile: typeof X_PROFILE;
+        profileCreated: boolean;
+      }) => void;
+      const connectPromise = new Promise<{
+        profile: typeof PROFILE_WITH_ID;
+        xProfile: typeof X_PROFILE;
+        profileCreated: boolean;
+      }>((resolve) => {
         resolveConnect = resolve;
       });
       (connectX as jest.Mock).mockReturnValue(connectPromise);
@@ -147,7 +193,11 @@ describe('ProfileCreate', () => {
       expect(connectX).toHaveBeenCalledTimes(1);
 
       act(() => {
-        resolveConnect(undefined);
+        resolveConnect({
+          profile: PROFILE_WITH_ID,
+          xProfile: X_PROFILE,
+          profileCreated: true,
+        });
       });
       await waitFor(() => {
         expect(screen.getByText('Connect with others')).toBeOnTheScreen();
@@ -173,7 +223,10 @@ describe('ProfileCreate', () => {
 
     it('stays on step 1, shows a toast, and logs on connect failure', async () => {
       (connectX as jest.Mock).mockRejectedValue(
-        new Error('token endpoint returned 400'),
+        new XAuthError(
+          XAuthErrorType.BackendError,
+          'Failed to connect X account: 500',
+        ),
       );
       await renderProfileCreate();
 
@@ -201,8 +254,12 @@ describe('ProfileCreate', () => {
     });
 
     it('shows the connected state and advances without calling connectX when X is already connected', async () => {
-      (isXConnected as jest.Mock).mockResolvedValue(true);
-      await renderProfileCreate();
+      await renderProfileCreate(
+        stateWithProfileController({
+          profile: { ...PROFILE_WITH_ID, connectedToX: true },
+          xProfile: X_PROFILE,
+        }),
+      );
 
       await waitFor(() => {
         expect(
@@ -218,14 +275,48 @@ describe('ProfileCreate', () => {
       });
       expect(connectX).not.toHaveBeenCalled();
     });
+
+    it('shows the connected state when the profile reports connectedToX without a stored X profile', async () => {
+      await renderProfileCreate(
+        stateWithProfileController({
+          profile: { ...PROFILE_WITH_ID, connectedToX: true },
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Your X account is connected.'),
+        ).toBeOnTheScreen();
+      });
+      expect(connectX).not.toHaveBeenCalled();
+    });
+
+    it('connects without a profile in state, relying on the backend auto-create', async () => {
+      // Default state: no profile and no linked X account. Connecting X
+      // creates the profile server-side, so the flow must not abort.
+      await renderProfileCreate();
+
+      fireEvent.press(getStepperCta());
+
+      await waitFor(() => {
+        expect(screen.getByText('Connect with others')).toBeOnTheScreen();
+      });
+      expect(connectX).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
   });
 
   describe('X disconnect (dev-only)', () => {
-    it('shows the disconnect button when connected, and returns to the Connect X CTA after disconnecting', async () => {
+    it('shows the disconnect button when connected and calls disconnectX', async () => {
       // The RN jest preset pins __DEV__ to false; the button is dev-only.
       globalWithDev.__DEV__ = true;
-      (isXConnected as jest.Mock).mockResolvedValue(true);
-      await renderProfileCreate();
+      await renderProfileCreate(
+        stateWithProfileController({
+          profile: { ...PROFILE_WITH_ID, connectedToX: true },
+          xProfile: X_PROFILE,
+        }),
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Disconnect X (dev)')).toBeOnTheScreen();
@@ -238,20 +329,20 @@ describe('ProfileCreate', () => {
       await waitFor(() => {
         expect(disconnectX).toHaveBeenCalledTimes(1);
       });
-      await waitFor(() => {
-        expect(screen.getByText('Connect X')).toBeOnTheScreen();
-      });
-      expect(screen.queryByText('Disconnect X (dev)')).not.toBeOnTheScreen();
     });
 
-    it('shows a toast and logs, staying connected, when the X disconnect fails', async () => {
+    it('shows a toast and logs when the X disconnect fails', async () => {
       // The RN jest preset pins __DEV__ to false; the button is dev-only.
       globalWithDev.__DEV__ = true;
-      (isXConnected as jest.Mock).mockResolvedValue(true);
       (disconnectX as jest.Mock).mockRejectedValue(
-        new Error('keychain locked'),
+        new Error('backend returned 500'),
       );
-      await renderProfileCreate();
+      await renderProfileCreate(
+        stateWithProfileController({
+          profile: { ...PROFILE_WITH_ID, connectedToX: true },
+          xProfile: X_PROFILE,
+        }),
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Disconnect X (dev)')).toBeOnTheScreen();
@@ -273,8 +364,6 @@ describe('ProfileCreate', () => {
         expect.any(Error),
         'ProfileCreate: X disconnect failed',
       );
-      expect(screen.getByText('Next')).toBeOnTheScreen();
-      expect(screen.getByText('Disconnect X (dev)')).toBeOnTheScreen();
     });
 
     it('does not show the disconnect button when X is not connected', async () => {
@@ -285,8 +374,12 @@ describe('ProfileCreate', () => {
 
     it('does not show the disconnect button in non-dev builds even when connected', async () => {
       globalWithDev.__DEV__ = false;
-      (isXConnected as jest.Mock).mockResolvedValue(true);
-      await renderProfileCreate();
+      await renderProfileCreate(
+        stateWithProfileController({
+          profile: { ...PROFILE_WITH_ID, connectedToX: true },
+          xProfile: X_PROFILE,
+        }),
+      );
 
       await waitFor(() => {
         expect(
@@ -300,8 +393,12 @@ describe('ProfileCreate', () => {
   describe('Stepper navigation', () => {
     it('calls goBack when the final step CTA is pressed', async () => {
       // Take the already-connected path so step 1's primary CTA is "Next".
-      (isXConnected as jest.Mock).mockResolvedValue(true);
-      await renderProfileCreate();
+      await renderProfileCreate(
+        stateWithProfileController({
+          profile: { ...PROFILE_WITH_ID, connectedToX: true },
+          xProfile: X_PROFILE,
+        }),
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Next')).toBeOnTheScreen();

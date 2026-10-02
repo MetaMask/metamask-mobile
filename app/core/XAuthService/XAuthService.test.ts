@@ -1,342 +1,392 @@
-import {
-  AuthRequest,
-  exchangeCodeAsync,
-  refreshAsync,
-} from 'expo-auth-session';
-import {
-  connectX,
-  refreshXToken,
-  disconnectX,
-  isXConnected,
-} from './XAuthService';
-import { setTokens, getTokens, clearTokens } from './XTokenStorage';
+import { connectX, disconnectX, fetchAndUpdateXAccount } from './XAuthService';
 import { XAuthError, XAuthErrorType } from './XAuthError';
-import { getXClientId } from './XAuthConfig';
-import Logger from '../../util/Logger';
+import { X_REDIRECT_URI } from './XAuthConfig';
+import Engine from '../Engine';
+import { openAuthSessionAsync } from 'expo-web-browser';
+import { Linking } from 'react-native';
+import type { CaipAccountId } from '@metamask/utils';
+import type {
+  Profile,
+  XConnectResult,
+  XProfile,
+} from '@metamask/profile-controller';
 
-jest.mock('expo-auth-session', () => ({
-  AuthRequest: jest.fn(),
-  exchangeCodeAsync: jest.fn(),
-  refreshAsync: jest.fn(),
-  ResponseType: { Code: 'code' },
-  CodeChallengeMethod: { S256: 'S256' },
+jest.mock('expo-web-browser', () => ({
+  __esModule: true,
+  openAuthSessionAsync: jest.fn(),
 }));
 
-jest.mock('./XTokenStorage', () => ({
-  setTokens: jest.fn(),
-  getTokens: jest.fn(),
-  clearTokens: jest.fn(),
+jest.mock('react-native', () => ({
+  Linking: {
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+    getInitialURL: jest.fn(),
+  },
 }));
 
-jest.mock('./XAuthConfig', () => ({
-  X_AUTHORIZATION_ENDPOINT: 'https://x.com/i/oauth2/authorize',
-  X_TOKEN_ENDPOINT: 'https://api.x.com/2/oauth2/token',
-  X_REDIRECT_URI: 'metamask://x-oauth',
-  X_OAUTH_SCOPES: ['users.read', 'tweet.read', 'offline.access'],
-  getXClientId: jest.fn(() => 'test-client-id'),
-}));
-
-jest.mock('../../util/Logger', () => ({
-  log: jest.fn(),
-  error: jest.fn(),
-}));
-
-const mockPromptAsync = jest.fn();
-
-describe('connectX', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (AuthRequest as unknown as jest.Mock).mockImplementation(() => ({
-      promptAsync: mockPromptAsync,
-      codeVerifier: 'test-code-verifier',
-    }));
-  });
-
-  it('exchanges the auth code for tokens and stores them on success', async () => {
-    mockPromptAsync.mockResolvedValue({
-      type: 'success',
-      params: { code: 'test-auth-code', state: 'test-state' },
-    });
-    (exchangeCodeAsync as jest.Mock).mockResolvedValue({
-      accessToken: 'access-123',
-      refreshToken: 'refresh-456',
-      expiresIn: 7200,
-      issuedAt: 1735689600,
-    });
-
-    const result = await connectX();
-
-    expect(AuthRequest).toHaveBeenCalledWith(
-      expect.objectContaining({
-        clientId: 'test-client-id',
-        redirectUri: 'metamask://x-oauth',
-        scopes: ['users.read', 'tweet.read', 'offline.access'],
-        responseType: 'code',
-        codeChallengeMethod: 'S256',
-        usePKCE: true,
-      }),
-    );
-    expect(exchangeCodeAsync).toHaveBeenCalledWith(
-      {
-        clientId: 'test-client-id',
-        code: 'test-auth-code',
-        redirectUri: 'metamask://x-oauth',
-        extraParams: { code_verifier: 'test-code-verifier' },
+jest.mock('../Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      AuthenticationController: {
+        getSessionProfile: jest.fn(),
       },
-      { tokenEndpoint: 'https://api.x.com/2/oauth2/token' },
-    );
-    expect(setTokens).toHaveBeenCalledWith({
-      accessToken: 'access-123',
-      refreshToken: 'refresh-456',
-      expiresAt: 1735689600000 + 7200000,
-    });
-    expect(result).toEqual({
-      accessToken: 'access-123',
-      refreshToken: 'refresh-456',
-      expiresAt: 1735689600000 + 7200000,
-    });
-  });
+      AccountsController: {
+        getSelectedAccount: jest.fn(),
+      },
+      ProfileController: {
+        startXConnect: jest.fn(),
+        connectX: jest.fn(),
+        disconnectX: jest.fn(),
+        fetchAndUpdateXAccount: jest.fn(),
+      },
+    },
+  },
+}));
 
-  it('throws XAuthError(UserCancelled) when the user cancels', async () => {
-    mockPromptAsync.mockResolvedValue({ type: 'cancel' });
+const { AuthenticationController, AccountsController, ProfileController } =
+  Engine.context;
 
-    await expect(connectX()).rejects.toMatchObject({
-      type: XAuthErrorType.UserCancelled,
-    });
-    expect(exchangeCodeAsync).not.toHaveBeenCalled();
-  });
+const AUTHORIZATION_URL = 'https://backend.example.com/x/authorize?state=xyz';
+const SESSION_STATE = 'session-state-1';
+const REDIRECT_WITH = (params: string) => `${X_REDIRECT_URI}?${params}`;
 
-  it('throws XAuthError(UserCancelled) when the user dismisses the browser', async () => {
-    mockPromptAsync.mockResolvedValue({ type: 'dismiss' });
+const PROFILE_ID = 'canonical-profile-123';
+const ACCOUNT_ADDRESS = '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12';
+const LINKED_ADDRESS: CaipAccountId = `eip155:0:${ACCOUNT_ADDRESS.toLowerCase()}`;
 
-    const promise = connectX();
+const PROFILE: Profile = {
+  profileId: PROFILE_ID,
+  username: 'tester',
+  displayName: 'Tester',
+  bio: 'bio',
+  linkedAddresses: [LINKED_ADDRESS],
+  avatarUrl: 'https://example.com/avatar.png',
+  tradingPrivacy: 'public',
+  connectedToX: true,
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+};
 
-    await expect(promise).rejects.toBeInstanceOf(XAuthError);
-    await expect(promise).rejects.toMatchObject({
-      type: XAuthErrorType.UserCancelled,
-    });
-  });
+const X_PROFILE: XProfile = {
+  xUserId: 'x-user-1',
+  xProfileUrl: 'https://x.com/tester',
+  username: 'tester',
+  displayName: 'Tester',
+  avatarUrl: 'https://example.com/x.png',
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+};
 
-  it('throws XAuthError(UserCancelled) when the user denies consent', async () => {
-    mockPromptAsync.mockResolvedValue({
-      type: 'error',
-      error: { code: 'access_denied' },
-      params: {},
-    });
+function getLinkingHandler() {
+  let handler: ((event: { url: string }) => void) | undefined;
+  (Linking.addEventListener as jest.Mock).mockImplementation(
+    (_type: string, callback: (event: { url: string }) => void) => {
+      handler = callback;
+      return { remove: jest.fn() };
+    },
+  );
+  return () => handler;
+}
 
-    await expect(connectX()).rejects.toMatchObject({
-      type: XAuthErrorType.UserCancelled,
-    });
-    expect(exchangeCodeAsync).not.toHaveBeenCalled();
-  });
+const flushPromises = () => new Promise(setImmediate);
 
-  it('includes the auth error code in the TokenExchangeFailed message for other auth errors', async () => {
-    mockPromptAsync.mockResolvedValue({
-      type: 'error',
-      error: { code: 'server_error' },
-      params: {},
-    });
-
-    const promise = connectX();
-
-    await expect(promise).rejects.toMatchObject({
-      type: XAuthErrorType.TokenExchangeFailed,
-    });
-    await expect(promise).rejects.toThrow('server_error');
-    expect(exchangeCodeAsync).not.toHaveBeenCalled();
-  });
-
-  it('throws XAuthError(StateMismatch) when the returned state does not match the sent state', async () => {
-    mockPromptAsync.mockResolvedValue({
-      type: 'error',
-      error: { code: 'state_mismatch' },
-      params: {},
-    });
-
-    await expect(connectX()).rejects.toMatchObject({
-      type: XAuthErrorType.StateMismatch,
-    });
-    expect(exchangeCodeAsync).not.toHaveBeenCalled();
-  });
-
-  it('throws XAuthError(TokenExchangeFailed) when exchangeCodeAsync rejects', async () => {
-    mockPromptAsync.mockResolvedValue({
-      type: 'success',
-      params: { code: 'test-auth-code' },
-    });
-    (exchangeCodeAsync as jest.Mock).mockRejectedValue(
-      new Error('token endpoint returned 400'),
-    );
-
-    await expect(connectX()).rejects.toMatchObject({
-      type: XAuthErrorType.TokenExchangeFailed,
-    });
-    expect(setTokens).not.toHaveBeenCalled();
-  });
-
-  it('throws XAuthError(NetworkFailure) when promptAsync rejects with a network error', async () => {
-    mockPromptAsync.mockRejectedValue(new TypeError('Network request failed'));
-
-    await expect(connectX()).rejects.toMatchObject({
-      type: XAuthErrorType.NetworkFailure,
-    });
-  });
-});
-
-describe('refreshXToken', () => {
+describe('XAuthService (app-relay flow)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('refreshes using the stored refresh token and stores the rotated tokens', async () => {
-    (getTokens as jest.Mock).mockResolvedValue({
-      accessToken: 'old-access',
-      refreshToken: 'old-refresh',
-      expiresAt: 1000,
+    jest.mocked(AuthenticationController.getSessionProfile).mockResolvedValue({
+      canonicalProfileId: PROFILE_ID,
+    } as never);
+    jest.mocked(AccountsController.getSelectedAccount).mockReturnValue({
+      address: ACCOUNT_ADDRESS,
+      type: 'eip155:eoa',
+    } as never);
+    jest.mocked(ProfileController.startXConnect).mockResolvedValue({
+      authorizationUrl: AUTHORIZATION_URL,
+      state: SESSION_STATE,
     });
-    (refreshAsync as jest.Mock).mockResolvedValue({
-      accessToken: 'new-access',
-      refreshToken: 'new-refresh',
-      expiresIn: 7200,
-      issuedAt: 1735689600,
-    });
-
-    const result = await refreshXToken();
-
-    expect(refreshAsync).toHaveBeenCalledWith(
-      { clientId: 'test-client-id', refreshToken: 'old-refresh' },
-      { tokenEndpoint: 'https://api.x.com/2/oauth2/token' },
-    );
-    expect(setTokens).toHaveBeenCalledWith({
-      accessToken: 'new-access',
-      refreshToken: 'new-refresh',
-      expiresAt: 1735689600000 + 7200000,
-    });
-    expect(result.refreshToken).toBe('new-refresh');
-  });
-
-  it('keeps the old refresh token when the response omits a new one', async () => {
-    (getTokens as jest.Mock).mockResolvedValue({
-      accessToken: 'old-access',
-      refreshToken: 'old-refresh',
-      expiresAt: 1000,
-    });
-    (refreshAsync as jest.Mock).mockResolvedValue({
-      accessToken: 'new-access',
-      refreshToken: undefined,
-      expiresIn: 7200,
-      issuedAt: 1735689600,
-    });
-
-    const result = await refreshXToken();
-
-    expect(result.refreshToken).toBe('old-refresh');
-  });
-
-  it('throws XAuthError(NoStoredTokens) when there is nothing to refresh', async () => {
-    (getTokens as jest.Mock).mockResolvedValue(null);
-
-    await expect(refreshXToken()).rejects.toMatchObject({
-      type: XAuthErrorType.NoStoredTokens,
-    });
-    expect(refreshAsync).not.toHaveBeenCalled();
-  });
-
-  it('throws XAuthError(TokenExchangeFailed) when refreshAsync rejects', async () => {
-    (getTokens as jest.Mock).mockResolvedValue({
-      accessToken: 'old-access',
-      refreshToken: 'old-refresh',
-      expiresAt: 1000,
-    });
-    (refreshAsync as jest.Mock).mockRejectedValue(new Error('refresh failed'));
-
-    await expect(refreshXToken()).rejects.toMatchObject({
-      type: XAuthErrorType.TokenExchangeFailed,
+    jest.mocked(ProfileController.connectX).mockResolvedValue({
+      profile: PROFILE,
+      xProfile: X_PROFILE,
+      profileCreated: true,
     });
   });
-});
 
-describe('disconnectX', () => {
-  it('clears stored tokens', async () => {
-    await disconnectX();
+  describe('connectX', () => {
+    it('resolves identity, opens the backend authorization URL, and relays the redirect code and state (new-profile path)', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
+      });
 
-    expect(clearTokens).toHaveBeenCalledTimes(1);
-  });
-});
+      const result = await connectX();
 
-describe('isXConnected', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns true when tokens are stored', async () => {
-    (getTokens as jest.Mock).mockResolvedValue({
-      accessToken: 'access-123',
-      refreshToken: 'refresh-456',
-      expiresAt: 1735689600000,
+      expect(AuthenticationController.getSessionProfile).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(ProfileController.startXConnect).toHaveBeenCalledWith({
+        linkedAddress: LINKED_ADDRESS,
+      });
+      expect(openAuthSessionAsync).toHaveBeenCalledWith(
+        AUTHORIZATION_URL,
+        X_REDIRECT_URI,
+        { createTask: false, preferUniversalLinks: true },
+      );
+      expect(ProfileController.connectX).toHaveBeenCalledWith({
+        code: 'auth-code-1',
+        state: SESSION_STATE,
+        profileId: PROFILE_ID,
+      });
+      expect(result).toStrictEqual({
+        profile: PROFILE,
+        xProfile: X_PROFILE,
+        profileCreated: true,
+      });
     });
 
-    await expect(isXConnected()).resolves.toBe(true);
-  });
+    it('lowercases the selected EVM account address in the linked address', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
+      });
 
-  it('returns false when no tokens are stored', async () => {
-    (getTokens as jest.Mock).mockResolvedValue(null);
+      await connectX();
 
-    await expect(isXConnected()).resolves.toBe(false);
-  });
-
-  it('returns false when the keychain read rejects', async () => {
-    (getTokens as jest.Mock).mockRejectedValue(
-      new SyntaxError('Unexpected token in JSON'),
-    );
-
-    await expect(isXConnected()).resolves.toBe(false);
-  });
-});
-
-describe('XAuthService logging', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (AuthRequest as unknown as jest.Mock).mockImplementation(() => ({
-      promptAsync: mockPromptAsync,
-      codeVerifier: 'SECRET_VERIFIER',
-    }));
-  });
-
-  it('logs the flow but never logs secrets (codes, tokens, verifier, client id)', async () => {
-    (getXClientId as jest.Mock).mockReturnValue('SECRET_CLIENT');
-    mockPromptAsync.mockResolvedValue({
-      type: 'success',
-      params: { code: 'SECRET_CODE', state: 'SECRET_STATE' },
-    });
-    (exchangeCodeAsync as jest.Mock).mockResolvedValue({
-      accessToken: 'SECRET_ACCESS',
-      refreshToken: 'SECRET_REFRESH',
-      expiresIn: 7200,
-      issuedAt: 1735689600,
-    });
-    (getTokens as jest.Mock).mockResolvedValue({
-      accessToken: 'SECRET_ACCESS',
-      refreshToken: 'SECRET_REFRESH',
-      expiresAt: 1735689600000,
-    });
-    (refreshAsync as jest.Mock).mockResolvedValue({
-      accessToken: 'SECRET_ACCESS',
-      refreshToken: 'SECRET_REFRESH',
-      expiresIn: 7200,
-      issuedAt: 1735689600,
+      expect(ProfileController.startXConnect).toHaveBeenCalledWith({
+        linkedAddress: `eip155:0:${ACCOUNT_ADDRESS.toLowerCase()}`,
+      });
     });
 
-    await connectX();
-    await refreshXToken();
+    it('returns the connect result with profileCreated false on the existing-profile path', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
+      });
+      jest.mocked(ProfileController.connectX).mockResolvedValue({
+        profile: PROFILE,
+        xProfile: X_PROFILE,
+        profileCreated: false,
+      });
 
-    const loggedMessages = JSON.stringify((Logger.log as jest.Mock).mock.calls);
-    expect(loggedMessages).not.toContain('SECRET_CODE');
-    expect(loggedMessages).not.toContain('SECRET_VERIFIER');
-    expect(loggedMessages).not.toContain('SECRET_ACCESS');
-    expect(loggedMessages).not.toContain('SECRET_REFRESH');
-    expect(loggedMessages).not.toContain('SECRET_CLIENT');
-    expect(loggedMessages).not.toContain('SECRET_STATE');
-    expect(Logger.log).toHaveBeenCalled();
+      const result: XConnectResult = await connectX();
+
+      expect(result.profileCreated).toBe(false);
+      expect(result.profile).toStrictEqual(PROFILE);
+      expect(result.xProfile).toStrictEqual(X_PROFILE);
+    });
+
+    it('throws a typed NotSignedIn error when the auth session is unavailable', async () => {
+      jest
+        .mocked(AuthenticationController.getSessionProfile)
+        .mockRejectedValue(new Error('no session'));
+
+      const error = await connectX().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.type).toBe(XAuthErrorType.NotSignedIn);
+      expect(ProfileController.startXConnect).not.toHaveBeenCalled();
+    });
+
+    it('throws a typed NotSignedIn error when the session has no canonical profile id', async () => {
+      jest
+        .mocked(AuthenticationController.getSessionProfile)
+        .mockResolvedValue({
+          canonicalProfileId: undefined,
+        } as never);
+
+      const error = await connectX().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.type).toBe(XAuthErrorType.NotSignedIn);
+      expect(ProfileController.startXConnect).not.toHaveBeenCalled();
+    });
+
+    it('throws a typed NoEvmAccount error when the selected account is not an EVM account', async () => {
+      jest.mocked(AccountsController.getSelectedAccount).mockReturnValue({
+        address: '5FhqRohbVWNoboVFgbDp3LgvWSD7CRSKVPMgxTreesLyrS8V',
+        type: 'solana',
+      } as never);
+
+      const error = await connectX().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.type).toBe(XAuthErrorType.NoEvmAccount);
+      expect(ProfileController.startXConnect).not.toHaveBeenCalled();
+    });
+
+    it('captures the redirect via the Linking event fallback when the auth session does not resolve with it', async () => {
+      const getHandler = getLinkingHandler();
+      let resolveOpenAuth!: (result: unknown) => void;
+      (openAuthSessionAsync as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveOpenAuth = resolve;
+          }),
+      );
+
+      const promise = connectX();
+      await flushPromises();
+
+      getHandler()?.({
+        url: REDIRECT_WITH(`code=linking-code&state=${SESSION_STATE}`),
+      });
+      resolveOpenAuth({ type: 'cancel' });
+
+      await expect(promise).resolves.toStrictEqual({
+        profile: PROFILE,
+        xProfile: X_PROFILE,
+        profileCreated: true,
+      });
+      expect(ProfileController.connectX).toHaveBeenCalledWith({
+        code: 'linking-code',
+        state: SESSION_STATE,
+        profileId: PROFILE_ID,
+      });
+    });
+
+    it('captures the redirect via getInitialURL as a cold-start fallback', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'cancel',
+      });
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
+        REDIRECT_WITH(`code=cold-start-code&state=${SESSION_STATE}`),
+      );
+
+      await expect(connectX()).resolves.toStrictEqual({
+        profile: PROFILE,
+        xProfile: X_PROFILE,
+        profileCreated: true,
+      });
+      expect(ProfileController.connectX).toHaveBeenCalledWith({
+        code: 'cold-start-code',
+        state: SESSION_STATE,
+        profileId: PROFILE_ID,
+      });
+    }, 10000);
+
+    it('throws a typed cancel error when the user cancels the authorization session', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'cancel',
+      });
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
+
+      const error = await connectX().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.type).toBe(XAuthErrorType.UserCancelled);
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('throws a typed cancel error when the redirect carries an OAuth error (user denied consent)', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(
+          `error=access_denied&error_description=The+user+denied+access&state=${SESSION_STATE}`,
+        ),
+      });
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.UserCancelled,
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    });
+
+    it('throws a state mismatch error when the redirect state does not match the issued state', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH('code=auth-code-1&state=tampered-state'),
+      });
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.StateMismatch,
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    });
+
+    it('throws a missing code error when the redirect carries no code param', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`state=${SESSION_STATE}`),
+      });
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.MissingCode,
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    });
+
+    it('throws a backend error when the backend fails to issue the authorization URL', async () => {
+      jest
+        .mocked(ProfileController.startXConnect)
+        .mockRejectedValue(new Error('503 Service Unavailable'));
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.BackendError,
+      });
+      expect(openAuthSessionAsync).not.toHaveBeenCalled();
+    });
+
+    it('throws a backend error when the backend rejects the connect call', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
+      });
+      jest
+        .mocked(ProfileController.connectX)
+        .mockRejectedValue(new Error('400 invalid_grant'));
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.BackendError,
+      });
+    });
+
+    it('throws a network failure error when the auth session cannot be opened', async () => {
+      (openAuthSessionAsync as jest.Mock).mockRejectedValue(
+        new Error('Cannot open the auth session'),
+      );
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.NetworkFailure,
+      });
+    });
+  });
+
+  describe('disconnectX', () => {
+    it('resolves the profile ID from the auth session and delegates to ProfileController.disconnectX', async () => {
+      jest.mocked(ProfileController.disconnectX).mockResolvedValue(undefined);
+
+      await disconnectX();
+
+      expect(AuthenticationController.getSessionProfile).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(ProfileController.disconnectX).toHaveBeenCalledWith(PROFILE_ID);
+    });
+
+    it('throws a typed NotSignedIn error when the auth session is unavailable', async () => {
+      jest
+        .mocked(AuthenticationController.getSessionProfile)
+        .mockRejectedValue(new Error('no session'));
+
+      await expect(disconnectX()).rejects.toMatchObject({
+        type: XAuthErrorType.NotSignedIn,
+      });
+      expect(ProfileController.disconnectX).not.toHaveBeenCalled();
+    });
+
+    it('propagates backend failures', async () => {
+      jest
+        .mocked(ProfileController.disconnectX)
+        .mockRejectedValue(new Error('500 Internal Server Error'));
+
+      await expect(disconnectX()).rejects.toThrow('500 Internal Server Error');
+    });
+  });
+
+  describe('fetchAndUpdateXAccount', () => {
+    it('delegates to ProfileController.fetchAndUpdateXAccount without args and without resolving the session profile', async () => {
+      jest
+        .mocked(ProfileController.fetchAndUpdateXAccount)
+        .mockResolvedValue(X_PROFILE);
+
+      await expect(fetchAndUpdateXAccount()).resolves.toEqual(X_PROFILE);
+      expect(ProfileController.fetchAndUpdateXAccount).toHaveBeenCalledWith();
+      expect(AuthenticationController.getSessionProfile).not.toHaveBeenCalled();
+    });
   });
 });

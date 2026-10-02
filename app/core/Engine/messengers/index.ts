@@ -159,6 +159,8 @@ import {
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
+import { getProfileServiceMessenger } from './profile-service-messenger';
+import { getProfileControllerMessenger } from './profile-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
@@ -510,6 +512,14 @@ export const MESSENGER_FACTORIES = {
   },
   SocialService: {
     getMessenger: getSocialServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileService: {
+    getMessenger: getProfileServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileController: {
+    getMessenger: getProfileControllerMessenger,
     getInitMessenger: noop,
   },
   SocialController: {

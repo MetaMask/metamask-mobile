@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,10 +32,14 @@ import {
 import {
   connectX,
   disconnectX,
-  isXConnected,
   XAuthError,
   XAuthErrorType,
 } from '../../../../core/XAuthService';
+import {
+  selectIsConnectedToX,
+  selectProfile,
+  selectXProfile,
+} from '../../../../selectors/profileController';
 
 // Internal dependencies.
 import { ProfileCreateViewSelectorsIDs } from '../ProfileDrawer.testIds';
@@ -81,17 +86,19 @@ function logErrorMetadata(
 /**
  * ProfileCreate — profile creation onboarding flow (see
  * docs/profile-drawer-design.md). Step 1 connects the user's X (Twitter)
- * account through XAuthService's OAuth PKCE flow (skipped when X is
- * already connected); steps 2–3 preview the remaining onboarding.
- * Step progress is intentionally not persisted and the screen only
- * dismisses itself.
+ * account through the backend-mediated X connect flow in XAuthService
+ * (skipped when X is already connected); steps 2–3 preview the remaining
+ * onboarding. Step progress is intentionally not persisted and the screen
+ * only dismisses itself.
  */
 const ProfileCreate: React.FC = () => {
   const styles = useProfileDrawerStyles();
   const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
+  const isConnected = useSelector(selectIsConnectedToX);
+  const profile = useSelector(selectProfile);
+  const xProfile = useSelector(selectXProfile);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const isConnectingRef = useRef(false);
@@ -99,20 +106,17 @@ const ProfileCreate: React.FC = () => {
   const isMountedRef = useRef(true);
 
   useEffect(() => {
-    isXConnected()
-      .then((connected) => {
-        log('mount X connection check resolved', { connected });
-        if (isMountedRef.current) {
-          setIsConnected(connected);
-        }
-      })
-      .catch(() => {
-        // isXConnected resolves false on keychain read failures;
-        // nothing to do.
-      });
+    log('mount X connection state', {
+      connected: isConnected,
+      hasProfile: Boolean(profile),
+      hasXProfile: Boolean(xProfile),
+    });
     return () => {
       isMountedRef.current = false;
     };
+    // Mount-only: snapshot diagnostics for the selector-driven connection
+    // state; the unmount cleanup guards state updates below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClose = useCallback(() => {
@@ -133,10 +137,13 @@ const ProfileCreate: React.FC = () => {
     }
 
     try {
-      await connectX();
-      log('X connect succeeded, advancing to step 2');
+      // The backend creates the profile during the X connect when it does
+      // not exist yet, so no profile is required up front.
+      const { profileCreated } = await connectX();
+      log('X connect succeeded, advancing to step 2', { profileCreated });
       if (isMountedRef.current) {
-        setIsConnected(true);
+        // isConnected updates via the ProfileController state change
+        // propagated through Redux.
         setCurrentStep((step) => step + 1);
       }
     } catch (error) {
@@ -173,9 +180,9 @@ const ProfileCreate: React.FC = () => {
   }, [toastRef]);
 
   /**
-   * Dev-only affordance (see the step 1 secondaryCta): clears locally
-   * stored X tokens so the connect flow can be re-tested in development
-   * builds. No server-side revocation is performed.
+   * Dev-only affordance (see the step 1 secondaryCta): disconnects the X
+   * account via ProfileController so the connect flow can be re-tested in
+   * development builds.
    */
   const handleDisconnectX = useCallback(async () => {
     // Double-press guard, same as the connect CTA.
@@ -192,9 +199,6 @@ const ProfileCreate: React.FC = () => {
     try {
       await disconnectX();
       log('X disconnect succeeded');
-      if (isMountedRef.current) {
-        setIsConnected(false);
-      }
     } catch (error) {
       log('X disconnect failed, showing toast', logErrorMetadata(error));
       Logger.error(toError(error), 'ProfileCreate: X disconnect failed');
