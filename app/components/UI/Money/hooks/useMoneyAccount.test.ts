@@ -510,6 +510,21 @@ describe('useMoneyAccountDeposit', () => {
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
+  it('forwards a caller-provided batchId to addTransactionBatch', async () => {
+    const batchId =
+      '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex;
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ batchId });
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ batchId }),
+    );
+  });
+
   it('uses PrefillCustomAmount loader when deposit prefill is enabled', async () => {
     mockDepositPrefillEnabled(true);
 
