@@ -100,6 +100,21 @@ export interface TokenDetailsRouteParams extends TokenI {
 }
 
 /**
+ * Asset categories that get a dedicated Token Details V1 experience.
+ *
+ * V1 ships for memecoins first; stablecoins, stocks and RWAs follow on the
+ * same page with variant-specific sections and copy. Declared as a const
+ * object so adding an entry turns every `Record<TokenDetailsVariant, ...>`
+ * lookup into a type error until it handles the new variant.
+ */
+export const TokenDetailsVariant = {
+  Memecoin: 'memecoin',
+} as const;
+
+export type TokenDetailsVariant =
+  (typeof TokenDetailsVariant)[keyof typeof TokenDetailsVariant];
+
+/**
  * Exit actions tracked by TOKEN_DETAILS_CLOSED event.
  */
 export type TokenDetailsExitAction =
