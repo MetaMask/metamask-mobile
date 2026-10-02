@@ -306,6 +306,36 @@ function installFiberHook(rootFiber: FiberNode) {
   };
 }
 
+function installOffscreenDuplicates(hidden: FiberNode, visible: FiberNode) {
+  const hiddenBoundary = {
+    ...makeFiber({ child: hidden }),
+    tag: 22,
+    memoizedState: { baseLanes: 0, cachePool: null },
+  };
+  const frozen = makeFiber({
+    child: hiddenBoundary,
+    memoizedProps: { freeze: true },
+  });
+  const hiddenRoute = makeFiber({ activityState: 2, child: frozen });
+  const visibleBoundary: FiberNode & { tag: number; memoizedState: unknown } = {
+    ...makeFiber({ child: visible }),
+    tag: 22,
+    memoizedState: null,
+  };
+  const visibleRoute = makeFiber({ activityState: 2, child: visibleBoundary });
+  const root = makeFiber({ child: hiddenRoute });
+  hidden.return = hiddenBoundary;
+  hiddenBoundary.return = frozen;
+  frozen.return = hiddenRoute;
+  hiddenRoute.return = root;
+  hiddenRoute.sibling = visibleRoute;
+  visibleRoute.return = root;
+  visibleBoundary.return = visibleRoute;
+  visible.return = visibleBoundary;
+  installFiberHook(root);
+  return { root, hiddenBoundary, visibleBoundary };
+}
+
 function resetMockAccountState() {
   Engine.context.AccountsController.state.internalAccounts.accounts = {
     a1: mockEvmAccount('a1', '0xABC', 'Account 1'),
@@ -784,6 +814,361 @@ describe('AgenticService.install', () => {
       installFiberHook(makeFiber());
 
       expect(bridge().findFiberByTestId('missing-id')).toBe(false);
+    });
+  });
+
+  describe('committed Offscreen controls', () => {
+    it('finds the visible duplicate while both native routes report active', () => {
+      const hidden = makeFiber({ testID: 'shared-control' });
+      const visible = makeFiber({ testID: 'shared-control' });
+      const { root } = installOffscreenDuplicates(hidden, visible);
+
+      const target = findFiberByTestId(root, 'shared-control');
+
+      expect(target === visible).toBe(true);
+    });
+
+    it('presses only the visible duplicate with retained positive frames', async () => {
+      const hiddenPress = jest.fn();
+      const visiblePress = jest.fn();
+      const hiddenMeasure = jest.fn(
+        (
+          callback: (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+          ) => void,
+        ) => callback(10, 10, 40, 40),
+      );
+      const hidden = makeFiber({
+        testID: 'shared-control',
+        onPress: hiddenPress,
+        stateNode: { measureInWindow: hiddenMeasure },
+      });
+      const visible = makeFiber({
+        testID: 'shared-control',
+        onPress: visiblePress,
+        stateNode: { measureInWindow: (callback) => callback(10, 10, 40, 40) },
+      });
+      installOffscreenDuplicates(hidden, visible);
+
+      const result = await bridge().pressTestId('shared-control');
+
+      expect(result.ok).toBe(true);
+      expect(visiblePress).toHaveBeenCalledTimes(1);
+      expect(hiddenPress).not.toHaveBeenCalled();
+      expect(hiddenMeasure).not.toHaveBeenCalled();
+    });
+
+    it('presses text on the visible duplicate without dispatching the hidden handler', () => {
+      const hiddenPress = jest.fn();
+      const visiblePress = jest.fn();
+      installOffscreenDuplicates(
+        makeFiber({
+          memoizedProps: { children: 'Advanced', onPress: hiddenPress },
+        }),
+        makeFiber({
+          memoizedProps: { children: 'Advanced', onPress: visiblePress },
+        }),
+      );
+
+      const result = bridge().pressText('Advanced');
+
+      expect(result.ok).toBe(true);
+      expect(visiblePress).toHaveBeenCalledTimes(1);
+      expect(hiddenPress).not.toHaveBeenCalled();
+    });
+
+    it('resolves the visible exact scope beside a hidden duplicate scope', async () => {
+      const hiddenPress = jest.fn();
+      const visiblePress = jest.fn();
+      const hidden = makeFiber({ testID: 'terminate', onPress: hiddenPress });
+      const visible = makeFiber({
+        testID: 'terminate',
+        onPress: visiblePress,
+        stateNode: { measureInWindow: (callback) => callback(10, 10, 40, 40) },
+      });
+      const hiddenScope = makeFiber({ testID: 'owned-group', child: hidden });
+      const visibleScope = makeFiber({ testID: 'owned-group', child: visible });
+      hidden.return = hiddenScope;
+      visible.return = visibleScope;
+      installOffscreenDuplicates(hiddenScope, visibleScope);
+
+      const result = await bridge().pressTestId('terminate', {
+        ancestorTestId: 'owned-group',
+      });
+
+      expect(result.ok).toBe(true);
+      expect(visiblePress).toHaveBeenCalledTimes(1);
+      expect(hiddenPress).not.toHaveBeenCalled();
+    });
+
+    it.each([undefined, { ancestorTestId: 'owned-group' }])(
+      'refuses a control that becomes committed hidden during measurement with scope %j',
+      async (options) => {
+        const onPress = jest.fn();
+        const control = makeFiber({ testID: 'terminate', onPress });
+        const scope = makeFiber({ testID: 'owned-group', child: control });
+        control.return = scope;
+        const { visibleBoundary } = installOffscreenDuplicates(
+          makeFiber(),
+          scope,
+        );
+        control.stateNode = {
+          measureInWindow: (callback) => {
+            visibleBoundary.memoizedState = { baseLanes: 0, cachePool: null };
+            callback(10, 10, 40, 40);
+          },
+        };
+
+        const result = await bridge().pressTestId('terminate', options);
+
+        expect(result.ok).toBe(false);
+        expect(onPress).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([undefined, 'shared-scroll'])(
+      'scrolls visible content with anchor %s',
+      (testId) => {
+        const hiddenScroll = jest.fn();
+        const visibleScroll = jest.fn();
+        installOffscreenDuplicates(
+          makeFiber({
+            testID: 'shared-scroll',
+            stateNode: { scrollTo: hiddenScroll },
+          }),
+          makeFiber({
+            testID: 'shared-scroll',
+            stateNode: { scrollTo: visibleScroll },
+          }),
+        );
+
+        const result = bridge().scrollView({ testId, offset: 200 });
+
+        expect(result.ok).toBe(true);
+        expect(visibleScroll).toHaveBeenCalledWith({ y: 200, animated: false });
+        expect(hiddenScroll).not.toHaveBeenCalled();
+      },
+    );
+
+    it('sets input only on the visible duplicate', () => {
+      const hiddenInput = jest.fn();
+      const visibleInput = jest.fn();
+      installOffscreenDuplicates(
+        makeFiber({
+          memoizedProps: { testID: 'shared-input', onChangeText: hiddenInput },
+        }),
+        makeFiber({
+          memoizedProps: { testID: 'shared-input', onChangeText: visibleInput },
+        }),
+      );
+
+      const result = bridge().setInput('shared-input', '125');
+
+      expect(result.ok).toBe(true);
+      expect(visibleInput).toHaveBeenCalledWith('125');
+      expect(hiddenInput).not.toHaveBeenCalled();
+    });
+
+    it('reads text only from the visible duplicate', () => {
+      installOffscreenDuplicates(
+        makeFiber({
+          memoizedProps: { testID: 'shared-label', children: 'Retained text' },
+        }),
+        makeFiber({
+          memoizedProps: { testID: 'shared-label', children: 'Visible text' },
+        }),
+      );
+
+      const result = bridge().getTextByTestId('shared-label', { all: true });
+
+      expect(result).toEqual(['Visible text']);
+    });
+
+    it.each(['tree', 'viewport'] as const)(
+      'does not report hidden input as present in %s queries',
+      async (visibility) => {
+        const hidden = makeFiber({
+          testID: 'retained-input',
+          stateNode: {
+            measureInWindow: (callback) => callback(10, 10, 40, 40),
+          },
+        });
+        installOffscreenDuplicates(hidden, makeFiber());
+
+        const result = await bridge().queryUiTarget({
+          testId: 'retained-input',
+          visibility,
+        });
+
+        expect(result.present).toBe(false);
+        expect(result.visible).toBe(false);
+        expect(bridge().findFiberByTestId('retained-input')).toBe(false);
+      },
+    );
+
+    it('does not report retained descendant text through visible ancestor props', async () => {
+      const hidden = makeFiber({
+        memoizedProps: { children: 'Retained text' },
+      });
+      const visible = makeFiber({
+        memoizedProps: { children: 'Visible text' },
+      });
+      const { root } = installOffscreenDuplicates(hidden, visible);
+      root.memoizedProps = {
+        testID: 'screen',
+        children: [
+          { props: { children: 'Retained text' } },
+          { props: { children: 'Visible text' } },
+        ],
+      };
+
+      const query = await bridge().queryUiTarget({
+        textContains: 'Retained text',
+        visibility: 'tree',
+      });
+      const texts = bridge().getTextByTestId('screen', { all: true });
+
+      expect(query.present).toBe(false);
+      expect(texts).toEqual(['Visible text']);
+    });
+
+    it('does not return a retained hidden row value through the fallback reader', () => {
+      const value = makeFiber({ memoizedProps: { children: '99 SOL' } });
+      const hidden = makeFiber({
+        memoizedProps: { children: 'Accepted' },
+        child: value,
+      });
+      value.return = hidden;
+      installOffscreenDuplicates(
+        hidden,
+        makeFiber({ memoizedProps: { children: 'Visible text' } }),
+      );
+
+      const result = bridge().getRowValue('Accepted', '^\\d+ SOL$');
+
+      expect(result).toBeNull();
+    });
+
+    it('does not read primitive ancestor props when its committed children are hidden', async () => {
+      const hidden = makeFiber({
+        memoizedProps: { children: 'Retained text' },
+      });
+      const { hiddenBoundary } = installOffscreenDuplicates(
+        hidden,
+        makeFiber(),
+      );
+      const parent = hiddenBoundary.return;
+      if (!parent) throw new Error('Missing frozen parent');
+      parent.memoizedProps = { testID: 'frozen', children: 'Retained text' };
+
+      const texts = bridge().getTextByTestId('frozen', { all: true });
+      const query = await bridge().queryUiTarget({
+        textContains: 'Retained text',
+      });
+
+      expect(texts).toBeNull();
+      expect(query.present).toBe(false);
+    });
+
+    it('reads visible native text fiber props instead of uncommitted ancestor children', () => {
+      const nativeText = makeFiber();
+      // HostText fibers store a primitive instead of the component props shape.
+      Object.assign(nativeText, { tag: 6, memoizedProps: 'Visible text' });
+      const parent = makeFiber({
+        testID: 'label',
+        child: nativeText,
+        memoizedProps: {
+          testID: 'label',
+          children: { props: { children: 'Uncommitted text' } },
+        },
+      });
+      nativeText.return = parent;
+      installFiberHook(parent);
+
+      const texts = bridge().getTextByTestId('label', { all: true });
+
+      expect(texts).toEqual(['Visible text']);
+    });
+
+    it('preserves visible leaf element text when no committed children exist', () => {
+      const leaf = makeFiber({
+        memoizedProps: {
+          testID: 'label',
+          children: { props: { children: ['Visible text', 12] } },
+        },
+      });
+      installFiberHook(leaf);
+
+      const texts = bridge().getTextByTestId('label', { all: true });
+
+      expect(texts).toEqual(['Visible text', '12']);
+    });
+
+    it('reads a visible committed row label and value', () => {
+      const label = makeFiber({ memoizedProps: { children: 'Accepted' } });
+      const value = makeFiber({ memoizedProps: { children: '99 SOL' } });
+      const row = makeFiber({ testID: 'row', child: label });
+      label.return = row;
+      label.sibling = value;
+      value.return = row;
+      installOffscreenDuplicates(makeFiber(), row);
+
+      const result = bridge().getRowValue('Accepted', '^\\d+ SOL$', {
+        anchorTestId: 'row',
+      });
+
+      expect(result).toBe('99 SOL');
+    });
+
+    it('does not measure a retained hidden descendant of a visible target', async () => {
+      const measure = jest.fn(
+        (
+          callback: (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+          ) => void,
+        ) => callback(10, 10, 40, 40),
+      );
+      const hidden = makeFiber({ stateNode: { measureInWindow: measure } });
+      const { root } = installOffscreenDuplicates(hidden, makeFiber());
+      root.memoizedProps = { testID: 'screen' };
+
+      const result = await bridge().queryUiTarget({
+        testId: 'screen',
+        visibility: 'viewport',
+      });
+
+      expect(result.present).toBe(true);
+      expect(result.visible).toBe(false);
+      expect(measure).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      { tag: 22, memoizedState: null },
+      { tag: 0, memoizedState: { hookState: true } },
+      { tag: undefined, memoizedState: undefined },
+    ])('preserves visible controls for committed state %j', async (state) => {
+      const onPress = jest.fn();
+      const control = makeFiber({ testID: 'visible-control', onPress });
+      const parent = {
+        ...makeFiber({
+          child: control,
+          memoizedProps: { freeze: true, mode: 'hidden', activityState: 2 },
+        }),
+        ...state,
+      };
+      control.return = parent;
+      installFiberHook(parent);
+
+      const result = await bridge().pressTestId('visible-control');
+
+      expect(result.ok).toBe(true);
+      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 
