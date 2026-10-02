@@ -459,41 +459,6 @@ describeForPlatforms('TopTradersView', () => {
       restoreDefaultLocalSocialProfile();
     });
 
-    it('lands on every trader with the ranking chip and no legacy filter pills, and switches the ranking label to Volume', async () => {
-      renderTopTradersViewWithProps({ useV1Filters: true });
-
-      expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
-      expect(screen.getByText(beta.name)).toBeOnTheScreen();
-      expect(screen.getByText(gamma.name)).toBeOnTheScreen();
-
-      const rankingSelector = screen.getByTestId(
-        TopTradersViewSelectorsIDs.RANKING_SELECTOR,
-      );
-      expect(rankingSelector).toHaveTextContent(
-        strings('social_leaderboard.sort_filter.profit'),
-      );
-      expect(
-        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
-      ).not.toBeOnTheScreen();
-
-      fireEvent.press(rankingSelector);
-      fireEvent.press(
-        screen.getByTestId(getRankingFilterOptionTestId('volume')),
-      );
-
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
-        ).toHaveTextContent(strings('social_leaderboard.sort_filter.volume')),
-      );
-    });
-
     it('pins the viewer above the list and drops their duplicate row when their profile is on the leaderboard', async () => {
       const localProfile = getLocalSocialProfileSnapshot().profile;
       if (!localProfile) {
@@ -524,6 +489,40 @@ describeForPlatforms('TopTradersView', () => {
         (trader) => trader.id,
       );
       expect(listedIds).toEqual([alpha.profileId, gamma.profileId]);
+
+      // V1 replaces the legacy pills with one ranking chip. Switching it must
+      // not put the pinned viewer back into the list.
+      const rankingSelector = screen.getByTestId(
+        TopTradersViewSelectorsIDs.RANKING_SELECTOR,
+      );
+      expect(rankingSelector).toHaveTextContent(
+        strings('social_leaderboard.sort_filter.profit'),
+      );
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(rankingSelector);
+      fireEvent.press(
+        screen.getByTestId(getRankingFilterOptionTestId('volume')),
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
+        ).toHaveTextContent(strings('social_leaderboard.sort_filter.volume')),
+      );
+      const listedAfterRanking = (
+        screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
+          .data as { id: string }[]
+      ).map((trader) => trader.id);
+      expect(listedAfterRanking).not.toContain(beta.profileId);
+      expect(screen.getByText(gamma.name)).toBeOnTheScreen();
     });
 
     it('shows the viewer as an unranked card when their profile is not on the leaderboard', async () => {

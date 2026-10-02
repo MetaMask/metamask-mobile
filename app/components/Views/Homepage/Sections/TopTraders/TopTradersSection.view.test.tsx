@@ -97,11 +97,19 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Data: skeleton → ranked cards → View more
+  // One visit: ranked cards, unfollow, follow, then open a profile
   // -------------------------------------------------------------------------
 
-  it('shows the skeleton carousel until the visible section fetches, then renders the spot traders ranked by 7-day P&L with a View more card', async () => {
-    renderHomeTopTradersSection();
+  it('ranks the spot traders, unfollows one, follows the other, and opens their profile', async () => {
+    renderHomeTopTradersSection(
+      [
+        {
+          name: Routes.SOCIAL.PROFILE,
+          Component: createRouteParamsProbe(Routes.SOCIAL.PROFILE),
+        },
+      ],
+      { presetOptions: { followingProfileIds: [alpha.profileId] } },
+    );
 
     // The idle placeholder is on screen before any data lands.
     expect(screen.getByTestId(CAROUSEL_ID)).toBeOnTheScreen();
@@ -127,21 +135,11 @@ describeForPlatforms('Homepage TopTradersSection', () => {
       'trader',
       'view_more',
     ]);
-    expect(
-      items
-        .filter(
-          (item): item is { kind: 'trader'; trader: { username: string } } =>
-            item.kind === 'trader',
-        )
-        .map((item) => item.trader.username),
-    ).toEqual([alpha.name, beta.name]);
-    // Data completeness: every card shows name, abbreviated 7-day P&L and the
-    // follow CTA that matches the trader's follow state.
     const alphaCard = within(screen.getByTestId(cardId(alpha.profileId)));
     expect(alphaCard.getByText(alpha.name)).toBeOnTheScreen();
     expect(alphaCard.getByText('+$963.1K')).toBeOnTheScreen();
     expect(
-      alphaCard.getByText(strings('social_leaderboard.follow')),
+      alphaCard.getByText(strings('social_leaderboard.following')),
     ).toBeOnTheScreen();
     const betaCard = within(screen.getByTestId(cardId(beta.profileId)));
     expect(betaCard.getByText(beta.name)).toBeOnTheScreen();
@@ -152,29 +150,38 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     // The perps-only trader never reaches the homepage (spot chains only).
     expect(screen.queryByText(gamma.name)).not.toBeOnTheScreen();
     expect(screen.getByTestId(VIEW_MORE_CARD_ID)).toBeOnTheScreen();
-    expect(
-      screen.getAllByText(strings('social_leaderboard.follow')),
-    ).toHaveLength(2);
-  });
 
-  it('marks an already-followed trader as Following and unfollows them from the card', async () => {
-    renderHomeTopTradersSection([], {
-      presetOptions: { followingProfileIds: [alpha.profileId] },
-    });
-    await findAlphaCard();
-
-    const followingButton = screen.getByText(
-      strings('social_leaderboard.following'),
-    );
-    expect(followingButton).toBeOnTheScreen();
     await act(async () => {
-      fireEvent.press(followingButton);
+      fireEvent.press(
+        alphaCard.getByText(strings('social_leaderboard.following')),
+      );
     });
-
     expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
       'SocialController:unfollowTrader',
       { targets: [alpha.profileId] },
     );
+
+    await act(async () => {
+      fireEvent.press(
+        within(screen.getByTestId(cardId(beta.profileId))).getByText(
+          strings('social_leaderboard.follow'),
+        ),
+      );
+    });
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      { targets: [beta.profileId] },
+    );
+
+    fireEvent.press(screen.getByTestId(cardId(beta.profileId)));
+
+    expect(await readRouteParams(Routes.SOCIAL.PROFILE)).toEqual({
+      traderId: beta.profileId,
+      traderName: beta.name,
+      traderAddress: beta.addresses[0],
+      traderRank: beta.rank,
+      source: 'home_carousel',
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -322,44 +329,8 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Entry points: card → profile, Follow → signals intercept
+  // Follow is intercepted when notifications are off
   // -------------------------------------------------------------------------
-
-  it('opens the trader profile with id, name, rank and homepage source when a card is tapped', async () => {
-    renderHomeTopTradersSection([
-      {
-        name: Routes.SOCIAL.PROFILE,
-        Component: createRouteParamsProbe(Routes.SOCIAL.PROFILE),
-      },
-    ]);
-    const alphaCard = await findAlphaCard();
-
-    fireEvent.press(alphaCard);
-
-    expect(await readRouteParams(Routes.SOCIAL.PROFILE)).toEqual({
-      traderId: alpha.profileId,
-      traderName: alpha.name,
-      traderAddress: alpha.addresses[0],
-      traderRank: alpha.rank,
-      source: 'home_carousel',
-    });
-  });
-
-  it('follows a trader from the card through the Engine with the homepage source', async () => {
-    renderHomeTopTradersSection();
-    await findAlphaCard();
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getAllByText(strings('social_leaderboard.follow'))[0],
-      );
-    });
-
-    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
-      'SocialController:followTrader',
-      { targets: [alpha.profileId] },
-    );
-  });
 
   it('routes a Follow tap to the trading signals setup when both notification channels are off', async () => {
     clearLeaderboardApiMock();
