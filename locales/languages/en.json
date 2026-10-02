@@ -4607,6 +4607,20 @@
     "unknown": "Unknown",
     "stock": "Stock"
   },
+  "token_details_v1": {
+    "tabs": {
+      "overview": "Overview",
+      "security": "Security",
+      "feed": "Feed"
+    },
+    "performance": {
+      "title": "Performance"
+    },
+    "activity": {
+      "title": "{{symbol}} activity"
+    },
+    "tab_placeholder": "Coming soon"
+  },
   "collectible": {
     "collectible_address": "Address",
     "collectible_type": "Type",

@@ -97,7 +97,15 @@ export interface TokenDetailsRouteParams extends TokenI {
   caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Long-form token description surfaced on the V1 Overview tab. Hidden when absent. */
+  description?: string;
 }
+
+/**
+ * Tabs on the V1 (meme) Token Details view. Overview is the default tab; the
+ * Security and Feed tabs render placeholder panels until their stories land.
+ */
+export type TokenDetailsV1TabKey = 'overview' | 'security' | 'feed';
 
 /**
  * Exit actions tracked by TOKEN_DETAILS_CLOSED event.
