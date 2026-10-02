@@ -1968,7 +1968,7 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "market_provider": "%{assetSymbol} · %{providerName}",
+          "market_provider": "{{assetSymbol}} · {{providerName}}",
         "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",

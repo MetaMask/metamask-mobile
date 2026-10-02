@@ -59,6 +59,8 @@ import { getStreamManagerInstance } from '../../components/UI/Perps/providers/Pe
  * via __REACT_DEVTOOLS_GLOBAL_HOOK__.
  */
 interface FiberNode {
+  tag?: number;
+  memoizedState?: unknown;
   child: FiberNode | null;
   sibling: FiberNode | null;
   return: FiberNode | null;
@@ -322,13 +324,20 @@ function walkFiber(
   return false;
 }
 
-/** Return true when React Navigation retains a fiber under a hidden route. */
+// React Native's renderer uses tag 22 for Offscreen and non-null committed
+// memoizedState for its hidden children, even when the native route is active.
+const OFFSCREEN_FIBER_TAG = 22;
+
+/** Return true when a fiber belongs to a committed hidden tree or route. */
 function isFiberInactive(fiber: FiberNode): boolean {
   let current: FiberNode | null = fiber;
   while (current) {
     const props = current.memoizedProps;
     const styles = Array.isArray(props?.style) ? props.style : [props?.style];
     if (
+      (current.tag === OFFSCREEN_FIBER_TAG &&
+        current.memoizedState !== null &&
+        current.memoizedState !== undefined) ||
       props?.activityState === 0 ||
       styles.some(
         (style) =>
@@ -863,8 +872,10 @@ function tryScroll(
 ): boolean {
   let current: FiberNode | null = start;
   while (current) {
-    if (tryScrollStateNode(current.stateNode, offset, animated)) return true;
-    if (tryScroll(current.child, offset, animated)) return true;
+    if (!isFiberInactive(current)) {
+      if (tryScrollStateNode(current.stateNode, offset, animated)) return true;
+      if (tryScroll(current.child, offset, animated)) return true;
+    }
     current = walkSiblings ? current.sibling : null;
   }
   return false;
@@ -907,6 +918,7 @@ function findMeasurableStateNode(
   includeAncestors = true,
 ): FiberNode['stateNode'] | null {
   const resolveMeasurableStateNode = (node: FiberNode) => {
+    if (isFiberInactive(node)) return null;
     const stateNode = node.stateNode;
     const publicInstance = stateNode?.canonical?.publicInstance ?? stateNode;
     return publicInstance &&
@@ -1087,11 +1099,9 @@ function dedupeTexts(texts: string[]): string[] {
 }
 
 function collectFiberTexts(fiber: FiberNode | null): string[] {
-  const texts: string[] = [];
-  walkFiber(fiber, (node) => {
-    if (node.memoizedProps?.children !== undefined) {
-      appendTextContent(node.memoizedProps.children, texts);
-    }
+  const texts = collectOwnFiberTexts(fiber);
+  walkFiber(fiber?.child ?? null, (node) => {
+    texts.push(...collectOwnFiberTexts(node));
     return false;
   });
   return dedupeTexts(texts);
@@ -1099,8 +1109,16 @@ function collectFiberTexts(fiber: FiberNode | null): string[] {
 
 function collectOwnFiberTexts(fiber: FiberNode | null): string[] {
   const texts: string[] = [];
-  if (fiber?.memoizedProps?.children !== undefined) {
-    appendTextContent(fiber.memoizedProps.children, texts);
+  if (fiber && !fiber.child && !isFiberInactive(fiber)) {
+    // Committed children are authoritative. Ancestor element props can still
+    // describe retained hidden content. HostText leaves store primitive props.
+    const props: unknown = fiber.memoizedProps;
+    appendTextContent(
+      typeof props === 'string' || typeof props === 'number'
+        ? props
+        : fiber.memoizedProps?.children,
+      texts,
+    );
   }
   return dedupeTexts(texts);
 }
@@ -1334,6 +1352,13 @@ const AgenticService = {
                 distinctCandidates.length > 1
                   ? `No visible component with testID="${testId}" found among duplicate matches`
                   : `No component with testID="${testId}" found or no onPress prop`,
+            };
+          }
+          if (isFiberInactive(candidate)) {
+            return {
+              ok: false,
+              testId,
+              error: `Component with testID="${testId}" became inactive`,
             };
           }
           if (isFiberDisabled(candidate)) {
