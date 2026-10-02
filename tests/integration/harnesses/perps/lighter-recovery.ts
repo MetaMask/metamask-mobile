@@ -35,7 +35,10 @@ import {
 
 jest.mock('../../../../app/core/Engine', () => ({
   __esModule: true,
-  default: { context: { PerpsController: undefined } },
+  default: {
+    context: { PerpsController: undefined },
+    controllerMessenger: undefined,
+  },
 }));
 
 const WALLET_ADDRESS: `0x${string}` =
@@ -488,8 +491,24 @@ export function buildLighterRecoveryHarness(
       signPersonalMessage,
       debugLog: infrastructure.debugLogger.log,
     },
-    bindEngine: () =>
-      jest.replaceProperty(Engine.context, 'PerpsController', controller),
+    bindEngine: () => {
+      const controllerBinding = jest.replaceProperty(
+        Engine.context,
+        'PerpsController',
+        controller,
+      );
+      const messengerBinding = jest.replaceProperty(
+        Engine,
+        'controllerMessenger',
+        rootMessenger as unknown as typeof Engine.controllerMessenger,
+      );
+      return {
+        restore: () => {
+          messengerBinding.restore();
+          controllerBinding.restore();
+        },
+      };
+    },
     seedTrigger: (type: 'stop-loss' | 'take-profit', triggerPrice: string) => {
       const orderIndex = venue.nextOrderIndex++;
       venue.active.push({

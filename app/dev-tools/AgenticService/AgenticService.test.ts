@@ -663,6 +663,23 @@ describe('AgenticService.install', () => {
     expect(bridge().getState()).toEqual({});
   });
 
+  it('reads detached Perps observations without controller or stream operations', () => {
+    const snapshot = bridge().readPerpsUiObservations();
+    snapshot.submissions.push({} as (typeof snapshot.submissions)[number]);
+
+    const next = bridge().readPerpsUiObservations();
+
+    expect(next.submissions).not.toEqual(snapshot.submissions);
+    expect(next.submissionSequence).toBe(snapshot.submissionSequence);
+    expect(
+      MockEngine.context.PerpsController.getPositions,
+    ).not.toHaveBeenCalled();
+    expect(mockEnsureConnected).not.toHaveBeenCalled();
+    expect(mockClearAllChannels).not.toHaveBeenCalled();
+    expect(bridge()).not.toHaveProperty('beginPerpsUiSubmission');
+    expect(bridge()).not.toHaveProperty('settlePerpsUiSubmission');
+  });
+
   it('canGoBack returns boolean', () => {
     expect(bridge().canGoBack()).toBe(true);
   });

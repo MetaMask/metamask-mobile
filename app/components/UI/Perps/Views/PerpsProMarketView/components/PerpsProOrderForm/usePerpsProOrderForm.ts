@@ -90,6 +90,11 @@ import {
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import { usePerpsScalePriceLadder } from '../../../../hooks/usePerpsScalePriceLadder';
 import { PerpsCacheInvalidator } from '../../../../services/PerpsCacheInvalidator';
+import {
+  newPerpsUiObservationId,
+  recordPerpsUiScaleForm,
+  unmountPerpsUiScaleForm,
+} from '../../../../utils/perpsUiObservations';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -1475,6 +1480,79 @@ export const usePerpsProOrderForm = ({
     scalePreview.isLoading,
     szDecimals,
   ]);
+
+  const [scaleObservationFormId] = useState(newPerpsUiObservationId);
+  const isScalePreviewCurrent = scalePreview.isCurrent;
+  useLayoutEffect(() => {
+    if (!__DEV__) return;
+    if (!isScaleOrder || !isScreenFocused) {
+      unmountPerpsUiScaleForm(scaleObservationFormId);
+      return;
+    }
+    recordPerpsUiScaleForm({
+      formId: scaleObservationFormId,
+      mounted: true,
+      scope: {
+        account: normalizedSelectedAddress || null,
+        provider: scaleProviderId ?? null,
+        network,
+        market: orderForm.asset,
+      },
+      input: {
+        minPrice: scaleStartPrice,
+        maxPrice: scaleEndPrice,
+        count: scaleTotalOrders,
+        skew: scaleSizeSkew,
+        size: exactFullCloseSize ?? exactAssetAmount,
+        usdAmount: effectiveUsdAmount,
+        isBuy: orderForm.direction === 'long',
+        reduceOnly,
+        leverage: orderForm.leverage,
+      },
+      previewGeneration: scalePreview.observationGeneration,
+      previewSequence: scalePreview.observationSequence,
+      loading: scalePreview.isLoading,
+      stale:
+        !isScalePreviewCurrent() ||
+        scalePreview.isLoading ||
+        !scaleLadderResult.success,
+      source: isVenueSizedScale ? 'venue' : 'estimate',
+      displayedLeverage: orderForm.leverage,
+      preview: scalePreview.result,
+      ladder: scaleLadderResult.success
+        ? scaleLadderResult.rungs.map(({ price, size }) => ({ price, size }))
+        : null,
+    });
+  }, [
+    scaleObservationFormId,
+    isScaleOrder,
+    isScreenFocused,
+    normalizedSelectedAddress,
+    scaleProviderId,
+    network,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.leverage,
+    scaleStartPrice,
+    scaleEndPrice,
+    scaleTotalOrders,
+    scaleSizeSkew,
+    exactFullCloseSize,
+    exactAssetAmount,
+    effectiveUsdAmount,
+    reduceOnly,
+    scalePreview.observationGeneration,
+    scalePreview.observationSequence,
+    scalePreview.isLoading,
+    isScalePreviewCurrent,
+    scalePreview.result,
+    scaleLadderResult,
+    isVenueSizedScale,
+  ]);
+  useLayoutEffect(
+    () => () => unmountPerpsUiScaleForm(scaleObservationFormId),
+    [scaleObservationFormId],
+  );
 
   const scaleAveragePrice = useMemo(() => {
     if (scaleLadderResult.success) {

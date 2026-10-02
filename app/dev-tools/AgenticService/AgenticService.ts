@@ -49,6 +49,7 @@ import Authentication from '../../core/Authentication';
 import { emitStepHud } from './AgentStepHud';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
+import { readPerpsUiObservations } from '../../components/UI/Perps/utils/perpsUiObservations';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
@@ -115,6 +116,7 @@ interface AgenticHudStep {
 }
 
 interface AgenticBridge {
+  readPerpsUiObservations: typeof readPerpsUiObservations;
   platform: string;
   replayHarnessPatch?: string;
   navigate: (name: string, params?: object) => void;
@@ -1208,6 +1210,7 @@ const AgenticService = {
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
+      readPerpsUiObservations,
       platform: Platform.OS,
       replayHarnessPatch: 'legacy-wallet-fixture-r2',
       navigate: (name: string, params?: object) =>

@@ -47,6 +47,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
+  getPerpsProChaseHandleSelector,
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
@@ -1512,6 +1513,47 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ),
       );
       expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false);
+    },
+  );
+
+  itForPlatforms(
+    'binds the compatible primary terminate control to its exact Chase handle',
+    async () => {
+      const unrelated: ChaseOrder = {
+        ...activeChase,
+        handle: 'unrelated-chase',
+      };
+      jest
+        .mocked(Engine.context.PerpsController.getChaseOrders)
+        .mockResolvedValue([activeChase, unrelated]);
+      renderFundedProMarket();
+
+      await openChaseManagementTab();
+      const primary = await screen.findByTestId(
+        getPerpsProChaseHandleSelector('ETH', activeChase.handle),
+      );
+      const other = screen.getByTestId(
+        getPerpsProChaseHandleSelector('ETH', unrelated.handle),
+      );
+      const compatible = getPerpsProChaseTerminateSelector(
+        'active',
+        'ETH',
+        activeChase.handle,
+        true,
+      );
+
+      expect(within(primary).getByTestId(compatible)).toBeOnTheScreen();
+      expect(within(other).queryByTestId(compatible)).toBeNull();
+      expect(
+        within(other).getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            unrelated.handle,
+            false,
+          ),
+        ),
+      ).toBeOnTheScreen();
     },
   );
 

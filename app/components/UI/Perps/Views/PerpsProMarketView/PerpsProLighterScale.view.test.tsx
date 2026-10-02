@@ -15,6 +15,7 @@ import {
   PERPS_ERROR_CODES,
   type PerpsScalePriceLadder,
   type ScaleOrderGroup,
+  type OrderResult,
 } from '@metamask/perps-controller';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -33,6 +34,10 @@ import {
   PerpsScaleOrderGroupsSelectorsIDs as GROUP,
 } from '../../Perps.testIds';
 import { clearPendingPerpsCufTraces } from '../../utils/perpsCufTrace';
+import {
+  readPerpsUiObservations,
+  perpsUiInputDigest,
+} from '../../utils/perpsUiObservations';
 
 const controller = Engine.context.PerpsController;
 const preview: Extract<PerpsScalePriceLadder, { status: 'ready' }> = {
@@ -67,7 +72,7 @@ const group: ScaleOrderGroup = {
   ],
   childOrderIds: ['venue-resting-11'],
 };
-const renderLighter = () => {
+const renderLighter = (leverage?: number) => {
   const market = {
     ...createEthMarketForViews(),
     providerId: 'lighter' as const,
@@ -88,6 +93,9 @@ const renderLighter = () => {
             activeProvider: 'lighter',
             isTestnet: true,
             initializationState: InitializationState.Initialized,
+            ...(leverage === undefined
+              ? {}
+              : { tradeConfigurations: { testnet: { ETH: { leverage } } } }),
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
@@ -120,6 +128,7 @@ async function configureScale() {
 }
 
 describe('Lighter Scale through the Pro market screen', () => {
+  const savedDev = __DEV__;
   beforeEach(() => {
     jest.mocked(controller.getOrderCapabilities).mockResolvedValue({
       status: 'ready',
@@ -149,6 +158,176 @@ describe('Lighter Scale through the Pro market screen', () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 50));
     });
     clearPendingPerpsCufTraces();
+    (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
+  });
+
+  it('binds the settled 1x form to its exact once-pressed dispatch and late partial result', async () => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+    const prior = readPerpsUiObservations();
+    const priorForms = new Set(prior.scaleForms.map((item) => item.formId));
+    const currentForm = () =>
+      readPerpsUiObservations().scaleForms.find(
+        (item) => !priorForms.has(item.formId),
+      );
+    let settlePreview!: (value: PerpsScalePriceLadder) => void;
+    let settleOrder!: (value: OrderResult) => void;
+    jest.mocked(controller.getScalePriceLadder).mockReturnValueOnce(
+      new Promise((resolve) => {
+        settlePreview = resolve;
+      }),
+    );
+    jest.mocked(controller.placeOrder).mockReturnValueOnce(
+      new Promise((resolve) => {
+        settleOrder = resolve;
+      }),
+    );
+    const messenger = jest.spyOn(Engine.controllerMessenger, 'call');
+    const originalCall = messenger.getMockImplementation() as
+      | ((action: string, ...args: unknown[]) => unknown)
+      | undefined;
+    messenger.mockImplementation(((action: string, ...args: unknown[]) =>
+      action === 'AccountsController:getSelectedAccount'
+        ? { address: group.walletAddress, type: 'eip155:eoa' }
+        : originalCall?.(
+            action,
+            ...args,
+          )) as typeof Engine.controllerMessenger.call);
+    const originalNetwork = controller.state.isTestnet;
+    controller.state.isTestnet = true;
+    const mounted = renderLighter(1);
+    try {
+      await configureScale();
+      await waitFor(() =>
+        expect(currentForm()).toEqual(
+          expect.objectContaining({
+            mounted: true,
+            loading: true,
+            stale: true,
+            displayedLeverage: 1,
+          }),
+        ),
+      );
+      expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeDisabled();
+
+      await act(async () => settlePreview(preview));
+      await waitFor(() =>
+        expect(currentForm()).toEqual(
+          expect.objectContaining({
+            loading: false,
+            stale: false,
+            source: 'venue',
+            displayedLeverage: 1,
+            preview,
+            ladder: [
+              { price: '2200', size: '0.01' },
+              { price: '2400', size: '0.015' },
+              { price: '2600', size: '0.015' },
+            ],
+          }),
+        ),
+      );
+      const settled = currentForm();
+      expect(settled?.previewGeneration).toEqual(expect.any(String));
+      expect(settled?.previewSequence).toBe(1);
+      expect(settled?.inputDigest).toBe(
+        perpsUiInputDigest({ scope: settled?.scope, input: settled?.input }),
+      );
+      expect(
+        within(screen.getByTestId(FORM.LEVERAGE_BUTTON)).getByText('1x'),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
+      await waitFor(() =>
+        expect(controller.placeOrder).toHaveBeenCalledTimes(1),
+      );
+      const pending = readPerpsUiObservations().submissions.filter(
+        (item) => item.sequence > prior.submissionSequence,
+      );
+      const { trackingData: _trackingData, ...publicOrder } = jest.mocked(
+        controller.placeOrder,
+      ).mock.calls[0][0];
+      expect(pending).toHaveLength(1);
+      expect(pending[0]).toEqual(
+        expect.objectContaining({
+          state: 'pending',
+          scope: settled?.scope,
+          request: publicOrder,
+          requestDigest: perpsUiInputDigest(publicOrder),
+        }),
+      );
+
+      mounted.unmount();
+      expect(currentForm()).toEqual(
+        expect.objectContaining({ mounted: false, stale: true }),
+      );
+      const partial: OrderResult = {
+        success: false,
+        orderId: group.groupId,
+        error: 'partial',
+        acceptedSize: '0.01',
+        acceptedChildren: [{ state: 'resting', orderId: 'exact-child' }],
+        childOrderIds: ['exact-child'],
+      };
+      await act(async () => settleOrder(partial));
+      await waitFor(() =>
+        expect(
+          readPerpsUiObservations().submissions.find(
+            (item) => item.requestId === pending[0].requestId,
+          ),
+        ).toEqual(
+          expect.objectContaining({
+            state: 'settled',
+            scope: settled?.scope,
+            result: partial,
+          }),
+        ),
+      );
+      expect(controller.placeOrder).toHaveBeenCalledTimes(1);
+    } finally {
+      mounted.unmount();
+      messenger.mockRestore();
+      controller.state.isTestnet = originalNetwork;
+    }
+  });
+
+  it('retires the observed input digest and generation while an edited Scale quote loads', async () => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+    const priorForms = new Set(
+      readPerpsUiObservations().scaleForms.map((item) => item.formId),
+    );
+    const currentForm = () =>
+      readPerpsUiObservations().scaleForms.find(
+        (item) => !priorForms.has(item.formId),
+      );
+    renderLighter(1);
+    await configureScale();
+    await waitFor(() => expect(currentForm()?.stale).toBe(false));
+    const settled = currentForm();
+    let resolve!: (value: PerpsScalePriceLadder) => void;
+    jest.mocked(controller.getScalePriceLadder).mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done;
+      }),
+    );
+
+    fireEvent.changeText(screen.getByTestId(FORM.SIZE_INPUT), '90');
+    await waitFor(() =>
+      expect(currentForm()).toEqual(
+        expect.objectContaining({
+          loading: true,
+          stale: true,
+          input: expect.objectContaining({ usdAmount: '90' }),
+        }),
+      ),
+    );
+
+    expect(currentForm()?.inputDigest).not.toBe(settled?.inputDigest);
+    expect(currentForm()?.previewGeneration).not.toBe(
+      settled?.previewGeneration,
+    );
+    expect(currentForm()?.ladder).toBeNull();
+    expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeDisabled();
+    expect(controller.placeOrder).not.toHaveBeenCalled();
+    await act(async () => resolve(preview));
   });
 
   it('settles a current quote preview before the CTA can place exact exposure', async () => {

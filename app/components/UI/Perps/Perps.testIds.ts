@@ -686,6 +686,12 @@ export const getPerpsProChaseTerminateSelector = (
 ) =>
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
+/** Exact row identity, including the primary row's compatible market-only controls. */
+export const getPerpsProChaseHandleSelector = (
+  symbol: string,
+  handle: string,
+) => `perps-chase-handle-${symbol}-${handle}`;
+
 const getPerpsProTwapIdentitySelectorSuffix = (
   providerId: string,
   orderId: string,
