@@ -60,6 +60,9 @@ import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerp
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
+import ProfileDrawer, {
+  ProfileCreate as ProfileDrawerProfileCreate,
+} from '../../Views/ProfileDrawer';
 import AddWallet from '../../Views/AddWallet';
 import ManageAccounts from '../../Views/ManageAccounts';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -1396,6 +1399,37 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: true,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PROFILE_DRAWER.ROOT}
+        component={ProfileDrawer}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PROFILE_DRAWER.PROFILE_CREATE}
+        component={ProfileDrawerProfileCreate}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcherWithMessenger}
+        options={{
+          // Explicit options: AppFlow's defaults (transparentModal, animation
+          // 'none') would render the scanner invisibly and without transition.
+          // Modal + slide_from_bottom matches the ProfileDrawer screens above.
           presentation: 'modal',
           animation: 'slide_from_bottom',
         }}

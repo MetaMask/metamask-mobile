@@ -11410,6 +11410,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/profile-controller@npm:@metamask-previews/profile-controller@1.0.1-preview-3b264bf6d":
+  version: 1.0.1-preview-3b264bf6d
+  resolution: "@metamask-previews/profile-controller@npm:1.0.1-preview-3b264bf6d"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-data-service": "npm:^2.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.0"
+  checksum: 10/6cc7add268a0df8b846dd5ffd71e52d8902827461b9075bd544f896346c4ead3f12fef8a37147e9cf223ae921ca5c01b7deb73f099fbaf6402b44e274e3eae6a
+  languageName: node
+  linkType: hard
+
 "@metamask/profile-metrics-controller@npm:^5.1.0":
   version: 5.1.0
   resolution: "@metamask/profile-metrics-controller@npm:5.1.0"
@@ -39238,6 +39253,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
+    "@metamask/profile-controller": "npm:@metamask-previews/profile-controller@1.0.1-preview-3b264bf6d"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch"
     "@metamask/providers": "npm:^18.3.1"

@@ -355,17 +355,23 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
-  const action: SUPPORTED_ACTIONS | ACTIONS.OAUTH_REDIRECT =
-    validatedUrl.pathname.split('/')[1] as
-      | SUPPORTED_ACTIONS
-      | ACTIONS.OAUTH_REDIRECT;
+  const action:
+    | SUPPORTED_ACTIONS
+    | ACTIONS.OAUTH_REDIRECT
+    | ACTIONS.X_OAUTH_REDIRECT = validatedUrl.pathname.split('/')[1] as
+    | SUPPORTED_ACTIONS
+    | ACTIONS.OAUTH_REDIRECT
+    | ACTIONS.X_OAUTH_REDIRECT;
 
   // Skip handling deeplinks that do not have a pathname or query
   // Skip handling oauth-login universal links (it is handled by the OAuthService)
+  // Skip handling the X OAuth relay link (it is handled by XAuthService while
+  // its connect flow is in flight).
   // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
   if (
     (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) ||
-    action === ACTIONS.OAUTH_REDIRECT
+    action === ACTIONS.OAUTH_REDIRECT ||
+    action === ACTIONS.X_OAUTH_REDIRECT
   ) {
     handled();
     return;

@@ -455,6 +455,10 @@ const Routes = {
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
+  PROFILE_DRAWER: {
+    ROOT: 'ProfileDrawer',
+    PROFILE_CREATE: 'ProfileDrawerProfileCreate',
+  },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',

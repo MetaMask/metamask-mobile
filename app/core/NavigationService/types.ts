@@ -1072,6 +1072,8 @@ export type RootStackParamList = {
   ProHubMembership: undefined;
   ProHubEarned: undefined;
   ProHubCancelMembership: undefined;
+  ProfileDrawer: undefined;
+  ProfileDrawerProfileCreate: undefined;
 
   // Notification routes
   NotificationsView: undefined;

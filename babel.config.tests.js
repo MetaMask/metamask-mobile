@@ -89,6 +89,10 @@ const newOverrides = [
       'app/util/environment.test.ts',
       'app/core/OAuthService/OAuthLoginHandlers/oauthBuildType.ts',
       'app/core/OAuthService/OAuthLoginHandlers/oauthBuildType.test.ts',
+      // X OAuth client id is read from process.env at runtime so tests can
+      // inject a value via jest.resetModules() + env assignment.
+      'app/core/XAuthService/XAuthConfig.ts',
+      'app/core/XAuthService/XAuthConfig.test.ts',
       'app/util/sentry/utils.ts',
       'app/util/sentry/utils.test.ts',
       'app/constants/bridge.ts',
