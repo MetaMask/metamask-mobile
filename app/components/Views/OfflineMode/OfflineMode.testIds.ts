@@ -1,3 +1,6 @@
+/**
+ * Test IDs for the offline screen, shared by unit and component view tests.
+ */
 export const OfflineModeSelectorsIDs = {
   CONTAINER: 'offline-mode',
   TITLE: 'offline-mode-title',
