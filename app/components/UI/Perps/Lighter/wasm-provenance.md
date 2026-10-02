@@ -32,6 +32,16 @@ SHA-256 hash and allows WASM compilation. It does not permit arbitrary inline
 scripts. `scripts/lighter-wasm-wrapper.test.ts` checks these hashes against the
 actual script contents; update the hashes whenever an embedded script changes.
 
+Native ModifyOrder uses exactly seven arguments: account index, market index,
+decimal-string order index, numeric scaled base amount, numeric scaled price,
+trigger price and nonce. Offline execution of this exact binary established
+that ABI, including order IDs above JavaScript's safe integer range. There is
+no expiry or order-version argument. Mobile bounds the integer fields before
+Go can truncate or wrap them and accepts only positive size/price with zero
+trigger price for Core's ordinary resting-limit edit contract. The wrapper
+tests exercise the actual dispatcher with Core's public tuple type and a
+substituted Go engine; they do not sign or submit transactions.
+
 Grouped signing accepts exactly two orders for OCO or OTO and three for OTOCO.
 The bridge validates the grouping/count pair, every wire field and the nonce
 before invoking the signer. Offline checks on chains 300 and 304 establish

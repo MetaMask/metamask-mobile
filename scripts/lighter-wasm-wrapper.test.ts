@@ -2,6 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
+import type {
+  LighterSignModifyOrderWireParams,
+  LighterWasmCall,
+} from '@metamask/perps-controller';
 
 const html = fs.readFileSync(
   path.join(
@@ -18,6 +22,7 @@ const operations = [
   '_signChangePubKey',
   '_signCreateOrder',
   '_signCreateGroupedOrders',
+  '_signModifyOrder',
   '_signCancelOrder',
   '_signUpdateLeverage',
   '_signUpdateMargin',
@@ -120,6 +125,10 @@ function createGroupedOrderParams(groupingType: number, orderCount: number) {
     -1,
   ]).flat();
   return [64, groupingType, orderCount, ...orders, 7];
+}
+
+function createModifyOrderParams(): LighterSignModifyOrderWireParams {
+  return [64, 4097, '288230376151711745', 169, 94632, 0, 7];
 }
 
 describe('Lighter WASM page', () => {
@@ -290,6 +299,162 @@ describe('Lighter WASM page', () => {
       type: 'executeResult',
       executeId: 'cancel',
       result: { txInfo: 'signed' },
+    });
+  });
+
+  describe('native order edits', () => {
+    it('refuses readiness when the modify signer export is missing', async () => {
+      const page = createPage((context) => {
+        installOperations(context);
+        delete context._signModifyOrder;
+        return new Promise(() => undefined);
+      });
+
+      await page.load();
+
+      expect(page.messages).toEqual([
+        {
+          type: 'initError',
+          message: 'Lighter signer runtime did not initialize its operations',
+        },
+      ]);
+    });
+
+    const validEdits: {
+      name: string;
+      params: LighterSignModifyOrderWireParams;
+    }[] = [
+      { name: 'Core native-edit tuple', params: createModifyOrderParams() },
+      { name: 'minimum wire bounds', params: [0, 0, '1', 1, 1, 0, 0] },
+      {
+        name: 'maximum wire bounds',
+        params: [
+          281474976710654,
+          32767,
+          '1152921504606846975',
+          281474976710655,
+          4294967295,
+          0,
+          Number.MAX_SAFE_INTEGER,
+        ],
+      },
+    ];
+
+    it.each(validEdits)(
+      'forwards the exact $name to the signer',
+      async ({ params }) => {
+        const page = createPage((context) => {
+          installOperations(context);
+          context._signModifyOrder = jest.fn(() => () => ({
+            txInfo: 'signed-modify',
+            txHash: 'modify-hash',
+            prv: 'private',
+          }));
+          return new Promise(() => undefined);
+        });
+        const call: LighterWasmCall<'_signModifyOrder'> = {
+          function: '_signModifyOrder',
+          params,
+        };
+        await page.load();
+
+        await page.send({ type: 'execute', ...call, executeId: 'modify' });
+
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeResult',
+          executeId: 'modify',
+          result: { txInfo: 'signed-modify', txHash: 'modify-hash' },
+        });
+        expect(page.context._signModifyOrder).toHaveBeenCalledTimes(1);
+        expect(page.context._signModifyOrder).toHaveBeenCalledWith(...params);
+      },
+    );
+
+    it.each([
+      ['missing nonce', createModifyOrderParams().slice(0, -1)],
+      ['extra expiry argument', [...createModifyOrderParams(), -1]],
+      ['object parameters', { account: 64 }],
+      ['null parameters', null],
+    ])('rejects %s before signing', async (_name, params) => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signModifyOrder',
+        params,
+        executeId: 'modify-arity',
+      });
+
+      expect(page.context._signModifyOrder).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'modify-arity',
+        message: 'Invalid signer parameters',
+      });
+    });
+
+    it.each([
+      ['negative account', 0, -1],
+      ['fractional account', 0, 64.5],
+      ['string account', 0, '64'],
+      ['reserved account index', 0, 281474976710655],
+      ['unsafe account', 0, Number.MAX_SAFE_INTEGER + 1],
+      ['negative market', 1, -1],
+      ['fractional market', 1, 4097.5],
+      ['string market', 1, '4097'],
+      ['reserved market', 1, 255],
+      ['market overflow', 1, 32768],
+      ['numeric order ID', 2, 123],
+      ['zero order ID', 2, '0'],
+      ['negative order ID', 2, '-1'],
+      ['leading-zero order ID', 2, '01'],
+      ['fractional order ID', 2, '1.5'],
+      ['exponent order ID', 2, '1e3'],
+      ['empty order ID', 2, ''],
+      ['null order ID', 2, null],
+      ['order ID overflow', 2, '1152921504606846976'],
+      ['int64 order ID overflow', 2, '9223372036854775808'],
+      ['oversized order ID', 2, '10000000000000000000'],
+      ['zero size sentinel', 3, 0],
+      ['negative size', 3, -1],
+      ['fractional size', 3, 169.5],
+      ['string size', 3, '169'],
+      ['size overflow', 3, 281474976710656],
+      ['zero price', 4, 0],
+      ['negative price', 4, -1],
+      ['fractional price', 4, 94632.5],
+      ['string price', 4, '94632'],
+      ['price overflow', 4, 4294967296],
+      ['price that wraps to one', 4, 4294967297],
+      ['nonzero trigger price', 5, 1],
+      ['negative trigger price', 5, -1],
+      ['fractional trigger price', 5, 0.5],
+      ['string trigger price', 5, '0'],
+      ['trigger price that wraps to zero', 5, 4294967296],
+      ['negative nonce', 6, -1],
+      ['fractional nonce', 6, 7.5],
+      ['string nonce', 6, '7'],
+      ['unsafe nonce', 6, Number.MAX_SAFE_INTEGER + 1],
+    ] as const)('rejects %s before signing', async (_name, index, value) => {
+      const page = createPage();
+      const params: unknown[] = [...createModifyOrderParams()];
+      params[index] = value;
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signModifyOrder',
+        params,
+        executeId: 'modify-field',
+      });
+
+      expect(page.context._signModifyOrder).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'modify-field',
+        message: 'Invalid signer parameters',
+      });
     });
   });
 
