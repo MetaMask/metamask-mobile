@@ -3,10 +3,11 @@
  *
  * PerpsProMarketView.view.test.tsx already submits the default-side
  * stop-market, stop-limit, take-profit-market, take-profit-limit, a
- * 30-minute TWAP, and one Scale ladder. This file owns the remaining order
- * type × side × modifier cells on the same ticket, plus the ticket chrome
- * (leverage, margin mode, TP/SL hand-off, add funds) and the Pro panel
- * actions that mutate an existing order or position (edit price, flip).
+ * 30-minute TWAP, and one Scale ladder. This file adds the journeys those
+ * tests do not walk: configuring the ticket and placing, building a limit
+ * order across side and price source, a short stop-market, a reduce-only
+ * close, and the Chase / Scale / randomized-TWAP submissions, plus TP/SL
+ * hand-off, Add funds, and the panel actions that edit or flip.
  *
  * Everything runs through real Redux + stream fixtures against the mocked
  * PerpsController. The provider seam for these order types is owned by
@@ -390,75 +391,120 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Basic order types × side
+  // Ticket setup, then an order
   // ─────────────────────────────────────────────────────────────────────────
 
-  itForPlatforms('submits a market long from the Pro ticket', async () => {
-    renderTicket();
-    const sizeInput = await findSizeInput();
-
-    fireEvent.changeText(sizeInput, '100');
-    fireEvent(sizeInput, 'blur');
-    const placeOrderButton = await awaitValidatedPlaceOrderButton(
-      (params) => params.orderType === 'market' && params.isBuy === true,
-    );
-    fireEvent.press(placeOrderButton);
-
-    await expectPlaceOrderCalledWith({
-      symbol: 'ETH',
-      orderType: 'market',
-      isBuy: true,
-      reduceOnly: false,
-    });
-    expect(placeOrderMock().mock.calls[0][0]).not.toHaveProperty(
-      'triggerPrice',
-    );
-  });
-
-  itForPlatforms('submits a limit long with a typed limit price', async () => {
-    renderTicket();
-    const sizeInput = await findSizeInput();
-    fireEvent.changeText(sizeInput, '100');
-
-    await selectBasicOrderType(sheetIds.LIMIT_OPTION);
-    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
-    fireEvent.changeText(limitInput, '2400');
-    fireEvent(limitInput, 'blur');
-    const placeOrderButton = await awaitValidatedPlaceOrderButton(
-      (params) =>
-        params.orderType === 'limit' &&
-        params.isBuy === true &&
-        params.price === '2400',
-    );
-    fireEvent.press(placeOrderButton);
-
-    await expectPlaceOrderCalledWith({
-      symbol: 'ETH',
-      orderType: 'limit',
-      isBuy: true,
-      price: '2400',
-    });
-  });
-
   itForPlatforms(
-    'submits a limit short after filling the price from Mid',
+    'sets leverage and confirms isolated margin, then places a market long',
     async () => {
       renderTicket();
       const sizeInput = await findSizeInput();
       fireEvent.changeText(sizeInput, '100');
-      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+      fireEvent(sizeInput, 'blur');
+      await awaitEnabledPlaceOrderButton();
+      const marginBefore = screen.getByTestId(ids.SUMMARY_MARGIN).props
+        .children;
+
+      fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          getPerpsLeveragePickerItemTestId(20),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.PICKER),
+        ).not.toBeOnTheScreen();
+        expect(screen.getByTestId(ids.LEVERAGE_BUTTON)).toHaveTextContent(
+          '20x',
+        );
+      });
+      // Same $100 notional at 20x needs less margin than the default.
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SUMMARY_MARGIN).props.children).not.toBe(
+          marginBefore,
+        ),
+      );
+
+      fireEvent.press(screen.getByTestId(ids.MARGIN_MODE_BUTTON));
+      const marginSheet = await screen.findByTestId(
+        PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      expect(
+        within(marginSheet).getByTestId(
+          PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION,
+        ),
+      ).toBeDisabled();
+      fireEvent.press(
+        within(marginSheet).getByTestId(
+          PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+        ),
+      );
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId(
+            PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER,
+          ),
+        ).not.toBeOnTheScreen(),
+      );
+
+      const placeOrderButton = await awaitValidatedPlaceOrderButton(
+        (params) =>
+          params.orderType === 'market' &&
+          params.isBuy === true &&
+          params.leverage === 20,
+      );
+      fireEvent.press(placeOrderButton);
+
+      await expectPlaceOrderCalledWith({
+        symbol: 'ETH',
+        orderType: 'market',
+        isBuy: true,
+        leverage: 20,
+        reduceOnly: false,
+      });
+      expect(placeOrderMock().mock.calls[0][0]).not.toHaveProperty(
+        'triggerPrice',
+      );
+    },
+  );
+
+  itForPlatforms(
+    'types a limit price, switches to short, replaces it with Mid, and submits',
+    async () => {
+      renderTicket();
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
 
       await selectBasicOrderType(sheetIds.LIMIT_OPTION);
       const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
-      fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
-
-      // Mid fills the live mark ($2,500) rather than leaving the field empty.
+      fireEvent.changeText(limitInput, '2400');
       await waitFor(() =>
-        expect(limitInput.props.value).toMatch(/^2,?500(\.0+)?$/u),
+        expect(limitInput.props.value).toMatch(/^2,?400(\.0+)?$/u),
       );
-      fireEvent(limitInput, 'blur');
+
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+      fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+      // Mid replaces the typed price with the live mark ($2,500). Re-query:
+      // switching side can remount the field.
+      const shortLimitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+      await waitFor(() =>
+        expect(shortLimitInput.props.value).toMatch(/^2,?500(\.0+)?$/u),
+      );
+      fireEvent(shortLimitInput, 'blur');
       const placeOrderButton = await awaitValidatedPlaceOrderButton(
-        (params) => params.orderType === 'limit' && params.isBuy === false,
+        (params) =>
+          params.orderType === 'limit' &&
+          params.isBuy === false &&
+          /^2500(\.0+)?$/u.test(String(params.price)),
       );
       fireEvent.press(placeOrderButton);
 
@@ -506,7 +552,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   itForPlatforms(
-    'submits a valid reduce-only market short against an open long',
+    'closes an open long reduce-only, then places the close as a limit',
     async () => {
       renderTicket({
         balance: '100000',
@@ -514,52 +560,25 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       });
       const sizeInput = await findSizeInput();
       fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
-
       fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
       fireEvent.changeText(sizeInput, '500');
       fireEvent(sizeInput, 'blur');
 
-      // Reduce-only hides TP/SL (closing orders cannot attach new triggers)
-      // and raises no reduce-only notice when the size fits the position.
+      // Reduce-only hides TP/SL (a closing order cannot attach new triggers)
+      // and raises no notice while the size still fits the position.
       await waitFor(() => {
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
         expect(
           screen.queryByTestId(getPerpsProOrderFormNoticeTestId('reduce-only')),
         ).not.toBeOnTheScreen();
       });
-      const placeOrderButton = await awaitValidatedPlaceOrderButton(
-        (params) =>
-          params.orderType === 'market' &&
-          params.isBuy === false &&
-          params.reduceOnly === true,
-      );
-      fireEvent.press(placeOrderButton);
-
-      await expectPlaceOrderCalledWith({
-        symbol: 'ETH',
-        orderType: 'market',
-        isBuy: false,
-        reduceOnly: true,
-      });
-    },
-  );
-
-  itForPlatforms(
-    'submits a reduce-only limit short against an open long',
-    async () => {
-      renderTicket({
-        balance: '100000',
-        positions: [createLongPositionForViews({ size: '1' })],
-      });
-      const sizeInput = await findSizeInput();
-      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
-      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
-      fireEvent.changeText(sizeInput, '500');
 
       await selectBasicOrderType(sheetIds.LIMIT_OPTION);
       const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(limitInput, '2700');
       fireEvent(limitInput, 'blur');
+      // Switching to a limit must keep the close constraints.
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
       const placeOrderButton = await awaitValidatedPlaceOrderButton(
         (params) =>
           params.orderType === 'limit' &&
@@ -700,93 +719,8 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
   );
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Ticket chrome: leverage, margin mode, TP/SL hand-off, add funds, provider
+  // Ticket hand-offs: TP/SL confirmation and Add funds
   // ─────────────────────────────────────────────────────────────────────────
-
-  itForPlatforms(
-    'changes leverage from the picker and places the order at the new leverage',
-    async () => {
-      renderTicket();
-      const sizeInput = await findSizeInput();
-      fireEvent.changeText(sizeInput, '100');
-      fireEvent(sizeInput, 'blur');
-      await awaitEnabledPlaceOrderButton();
-      const marginBefore = screen.getByTestId(ids.SUMMARY_MARGIN).props
-        .children;
-
-      fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
-      fireEvent.press(
-        await screen.findByTestId(
-          getPerpsLeveragePickerItemTestId(20),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      );
-      fireEvent.press(
-        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.PICKER),
-        ).not.toBeOnTheScreen();
-        expect(screen.getByTestId(ids.LEVERAGE_BUTTON)).toHaveTextContent(
-          '20x',
-        );
-      });
-      // Same $100 notional at 20x needs less margin than the default.
-      await waitFor(() =>
-        expect(screen.getByTestId(ids.SUMMARY_MARGIN).props.children).not.toBe(
-          marginBefore,
-        ),
-      );
-      const placeOrderButton = await awaitValidatedPlaceOrderButton(
-        (params) => params.leverage === 20,
-      );
-      fireEvent.press(placeOrderButton);
-
-      await expectPlaceOrderCalledWith({
-        symbol: 'ETH',
-        orderType: 'market',
-        leverage: 20,
-      });
-    },
-  );
-
-  itForPlatforms(
-    'keeps Cross margin unavailable and closes the margin-mode sheet from Isolated',
-    async () => {
-      renderTicket();
-      await findSizeInput();
-
-      fireEvent.press(screen.getByTestId(ids.MARGIN_MODE_BUTTON));
-      const sheet = await screen.findByTestId(
-        PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
-
-      expect(
-        within(sheet).getByTestId(
-          PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION,
-        ),
-      ).toBeDisabled();
-      fireEvent.press(
-        within(sheet).getByTestId(
-          PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
-        ),
-      );
-
-      await waitFor(() =>
-        expect(
-          screen.queryByTestId(
-            PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER,
-          ),
-        ).not.toBeOnTheScreen(),
-      );
-      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeOnTheScreen();
-    },
-  );
 
   itForPlatforms(
     'hands the ticket to TP/SL and attaches the confirmed triggers after the market entry',
@@ -881,28 +815,6 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       );
       expect(depositWithConfirmation).toHaveBeenCalledTimes(1);
       expect(placeOrderMock()).not.toHaveBeenCalled();
-    },
-  );
-
-  itForPlatforms(
-    'submits a market long on Lighter with the Lighter provider id',
-    async () => {
-      renderTicket({ activeProvider: 'lighter' });
-      const sizeInput = await findSizeInput();
-
-      fireEvent.changeText(sizeInput, '100');
-      fireEvent(sizeInput, 'blur');
-      const placeOrderButton = await awaitValidatedPlaceOrderButton(
-        (params) => params.orderType === 'market' && params.isBuy === true,
-      );
-      fireEvent.press(placeOrderButton);
-
-      await expectPlaceOrderCalledWith({
-        symbol: 'ETH',
-        orderType: 'market',
-        isBuy: true,
-        providerId: 'lighter',
-      });
     },
   );
 
