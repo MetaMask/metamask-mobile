@@ -1,8 +1,14 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 
-import { TokenDetailsV1, TOKEN_DETAILS_V1_TEST_ID } from './TokenDetailsV1';
+import {
+  TokenDetailsV1,
+  TOKEN_DETAILS_V1_TEST_ID,
+  TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID,
+} from './TokenDetailsV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
+import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
 
 const mockGoBack = jest.fn();
 
@@ -30,42 +36,29 @@ describe('TokenDetailsV1', () => {
     mockGoBack.mockClear();
   });
 
-  it('renders the placeholder meme-TDP body with the token symbol in the header', () => {
-    const { getByTestId, getByText } = render(
-      <TokenDetailsV1 token={baseToken} />,
-    );
+  it('renders the page', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
-    expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeTruthy();
-    expect(getByText('PEPE')).toBeTruthy();
+    expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('renders the placeholder title and description with the token symbol', () => {
-    const { getByText } = render(<TokenDetailsV1 token={baseToken} />);
+  it('navigates back when the back button is pressed', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
-    expect(getByText('Dedicated meme coin view')).toBeTruthy();
-    expect(
-      getByText(
-        'A tailored experience for PEPE is being built. Check back soon.',
-      ),
-    ).toBeTruthy();
+    fireEvent.press(getByTestId(TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to "this token" when the token has no symbol', () => {
-    const { getByText } = render(
-      <TokenDetailsV1
-        token={
-          {
-            ...baseToken,
-            symbol: undefined,
-          } as unknown as TokenDetailsRouteParams
-        }
-      />,
-    );
+  it('renders the security & social row with the mocked security verdict', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
     expect(
-      getByText(
-        'A tailored experience for this token is being built. Check back soon.',
-      ),
-    ).toBeTruthy();
+      getByTestId(SecuritySocialSectionSelectors.SECTION),
+    ).toBeOnTheScreen();
+    // Asserted by test ID, not label, so previewing a different verdict via
+    // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
+    // cover the label for each verdict.
+    expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
   });
 });
