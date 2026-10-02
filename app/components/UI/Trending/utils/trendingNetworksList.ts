@@ -152,6 +152,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     }),
   },
   {
+    id: NetworkToCaipChainId.PHAROS,
+    name: 'Pharos',
+    caipChainId: NetworkToCaipChainId.PHAROS,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.PHAROS,
+    }),
+  },
+  {
     id: BtcScope.Mainnet,
     name: 'Bitcoin',
     caipChainId: BtcScope.Mainnet,
