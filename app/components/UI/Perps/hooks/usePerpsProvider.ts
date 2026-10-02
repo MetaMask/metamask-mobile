@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   InitializationState,
   type GetOrderCapabilitiesParams,
@@ -60,6 +61,9 @@ export function usePerpsProvider(
   orderCapabilitiesParams?: GetOrderCapabilitiesParams,
 ) {
   const activeProvider = useSelector(selectPerpsProvider);
+  const selectedAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
   const lighterEnabled = useSelector(selectPerpsLighterProviderEnabledFlag);
@@ -120,6 +124,7 @@ export function usePerpsProvider(
           orderCapabilitiesParams.symbol,
           activeProvider,
           perpsNetwork,
+          selectedAccountAddress,
           initializationState,
         ])
       : undefined;
@@ -164,6 +169,7 @@ export function usePerpsProvider(
       symbol,
       activeProvider,
       perpsNetwork,
+      selectedAccountAddress,
       initializationState,
     ]);
     setOrderCapabilitiesState({
@@ -228,21 +234,25 @@ export function usePerpsProvider(
     orderCapabilitiesParams?.providerId,
     orderCapabilitiesParams?.symbol,
     perpsNetwork,
+    selectedAccountAddress,
   ]);
 
-  const supportsTwapOrders =
-    orderCapabilities?.status === 'ready' &&
-    orderCapabilities.supportedStrategies.includes('twap');
-  const supportsScaleOrders =
-    orderCapabilities?.status === 'ready' &&
-    orderCapabilities.providerId === PROVIDER_CONFIG.DefaultProvider &&
-    orderCapabilities.supportedStrategies.includes('scale');
-  const supportsChaseOrders =
-    orderCapabilities?.status === 'ready' &&
-    orderCapabilities.supportedStrategies.includes('chase');
   const expectedCapabilityProviderId =
     orderCapabilitiesParams?.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
+  const readyOrderCapabilities =
+    orderCapabilities?.status === 'ready' &&
+    (!expectedCapabilityProviderId ||
+      orderCapabilities.providerId === expectedCapabilityProviderId)
+      ? orderCapabilities
+      : null;
+  const supportsTwapOrders =
+    readyOrderCapabilities?.supportedStrategies.includes('twap') === true;
+  const supportsScaleOrders =
+    readyOrderCapabilities?.providerId === PROVIDER_CONFIG.DefaultProvider &&
+    readyOrderCapabilities.supportedStrategies.includes('scale');
+  const supportsChaseOrders =
+    readyOrderCapabilities?.supportedStrategies.includes('chase') === true;
   const supportedTriggerOrderTypes = useMemo<readonly TriggerOrderType[]>(
     () =>
       orderCapabilities?.status === 'ready' &&
@@ -296,8 +306,16 @@ export function usePerpsProvider(
       strategy: SupportedOrderStrategy,
       expectedProviderId?: OrderCapabilityProviderId,
     ): Promise<boolean> => {
+      const request = capabilityRequestRef.current;
       const symbol = orderCapabilitiesParams?.symbol;
-      if (!symbol || initializationState !== InitializationState.Initialized) {
+      if (
+        !symbol ||
+        !capabilityRequestKey ||
+        request.key !== capabilityRequestKey ||
+        (expectedProviderId &&
+          expectedCapabilityProviderId &&
+          expectedProviderId !== expectedCapabilityProviderId)
+      ) {
         return false;
       }
 
@@ -308,10 +326,13 @@ export function usePerpsProvider(
             providerId: orderCapabilitiesParams?.providerId,
           });
         return (
+          capabilityRequestRef.current === request &&
           capabilities.status === 'ready' &&
           capabilities.supportedStrategies.includes(strategy) &&
           (strategy !== 'scale' ||
             capabilities.providerId === PROVIDER_CONFIG.DefaultProvider) &&
+          (!expectedCapabilityProviderId ||
+            capabilities.providerId === expectedCapabilityProviderId) &&
           (!expectedProviderId ||
             capabilities.providerId === expectedProviderId)
         );
@@ -320,7 +341,8 @@ export function usePerpsProvider(
       }
     },
     [
-      initializationState,
+      capabilityRequestKey,
+      expectedCapabilityProviderId,
       orderCapabilitiesParams?.providerId,
       orderCapabilitiesParams?.symbol,
     ],
