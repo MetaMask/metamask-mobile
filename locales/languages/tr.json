@@ -1844,6 +1844,30 @@
         "start": "Başla",
         "end": "Sonlandır",
         "margin": "Marj",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
+        "groups": {
+          "title": "Scale orders",
+          "review": "Review venue status",
+          "cancel": "Cancel remaining orders",
+          "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
+          "filled": "Filled: {{size}} {{assetSymbol}}",
+          "state": {
+            "placing": "Placement in progress",
+            "stopped": "Placement stopped",
+            "unknown": "Some order outcomes are unresolved",
+            "terminal": "All orders settled"
+          },
+          "child": {
+            "resting": "Resting · {{orderId}}",
+            "filled": "Filled · {{orderId}}",
+            "canceled": "Canceled · {{orderId}}",
+            "waitingForFill": "Accepted · Waiting for fill status",
+            "waitingForTrigger": "Accepted · Waiting for trigger"
+          }
+        },
         "orders_submitted": "Kademeli emirler gönderildi",
         "orders_placed": "Kademeli emirler verildi",
         "orders_partially_placed": "Kademeli emirler kısmen verildi",

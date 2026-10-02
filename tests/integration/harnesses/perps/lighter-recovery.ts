@@ -417,8 +417,16 @@ export function buildLighterRecoveryHarness(
                 Number(wire[3]) / 10 ** MARKET_FIXTURE.supportedPriceDecimals,
               ),
               isAsk: Number(wire[4]) === 1,
-              type: Number(wire[5]) === 4 ? 'take-profit' : 'stop-loss',
-              timeInForce: 'immediate-or-cancel',
+              type:
+                Number(wire[5]) === 0
+                  ? 'limit'
+                  : Number(wire[5]) === 4
+                    ? 'take-profit'
+                    : 'stop-loss',
+              timeInForce:
+                Number(wire[6]) === 1
+                  ? 'good-till-time'
+                  : 'immediate-or-cancel',
               reduceOnly: Number(wire[7]),
               status: 'open',
               orderExpiry:

@@ -735,7 +735,7 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
-  it('omits TWAP and Scale when the controller resolves a Lighter route', () => {
+  it('offers supported Lighter Scale while TWAP awaits its form limits', () => {
     mockUsePerpsProvider.mockReturnValue({
       isLoadingOrderCapabilities: false,
       orderCapabilities: {
@@ -756,13 +756,13 @@ describe('PerpsProOrderFormPanel', () => {
 
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
-        availableOrderTypes: ['market', 'limit'],
+        availableOrderTypes: ['market', 'limit', 'scale'],
       }),
     );
     expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
       expect.objectContaining({
-        isScaleOrdersEnabled: false,
-        scaleProviderId: undefined,
+        isScaleOrdersEnabled: true,
+        scaleProviderId: 'lighter',
       }),
     );
   });

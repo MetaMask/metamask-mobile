@@ -741,6 +741,17 @@ export const getPerpsProTwapFillRowSelector = (
     fillId,
   );
 
+export const PerpsScaleOrderGroupsSelectorsIDs = {
+  PANEL: 'perps-scale-groups',
+  ERROR: 'perps-scale-groups-error',
+  row: (providerId: string, groupId: string) =>
+    `perps-scale-group-${providerId}-${groupId}`,
+  review: (providerId: string, groupId: string) =>
+    `perps-scale-group-review-${providerId}-${groupId}`,
+  cancel: (providerId: string, groupId: string) =>
+    `perps-scale-group-cancel-${providerId}-${groupId}`,
+} as const;
+
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
   DIRECTION_CONTROL: 'perps-pro-order-form-direction-control',

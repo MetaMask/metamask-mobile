@@ -442,6 +442,12 @@ jest.mock('../../app/core/Engine', () => {
         state: { isTestnet: false },
         getRecoveredDispatches: jest.fn().mockResolvedValue([]),
         getPendingManualRecoveries: jest.fn().mockResolvedValue([]),
+        getScaleOrderGroups: jest.fn().mockResolvedValue([]),
+        reviewScaleOrderGroups: jest.fn().mockResolvedValue([]),
+        getScalePriceLadder: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'not_implemented',
+        }),
         reconcileRecoveredDispatches: jest.fn().mockResolvedValue([]),
         acknowledgeRecoveredDispatch: jest.fn().mockResolvedValue(undefined),
         reviewRecoveryVenue: jest.fn().mockResolvedValue({

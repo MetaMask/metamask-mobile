@@ -5619,9 +5619,7 @@ describe('usePerpsProOrderForm', () => {
 
       expect(checkScaleOrderSupport).not.toHaveBeenCalled();
       expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).toHaveBeenCalledWith(
-        strings('perps.pro_order_form.scale.validation.unavailable'),
-      );
+      expect(validationError).not.toHaveBeenCalled();
     });
 
     it('keeps Scale locked when capability support is lost during placement', async () => {

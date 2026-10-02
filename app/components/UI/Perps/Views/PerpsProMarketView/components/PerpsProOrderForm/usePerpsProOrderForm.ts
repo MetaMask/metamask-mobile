@@ -15,6 +15,7 @@ import {
   isTriggerOrderType,
   splitScaleSizes,
   type ChaseOrder,
+  type GetScalePriceLadderParams,
   type OrderType,
   type PerpsMarketData,
   type PerpsProviderType,
@@ -86,6 +87,8 @@ import {
   usePerpsChaseOrders,
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
+import { usePerpsScalePriceLadder } from '../../../../hooks/usePerpsScalePriceLadder';
+import { PerpsCacheInvalidator } from '../../../../services/PerpsCacheInvalidator';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -156,6 +159,7 @@ import type {
 import { formatTwapRuntimeSummary } from './PerpsProTwapFields';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 import { usePerpsProPositionModifyPreview } from './usePerpsProPositionModifyPreview';
+import { getLighterScaleReceipt, getVenueScalePreview } from './scalePreview';
 
 const SCALE_DEFAULT_SKEW = '1.00';
 const SCALE_SKEW_DECIMAL_PLACES = 2;
@@ -194,8 +198,9 @@ type ScaleLadderResult =
       skew: number;
       orderValue: string;
       totalSize: string;
+      sizingIntent?: GetScalePriceLadderParams['sizing'];
     }
-  | { success: false; code: ScaleOrderValidationCode };
+  | { success: false; code: ScaleOrderValidationCode; message?: string };
 
 const REDUCE_ONLY_ERROR_I18N_KEYS: Record<ReduceOnlyValidationCode, string> = {
   no_position: 'perps.order.validation.reduce_only_no_position',
@@ -1028,6 +1033,7 @@ export const usePerpsProOrderForm = ({
     sizeInput,
     sizeSlider,
     effectiveUsdAmount,
+    exactAssetAmount,
     commitPendingSliderPreview,
     isAtMaxAmount,
   } = usePerpsProSizeInput({
@@ -1040,6 +1046,7 @@ export const usePerpsProOrderForm = ({
     maxDigits: MAX_PERPS_INPUT_DIGITS,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
+    preserveAssetIntent: isScaleOrder && scaleProviderId === 'lighter',
   });
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
@@ -1093,16 +1100,74 @@ export const usePerpsProOrderForm = ({
       return undefined;
     }
 
-    return formatPositionSize(absolutePositionSize.toFixed(), szDecimals);
+    return isScaleOrder && scaleProviderId === 'lighter'
+      ? absolutePositionSize.toFixed()
+      : formatPositionSize(absolutePositionSize.toFixed(), szDecimals);
   }, [
     currentMarketPosition?.size,
     isAtMaxAmount,
     isReduceOnlyPositionLoading,
     keepReduceOnlySizeEmpty,
     reduceOnly,
+    isScaleOrder,
+    scaleProviderId,
     szDecimals,
   ]);
   const isExactFullClose = exactFullCloseSize !== undefined;
+
+  const scalePreviewParams = useMemo<
+    GetScalePriceLadderParams | undefined
+  >(() => {
+    const minPrice = Number(scaleStartPrice);
+    const maxPrice = Number(scaleEndPrice);
+    const count = Number(scaleTotalOrders);
+    const skew = Number(scaleSizeSkew);
+    const baseSize = exactFullCloseSize ?? exactAssetAmount;
+    const exposure = new BigNumber(baseSize ?? effectiveUsdAmount);
+    if (
+      !isScaleOrder ||
+      !scaleProviderId ||
+      !isScaleOrdersEnabled ||
+      isScaleOrderSupportPending ||
+      !Number.isFinite(minPrice) ||
+      minPrice <= 0 ||
+      !Number.isFinite(maxPrice) ||
+      maxPrice <= minPrice ||
+      !Number.isInteger(count) ||
+      count < SCALE_ORDER_COUNT.min ||
+      count > SCALE_ORDER_COUNT.max ||
+      !Number.isFinite(skew) ||
+      skew <= 0 ||
+      !exposure.isFinite() ||
+      !exposure.gt(0)
+    )
+      return undefined;
+    return {
+      symbol: orderForm.asset,
+      minPrice,
+      maxPrice,
+      count,
+      providerId: scaleProviderId,
+      sizing:
+        baseSize === undefined
+          ? { usdAmount: effectiveUsdAmount, skew }
+          : { size: baseSize, skew },
+    };
+  }, [
+    effectiveUsdAmount,
+    exactAssetAmount,
+    exactFullCloseSize,
+    isScaleOrder,
+    isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
+    orderForm.asset,
+    scaleEndPrice,
+    scaleProviderId,
+    scaleSizeSkew,
+    scaleStartPrice,
+    scaleTotalOrders,
+  ]);
+  const scalePreview = usePerpsScalePriceLadder(scalePreviewParams);
 
   const scaleLadderResult = useMemo<ScaleLadderResult>(() => {
     const minPrice = Number(scaleStartPrice);
@@ -1110,6 +1175,9 @@ export const usePerpsProOrderForm = ({
     const orderCount = Number(scaleTotalOrders);
     const skew = Number(scaleSizeSkew);
     const targetOrderValue = new BigNumber(effectiveUsdAmount);
+    const targetExposure = new BigNumber(
+      exactFullCloseSize ?? exactAssetAmount ?? effectiveUsdAmount,
+    );
 
     if (
       !Number.isFinite(minPrice) ||
@@ -1132,13 +1200,29 @@ export const usePerpsProOrderForm = ({
     if (!Number.isFinite(skew) || skew <= 0) {
       return { success: false, code: 'invalid_skew' };
     }
-    if (
-      exactFullCloseSize === undefined &&
-      (!targetOrderValue.isFinite() || targetOrderValue.lte(0))
-    ) {
+    if (!targetExposure.isFinite() || targetExposure.lte(0)) {
       return { success: false, code: 'size_required' };
     }
+    if (
+      scalePreviewParams &&
+      scalePreview.result?.status === 'ready' &&
+      scalePreview.result.sizingPreview
+    ) {
+      return (
+        getVenueScalePreview(scalePreviewParams, scalePreview.result) ?? {
+          success: false,
+          code: 'calculation_error',
+        }
+      );
+    }
     if (scaleProviderId !== PROVIDER_CONFIG.DefaultProvider) {
+      if (scalePreview.error) {
+        return {
+          success: false,
+          code: 'calculation_error',
+          message: translatePerpsError(scalePreview.error.message),
+        };
+      }
       return { success: false, code: 'calculation_error' };
     }
 
@@ -1332,6 +1416,7 @@ export const usePerpsProOrderForm = ({
     }
   }, [
     effectiveUsdAmount,
+    exactAssetAmount,
     exactFullCloseSize,
     scaleMinimumOrderAmount,
     scaleEndPrice,
@@ -1339,6 +1424,9 @@ export const usePerpsProOrderForm = ({
     scaleStartPrice,
     scaleTotalOrders,
     scaleProviderId,
+    scalePreviewParams,
+    scalePreview.result,
+    scalePreview.error,
     szDecimals,
   ]);
 
@@ -1407,7 +1495,10 @@ export const usePerpsProOrderForm = ({
     getTriggerExecution(orderForm.type) === 'market';
   const hidesSlippage =
     isScaleOrder || isLimitExecutionOrderType(orderForm.type) || isTwapOrder;
-  const hasValidAmount = Number.parseFloat(effectiveUsdAmount) > 0;
+  const hasValidAmount = isScaleOrder
+    ? scaleLadderResult.success &&
+      new BigNumber(scaleLadderResult.totalSize).gt(0)
+    : Number.parseFloat(effectiveUsdAmount) > 0;
 
   const orderUsdAmount = useMemo(
     () => Number.parseFloat(effectiveUsdAmount) || 0,
@@ -1526,23 +1617,40 @@ export const usePerpsProOrderForm = ({
           providerId: chaseProviderId,
           network,
         })
-      : isTriggerOrderType(orderForm.type)
+      : isScaleOrder && scaleProviderId === 'lighter'
         ? JSON.stringify({
             type: orderForm.type,
             asset: orderForm.asset,
             direction: orderForm.direction,
-            amount: orderForm.amount,
+            sizeIntent: scalePreviewParams?.sizing,
+            amount: effectiveUsdAmount,
+            scaleStartPrice,
+            scaleEndPrice,
+            scaleTotalOrders,
+            scaleSizeSkew,
             leverage: orderForm.leverage,
             reduceOnly,
-            triggerPrice: normalizedTriggerPrice,
-            limitPrice: normalizedLimitPrice,
-            maxSlippageBps: resolvedMaxSlippageBps,
             selectedAddress: normalizedSelectedAddress,
-            providerId: orderProviderId,
-            marketProviderId: market.providerId,
+            providerId: scaleProviderId,
             network,
           })
-        : orderForm.type;
+        : isTriggerOrderType(orderForm.type)
+          ? JSON.stringify({
+              type: orderForm.type,
+              asset: orderForm.asset,
+              direction: orderForm.direction,
+              amount: orderForm.amount,
+              leverage: orderForm.leverage,
+              reduceOnly,
+              triggerPrice: normalizedTriggerPrice,
+              limitPrice: normalizedLimitPrice,
+              maxSlippageBps: resolvedMaxSlippageBps,
+              selectedAddress: normalizedSelectedAddress,
+              providerId: orderProviderId,
+              marketProviderId: market.providerId,
+              network,
+            })
+          : orderForm.type;
   const currentComplianceState =
     orderForm.type === 'chase'
       ? JSON.stringify({
@@ -1772,24 +1880,28 @@ export const usePerpsProOrderForm = ({
   useLayoutEffect(() => {
     scalePlacementSnapshotRef.current = currentScalePlacementSnapshot;
   }, [currentScalePlacementSnapshot]);
-  const validateLatestScalePlacement = useCallback(async () => {
-    for (
-      let attempt = 0;
-      attempt < SCALE_VALIDATION_MAX_ATTEMPTS;
-      attempt += 1
-    ) {
-      const snapshot = scalePlacementSnapshotRef.current;
-      const validationResult = await snapshot.validateNow();
-      const latestSnapshot = scalePlacementSnapshotRef.current;
-      if (
-        snapshot.scaleValidationInputKey ===
-        latestSnapshot.scaleValidationInputKey
+  const validateLatestScalePlacement = useCallback(
+    async (isCurrent: () => boolean) => {
+      for (
+        let attempt = 0;
+        attempt < SCALE_VALIDATION_MAX_ATTEMPTS;
+        attempt += 1
       ) {
-        return { snapshot: latestSnapshot, validationResult };
+        const snapshot = scalePlacementSnapshotRef.current;
+        const validationResult = await snapshot.validateNow();
+        if (!isCurrent()) return undefined;
+        const latestSnapshot = scalePlacementSnapshotRef.current;
+        if (
+          snapshot.scaleValidationInputKey ===
+          latestSnapshot.scaleValidationInputKey
+        ) {
+          return { snapshot: latestSnapshot, validationResult };
+        }
       }
-    }
-    return undefined;
-  }, []);
+      return undefined;
+    },
+    [],
+  );
   const chaseValidationInputKey = JSON.stringify({
     asset: orderForm.asset,
     direction: orderForm.direction,
@@ -1894,10 +2006,12 @@ export const usePerpsProOrderForm = ({
     return {
       id: 'scale',
       variant: 'banner',
-      message: getScaleValidationMessage(
-        scaleLadderResult.code,
-        scaleMinimumOrderAmount,
-      ),
+      message:
+        scaleLadderResult.message ??
+        getScaleValidationMessage(
+          scaleLadderResult.code,
+          scaleMinimumOrderAmount,
+        ),
     };
   }, [
     hasScaleValidationInteraction,
@@ -1959,6 +2073,9 @@ export const usePerpsProOrderForm = ({
       : PerpsToastOptions.orderManagement.market;
   const chaseConfirmationPositionSizeRef = useRef(submissionPositionSize);
   const isChaseExecutionRef = useRef(false);
+  const scaleExecutionIsCurrentRef = useRef<(() => boolean) | undefined>(
+    undefined,
+  );
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: (_position, result) => {
@@ -1989,6 +2106,8 @@ export const usePerpsProOrderForm = ({
       showToast(toast);
     },
     onError: (error) => {
+      if (isScaleOrder && scaleExecutionIsCurrentRef.current?.() === false)
+        return;
       if (
         isChaseExecutionRef.current &&
         error === PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED
@@ -2088,7 +2207,11 @@ export const usePerpsProOrderForm = ({
     const isCurrentLifecycle = () =>
       lifecycleGenerationRef.current === expectedLifecycleGeneration;
     const isCurrentSubmission = () =>
-      isCurrentLifecycle() && submissionStateRef.current === expectedState;
+      isCurrentLifecycle() &&
+      submissionStateRef.current === expectedState &&
+      (!isScaleOrder ||
+        scaleProviderId !== 'lighter' ||
+        scalePreview.isCurrent());
     if (!isCurrentSubmission()) {
       if (isCurrentLifecycle() && isChaseSubmission) {
         reportChaseSubmissionChanged();
@@ -2311,9 +2434,9 @@ export const usePerpsProOrderForm = ({
       }
 
       const initialScaleValidation = isScaleOrder
-        ? await validateLatestScalePlacement()
+        ? await validateLatestScalePlacement(isCurrentSubmission)
         : undefined;
-      if (!isCurrentLifecycle()) return;
+      if (isScaleOrder ? !isCurrentSubmission() : !isCurrentLifecycle()) return;
       if (isScaleOrder && !initialScaleValidation) {
         reportValidationFailure(strings('perps.order.validation.error'));
         return;
@@ -2369,7 +2492,7 @@ export const usePerpsProOrderForm = ({
         const currentTwapSupport = expectedProviderId
           ? await checkCurrentTwapSupport()
           : false;
-        if (!isCurrentLifecycle()) return;
+        if (!isCurrentSubmission()) return;
         if (
           !expectedProviderId ||
           !currentTwapSupport ||
@@ -2437,7 +2560,7 @@ export const usePerpsProOrderForm = ({
           scaleProviderIdRef.current === expectedProviderId
             ? await checkCurrentScaleSupport()
             : false;
-        if (!isCurrentLifecycle()) return;
+        if (!isCurrentSubmission()) return;
         if (
           !expectedProviderId ||
           !currentScaleSupport ||
@@ -2456,8 +2579,28 @@ export const usePerpsProOrderForm = ({
           return;
         }
 
-        const latestScaleValidation = await validateLatestScalePlacement();
-        if (!isCurrentLifecycle()) return;
+        if (expectedProviderId === 'lighter') {
+          const previewRequest = scalePreviewParams;
+          const displayedLadder =
+            scalePlacementSnapshotRef.current.scaleLadderResult;
+          const previewResult = await scalePreview.refresh();
+          if (!isCurrentSubmission()) return;
+          const freshLadder =
+            previewRequest &&
+            getVenueScalePreview(previewRequest, previewResult);
+          if (
+            !freshLadder ||
+            !displayedLadder.success ||
+            JSON.stringify(freshLadder.rungs) !==
+              JSON.stringify(displayedLadder.rungs)
+          ) {
+            reportValidationFailure(strings('perps.order.validation.error'));
+            return;
+          }
+        }
+        const latestScaleValidation =
+          await validateLatestScalePlacement(isCurrentSubmission);
+        if (!isCurrentSubmission()) return;
         if (!latestScaleValidation) {
           reportValidationFailure(strings('perps.order.validation.error'));
           return;
@@ -2526,6 +2669,7 @@ export const usePerpsProOrderForm = ({
             asset: latestScale.orderForm.asset,
             isBuy: latestScale.orderForm.direction === 'long',
             size: latestScale.submissionPositionSize,
+            usdAmount: latestScale.scaleLadderResult.sizingIntent?.usdAmount,
             orderType: 'scale',
             effectivePrice: latestScale.effectivePrice,
             leverage: latestScale.orderForm.leverage,
@@ -2568,36 +2712,58 @@ export const usePerpsProOrderForm = ({
         });
 
         isChaseExecutionRef.current = false;
+        scaleExecutionIsCurrentRef.current = isCurrentSubmission;
         const orderResult = await executeOrder(scaleOrderParams);
-        if (!orderResult?.success) {
+        if (!isCurrentSubmission()) return;
+        if (expectedProviderId === 'lighter')
+          PerpsCacheInvalidator.invalidate('accountState');
+        if (
+          !orderResult ||
+          (!orderResult.success && expectedProviderId !== 'lighter')
+        )
           return;
-        }
 
-        // Empty child arrays on a successful legacy result do not prove that
-        // zero rungs were accepted. Use non-empty explicit counts, otherwise
-        // fall back to the requested ladder rather than rendering "0 of N".
-        const acceptedOrderCount =
-          orderResult.acceptedChildren?.length ||
-          orderResult.childOrderIds?.length ||
-          latestScale.scaleLadderResult.orderCount;
-        // Before `acceptedSize` existed, patched v13 providers returned the
-        // accepted rung total in `submittedSize`. Keep that fallback until all
-        // providers expose the new field, then fall back to the requested size.
-        const acceptedSize =
-          orderResult.acceptedSize ??
-          orderResult.submittedSize ??
-          latestScale.submissionPositionSize;
-        const isPartialPlacement =
-          acceptedOrderCount < latestScale.scaleLadderResult.orderCount;
+        const lighterReceipt =
+          expectedProviderId === 'lighter'
+            ? getLighterScaleReceipt(
+                orderResult,
+                latestScale.scaleLadderResult.orderCount,
+              )
+            : undefined;
+        const acceptedOrderCount = lighterReceipt
+          ? (lighterReceipt.acceptedCount ??
+            PERPS_CONSTANTS.FallbackDataDisplay)
+          : orderResult.acceptedChildren?.length ||
+            orderResult.childOrderIds?.length ||
+            latestScale.scaleLadderResult.orderCount;
+        const acceptedSize = lighterReceipt
+          ? (lighterReceipt.acceptedSize ?? PERPS_CONSTANTS.FallbackDataDisplay)
+          : (orderResult.acceptedSize ??
+            orderResult.submittedSize ??
+            latestScale.submissionPositionSize);
+        const isUncertainPlacement = lighterReceipt?.isUncertain ?? false;
+        const isRejectedPlacement = lighterReceipt?.isRejected ?? false;
+        const isPartialPlacement = lighterReceipt
+          ? lighterReceipt.isPartial
+          : Number(acceptedOrderCount) <
+            latestScale.scaleLadderResult.orderCount;
         const scalePlacementTitle = strings(
-          isPartialPlacement
-            ? 'perps.pro_order_form.scale.orders_partially_placed'
-            : 'perps.pro_order_form.scale.orders_placed',
+          isUncertainPlacement
+            ? 'perps.pro_order_form.scale.orders_uncertain'
+            : isRejectedPlacement
+              ? 'perps.pro_order_form.scale.orders_rejected'
+              : isPartialPlacement
+                ? 'perps.pro_order_form.scale.orders_partially_placed'
+                : 'perps.pro_order_form.scale.orders_placed',
         );
         const scalePlacementSummary = strings(
-          isPartialPlacement
-            ? 'perps.pro_order_form.scale.partial_placement_summary'
-            : 'perps.pro_order_form.scale.placement_summary',
+          isUncertainPlacement
+            ? 'perps.pro_order_form.scale.uncertain_placement_summary'
+            : isRejectedPlacement
+              ? 'perps.pro_order_form.scale.rejected_placement_summary'
+              : isPartialPlacement
+                ? 'perps.pro_order_form.scale.partial_placement_summary'
+                : 'perps.pro_order_form.scale.placement_summary',
           {
             submittedCount: acceptedOrderCount,
             totalCount: latestScale.scaleLadderResult.orderCount,
@@ -2606,16 +2772,21 @@ export const usePerpsProOrderForm = ({
           },
         );
         showToast({
-          ...PerpsToastOptions.orderManagement.limit.confirmed(
-            latestScale.orderForm.direction,
-            acceptedSize,
-            latestScale.orderForm.asset,
-          ),
+          ...(lighterReceipt && !lighterReceipt.isComplete
+            ? PerpsToastOptions.orderManagement.limit.creationFailed(
+                orderResult.error,
+              )
+            : PerpsToastOptions.orderManagement.limit.confirmed(
+                latestScale.orderForm.direction,
+                acceptedSize,
+                latestScale.orderForm.asset,
+              )),
           labelOptions: getPerpsToastLabels(
             scalePlacementTitle,
             scalePlacementSummary,
           ),
         });
+        if (lighterReceipt && !lighterReceipt.isComplete) return;
         Engine.context.PerpsController?.clearPendingTradeConfiguration(
           latestScale.orderForm.asset,
         );
@@ -3613,7 +3784,7 @@ export const usePerpsProOrderForm = ({
     isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
-    (isScaleOrder && !scaleLadderResult.success) ||
+    (isScaleOrder && (!scaleLadderResult.success || scalePreview.isLoading)) ||
     (isScaleOrder && !isScaleOrdersEnabled) ||
     (isScaleOrder && isScaleOrderSupportPending) ||
     (!isTwapEnabled && isTwapOrder) ||
@@ -3895,7 +4066,8 @@ export const usePerpsProOrderForm = ({
       if (locksScalePlacement) {
         isScalePlacementLockedRef.current = false;
         scalePlacementProviderIdRef.current = undefined;
-        setIsScalePlacementPending(false);
+        if (lifecycleGenerationRef.current === expectedLifecycleGeneration)
+          setIsScalePlacementPending(false);
       }
       if (locksChasePreflight) {
         isChasePreflightPendingRef.current = false;

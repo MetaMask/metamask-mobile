@@ -49,6 +49,16 @@ import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
 import PerpsProMarketView from '../../../app/components/UI/Perps/Views/PerpsProMarketView/PerpsProMarketView';
+import {
+  Toast,
+  Text as DesignSystemText,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
+import type {
+  ToastRef,
+  ToastOptions,
+} from '../../../app/component-library/components/Toast/Toast.types';
 import { usePerpsChaseOrders } from '../../../app/components/UI/Perps/hooks/usePerpsChaseOrders';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
@@ -144,16 +154,42 @@ const PerpsChaseDiscoveryConsumer = () => {
   return null;
 };
 
+const PerpsTestToastHost = ({ children }: { children: React.ReactNode }) => {
+  const [options, setOptions] = React.useState<ToastOptions | null>(null);
+  const api = React.useMemo<ToastRef>(
+    () => ({ showToast: setOptions, closeToast: () => setOptions(null) }),
+    [],
+  );
+  const toastRef = React.useRef<ToastRef | null>(api);
+  const value = React.useMemo(() => ({ toastRef }), []);
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+      {options && (
+        <Toast onClose={() => setOptions(null)}>
+          {options.labelOptions.map((option, index) => (
+            <DesignSystemText key={index} variant={TextVariant.BodyMd}>
+              {option.label}
+            </DesignSystemText>
+          ))}
+        </Toast>
+      )}
+    </ToastContext.Provider>
+  );
+};
+
 const PerpsTestProviders = ({
   children,
   connectionValue = testConnectionValue,
   queryClient,
   streamManager,
+  includeToasts = false,
 }: {
   children: React.ReactNode;
   connectionValue?: PerpsConnectionContextValue;
   queryClient: QueryClient;
   streamManager: PerpsStreamManager;
+  includeToasts?: boolean;
 }) => (
   <QueryClientProvider client={queryClient}>
     <HardwareWalletContext.Provider value={testHardwareWalletValue}>
@@ -161,7 +197,11 @@ const PerpsTestProviders = ({
         <PerpsConnectionContext.Provider value={connectionValue}>
           <PerpsStreamProvider testStreamManager={streamManager}>
             <PerpsChaseDiscoveryConsumer />
-            {children}
+            {includeToasts ? (
+              <PerpsTestToastHost>{children}</PerpsTestToastHost>
+            ) : (
+              children
+            )}
           </PerpsStreamProvider>
         </PerpsConnectionContext.Provider>
       </AccessRestrictedProvider>
@@ -483,6 +523,8 @@ export interface PerpsExtraRoute {
 }
 
 interface RenderPerpsViewOptions {
+  /** Mount the real toast component for rendered receipt and error assertions. */
+  includeToasts?: boolean;
   overrides?: DeepPartial<RootState>;
   initialParams?: Record<string, unknown>;
   /** Optional stream overrides (e.g. positions for PerpsMarketDetailsView geo-restriction test). */
@@ -518,6 +560,7 @@ export function renderPerpsView(
     extraRoutes,
     mode,
     connectionValue,
+    includeToasts,
   } = options;
   const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
   if (overrides) {
@@ -534,6 +577,7 @@ export function renderPerpsView(
       queryClient={queryClient}
       streamManager={testStreamManager}
       connectionValue={connectionValue}
+      includeToasts={includeToasts}
     >
       <Component {...props} />
     </PerpsTestProviders>
