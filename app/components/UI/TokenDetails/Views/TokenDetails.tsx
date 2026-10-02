@@ -25,7 +25,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  StyleSheet,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -62,12 +68,16 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { useIsMemeToken } from '../hooks/useIsMemeToken';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
@@ -338,6 +348,13 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
+  const isMemeTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  const { isMeme: isMemeToken } = useIsMemeToken({
+    assetId: caip19AssetId,
+    enabled: isMemeTdpEnabled,
+  });
+  const shouldRouteToMemeTdp = isMemeTdpEnabled && isMemeToken;
+
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
   );
@@ -362,6 +379,16 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  const handleMultichainScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      onScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [onScrollOffset],
+  );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
 
@@ -652,6 +679,10 @@ const TokenDetails: React.FC<{
     </>
   );
 
+  if (shouldRouteToMemeTdp) {
+    return <TokenDetailsV1 token={token} />;
+  }
+
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -668,6 +699,7 @@ const TokenDetails: React.FC<{
             : undefined
         }
         onCopyAddress={handleCopyAddress}
+        description={headerDescription}
       />
 
       {txIsNonEvmAsset ? (
@@ -681,10 +713,12 @@ const TokenDetails: React.FC<{
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
+          onScroll={handleMultichainScroll}
         />
       ) : (
         <Transactions
           header={renderHeader()}
+          onScrollThroughContent={onScrollOffset}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}
