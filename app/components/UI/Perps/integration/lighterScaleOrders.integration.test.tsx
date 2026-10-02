@@ -13,6 +13,7 @@ import { buildLighterRecoveryHarness } from '../../../../../tests/integration/ha
 import { usePerpsScalePriceLadder } from '../hooks/usePerpsScalePriceLadder';
 import { usePerpsScaleOrderGroups } from '../hooks/usePerpsScaleOrderGroups';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { createMobileClientConfig } from '../adapters/mobileInfrastructure';
 import {
   readPerpsUiObservations,
   perpsUiInputDigest,
@@ -378,6 +379,141 @@ describe('Mobile Scale consumers through the installed Lighter controller', () =
         ),
       ).toHaveLength(signedBefore);
       expect(perps.submissions).toHaveLength(1);
+    });
+  });
+});
+
+describe('public bounded testnet Chase configuration', () => {
+  it.each([
+    { probe: false, isTestnet: true, available: false },
+    { probe: true, isTestnet: true, available: true },
+    { probe: true, isTestnet: false, available: false },
+  ])(
+    'declares Chase=$available for probe=$probe and testnet=$isTestnet',
+    async ({ probe, isTestnet, available }) => {
+      const savedProvider = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+      const savedProbe = process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE;
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+      process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = String(probe);
+      const clientConfig = createMobileClientConfig();
+      const perps = buildLighterRecoveryHarness({
+        mode: 'isolated-write',
+        clientConfig,
+        isTestnet,
+      });
+      try {
+        await perps.controller.init();
+
+        const capabilities = await perps.controller.getOrderCapabilities({
+          symbol: 'BTC',
+          providerId: 'lighter',
+        });
+
+        expect(capabilities.status).toBe('ready');
+        if (capabilities.status === 'ready')
+          expect(capabilities.supportedStrategies.includes('chase')).toBe(
+            available,
+          );
+        expect(perps.submissions).toEqual([]);
+        expect(
+          perps.mocks.execute.mock.calls.filter(
+            ([call]) => call.function !== '_createAuthToken',
+          ),
+        ).toEqual([]);
+      } finally {
+        await perps.teardown();
+        if (savedProvider === undefined)
+          delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+        else process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = savedProvider;
+        if (savedProbe === undefined)
+          delete process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE;
+        else process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = savedProbe;
+      }
+    },
+  );
+});
+
+it('submits the production Chase USD builder request through the real Mobile trading hook and testnet controller', async () => {
+  const perps = buildLighterRecoveryHarness({
+    mode: 'isolated-write',
+    clientConfig: {
+      providerCredentials: { lighter: { chaseTestnetProbe: true } },
+    },
+  });
+  Object.assign(perps.venue.positions[0], {
+    position: '0',
+    positionValue: '0',
+    initialMarginFraction: '100',
+    openOrderCount: 0,
+  });
+  perps.responses.set('/api/v1/orderBookOrders', {
+    code: 200,
+    totalBids: 1,
+    totalAsks: 1,
+    bids: [
+      {
+        orderId: '101',
+        orderIndex: 101,
+        ownerAccountIndex: 99,
+        initialBaseAmount: '1',
+        remainingBaseAmount: '1',
+        price: '99999.9',
+        orderExpiry: 0,
+        transactionTime: 1,
+      },
+    ],
+    asks: [
+      {
+        orderId: '102',
+        orderIndex: 102,
+        ownerAccountIndex: 99,
+        initialBaseAmount: '1',
+        remainingBaseAmount: '1',
+        price: '100000.1',
+        orderExpiry: 0,
+        transactionTime: 1,
+      },
+    ],
+  });
+  perps.responses.set('/api/v1/trades', { code: 200, trades: [] });
+  const request = buildPerpsOrderParams({
+    asset: 'BTC',
+    providerId: 'lighter',
+    isBuy: true,
+    size: '0.00020',
+    orderType: 'chase',
+    effectivePrice: 100000,
+    leverage: 1,
+    usdAmount: '20',
+    maxSlippageBps: 500,
+    reduceOnly: false,
+    chaseMaxDistanceBps: 50,
+    trackingData: { marginUsed: 20, marketPrice: 100000, totalFee: 0 },
+  });
+
+  await withScale(perps, async (mounted) => {
+    let result:
+      | Awaited<ReturnType<typeof perps.controller.placeOrder>>
+      | undefined;
+    await act(async () => {
+      result = await mounted.result.current.trading.placeOrder(request);
+    });
+
+    expect(result?.error).toBeUndefined();
+    expect(result).toMatchObject({ success: true, submittedSize: '0.0002' });
+    expect(result?.orderId).toContain('lighter-chase:');
+    expect(perps.submissions).toHaveLength(1);
+    expect(perps.venue.active).toHaveLength(1);
+    expect(perps.venue.active[0]).toMatchObject({
+      initialBaseAmount: '0.0002',
+      type: 'limit',
+      price: '100000',
+      reduceOnly: 0,
+    });
+    expect(request).toMatchObject({
+      usdAmount: '20',
+      currentPrice: 100000,
+      priceAtCalculation: 100000,
     });
   });
 });

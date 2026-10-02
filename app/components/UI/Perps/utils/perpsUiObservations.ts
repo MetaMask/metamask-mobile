@@ -170,6 +170,21 @@ function publicResult(value: OrderResult): PerpsUiOrderResult {
     );
   if (value.partialState)
     result.partialState = primitives(value.partialState, ['leverageUpdated']);
+  if (value.positionProtection) {
+    result.positionProtection = {
+      ...primitives(value.positionProtection, ['linkage']),
+      legs: value.positionProtection.legs.map((leg) =>
+        primitives(leg, [
+          'role',
+          'requestedSize',
+          'normalizedSize',
+          'clientOrderId',
+          'orderId',
+          'status',
+        ]),
+      ),
+    } as NonNullable<OrderResult['positionProtection']>;
+  }
   return result;
 }
 function publicPreview(

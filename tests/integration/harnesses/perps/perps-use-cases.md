@@ -150,3 +150,10 @@ Where a use case fits multiple rules, pick the one with the **cheapest sufficien
 - **Snapshot tests** — out of scope; team killed them previously for reasons that still apply.
 - **Hook-level integration as a default** — Shape B exists, but it is not the default for every flow. Use it when hook wiring or the `TradingService` -> provider seam is part of the risk; use Shape A when a direct provider/service call is sufficient.
 - **Visual regression / Storybook** — orthogonal; if it gets adopted, it owns "did the rendered pixels change?" and CV continues to own "did the structure render correctly?"
+
+## Bounded testnet Lighter Chase
+
+| Use case                                     | Primary layer | Coverage                                                                                                                                                                                |
+| -------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public probe config and actual network guard | Integration   | Actual Mobile config to installed Core provider; absent probe and mainnet leave Chase unadvertised.                                                                                     |
+| Pro USD request accepted at 1x within 20 USD | Integration   | Production builder and real trading hook/controller submit one synthetic resting child. Existing component views cover Pro/Chase rollout gates; native and venue proof remain separate. |

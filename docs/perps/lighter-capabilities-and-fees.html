@@ -399,16 +399,17 @@
       </p>
       <p>
         The assembled local candidate uses Core
-        <code>f0ad5c63746fd255108f9e2534dbbee32b7cb911</code> through a
+        <code>13d3226905f3eb93a0b3adaf06cf8790536176c0</code> through a
         reproducible 19.0.0 package patch. Its 367 package outputs match the
-        frozen Core inventory. This includes recovery, equal-size partial
-        protection, attached probes, margin handling, native edit and Scale
-        preview ownership. Mobile integrated04 builds on
-        <code>43b8253cfdabec794b1c565f5ad1941609897006</code> with a complete
+        frozen Core inventory. This includes recovery, explicit independent
+        partial protection, attached probes, margin handling, native edit, Scale
+        preview ownership and bounded testnet Chase configuration. Mobile
+        integrated05 builds on frozen integrated04
+        <code>8089aa1dda74088e9a52126ce24922cc68ee4d60</code> with a complete
         unsigned Scale expectation and an atomically scoped Chase UI press.
         These are local source contracts. Independent review, runtime adoption,
         native signing and venue proof on the final combined head remain
-        separate. <a href="#current-source-state">[C14]</a>
+        separate. <a href="#current-source-state">[C15]</a>
       </p>
       <p class="note">
         Reinstall validation is incomplete. A fixture-name collision interrupted
@@ -451,17 +452,23 @@
         positions. Mainnet examples are operator-executed.
       </p>
       <p>
-        Recipe05 reuses the existing Scale UI journey and correlates one
+        Recipe06 reuses the existing Scale UI journey and correlates one
         journaled Submit press with its exact unsigned request and controller
         result. The pre-press expectation uses the same production builder as
         submission. Intent fields and current quote fields remain in the digest;
         a changed quote is a mismatch, with no resubmit. Chase cleanup uses
         complete public handle ownership and an exact ancestor-scoped existing
-        button, then independent venue reconciliation. The frozen Core still
-        does not advertise Chase placement and rejects the Pro form's USD sizing
-        field in its default-off testnet probe. TWAP has no complete public
-        lifecycle. Counts, press success and row disappearance confer no
-        ownership. Host checks and plans do not prove native or venue success.
+        button, then independent venue reconciliation. The frozen Core
+        advertises Chase only for an explicitly configured testnet provider with
+        its signer. Mobile passes the public probe config through
+        <code>MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE=true</code>; it remains
+        default-off, with actual-network guards and the existing version-gated
+        Pro and Chase UI rollout gates. The Pro USD request must agree with the
+        current quote and downward-grid size within 20 USD and actual 1x. Recipe
+        UI Chase still requires the complete approved pre-press request. TWAP
+        has no complete public lifecycle. Counts, press success and row
+        disappearance confer no ownership. Host checks and plans do not prove
+        native or venue success.
       </p>
       <div class="table-wrap">
         <table>
@@ -623,19 +630,31 @@
             <tr>
               <th scope="row">Partial-position TP/SL</th>
               <td>
-                Independent fixed-size legs, including unequal TP/SL quantities.
+                Controller API supports independent fixed-size legs, including
+                unequal TP/SL quantities. The shared Mobile TP/SL form submits
+                full-position protection and has no partial-sizing controls.
               </td>
               <td>
-                The assembled Core supports one fixed-size leg or an equal-size
-                OCO pair with cancellation before replacement and explicit
-                current-position recovery intent. Unequal and mixed partial/full
-                coverage remain unsupported.
+                The controller API supports a fixed-size single leg, an
+                equal-size native OCO pair, or an explicitly independent pair
+                with unequal or mixed partial/full quantities. Omitted
+                quantities remain omitted in the per-leg receipt and use the
+                captured position snapshot. Independent legs have no sibling
+                cancellation guarantee. Replacement cancels prior exact
+                protection before creating new legs. Unknown or failed legs
+                retain their receipt and require explicit current-position
+                recovery. The shared Mobile form keeps the same full-position
+                controls as Hyperliquid.
               </td>
               <td>
-                Offline signing and mocked-I/O regressions pass. Current Mobile
-                integration and actual venue receipts/cleanup remain pending.
-                Snapshot quantities do not resize automatically with positions.
-                <a href="#current-source-state">[C7]</a>
+                Offline signing and mocked-I/O regressions pass. Recipe06
+                carries exact partial quantities and linkage through the
+                existing controller composition, then checks each normalized leg
+                against its receipt and independent resting intent. This is API
+                validation. Partial sizing UI, native signing and actual venue
+                receipts/cleanup are separate. Snapshot quantities do not resize
+                with positions.
+                <a href="#current-source-state">[C15]</a>
               </td>
             </tr>
             <tr>
@@ -699,7 +718,7 @@
                 retirement and exact result correlation. Final independent
                 review, actual UI submission, venue receipts and exact group
                 cleanup remain pending.
-                <a href="#current-source-state">[C14]</a>
+                <a href="#current-source-state">[C15]</a>
               </td>
             </tr>
             <tr>
@@ -709,10 +728,12 @@
               </td>
               <td>
                 Default-off testnet source has managed repricing, durable
-                cancellation and complete public handle-bound child history.
-                Public capabilities do not advertise Lighter Chase placement.
-                Ordinary native resting-limit edit is a separate implemented
-                path.
+                cancellation and complete public handle-bound child history. The
+                public typed probe config reaches the actual testnet provider
+                and advertises Chase only with a signer. Pro USD sizing is
+                supported within the existing 20 USD, actual 1x and opening-only
+                guards. Mainnet remains unavailable. Ordinary native
+                resting-limit edit is a separate implemented path.
               </td>
               <td>
                 Public history includes superseded and unresolved children plus
@@ -720,7 +741,7 @@
                 history, not fresh venue proof. Recipe cleanup requires every
                 independent exact child and scopes the existing UI button to its
                 stable handle. Final native/venue proof remains pending.
-                <a href="#current-source-state">[C14]</a>
+                <a href="#current-source-state">[C15]</a>
               </td>
             </tr>
             <tr>
@@ -1161,6 +1182,19 @@
           patch; its final source head and canonical check evidence are recorded
           in its freeze handoff. This reference establishes source provenance
           only.
+        </li>
+        <li>
+          C15 · Frozen successor Core
+          <code>13d3226905f3eb93a0b3adaf06cf8790536176c0</code>, closure
+          <code
+            >e07ddd7b7908f324e38384331f80cfb7c2bb6aaa9ca757a2c241aea1f853c5f9</code
+          >. Mobile integrated05 and Recipe06 consume its exact public
+          contracts. Independent quantities, per-leg outcomes and public bounded
+          testnet Chase configuration supersede the C14 source limits. The
+          shared Mobile TP/SL screen retains full-position controls. Exact
+          successor source heads and host-check evidence are in their freeze
+          handoffs. Earlier runtime evidence retains its original source and
+          runtime identities.
         </li>
       </ul>
       <p id="mobile-sources">
