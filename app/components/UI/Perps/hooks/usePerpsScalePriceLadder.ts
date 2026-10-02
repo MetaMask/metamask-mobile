@@ -13,6 +13,7 @@ import {
 } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { newPerpsUiObservationId } from '../utils/perpsUiObservations';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { ensureError } from '../../../../util/errorUtils';
 import {
@@ -23,6 +24,7 @@ import {
 
 interface ScalePreviewState {
   request?: object;
+  sequence?: number;
   result: PerpsScalePriceLadder | null;
   error: Error | null;
   isLoading: boolean;
@@ -45,7 +47,15 @@ export const usePerpsScalePriceLadder = (
   const request = useMemo(
     () =>
       params && initialization === InitializationState.Initialized
-        ? { params, account, network, provider, controller, sequence: 0 }
+        ? {
+            params,
+            account,
+            network,
+            provider,
+            controller,
+            sequence: 0,
+            generation: newPerpsUiObservationId(),
+          }
         : undefined,
     [account, initialization, network, params, provider, controller],
   );
@@ -68,6 +78,7 @@ export const usePerpsScalePriceLadder = (
       const sequence = ++request.sequence;
       setState((previous) => ({
         request,
+        sequence,
         result: previous.request === request ? previous.result : null,
         error: null,
         isLoading: true,
@@ -88,12 +99,13 @@ export const usePerpsScalePriceLadder = (
             'Scale preview provider differs from requested route',
           );
         }
-        setState({ request, result, error: null, isLoading: false });
+        setState({ request, sequence, result, error: null, isLoading: false });
         return result;
       } catch (error) {
         if (!isCurrent()) return null;
         setState({
           request,
+          sequence,
           result: null,
           error: ensureError(error, 'usePerpsScalePriceLadder'),
           isLoading: false,
@@ -112,6 +124,8 @@ export const usePerpsScalePriceLadder = (
     [request],
   );
   return {
+    observationGeneration: request?.generation ?? null,
+    observationSequence: isCurrent ? (state.sequence ?? null) : null,
     result: isCurrent ? state.result : null,
     error: isCurrent ? state.error : null,
     isLoading: request !== undefined && (!isCurrent || state.isLoading),

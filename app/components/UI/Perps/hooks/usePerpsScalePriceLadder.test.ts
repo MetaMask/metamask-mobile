@@ -44,12 +44,14 @@ const heldResult = () => {
 };
 
 describe('usePerpsScalePriceLadder', () => {
+  const savedDev = __DEV__;
   let account: string;
   let network: string;
   let provider: string;
   let initialization: InitializationState;
 
   beforeEach(() => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
     jest.clearAllMocks();
     account = '0x1111111111111111111111111111111111111111';
     network = 'testnet';
@@ -63,6 +65,9 @@ describe('usePerpsScalePriceLadder', () => {
       return undefined;
     });
     mockGetLadder.mockResolvedValue(ready);
+  });
+  afterEach(() => {
+    (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
   });
 
   it('returns the provider preview after the current request settles', async () => {
@@ -115,6 +120,7 @@ describe('usePerpsScalePriceLadder', () => {
       );
       const original = { account, network, provider, initialization };
       const isOriginalOwnerCurrent = result.current.isCurrent;
+      const originalGeneration = result.current.observationGeneration;
 
       if (changed === 'account')
         account = '0x2222222222222222222222222222222222222222';
@@ -135,6 +141,8 @@ describe('usePerpsScalePriceLadder', () => {
       expect(result.current.isLoading).toBe(false);
       expect(isOriginalOwnerCurrent()).toBe(false);
       expect(result.current.isCurrent()).toBe(true);
+      expect(result.current.observationGeneration).not.toBe(originalGeneration);
+      expect(result.current.observationSequence).toBe(1);
     },
   );
 

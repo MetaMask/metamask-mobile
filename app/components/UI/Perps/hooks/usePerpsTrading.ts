@@ -1,6 +1,11 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { getSelectedEvmAccountFromMessenger } from '@metamask/perps-controller/utils/accountUtils';
 import Engine from '../../../../core/Engine';
+import {
+  beginPerpsUiSubmission,
+  settlePerpsUiSubmission,
+} from '../utils/perpsUiObservations';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
@@ -78,7 +83,34 @@ export function usePerpsTrading() {
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.placeOrder(params);
+      const requestId = __DEV__
+        ? beginPerpsUiSubmission(
+            () => ({
+              account:
+                getSelectedEvmAccountFromMessenger(
+                  Engine.controllerMessenger,
+                )?.address.toLowerCase() ?? null,
+              provider:
+                params.providerId ?? controller.state?.activeProvider ?? null,
+              network:
+                controller.state?.isTestnet === undefined
+                  ? null
+                  : controller.state.isTestnet
+                    ? 'testnet'
+                    : 'mainnet',
+              market: params.symbol,
+            }),
+            params,
+          )
+        : undefined;
+      try {
+        const result = await controller.placeOrder(params);
+        settlePerpsUiSubmission(requestId, result);
+        return result;
+      } catch (error) {
+        settlePerpsUiSubmission(requestId);
+        throw error;
+      }
     },
     [],
   );

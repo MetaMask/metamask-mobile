@@ -12,6 +12,11 @@ import { initialStatePerps } from '../../../../../tests/component-view/presets/p
 import { buildLighterRecoveryHarness } from '../../../../../tests/integration/harnesses/perps/lighter-recovery';
 import { usePerpsScalePriceLadder } from '../hooks/usePerpsScalePriceLadder';
 import { usePerpsScaleOrderGroups } from '../hooks/usePerpsScaleOrderGroups';
+import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import {
+  readPerpsUiObservations,
+  perpsUiInputDigest,
+} from '../utils/perpsUiObservations';
 import { getVenueScalePreview } from '../Views/PerpsProMarketView/components/PerpsProOrderForm/scalePreview';
 import { buildPerpsOrderParams } from '../utils/orderParams';
 
@@ -72,6 +77,7 @@ function useScale(request: GetScalePriceLadderParams = intent) {
   return {
     preview: usePerpsScalePriceLadder(request),
     inventory: usePerpsScaleOrderGroups(),
+    trading: usePerpsTrading(),
   };
 }
 function orderForPreview(
@@ -109,6 +115,77 @@ function orderForPreview(
 }
 
 describe('Mobile Scale consumers through the installed Lighter controller', () => {
+  it('observes the mounted UI dispatch and exact provider result without read-side financial effects', async () => {
+    const savedDev = __DEV__;
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+    const perps = buildLighterRecoveryHarness({ mode: 'isolated-write' });
+    try {
+      await withScale(perps, async (mounted) => {
+        const cursor = readPerpsUiObservations().submissionSequence;
+        const order = orderForPreview(mounted);
+        const { trackingData: _trackingData, ...publicOrder } = order;
+
+        let receipt:
+          | Awaited<ReturnType<typeof perps.controller.placeOrder>>
+          | undefined;
+        await act(async () => {
+          receipt = await mounted.result.current.trading.placeOrder(order);
+        });
+        const observed = readPerpsUiObservations().submissions.filter(
+          (item) => item.sequence > cursor,
+        );
+
+        expect(receipt?.success).toBe(true);
+        expect(observed).toHaveLength(1);
+        expect(observed[0]).toEqual(
+          expect.objectContaining({
+            scope: {
+              account: perps.walletAddress.toLowerCase(),
+              provider: 'lighter',
+              network: 'testnet',
+              market: 'BTC',
+            },
+            request: publicOrder,
+            requestDigest: perpsUiInputDigest(publicOrder),
+            state: 'settled',
+            result: receipt,
+          }),
+        );
+        expect(perps.submissions).toHaveLength(3);
+        const before = {
+          submissions: perps.submissions.length,
+          execute: perps.mocks.execute.mock.calls.length,
+          createClient: perps.mocks.createClient.mock.calls.length,
+          register: perps.mocks.signPersonalMessage.mock.calls.length,
+          requests: perps.requests.length,
+          storage: perps.storageWrites.length,
+        };
+        observed[0].request.size = 'foreign';
+        observed[0].result?.childOrderIds?.push('foreign');
+        const reread = readPerpsUiObservations();
+        expect(
+          reread.submissions.find(
+            (item) => item.requestId === observed[0].requestId,
+          )?.request,
+        ).toEqual(publicOrder);
+        expect(
+          reread.submissions.find(
+            (item) => item.requestId === observed[0].requestId,
+          )?.result,
+        ).toEqual(receipt);
+        expect({
+          submissions: perps.submissions.length,
+          execute: perps.mocks.execute.mock.calls.length,
+          createClient: perps.mocks.createClient.mock.calls.length,
+          register: perps.mocks.signPersonalMessage.mock.calls.length,
+          requests: perps.requests.length,
+          storage: perps.storageWrites.length,
+        }).toEqual(before);
+      });
+    } finally {
+      (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
+    }
+  });
   it.each([false, true])(
     'places the actual Pro builder payload with reduce-only %s',
     async (reduceOnly) => {
