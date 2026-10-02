@@ -4,6 +4,7 @@ import {
   isStrategyOrderType,
   isTriggerOrderType,
   type InputMethod,
+  type ExpectedScaleLadder,
   type Order,
   type OrderParams,
   type OrderType,
@@ -212,6 +213,31 @@ export const buildPerpsOrderParams = ({
     trackingData,
   };
 };
+
+/** Assemble the exact Scale request for both current-form observation and placement. */
+export const buildPerpsScaleOrderParams = ({
+  scaleMinPrice,
+  scaleMaxPrice,
+  scaleNumOrders,
+  scaleSkew,
+  expectedScaleLadder,
+  ...input
+}: Omit<BuildPerpsOrderParamsInput, 'orderType'> & {
+  scaleMinPrice: string;
+  scaleMaxPrice: string;
+  scaleNumOrders: number;
+  scaleSkew: number;
+  expectedScaleLadder?: ExpectedScaleLadder;
+}): OrderParams => ({
+  ...buildPerpsOrderParams({ ...input, orderType: 'scale' }),
+  scaleMinPrice,
+  scaleMaxPrice,
+  scaleNumOrders,
+  scaleSkew,
+  ...(isVenueSizedScaleOrder('scale', input.providerId)
+    ? { expectedScaleLadder }
+    : {}),
+});
 
 export interface BuildEditOrderParamsInput {
   order: Order;

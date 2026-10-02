@@ -232,6 +232,20 @@ describe('Lighter Scale through the Pro market screen', () => {
       expect(settled?.inputDigest).toBe(
         perpsUiInputDigest({ scope: settled?.scope, input: settled?.input }),
       );
+      expect(settled?.expectedRequest).toEqual(
+        expect.objectContaining({
+          orderType: 'scale',
+          currentPrice: expect.any(Number),
+          leverage: 1,
+          expectedScaleLadder: {
+            prices: preview.prices,
+            ...preview.sizingPreview,
+          },
+        }),
+      );
+      expect(settled?.expectedRequestDigest).toBe(
+        perpsUiInputDigest(settled?.expectedRequest),
+      );
       expect(
         within(screen.getByTestId(FORM.LEVERAGE_BUTTON)).getByText('1x'),
       ).toBeOnTheScreen();
@@ -246,6 +260,8 @@ describe('Lighter Scale through the Pro market screen', () => {
         controller.placeOrder,
       ).mock.calls[0][0];
       expect(pending).toHaveLength(1);
+      expect(settled?.expectedRequest).toEqual(publicOrder);
+      expect(settled?.expectedRequestDigest).toBe(pending[0].requestDigest);
       expect(pending[0]).toEqual(
         expect.objectContaining({
           state: 'pending',
@@ -257,7 +273,12 @@ describe('Lighter Scale through the Pro market screen', () => {
 
       mounted.unmount();
       expect(currentForm()).toEqual(
-        expect.objectContaining({ mounted: false, stale: true }),
+        expect.objectContaining({
+          mounted: false,
+          stale: true,
+          expectedRequest: null,
+          expectedRequestDigest: null,
+        }),
       );
       const partial: OrderResult = {
         success: false,
@@ -316,6 +337,8 @@ describe('Lighter Scale through the Pro market screen', () => {
           loading: true,
           stale: true,
           input: expect.objectContaining({ usdAmount: '90' }),
+          expectedRequest: null,
+          expectedRequestDigest: null,
         }),
       ),
     );

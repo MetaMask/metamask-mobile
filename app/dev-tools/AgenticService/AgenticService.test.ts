@@ -788,6 +788,140 @@ describe('AgenticService.install', () => {
   });
 
   describe('pressTestId', () => {
+    it('presses the existing control once inside its exact ancestor after sibling reorder', async () => {
+      const ownedPress = jest.fn();
+      const unrelatedPress = jest.fn();
+      const owned = makeFiber({ testID: 'terminate', onPress: ownedPress });
+      const unrelated = makeFiber({
+        testID: 'terminate',
+        onPress: unrelatedPress,
+      });
+      const scope = makeFiber({ testID: 'handle-owned', child: owned });
+      const otherScope = makeFiber({
+        testID: 'handle-other',
+        child: unrelated,
+      });
+      const root = makeFiber({ child: scope });
+      scope.return = root;
+      otherScope.return = root;
+      owned.return = scope;
+      unrelated.return = otherScope;
+      scope.sibling = otherScope;
+      owned.stateNode = {
+        measureInWindow: (callback) => {
+          root.child = otherScope;
+          otherScope.sibling = scope;
+          scope.sibling = null;
+          callback(10, 10, 40, 40);
+        },
+      };
+      installFiberHook(root);
+
+      const result = await bridge().pressTestId('terminate', {
+        ancestorTestId: 'handle-owned',
+      });
+
+      expect(result.ok).toBe(true);
+      expect(ownedPress).toHaveBeenCalledTimes(1);
+      expect(unrelatedPress).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      'unmounted',
+      'handler',
+      'ancestor',
+      'disabled',
+      'inactive',
+      'ancestor-disabled',
+      'offscreen',
+    ])(
+      'refuses a scoped control that becomes %s during measurement',
+      async (change) => {
+        const onPress = jest.fn();
+        const replacementPress = jest.fn();
+        const control = makeFiber({ testID: 'terminate', onPress });
+        const scope = makeFiber({ testID: 'handle-owned', child: control });
+        const root = makeFiber({ child: scope });
+        scope.return = root;
+        control.return = scope;
+        control.stateNode = {
+          measureInWindow: (callback) => {
+            if (change === 'unmounted') root.child = null;
+            if (change === 'handler' && control.memoizedProps)
+              control.memoizedProps.onPress = replacementPress;
+            if (change === 'ancestor' && scope.memoizedProps)
+              scope.memoizedProps.testID = 'handle-other';
+            if (change === 'disabled' && control.memoizedProps)
+              control.memoizedProps.disabled = true;
+            if (change === 'inactive' && scope.memoizedProps)
+              scope.memoizedProps.activityState = 0;
+            if (change === 'ancestor-disabled' && scope.memoizedProps)
+              scope.memoizedProps.disabled = true;
+            callback(change === 'offscreen' ? -100 : 10, 10, 40, 40);
+          },
+        };
+        installFiberHook(root);
+
+        const result = await bridge().pressTestId('terminate', {
+          ancestorTestId: 'handle-owned',
+        });
+
+        expect(result.ok).toBe(false);
+        expect(onPress).not.toHaveBeenCalled();
+        expect(replacementPress).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['ancestor', 'control'])(
+      'refuses an ambiguous scoped %s',
+      async (duplicate) => {
+        const firstPress = jest.fn();
+        const secondPress = jest.fn();
+        const first = makeFiber({ testID: 'terminate', onPress: firstPress });
+        const second = makeFiber({ testID: 'terminate', onPress: secondPress });
+        const scope = makeFiber({ testID: 'handle-owned', child: first });
+        const other = makeFiber({ testID: 'handle-owned', child: second });
+        const root = makeFiber({ child: scope });
+        scope.return = root;
+        first.return = scope;
+        if (duplicate === 'ancestor') {
+          scope.sibling = other;
+          other.return = root;
+          second.return = other;
+        } else {
+          first.sibling = second;
+          second.return = scope;
+        }
+        installFiberHook(root);
+
+        const result = await bridge().pressTestId('terminate', {
+          ancestorTestId: 'handle-owned',
+        });
+
+        expect(result.ok).toBe(false);
+        expect(firstPress).not.toHaveBeenCalled();
+        expect(secondPress).not.toHaveBeenCalled();
+      },
+    );
+
+    it('requires a measurable visible frame for an exact scoped press', async () => {
+      const onPress = jest.fn();
+      const control = makeFiber({ testID: 'terminate', onPress });
+      const scope = makeFiber({ testID: 'handle-owned', child: control });
+      const root = makeFiber({ child: scope });
+      scope.return = root;
+      control.return = scope;
+      installFiberHook(root);
+
+      expect(bridge().pressTestIdScopeVersion).toBe(1);
+      expect(
+        await bridge().pressTestId('terminate', {
+          ancestorTestId: 'handle-owned',
+        }),
+      ).toMatchObject({ ok: false });
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
     it('presses a component found by testID', async () => {
       const onPress = jest.fn();
       const fiber = makeFiber({

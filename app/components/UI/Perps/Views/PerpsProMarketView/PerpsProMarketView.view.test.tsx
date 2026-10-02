@@ -1558,6 +1558,71 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'keeps the existing handler bound to its handle when a different primary Chase row leaves',
+    async () => {
+      const unrelated = { ...activeChase, handle: 'unrelated-primary' };
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
+      getChaseOrders
+        .mockResolvedValueOnce([unrelated, activeChase])
+        .mockResolvedValue([activeChase]);
+      cancelOrder.mockClear();
+      renderFundedProMarket();
+      await openChaseManagementTab();
+      const ownedSelector = getPerpsProChaseHandleSelector(
+        'ETH',
+        activeChase.handle,
+      );
+      const primarySelector = getPerpsProChaseTerminateSelector(
+        'active',
+        'ETH',
+        unrelated.handle,
+        true,
+      );
+      expect(
+        within(await screen.findByTestId(ownedSelector)).getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            activeChase.handle,
+            false,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        within(
+          screen.getByTestId(
+            getPerpsProChaseHandleSelector('ETH', unrelated.handle),
+          ),
+        ).getByTestId(primarySelector),
+      );
+      await waitFor(() =>
+        expect(
+          within(screen.getByTestId(ownedSelector)).getByTestId(
+            primarySelector,
+          ),
+        ).toBeOnTheScreen(),
+      );
+      cancelOrder.mockClear();
+      fireEvent.press(
+        within(screen.getByTestId(ownedSelector)).getByTestId(primarySelector),
+      );
+      await waitFor(() =>
+        expect(cancelOrder).toHaveBeenCalledWith({
+          orderId: activeChase.handle,
+          symbol: 'ETH',
+          orderType: 'chase',
+        }),
+      );
+      expect(cancelOrder).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  itForPlatforms(
     'shows every loaded field for an active Chase row',
     async () => {
       const getChaseOrders = jest.mocked(

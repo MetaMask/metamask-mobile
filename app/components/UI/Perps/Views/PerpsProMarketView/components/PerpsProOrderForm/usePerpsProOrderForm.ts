@@ -107,6 +107,7 @@ import {
 } from '../../../../utils/formatUtils';
 import {
   buildPerpsOrderParams,
+  buildPerpsScaleOrderParams,
   buildPerpsOrderTrackingData,
   isVenueSizedScaleOrder,
 } from '../../../../utils/orderParams';
@@ -1482,77 +1483,6 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const [scaleObservationFormId] = useState(newPerpsUiObservationId);
-  const isScalePreviewCurrent = scalePreview.isCurrent;
-  useLayoutEffect(() => {
-    if (!__DEV__) return;
-    if (!isScaleOrder || !isScreenFocused) {
-      unmountPerpsUiScaleForm(scaleObservationFormId);
-      return;
-    }
-    recordPerpsUiScaleForm({
-      formId: scaleObservationFormId,
-      mounted: true,
-      scope: {
-        account: normalizedSelectedAddress || null,
-        provider: scaleProviderId ?? null,
-        network,
-        market: orderForm.asset,
-      },
-      input: {
-        minPrice: scaleStartPrice,
-        maxPrice: scaleEndPrice,
-        count: scaleTotalOrders,
-        skew: scaleSizeSkew,
-        size: exactFullCloseSize ?? exactAssetAmount,
-        usdAmount: effectiveUsdAmount,
-        isBuy: orderForm.direction === 'long',
-        reduceOnly,
-        leverage: orderForm.leverage,
-      },
-      previewGeneration: scalePreview.observationGeneration,
-      previewSequence: scalePreview.observationSequence,
-      loading: scalePreview.isLoading,
-      stale:
-        !isScalePreviewCurrent() ||
-        scalePreview.isLoading ||
-        !scaleLadderResult.success,
-      source: isVenueSizedScale ? 'venue' : 'estimate',
-      displayedLeverage: orderForm.leverage,
-      preview: scalePreview.result,
-      ladder: scaleLadderResult.success
-        ? scaleLadderResult.rungs.map(({ price, size }) => ({ price, size }))
-        : null,
-    });
-  }, [
-    scaleObservationFormId,
-    isScaleOrder,
-    isScreenFocused,
-    normalizedSelectedAddress,
-    scaleProviderId,
-    network,
-    orderForm.asset,
-    orderForm.direction,
-    orderForm.leverage,
-    scaleStartPrice,
-    scaleEndPrice,
-    scaleTotalOrders,
-    scaleSizeSkew,
-    exactFullCloseSize,
-    exactAssetAmount,
-    effectiveUsdAmount,
-    reduceOnly,
-    scalePreview.observationGeneration,
-    scalePreview.observationSequence,
-    scalePreview.isLoading,
-    isScalePreviewCurrent,
-    scalePreview.result,
-    scaleLadderResult,
-    isVenueSizedScale,
-  ]);
-  useLayoutEffect(
-    () => () => unmountPerpsUiScaleForm(scaleObservationFormId),
-    [scaleObservationFormId],
-  );
 
   const scaleAveragePrice = useMemo(() => {
     if (scaleLadderResult.success) {
@@ -2000,6 +1930,106 @@ export const usePerpsProOrderForm = ({
       validateNow,
     ],
   );
+  const isScalePreviewCurrent = scalePreview.isCurrent;
+  useLayoutEffect(() => {
+    if (!__DEV__) return;
+    if (!isScaleOrder || !isScreenFocused) {
+      unmountPerpsUiScaleForm(scaleObservationFormId);
+      return;
+    }
+    recordPerpsUiScaleForm({
+      formId: scaleObservationFormId,
+      mounted: true,
+      scope: {
+        account: normalizedSelectedAddress || null,
+        provider: scaleProviderId ?? null,
+        network,
+        market: orderForm.asset,
+      },
+      input: {
+        minPrice: scaleStartPrice,
+        maxPrice: scaleEndPrice,
+        count: scaleTotalOrders,
+        skew: scaleSizeSkew,
+        size: exactFullCloseSize ?? exactAssetAmount,
+        usdAmount: effectiveUsdAmount,
+        isBuy: orderForm.direction === 'long',
+        reduceOnly,
+        leverage: orderForm.leverage,
+      },
+      previewGeneration: scalePreview.observationGeneration,
+      previewSequence: scalePreview.observationSequence,
+      loading: scalePreview.isLoading,
+      stale:
+        !isScalePreviewCurrent() ||
+        scalePreview.isLoading ||
+        !scaleLadderResult.success,
+      source: isVenueSizedScale ? 'venue' : 'estimate',
+      displayedLeverage: orderForm.leverage,
+      preview: scalePreview.result,
+      expectedRequest:
+        scaleLadderResult.success && scaleProviderId
+          ? buildPerpsScaleOrderParams({
+              asset: orderForm.asset,
+              isBuy: orderForm.direction === 'long',
+              size: submissionPositionSize,
+              usdAmount: scaleLadderResult.sizingIntent?.usdAmount,
+              effectivePrice,
+              leverage: orderForm.leverage,
+              maxSlippageBps: resolvedMaxSlippageBps,
+              reduceOnly,
+              providerId: scaleProviderId,
+              isFullClose: reduceOnly
+                ? reduceOnlyValidation.isFullClose || isExactFullClose
+                : undefined,
+              trackingData: undefined,
+              scaleMinPrice: scaleLadderResult.minPrice,
+              scaleMaxPrice: scaleLadderResult.maxPrice,
+              scaleNumOrders: scaleLadderResult.orderCount,
+              scaleSkew: scaleLadderResult.skew,
+              expectedScaleLadder: scaleLadderResult.expectedScaleLadder,
+            })
+          : null,
+      ladder: scaleLadderResult.success
+        ? scaleLadderResult.rungs.map(({ price, size }) => ({ price, size }))
+        : null,
+    });
+  }, [
+    scaleObservationFormId,
+    isScaleOrder,
+    isScreenFocused,
+    normalizedSelectedAddress,
+    scaleProviderId,
+    network,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.leverage,
+    scaleStartPrice,
+    scaleEndPrice,
+    scaleTotalOrders,
+    scaleSizeSkew,
+    exactFullCloseSize,
+    exactAssetAmount,
+    effectiveUsdAmount,
+    reduceOnly,
+    scalePreview.observationGeneration,
+    scalePreview.observationSequence,
+    scalePreview.isLoading,
+    isScalePreviewCurrent,
+    scalePreview.result,
+    scaleLadderResult,
+    isVenueSizedScale,
+    submissionPositionSize,
+    effectivePrice,
+    resolvedMaxSlippageBps,
+    reduceOnlyValidation.isFullClose,
+    isExactFullClose,
+  ]);
+  useLayoutEffect(
+    () => () => unmountPerpsUiScaleForm(scaleObservationFormId),
+    [scaleObservationFormId],
+  );
+
   const scalePlacementSnapshotRef = useRef(currentScalePlacementSnapshot);
   useLayoutEffect(() => {
     scalePlacementSnapshotRef.current = currentScalePlacementSnapshot;
@@ -2791,34 +2821,27 @@ export const usePerpsProOrderForm = ({
           chartLibrary,
           vipTier,
         });
-        const scaleOrderParams = {
-          ...buildPerpsOrderParams({
-            asset: latestScale.orderForm.asset,
-            isBuy: latestScale.orderForm.direction === 'long',
-            size: latestScale.submissionPositionSize,
-            usdAmount: latestScale.scaleLadderResult.sizingIntent?.usdAmount,
-            orderType: 'scale',
-            effectivePrice: latestScale.effectivePrice,
-            leverage: latestScale.orderForm.leverage,
-            maxSlippageBps: resolvedMaxSlippageBps,
-            reduceOnly: latestScale.reduceOnly,
-            providerId: expectedProviderId,
-            isFullClose: latestScale.reduceOnly
-              ? latestScale.reduceOnlyValidation.isFullClose ||
-                latestScale.isExactFullClose
-              : undefined,
-            trackingData,
-          }),
+        const scaleOrderParams = buildPerpsScaleOrderParams({
+          asset: latestScale.orderForm.asset,
+          isBuy: latestScale.orderForm.direction === 'long',
+          size: latestScale.submissionPositionSize,
+          usdAmount: latestScale.scaleLadderResult.sizingIntent?.usdAmount,
+          effectivePrice: latestScale.effectivePrice,
+          leverage: latestScale.orderForm.leverage,
+          maxSlippageBps: resolvedMaxSlippageBps,
+          reduceOnly: latestScale.reduceOnly,
+          providerId: expectedProviderId,
+          isFullClose: latestScale.reduceOnly
+            ? latestScale.reduceOnlyValidation.isFullClose ||
+              latestScale.isExactFullClose
+            : undefined,
+          trackingData,
           scaleMinPrice: latestScale.scaleLadderResult.minPrice,
           scaleMaxPrice: latestScale.scaleLadderResult.maxPrice,
           scaleNumOrders: latestScale.scaleLadderResult.orderCount,
           scaleSkew: latestScale.scaleLadderResult.skew,
-          ...(isVenueSizedScale
-            ? {
-                expectedScaleLadder,
-              }
-            : {}),
-        };
+          expectedScaleLadder,
+        });
 
         // Haptics are non-critical feedback; a device haptics failure must not
         // prevent the already-validated controller request from being placed.
