@@ -1,11 +1,13 @@
-import { getPerpsFeeDiscountKind, type PerpsFeeDiscountKind, } from '../utils/feeDiscount';
+import {
+  getPerpsFeeDiscount,
+  type PerpsFeeDiscountKind,
+} from '../utils/feeDiscount';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 
 import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
@@ -14,26 +16,16 @@ import {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
-  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
-  type PerpsFeeResolution,
+  type PerpsFeeSource,
   type OrderType,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
-
-// Cache for fee discount to avoid repeated API calls
-let feeDiscountCache: {
-  address: string;
-  discountBips: number | undefined;
-  timestamp: number;
-  ttl: number;
-} | null = null;
 
 // Enhanced cache for points calculation - stores everything needed to calculate locally
 let pointsCalculationCache: {
@@ -74,7 +66,7 @@ export interface OrderFeesResult {
   feeDiscountPercentage?: number;
   feeDiscountKind?: PerpsFeeDiscountKind;
   /** Attribution from the same Core snapshot used to price this preview. */
-  feeResolution?: PerpsFeeResolution;
+  feeSource?: PerpsFeeSource;
   /** Estimated points to be earned from this trade */
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
@@ -114,7 +106,6 @@ interface UsePerpsOrderFeesParams {
  * Useful when switching accounts or when caches need to be refreshed
  */
 export function clearRewardsCaches(): void {
-  feeDiscountCache = null;
   pointsCalculationCache = null;
   DevLogger.log('Rewards: Cleared all caches');
 }
@@ -134,7 +125,6 @@ export function usePerpsOrderFees({
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
-  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   const isMaker = useMemo(() => {
     if (orderType === 'chase') {
@@ -165,93 +155,6 @@ export function usePerpsOrderFees({
   useEffect(() => {
     pointsCalculationCache = null;
   }, []);
-
-  /**
-   * Fetch fee discount from RewardsController (non-blocking)
-   */
-  const fetchFeeDiscount = useCallback(
-    async (
-      address: string,
-    ): Promise<{ discountBips?: number; tier?: string }> => {
-      // Check cache first
-      const now = Date.now();
-      if (
-        feeDiscountCache?.address === address &&
-        now - feeDiscountCache.timestamp < feeDiscountCache.ttl
-      ) {
-        DevLogger.log('Rewards: Using cached fee discount', {
-          address,
-          discountBips: feeDiscountCache.discountBips,
-          cacheAge: Math.round((now - feeDiscountCache.timestamp) / 1000) + 's',
-        });
-        return {
-          discountBips: feeDiscountCache.discountBips,
-        };
-      }
-
-      try {
-        const caipAccountId = formatAccountToCaipAccountId(
-          address,
-          currentChainId,
-        );
-        if (!caipAccountId) {
-          return {};
-        }
-
-        DevLogger.log('Rewards: Fetching fee discount via controller', {
-          address,
-          caipAccountId,
-        });
-
-        const { RewardsController } = Engine.context;
-        const feeDiscountStartTime = performance.now();
-        const response = await RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-          BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
-        );
-        if (response === null) {
-          DevLogger.log('Rewards: No fee discount available', {
-            address,
-            caipAccountId,
-          });
-          return { discountBips: undefined };
-        }
-        const discountBips = typeof response === 'number' ? response : response.discountBips;
-        const feeDiscountDuration = performance.now() - feeDiscountStartTime;
-
-        // Measure fee discount API call performance
-        setMeasurement(
-          PerpsMeasurementName.PerpsRewardsFeeDiscountApiCall,
-          feeDiscountDuration,
-          'millisecond',
-        );
-
-        DevLogger.log('Rewards: Fee discount bips fetched via controller', {
-          address,
-          discountBips,
-          duration: `${feeDiscountDuration.toFixed(0)}ms`,
-        });
-
-        // Cache the discount for configured duration
-        feeDiscountCache = typeof response === 'number' ? {
-          address,
-          discountBips,
-          timestamp: Date.now(),
-          ttl: PERFORMANCE_CONFIG.FeeDiscountCacheDurationMs,
-        } : null;
-
-        return { discountBips };
-      } catch (error) {
-        DevLogger.log('Rewards: Error fetching fee discount via controller', {
-          error: error instanceof Error ? error.message : String(error),
-          address,
-        });
-        // Non-blocking - return empty if fails
-        return {};
-      }
-    },
-    [currentChainId],
-  );
 
   /**
    * Estimate points for the trade using RewardsController (non-blocking)
@@ -354,65 +257,12 @@ export function usePerpsOrderFees({
   const [error, setError] = useState<string | null>(null);
 
   // State for rewards data
-  const [feeResolution, setFeeResolution] = useState<PerpsFeeResolution>();
+  const [feeSource, setFeeSource] = useState<PerpsFeeSource>();
   const [feeDiscountPercentage, setFeeDiscountPercentage] = useState<
     number | undefined
   >();
   const [estimatedPoints, setEstimatedPoints] = useState<number | undefined>();
   const [bonusBips, setBonusBips] = useState<number | undefined>();
-
-  /**
-   * Apply fee discount and calculate actual rate
-   */
-  const applyFeeDiscount = useCallback(
-    async (originalRate: number) => {
-      if (!selectedAddress || !isVipProgramEnabled) {
-        return { adjustedRate: originalRate, discountPercentage: undefined };
-      }
-
-      try {
-        // Development-only simulation for testing fee discount UI
-        const shouldSimulateFeeDiscount =
-          __DEV__ &&
-          Number.parseFloat(amount) ===
-            DEVELOPMENT_CONFIG.SimulateFeeDiscountAmount;
-
-        let discountData: { discountBips?: number };
-
-        if (shouldSimulateFeeDiscount) {
-          discountData = { discountBips: 2000 };
-        } else {
-          discountData = await fetchFeeDiscount(selectedAddress);
-        }
-
-        if (discountData.discountBips !== undefined) {
-          // Validate discount doesn't exceed 100%
-          const clampedDiscountBips = Math.min(
-            discountData.discountBips,
-            10000,
-          );
-          const percentage = clampedDiscountBips / 100;
-          const discount = percentage / 100;
-          const adjustedRate = originalRate * (1 - discount);
-          return {
-            adjustedRate,
-            discountPercentage: percentage,
-          };
-        }
-
-        return { adjustedRate: originalRate, discountPercentage: undefined };
-      } catch (discountError) {
-        DevLogger.log('Rewards: Fee discount calculation failed', {
-          error:
-            discountError instanceof Error
-              ? discountError.message
-              : String(discountError),
-        });
-        return { adjustedRate: originalRate, discountPercentage: undefined };
-      }
-    },
-    [fetchFeeDiscount, amount, selectedAddress, isVipProgramEnabled],
-  );
 
   /**
    * Handle points estimation with caching
@@ -526,7 +376,7 @@ export function usePerpsOrderFees({
       discountPercentage?: number,
       points?: number,
       bonusBipsValue?: number,
-      resolution?: PerpsFeeResolution,
+      source?: PerpsFeeSource,
     ) => {
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
@@ -538,7 +388,7 @@ export function usePerpsOrderFees({
           : undefined,
       );
       setFeeDiscountPercentage(discountPercentage);
-      setFeeResolution(resolution);
+      setFeeSource(source);
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
     },
@@ -557,7 +407,7 @@ export function usePerpsOrderFees({
     setOriginalMetamaskFeeRate(0);
     setTotalFeeRate(0);
     setFeeDiscountPercentage(undefined);
-    setFeeResolution(undefined);
+    setFeeSource(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
   }, []);
@@ -601,28 +451,29 @@ export function usePerpsOrderFees({
           return;
         }
 
-        // Core already applied the winning resolution. Do not resolve or discount it again.
-        const resolution = coreFeesResult.feeResolution;
-        const { adjustedRate, discountPercentage } = resolution
-          ? {
-            adjustedRate: coreFeesResult.metamaskFeeRate,
-            discountPercentage:
-              resolution.discountBips === undefined
-                ? undefined
-                : resolution.discountBips / 100,
-          }
-          : await applyFeeDiscount(coreFeesResult.metamaskFeeRate);
+        // Core already applied the winning source. Mobile only derives presentation.
+        const source = coreFeesResult.feeSource;
+        const originalRate =
+          coreFeesResult.chargesMetamaskBuilderFee === false
+            ? coreFeesResult.metamaskFeeRate
+            : BUILDER_FEE_CONFIG.MaxFeeDecimal;
+        const { percentage: discountPercentage } = getPerpsFeeDiscount({
+          feeSource: source,
+          currentFeeRate: coreFeesResult.metamaskFeeRate,
+          originalFeeRate: originalRate,
+        });
 
         if (!isComponentMounted) return;
 
         // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
         if (selectedAddress && Number.parseFloat(amount) > 0) {
-          const actualFeeUSD = Number.parseFloat(amount) * adjustedRate;
+          const actualFeeUSD =
+            Number.parseFloat(amount) * coreFeesResult.metamaskFeeRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
-            originalRate: coreFeesResult.metamaskFeeRate,
+            originalRate,
             discountPercentage,
-            adjustedRate,
+            adjustedRate: coreFeesResult.metamaskFeeRate,
             amount: Number.parseFloat(amount),
             actualFeeUSD,
           });
@@ -638,11 +489,12 @@ export function usePerpsOrderFees({
         // Step 5: Update all state with actual values (all rates are defined)
         updateFeeState(
           coreFeesResult.protocolFeeRate,
-          resolution ? BUILDER_FEE_CONFIG.MaxFeeDecimal : coreFeesResult.metamaskFeeRate,
-          adjustedRate,
+          originalRate,
+          coreFeesResult.metamaskFeeRate,
           discountPercentage,
           pointsResult.points,
           pointsResult.bonusBips,
+          source,
         );
       } catch (fetchError) {
         if (isComponentMounted) {
@@ -671,7 +523,6 @@ export function usePerpsOrderFees({
     amount,
     symbol,
     calculateFees,
-    applyFeeDiscount,
     handlePointsEstimation,
     updateFeeState,
     clearFeeState,
@@ -707,8 +558,12 @@ export function usePerpsOrderFees({
       // Rewards data
       originalMetamaskFeeRate,
       feeDiscountPercentage,
-      feeResolution,
-      feeDiscountKind: getPerpsFeeDiscountKind(feeResolution),
+      feeSource,
+      feeDiscountKind: getPerpsFeeDiscount({
+        feeSource,
+        currentFeeRate: metamaskFeeRate,
+        originalFeeRate: originalMetamaskFeeRate,
+      }).kind,
       estimatedPoints,
       bonusBips,
     };
@@ -721,7 +576,7 @@ export function usePerpsOrderFees({
     error,
     originalMetamaskFeeRate,
     feeDiscountPercentage,
-    feeResolution,
+    feeSource,
     estimatedPoints,
     bonusBips,
   ]);

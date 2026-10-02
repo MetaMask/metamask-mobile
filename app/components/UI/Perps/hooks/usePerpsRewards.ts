@@ -26,7 +26,7 @@ interface UsePerpsRewardsResult {
   bonusBips: number | undefined;
   /** Fee discount percentage */
   feeDiscountPercentage: number | undefined;
-  feeResolution: OrderFeesResult['feeResolution'];
+  feeSource: OrderFeesResult['feeSource'];
   feeDiscountKind: OrderFeesResult['feeDiscountKind'];
   /** Error state */
   hasError: boolean;
@@ -127,7 +127,7 @@ export const usePerpsRewards = ({
     estimatedPoints: feeResults.estimatedPoints,
     bonusBips: feeResults.bonusBips,
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
-    feeResolution: feeResults.feeResolution,
+    feeSource: feeResults.feeSource,
     feeDiscountKind: feeResults.feeDiscountKind,
     hasError,
     isRefresh,

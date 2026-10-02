@@ -28,7 +28,7 @@ describe('FeesTooltipContent', () => {
     const { getByText, queryByTestId, queryByText } = render(
       <FeesTooltipContent
         testID="fees-tooltip"
-        data={{ ...mockData, feeDiscountKind: 'targeted' }}
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
       />,
     );
 

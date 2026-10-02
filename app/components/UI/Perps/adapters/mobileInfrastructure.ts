@@ -454,6 +454,9 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           baseFeeBips,
         );
       },
+      getPerpsTradingFeeGrant(scope) {
+        return Engine.context.RewardsController.getPerpsTradingFeeGrant(scope);
+      },
     },
   };
 }

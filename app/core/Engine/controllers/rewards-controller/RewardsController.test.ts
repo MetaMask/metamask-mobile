@@ -416,6 +416,7 @@ describe('RewardsController', () => {
           'getPointsEvents',
           'estimatePoints',
           'getPerpsDiscountForAccount',
+          'getPerpsTradingFeeGrant',
           'isRewardsFeatureEnabled',
           'getSeasonStatus',
           'getReferralDetails',
@@ -3323,10 +3324,9 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
-      expect(createMockRouteMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns null when VIP is disabled and targeted lookup is unavailable', async () => {
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
       const vipDisabledController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -3340,10 +3340,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getVipFees',
-        expect.anything(),
-      );
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
@@ -3352,10 +3349,7 @@ describe('RewardsController', () => {
         10,
       );
       expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getVipFees',
-        expect.anything(),
-      );
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('returns null when the account has no linked subscription (unhydrated)', async () => {
@@ -3382,167 +3376,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getVipFees',
-        expect.anything(),
-      );
-    });
-
-    describe('targeted grants', () => {
-      const account = 'eip155:0:0xabcdef' as CaipAccountId;
-      const grant = {
-        programId: 'perps-builder-fee-experiment',
-        hyperliquid: {
-          builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
-          builderFeeBips: '2.5',
-        },
-        expiresAt: '2026-10-01T00:00:00.000Z',
-      };
-
-      it.each([
-        [null, '2.5', 7500, true],
-        ['5', null, 5000, false],
-        ['5', '2.5', 7500, true],
-        ['1', '2.5', 9000, false],
-        ['2.5', '2.5', 7500, false],
-        [null, null, 0, false],
-        [null, '0', 10000, true],
-        [null, '15', 0, false],
-      ])(
-        'combines VIP fee %s and grant fee %s without stacking',
-        async (vipFee, grantFee, discountBips, targetedDiscountApplied) => {
-          const subscriptionId = 'vip-subscription';
-          const combinedController = new RewardsController({
-            messenger: mockMessenger,
-            state: {
-              ...getRewardsControllerDefaultState(),
-              accounts: {
-                [account]: {
-                  account,
-                  subscriptionId,
-                  hasOptedIn: true,
-                  perpsFeeDiscount: null,
-                  lastPerpsDiscountRateFetched: null,
-                } as RewardsAccountState,
-              },
-              subscriptions: {
-                [subscriptionId]: {
-                  id: subscriptionId,
-                  referralCode: 'ref',
-                  features: { vip: { enabled: true } },
-                  accounts: [],
-                },
-              },
-              vipPerpsFees:
-                vipFee === null
-                  ? {}
-                  : {
-                    [subscriptionId]: {
-                      hyperliquidBuilderFeeBips: vipFee,
-                      lastFetched: Date.now(),
-                    },
-                  },
-            },
-            isVipDisabled: () => vipFee === null,
-          });
-          mockMessenger.call.mockResolvedValue({
-            grant:
-              grantFee === null
-                ? null
-                : {
-                  ...grant,
-                  hyperliquid: {
-                    ...grant.hyperliquid,
-                    builderFeeBips: grantFee,
-                  },
-                },
-          });
-
-          expect(
-            await combinedController.getPerpsDiscountForAccount(account, 10),
-          ).toEqual({ discountBips, targetedDiscountApplied });
-        },
-      );
-
-      it('applies a grant with VIP disabled and no rewards subscription', async () => {
-        const targetedController = new RewardsController({
-          messenger: mockMessenger,
-          isVipDisabled: () => true,
-        });
-        mockMessenger.call.mockResolvedValue({ grant });
-        expect(
-          await targetedController.getPerpsDiscountForAccount(account, 10),
-        ).toEqual({ discountBips: 7500, targetedDiscountApplied: true });
-        expect(mockMessenger.call).not.toHaveBeenCalledWith(
-          'RewardsDataService:getVipFees',
-          expect.anything(),
-        );
-      });
-
-      it('rejects a grant at its expiry boundary and does not retain it locally', async () => {
-        mockMessenger.call.mockResolvedValue({ grant });
-        expect(
-          await controller.getPerpsDiscountForAccount(account, 10),
-        ).toEqual({ discountBips: 7500, targetedDiscountApplied: true });
-        jest.spyOn(Date, 'now').mockReturnValue(Date.parse(grant.expiresAt));
-        expect(
-          await controller.getPerpsDiscountForAccount(account, 10),
-        ).toEqual({ discountBips: 0, targetedDiscountApplied: false });
-      });
-
-      it('uses a targeted grant when the VIP request fails', async () => {
-        const subscriptionId = 'vip-subscription';
-        const combinedController = new RewardsController({
-          messenger: mockMessenger,
-          state: {
-            accounts: {
-              [account]: {
-                account,
-                subscriptionId,
-                hasOptedIn: true,
-                perpsFeeDiscount: null,
-                lastPerpsDiscountRateFetched: null,
-              } as RewardsAccountState,
-            },
-            subscriptions: {
-              [subscriptionId]: {
-                id: subscriptionId,
-                referralCode: 'ref',
-                features: { vip: { enabled: true } },
-                accounts: [],
-              },
-            },
-          },
-        });
-        mockMessenger.call.mockImplementation((method, ..._args) => {
-          if (method === 'RewardsDataService:getTradingFeeGrants')
-            return Promise.resolve({ grant });
-          throw new Error('VIP unavailable');
-        });
-        expect(
-          await combinedController.getPerpsDiscountForAccount(account, 10),
-        ).toEqual({ discountBips: 7500, targetedDiscountApplied: true });
-      });
-
-      it('returns unknown when both sources are unavailable', async () => {
-        mockMessenger.call.mockRejectedValue(new Error('unavailable'));
-        expect(
-          await controller.getPerpsDiscountForAccount(account, 10),
-        ).toBeNull();
-      });
-
-      it.each([0, -1, NaN, Infinity])(
-        'skips lookups for invalid base fee %s',
-        async (baseFee) => {
-          expect(
-            await controller.getPerpsDiscountForAccount(account, baseFee),
-          ).toBeNull();
-          expect(mockMessenger.call).not.toHaveBeenCalledWith(
-            'RewardsDataService:getVipFees',
-            expect.anything(),
-          );
-        },
-      );
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     describe('VIP subscription path', () => {
@@ -3605,10 +3439,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 5000,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(5000);
         expect(mockMessenger.call).toHaveBeenCalledWith(
           'RewardsDataService:getVipFees',
           SUB_VIP,
@@ -3669,10 +3500,6 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(5000);
-        expect(result).toEqual({
-          discountBips: 5000,
-          targetedDiscountApplied: false,
-        });
         expect(mockMessenger.call).not.toHaveBeenCalledWith(
           'RewardsDataService:getVipFees',
           expect.anything(),
@@ -3713,14 +3540,8 @@ describe('RewardsController', () => {
           20, // base 20 → 75% discount, same cached raw 5 bps
         );
 
-        expect(a).toEqual({
-          discountBips: 5000,
-          targetedDiscountApplied: false,
-        });
-        expect(b).toEqual({
-          discountBips: 7500,
-          targetedDiscountApplied: false,
-        });
+        expect(a).toBe(5000);
+        expect(b).toBe(7500);
       });
 
       it('returns 0 and logs when the VIP builder fee exceeds the base (negative discount)', async () => {
@@ -3731,10 +3552,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 0,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(0);
         expect(Logger.log).toHaveBeenCalledWith(
           'RewardsController: VIP builder fee out of valid range; returning no discount',
           expect.objectContaining({
@@ -3768,10 +3586,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 10000,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(10000);
         expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           expect.anything(),
@@ -3789,10 +3604,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 0,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(0);
         expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           expect.anything(),
@@ -3822,10 +3634,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 0,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(0);
         expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP builder fee out of valid range; returning no discount',
           expect.anything(),
@@ -3888,12 +3697,8 @@ describe('RewardsController', () => {
           VIP_COERCED_ACCOUNT,
           BASE_FEE_BIPS,
         );
-        expect(result).toEqual({
-          discountBips: 0,
-          targetedDiscountApplied: false,
-        });
 
-        // expect(result).toBe(0); // Removed because the result is now an object, not a primitive.
+        expect(result).toBe(0);
       });
 
       it('returns null when accountState references a subscriptionId that is not in state', async () => {
@@ -3922,10 +3727,7 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBeNull();
-        expect(mockMessenger.call).not.toHaveBeenCalledWith(
-          'RewardsDataService:getVipFees',
-          expect.anything(),
-        );
+        expect(mockMessenger.call).not.toHaveBeenCalled();
       });
 
       it('calls /vip/fees even when subscription is not locally flagged VIP, returns 0 for tier-0 response', async () => {
@@ -3967,10 +3769,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 0,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(0);
         expect(mockMessenger.call).toHaveBeenCalledWith(
           'RewardsDataService:getVipFees',
           SUB_VIP,
@@ -4016,10 +3815,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toEqual({
-          discountBips: 5000,
-          targetedDiscountApplied: false,
-        });
+        expect(result).toBe(5000);
         expect(mockMessenger.call).toHaveBeenCalledWith(
           'RewardsDataService:getVipFees',
           SUB_VIP,
@@ -4072,14 +3868,8 @@ describe('RewardsController', () => {
         resolveVipFees(buildVipFeesResponse('5'));
         const [r1, r2] = await Promise.all([p1, p2]);
 
-        expect(r1).toEqual({
-          discountBips: 5000,
-          targetedDiscountApplied: false,
-        });
-        expect(r2).toEqual({
-          discountBips: 5000,
-          targetedDiscountApplied: false,
-        });
+        expect(r1).toBe(5000);
+        expect(r2).toBe(5000);
         // Only one network call despite two concurrent requests
         expect(
           mockMessenger.call.mock.calls.filter(
@@ -4088,6 +3878,144 @@ describe('RewardsController', () => {
           ),
         ).toHaveLength(1);
       });
+    });
+  });
+
+  describe('getPerpsTradingFeeGrant', () => {
+    const scope = {
+      providerId: 'hyperliquid',
+      isTestnet: false,
+    } as const;
+    const expiresAt = '2026-10-01T00:00:00.000Z';
+    const grant = {
+      programId: 'perps-builder-fee-experiment',
+      hyperliquid: {
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '2.5',
+      },
+      expiresAt,
+    };
+
+    it('returns a Core-shaped mainnet Hyperliquid grant', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual({
+        providerId: 'hyperliquid',
+        isTestnet: false,
+        feeBips: 2.5,
+        expiresAt: Date.parse(expiresAt),
+      });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getTradingFeeGrants',
+      );
+    });
+
+    it('preserves a zero fee', async () => {
+      mockMessenger.call.mockResolvedValue({
+        grant: {
+          ...grant,
+          hyperliquid: { ...grant.hyperliquid, builderFeeBips: '0' },
+        },
+      });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual(
+        expect.objectContaining({ feeBips: 0 }),
+      );
+    });
+
+    it('is independent of rewards, VIP, and opt-in state', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isVipDisabled: () => true,
+      });
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(
+        disabledController.getPerpsTradingFeeGrant(scope),
+      ).resolves.toEqual(expect.objectContaining({ feeBips: 2.5 }));
+    });
+
+    it.each([
+      { providerId: 'lighter', isTestnet: false },
+      { providerId: 'hyperliquid', isTestnet: true },
+    ])(
+      'returns null without a request for unsupported scope %j',
+      async (input) => {
+        await expect(
+          controller.getPerpsTradingFeeGrant(input),
+        ).resolves.toBeNull();
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      },
+    );
+
+    it('returns null for a grant with the wrong builder code', async () => {
+      mockMessenger.call.mockResolvedValue({
+        grant: {
+          ...grant,
+          hyperliquid: {
+            ...grant.hyperliquid,
+            builderCode: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      });
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+    });
+
+    it('compares builder codes case-insensitively', async () => {
+      mockMessenger.call.mockResolvedValue({
+        grant: {
+          ...grant,
+          hyperliquid: {
+            ...grant.hyperliquid,
+            builderCode: grant.hyperliquid.builderCode.toUpperCase(),
+          },
+        },
+      });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual(
+        expect.objectContaining({ feeBips: 2.5 }),
+      );
+    });
+
+    it('returns null at the exclusive expiry boundary', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(Date.parse(expiresAt));
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+    });
+
+    it.each([
+      ['a null grant', { grant: null }],
+      ['a profile switch', new Error('Profile changed during request')],
+      [
+        'a malformed conversion',
+        {
+          grant: {
+            ...grant,
+            hyperliquid: {
+              ...grant.hyperliquid,
+              builderFeeBips: 'not-a-number',
+            },
+          },
+        },
+      ],
+    ])('returns null for %s', async (_label, responseOrError) => {
+      if (responseOrError instanceof Error) {
+        mockMessenger.call.mockRejectedValue(responseOrError);
+      } else {
+        mockMessenger.call.mockResolvedValue(responseOrError);
+      }
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
     });
   });
 

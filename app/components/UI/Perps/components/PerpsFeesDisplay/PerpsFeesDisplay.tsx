@@ -17,11 +17,12 @@ import {
 
 interface PerpsFeesDisplayProps {
   /**
-   * MetaMask fee discount in whole percentage points. When defined and
-   * positive, am attribution label is rendered (if `originalFee` is also provided)
-   * the pre-discount fee is shown struck-through.
+   * MetaMask fee discount in whole percentage points. When positive, an
+   * attribution label is rendered. If `originalFee` is also provided, the
+   * pre-discount fee is shown struck-through.
    */
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   /**
    * Fee amount in USD **after** any discount has been applied.
    * When `undefined`, a placeholder is rendered.
@@ -81,7 +82,10 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
     <View style={styles.feeRowContent}>
       {hasDiscount ? (
         <View style={styles.vipBadgeContainer}>
-          <PerpsFeeDiscountLabel feeDiscountPercentage={feeDiscountPercentage} feeDiscountKind={feeDiscountKind} />
+          <PerpsFeeDiscountLabel
+            feeDiscountPercentage={feeDiscountPercentage}
+            feeDiscountKind={feeDiscountKind}
+          />
         </View>
       ) : null}
       {originalFeeText !== undefined ? (

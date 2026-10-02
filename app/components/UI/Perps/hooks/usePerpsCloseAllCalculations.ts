@@ -1,12 +1,15 @@
-import { getPerpsFeeDiscountKind, type PerpsFeeDiscountKind } from '../utils/feeDiscount';
+import {
+  getPerpsFeeDiscount,
+  type PerpsFeeDiscountKind,
+} from '../utils/feeDiscount';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
 import type {
   EstimatePointsDto,
@@ -15,8 +18,6 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Aggregated calculations result for closing all positions
@@ -29,6 +30,7 @@ export interface CloseAllCalculationsResult {
   /** Total fees for closing all positions (undefined when unavailable) */
   totalFees: number | undefined;
   /** Total fee before the resolved builder discount, for the crossed out price */
+  originalTotalFees: number | undefined;
   /** Amount user will receive after closing all positions */
   receiveAmount: number;
   /** Aggregated estimated points for closing all positions (undefined when unavailable) */
@@ -36,6 +38,8 @@ export interface CloseAllCalculationsResult {
   /** Average fee discount percentage across all positions (undefined when unavailable) */
   avgFeeDiscountPercentage: number | undefined;
   feeDiscountKind: PerpsFeeDiscountKind;
+  /** Common winning source, omitted for mixed or unknown aggregates. */
+  feeSource?: PerpsFeeSource;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
   avgBonusBips: number | undefined;
   /** Average MetaMask fee rate across all positions (undefined when unavailable) */
@@ -104,7 +108,6 @@ export function usePerpsCloseAllCalculations({
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
-  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   // Use ref to access latest priceData without triggering re-renders
   const priceDataRef = useRef(priceData);
@@ -112,11 +115,7 @@ export function usePerpsCloseAllCalculations({
 
   // Lifecycle refs for cleanup and race condition prevention
   const isComponentMountedRef = useRef(true);
-  const discountFetchCounterRef = useRef(0);
   const calculationCounterRef = useRef(0);
-  // Tracks the account the freeze was set for, so position changes don't
-  // spuriously reset it but account switches do.
-  const discountAccountKeyRef = useRef<string | undefined>(undefined);
 
   // State for per-position calculations
   const [perPositionResults, setPerPositionResults] = useState<
@@ -126,13 +125,9 @@ export function usePerpsCloseAllCalculations({
   const [isFetchingInBackground, setIsFetchingInBackground] = useState(false);
   const [hasCalculationError, setHasCalculationError] = useState(false);
 
-  // State for account-level fee discount (applies uniformly to all positions)
-  const [feeDiscountBips, setFeeDiscountBips] = useState<number>(0);
-
   // Freeze mechanism: Prevent recalculation on WebSocket updates (price changes)
   // Reset freeze when positions/account/discount changes to allow recalculation
   const hasValidResultsRef = useRef(false);
-  const hasValidDiscountRef = useRef(false);
 
   // Calculate total margin
   const totalMargin = useMemo(
@@ -153,115 +148,6 @@ export function usePerpsCloseAllCalculations({
       ),
     [positions],
   );
-
-  // Fetch account-level fee discount (applies uniformly to all positions)
-  // Freeze mechanism prevents refetching once we have a hydrated answer.
-  // Positions are included in deps so an unhydrated result (null) gets a
-  // retry on the next positions change instead of locking in no-discount.
-  useEffect(() => {
-    // Increment counter to invalidate any in-flight requests
-    const currentFetchId = ++discountFetchCounterRef.current;
-    // Only reset freeze when the account actually changes — keep it across
-    // positions changes so a successful fetch isn't re-run on every tick.
-    const accountKey = `${selectedAddress ?? ''}-${currentChainId ?? ''}`;
-    if (discountAccountKeyRef.current !== accountKey) {
-      hasValidDiscountRef.current = false;
-      discountAccountKeyRef.current = accountKey;
-    }
-
-    async function fetchFeeDiscount() {
-      // Skip if VIP program is disabled
-      if (!isVipProgramEnabled) {
-        if (
-          discountFetchCounterRef.current === currentFetchId &&
-          isComponentMountedRef.current
-        ) {
-          setFeeDiscountBips(0);
-          hasValidDiscountRef.current = false;
-        }
-        return;
-      }
-
-      // Skip if already have valid discount for this account (freeze guard)
-      if (hasValidDiscountRef.current) {
-        return;
-      }
-
-      if (!selectedAddress || !currentChainId) {
-        // Only update state if this is still the latest fetch and component is mounted
-        if (
-          discountFetchCounterRef.current === currentFetchId &&
-          isComponentMountedRef.current
-        ) {
-          setFeeDiscountBips(0);
-          hasValidDiscountRef.current = false;
-        }
-        return;
-      }
-
-      try {
-        const caipAccountId = formatAccountToCaipAccountId(
-          selectedAddress,
-          currentChainId,
-        );
-        if (!caipAccountId) {
-          // Only update state if this is still the latest fetch and component is mounted
-          if (
-            discountFetchCounterRef.current === currentFetchId &&
-            isComponentMountedRef.current
-          ) {
-            setFeeDiscountBips(0);
-            hasValidDiscountRef.current = false;
-          }
-          return;
-        }
-
-        const response =
-          await Engine.context.RewardsController.getPerpsDiscountForAccount(
-            caipAccountId,
-            BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
-          );
-
-        // Only update state if this is still the latest fetch and component is mounted
-        if (
-          discountFetchCounterRef.current === currentFetchId &&
-          isComponentMountedRef.current
-        ) {
-          if (response === null) {
-            // Subscription state hasn't hydrated yet — don't cache the
-            // no-discount value. Freeze stays off so the next positions
-            // change retries the fetch.
-            DevLogger.log(
-              'Rewards: fee discount unhydrated for close-all flow, will retry on next positions change',
-              { selectedAddress, currentChainId },
-            );
-            setFeeDiscountBips(0);
-            hasValidDiscountRef.current = false;
-          } else {
-            setFeeDiscountBips(
-              typeof response === 'number' ? response : response.discountBips
-
-            );
-            hasValidDiscountRef.current = typeof response === 'number';
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to fetch fee discount:', error);
-        // Only update state if this is still the latest fetch and component is mounted
-        if (
-          discountFetchCounterRef.current === currentFetchId &&
-          isComponentMountedRef.current
-        ) {
-          setFeeDiscountBips(0);
-          hasValidDiscountRef.current = false;
-        }
-      }
-    }
-
-    fetchFeeDiscount().catch((error) => {
-      console.error('Unhandled error in fetchFeeDiscount:', error);
-    });
-  }, [selectedAddress, currentChainId, positions, isVipProgramEnabled]);
 
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
@@ -350,49 +236,10 @@ export function usePerpsCloseAllCalculations({
                   symbol: pos.symbol,
                 });
 
-              // Apply account-level discount to MetaMask fee
-              // Discount formula: adjusted_rate = original_rate * (1 - discount_bips/10000)
-              const discountMultiplier = baseFees.feeResolution ? 1 : feeDiscountBips > 0 ? 1 - feeDiscountBips / 10000 : 1;
-              const adjustedMetamaskFeeRate =
-                baseFees.metamaskFeeRate !== undefined
-                  ? baseFees.metamaskFeeRate * discountMultiplier
-                  : undefined;
-
-              // Preserve undefined state if base fees are undefined - don't default to 0
-              // Undefined indicates error/unavailable state, which should be handled at UI layer
-              const adjustedMetamaskFeeAmount =
-                baseFees.metamaskFeeAmount !== undefined
-                  ? baseFees.metamaskFeeAmount * discountMultiplier
-                  : undefined;
-
-              // Recalculate total fee amount and rate with discount applied
-              const adjustedTotalFee =
-                baseFees.protocolFeeAmount !== undefined &&
-                adjustedMetamaskFeeAmount !== undefined
-                  ? baseFees.protocolFeeAmount + adjustedMetamaskFeeAmount
-                  : undefined;
-
-              // Adjust total fee rate by subtracting the discount from MetaMask component
-              const adjustedTotalFeeRate =
-                baseFees.feeRate !== undefined &&
-                baseFees.metamaskFeeRate !== undefined &&
-                adjustedMetamaskFeeRate !== undefined
-                  ? baseFees.feeRate -
-                    (baseFees.metamaskFeeRate - adjustedMetamaskFeeRate)
-                  : undefined;
-
-              const fees = {
-                ...baseFees,
-                feeRate: adjustedTotalFeeRate,
-                metamaskFeeRate: adjustedMetamaskFeeRate,
-                metamaskFeeAmount: adjustedMetamaskFeeAmount,
-                feeAmount: adjustedTotalFee,
-              };
-
               return {
                 position: pos,
                 notionalUsd: positionValue,
-                fees,
+                fees: baseFees,
                 error: undefined,
               };
             } catch (error) {
@@ -501,11 +348,10 @@ export function usePerpsCloseAllCalculations({
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [positions, selectedAddress, currentChainId, feeDiscountBips]);
+  }, [positions, selectedAddress, currentChainId]);
   // Dependencies trigger freeze reset, allowing exactly one recalculation per change:
   // - positions: Recalculate when user opens/closes positions
   // - selectedAddress/currentChainId: Recalculate on account switch
-  // - feeDiscountBips: Recalculate when discount arrives from async fetch (happens once)
   // Price updates (priceDataRef) do NOT trigger recalculation due to freeze mechanism
 
   // Cleanup effect to prevent state updates after component unmounts
@@ -521,8 +367,11 @@ export function usePerpsCloseAllCalculations({
     if (perPositionResults.length === 0) {
       return {
         totalFees: undefined,
+        originalTotalFees: undefined,
         totalEstimatedPoints: undefined,
         avgFeeDiscountPercentage: undefined,
+        feeDiscountKind: undefined,
+        feeSource: undefined,
         avgBonusBips: undefined,
         avgMetamaskFeeRate: undefined,
         avgProtocolFeeRate: undefined,
@@ -544,32 +393,33 @@ export function usePerpsCloseAllCalculations({
       perPositionResults.length > 0 && perPositionResults[0].points
         ? perPositionResults[0].points.pointsEstimate
         : undefined;
-    const allResolved = perPositionResults.every(
-      (result) => result.fees.feeResolution !== undefined,
+    const originalTotalFees = perPositionResults.reduce<number | undefined>(
+      (sum, { fees, notionalUsd }) => {
+        if (
+          sum === undefined ||
+          fees.protocolFeeRate === undefined ||
+          fees.metamaskFeeRate === undefined
+        ) {
+          return undefined;
+        }
+        const originalMetamaskFeeRate =
+          fees.chargesMetamaskBuilderFee === false
+            ? fees.metamaskFeeRate
+            : BUILDER_FEE_CONFIG.MaxFeeDecimal;
+        return (
+          sum + notionalUsd * (fees.protocolFeeRate + originalMetamaskFeeRate)
+        );
+      },
+      0,
     );
-    const originalTotalFees = allResolved
-      ? perPositionResults.reduce<number | undefined>(
-        (sum, { fees, notionalUsd }) => {
-          if (sum === undefined || fees.protocolFeeRate === undefined)
-            return undefined;
-          return (
-            sum +
-            notionalUsd *
-            (BUILDER_FEE_CONFIG.MaxFeeDecimal + fees.protocolFeeRate)
-          );
-        },
-        0,
-      )
-      : undefined;
 
-    // Resolved previews use notional weights so a full fee waiver still
-    // contributes to the average. Keep the legacy calculation for older providers.
+    // Weight rates by position notional so fully waived builder fees are retained.
     let weightedMetamaskFeeRate = 0;
     let weightedProtocolFeeRate = 0;
     let totalWeight = 0;
 
     perPositionResults.forEach((result) => {
-      const weight = allResolved ? result.notionalUsd : (result.fees.feeAmount ?? 0);
+      const weight = result.notionalUsd;
       if (
         weight > 0 &&
         result.fees.metamaskFeeRate !== undefined &&
@@ -586,42 +436,43 @@ export function usePerpsCloseAllCalculations({
     const avgProtocolFeeRate =
       totalWeight > 0 ? weightedProtocolFeeRate / totalWeight : undefined;
 
-    // Calculate original MetaMask fee rate (before discount was applied)
-    // The discount is applied as: discounted_rate = original_rate * (1 - discount_bips/10000)
-    // Therefore: original_rate = discounted_rate / (1 - discount_bips/10000)
-    // Guard against 100% discount (10000 bips) causing division by zero
-    const resolvedDiscountBips =
-      allResolved && avgMetamaskFeeRate !== undefined
-        ? Math.max(
-          0,
-          Math.round(
-            10000 *
-            (1 - avgMetamaskFeeRate / BUILDER_FEE_CONFIG.MaxFeeDecimal),
-          ),
-        )
-        : feeDiscountBips;
-    const avgOriginalMetamaskFeeRate = allResolved
-      ? BUILDER_FEE_CONFIG.MaxFeeDecimal
-      : feeDiscountBips > 0 &&
-        feeDiscountBips < 10000 &&
-        avgMetamaskFeeRate !== undefined &&
-        avgMetamaskFeeRate > 0
-        ? avgMetamaskFeeRate / (1 - feeDiscountBips / 10000)
-        : avgMetamaskFeeRate;
-
-    // Convert discount from basis points to percentage for display
-    // e.g., 6500 bips = 65%
+    const originalBuilderTotal = perPositionResults.reduce(
+      (sum, { fees, notionalUsd }) =>
+        sum +
+        notionalUsd *
+          (fees.chargesMetamaskBuilderFee === false
+            ? (fees.metamaskFeeRate ?? 0)
+            : BUILDER_FEE_CONFIG.MaxFeeDecimal),
+      0,
+    );
+    const currentBuilderTotal = perPositionResults.reduce(
+      (sum, { fees, notionalUsd }) =>
+        sum + notionalUsd * (fees.metamaskFeeRate ?? 0),
+      0,
+    );
+    const avgOriginalMetamaskFeeRate =
+      totalWeight > 0 ? originalBuilderTotal / totalWeight : undefined;
     const avgFeeDiscountPercentage =
-      resolvedDiscountBips > 0 ? resolvedDiscountBips / 100 : undefined;
-
-    const discountKinds = perPositionResults
-      .filter(({ fees }) => (fees.feeResolution?.discountBips ?? 0) > 0)
-      .map(({ fees }) => getPerpsFeeDiscountKind(fees.feeResolution));
-    const feeDiscountKind =
-      discountKinds.length > 0 &&
-        discountKinds.every((kind) => kind === discountKinds[0])
-        ? discountKinds[0]
+      originalBuilderTotal > currentBuilderTotal && originalBuilderTotal > 0
+        ? ((originalBuilderTotal - currentBuilderTotal) /
+            originalBuilderTotal) *
+          100
         : undefined;
+
+    const sources = perPositionResults.map(({ fees }) => fees.feeSource);
+    const hasCommonSource =
+      sources.length > 0 && sources.every((source) => source === sources[0]);
+    const feeSource = hasCommonSource ? sources[0] : undefined;
+    const feeDiscountKind =
+      avgFeeDiscountPercentage === undefined
+        ? undefined
+        : hasCommonSource
+          ? getPerpsFeeDiscount({
+              feeSource,
+              currentFeeRate: currentBuilderTotal,
+              originalFeeRate: originalBuilderTotal,
+            }).kind
+          : 'generic';
 
     // Batch API returns average bonusBips already calculated by backend
     // All positions share the same batchPoints object, so use first result directly
@@ -642,13 +493,14 @@ export function usePerpsCloseAllCalculations({
       totalEstimatedPoints,
       avgFeeDiscountPercentage,
       feeDiscountKind,
+      feeSource,
       avgBonusBips,
       avgMetamaskFeeRate,
       avgProtocolFeeRate,
       avgOriginalMetamaskFeeRate,
       shouldShowRewards,
     };
-  }, [perPositionResults, feeDiscountBips]);
+  }, [perPositionResults]);
 
   // Calculate final receive amount
   const receiveAmount = useMemo(
@@ -663,10 +515,12 @@ export function usePerpsCloseAllCalculations({
     totalMargin,
     totalPnl,
     totalFees: aggregatedResults.totalFees,
+    originalTotalFees: aggregatedResults.originalTotalFees,
     receiveAmount,
     totalEstimatedPoints: aggregatedResults.totalEstimatedPoints,
     avgFeeDiscountPercentage: aggregatedResults.avgFeeDiscountPercentage,
     feeDiscountKind: aggregatedResults.feeDiscountKind,
+    feeSource: aggregatedResults.feeSource,
     avgBonusBips: aggregatedResults.avgBonusBips,
     avgMetamaskFeeRate: aggregatedResults.avgMetamaskFeeRate,
     avgProtocolFeeRate: aggregatedResults.avgProtocolFeeRate,
