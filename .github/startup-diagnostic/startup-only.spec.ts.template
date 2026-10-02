@@ -1,0 +1,97 @@
+import { writeFile } from 'node:fs/promises';
+import { test } from __FIXTURES__;
+import FixtureBuilder from __FIXTURE_BUILDER__;
+import { withFixtures } from __FIXTURE_HELPER__;
+import { loginToAppPlaywright } from __WALLET_FLOW__;
+
+const snapshotPath = __SNAPSHOT_PATH__;
+const headSha = __HEAD_SHA__;
+const inputLabel = __INPUT_LABEL__;
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+const safeBoolean = (value: unknown): boolean | null =>
+  typeof value === 'boolean' ? value : null;
+const safeMember = (value: unknown, allowed: readonly string[]): string | null =>
+  typeof value === 'string' && allowed.includes(value) ? value : null;
+
+test('Startup diagnostic: unlock only', async ({ driver, currentDeviceDetails }) => {
+  await withFixtures(
+    {
+      fixture: new FixtureBuilder().build(),
+      restartDevice: true,
+      currentDeviceDetails,
+      useCommandQueueServer: true,
+    },
+    async ({ commandQueueServer }) => {
+      const loginStarted = Date.now();
+      let loginError: unknown;
+      try {
+        await loginToAppPlaywright({ scenarioType: 'e2e' });
+      } catch (error) {
+        loginError = error;
+      }
+
+      const snapshot: Record<string, unknown> = {
+        schemaVersion: 1,
+        headSha,
+        inputLabel,
+        loginElapsedMs: Date.now() - loginStarted,
+        stage: loginError ? 'after-login-error-before-cleanup' : 'after-login-return-before-cleanup',
+        loginReturned: loginError === undefined,
+        walletReadinessTimeout:
+          loginError instanceof Error && loginError.message.startsWith('Wallet home not ready'),
+      };
+
+      try {
+        // Use the hierarchy in memory. Store only these fixed marker booleans.
+        const source = await (globalThis.driver ?? driver).getPageSource();
+        const knownIds = [
+          'wallet-screen', 'login', 'fox-screen', 'fox-loader-container',
+          'fox-loader-static-fox', 'android:id/splashscreen_icon_view',
+        ];
+        snapshot.uiHierarchyAvailable = true;
+        snapshot.uiMarkers = Object.fromEntries(knownIds.map((id) => [id,
+          source.includes(`resource-id="${id}"`) ||
+          source.includes(`resource-id="io.metamask:id/${id}"`) ||
+          source.includes(`content-desc="${id}"`),
+        ]));
+      } catch {
+        snapshot.uiHierarchyAvailable = false;
+      }
+
+      if (commandQueueServer) {
+        commandQueueServer.requestStateExport();
+        try {
+          // Export remains in memory. Do not log or save the raw state.
+          const exported = await commandQueueServer.getExportedState(10_000, 250);
+          const redux = asRecord(exported.redux);
+          const user = asRecord(redux.user);
+          const engine = asRecord(exported.engine);
+          const keyring = asRecord(engine.KeyringController);
+          const perps = asRecord(engine.PerpsController);
+          snapshot.commandQueueResponsive = true;
+          snapshot.stateExportReceived = true;
+          snapshot.appServicesReady = safeBoolean(user.appServicesReady);
+          snapshot.existingUser = safeBoolean(user.existingUser);
+          snapshot.userLoggedIn = safeBoolean(user.userLoggedIn);
+          snapshot.isAuthChecked = safeBoolean(user.isAuthChecked);
+          snapshot.keyringIsUnlocked = safeBoolean(keyring.isUnlocked);
+          snapshot.perpsInitializationState = safeMember(perps.initializationState,
+            ['uninitialized', 'initializing', 'initialized', 'failed']);
+          snapshot.perpsActiveProvider = safeMember(perps.activeProvider,
+            ['hyperliquid', 'lighter', 'aggregated']);
+        } catch {
+          snapshot.commandQueueResponsive = false;
+          snapshot.stateExportReceived = false;
+        }
+      } else {
+        snapshot.commandQueueAvailable = false;
+      }
+      await writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
+      console.log('Startup diagnostic: readiness projection saved');
+      if (loginError !== undefined) throw loginError;
+    },
+  );
+});

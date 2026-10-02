@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "heads": {
+    "mobile12": {
+      "sha": "ff7f1e8b2b8b917706514e030f796dea0451bdda",
+      "tree": "4bb89a810f2dfbacb612dacbc17676b1aaf00998"
+    },
+    "main-control": {
+      "sha": "8eac44caa56584db4ab5a3ba3679aecd45e91de3",
+      "tree": "92c212bda7dd1004bb51e2c84b77c5bb3a583170"
+    },
+    "mobile11-reference": {
+      "sha": "7b409a64d20dac5eb7b750c89112df87e593c7fa",
+      "tree": "60b183911eedbebebb0e6a873656bb07331380c9",
+      "apkSha256": "d4ca45c028f90fb73edf0eb4431d60e281d7966150449a1ee05a0a692acc52fc"
+    }
+  }
+}

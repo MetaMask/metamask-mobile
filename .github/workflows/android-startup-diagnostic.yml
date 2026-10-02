@@ -1,0 +1,203 @@
+# Diagnostic branch only; product inputs are checked out explicitly below.
+# Push trigger permits a newly introduced workflow without default-branch registration.
+name: Android startup diagnostic (pinned Mobile12 and main)
+on:
+  push:
+    branches: [diagnostic/tat-4045-android-startup-12]
+    paths:
+      - .github/workflows/android-startup-diagnostic.yml
+      - .github/startup-diagnostic/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: android-startup-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: 'true'
+  GITHUB_CI: 'true'
+  YARN_ENABLE_GLOBAL_CACHE: 'true'
+
+jobs:
+  build:
+    name: Fresh Android build (${{ matrix.input.label }})
+    runs-on: namespace-profile-metamask-android-build
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        input:
+          - label: mobile12
+            sha: ff7f1e8b2b8b917706514e030f796dea0451bdda
+          - label: main-control
+            sha: 8eac44caa56584db4ab5a3ba3679aecd45e91de3
+    env:
+      GRADLE_USER_HOME: /home/runner/_work/.gradle
+    steps:
+      - name: Read diagnostic tooling from the workflow commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve tooling outside the product checkout
+        shell: bash
+        run: cp -R .github/startup-diagnostic "$RUNNER_TEMP/startup-diagnostic-tools"
+      - name: Check out the exact product input
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.input.sha }}
+          persist-credentials: false
+          clean: true
+      - name: Verify product SHA and tree before setup
+        shell: bash
+        run: |
+          python3 "$RUNNER_TEMP/startup-diagnostic-tools/record-provenance.py" \
+            "$GITHUB_WORKSPACE" "$RUNNER_TEMP/startup-build/checkout-provenance.json" \
+            "${{ matrix.input.label }}"
+      - name: Setup the existing fresh native build environment
+        timeout-minutes: 15
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'false'
+          configure-keystores: 'true'
+          install-foundry: 'false'
+          runner_provider: namespace
+      - name: Setup the project using the existing native path
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios
+      - name: Fresh native and JS build (no artifact donor or repack)
+        shell: bash
+        run: |
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:main:e2e
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: e2e
+          METAMASK_BUILD_TYPE: main
+          E2E_INCLUDE_ARM64: 'false'
+          HAS_TEST_OVERRIDES: 'true'
+          E2E: 'true'
+          E2E_MOCK_OAUTH: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          METRO_MAX_WORKERS: '4'
+          CMAKE_VERSION: '3.22.1'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_POOLED_STAKING_ENABLED: 'true'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+      - name: Verify source preservation and hash the fresh APK and Hermes bundle
+        shell: bash
+        run: |
+          python3 "$RUNNER_TEMP/startup-diagnostic-tools/record-provenance.py" \
+            "$GITHUB_WORKSPACE" "$RUNNER_TEMP/startup-build/build-provenance.json" \
+            "${{ matrix.input.label }}" android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk "$RUNNER_TEMP/startup-build/"
+      - name: Retain each pinned fresh APK and its provenance
+        uses: actions/upload-artifact@v7
+        with:
+          name: startup-fresh-build-${{ matrix.input.label }}
+          path: ${{ runner.temp }}/startup-build/
+          if-no-files-found: error
+          retention-days: 7
+
+  unlock:
+    name: Unlock-only Android probe (${{ matrix.input.label }})
+    needs: build
+    if: ${{ always() && !cancelled() }}
+    runs-on: namespace-profile-metamask-android-e2e
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        input:
+          - label: mobile12
+            sha: ff7f1e8b2b8b917706514e030f796dea0451bdda
+          - label: main-control
+            sha: 8eac44caa56584db4ab5a3ba3679aecd45e91de3
+    steps:
+      - name: Read diagnostic tooling from the workflow commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve tooling outside the product checkout
+        shell: bash
+        run: cp -R .github/startup-diagnostic "$RUNNER_TEMP/startup-diagnostic-tools"
+      - name: Check out the exact product input
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.input.sha }}
+          persist-credentials: false
+          clean: true
+      - name: Setup the standard Android Appium environment
+        timeout-minutes: 20
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'true'
+          android-avd-name: appium_smoke_avd
+          android-api-level: '36'
+          android-tag: google_apis
+          android-abi: x86_64
+          android-device: pixel_5
+          configure-keystores: 'false'
+          install-foundry: 'true'
+          runner_provider: namespace
+      - name: Download the matching fresh APK
+        uses: actions/download-artifact@v7
+        with:
+          name: startup-fresh-build-${{ matrix.input.label }}
+          path: ${{ runner.temp }}/startup-apk
+      - name: Capture native and JS exceptions plus projected readiness before cleanup
+        shell: bash
+        timeout-minutes: 12
+        env:
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+        run: |
+          bash "$RUNNER_TEMP/startup-diagnostic-tools/run-unlock-probe.sh" \
+            "$GITHUB_WORKSPACE" "$RUNNER_TEMP/startup-apk/app-prod-release.apk" \
+            "$RUNNER_TEMP/startup-evidence" "${{ matrix.input.label }}" \
+            "$RUNNER_TEMP/startup-apk/build-provenance.json"
+      - name: Retain filtered diagnostic evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: startup-unlock-evidence-${{ matrix.input.label }}
+          path: |
+            ${{ runner.temp }}/startup-evidence/readiness.json
+            ${{ runner.temp }}/startup-evidence/run-result.json
+            ${{ runner.temp }}/startup-evidence/runtime-input.json
+            ${{ runner.temp }}/startup-evidence/apk-input.json
+            ${{ runner.temp }}/startup-evidence/logcat-capture.json
+            ${{ runner.temp }}/startup-evidence/logcat.filtered.log
+            ${{ runner.temp }}/startup-evidence/appium.filtered.log
+            ${{ runner.temp }}/startup-apk/build-provenance.json
+            ${{ runner.temp }}/startup-apk/checkout-provenance.json
+          if-no-files-found: warn
+          retention-days: 7
