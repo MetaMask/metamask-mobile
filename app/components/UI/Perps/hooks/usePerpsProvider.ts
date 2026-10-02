@@ -254,13 +254,8 @@ export function usePerpsProvider(
   const supportsChaseOrders =
     readyOrderCapabilities?.supportedStrategies.includes('chase') === true;
   const supportedTriggerOrderTypes = useMemo<readonly TriggerOrderType[]>(
-    () =>
-      orderCapabilities?.status === 'ready' &&
-      (!expectedCapabilityProviderId ||
-        orderCapabilities.providerId === expectedCapabilityProviderId)
-        ? (orderCapabilities.supportedTriggerOrderTypes ?? [])
-        : [],
-    [expectedCapabilityProviderId, orderCapabilities],
+    () => readyOrderCapabilities?.supportedTriggerOrderTypes ?? [],
+    [readyOrderCapabilities],
   );
   const checkTriggerOrderSupport = useCallback(
     async (

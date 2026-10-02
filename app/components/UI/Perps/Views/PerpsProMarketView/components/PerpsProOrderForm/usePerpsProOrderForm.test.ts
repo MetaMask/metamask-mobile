@@ -506,10 +506,12 @@ const renderProForm = (
     types?: readonly TriggerOrderType[];
     checkSupport?: (type: TriggerOrderType) => Promise<boolean>;
   } = {},
+  checkTwapSupport?: () => Promise<boolean>,
 ) => {
   const checkTriggerOrderSupport =
     triggerGate.checkSupport ?? jest.fn().mockResolvedValue(true);
-  const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
+  const checkTwapOrderSupport =
+    checkTwapSupport ?? jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
     scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true);
   const refreshChaseCapability =
@@ -1540,6 +1542,54 @@ describe('usePerpsProOrderForm', () => {
         strings('perps.order.validation.twap_unavailable'),
       );
     });
+
+    it.each([
+      { unmount: false, toastCount: 1, errorCount: 1 },
+      { unmount: true, toastCount: 0, errorCount: 0 },
+    ])(
+      'respects TWAP submission lifetime during capability refusal: %j',
+      async (scenario) => {
+        let resolveSupport: ((supported: boolean) => void) | undefined;
+        const checkSupport = jest.fn(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSupport = resolve;
+            }),
+        );
+        mockOrderForm.type = 'twap';
+        const form = renderProForm(
+          true,
+          true,
+          'hyperliquid',
+          false,
+          {},
+          {},
+          market,
+          {},
+          checkSupport,
+        );
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() => expect(checkSupport).toHaveBeenCalledTimes(1));
+        if (scenario.unmount) form.unmount();
+        await act(async () => {
+          resolveSupport?.(false);
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalledTimes(scenario.toastCount);
+        expect(
+          mockTrack.mock.calls.filter(
+            (call: unknown[]) => call[0] === MetaMetricsEvents.PERPS_ERROR,
+          ),
+        ).toHaveLength(scenario.errorCount);
+        expect(playImpact).not.toHaveBeenCalled();
+      },
+    );
 
     it('re-checks TWAP rollout after an asynchronous compliance gate', async () => {
       let continuePlacement: (() => Promise<unknown>) | undefined;
@@ -5085,6 +5135,103 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({ id: 'validationError' }),
       );
     });
+
+    it.each([
+      { unmount: false, toastCount: 1 },
+      { unmount: true, toastCount: 0 },
+    ])(
+      'respects Scale submission lifetime during capability refusal: %j',
+      async (scenario) => {
+        let resolveSupport: ((supported: boolean) => void) | undefined;
+        const checkSupport = jest.fn(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSupport = resolve;
+            }),
+        );
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const form = renderProForm(true, true, 'hyperliquid', false, {
+          checkSupport,
+        });
+        configureScaleOrder(form.result);
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() => expect(checkSupport).toHaveBeenCalledTimes(1));
+        if (scenario.unmount) form.unmount();
+        await act(async () => {
+          resolveSupport?.(false);
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalledTimes(scenario.toastCount);
+        expect(mockTrack).not.toHaveBeenCalledWith(
+          MetaMetricsEvents.PERPS_ERROR,
+          expect.anything(),
+        );
+        expect(playImpact).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      { unmount: false, valid: true, placementCount: 1, toastCount: 2 },
+      { unmount: true, valid: true, placementCount: 0, toastCount: 0 },
+      { unmount: false, valid: false, placementCount: 0, toastCount: 1 },
+      { unmount: true, valid: false, placementCount: 0, toastCount: 0 },
+    ])(
+      'respects Scale submission lifetime after final validation: %j',
+      async (scenario) => {
+        const validResult = {
+          errors: [] as string[],
+          warnings: [] as string[],
+          fieldIssues: [] as OrderFormFieldIssue[],
+          isValid: true,
+        };
+        let resolveValidation:
+          | ((value: typeof validResult) => void)
+          | undefined;
+        mockValidation.validateNow
+          .mockResolvedValueOnce(validResult)
+          .mockReturnValueOnce(
+            new Promise<typeof validResult>((resolve) => {
+              resolveValidation = resolve;
+            }),
+          );
+        const checkSupport = jest.fn().mockResolvedValue(true);
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const form = renderProForm(true, true, 'hyperliquid', false, {
+          checkSupport,
+        });
+        configureScaleOrder(form.result);
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() =>
+          expect(mockValidation.validateNow).toHaveBeenCalledTimes(2),
+        );
+        expect(checkSupport).toHaveBeenCalledTimes(1);
+        if (scenario.unmount) form.unmount();
+        await act(async () => {
+          resolveValidation?.({
+            ...validResult,
+            isValid: scenario.valid,
+            errors: scenario.valid ? [] : ['Final Scale validation refused'],
+          });
+          await submission;
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledTimes(scenario.placementCount);
+        expect(mockShowToast).toHaveBeenCalledTimes(scenario.toastCount);
+        expect(playImpact).toHaveBeenCalledTimes(scenario.placementCount);
+      },
+    );
 
     it('restarts Scale validation when the live position changes during validation', async () => {
       let resolveValidation:
