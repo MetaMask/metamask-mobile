@@ -13,7 +13,13 @@
  */
 
 import '../../../../../../tests/component-view/mocks';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -126,8 +132,20 @@ describe('Homepage TopTradersSection', () => {
         )
         .map((item) => item.trader.username),
     ).toEqual([alpha.name, beta.name]);
-    expect(screen.getByText(alpha.name)).toBeOnTheScreen();
-    expect(screen.getByText(beta.name)).toBeOnTheScreen();
+    // Data completeness: every card shows name, abbreviated 7-day P&L and the
+    // follow CTA that matches the trader's follow state.
+    const alphaCard = within(screen.getByTestId(cardId(alpha.profileId)));
+    expect(alphaCard.getByText(alpha.name)).toBeOnTheScreen();
+    expect(alphaCard.getByText('+$963.1K')).toBeOnTheScreen();
+    expect(
+      alphaCard.getByText(strings('social_leaderboard.follow')),
+    ).toBeOnTheScreen();
+    const betaCard = within(screen.getByTestId(cardId(beta.profileId)));
+    expect(betaCard.getByText(beta.name)).toBeOnTheScreen();
+    expect(betaCard.getByText('+$474.8K')).toBeOnTheScreen();
+    expect(
+      betaCard.getByText(strings('social_leaderboard.follow')),
+    ).toBeOnTheScreen();
     // The perps-only trader never reaches the homepage (spot chains only).
     expect(screen.queryByText(gamma.name)).not.toBeOnTheScreen();
     expect(screen.getByTestId(VIEW_MORE_CARD_ID)).toBeOnTheScreen();
