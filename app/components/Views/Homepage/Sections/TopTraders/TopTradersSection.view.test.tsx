@@ -15,6 +15,7 @@
 import '../../../../../../tests/component-view/mocks';
 import {
   renderHomeTopTradersSection,
+  restoreHomeTopTradersSectionStore,
   stubHomepageSectionMeasurement,
 } from '../../../../../../tests/component-view/renderers/socialLeaderboard';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -92,6 +93,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   });
 
   afterEach(() => {
+    restoreHomeTopTradersSectionStore();
     clearLeaderboardApiMock();
     measurementSpy.mockRestore();
   });
