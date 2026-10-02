@@ -387,11 +387,13 @@ describe('TopTradersView', () => {
   // -------------------------------------------------------------------------
 
   it('hides the type pill and never queries the perps chain when the perps flag is off', async () => {
+    const [alpha, beta, gamma] = mockLeaderboardTraders;
     renderTopTradersView({ presetOptions: { perpsEnabled: false } });
 
-    expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
-    expect(screen.getByText('beta.eth')).toBeOnTheScreen();
+    expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
+    expect(screen.getByText(beta.name)).toBeOnTheScreen();
 
+    expect(screen.queryByText(gamma.name)).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).not.toBeOnTheScreen();
@@ -407,6 +409,7 @@ describe('TopTradersView', () => {
         ([action]) => action === 'SocialService:fetchLeaderboard',
       )
       .flatMap(([, opts]) => (opts as { chains?: string[] }).chains ?? []);
+    expect(fetchedChains).toEqual(expect.arrayContaining(SPOT_CHAINS));
     expect(fetchedChains).not.toContain(PERP_CHAINS[0]);
   });
 
@@ -415,12 +418,13 @@ describe('TopTradersView', () => {
   // -------------------------------------------------------------------------
 
   it('lists only perps traders and hides the type pill when the host pins the perps type', async () => {
+    const [alpha, beta, gamma] = mockLeaderboardTraders;
     renderTopTradersViewWithProps({ pinnedTypeFilter: 'perps' });
 
-    expect(await screen.findByText('gamma.eth')).toBeOnTheScreen();
+    expect(await screen.findByText(gamma.name)).toBeOnTheScreen();
 
-    expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
-    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
+    expect(screen.queryByText(alpha.name)).not.toBeOnTheScreen();
+    expect(screen.queryByText(beta.name)).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).not.toBeOnTheScreen();
