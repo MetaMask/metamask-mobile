@@ -32,7 +32,15 @@ import {
   renderTopTradersViewWithProps,
   renderTopTradersViewWithRoutes,
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
+import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+/* eslint-disable import-x/no-restricted-paths -- test-only: these ids are owned by the homepage row and medal this view renders */
+import {
+  getTraderRowMuteChipTestId,
+  getTraderRowTestId,
+} from '../../Homepage/Sections/TopTraders/components/TraderRow.testIds';
+import { getRankMedalTestId } from '../../Homepage/Sections/TopTraders/topRank/RankMedal.testIds';
+/* eslint-enable import-x/no-restricted-paths */
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
   getRankingFilterOptionTestId,
@@ -79,7 +87,7 @@ const triggerPullToRefresh = async () => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('TopTradersView', () => {
+describeForPlatforms('TopTradersView', () => {
   beforeEach(() => {
     setupLeaderboardApiMock();
   });
@@ -102,11 +110,11 @@ describe('TopTradersView', () => {
 
     // Validate all significant fields for alpha.eth (rank 1 – gold medal).
     const alphaRow = await screen.findByTestId(
-      `trader-row-${alpha1.profileId}`,
+      getTraderRowTestId(alpha1.profileId),
     );
     const alphaWithin = within(alphaRow);
     expect(
-      alphaWithin.getByTestId(`rank-medal-${alpha1.rank}`),
+      alphaWithin.getByTestId(getRankMedalTestId(alpha1.rank)),
     ).toBeOnTheScreen();
     expect(alphaWithin.getByText('+$963,146.80')).toBeOnTheScreen();
     expect(
@@ -114,10 +122,12 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
 
     // Validate all significant fields for beta.eth (rank 2 – silver medal).
-    const betaRow = await screen.findByTestId(`trader-row-${alpha2.profileId}`);
+    const betaRow = await screen.findByTestId(
+      getTraderRowTestId(alpha2.profileId),
+    );
     const betaWithin = within(betaRow);
     expect(
-      betaWithin.getByTestId(`rank-medal-${alpha2.rank}`),
+      betaWithin.getByTestId(getRankMedalTestId(alpha2.rank)),
     ).toBeOnTheScreen();
     expect(betaWithin.getByText('+$474,751.45')).toBeOnTheScreen();
     expect(
@@ -335,7 +345,7 @@ describe('TopTradersView', () => {
 
     await act(async () => {
       fireEvent.press(
-        screen.getByTestId(`trader-row-mute-chip-${alpha.profileId}`),
+        screen.getByTestId(getTraderRowMuteChipTestId(alpha.profileId)),
       );
     });
 
@@ -507,7 +517,7 @@ describe('TopTradersView', () => {
 
       expect(within(viewerCard).getByText(beta.name)).toBeOnTheScreen();
       expect(
-        within(viewerCard).getByTestId(`rank-medal-${beta.rank}`),
+        within(viewerCard).getByTestId(getRankMedalTestId(beta.rank)),
       ).toBeOnTheScreen();
       const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
       const listedIds = (list.props.data as { id: string }[]).map(
@@ -537,7 +547,13 @@ describe('TopTradersView', () => {
 
       expect(within(viewerCard).getByText('viewer.eth')).toBeOnTheScreen();
       expect(
-        within(viewerCard).queryByTestId(/^rank-medal-/u),
+        within(viewerCard).queryByTestId(getRankMedalTestId(1)),
+      ).not.toBeOnTheScreen();
+      expect(
+        within(viewerCard).queryByTestId(getRankMedalTestId(2)),
+      ).not.toBeOnTheScreen();
+      expect(
+        within(viewerCard).queryByTestId(getRankMedalTestId(3)),
       ).not.toBeOnTheScreen();
       const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
       expect(list.props.data).toHaveLength(mockLeaderboardTraders.length);
