@@ -988,13 +988,13 @@
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
       "basicFunctionalityMigrationNotification": null,
-      "basicFunctionalityMigrationNotificationDismissed": false,
+      "basicFunctionalityMigrationNotificationDismissed": true,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,
       "hasLinkedSocialLoginProfile": false,
       "hideZeroBalanceTokens": false,
-      "isBasicFunctionalityConsolidatedEnabled": false,
+      "isBasicFunctionalityConsolidatedEnabled": true,
       "lockTime": 30000,
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"
