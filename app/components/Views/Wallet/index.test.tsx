@@ -2024,6 +2024,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
     ).toBeOnTheScreen();
@@ -2033,7 +2034,6 @@ describe('Header and Nav Bar refresh AB test', () => {
       WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
       WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
       WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }

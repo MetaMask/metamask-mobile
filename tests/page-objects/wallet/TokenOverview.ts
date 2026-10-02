@@ -8,6 +8,7 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Vi
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import type { AppiumElement } from '../../framework/AppiumElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class TokenOverview {
   get container(): Promise<AppiumElement> {
@@ -32,9 +33,22 @@ class TokenOverview {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
+  /**
+   * Price chart marker. The advanced chart renders PRICE_CHART_CONTAINER;
+   * the legacy SVG fallback renders PRICE_CHART_DOT_END instead.
+   */
   get priceChartContainer(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
+    const advancedChartId = TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER;
+    const legacyChartDotId = TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END;
+
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${advancedChartId}' or @name='${legacyChartDotId}' or @label='${advancedChartId}' or @label='${legacyChartDotId}']`,
+      );
+    }
+
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${advancedChartId}' or @resource-id='${legacyChartDotId}']`,
     );
   }
 

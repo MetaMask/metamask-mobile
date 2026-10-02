@@ -3,8 +3,19 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import { type AppiumElement, getDriver, wrapElement } from '../../framework';
+import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
+import { getPerformanceLocatorRecovery } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+
+/**
+ * WDIO derives the swipe coordinates from the scrollable element and defaults
+ * to 0.95, which starts the gesture 2.5% above the bottom of the scroll view.
+ * The floating tab bar overlays that strip and swallows the touch, so the
+ * homepage never scrolls. 0.5 starts it at 75% of the container, clear of the
+ * bar on both gesture and three-button navigation.
+ */
+const WALLET_HOME_SWIPE_PERCENT = 0.5;
 
 export class WalletHomeScroll {
   get walletScrollContainer(): string {
@@ -56,7 +67,7 @@ export class WalletHomeScroll {
 
     const fromY =
       fingerDirection === 'up'
-        ? location.y + Math.floor(size.height * 0.75)
+        ? location.y + Math.floor(size.height * 0.5)
         : location.y + Math.floor(size.height * 0.35);
     const toY = fingerDirection === 'up' ? fromY - travel : fromY + travel;
 
@@ -101,11 +112,14 @@ export class WalletHomeScroll {
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
       )) as AppiumElement;
-      await Gestures.scrollIntoView(
+      // Android reports a header behind the floating tab bar as displayed, so
+      // scrollIntoView alone stops with it unreachable.
+      await Gestures.scrollIntoViewFullyVisible(
         await this.resolveFreshWalletHomeTarget(target),
         {
           scrollableElement: scrollView,
           direction: direction === 'down' ? 'up' : 'down',
+          percent: WALLET_HOME_SWIPE_PERCENT,
           maxScrolls: maxAttempts,
         },
       );
@@ -178,30 +192,69 @@ export class WalletHomeScroll {
     } = {},
   ): Promise<void> {
     const { overshootSwipe, timeout = 15_000, tapTimeout = 30_000 } = options;
+    const maxAttempts = Math.max(8, Math.ceil(timeout / 2_000));
+    const recovery = getPerformanceLocatorRecovery();
 
-    await this.scrollWalletHomeToElement(
-      target,
-      description,
-      direction,
-      Math.max(8, Math.ceil(timeout / 2_000)),
-    );
-    if (overshootSwipe) {
-      const overshootScrollDirection =
-        overshootSwipe.direction === 'up' ? 'down' : 'up';
-      if (this.isAndroidAppium()) {
-        await this.scrollWalletHomeAndroid(
-          overshootScrollDirection,
-          overshootSwipe.percentage ?? 0.15,
-        );
-      } else {
-        await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
-          percentage: overshootSwipe.percentage ?? 0.15,
-          speed: 'slow',
-          elemDescription: `Overshoot swipe for ${description}`,
-        });
+    const scrollIntoViewWithOvershoot = async (
+      sectionTarget: Promise<AppiumElement>,
+      scrollDirection: 'up' | 'down',
+    ): Promise<AppiumElement> => {
+      await this.scrollWalletHomeToElement(
+        sectionTarget,
+        description,
+        scrollDirection,
+        maxAttempts,
+      );
+      if (overshootSwipe) {
+        const overshootScrollDirection =
+          overshootSwipe.direction === 'up' ? 'down' : 'up';
+        if (this.isAndroidAppium()) {
+          await this.scrollWalletHomeAndroid(
+            overshootScrollDirection,
+            overshootSwipe.percentage ?? 0.15,
+          );
+        } else {
+          await Gestures.swipe(
+            this.walletScrollView,
+            overshootSwipe.direction,
+            {
+              percentage: overshootSwipe.percentage ?? 0.15,
+              speed: 'slow',
+              elemDescription: `Overshoot swipe for ${description}`,
+            },
+          );
+        }
       }
-    }
-    await Gestures.waitAndTap(await this.resolveFreshWalletHomeTarget(target), {
+      return this.resolveFreshWalletHomeTarget(sectionTarget);
+    };
+
+    const { element } = await findWithSelfHealingLocator({
+      intent: `scroll wallet home to and tap ${description}`,
+      primary: async () => scrollIntoViewWithOvershoot(target, direction),
+      driver: getDriver(),
+      recovery: recovery?.provider,
+      // Recovered locators may sit above or below the failed primary path —
+      // try both scroll directions before giving up.
+      recoverAction: async (recoveredElement) => {
+        const recoveredTarget = Promise.resolve(recoveredElement);
+        let ready: AppiumElement | undefined;
+        await this.tryScrollDirections(async (scrollDirection) => {
+          ready = await scrollIntoViewWithOvershoot(
+            recoveredTarget,
+            scrollDirection,
+          );
+        });
+        if (!ready) {
+          throw new Error(
+            `Failed to scroll recovered locator into view for ${description}`,
+          );
+        }
+        return ready;
+      },
+      onRecovered: recovery?.onRecovered,
+    });
+
+    await Gestures.waitAndTap(element, {
       elemDescription: description,
       timeout: tapTimeout,
     });

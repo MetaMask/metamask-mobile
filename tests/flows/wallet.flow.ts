@@ -118,7 +118,7 @@ export const ensureAccountListOpenPlaywright = async (
   while (Date.now() < deadline) {
     try {
       await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
+        AccountListBottomSheet.addAccountButton,
         { timeout: 1_500, description: 'Account list' },
       );
       return;
@@ -134,7 +134,7 @@ export const ensureAccountListOpenPlaywright = async (
       try {
         // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
+          AccountListBottomSheet.addAccountButton,
           {
             timeout: 3_000,
             description: 'Account list should open from wallet home',
@@ -357,7 +357,7 @@ export const dismissOnboardingInterestQuestionnaire =
           await Gestures.waitAndTap(
             OnboardingInterestQuestionnaireView.skipButton,
             {
-              timeout: 5000,
+              timeout: 2000,
               checkForDisplayed: true,
               checkEnabled: true,
             },
@@ -365,7 +365,7 @@ export const dismissOnboardingInterestQuestionnaire =
           await Assertions.expectElementToNotBeVisible(
             OnboardingInterestQuestionnaireView.skipButton,
             {
-              timeout: 5000,
+              timeout: 2000,
               description: 'Interest questionnaire skip should close',
             },
           );
@@ -548,8 +548,8 @@ export const CreateNewWallet = async ({
 
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
-  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   // Check that we are on the Manual Backup Step 1 screen
   await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
