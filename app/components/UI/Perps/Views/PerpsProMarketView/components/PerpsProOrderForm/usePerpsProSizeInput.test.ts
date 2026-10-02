@@ -24,6 +24,55 @@ describe('usePerpsProSizeInput', () => {
     jest.clearAllMocks();
   });
 
+  it('preserves venue-owned base intent through blur and live price changes', () => {
+    const params = createParams({
+      preserveAssetIntent: true,
+      effectivePrice: 137.31,
+    });
+    const { result, rerender } = renderHook(
+      (input) => usePerpsProSizeInput(input),
+      { initialProps: params },
+    );
+
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeInput.onChange('0.123456'));
+    act(() => result.current.sizeInput.onBlur());
+    rerender({ ...params, effectivePrice: 140.13 });
+
+    expect(result.current.sizeInput.value).toBe('0.123456');
+    expect(result.current.exactAssetAmount).toBe('0.123456');
+  });
+
+  it('keeps a slider selection as a capped quote intent in base denomination', () => {
+    const params = createParams({ preserveAssetIntent: true });
+    const { result } = renderHook(() => usePerpsProSizeInput(params));
+
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeSlider.onValueChange(137));
+
+    expect(result.current.exactAssetAmount).toBeUndefined();
+    expect(result.current.effectiveUsdAmount).toBe('137');
+  });
+
+  it('keeps the committed slider budget through base blur, price ticks and denomination toggles', () => {
+    const params = createParams({ preserveAssetIntent: true });
+    const { result, rerender } = renderHook(
+      (input) => usePerpsProSizeInput(input),
+      { initialProps: params },
+    );
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeSlider.onDragEnd(137));
+    rerender({ ...params, usdAmount: '137' });
+    act(() => result.current.sizeInput.onBlur());
+    rerender({ ...params, usdAmount: '137', effectivePrice: 95000 });
+
+    expect(result.current.exactAssetAmount).toBeUndefined();
+    expect(result.current.effectiveUsdAmount).toBe('137');
+    act(() => result.current.sizeInput.onToggleDenomination());
+    expect(result.current.sizeInput.value).toBe('137');
+    expect(result.current.effectiveUsdAmount).toBe('137');
+  });
+
   it('starts in USD mode with the canonical amount', () => {
     const params = createParams();
 

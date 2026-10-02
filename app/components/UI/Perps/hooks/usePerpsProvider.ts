@@ -25,7 +25,6 @@ import {
 import {
   PERPS_ORDER_CAPABILITIES_MAX_RETRIES,
   PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
-  PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { isLighterProviderEnabled } from '../utils/lighterFeatureFlags';
@@ -249,8 +248,7 @@ export function usePerpsProvider(
   const supportsTwapOrders =
     readyOrderCapabilities?.supportedStrategies.includes('twap') === true;
   const supportsScaleOrders =
-    readyOrderCapabilities?.providerId === PROVIDER_CONFIG.DefaultProvider &&
-    readyOrderCapabilities.supportedStrategies.includes('scale');
+    readyOrderCapabilities?.supportedStrategies.includes('scale') === true;
   const supportsChaseOrders =
     readyOrderCapabilities?.supportedStrategies.includes('chase') === true;
   const supportedTriggerOrderTypes = useMemo<readonly TriggerOrderType[]>(
@@ -324,8 +322,6 @@ export function usePerpsProvider(
           capabilityRequestRef.current === request &&
           capabilities.status === 'ready' &&
           capabilities.supportedStrategies.includes(strategy) &&
-          (strategy !== 'scale' ||
-            capabilities.providerId === PROVIDER_CONFIG.DefaultProvider) &&
           (!expectedCapabilityProviderId ||
             capabilities.providerId === expectedCapabilityProviderId) &&
           (!expectedProviderId ||

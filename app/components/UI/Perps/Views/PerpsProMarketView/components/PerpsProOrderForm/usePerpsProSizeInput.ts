@@ -33,12 +33,16 @@ export interface UsePerpsProSizeInputParams {
   keepSizeEmpty?: boolean;
   /** Preserve reactive maximum recalculation after a Chase MAX selection. */
   preserveMaxIntent?: boolean;
+  /** Keep a venue-owned Scale base quantity exact instead of snapping through USD cents. */
+  preserveAssetIntent?: boolean;
 }
 
 export interface UsePerpsProSizeInputResult {
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
   effectiveUsdAmount: string;
+  /** Exact base intent; slider previews continue to express a quote budget. */
+  exactAssetAmount?: string;
   /** True when the user last committed the slider at its maximum. */
   isAtMaxAmount: boolean;
   commitPendingSliderPreview: () => boolean;
@@ -129,6 +133,7 @@ export const usePerpsProSizeInput = ({
   maxDigits,
   keepSizeEmpty = false,
   preserveMaxIntent = false,
+  preserveAssetIntent = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
     Number.isFinite(effectivePrice) && effectivePrice > 0;
@@ -275,10 +280,14 @@ export const usePerpsProSizeInput = ({
     () => ({
       maxDigits,
       maxDecimalPlaces:
-        activeDenominationUnit === 'usd' ? 2 : getDecimalPlaces(szDecimals),
+        activeDenominationUnit === 'usd'
+          ? 2
+          : preserveAssetIntent
+            ? undefined
+            : getDecimalPlaces(szDecimals),
       acceptedDecimalSeparators: ['.', ','],
     }),
-    [activeDenominationUnit, maxDigits, szDecimals],
+    [activeDenominationUnit, maxDigits, preserveAssetIntent, szDecimals],
   );
 
   const onChange = useCallback(
@@ -344,6 +353,13 @@ export const usePerpsProSizeInput = ({
     }
 
     const finalizedDraft = finalizeNumericTextInput(assetDraft);
+    if (preserveAssetIntent) {
+      setAssetDraftState({
+        value: finalizedDraft,
+        source: assetDraftState.source,
+      });
+      return;
+    }
     if (!canToggleDenomination) {
       setAssetDraftState({
         value: finalizedDraft,
@@ -384,6 +400,7 @@ export const usePerpsProSizeInput = ({
     activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
+    preserveAssetIntent,
     szDecimals,
     usdDraft,
   ]);
@@ -411,18 +428,23 @@ export const usePerpsProSizeInput = ({
       return;
     }
 
-    const nextUsdAmount = getUsdFromAsset(assetDraft, effectivePrice);
+    const nextUsdAmount =
+      preserveAssetIntent && assetDraftState.source === 'canonical'
+        ? usdDraft
+        : getUsdFromAsset(assetDraft, effectivePrice);
     setUsdDraft(nextUsdAmount);
     commitUsdAmount(nextUsdAmount || '0');
     setDenominationUnit('usd');
   }, [
     assetDraft,
+    assetDraftState.source,
     canToggleDenomination,
     clearSliderPreview,
     commitUsdAmount,
     activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
+    preserveAssetIntent,
     clearSliderMaxIntent,
     szDecimals,
     usdDraft,
@@ -630,6 +652,15 @@ export const usePerpsProSizeInput = ({
     sizeInput,
     sizeSlider,
     effectiveUsdAmount,
+    exactAssetAmount:
+      preserveAssetIntent &&
+      activeDenominationUnit === 'asset' &&
+      assetDraftState.source === 'user' &&
+      sliderPreview === null &&
+      !isAtMaxAmount &&
+      !keepSizeEmpty
+        ? finalizeNumericTextInput(assetDraft)
+        : undefined,
     isAtMaxAmount,
     commitPendingSliderPreview,
   };

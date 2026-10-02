@@ -98,6 +98,15 @@ E2E for live data is impractical (timing-dependent, needs real WS); rely on inte
 | Expire review after A-to-B-to-A provider rebinding           |     |  ✓  | **✓** |  ✓  | Both in-flight account reviews reject after a real intervening provider read; a fresh review works for A without registration or writes.                                                                                                                    |
 | Expire review across a controller network change             |     |  ✓  | **✓** |  ✓  | Real controller teardown/reinitialization invalidates old testnet reads. Integration HTTP remains mocked on both networks; native scope isolation still requires live proof.                                                                                |
 
+## Lighter Scale
+
+| Use case                                         |  U  |  CV   |   I   | E2E | Coverage notes                                                                                                                                                                                                            |
+| ------------------------------------------------ | :-: | :---: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview quote budget and exact base quantity     |  ✓  |   ✓   | **✓** |     | Real installed provider supplies its grids and totals through the Mobile preview hook; helper tests reject inconsistent quantities and excess budget.                                                                     |
+| Place the settled current Scale draft            |  ✓  | **✓** |   ✓   |  ✓  | Pro screen waits for preview and rechecks it after capability validation. Typed base and quote submit distinct intents; lifetime tests retire held requests. Native signing and venue proof belong to live recipes.       |
+| Display complete, partial and uncertain receipts |  ✓  | **✓** |   ✓   |     | Rendered receipt copy uses actual accepted children and size. Partial or missing acceptance retains the draft and durable groups.                                                                                         |
+| Review and cancel the selected owned group       |  ✓  |   ✓   | **✓** |  ✓  | Real Core list/review/cancel methods preserve opaque group identity and unrelated orders. Unknown review cannot create children. Account, network, provider and unmount fence actions; native storage remains live proof. |
+
 ## Pure helpers (utility functions)
 
 These don't have user-facing flows; they're consumed by the layers above. Unit is the right home for all of them.

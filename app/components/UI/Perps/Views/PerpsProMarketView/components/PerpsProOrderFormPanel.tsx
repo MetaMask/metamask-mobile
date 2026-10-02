@@ -47,8 +47,6 @@ const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
 const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
-const SCALE_SUPPORTED_PROVIDER: PerpsProviderType =
-  PROVIDER_CONFIG.DefaultProvider;
 const CHASE_ORDER_TYPES: readonly OrderType[] = ['chase'];
 // Lighter rejects any explicit margin mode; only Hyperliquid places Cross.
 const CROSS_MARGIN_SUPPORTED_PROVIDER: PerpsProviderType =
@@ -138,10 +136,7 @@ const PerpsProOrderFormPanel = ({
     resolvedProviderId === TWAP_SUPPORTED_PROVIDER;
   const isTwapAvailabilityPending =
     isTwapRolloutEnabled && isLoadingOrderCapabilities;
-  const resolvedScaleProviderId =
-    resolvedProviderId === SCALE_SUPPORTED_PROVIDER
-      ? resolvedProviderId
-      : undefined;
+  const resolvedScaleProviderId = resolvedProviderId;
   const isScaleOrdersEnabled =
     isScaleBaseEnabled &&
     supportsScaleOrders &&

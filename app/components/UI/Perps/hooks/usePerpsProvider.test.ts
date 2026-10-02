@@ -645,7 +645,7 @@ describe('usePerpsProvider', () => {
       expect(result.current.supportsChaseOrders).toBe(true);
     });
 
-    it('keeps Scale unsupported when capabilities resolve to Lighter', async () => {
+    it('supports Scale when the issuing Lighter route reports the capability', async () => {
       mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'ready',
@@ -658,7 +658,7 @@ describe('usePerpsProvider', () => {
       await waitFor(() => {
         expect(result.current.isLoadingOrderCapabilities).toBe(false);
       });
-      expect(result.current.supportsScaleOrders).toBe(false);
+      expect(result.current.supportsScaleOrders).toBe(true);
 
       let isSupported = true;
       await act(async () => {
@@ -668,7 +668,7 @@ describe('usePerpsProvider', () => {
         );
       });
 
-      expect(isSupported).toBe(false);
+      expect(isSupported).toBe(true);
     });
 
     it('preserves the provider route resolved by default capability routing', async () => {
