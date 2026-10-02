@@ -47,6 +47,8 @@ import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { clearPendingPerpsCufTraces } from '../utils/perpsCufTrace';
 import {
+  getPerpsLeveragePickerItemTestId,
+  getPerpsProOrderFormNoticeTestId,
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   PerpsFlipPositionConfirmSheetSelectorsIDs,
@@ -57,6 +59,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../Perps.testIds';
+import { getPerpsProCompactFieldTestId } from './PerpsProMarketView/components/PerpsProOrderForm/PerpsProCompactInput';
 
 const TIMEOUT_MS = 5000;
 const ids = PerpsProOrderFormSelectorsIDs;
@@ -521,7 +524,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       await waitFor(() => {
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
         expect(
-          screen.queryByTestId(`${ids.NOTICE}-reduce-only`),
+          screen.queryByTestId(getPerpsProOrderFormNoticeTestId('reduce-only')),
         ).not.toBeOnTheScreen();
       });
       const placeOrderButton = await awaitValidatedPlaceOrderButton(
@@ -594,7 +597,9 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       await selectAdvancedOrderType(sheetIds.CHASE_OPTION);
       expect(await screen.findByTestId(ids.CHASE_FORM)).toBeOnTheScreen();
       fireEvent.press(
-        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+        screen.getByTestId(
+          getPerpsProCompactFieldTestId(ids.CHASE_MAX_DISTANCE_INPUT),
+        ),
       );
       fireEvent.changeText(
         screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),
@@ -633,11 +638,21 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
 
       await selectAdvancedOrderType(sheetIds.SCALE_OPTION);
-      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.press(
+        screen.getByTestId(
+          getPerpsProCompactFieldTestId(ids.SCALE_START_PRICE),
+        ),
+      );
       fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2600');
-      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.press(
+        screen.getByTestId(getPerpsProCompactFieldTestId(ids.SCALE_END_PRICE)),
+      );
       fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '3000');
-      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.press(
+        screen.getByTestId(
+          getPerpsProCompactFieldTestId(ids.SCALE_TOTAL_ORDERS),
+        ),
+      );
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '4');
       const placeOrderButton = await awaitEnabledPlaceOrderButton();
       fireEvent.press(placeOrderButton);
@@ -702,7 +717,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
       fireEvent.press(
         await screen.findByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-20`,
+          getPerpsLeveragePickerItemTestId(20),
           {},
           { timeout: TIMEOUT_MS },
         ),
