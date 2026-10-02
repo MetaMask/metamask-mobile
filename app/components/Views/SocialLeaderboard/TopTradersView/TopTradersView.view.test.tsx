@@ -11,10 +11,16 @@
  */
 
 import '../../../../../tests/component-view/mocks';
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { SPOT_CHAINS } from '../../shared/top-traders-constants';
+import { PERP_CHAINS, SPOT_CHAINS } from '../../shared/top-traders-constants';
 import {
   clearLeaderboardApiMock,
   getLeaderboardMessengerSpy,
@@ -23,15 +29,23 @@ import {
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import {
   renderTopTradersView,
+  renderTopTradersViewWithProps,
   renderTopTradersViewWithRoutes,
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
+  getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,
   getTypeFilterOptionTestId,
 } from '../components/Filters';
+import {
+  getLocalSocialProfileSnapshot,
+  restoreDefaultLocalSocialProfile,
+  saveLocalSocialProfile,
+} from '../MyProfileView/hooks/localSocialProfileStore';
+import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -366,5 +380,175 @@ describe('TopTradersView', () => {
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('beta.eth')).toBeOnTheScreen();
     expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+  });
+
+  // -------------------------------------------------------------------------
+  // 13. Perps flag off: no type pill, and the perps chain is never queried
+  // -------------------------------------------------------------------------
+
+  it('hides the type pill and never queries the perps chain when the perps flag is off', async () => {
+    renderTopTradersView({ presetOptions: { perpsEnabled: false } });
+
+    expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('beta.eth')).toBeOnTheScreen();
+
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
+    ).toBeOnTheScreen();
+    // Idle prefetches for the other tabs must not sneak the perps chain in.
+    const fetchedChains = getLeaderboardMessengerSpy()
+      .mock.calls.filter(
+        ([action]) => action === 'SocialService:fetchLeaderboard',
+      )
+      .flatMap(([, opts]) => (opts as { chains?: string[] }).chains ?? []);
+    expect(fetchedChains).not.toContain(PERP_CHAINS[0]);
+  });
+
+  // -------------------------------------------------------------------------
+  // 14. Pinned type: host owns the type axis, list is perps-only
+  // -------------------------------------------------------------------------
+
+  it('lists only perps traders and hides the type pill when the host pins the perps type', async () => {
+    renderTopTradersViewWithProps({ pinnedTypeFilter: 'perps' });
+
+    expect(await screen.findByText('gamma.eth')).toBeOnTheScreen();
+
+    expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+    ).not.toBeOnTheScreen();
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialService:fetchLeaderboard',
+      expect.objectContaining({ chains: PERP_CHAINS }),
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // 15. Social V1 chrome: ranking chip replaces the legacy filter row
+  // -------------------------------------------------------------------------
+
+  describe('Social V1 chrome', () => {
+    const [alpha, beta, gamma] = mockLeaderboardTraders;
+
+    beforeEach(() => {
+      restoreDefaultLocalSocialProfile();
+    });
+
+    afterEach(() => {
+      restoreDefaultLocalSocialProfile();
+    });
+
+    it('lands on every trader with the ranking chip and no legacy filter pills, and switches the ranking label to Volume', async () => {
+      renderTopTradersViewWithProps({ useV1Filters: true });
+
+      expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
+      expect(screen.getByText(beta.name)).toBeOnTheScreen();
+      expect(screen.getByText(gamma.name)).toBeOnTheScreen();
+
+      const rankingSelector = screen.getByTestId(
+        TopTradersViewSelectorsIDs.RANKING_SELECTOR,
+      );
+      expect(rankingSelector).toHaveTextContent(
+        strings('social_leaderboard.sort_filter.profit'),
+      );
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(rankingSelector);
+      fireEvent.press(
+        screen.getByTestId(getRankingFilterOptionTestId('volume')),
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
+        ).toHaveTextContent(strings('social_leaderboard.sort_filter.volume')),
+      );
+    });
+
+    it('pins the viewer above the list and drops their duplicate row when their profile is on the leaderboard', async () => {
+      const localProfile = getLocalSocialProfileSnapshot().profile;
+      if (!localProfile) {
+        throw new Error('Expected a default local social profile');
+      }
+      saveLocalSocialProfile({
+        ...localProfile,
+        profileId: beta.profileId,
+        handle: beta.name,
+        displayName: beta.name,
+        linkedAccountAddress: beta.addresses[0],
+      });
+      renderTopTradersViewWithProps({ useV1Filters: true });
+
+      // The viewer card renders synthetically while the page loads, so wait
+      // for the ranked list before asserting the matched row.
+      expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
+      const viewerCard = screen.getByTestId(
+        TopTradersViewSelectorsIDs.VIEWER_CARD,
+      );
+
+      expect(within(viewerCard).getByText(beta.name)).toBeOnTheScreen();
+      expect(
+        within(viewerCard).getByTestId(`rank-medal-${beta.rank}`),
+      ).toBeOnTheScreen();
+      const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+      const listedIds = (list.props.data as { id: string }[]).map(
+        (trader) => trader.id,
+      );
+      expect(listedIds).toEqual([alpha.profileId, gamma.profileId]);
+    });
+
+    it('shows the viewer as an unranked card when their profile is not on the leaderboard', async () => {
+      const localProfile = getLocalSocialProfileSnapshot().profile;
+      if (!localProfile) {
+        throw new Error('Expected a default local social profile');
+      }
+      saveLocalSocialProfile({
+        ...localProfile,
+        profileId: 'viewer-off-board',
+        handle: 'viewer.eth',
+        displayName: 'viewer.eth',
+        linkedAccountAddress: '0x00000000000000000000000000000000000000ff',
+      });
+      renderTopTradersViewWithProps({ useV1Filters: true });
+
+      expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
+      const viewerCard = screen.getByTestId(
+        TopTradersViewSelectorsIDs.VIEWER_CARD,
+      );
+
+      expect(within(viewerCard).getByText('viewer.eth')).toBeOnTheScreen();
+      expect(
+        within(viewerCard).queryByTestId(/^rank-medal-/u),
+      ).not.toBeOnTheScreen();
+      const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+      expect(list.props.data).toHaveLength(mockLeaderboardTraders.length);
+    });
+
+    it('narrows the list to perps traders when the shell applies a perps type filter', async () => {
+      renderTopTradersViewWithProps({
+        useV1Filters: true,
+        v1AppliedFilters: { ...DEFAULT_FILTERS, type: 'perps' },
+      });
+
+      expect(await screen.findByText(gamma.name)).toBeOnTheScreen();
+
+      expect(screen.queryByText(alpha.name)).not.toBeOnTheScreen();
+      expect(screen.queryByText(beta.name)).not.toBeOnTheScreen();
+    });
   });
 });
