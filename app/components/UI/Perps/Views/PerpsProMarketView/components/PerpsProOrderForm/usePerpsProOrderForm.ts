@@ -2527,9 +2527,13 @@ export const usePerpsProOrderForm = ({
       if (isTwapOrder) {
         const expectedProviderId = orderProviderId;
         const checkCurrentTwapSupport = checkTwapOrderSupportRef.current;
+        const currentTwapSupport = expectedProviderId
+          ? await checkCurrentTwapSupport()
+          : false;
+        if (!isCurrentLifecycle()) return;
         if (
           !expectedProviderId ||
-          !(await checkCurrentTwapSupport()) ||
+          !currentTwapSupport ||
           !isTwapEnabledRef.current ||
           resolvedTwapProviderIdRef.current !== expectedProviderId ||
           checkTwapOrderSupportRef.current !== checkCurrentTwapSupport
@@ -2587,12 +2591,17 @@ export const usePerpsProOrderForm = ({
       if (isScaleOrder) {
         const expectedProviderId = scalePlacementProviderIdRef.current;
         const checkCurrentScaleSupport = checkScaleOrderSupportRef.current;
+        const currentScaleSupport =
+          expectedProviderId &&
+          isScaleOrdersEnabledRef.current &&
+          !isScaleOrderSupportPendingRef.current &&
+          scaleProviderIdRef.current === expectedProviderId
+            ? await checkCurrentScaleSupport()
+            : false;
+        if (!isCurrentLifecycle()) return;
         if (
           !expectedProviderId ||
-          !isScaleOrdersEnabledRef.current ||
-          isScaleOrderSupportPendingRef.current ||
-          scaleProviderIdRef.current !== expectedProviderId ||
-          !(await checkCurrentScaleSupport()) ||
+          !currentScaleSupport ||
           // Capability checks are async. Re-read every route guard before
           // accepting the result so a changed flag or provider fails closed.
           !isScaleOrdersEnabledRef.current ||
@@ -2609,6 +2618,7 @@ export const usePerpsProOrderForm = ({
         }
 
         const latestScaleValidation = await validateLatestScalePlacement();
+        if (!isCurrentLifecycle()) return;
         if (!latestScaleValidation) {
           reportValidationFailure(strings('perps.order.validation.error'));
           return;
