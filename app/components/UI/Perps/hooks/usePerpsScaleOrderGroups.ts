@@ -91,9 +91,9 @@ export const usePerpsScaleOrderGroups = (options?: {
     }
   }, [context]);
   useEffect(() => {
-    read();
+    void read();
     return PerpsCacheInvalidator.subscribe('accountState', () => {
-      read();
+      void read();
     });
   }, [read]);
 

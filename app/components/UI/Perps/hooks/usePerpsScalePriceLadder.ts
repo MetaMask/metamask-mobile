@@ -115,7 +115,7 @@ export const usePerpsScalePriceLadder = (
     }, [request]);
 
   useEffect(() => {
-    if (request) refresh();
+    if (request) void refresh();
   }, [refresh, request]);
 
   const isCurrent = request !== undefined && state.request === request;
