@@ -973,6 +973,14 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     return this.getCachedData();
   }
 
+  /**
+   * Latest cached update for one symbol. Unlike `getSnapshot()` this does not
+   * clone the whole price map, so it is safe to call during render.
+   */
+  public getSnapshotForSymbol(symbol: string): PriceUpdate | null {
+    return this.priceCache.get(symbol) ?? null;
+  }
+
   public clearCache(): void {
     // Clear the price-specific cache
     this.priceCache.clear();
