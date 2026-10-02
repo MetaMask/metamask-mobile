@@ -1,3 +1,0 @@
-# OpenCode/rg ignore overrides — keep deepwork state readable by agents while git ignores it
-!.slim/deepwork/
-!.slim/deepwork/**
