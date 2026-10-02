@@ -6,6 +6,9 @@ import {
   BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -128,19 +131,18 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
         onPress={onSecurityPress}
       />
 
-      {/* Square 28px buttons, sized down from the 32px `Sm` step and stripped
-          of their label padding. They share `ButtonBase` with the chip below
-          so the whole row presses and fills identically. */}
+      {/* `ButtonIconSize.Xs` is picked for its 16px icon, then widened to the
+          28px circle the row uses; the size scale has no 28px step. The
+          background is restated because `Filled` resolves to the translucent
+          `bg-muted`, while the design calls for the solid alternative surface
+          the chip below also sits on. */}
       {socialLinks.map(({ testID, iconName, accessibilityLabel, url }) => (
-        <ButtonBase
+        <ButtonIcon
           key={testID}
-          size={ButtonBaseSize.Sm}
-          startIconName={iconName}
-          twClassName={(pressed) =>
-            `h-7 w-7 px-0 ${
-              pressed ? 'bg-alternative-pressed' : 'bg-alternative'
-            }`
-          }
+          iconName={iconName}
+          size={ButtonIconSize.Xs}
+          variant={ButtonIconVariant.Filled}
+          twClassName="h-7 w-7 bg-alternative"
           onPress={() => openUrl(url)}
           accessibilityLabel={accessibilityLabel}
           testID={testID}
