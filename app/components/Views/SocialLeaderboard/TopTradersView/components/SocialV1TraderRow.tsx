@@ -21,6 +21,7 @@ import {
   RankMedal,
   isTopRank,
 } from '../../../Homepage/Sections/TopTraders/topRank';
+import { getTraderRowTestId } from '../../../Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import type { TraderRowProps } from '../../../Homepage/Sections/TopTraders/types';
 /* eslint-enable import-x/no-restricted-paths */
 import SocialGradientCardSurface from '../../components/SocialGradientCardSurface';
@@ -153,7 +154,7 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
             : undefined
         }
         disabled={!onTraderPress}
-        testID={testID ?? `trader-row-${trader.id}`}
+        testID={testID ?? getTraderRowTestId(trader.id)}
       >
         <Box twClassName="px-4">
           {highlighted ? (

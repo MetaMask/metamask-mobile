@@ -14,6 +14,13 @@
 
 import '../../../../../../tests/component-view/mocks';
 import {
+  renderHomeTopTradersSection,
+  stubHomepageSectionMeasurement,
+} from '../../../../../../tests/component-view/renderers/socialLeaderboard';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { TopTradersSectionSelectorsIDs } from './TopTradersSection.testIds';
+import { getTopTraderCardTestId } from './components/TopTraderCard.testIds';
+import {
   act,
   fireEvent,
   screen,
@@ -33,10 +40,6 @@ import {
   setupLeaderboardApiMock,
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import {
-  renderHomeTopTradersSection,
-  stubHomepageSectionMeasurement,
-} from '../../../../../../tests/component-view/renderers/socialLeaderboard';
-import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
   getRouteProbeTestId,
@@ -52,14 +55,14 @@ import { SOCIAL_V1_AB_KEY } from '../../../SocialLeaderboard/SocialV1View/abTest
 // Helpers
 // ---------------------------------------------------------------------------
 
-const SECTION_ROOT_ID = 'homepage-top-traders-section-root';
-const CAROUSEL_ID = 'homepage-top-traders-carousel';
-const VIEW_MORE_CARD_ID = 'top-traders-view-more-card';
+const SECTION_ROOT_ID = TopTradersSectionSelectorsIDs.ROOT;
+const CAROUSEL_ID = TopTradersSectionSelectorsIDs.CAROUSEL;
+const VIEW_MORE_CARD_ID = TopTradersSectionSelectorsIDs.VIEW_MORE_CARD;
 const SECTION_TITLE_ID =
   WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders');
 const [alpha, beta, gamma] = mockLeaderboardTraders;
 
-const cardId = (profileId: string) => `top-trader-card-${profileId}`;
+const cardId = getTopTraderCardTestId;
 
 const abTestOverrides = (flags: Record<string, string>) => ({
   engine: {
@@ -80,7 +83,7 @@ const readRouteParams = async (routeName: string) => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Homepage TopTradersSection', () => {
+describeForPlatforms('Homepage TopTradersSection', () => {
   let measurementSpy: jest.SpyInstance;
 
   beforeEach(() => {
