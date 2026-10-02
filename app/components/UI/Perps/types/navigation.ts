@@ -85,6 +85,12 @@ export type PerpsOrderRouteParams = {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
   useBottomSheet?: boolean;
+  /**
+   * Read by the shared `Confirm` screen: while the Trade sheet variant has no
+   * approval (before it attaches, and after Place order removes it), show the
+   * loader inside a bottom sheet instead of a full-screen spinner.
+   */
+  forceBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -152,6 +158,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * When true, selecting a market replaces the underlying MARKET_DETAILS
          * (and dismisses this list) instead of pushing another details screen.
@@ -387,6 +394,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * Stamped when Perps Home was removed from this stack (TAT-3786).
          * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.

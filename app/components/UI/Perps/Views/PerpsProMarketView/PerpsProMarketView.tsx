@@ -68,7 +68,10 @@ import {
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
@@ -81,6 +84,7 @@ import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
@@ -355,6 +359,9 @@ const PerpsProMarketView = ({
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
   const configuredChartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
@@ -432,12 +439,20 @@ const PerpsProMarketView = ({
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]:
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...chartAnalyticsProperties,
       ...(sourceSection && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: sourceSection,
       }),
     }),
-    [chartAnalyticsProperties, market?.symbol, source, sourceSection],
+    [
+      chartAnalyticsProperties,
+      isServiceInterruptionBannerEnabled,
+      market?.symbol,
+      source,
+      sourceSection,
+    ],
   );
 
   usePerpsEventTracking({
@@ -581,6 +596,17 @@ const PerpsProMarketView = ({
       style={styles.container}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            scrollY={scrollY}
+            testID={PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+        </Box>
+      )}
       <PerpsMarketHeader
         market={{ ...market, symbol: market.symbol }}
         testIDs={createProMarketHeaderTestIDs()}

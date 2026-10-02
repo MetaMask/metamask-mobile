@@ -4069,13 +4069,20 @@ export const usePerpsProOrderForm = ({
         : undefined;
     }
 
-    // Only a field the user has finished editing may speak, so a half-typed
-    // price is not judged mid-keystroke.
-    const visibleIssues = orderValidation.fieldIssues.filter((fieldIssue) =>
-      fieldIssue.field === 'triggerPrice'
+    // A 95% band miss already disables Place. Show it without waiting for
+    // blur so the CTA is not dead with no copy. Other issues still wait so
+    // a half-typed or empty price is not judged mid-keystroke.
+    const visibleIssues = orderValidation.fieldIssues.filter((fieldIssue) => {
+      if (
+        fieldIssue.field === 'limitPrice' &&
+        fieldIssue.issue.code === 'too_far'
+      ) {
+        return true;
+      }
+      return fieldIssue.field === 'triggerPrice'
         ? hasBlurredTriggerPrice
-        : hasBlurredLimitPrice,
-    );
+        : hasBlurredLimitPrice;
+    });
     // A blocking issue explains why the order cannot be placed, so it outranks
     // advice about a price that would place fine. Ordering by field instead
     // would let a trigger warning hide the empty limit price holding the CTA

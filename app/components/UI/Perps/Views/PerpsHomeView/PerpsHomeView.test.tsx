@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  render,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
@@ -14,6 +20,7 @@ import {
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -126,6 +133,10 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock components to prevent complex module initialization chains
+jest.mock(
+  '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer',
+  () => 'PerpsRecoveryPanelContainer',
+);
 jest.mock(
   '../../components/PerpsMarketTypeSection',
   () => 'PerpsMarketTypeSection',
@@ -719,6 +730,41 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
+    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
+      'marginTop',
+    );
+  });
+
+  it('does not render the outage banner when the flag is off', () => {
+    // Arrange & Act
+    const { queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
+  });
+
+  it('pins the outage banner above the header and hands it the status-bar inset', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsServiceInterruptionBannerEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - the banner owns the inset, so the header no longer applies it
+    // and the banner does not scroll with the content.
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeTruthy();
+    expect(
+      within(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+      ).queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
     expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
       'marginTop',
     );
