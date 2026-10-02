@@ -84,13 +84,20 @@ class AccountListBottomSheet {
   }
 
   get addWalletButton(): Promise<AppiumElement> {
-    // Performance Account Hub builds expose a different add-wallet control.
-    // Smoke still uses the classic AccountSelector list button.
-    if (isPerformanceSuiteActive()) {
-      return Matchers.getElementByID(AccountHubSelectorsIDs.ADD_WALLET_BUTTON);
+    // Account Hub and the classic AccountSelector list expose different
+    // add-wallet controls. Match whichever one is on screen.
+    const accountHubId = AccountHubSelectorsIDs.ADD_WALLET_BUTTON;
+    const accountListId =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID;
+
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[contains(@name,'${accountHubId}') or contains(@name,'${accountListId}') or contains(@label,'${accountHubId}') or contains(@label,'${accountListId}')]`,
+      );
     }
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountHubId}' or @resource-id='${accountListId}']`,
     );
   }
 
