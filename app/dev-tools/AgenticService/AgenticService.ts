@@ -972,11 +972,12 @@ function findMeasurableStateNode(
   includeAncestors = true,
   tree?: CommittedFiberTree,
 ): FiberNode['stateNode'] | null {
+  const isStandalone = !tree && !globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (!tree) {
     tree = readCommittedFiberTree();
   }
-  // Exported helpers also accept standalone trees without registered roots.
-  if (tree.roots.length === 0) {
+  // An installed hook owns membership even when it has no mounted roots.
+  if (isStandalone) {
     let root = fiber;
     while (root?.return) root = root.return;
     tree = createFiberTree(root);

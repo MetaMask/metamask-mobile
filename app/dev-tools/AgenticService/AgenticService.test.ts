@@ -526,6 +526,112 @@ describe('findMeasurableStateNode', () => {
   });
 });
 
+describe('registered measurement ownership', () => {
+  let savedHook: ReactDevToolsHook | undefined;
+
+  beforeEach(() => {
+    savedHook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+  });
+
+  afterEach(() => {
+    globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = savedHook;
+  });
+
+  it('refuses a retained target when an installed renderer has no mounted roots', () => {
+    const native = { measureInWindow: jest.fn() };
+    const target = makeFiber({ stateNode: native });
+    globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map([[1, {}]]),
+      getFiberRoots: () => new Set<FiberRoot>(),
+    };
+
+    const result = findMeasurableStateNode(target);
+
+    expect(result).toBeNull();
+  });
+
+  it('refuses a previously mounted target after its registered root is removed', () => {
+    const native = { measureInWindow: jest.fn() };
+    const target = makeFiber({ stateNode: native });
+    const root = { current: target };
+    const roots = new Set<FiberRoot>([root]);
+    globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map([[1, {}]]),
+      getFiberRoots: () => roots,
+    };
+
+    const mounted = findMeasurableStateNode(target);
+    roots.delete(root);
+    const unmounted = findMeasurableStateNode(target);
+
+    expect(mounted).toBe(native);
+    expect(unmounted).toBeNull();
+  });
+
+  it('refuses a retained target when the registered root current is null', () => {
+    const native = { measureInWindow: jest.fn() };
+    const target = makeFiber({ stateNode: native });
+    const root = installCurrentFiberRoot(target);
+
+    const mounted = findMeasurableStateNode(target);
+    root.current = null;
+    const unmounted = findMeasurableStateNode(target);
+
+    expect(mounted).toBe(native);
+    expect(unmounted).toBeNull();
+  });
+
+  it('refuses a retained measurable ancestor after its registered root is removed', () => {
+    const native = { measureInWindow: jest.fn() };
+    const target = makeFiber();
+    const ancestor = makeFiber({ stateNode: native, child: target });
+    target.return = ancestor;
+    const root = { current: ancestor };
+    const roots = new Set<FiberRoot>([root]);
+    globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map([[1, {}]]),
+      getFiberRoots: () => roots,
+    };
+
+    const mounted = findMeasurableStateNode(target);
+    roots.delete(root);
+    const unmounted = findMeasurableStateNode(target);
+
+    expect(mounted).toBe(native);
+    expect(unmounted).toBeNull();
+  });
+
+  it('resolves a visible target in a registered mounted root', () => {
+    const native = { measureInWindow: jest.fn() };
+    const target = makeFiber({ stateNode: native });
+    const root = makeFiber({ child: target });
+    target.return = root;
+    installFiberHook(root);
+
+    const result = findMeasurableStateNode(target);
+
+    expect(result).toBe(native);
+  });
+
+  it.each(['target', 'ancestor'])(
+    'resolves a genuine standalone measurable %s without an installed hook',
+    (location) => {
+      const native = { measureInWindow: jest.fn() };
+      const target = makeFiber({
+        stateNode: location === 'target' ? native : null,
+      });
+      if (location === 'ancestor') {
+        target.return = makeFiber({ stateNode: native, child: target });
+      }
+      globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = undefined;
+
+      const result = findMeasurableStateNode(target);
+
+      expect(result).toBe(native);
+    },
+  );
+});
+
 describe('walkFiberRoots', () => {
   let savedHook: ReactDevToolsHook | undefined;
 
