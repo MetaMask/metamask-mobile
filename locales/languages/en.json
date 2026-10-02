@@ -5844,7 +5844,19 @@
       "x": "Open on X",
       "telegram": "Open on Telegram",
       "copy_address": "Copy contract address {{address}}"
-    }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "security": "Security",
+      "feed": "Feed"
+    },
+    "performance": {
+      "title": "Performance"
+    },
+    "activity": {
+      "title": "{{symbol}} activity"
+    },
+    "tab_placeholder": "Coming soon"
   },
   "account_details": {
     "title": "Account details",
