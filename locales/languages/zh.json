@@ -1849,7 +1849,8 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "title": "Scale orders",
+          "market_provider": "%{assetSymbol} · %{providerName}",
+        "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",
           "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
@@ -1881,7 +1882,8 @@
           "invalid_order_count": "订单数量必须在 {{minOrderCount}} 到 {{maxOrderCount}} 之间",
           "invalid_skew": "规模偏差必须大于 0",
           "minimum_lot": "最小订单金额必须至少为 ${{minOrderValue}}",
-          "unavailable": "比例订单暂时不可用。请选择其他订单类型。"
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "比例订单暂时不可用。请选择其他订单类型。"
         }
       },
       "twap": {
@@ -2549,6 +2551,7 @@
         "scaleRangeInvalid": "扩容订单最高价必须高于最低价",
         "scaleCountInvalid": "比例订单数量无效",
         "scaleSizeTooSmall": "每个扩容订单低于最小订单量",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "每个扩容订单低于交易所最低金额",
         "chaseIntervalInvalid": "追踪间隔无效",
         "chaseDurationInvalid": "追踪时长无效",

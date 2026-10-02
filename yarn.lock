@@ -11332,7 +11332,7 @@ __metadata:
 
 "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A19.0.0#~/.yarn/patches/@metamask-perps-controller-npm-19.0.0-234a40bf68.patch":
   version: 19.0.0
-  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A19.0.0#~/.yarn/patches/@metamask-perps-controller-npm-19.0.0-234a40bf68.patch::version=19.0.0&hash=e7ca45"
+  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A19.0.0#~/.yarn/patches/@metamask-perps-controller-npm-19.0.0-234a40bf68.patch::version=19.0.0&hash=2cc0d3"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -11344,7 +11344,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
-  checksum: 10/e99e8382d59c4fd7c43d81891e490002e48312bad065fb563114c4ddfbd5f193345205b29229304376a8e76e7a88db7ddcb3271dc4835ae5d13067b61907e12c
+  checksum: 10/d3901ca2bbb9d45f9dbd956140d12d05972d4b9ffa6caad06984eb3b0e3caba555c357239eb9b53c9c4faf6ba1fee4e02ff799d449284dbb9f3798827bb9223a
   languageName: node
   linkType: hard
 

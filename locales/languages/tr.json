@@ -1849,7 +1849,8 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "title": "Scale orders",
+          "market_provider": "%{assetSymbol} · %{providerName}",
+        "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",
           "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
@@ -1881,7 +1882,8 @@
           "invalid_order_count": "Emir sayısı {{minOrderCount}} ile {{maxOrderCount}} arasında olmalıdır",
           "invalid_skew": "Boyut çarpıklığı 0'dan büyük olmalıdır",
           "minimum_lot": "En küçük emir minimum ${{minOrderValue}} değerde olmalıdır",
-          "unavailable": "Kademeli emirler geçici olarak kullanılamıyor. Başka bir emir türü seçin."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Kademeli emirler geçici olarak kullanılamıyor. Başka bir emir türü seçin."
         }
       },
       "twap": {
@@ -2549,6 +2551,7 @@
         "scaleRangeInvalid": "Kademeli emir için maksimum fiyat minimumun altında olmalıdır",
         "scaleCountInvalid": "Kademeli emir sayısı geçersiz",
         "scaleSizeTooSmall": "Her bir kademeli emir minimum işlem büyüklüğünün altındadır",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Her bir kademeli emir borsanın belirlediği minimum işlem değerinin altındadır",
         "chaseIntervalInvalid": "Fiyat takip aralığı geçersiz",
         "chaseDurationInvalid": "Fiyat takip süresi geçersiz",

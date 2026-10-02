@@ -4909,6 +4909,10 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.scaleOrder.rungs).toEqual([]);
+      expect(result.current.summary.fee).toBe(5);
+      expect(result.current.summary.liquidationPrice).not.toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
       const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
         -1,
       )?.[0] as {
@@ -5619,7 +5623,10 @@ describe('usePerpsProOrderForm', () => {
 
       expect(checkScaleOrderSupport).not.toHaveBeenCalled();
       expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledTimes(1);
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.route_changed'),
+      );
     });
 
     it('keeps Scale locked when capability support is lost during placement', async () => {

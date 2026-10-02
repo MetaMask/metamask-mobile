@@ -420,6 +420,8 @@ export const PROVIDER_CONFIG = {
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
+  /** Provider whose Scale quantities are normalized by the venue. */
+  VenueSizedScaleProvider: 'lighter' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */

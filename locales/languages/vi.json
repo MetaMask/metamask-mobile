@@ -1849,7 +1849,8 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "title": "Scale orders",
+          "market_provider": "%{assetSymbol} · %{providerName}",
+        "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",
           "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
@@ -1881,7 +1882,8 @@
           "invalid_order_count": "Số lượng lệnh phải nằm trong khoảng từ {{minOrderCount}} đến {{maxOrderCount}}",
           "invalid_skew": "Độ lệch kích thước phải lớn hơn 0",
           "minimum_lot": "Lệnh nhỏ nhất phải có giá trị tối thiểu là ${{minOrderValue}}",
-          "unavailable": "Lệnh theo thang giá tạm thời không khả dụng. Chọn loại lệnh khác."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Lệnh theo thang giá tạm thời không khả dụng. Chọn loại lệnh khác."
         }
       },
       "twap": {
@@ -2549,6 +2551,7 @@
         "scaleRangeInvalid": "Giá tối đa của lệnh theo thang giá phải cao hơn giá tối thiểu",
         "scaleCountInvalid": "Số lượng lệnh theo thang giá không hợp lệ",
         "scaleSizeTooSmall": "Mỗi lệnh theo thang giá đều nhỏ hơn kích thước tối thiểu",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Mỗi lệnh theo thang giá đều có giá trị thấp hơn mức tối thiểu của sàn giao dịch",
         "chaseIntervalInvalid": "Khoảng thời gian bám giá không hợp lệ",
         "chaseDurationInvalid": "Thời lượng bám giá không hợp lệ",

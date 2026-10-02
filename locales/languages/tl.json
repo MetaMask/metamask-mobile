@@ -1849,7 +1849,8 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "title": "Scale orders",
+          "market_provider": "%{assetSymbol} · %{providerName}",
+        "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",
           "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
@@ -1881,7 +1882,8 @@
           "invalid_order_count": "Nasa pagitan dapat ng {{minOrderCount}} at {{maxOrderCount}} ang bilang ng order",
           "invalid_skew": "Mas mataas dapat sa 0 ang laki ng skew",
           "minimum_lot": "May minimum value dapat na ${{minOrderValue}} ang pinakamaliit na order",
-          "unavailable": "Pansamantalang hindi available ang mga scale na order. Pumili ng ibang uri ng order."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Pansamantalang hindi available ang mga scale na order. Pumili ng ibang uri ng order."
         }
       },
       "twap": {
@@ -2549,6 +2551,7 @@
         "scaleRangeInvalid": "Mas mataas dapat sa minimum ang maximum na presyo ng scale order",
         "scaleCountInvalid": "Di-wasto ang bilang ng scale order",
         "scaleSizeTooSmall": "Mas mababa sa minimum na laki ang bawat scale order",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Mas mababa sa minimum na halaga ng palitan ang bawat scale order",
         "chaseIntervalInvalid": "Di-wasto ang pagitan ng chase",
         "chaseDurationInvalid": "Di-wasto ang tagal ng chase",

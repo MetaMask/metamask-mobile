@@ -10,10 +10,25 @@ import {
   type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
 
 type OrderTrackingData = OrderParams['trackingData'];
+
+/**
+ * Identify Scale orders whose quantity grids belong to the venue.
+ *
+ * @param orderType - Selected order type.
+ * @param providerId - Resolved execution route.
+ * @returns Whether the venue owns Scale normalization.
+ */
+export const isVenueSizedScaleOrder = (
+  orderType: OrderType,
+  providerId: PerpsProviderType | undefined,
+): boolean =>
+  orderType === 'scale' &&
+  providerId === PROVIDER_CONFIG.VenueSizedScaleProvider;
 
 export interface BuildPerpsOrderTrackingDataInput {
   /** Required margin string (converted to a number for the event). */
@@ -96,7 +111,7 @@ export interface BuildPerpsOrderParamsInput {
   /** Position size (token units); exact full closes intentionally omit usdAmount. */
   size: string;
   orderType: OrderType;
-  /** Effective price used for both `currentPrice` and `priceAtCalculation`. */
+  /** Price reference for `currentPrice` and supported calculation fields. */
   effectivePrice: number;
   leverage: number;
   usdAmount?: string;
@@ -154,6 +169,7 @@ export const buildPerpsOrderParams = ({
   trackingData,
 }: BuildPerpsOrderParamsInput): OrderParams => {
   const isStrategyOrder = isStrategyOrderType(orderType);
+  const isVenueSizedScale = isVenueSizedScaleOrder(orderType, providerId);
   const canAttachTpSl =
     !reduceOnly && !isTriggerOrderType(orderType) && !isStrategyOrder;
 
@@ -165,7 +181,7 @@ export const buildPerpsOrderParams = ({
     currentPrice: effectivePrice,
     leverage,
     ...(usdAmount !== undefined ? { usdAmount } : {}),
-    priceAtCalculation: effectivePrice,
+    ...(!isVenueSizedScale ? { priceAtCalculation: effectivePrice } : {}),
     ...(!isStrategyOrder
       ? {
           maxSlippageBps: isLimitExecutionOrderType(orderType)
@@ -174,7 +190,7 @@ export const buildPerpsOrderParams = ({
         }
       : {}),
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
-    ...(isFullClose !== undefined ? { isFullClose } : {}),
+    ...(!isVenueSizedScale && isFullClose !== undefined ? { isFullClose } : {}),
     ...(orderType === 'chase' && chaseMaxDistanceBps !== undefined
       ? { chaseMaxDistanceBps }
       : {}),

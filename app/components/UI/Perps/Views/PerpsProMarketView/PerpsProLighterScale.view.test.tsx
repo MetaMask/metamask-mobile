@@ -10,9 +10,15 @@ import {
 } from '@testing-library/react-native';
 import {
   InitializationState,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  PERPS_ERROR_CODES,
   type PerpsScalePriceLadder,
   type ScaleOrderGroup,
 } from '@metamask/perps-controller';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { translatePerpsError } from '../../utils/translatePerpsError';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -123,7 +129,17 @@ describe('Lighter Scale through the Pro market screen', () => {
     jest.mocked(controller.getScalePriceLadder).mockResolvedValue(preview);
     jest.mocked(controller.getScaleOrderGroups).mockResolvedValue([]);
     jest.mocked(controller.reviewScaleOrderGroups).mockResolvedValue([]);
-    jest.mocked(controller.placeOrder).mockResolvedValue({ success: true });
+    jest.mocked(controller.placeOrder).mockResolvedValue({
+      success: true,
+      orderId: group.groupId,
+      acceptedSize: '0.04',
+      acceptedChildren: [
+        { state: 'resting', orderId: 'child-1' },
+        { state: 'filled', orderId: 'child-2' },
+        { state: 'waitingForFill' },
+      ],
+      childOrderIds: ['child-1'],
+    });
     jest.mocked(controller.cancelOrder).mockResolvedValue({ success: true });
     jest.clearAllMocks();
   });
@@ -143,6 +159,7 @@ describe('Lighter Scale through the Pro market screen', () => {
     jest.mocked(controller.getScalePriceLadder).mockReturnValueOnce(held);
     jest.mocked(controller.placeOrder).mockResolvedValue({
       success: true,
+      orderId: group.groupId,
       acceptedSize: '0.04',
       acceptedChildren: [
         { state: 'resting', orderId: 'child-1' },
@@ -165,19 +182,26 @@ describe('Lighter Scale through the Pro market screen', () => {
     fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
 
     await waitFor(() =>
-      expect(controller.placeOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          symbol: 'ETH',
-          providerId: 'lighter',
-          orderType: 'scale',
-          size: '0.04',
-          usdAmount: '100',
-          scaleMinPrice: '2200',
-          scaleMaxPrice: '2600',
-          scaleNumOrders: 3,
-          scaleSkew: 1,
-        }),
-      ),
+      expect(controller.placeOrder).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        providerId: 'lighter',
+        orderType: 'scale',
+        isBuy: true,
+        reduceOnly: false,
+        size: '0.04',
+        usdAmount: '100',
+        currentPrice: expect.any(Number),
+        leverage: expect.any(Number),
+        trackingData: expect.any(Object),
+        scaleMinPrice: '2200',
+        scaleMaxPrice: '2600',
+        scaleNumOrders: 3,
+        scaleSkew: 1,
+        expectedScaleLadder: {
+          prices: preview.prices,
+          ...preview.sizingPreview,
+        },
+      }),
     );
     expect(controller.getScalePriceLadder).toHaveBeenCalledTimes(2);
     expect(
@@ -226,9 +250,25 @@ describe('Lighter Scale through the Pro market screen', () => {
     fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
 
     await waitFor(() =>
-      expect(controller.placeOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ size: '0.04', providerId: 'lighter' }),
-      ),
+      expect(controller.placeOrder).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        providerId: 'lighter',
+        orderType: 'scale',
+        isBuy: true,
+        reduceOnly: false,
+        size: '0.04',
+        currentPrice: expect.any(Number),
+        leverage: expect.any(Number),
+        trackingData: expect.any(Object),
+        scaleMinPrice: '2200',
+        scaleMaxPrice: '2600',
+        scaleNumOrders: 3,
+        scaleSkew: 1,
+        expectedScaleLadder: {
+          prices: preview.prices,
+          ...preview.sizingPreview,
+        },
+      }),
     );
     expect(
       jest.mocked(controller.placeOrder).mock.calls[0][0].usdAmount,
@@ -239,6 +279,7 @@ describe('Lighter Scale through the Pro market screen', () => {
     jest.mocked(controller.placeOrder).mockResolvedValue({
       success: false,
       error: 'Remaining children rejected',
+      orderId: group.groupId,
       acceptedSize: '0.025',
       acceptedChildren: group.acceptedChildren,
       childOrderIds: group.childOrderIds,
@@ -273,10 +314,100 @@ describe('Lighter Scale through the Pro market screen', () => {
     expect(controller.clearPendingTradeConfiguration).not.toHaveBeenCalled();
   });
 
+  it.each([
+    PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
+    'Lighter Scale ownership is full',
+  ])(
+    'shows definite refusal %s without group-review copy and retains the draft',
+    async (error) => {
+      jest.mocked(controller.placeOrder).mockResolvedValue({
+        success: false,
+        error,
+      });
+      renderLighter();
+      await configureScale();
+      await waitFor(() =>
+        expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      );
+
+      fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
+
+      expect(
+        await screen.findByText(translatePerpsError(error)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          strings('perps.pro_order_form.scale.orders_uncertain'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '100');
+      expect(screen.queryByTestId(GROUP.PANEL)).not.toBeOnTheScreen();
+      expect(controller.clearPendingTradeConfiguration).not.toHaveBeenCalled();
+    },
+  );
+
+  it('keeps an edited pending preview disabled without showing or tracking a validation error', async () => {
+    const tracked = jest.spyOn(analytics, 'trackEvent');
+    try {
+      renderLighter();
+      await configureScale();
+      await waitFor(() =>
+        expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      );
+      let resolve!: (value: PerpsScalePriceLadder) => void;
+      jest.mocked(controller.getScalePriceLadder).mockReturnValueOnce(
+        new Promise((done) => {
+          resolve = done;
+        }),
+      );
+      tracked.mockClear();
+
+      fireEvent.changeText(screen.getByTestId(FORM.SIZE_INPUT), '110');
+      await waitFor(() =>
+        expect(controller.getScalePriceLadder).toHaveBeenCalledWith(
+          expect.objectContaining({ sizing: { usdAmount: '110', skew: 1 } }),
+        ),
+      );
+
+      expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(
+        screen.queryByTestId(`${FORM.NOTICE}-scale`),
+      ).not.toBeOnTheScreen();
+      expect(tracked).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+          properties: expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+          }),
+        }),
+      );
+      expect(controller.placeOrder).not.toHaveBeenCalled();
+      await act(async () => resolve({ ...preview, sizingPreview: undefined }));
+      await waitFor(() =>
+        expect(screen.getByTestId(`${FORM.NOTICE}-scale`)).toBeOnTheScreen(),
+      );
+      expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(tracked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+          properties: expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+            [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'calculation_error',
+          }),
+        }),
+      );
+    } finally {
+      tracked.mockRestore();
+    }
+  });
+
   it('renders missing acceptance as unresolved and retains the Scale draft', async () => {
     jest.mocked(controller.placeOrder).mockResolvedValue({
       success: false,
       error: 'Venue outcome unknown',
+      orderId: group.groupId,
       submittedSize: '0.04',
       childOrderIds: [],
     });
@@ -308,6 +439,7 @@ describe('Lighter Scale through the Pro market screen', () => {
     jest.mocked(controller.placeOrder).mockResolvedValue({
       success: false,
       error: 'Venue rejected every child',
+      orderId: group.groupId,
       acceptedSize: '0',
       acceptedChildren: [],
       childOrderIds: [],
@@ -452,24 +584,31 @@ describe('Lighter Scale through the Pro market screen', () => {
     ]);
     const { stream } = renderLighter();
     const row = await screen.findByTestId(GROUP.row('lighter', group.groupId));
-    expect(within(row).getByText('ETH · lighter')).toBeOnTheScreen();
     expect(
       within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.accepted', {
-          count: 2,
-          size: '0.025',
+        strings('perps.pro_order_form.scale.groups.market_provider', {
           assetSymbol: 'ETH',
+          providerName: 'Lighter',
         }),
       ),
     ).toBeOnTheScreen();
     expect(
-      within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.filled', {
-          size: '0.015',
-          assetSymbol: 'ETH',
-        }),
-      ),
-    ).toBeOnTheScreen();
+      within(row).getByTestId(GROUP.accepted('lighter', group.groupId)),
+    ).toHaveTextContent(
+      strings('perps.pro_order_form.scale.groups.accepted', {
+        count: 2,
+        size: '0.025',
+        assetSymbol: 'ETH',
+      }),
+    );
+    expect(
+      within(row).getByTestId(GROUP.filled('lighter', group.groupId)),
+    ).toHaveTextContent(
+      strings('perps.pro_order_form.scale.groups.filled', {
+        size: '0.015',
+        assetSymbol: 'ETH',
+      }),
+    );
     expect(
       within(row).getByText(
         strings('perps.pro_order_form.scale.groups.child.resting', {
@@ -484,6 +623,25 @@ describe('Lighter Scale through the Pro market screen', () => {
         }),
       ),
     ).toBeOnTheScreen();
+    expect(
+      within(row).getByTestId(GROUP.state('lighter', group.groupId)),
+    ).toHaveTextContent(
+      strings('perps.pro_order_form.scale.groups.state.stopped'),
+    );
+    expect(
+      within(row).getByTestId(GROUP.child('lighter', group.groupId, 0)),
+    ).toHaveTextContent(
+      strings('perps.pro_order_form.scale.groups.child.resting', {
+        orderId: 'venue-resting-11',
+      }),
+    );
+    expect(
+      within(row).getByTestId(GROUP.child('lighter', group.groupId, 1)),
+    ).toHaveTextContent(
+      strings('perps.pro_order_form.scale.groups.child.filled', {
+        orderId: 'venue-filled-12',
+      }),
+    );
     expect(
       screen.queryByTestId(GROUP.row('lighter', 'other-market')),
     ).not.toBeOnTheScreen();

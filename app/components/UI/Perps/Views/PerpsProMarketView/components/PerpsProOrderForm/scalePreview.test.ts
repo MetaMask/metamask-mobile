@@ -48,6 +48,27 @@ describe('venue-owned Scale form contract', () => {
       orderValue: '2130',
       totalSize: '1',
       sizingIntent: intent.sizing,
+      expectedScaleLadder: { prices: preview.prices, ...preview.sizingPreview },
+    });
+  });
+
+  it('copies the approved prices and quantities before later venue changes', () => {
+    const response = {
+      ...preview,
+      prices: [...preview.prices],
+      sizingPreview: {
+        ...preview.sizingPreview,
+        sizes: [...preview.sizingPreview.sizes],
+      },
+    };
+    const result = getVenueScalePreview(intent, response);
+
+    response.prices[0] = '1990';
+    response.sizingPreview.sizes[0] = '0.19';
+
+    expect(result?.expectedScaleLadder).toEqual({
+      prices: preview.prices,
+      ...preview.sizingPreview,
     });
   });
 

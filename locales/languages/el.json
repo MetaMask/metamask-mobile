@@ -1849,7 +1849,8 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "title": "Scale orders",
+          "market_provider": "%{assetSymbol} · %{providerName}",
+        "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",
           "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
@@ -1881,7 +1882,8 @@
           "invalid_order_count": "Ο αριθμός εντολών πρέπει να είναι μεταξύ {{minOrderCount}} και {{maxOrderCount}}",
           "invalid_skew": "Η κλιμάκωση μεγέθους πρέπει να είναι μεγαλύτερη από 0",
           "minimum_lot": "Η μικρότερη εντολή πρέπει να έχει ελάχιστη αξία ${{minOrderValue}}",
-          "unavailable": "Οι εντολές κλιμάκωσης είναι προσωρινά μη διαθέσιμες. Επιλέξτε άλλον τύπο εντολής."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Οι εντολές κλιμάκωσης είναι προσωρινά μη διαθέσιμες. Επιλέξτε άλλον τύπο εντολής."
         }
       },
       "twap": {
@@ -2549,6 +2551,7 @@
         "scaleRangeInvalid": "Η μέγιστη τιμή της εντολής αλλαγής κλίμακας πρέπει να είναι υψηλότερη από την ελάχιστη",
         "scaleCountInvalid": "Ο αριθμός εντολών αλλαγής κλίμακας δεν είναι έγκυρος",
         "scaleSizeTooSmall": "Κάθε εντολή αλλαγής κλίμακας είναι μικρότερη από το ελάχιστο μέγεθος",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Κάθε εντολή αλλαγής κλίμακας είναι μικρότερη από την ελάχιστη αξία του ανταλλακτηρίου",
         "chaseIntervalInvalid": "Το διάστημα παρακολούθησης τιμής δεν είναι έγκυρο",
         "chaseDurationInvalid": "Η διάρκεια παρακολούθησης τιμής δεν είναι έγκυρη",

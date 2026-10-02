@@ -2,9 +2,10 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import type {
-  GetScalePriceLadderParams,
-  OrderParams,
+import {
+  PERPS_ERROR_CODES,
+  type GetScalePriceLadderParams,
+  type OrderParams,
 } from '@metamask/perps-controller';
 import type { RootState } from '../../../../reducers';
 import { initialStatePerps } from '../../../../../tests/component-view/presets/perpsStatePreset';
@@ -12,6 +13,7 @@ import { buildLighterRecoveryHarness } from '../../../../../tests/integration/ha
 import { usePerpsScalePriceLadder } from '../hooks/usePerpsScalePriceLadder';
 import { usePerpsScaleOrderGroups } from '../hooks/usePerpsScaleOrderGroups';
 import { getVenueScalePreview } from '../Views/PerpsProMarketView/components/PerpsProOrderForm/scalePreview';
+import { buildPerpsOrderParams } from '../utils/orderParams';
 
 type Harness = ReturnType<typeof buildLighterRecoveryHarness>;
 const intent: GetScalePriceLadderParams = {
@@ -85,12 +87,20 @@ function orderForPreview(
       'Real provider failed to produce complete venue quantities',
     );
   return {
-    symbol: request.symbol,
-    providerId: 'lighter',
-    orderType: 'scale',
-    isBuy: true,
-    size: preview.totalSize,
-    usdAmount: request.sizing?.usdAmount,
+    ...buildPerpsOrderParams({
+      asset: request.symbol,
+      providerId: 'lighter',
+      orderType: 'scale',
+      isBuy: true,
+      size: preview.totalSize,
+      usdAmount: request.sizing?.usdAmount,
+      effectivePrice: 100000,
+      leverage: 5,
+      maxSlippageBps: 100,
+      reduceOnly: false,
+      trackingData: { marginUsed: 20, marketPrice: 100000, totalFee: 0 },
+    }),
+    expectedScaleLadder: preview.expectedScaleLadder,
     scaleMinPrice: preview.minPrice,
     scaleMaxPrice: preview.maxPrice,
     scaleNumOrders: preview.orderCount,
@@ -99,6 +109,78 @@ function orderForPreview(
 }
 
 describe('Mobile Scale consumers through the installed Lighter controller', () => {
+  it.each([false, true])(
+    'places the actual Pro builder payload with reduce-only %s',
+    async (reduceOnly) => {
+      const perps = buildLighterRecoveryHarness({ mode: 'isolated-write' });
+      await withScale(perps, async (mounted) => {
+        const settled = orderForPreview(mounted);
+        const order: OrderParams = {
+          ...buildPerpsOrderParams({
+            asset: 'BTC',
+            isBuy: !reduceOnly,
+            size: settled.size,
+            usdAmount: settled.usdAmount,
+            orderType: 'scale',
+            effectivePrice: 100000,
+            leverage: 5,
+            maxSlippageBps: 100,
+            reduceOnly,
+            isFullClose: reduceOnly ? false : undefined,
+            providerId: 'lighter',
+            trackingData: { marginUsed: 20, marketPrice: 100000, totalFee: 0 },
+          }),
+          scaleMinPrice: settled.scaleMinPrice,
+          scaleMaxPrice: settled.scaleMaxPrice,
+          scaleNumOrders: settled.scaleNumOrders,
+          scaleSkew: settled.scaleSkew,
+          expectedScaleLadder: settled.expectedScaleLadder,
+        };
+
+        const receipt = await perps.controller.placeOrder(order);
+
+        expect(receipt.error).toBeUndefined();
+        expect(receipt.success).toBe(true);
+        expect(receipt.acceptedChildren).toHaveLength(3);
+        expect(receipt.acceptedSize).toBe('0.00107');
+        expect(
+          perps.venue.active.map((child) => child.initialBaseAmount),
+        ).toEqual(order.expectedScaleLadder?.sizes);
+        expect(perps.venue.active.map((child) => child.price)).toEqual(
+          order.expectedScaleLadder?.prices,
+        );
+        expect(order).not.toHaveProperty('priceAtCalculation');
+        expect(order).not.toHaveProperty('isFullClose');
+      });
+    },
+  );
+
+  it('rejects metadata drift from the approved Mobile preview before financial writes', async () => {
+    const perps = buildLighterRecoveryHarness({ mode: 'isolated-write' });
+    await withScale(perps, async (mounted) => {
+      const order = orderForPreview(mounted);
+      const approved = structuredClone(order.expectedScaleLadder);
+      perps.marketFixture.supportedSizeDecimals = 6;
+      perps.mocks.execute.mockClear();
+      perps.submissions.length = 0;
+
+      const receipt = await perps.controller.placeOrder(order);
+
+      expect(receipt.success).toBe(false);
+      expect(receipt.error).toBe(PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE);
+      expect(receipt.orderId).toBeUndefined();
+      expect(receipt.acceptedChildren).toBeUndefined();
+      expect(perps.submissions).toEqual([]);
+      expect(perps.venue.active).toEqual([]);
+      expect(
+        perps.mocks.execute.mock.calls.every(
+          ([call]) => call.function === '_createAuthToken',
+        ),
+      ).toBe(true);
+      expect(order.expectedScaleLadder).toEqual(approved);
+    });
+  });
+
   it('previews exact venue quantities without financial signing', async () => {
     const perps = buildLighterRecoveryHarness({ mode: 'isolated-write' });
     await withScale(perps, async (mounted) => {
@@ -179,6 +261,12 @@ describe('Mobile Scale consumers through the installed Lighter controller', () =
         expect(receipt.success).toBe(true);
         expect(receipt.acceptedSize).toBe('0.00107');
         expect(receipt.acceptedChildren).toHaveLength(3);
+        expect(
+          perps.venue.active.map((child) => child.initialBaseAmount),
+        ).toEqual(order.expectedScaleLadder?.sizes);
+        expect(perps.venue.active.map((child) => child.price)).toEqual(
+          order.expectedScaleLadder?.prices,
+        );
       },
       request,
     );

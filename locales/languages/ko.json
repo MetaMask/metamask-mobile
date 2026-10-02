@@ -1849,7 +1849,8 @@
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "groups": {
-          "title": "Scale orders",
+          "market_provider": "%{assetSymbol} · %{providerName}",
+        "title": "Scale orders",
           "review": "Review venue status",
           "cancel": "Cancel remaining orders",
           "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
@@ -1881,7 +1882,8 @@
           "invalid_order_count": "주문 수는 {{minOrderCount}}~{{maxOrderCount}}개여야 합니다",
           "invalid_skew": "사이즈 스큐는 0보다 커야 합니다",
           "minimum_lot": "최소 주문 금액은 ${{minOrderValue}} 이상이어야 합니다",
-          "unavailable": "스케일 주문은 일시적으로 사용할 수 없습니다. 다른 주문 유형을 선택하세요."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "스케일 주문은 일시적으로 사용할 수 없습니다. 다른 주문 유형을 선택하세요."
         }
       },
       "twap": {
@@ -2549,6 +2551,7 @@
         "scaleRangeInvalid": "스케일 주문의 최대 가격은 최소 가격보다 높아야 합니다",
         "scaleCountInvalid": "스케일 주문 개수가 올바르지 않습니다",
         "scaleSizeTooSmall": "각 스케일 주문 수량이 최소 수량보다 적습니다",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "각 스케일 주문 금액이 거래 최소 금액보다 적습니다",
         "chaseIntervalInvalid": "체이스 간격이 올바르지 않습니다",
         "chaseDurationInvalid": "체이스 기간이 올바르지 않습니다",
