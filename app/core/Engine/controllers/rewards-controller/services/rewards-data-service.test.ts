@@ -177,8 +177,8 @@ describe('RewardsDataService', () => {
       },
     );
 
-    it.each(['0', '1.25', '10001'])(
-      'accepts a nonnegative decimal fee of %s',
+    it.each(['0', '1.25', '999.99'])(
+      'preserves a valid fee string of %s',
       async (builderFeeBips) => {
         const response = {
           grant: {
@@ -196,14 +196,17 @@ describe('RewardsDataService', () => {
 
     it.each([
       {},
+      { grant: null, extra: true },
       { grant: {} },
       { grant: { ...grant, expiresAt: 'invalid' } },
-      ...['', '-1', '2.5oops', 'Infinity'].map((builderFeeBips) => ({
-        grant: {
-          ...grant,
-          hyperliquid: { ...grant.hyperliquid, builderFeeBips },
-        },
-      })),
+      ...['', '-1', '1.234', '1000', '2.5oops', 'Infinity'].map(
+        (builderFeeBips) => ({
+          grant: {
+            ...grant,
+            hyperliquid: { ...grant.hyperliquid, builderFeeBips },
+          },
+        }),
+      ),
     ])('rejects malformed responses: %j', async (response) => {
       mockFetch.mockResolvedValue({
         ok: true,
@@ -211,6 +214,20 @@ describe('RewardsDataService', () => {
       } as Response);
       await expect(service.getTradingFeeGrants()).rejects.toThrow(
         'Invalid trading fee grant',
+      );
+    });
+
+    it('rejects the result if the active profile changes during the request', async () => {
+      mockMessenger.call
+        .mockResolvedValueOnce('profile-token')
+        .mockResolvedValueOnce('next-profile-token');
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant }),
+      } as Response);
+
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Profile changed',
       );
     });
   });
@@ -323,6 +340,10 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getVipFees',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getTradingFeeGrants',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(

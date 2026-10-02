@@ -392,6 +392,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             totalMargin={calculations.totalMargin}
             totalPnl={calculations.totalPnl}
             totalFees={calculations.totalFees}
+            originalTotalFees={calculations.originalTotalFees}
             feeDiscountPercentage={calculations.avgFeeDiscountPercentage}
             feeDiscountKind={calculations.feeDiscountKind}
             metamaskFeeRate={calculations.avgMetamaskFeeRate}

@@ -96,14 +96,7 @@ describe('usePerpsOrderFees', () => {
     [FeeCalculationParams]
   >();
 
-  it('uses the resolved Core fee once and preserves targeted attribution', async () => {
-    const feeResolution = {
-      feeBips: 2.5,
-      discountBips: 7500,
-      source: 'rewards' as const,
-      subscription: { eligible: false, reason: 'no-source' as const },
-      targetedDiscountApplied: true,
-    };
+  it('uses the resolved Core fee once and preserves grant attribution', async () => {
     mockCalculateFees.mockResolvedValue({
       feeRate: 0.0007,
       feeAmount: 0.7,
@@ -111,7 +104,7 @@ describe('usePerpsOrderFees', () => {
       protocolFeeAmount: 0.45,
       metamaskFeeRate: 0.00025,
       metamaskFeeAmount: 0.25,
-      feeResolution,
+      feeSource: 'grant',
     });
     const { result } = renderHook(() =>
       usePerpsOrderFees({ orderType: 'market', amount: '1000', symbol: 'BTC' }),
@@ -124,8 +117,8 @@ describe('usePerpsOrderFees', () => {
     expect(result.current.totalFee).toBeCloseTo(0.7);
     expect(result.current.undiscountedTotalFee).toBeCloseTo(1.45);
     expect(result.current.feeDiscountPercentage).toBe(75);
-    expect(result.current.feeResolution).toEqual(feeResolution);
-    expect(result.current.feeDiscountKind).toBe('targeted');
+    expect(result.current.feeSource).toBe('grant');
+    expect(result.current.feeDiscountKind).toBe('promotional');
     expect(
       mockEngineContext.RewardsController.getPerpsDiscountForAccount,
     ).not.toHaveBeenCalled();

@@ -509,7 +509,7 @@ describe('usePerpsRewards', () => {
       expect(result.current.account).toEqual(mockAccount);
     });
 
-    it('should handle undefined values gracefully', () => {
+    it('preserves grant presentation for a non-opted-in account', () => {
       // Arrange
       mockUsePerpsRewardAccountOptedIn.mockReturnValue({
         accountOptedIn: false,
@@ -518,7 +518,9 @@ describe('usePerpsRewards', () => {
       const feeResults = createMockFeeResults({
         estimatedPoints: undefined,
         bonusBips: undefined,
-        feeDiscountPercentage: undefined,
+        feeDiscountPercentage: 75,
+        feeDiscountKind: 'promotional',
+        feeSource: 'grant',
       });
 
       // Act
@@ -534,7 +536,9 @@ describe('usePerpsRewards', () => {
       // Assert
       expect(result.current.estimatedPoints).toBeUndefined();
       expect(result.current.bonusBips).toBeUndefined();
-      expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.feeDiscountPercentage).toBe(75);
+      expect(result.current.feeDiscountKind).toBe('promotional');
+      expect(result.current.feeSource).toBe('grant');
       expect(result.current.accountOptedIn).toBe(false);
     });
 

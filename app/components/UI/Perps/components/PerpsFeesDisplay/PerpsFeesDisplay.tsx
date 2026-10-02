@@ -17,9 +17,9 @@ import {
 
 interface PerpsFeesDisplayProps {
   /**
-   * MetaMask fee discount in whole percentage points. When defined and
-   * positive, an attribution label is rendered. If `originalFee` is also
-   * provided, the pre-discount fee is shown struck-through.
+   * MetaMask fee discount in whole percentage points. When positive, an
+   * attribution label is rendered. If `originalFee` is also provided, the
+   * pre-discount fee is shown struck-through.
    */
   feeDiscountPercentage?: number;
   feeDiscountKind?: PerpsFeeDiscountKind;

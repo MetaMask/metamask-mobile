@@ -38,18 +38,16 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const isVipDiscount = hasDiscount && data?.feeDiscountKind === 'vip';
   const discountMessage =
     data?.feeDiscountKind === 'vip'
-      ? 'perps.tooltips.fees.discount_message_vip'
-      : data?.feeDiscountKind === 'targeted'
+      ? 'perps.tooltips.fees.discount_message'
+      : data?.feeDiscountKind === 'promotional'
         ? 'perps.tooltips.fees.promotional_discount_message'
-        : 'perps.tooltips.fees.discount_message';
+        : 'perps.tooltips.fees.fee_discount_message';
 
   return (
     <View testID={testID}>
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          {isVipDiscount && (
-            <VipIcon name="VipIcon" width={14} height={14} />
-          )}
+          {isVipDiscount && <VipIcon name="VipIcon" width={14} height={14} />}
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings(discountMessage, {
               percentage: discountPercentage.toString(),
