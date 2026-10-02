@@ -102,6 +102,116 @@ export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(
 
   await mockRelayQuoteWith(mockServer, quote);
   await mockRelayStatusSuccess(mockServer);
+  await mockFiatDepositRelayStatus(mockServer);
+}
+
+const MAINNET_TX_HASH =
+  '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+const MAINNET_BLOCK_HASH =
+  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+const MAINNET_BLOCK_NUMBER = '0x1234568';
+const ONE_GWEI = '0x3b9aca00';
+// 300k gas units. A 1-gwei hex value is a gas price, and it exceeds the block
+// gas limit when returned from eth_estimateGas.
+const MAINNET_GAS_LIMIT = '0x493e0';
+const ONE_ETH = '0xde0b6b3a7640000';
+
+const MAINNET_BLOCK = {
+  number: MAINNET_BLOCK_NUMBER,
+  hash: MAINNET_BLOCK_HASH,
+  parentHash: MAINNET_BLOCK_HASH,
+  gasLimit: '0x1c9c380',
+  gasUsed: '0x94670',
+  baseFeePerGas: ONE_GWEI,
+  timestamp: '0x68c0c0c0',
+  transactions: [],
+};
+
+function isEthereumMainnetInfura(url: string | null): boolean {
+  return Boolean(url?.includes('://mainnet.infura.io/'));
+}
+
+function resolveMainnetRpcResult(body: Record<string, unknown>): unknown {
+  const method = body?.method as string;
+  const requestedHash = (body?.params as string[])?.[0] ?? MAINNET_TX_HASH;
+
+  if (method === 'eth_getTransactionReceipt') {
+    return {
+      transactionHash: requestedHash,
+      transactionIndex: '0x0',
+      blockNumber: MAINNET_BLOCK_NUMBER,
+      blockHash: MAINNET_BLOCK_HASH,
+      from: DEFAULT_FIXTURE_ACCOUNT,
+      to: DEFAULT_FIXTURE_ACCOUNT,
+      cumulativeGasUsed: '0x5208',
+      gasUsed: '0x5208',
+      contractAddress: null,
+      logs: [],
+      status: '0x1',
+      logsBloom:
+        '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    };
+  }
+
+  if (method === 'eth_sendRawTransaction' || method === 'eth_sendTransaction') {
+    return MAINNET_TX_HASH;
+  }
+
+  if (method === 'eth_getTransactionByHash') {
+    return {
+      hash: requestedHash,
+      nonce: '0x0',
+      blockHash: MAINNET_BLOCK_HASH,
+      blockNumber: MAINNET_BLOCK_NUMBER,
+      transactionIndex: '0x0',
+      from: DEFAULT_FIXTURE_ACCOUNT,
+      to: DEFAULT_FIXTURE_ACCOUNT,
+      value: '0x3b363eba41aaaa',
+      gas: MAINNET_GAS_LIMIT,
+      gasPrice: ONE_GWEI,
+      input: '0x',
+    };
+  }
+
+  if (method === 'eth_getBlockByNumber' || method === 'eth_getBlockByHash') {
+    return MAINNET_BLOCK;
+  }
+
+  if (method === 'eth_feeHistory') {
+    return {
+      oldestBlock: '0x1234560',
+      baseFeePerGas: [ONE_GWEI, ONE_GWEI],
+      gasUsedRatio: [0.5],
+      reward: [[ONE_GWEI]],
+    };
+  }
+
+  if (method === 'eth_chainId') {
+    return '0x1';
+  }
+  if (method === 'net_version') {
+    return '1';
+  }
+  if (method === 'eth_blockNumber') {
+    return MAINNET_BLOCK_NUMBER;
+  }
+  if (method === 'eth_getTransactionCount') {
+    return '0x1';
+  }
+  if (method === 'eth_estimateGas') {
+    return MAINNET_GAS_LIMIT;
+  }
+  if (method === 'eth_gasPrice' || method === 'eth_maxPriorityFeePerGas') {
+    return ONE_GWEI;
+  }
+  if (method === 'eth_getBalance') {
+    return ONE_ETH;
+  }
+  if (method === 'eth_getCode') {
+    return '0x';
+  }
+
+  return '0x';
 }
 
 async function mockMainnetRpc(mockServer: Mockttp) {
@@ -110,52 +220,33 @@ async function mockMainnetRpc(mockServer: Mockttp) {
     .asPriority(1001)
     .matching(async (request) => {
       const url = new URL(request.url).searchParams.get('url');
-      if (!url?.includes('mainnet.infura.io')) return false;
+      if (!isEthereumMainnetInfura(url)) return false;
 
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : {};
-        const method = body.method as string | undefined;
-        return (
-          method === 'eth_sendRawTransaction' ||
-          method === 'eth_sendTransaction' ||
-          method === 'eth_getTransactionReceipt'
+        const calls = Array.isArray(body) ? body : [body];
+        return calls.some(
+          (call: { method?: string }) => typeof call?.method === 'string',
         );
       } catch {
         return false;
       }
     })
     .thenCallback(async (request) => {
-      const body = (await request.body.getJson()) as Record<string, unknown>;
-      const method = body?.method as string;
+      const body = (await request.body.getJson()) as
+        | Record<string, unknown>
+        | Record<string, unknown>[];
 
-      let result: unknown = '0x';
-      const mockHash =
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-
-      if (method === 'eth_getTransactionReceipt') {
-        const requestedHash = (body?.params as string[])?.[0] ?? mockHash;
-        result = {
-          transactionHash: requestedHash,
-          transactionIndex: '0x0',
-          blockNumber: '0x1234568',
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          from: '0x0000000000000000000000000000000000000000',
-          to: '0x0000000000000000000000000000000000000000',
-          cumulativeGasUsed: '0x94670',
-          gasUsed: '0x94670',
-          contractAddress: null,
-          logs: [],
-          status: '0x1',
-          logsBloom:
-            '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+      if (Array.isArray(body)) {
+        return {
+          statusCode: 200,
+          json: body.map((call) => ({
+            id: call?.id ?? 1,
+            jsonrpc: '2.0',
+            result: resolveMainnetRpcResult(call),
+          })),
         };
-      } else if (
-        method === 'eth_sendRawTransaction' ||
-        method === 'eth_sendTransaction'
-      ) {
-        result = mockHash;
       }
 
       return {
@@ -163,10 +254,46 @@ async function mockMainnetRpc(mockServer: Mockttp) {
         json: {
           id: body?.id ?? 1,
           jsonrpc: '2.0',
-          result,
+          result: resolveMainnetRpcResult(body),
         },
       };
     });
+}
+
+async function mockFiatDepositRelayStatus(mockServer: Mockttp) {
+  const handler = () => ({
+    statusCode: 200,
+    json: {
+      status: 'success',
+      inTxHashes: [MAINNET_TX_HASH],
+      txHashes: [MAINNET_TX_HASH],
+    },
+  });
+
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(1002)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url?.includes('api.relay.link/intents/status') ||
+          url?.includes('bridge.api.cx.metamask.io/relay/intents/status') ||
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/intents/status') ||
+          url?.includes('intents.api.cx.metamask.io/relay/intents/status') ||
+          url?.includes('intents.uat-api.cx.metamask.io/relay/intents/status'),
+      );
+    })
+    .thenCallback(handler);
+
+  await mockServer
+    .forGet(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/intents\/status/)
+    .asPriority(1002)
+    .thenCallback(handler);
+
+  await mockServer
+    .forGet(/api\.relay\.link\/intents\/status/)
+    .asPriority(1002)
+    .thenCallback(handler);
 }
 
 const UINT256_ZERO =
