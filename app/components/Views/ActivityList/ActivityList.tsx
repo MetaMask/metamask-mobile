@@ -25,7 +25,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import {
+  ActivityIndicator,
+  type LayoutChangeEvent,
+  RefreshControl,
+  View,
+} from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   runOnJS,
@@ -923,6 +929,25 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [floatingTabBarInset, tabBarHeight, bottomInset],
     );
 
+    // The empty state fills the space below the header so its CTA can sit at
+    // the bottom of the screen, so track both heights.
+    const [listHeight, setListHeight] = useState(0);
+    const [headerHeight, setHeaderHeight] = useState(0);
+    const handleListLayout = useCallback((event: LayoutChangeEvent) => {
+      setListHeight(event.nativeEvent.layout.height);
+    }, []);
+    const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+      setHeaderHeight(event.nativeEvent.layout.height);
+    }, []);
+    const emptyStateHeight = Math.max(
+      listHeight - headerHeight - listContentStyle.paddingBottom,
+      0,
+    );
+    const listHeader = useMemo(
+      () => (header ? <Box onLayout={handleHeaderLayout}>{header}</Box> : null),
+      [header, handleHeaderLayout],
+    );
+
     const isPerpsLoading = perps.isLoading;
     const isPredictLoading =
       shouldMountPredictSource && predictSource.isLoading;
@@ -998,12 +1023,15 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       perps.items.length > 0;
 
     const renderEmptyList = () => (
-      <View style={styles.emptyList}>
+      <Box
+        twClassName="w-full"
+        style={emptyStateHeight > 0 ? { height: emptyStateHeight } : undefined}
+      >
         <ActivityEmptyState
           typeFilter={typeFilter ?? ActivityTypeFilter.All}
           perpsSubFilterActive={perpsSubFilterActive}
         />
-      </View>
+      </Box>
     );
 
     const renderInitialLoading = () => (
@@ -1095,7 +1123,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                 testID={ActivityListSelectorsIDs.CONTAINER}
                 renderItem={renderItem}
                 keyExtractor={generateGroupedKey}
-                ListHeaderComponent={header}
+                ListHeaderComponent={listHeader}
                 ListEmptyComponent={
                   isRelevantActivityLoading
                     ? renderInitialLoading
@@ -1106,6 +1134,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   autoscrollToTopThreshold: 100,
                 }}
                 style={baseStyles.flexGrow}
+                onLayout={handleListLayout}
                 contentContainerStyle={listContentStyle}
                 refreshControl={
                   <RefreshControl

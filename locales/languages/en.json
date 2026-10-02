@@ -4390,38 +4390,52 @@
     },
     "empty_state": {
       "default_funded": {
+        "title": "No activity yet",
         "description": "Nothing to see yet. Swap your first token today.",
         "action": "Swap tokens"
       },
       "default_unfunded": {
+        "title": "No activity yet",
         "description": "Nothing to see yet. Add funds to your wallet to get started.",
         "action": "Add funds"
       },
       "predictions": {
+        "title": "No predictions yet",
         "description": "Your first prediction could be your best.",
         "action": "Make a prediction"
       },
       "perps": {
+        "title": "No perps trades yet",
         "description": "Your first perps trade could be your best.",
         "action": "Browse markets"
       },
       "perps_sub_filter": {
+        "title": "Nothing here yet",
         "description": "No activity for this filter. Try a different Perps filter."
       },
       "transactions_funded": {
+        "title": "No transactions yet",
         "description": "Swap your first token today.",
         "action": "Swap tokens"
       },
       "transactions_unfunded": {
+        "title": "No transactions yet",
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
       },
       "buy_sell": {
+        "title": "No buys or sells yet",
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
       },
-      "metamask_card": {
-        "description": "Manage your MetaMask Card and spend crypto anywhere.",
+      "metamask_card_no_card": {
+        "title": "Spend with MetaMask Card",
+        "description": "Get a card to spend crypto anywhere. Your purchases will show up here.",
+        "action": "Get MetaMask Card"
+      },
+      "metamask_card_cardholder": {
+        "title": "No card activity yet",
+        "description": "Your card purchases will show up here.",
         "action": "Open MetaMask Card"
       }
     }

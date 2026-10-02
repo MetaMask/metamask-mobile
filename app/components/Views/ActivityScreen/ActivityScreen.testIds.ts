@@ -15,4 +15,7 @@ export const ActivityScreenSelectorsIDs = {
   PERPS_FILTER_OPTION_PREFIX: 'activity-screen-perps-filter-option-',
   LIST: 'activity-screen-list',
   EMPTY_STATE: 'activity-screen-empty-state',
+  EMPTY_STATE_TITLE: 'activity-screen-empty-state-title',
+  EMPTY_STATE_DESCRIPTION: 'activity-screen-empty-state-description',
+  EMPTY_STATE_ACTION: 'activity-screen-empty-state-action',
 };
