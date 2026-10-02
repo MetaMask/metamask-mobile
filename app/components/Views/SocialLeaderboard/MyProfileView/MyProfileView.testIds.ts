@@ -20,6 +20,7 @@ export const MyProfileViewSelectorsIDs = {
   STATS_TIMES_COPIED: 'my-profile-view-stats-times-copied',
   EDIT_PROFILE_BUTTON: 'my-profile-view-edit-profile-button',
   SHARE_PROFILE_BUTTON: 'my-profile-view-share-profile-button',
+  FOLLOW_BUTTON: 'my-profile-view-follow-button',
   SCROLL: 'my-profile-view-scroll',
   POSTS_TAB: 'my-profile-view-posts-tab',
   POSTS_LIST: 'my-profile-view-posts-list',

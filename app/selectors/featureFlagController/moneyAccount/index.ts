@@ -38,6 +38,17 @@ export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
   },
 );
 
+/**
+ * Local escape hatch so engineers can open the live Bank account row from an
+ * unsupported IP. The `moneyMovementBrazilNeobank` flag must still be on.
+ * Set `MM_MONEY_VBA_GEO_BYPASS=true` in `.js.env` and restart Metro.
+ *
+ * @returns Whether the VBA geolocation requirement is bypassed.
+ */
+export function isVbaGeoBypassEnabled(): boolean {
+  return process.env.MM_MONEY_VBA_GEO_BYPASS === 'true';
+}
+
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
 

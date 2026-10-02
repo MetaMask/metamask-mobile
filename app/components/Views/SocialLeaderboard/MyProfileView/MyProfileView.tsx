@@ -15,7 +15,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -32,15 +37,19 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
+import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderProfile } from '../TraderProfileView/hooks';
-import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
-import SocialFeedPostSkeleton from '../SocialV1View/feed/components/SocialFeedPostSkeleton';
-import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
-import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
+import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
+import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfileAvatar from './components/ProfileAvatar';
+
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
+
 import {
   useMyOpenPerpsPositionCount,
   useMyProfile,
@@ -51,6 +60,8 @@ import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 import TraderStatsSheet from '../TraderProfileView/components/TraderStatsSheet';
 import { TraderStatsSheetSelectorsIDs } from '../TraderProfileView/components/TraderStatsSheet.testIds';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
+import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
+import type { MySocialProfile } from './hooks/useMyProfile';
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
@@ -62,13 +73,66 @@ const INITIAL_POST_SKELETON_KEYS = Array.from(
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route =
+    useRoute<
+      RouteProp<RootStackParamList, 'MyProfileView' | 'SocialV1ProfileView'>
+    >();
+  const traderId = route.params?.traderId;
+  const traderName = route.params?.traderName;
+  const traderAddress = route.params?.traderAddress;
+  const traderAvatarUri = route.params?.traderAvatarUri;
   const tw = useTailwind();
   const { colors } = useTheme();
-  const { profile, isLoading, error, refresh } = useMyProfile();
+  const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
+  const isOwner =
+    !traderId ||
+    traderId === myProfile?.profileId ||
+    Boolean(
+      traderAddress &&
+        myProfile?.linkedAccountAddress &&
+        traderAddress.toLowerCase() ===
+          myProfile.linkedAccountAddress.toLowerCase(),
+    );
   const { traders: following } = useFollowedTraders();
-  const addressOrId = useMyProfileAddress(profile);
+  const ownerAddressOrId = useMyProfileAddress(myProfile);
+  const addressOrId = isOwner ? ownerAddressOrId : (traderId ?? traderAddress);
   const liveProfile = useTraderProfile(addressOrId ?? '');
-  const { refresh: refreshLiveProfile } = liveProfile;
+  const {
+    refresh: refreshLiveProfile,
+    isFollowing,
+    toggleFollow,
+  } = liveProfile;
+  const { followWithSetup } = useFollowWithNotificationSetup();
+  const displayProfile = useMemo((): MySocialProfile | null => {
+    if (isOwner) {
+      return myProfile;
+    }
+    if (liveProfile.profile) {
+      return traderProfileResponseToMySocialProfile(liveProfile.profile, {
+        handle: traderName,
+        imageUrl: traderAvatarUri,
+      });
+    }
+    if (!traderId) {
+      return null;
+    }
+    return {
+      profileId: traderId,
+      displayName: traderName ?? traderId,
+      handle: traderName ?? traderId,
+      shareUrl: '',
+      linkedAccountAddress: traderAddress,
+      imageUrl: traderAvatarUri,
+    };
+  }, [
+    isOwner,
+    liveProfile.profile,
+    myProfile,
+    traderAddress,
+    traderAvatarUri,
+    traderId,
+    traderName,
+  ]);
   const {
     posts,
     isLoading: isPostsLoading,
@@ -81,8 +145,10 @@ const MyProfileView: React.FC = () => {
   const openPositionsCount = useMyOpenPerpsPositionCount();
   const overlayedStats = useMemo(
     () =>
-      profile ? overlayMyProfileLiveStats(profile, liveProfile.profile) : null,
-    [liveProfile.profile, profile],
+      displayProfile
+        ? overlayMyProfileLiveStats(displayProfile, liveProfile.profile)
+        : null,
+    [displayProfile, liveProfile.profile],
   );
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,15 +161,21 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
   const handleFollowersPress = useCallback(() => {
+    if (!isOwner) {
+      return;
+    }
     navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'followers',
     });
-  }, [navigation]);
+  }, [isOwner, navigation]);
   const handleFollowingPress = useCallback(() => {
+    if (!isOwner) {
+      return;
+    }
     navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'following',
     });
-  }, [navigation]);
+  }, [isOwner, navigation]);
   const handleShareFirstTrade = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
@@ -118,19 +190,38 @@ const MyProfileView: React.FC = () => {
   }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
-    if (!profile) {
+    if (!displayProfile?.shareUrl) {
       return;
     }
 
     const message = strings(
       'social_leaderboard.my_profile.share_profile_message',
       {
-        displayName: profile.displayName,
-        profileUrl: profile.shareUrl,
+        displayName: displayProfile.displayName,
+        profileUrl: displayProfile.shareUrl,
       },
     );
     Share.share({ message }).catch(() => undefined);
-  }, [profile]);
+  }, [displayProfile]);
+
+  const handleFollowPress = useCallback(async () => {
+    await followWithSetup(isFollowing, () =>
+      toggleFollow({
+        source: 'trader_profile',
+        traderAddress:
+          traderAddress || liveProfile.profile?.profile.address || '',
+        traderUsername: displayProfile?.displayName,
+        traderAvatarUri: displayProfile?.imageUrl,
+      }),
+    );
+  }, [
+    displayProfile,
+    followWithSetup,
+    isFollowing,
+    liveProfile.profile,
+    toggleFollow,
+    traderAddress,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -185,7 +276,7 @@ const MyProfileView: React.FC = () => {
         testID={MyProfileViewSelectorsIDs.HEADER}
       />
 
-      {isLoading && !profile ? (
+      {isLoading && isOwner && !displayProfile ? (
         <Box
           twClassName="flex-1"
           alignItems={BoxAlignItems.Center}
@@ -194,7 +285,7 @@ const MyProfileView: React.FC = () => {
         >
           <Spinner />
         </Box>
-      ) : error && !profile ? (
+      ) : error && isOwner && !displayProfile ? (
         <Box
           twClassName="flex-1"
           alignItems={BoxAlignItems.Center}
@@ -214,7 +305,7 @@ const MyProfileView: React.FC = () => {
             {strings('social_leaderboard.my_profile.retry')}
           </Button>
         </Box>
-      ) : profile && overlayedStats ? (
+      ) : displayProfile && overlayedStats ? (
         <Animated.ScrollView
           testID={MyProfileViewSelectorsIDs.SCROLL}
           showsVerticalScrollIndicator={false}
@@ -231,9 +322,10 @@ const MyProfileView: React.FC = () => {
           }
         >
           <MyProfileHeader
-            profile={profile}
+            profile={displayProfile}
             overlayedStats={overlayedStats}
             followingCount={following.length}
+            isOwner={isOwner}
             onFollowersPress={handleFollowersPress}
             onFollowingPress={handleFollowingPress}
             onStatsPress={() => setIsStatsSheetOpen(true)}
@@ -245,26 +337,47 @@ const MyProfileView: React.FC = () => {
             paddingHorizontal={4}
             paddingBottom={8}
           >
-            <Box twClassName="flex-1">
-              <Button
-                variant={ButtonVariant.Secondary}
-                isFullWidth
-                onPress={handleEditProfile}
-                testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
-              >
-                {strings('social_leaderboard.my_profile.edit_profile')}
-              </Button>
-            </Box>
-            <Box twClassName="flex-1">
-              <Button
-                variant={ButtonVariant.Secondary}
-                isFullWidth
-                onPress={handleShareProfile}
-                testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
-              >
-                {strings('social_leaderboard.my_profile.share_profile')}
-              </Button>
-            </Box>
+            {isOwner ? (
+              <>
+                <Box twClassName="flex-1">
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    isFullWidth
+                    onPress={handleEditProfile}
+                    testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                  >
+                    {strings('social_leaderboard.my_profile.edit_profile')}
+                  </Button>
+                </Box>
+                <Box twClassName="flex-1">
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    isFullWidth
+                    onPress={handleShareProfile}
+                    testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                  >
+                    {strings('social_leaderboard.my_profile.share_profile')}
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <Box twClassName="flex-1">
+                <Button
+                  variant={
+                    isFollowing
+                      ? ButtonVariant.Secondary
+                      : ButtonVariant.Primary
+                  }
+                  isFullWidth
+                  onPress={handleFollowPress}
+                  testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                >
+                  {isFollowing
+                    ? strings('social_leaderboard.following')
+                    : strings('social_leaderboard.follow')}
+                </Button>
+              </Box>
+            )}
           </Box>
 
           <Box twClassName="border-b border-muted">
@@ -300,6 +413,7 @@ const MyProfileView: React.FC = () => {
             </Box>
           ) : showPostsEmptyState ? (
             <ProfilePostsEmptyState
+              isOwner={isOwner}
               onShareFirstTrade={handleShareFirstTrade}
               onResetProfile={handleResetProfile}
             />
@@ -380,22 +494,32 @@ const MyProfileView: React.FC = () => {
           </Button>
         </Box>
       )}
-      {isStatsSheetOpen && profile && overlayedStats ? (
+      {isStatsSheetOpen && displayProfile && overlayedStats ? (
         <TraderStatsSheet
           profile={overlayedStats.sheetProfile}
-          profileHandle={profile.handle}
+          profileHandle={displayProfile.handle}
           fallbackFields={overlayedStats.fallbackFields}
           includeHoldTime={false}
           openPositionsCount={openPositionsCount}
           profileAgeLabel={overlayedStats.profileAgeLabel}
           copySuccessRateLabel={overlayedStats.copySuccessRateLabel}
           headerAvatar={
-            <ProfileAvatar
-              imageUrl={profile.imageUrl}
-              avatarPresetId={profile.avatarPresetId}
-              size="sm"
-              testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
-            />
+            isOwner ? (
+              <ProfileAvatar
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                size="sm"
+                testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+              />
+            ) : (
+              <TraderAvatar
+                imageUrl={displayProfile.imageUrl}
+                address={displayProfile.linkedAccountAddress ?? undefined}
+                size={40}
+                recyclingKey={displayProfile.profileId}
+                testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+              />
+            )
           }
           onClose={() => setIsStatsSheetOpen(false)}
         />

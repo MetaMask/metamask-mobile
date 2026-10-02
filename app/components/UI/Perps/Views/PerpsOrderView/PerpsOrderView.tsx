@@ -1,7 +1,6 @@
 import {
   useNavigation,
   useRoute,
-  useFocusEffect,
   CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
@@ -96,6 +95,7 @@ import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeS
 import {
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
+  PerpsTradePayWithScreen,
   PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
@@ -180,13 +180,16 @@ import {
   calculateRoEForPrice,
   getPerpsOrderTpSlWarnings,
 } from '../../utils/tpslValidation';
-import { deriveOrderSizing } from '../../utils/orderSizing';
+import {
+  deriveOrderSizing,
+  getPayWithTokenDepositAmount,
+} from '../../utils/orderSizing';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
 import createStyles from './PerpsOrderView.styles';
-import { PerpsPayRow } from './PerpsPayRow';
+import { PerpsPayRow, PerpsPayTokenIcon } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
@@ -244,12 +247,14 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
   tpsl: 1,
+  payWith: 1,
   marginInfo: 1,
   liquidationInfo: 1,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'leverage',
+  'payWith',
   'marginInfo',
   'liquidationInfo',
 ];
@@ -388,6 +393,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // settles in that window. Reset in the effect body so a Fast Refresh effect
   // re-run does not leave it stuck at `true`.
   const isDismissedRef = useRef(false);
+  // Set only by `handleTradeSheetClose`, which has already navigated away.
+  // The unmount cleanup must not set it: confirming a deposit deletes the
+  // approval and unmounts this view while the user is still on the sheet, and
+  // that path still needs to leave once the confirmation settles.
+  const isClosedByUserRef = useRef(false);
   useEffect(() => {
     isDismissedRef.current = false;
     return () => {
@@ -591,23 +601,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? `${payToken.address}:${payToken.chainId}`
     : '';
 
-  useFocusEffect(
-    useCallback(() => {
-      const identityAtOpen = tradeSheetPayTokenIdentityRef.current;
-      if (!useBottomSheet || identityAtOpen === null) {
-        return;
-      }
-      tradeSheetPayTokenIdentityRef.current = null;
-      const selectionMade = consumePerpsPaymentTokenSelection();
-      if (!selectionMade && payTokenIdentity === identityAtOpen) {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
-          [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
-        });
-      }
-    }, [payToken?.symbol, payTokenIdentity, track, useBottomSheet]),
-  );
+  // The Trade sheet's payment token picker is an inline screen, so there is
+  // no focus change to observe: the screen reports when it is left and the
+  // selection marker tells an explicit pick apart from backing out.
+  const handleTradeSheetPayWithDismiss = useCallback(() => {
+    const identityAtOpen = tradeSheetPayTokenIdentityRef.current;
+    if (identityAtOpen === null) {
+      return;
+    }
+    tradeSheetPayTokenIdentityRef.current = null;
+    const selectionMade = consumePerpsPaymentTokenSelection();
+    if (!selectionMade && payTokenIdentity === identityAtOpen) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
+        [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
+      });
+    }
+  }, [payToken?.symbol, payTokenIdentity, track]);
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -900,13 +911,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
   }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
 
+  // Margin plus fees plus a slippage buffer, so the order still fits the
+  // credited funds at its submitted price.
+  const depositAmount = useMemo(
+    () =>
+      getPayWithTokenDepositAmount({
+        marginRequired,
+        estimatedFeesUsd: estimatedFees,
+        orderType: orderForm.type,
+        maxSlippageBps,
+      }),
+    [marginRequired, estimatedFees, orderForm.type, maxSlippageBps],
+  );
+
   const hasInsufficientPayTokenBalance = useMemo(() => {
-    if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
+    if (!depositAmount || !payToken || !hasCustomTokenSelected) {
       return false;
     }
-    const requiredUsd = Number(marginRequired);
-    return requiredUsd > Number(payTokenBalanceUsd);
-  }, [hasCustomTokenSelected, marginRequired, payToken, payTokenBalanceUsd]);
+    return Number(depositAmount) > Number(payTokenBalanceUsd);
+  }, [hasCustomTokenSelected, depositAmount, payToken, payTokenBalanceUsd]);
 
   // Standard confirmation blocking alerts for pay-with-any-token flow.
   // These validate the relay quote totals (input + fees) against the actual
@@ -1169,15 +1192,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }),
     [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
   );
-
-  const depositAmount = useMemo(() => {
-    if (marginRequired !== undefined && marginRequired !== null) {
-      return new BigNumber(marginRequired)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-        .toString(10);
-    }
-    return '';
-  }, [marginRequired]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice, isCalculating: isCalculatingLiquidationPrice } =
@@ -1695,9 +1709,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
 
         // Show deposit toast and set up tracking before confirming
-        handleDepositConfirm(activeTransactionMeta, () => {
-          handlePlaceOrder(true);
-        });
+        handleDepositConfirm(
+          activeTransactionMeta,
+          () => {
+            handlePlaceOrder(true);
+          },
+          marginRequired,
+        );
         // useTransactionConfirm swallows confirm errors and reports them via
         // onError, so capture failure explicitly instead of assuming success.
         // Hold the deposit lock across the await so a second tap cannot start
@@ -1729,10 +1747,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Deposit confirmed: the order is placed once funds arrive, so leaving
         // now is a real commitment, not an abandoned order.
         hasPlacedOrderRef.current = true;
-        if (isDismissedRef.current) {
-          // The user already swiped the sheet away while the confirmation was
-          // pending, so `handleTradeSheetClose` has navigated; a second
-          // `goBack` here would pop whatever screen is now on top.
+        if (isClosedByUserRef.current) {
+          // The user closed the sheet (before or during the confirmation), so
+          // `handleTradeSheetClose` has navigated; a second `goBack` here
+          // would pop whatever screen is now on top. `isDismissedRef` is not
+          // used here because the unmount caused by this confirm deleting the
+          // approval also sets it, and that user still needs to leave.
           return;
         }
         if (fromTokenDetails) {
@@ -2044,16 +2064,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
+    // The Trade screen navigates to the sheet's inline `payWith` screen next.
     tradeSheetPayTokenIdentityRef.current = payTokenIdentity;
     resetPerpsPaymentTokenSelection();
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [
-    isPayWithDisabled,
-    navigation,
-    payTokenIdentity,
-    setConfirmationMetric,
-    track,
-  ]);
+  }, [isPayWithDisabled, payTokenIdentity, setConfirmationMetric, track]);
 
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
@@ -2210,6 +2224,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // stays mounted until the navigation transition finishes; stop any submit
     // that is still awaiting validation from placing an order.
     isDismissedRef.current = true;
+    isClosedByUserRef.current = true;
     if (fromTokenDetails) {
       const parentNavigation = navigation.getParent();
       if (parentNavigation?.canGoBack()) {
@@ -2423,6 +2438,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isLimitPriceFocused={isLimitPriceFocused}
                 payWithName={payWithName}
                 payWithBalance={payWithBalance}
+                payWithIcon={<PerpsPayTokenIcon />}
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
@@ -2478,6 +2494,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
+              />
+            ),
+            payWith: (
+              <PerpsTradePayWithScreen
+                onDismiss={handleTradeSheetPayWithDismiss}
               />
             ),
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,

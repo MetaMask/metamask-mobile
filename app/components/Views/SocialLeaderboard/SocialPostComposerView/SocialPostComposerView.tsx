@@ -36,6 +36,7 @@ import {
   TextInput,
   type TextStyle,
 } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -49,18 +50,18 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import ReactQueryService from '../../../../core/ReactQueryService';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useTheme } from '../../../../util/theme';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import { PositionCardBody } from '../SocialV1View/feed/components/SocialFeedPositionCard';
+import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
-import type { SocialV1FeedItem } from '../SocialV1View/feed/types';
-import { appendKlipyGifUrlToCommentText } from '../utils/klipyGifComment';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { createSwapComment } from './createSwapCommentApi';
 import {
   clipComposerComment,
   COMPOSER_COMMENT_MAX_LENGTH,
-  isComposerCommentValid,
 } from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
@@ -76,6 +77,55 @@ interface ImageInsertEvent {
     linkUri?: string;
   };
 }
+
+/** Line smiley matching the composer GIF chip; the icon set has no equivalent. */
+const GifChipIcon = ({ color }: { color: string }) => (
+  <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+    <Circle cx="8" cy="8" r="6.25" stroke={color} strokeWidth={1.25} />
+    <Circle cx="6" cy="6.75" r="0.75" fill={color} />
+    <Circle cx="10" cy="6.75" r="0.75" fill={color} />
+    <Path
+      d="M5.5 9.25c.55.85 1.45 1.3 2.5 1.3s1.95-.45 2.5-1.3"
+      stroke={color}
+      strokeWidth={1.25}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+interface ComposerChipProps {
+  label: string;
+  onPress: () => void;
+  testID: string;
+  icon: React.ReactNode;
+  accessibilityState?: { selected?: boolean };
+}
+
+/** Outline pill shared by the Position and GIF actions, matching the header height. */
+const ComposerChip = ({
+  label,
+  onPress,
+  testID,
+  icon,
+  accessibilityState,
+}: ComposerChipProps) => {
+  const tw = useTailwind();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityState={accessibilityState}
+      style={tw.style(
+        'h-10 flex-row items-center gap-2 rounded-full border border-muted px-4',
+      )}
+    >
+      {icon}
+      <Text variant={TextVariant.BodyMd}>{label}</Text>
+    </Pressable>
+  );
+};
 
 const SocialPostComposerView: React.FC = () => {
   const tw = useTailwind();
@@ -116,7 +166,8 @@ const SocialPostComposerView: React.FC = () => {
     });
   }, [composerAuthor, selectedPosition, text]);
 
-  const canSubmit = selectedPosition != null && isComposerCommentValid(text);
+  // A position is the only requirement. An empty caption still posts.
+  const canSubmit = selectedPosition != null;
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -250,20 +301,23 @@ const SocialPostComposerView: React.FC = () => {
     >
       <HeaderBase
         includesTopInset
+        twClassName="px-4"
         startAccessory={
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={handleClose}
-            testID={SocialPostComposerViewSelectorsIDs.CLOSE_BUTTON}
-            accessibilityLabel={strings('social_leaderboard.composer.close')}
-          />
+          <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Md}
+              onPress={handleClose}
+              testID={SocialPostComposerViewSelectorsIDs.CLOSE_BUTTON}
+              accessibilityLabel={strings('social_leaderboard.composer.close')}
+            />
+          </SocialHeaderGlassSurface>
         }
         endAccessory={
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={2}
+            gap={3}
           >
             <Text
               variant={TextVariant.BodySm}
@@ -297,7 +351,7 @@ const SocialPostComposerView: React.FC = () => {
       >
         <ScrollView
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('px-4 pt-2 pb-4 gap-4')}
+          contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
           keyboardShouldPersistTaps="always"
         >
           <Box gap={3} twClassName="w-full">
@@ -384,33 +438,24 @@ const SocialPostComposerView: React.FC = () => {
           })}
         >
           {selectedPosition ? null : (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              startIconName={IconName.Card}
+            <ComposerChip
+              label={strings('social_leaderboard.composer.chip_position')}
+              icon={<Icon name={IconName.Card} size={IconSize.Sm} />}
               onPress={() => {
                 setIsGifSheetOpen(false);
                 setIsShareSheetOpen(true);
               }}
               testID={SocialPostComposerViewSelectorsIDs.POSITION_CHIP}
-            >
-              {strings('social_leaderboard.composer.chip_position')}
-            </Button>
+            />
           )}
           {gifUri ? null : (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              startIconName={IconName.Sparkle}
+            <ComposerChip
+              label={strings('social_leaderboard.composer.chip_gif')}
+              icon={<GifChipIcon color={colors.icon.default} />}
               onPress={handleGifChipPress}
               accessibilityState={{ selected: isGifSheetOpen }}
-              twClassName={
-                isGifSheetOpen ? 'border border-primary-default' : undefined
-              }
               testID={SocialPostComposerViewSelectorsIDs.GIF_CHIP}
-            >
-              {strings('social_leaderboard.composer.chip_gif')}
-            </Button>
+            />
           )}
         </Box>
         {isGifSheetOpen ? (

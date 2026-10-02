@@ -308,7 +308,7 @@ const Benefits = ({
           isLoading={isSubmitting}
           isFullWidth
         >
-          {strings('pro_subscription.join_pro')}
+          {strings('pro_subscription.join_orange')}
         </Button>
       </Box>
 
