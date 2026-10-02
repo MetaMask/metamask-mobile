@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
@@ -39,11 +38,12 @@ const touchAreaSlop = { top: 8, bottom: 8, left: 8, right: 8 };
 
 const defaultProps: WalletHeaderProps = {
   displayName: 'Account 1',
-  navigation: {
-    navigate: jest.fn(),
-  } as unknown as NavigationProp<ParamListBase>,
+  navigation: {},
   isMoneyAccountVisible: false,
   handleSearchPress: jest.fn(),
+  useSearchHeaderLayout: true,
+  showSearchPastePill: false,
+  handleSearchPastePress: jest.fn(),
   handleActivityPress: jest.fn(),
   handleCardPress: jest.fn(),
   handleHamburgerPress: jest.fn(),
@@ -56,27 +56,6 @@ describe('WalletHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
-  });
-
-  it('renders the header root and account picker', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
-    ).toBeOnTheScreen();
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
-  });
-
-  it('calls handleSearchPress when the search button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON));
-
-    expect(defaultProps.handleSearchPress).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleHamburgerPress when the menu button is pressed', () => {
@@ -92,16 +71,18 @@ describe('WalletHeader', () => {
   });
 
   it('navigates to Profile Drawer when the account picker is pressed', () => {
+    const navigate = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
+      <WalletHeader
+        {...defaultProps}
+        navigation={{ navigate }}
+        useSearchHeaderLayout={false}
+      />,
     );
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
 
-    expect(defaultProps.navigation.navigate).toHaveBeenCalledWith(
-      'ProfileDrawer',
-      {},
-    );
+    expect(navigate).toHaveBeenCalledWith('ProfileDrawer', {});
   });
 
   describe('when the Money account is visible', () => {

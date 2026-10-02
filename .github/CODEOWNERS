@@ -143,6 +143,8 @@ app/components/Views/AccountSelector                        @MetaMask/accounts-e
 # Swaps Team
 app/components/UI/Swaps                                  @MetaMask/swaps-engineers
 app/components/UI/Bridge                                 @MetaMask/swaps-engineers
+app/components/UI/QuickBuy/                              @MetaMask/swaps-engineers
+**/QuickBuy/**                                           @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
@@ -243,12 +245,13 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 
 # Social & AI Team
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
+app/components/UI/SocialFeed/                                        @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
-app/components/UI/QuickBuy/                                          @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
+app/core/Engine/controllers/social/                                  @MetaMask/social-ai
 app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
 app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
@@ -261,7 +264,6 @@ app/selectors/featureFlagController/whatsHappening/                  @MetaMask/s
 **/SocialLeaderboard/**                                              @MetaMask/social-ai
 **/MarketInsights/**                                                 @MetaMask/social-ai
 **/WhatsHappening/**                                                 @MetaMask/social-ai
-**/QuickBuy/**                                                       @MetaMask/social-ai
 **/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
@@ -349,6 +351,10 @@ app/components/UI/UiSlots/                        @MetaMask/mobile-core-ux
 app/core/Engine/controllers/ui-slots-controller/  @MetaMask/mobile-core-ux
 app/core/Engine/messengers/ui-slots-controller-messenger/ @MetaMask/mobile-core-ux
 app/selectors/uiSlotsController.ts                 @MetaMask/mobile-core-ux
+# Search
+app/components/Views/TrendingView/search/                            @MetaMask/mobile-core-ux
+app/components/Views/TrendingView/Views/ExploreSearchScreen/         @MetaMask/mobile-core-ux
+app/components/UI/Sites/components/SitesSearchFooter/                @MetaMask/mobile-core-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
@@ -377,7 +383,6 @@ app/components/Views/SrpInput                               @MetaMask/web3auth
 app/components/Views/RestoreWallet                          @MetaMask/web3auth
 app/components/Views/WalletCreationError                    @MetaMask/web3auth
 app/components/Views/OAuthRehydration                       @MetaMask/web3auth
-app/components/Views/SocialLoginIosUser                     @MetaMask/web3auth
 app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 

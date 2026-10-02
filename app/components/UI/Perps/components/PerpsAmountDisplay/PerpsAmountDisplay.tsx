@@ -131,17 +131,30 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   }, [isActive, fadeAnim]);
 
   if (variant === 'tradeSheet') {
+    const isTokenPrimary = Boolean(
+      showTokenAmount && tokenAmount && tokenSymbol,
+    );
+    // The unit is rendered separately so the input cursor sits after the
+    // number rather than after the symbol.
     const primaryDisplayValue =
-      showTokenAmount && tokenDisplayValue
-        ? tokenDisplayValue
+      isTokenPrimary && tokenAmount
+        ? formatPositionSize(tokenAmount)
         : fiatDisplayValue;
+    const primaryDisplayUnit =
+      isTokenPrimary && tokenSymbol
+        ? getPerpsDisplaySymbol(tokenSymbol)
+        : undefined;
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
+    const primaryColor = hasError
+      ? TextColor.ErrorDefault
+      : TextColor.TextDefault;
 
     const primaryAmount = (
       <Box
         accessible={false}
+        testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
@@ -151,7 +164,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           <Text
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
             variant={TextVariant.DisplayLg}
-            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+            color={primaryColor}
           >
             {primaryDisplayValue}
           </Text>
@@ -166,6 +179,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               },
             ]}
           />
+        ) : null}
+        {!isLoading && primaryDisplayUnit ? (
+          <Text
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
+            variant={TextVariant.DisplayLg}
+            color={primaryColor}
+          >
+            {` ${primaryDisplayUnit}`}
+          </Text>
         ) : null}
       </Box>
     );

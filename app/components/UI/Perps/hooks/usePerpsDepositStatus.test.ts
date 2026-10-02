@@ -174,6 +174,7 @@ describe('usePerpsDepositStatus', () => {
             ],
             hapticsType: NotificationMoment.Warning,
           } as PerpsToastOptions,
+          orderNotPlaced: {} as PerpsToastOptions,
         },
         oneClickTrade: {
           txCreationFailed: {} as PerpsToastOptions,

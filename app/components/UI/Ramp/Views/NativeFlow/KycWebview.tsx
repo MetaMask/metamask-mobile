@@ -10,6 +10,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import Logger from '../../../../../util/Logger';
+import { RAMP_V2_SCREEN_ID } from '../../constants/rampScreenPerformance';
 
 export interface KycWebviewParams {
   url: string;
@@ -54,7 +55,7 @@ function KycWebview() {
     }
   }, [idProofStatus, quote, amount, routeAfterAuthentication]);
 
-  return <Checkout />;
+  return <Checkout performanceScreenId={RAMP_V2_SCREEN_ID.KYC_WEBVIEW} />;
 }
 
 export default KycWebview;
