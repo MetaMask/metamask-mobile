@@ -382,21 +382,22 @@
         <a href="#current-source-state">[C17]</a>
       </p>
       <p>
-        As recorded on October 3, two Core PRs remain open as drafts:
-        <a href="https://github.com/MetaMask/core/pull/10618"
-          >#10618 recovery</a
-        >
-        and
+        As recorded on October 3, the single combined Core draft
         <a href="https://github.com/MetaMask/core/pull/10638"
-          >#10638 trigger orders and position protection</a
-        >. #10629 was closed and #10644 was incorporated into #10638's feature
-        branch, not merged to main. Recovery is based on main. Advanced orders
-        temporarily depend on recovery and will move to main after it merges.
-        The recovery correction must preserve an accepted key registration
-        through visibility delays and reconnect, without allocating another
-        slot. Final reviews, CI and published-package availability remain
-        separate from local source checks. An audit of the Core branch stack is
-        underway; the final PR structure is not yet settled.
+          >#10638 recovery and advanced orders</a
+        >
+        now targets main.
+        <a href="https://github.com/MetaMask/core/pull/10618">#10618</a> is
+        closed as superseded; its review history and recovery branch are
+        retained. #10629 was closed and #10644 was incorporated into #10638's
+        feature branch, not merged to main. Core remains at
+        <code>1c87013ccef08f4830c632fb0ac713cf3241dee5</code>. After
+        retargeting, 339 checks still pass and six are skipped. Current-head
+        review of the combined scope remains pending; the draft is not
+        merge-ready. The recovery correction must preserve an accepted key
+        registration through visibility delays and reconnect, without allocating
+        another slot. Published-package availability remains separate from local
+        source checks.
       </p>
       <p>
         Current source includes bounded key recovery, standalone triggers,
@@ -932,11 +933,12 @@
           patch for wallet-key recovery, stream failures/history, unknown
           closing-fill PnL, capability gating, native standalone triggers,
           position protection and non-financial dispatch reconciliation. Core
-          #10605 is merged. As recorded on October 3, #10618 and #10638 are the
-          two open draft follow-ups; #10629 is closed and #10644 is incorporated
-          into #10638's feature branch. Final corrections, review and current
-          UI/venue proof remain pending, including the Core stack simplification
-          audit. Mobile
+          #10605 is merged. As recorded on October 3, #10638 is the single Core
+          draft and targets main. #10618 is closed as superseded, with its
+          review history and recovery branch retained. #10629 is closed and
+          #10644 is incorporated into #10638's feature branch. Final
+          corrections, current-head review of the combined scope and current
+          UI/venue proof remain pending. Mobile
           <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
             >#37161</a
           >
