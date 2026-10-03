@@ -451,6 +451,8 @@ export const PROVIDER_CONFIG = {
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
+  /** Provider whose Scale quantities are normalized by the venue. */
+  VenueSizedScaleProvider: 'lighter' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */
@@ -519,3 +521,5 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
   orderBookExpanded: true,
   orderBookPosition: 'right',
 } as const;
+/** Maximum retained development submission records and Scale form lifetimes. */
+export const PERPS_UI_OBSERVATION_LIMIT = 50;

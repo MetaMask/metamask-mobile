@@ -23,6 +23,7 @@ import {
   type AccountState,
   type PerpsMarketData,
   type PerpsUserDataSnapshot,
+  type PerpsProviderType,
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
@@ -134,8 +135,9 @@ interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
   onDelivery?: (source: StreamUpdateSource) => void;
+  onError?: (error: Error) => void;
   throttleMs?: number;
-  timer?: NodeJS.Timeout;
+  timer?: ReturnType<typeof setTimeout>;
   pendingUpdate?: T;
   hasReceivedFirstFreshUpdate?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
@@ -161,6 +163,11 @@ type PerpsUserDataBundle = Pick<
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
+  private streamError: Error | null = null;
+  private readonly providerErrors = new Map<
+    PerpsProviderType | 'default',
+    Error
+  >();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   // Reverse index: symbol -> set of subscriber ids registered for that symbol.
   // Populated only for subscriptions that declare `symbols` (the price channel),
@@ -241,7 +248,12 @@ abstract class StreamChannel<T> {
   protected notifySubscribers(
     updates: T,
     source: StreamUpdateSource = 'fresh',
+    sourceProviderId?: PerpsProviderType,
   ) {
+    if (source === 'fresh') {
+      this.providerErrors.delete(sourceProviderId ?? 'default');
+      this.streamError = this.providerErrors.values().next().value ?? null;
+    }
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
@@ -272,6 +284,11 @@ abstract class StreamChannel<T> {
    */
   public getLastDeliveredAt(): number | null {
     return this.lastDeliveredAt;
+  }
+
+  /** Current provider failure, retained while other providers keep delivering. */
+  public getError(): Error | null {
+    return this.streamError;
   }
 
   public getDeliveryRevision(): number {
@@ -448,6 +465,7 @@ abstract class StreamChannel<T> {
   subscribe(params: {
     callback: (data: T) => void;
     onDelivery?: (source: StreamUpdateSource) => void;
+    onError?: (error: Error) => void;
     throttleMs?: number;
     symbols?: string[];
   }): () => void {
@@ -470,6 +488,7 @@ abstract class StreamChannel<T> {
       // update exemption. The first live snapshot should also bypass throttling.
     }
 
+    if (this.streamError) params.onError?.(this.streamError);
     this.#lifecycle?.onSubscribe?.();
 
     // Ensure WebSocket connected
@@ -735,7 +754,23 @@ abstract class StreamChannel<T> {
     this.notifySubscribers(data, source);
   }
 
+  protected notifyError(
+    error: Error,
+    sourceProviderId?: PerpsProviderType,
+  ): void {
+    this.providerErrors.set(sourceProviderId ?? 'default', error);
+    this.streamError = error;
+    this.endOpenFirstDataTrace();
+    // A queued delivery can contain healthy-provider data. Keep its throttle
+    // order; hooks read getError() so delivery cannot erase the provider error.
+    for (const subscriber of this.subscribers.values()) {
+      subscriber.onError?.(error);
+    }
+  }
+
   public clearCache(): void {
+    this.providerErrors.clear();
+    this.streamError = null;
     this.invalidateSubscriptionContext();
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
@@ -1250,7 +1285,11 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
     const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
-      callback: (orders: Order[]) => {
+      onError: (error: Error, sourceProviderId?: PerpsProviderType) => {
+        if (this.isSubscriptionContextCurrent(subscriptionContext))
+          this.notifyError(error, sourceProviderId);
+      },
+      callback: (orders: Order[], sourceProviderId?: PerpsProviderType) => {
         if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
@@ -1295,7 +1334,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
           PerpsConnectionManager.getConnectionGeneration(),
         );
         this.cache.set('orders', orders);
-        this.notifySubscribers(orders);
+        this.notifySubscribers(orders, 'fresh', sourceProviderId);
         // Orders confirmed in the live stream — close pending cancel / limit
         // order-render CUF spans at this delivery instant. The boundary is
         // stream confirmation (the order is now present/absent in live orders
@@ -1685,28 +1724,42 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
     const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
-      callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+      onError: (error: Error, sourceProviderId?: PerpsProviderType) => {
+        if (this.isSubscriptionContextCurrent(subscriptionContext))
+          this.notifyError(error, sourceProviderId);
+      },
+      callback: (
+        fills: OrderFill[],
+        isSnapshot?: boolean,
+        sourceProviderId?: PerpsProviderType,
+      ) => {
         if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
         this.accountAddress = subscriptionContext.address;
         this.cacheAccountAddress = subscriptionContext.address;
 
+        const incoming = sourceProviderId
+          ? fills.map((fill) => ({ ...fill, providerId: sourceProviderId }))
+          : fills;
+        const existing = this.cache.get('fills') || [];
         let updated: OrderFill[];
         if (isSnapshot) {
-          // Snapshot: replace cache with initial historical data
-          // Sort by timestamp descending (newest first)
-          updated = [...fills]
+          // A provider snapshot replaces only that provider's history.
+          // Callbacks without a source retain the legacy full-snapshot contract.
+          const retained = sourceProviderId
+            ? existing.filter((fill) => fill.providerId !== sourceProviderId)
+            : [];
+          updated = [...incoming, ...retained]
             .sort((a, b) => b.timestamp - a.timestamp)
             .slice(0, 100);
         } else {
           // Streaming: prepend new fills to existing (newest first)
-          const existing = this.cache.get('fills') || [];
           // New fills go at the beginning since they're most recent
-          updated = [...fills, ...existing].slice(0, 100);
+          updated = [...incoming, ...existing].slice(0, 100);
         }
         this.cache.set('fills', updated);
-        this.notifySubscribers(updated);
+        this.notifySubscribers(updated, 'fresh', sourceProviderId);
       },
     });
   }
@@ -3007,6 +3060,14 @@ export class PerpsStreamManager {
     )?.catch(() => {
       /* fire-and-forget */
     });
+  }
+
+  /** Retry both authenticated order channels after a trading-key failure. */
+  public retryOrderStreams(): void {
+    this.orders.clearCache();
+    this.fills.clearCache();
+    this.orders.reconnect();
+    this.fills.reconnect();
   }
 
   /**

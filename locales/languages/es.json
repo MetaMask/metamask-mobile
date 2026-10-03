@@ -1932,6 +1932,10 @@
         "start": "Iniciar",
         "end": "Finalizar",
         "margin": "Margen",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Órdenes escaladas enviadas",
         "orders_placed": "Órdenes escaladas realizadas",
         "orders_partially_placed": "Órdenes escaladas realizadas parcialmente",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "El número de órdenes debe estar entre {{minOrderCount}} y {{maxOrderCount}}",
           "invalid_skew": "El sesgo de tamaño debe ser mayor que 0",
           "minimum_lot": "La orden más pequeña debe tener un valor mínimo de ${{minOrderValue}}",
-          "unavailable": "Las órdenes escaladas no están disponibles temporalmente. Selecciona otro tipo de orden."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Las órdenes escaladas no están disponibles temporalmente. Selecciona otro tipo de orden."
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "El precio máximo de la orden de escalado debe ser superior al mínimo",
         "scaleCountInvalid": "El número de órdenes de escalado no es válido",
         "scaleSizeTooSmall": "Cada orden de escalado está por debajo del tamaño mínimo",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Cada orden de escalado está por debajo del valor mínimo de la plataforma de cambio",
         "chaseIntervalInvalid": "El intervalo de seguimiento no es válido",
         "chaseDurationInvalid": "La duración del seguimiento no es válida",

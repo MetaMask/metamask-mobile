@@ -254,6 +254,11 @@ export function createMobileClientConfig(): PerpsControllerConfig {
       },
       lighter: {
         enabled: lighterProviderEnabled,
+        // This explicit probe config reaches only Core's actual testnet provider.
+        // Pro mode and the version-gated Chase rollout still control UI entry.
+        chaseTestnetProbe:
+          lighterProviderEnabled &&
+          process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE === 'true',
         // Lighter Go/WASM signer transport (hidden WebView). Handed to the
         // controller before the WebView mounts; calls queue behind the
         // bridge's readiness promise (see lighterSignerBridge.ts). Only

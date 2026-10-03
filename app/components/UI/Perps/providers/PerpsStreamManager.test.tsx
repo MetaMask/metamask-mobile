@@ -974,6 +974,239 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenLastCalledWith(null);
     });
 
+    it('delivers queued data while retaining the authentication error', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback,
+        onError,
+        throttleMs: 1000,
+      });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      source.callback([]);
+      source.callback([]);
+      callback.mockClear();
+      const error = new Error('Trading key rejected');
+
+      source.onError(error);
+      jest.advanceTimersByTime(1000);
+      testStreamManager.orders.publish([], 'cache');
+      testStreamManager.orders.publish([], 'optimistic');
+
+      expect(onError).toHaveBeenCalledWith(error);
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(testStreamManager.orders.getError()).toBe(error);
+      callback.mockClear();
+
+      source.callback([]);
+      jest.advanceTimersByTime(1000);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([]);
+    });
+
+    it('retains a throttled healthy-provider delivery when Lighter fails', () => {
+      const callback = jest.fn();
+      const failure = new Error('Lighter authentication failed');
+      testStreamManager.orders.subscribe({ callback, throttleMs: 1000 });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const healthy: Order[] = [
+        {
+          orderId: 'queued-hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          originalSize: '1',
+          size: '1',
+          remainingSize: '1',
+          filledSize: '0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp: Date.now(),
+          providerId: 'hyperliquid',
+        },
+      ];
+      source.callback([], 'hyperliquid');
+      source.callback(healthy, 'hyperliquid');
+      callback.mockClear();
+
+      source.onError(failure, 'lighter');
+      jest.advanceTimersByTime(1000);
+
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+    });
+
+    it('delivers healthy Hyperliquid orders and cache while retaining a Lighter error', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      testStreamManager.orders.subscribe({ callback, onError, throttleMs: 0 });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const failure = new Error('Lighter authentication failed');
+      const healthy: Order[] = [
+        {
+          orderId: 'hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          originalSize: '1',
+          size: '1',
+          remainingSize: '1',
+          filledSize: '0',
+          price: '50000',
+          orderType: 'limit',
+          status: 'open',
+          timestamp: Date.now(),
+          providerId: 'hyperliquid',
+        },
+      ];
+
+      callback.mockClear();
+      source.onError(failure, 'lighter');
+      source.callback(healthy, 'hyperliquid');
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+      const late = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback: late,
+        onError,
+        throttleMs: 0,
+      });
+      expect(late).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.orders.getError()).toBe(failure);
+
+      source.callback([], 'lighter');
+      expect(testStreamManager.orders.getError()).toBeNull();
+    });
+
+    it('delivers healthy Hyperliquid fills while retaining a Lighter error', () => {
+      const callback = jest.fn();
+      const onError = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+      testStreamManager.fills.subscribe({ callback, onError, throttleMs: 0 });
+      const source = subscribe.mock.calls[0][0] as {
+        onError: (error: Error, provider?: string) => void;
+        callback: (
+          fills: OrderFill[],
+          snapshot?: boolean,
+          provider?: string,
+        ) => void;
+      };
+      const failure = new Error('Lighter authentication failed');
+      const healthy: OrderFill[] = [
+        {
+          orderId: 'hl-1',
+          symbol: 'BTC',
+          side: 'buy',
+          size: '1',
+          price: '50000',
+          timestamp: Date.now(),
+          fee: '0',
+          feeToken: 'USDC',
+          direction: 'Open Long',
+          providerId: 'hyperliquid',
+        },
+      ];
+
+      callback.mockClear();
+      source.onError(failure, 'lighter');
+      source.callback(healthy, true, 'hyperliquid');
+      expect(callback).toHaveBeenCalledWith(healthy);
+      expect(testStreamManager.fills.getError()).toBe(failure);
+      source.callback([], true, 'lighter');
+      expect(testStreamManager.fills.getError()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toEqual(healthy);
+      expect(callback).toHaveBeenLastCalledWith(healthy);
+    });
+
+    it.each([
+      ['hyperliquid', 'lighter'],
+      ['lighter', 'hyperliquid'],
+    ] as const)(
+      'replaces only %s fills after a %s snapshot',
+      (firstProvider, secondProvider) => {
+        const callback = jest.fn();
+        const subscribe = jest.fn((_params: unknown) => jest.fn());
+        mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+        testStreamManager.fills.subscribe({ callback, throttleMs: 0 });
+        const source = subscribe.mock.calls[0][0] as {
+          callback: (
+            fills: OrderFill[],
+            snapshot?: boolean,
+            provider?: string,
+          ) => void;
+        };
+        const createFill = (orderId: string, timestamp: number): OrderFill => ({
+          orderId,
+          symbol: 'ETH',
+          side: 'buy',
+          size: '0.01',
+          price: '2500',
+          timestamp,
+          fee: '0',
+          feeToken: 'USDC',
+          direction: 'Open Long',
+        });
+        // Direct providers may omit per-fill IDs. The callback source owns them.
+        const first = createFill('first', 1);
+        const second = createFill('second', 2);
+        const replacement = createFill('replacement', 3);
+
+        source.callback([first], true, firstProvider);
+        source.callback([second], true, secondProvider);
+
+        const taggedSecond = { ...second, providerId: secondProvider };
+        expect(testStreamManager.fills.getSnapshot()).toEqual([
+          taggedSecond,
+          { ...first, providerId: firstProvider },
+        ]);
+
+        source.callback([replacement], true, firstProvider);
+
+        const expected = [
+          { ...replacement, providerId: firstProvider },
+          taggedSecond,
+        ];
+        expect(testStreamManager.fills.getSnapshot()).toEqual(expected);
+        expect(callback).toHaveBeenLastCalledWith(expected);
+
+        source.callback([], true, firstProvider);
+
+        expect(testStreamManager.fills.getSnapshot()).toEqual([taggedSecond]);
+        expect(callback).toHaveBeenLastCalledWith([taggedSecond]);
+      },
+    );
+
+    it('keeps full replacement semantics for fill snapshots without a source provider', () => {
+      const callback = jest.fn();
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = subscribe;
+      testStreamManager.fills.subscribe({ callback, throttleMs: 0 });
+      const source = subscribe.mock.calls[0][0] as {
+        callback: (
+          fills: OrderFill[],
+          snapshot?: boolean,
+          provider?: string,
+        ) => void;
+      };
+      const fill: OrderFill = {
+        orderId: 'hl-legacy',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '0.01',
+        price: '2500',
+        timestamp: 1,
+        fee: '0',
+        feeToken: 'USDC',
+        direction: 'Open Long',
+      };
+      source.callback([fill], false, 'hyperliquid');
+
+      source.callback([], true);
+
+      expect(testStreamManager.fills.getSnapshot()).toEqual([]);
+      expect(callback).toHaveBeenLastCalledWith([]);
+    });
+
     it('notifies position subscriber with null when clearCache is called (account switch)', () => {
       const callback = jest.fn();
       testStreamManager.positions.subscribe({ callback, throttleMs: 0 });
@@ -1102,6 +1335,152 @@ describe('PerpsStreamManager', () => {
       expect(testStreamManager.positions.getSnapshot()).toBeNull();
       expect(testStreamManager.account.getSnapshot()).toBeNull();
       expect(testStreamManager.fills.getSnapshot()).toBeNull();
+    });
+
+    describe('order subscription context isolation', () => {
+      const createOrder = (orderId: string): Order => ({
+        orderId,
+        symbol: 'BTC',
+        side: 'buy',
+        originalSize: '1',
+        size: '1',
+        remainingSize: '1',
+        filledSize: '0',
+        price: '50000',
+        orderType: 'limit',
+        status: 'open',
+        timestamp: 1,
+        providerId: 'lighter',
+      });
+
+      const selectAccount = (address: string) => {
+        const getAccounts = jest.mocked(
+          mockEngine.context.AccountTreeController
+            .getAccountsFromSelectedAccountGroup,
+        );
+        getAccounts.mockReturnValue([{ ...getAccounts()[0], address }]);
+        mockSelectPerpsSelectedAccountAddress.mockReturnValue(address);
+      };
+
+      const getSubscription = (index: number) => {
+        const subscription = mockSubscribeToOrders.mock.calls[
+          index
+        ][0] as Parameters<
+          typeof Engine.context.PerpsController.subscribeToOrders
+        >[0];
+        if (!subscription.onError) {
+          throw new Error('Order subscription must expose its error callback');
+        }
+        return { ...subscription, onError: subscription.onError };
+      };
+
+      it.each(['account change', 'cache clear'])(
+        'rejects stale order errors after %s',
+        (transition) => {
+          const callback = jest.fn();
+          const onError = jest.fn();
+          const onDelivery = jest.fn();
+          const orders = testStreamManager.orders;
+          orders.subscribe({ callback, onError, onDelivery, throttleMs: 0 });
+          const original = getSubscription(0);
+          original.callback([createOrder('original')], 'lighter');
+          if (transition === 'account change') {
+            selectAccount('0x987654321');
+          } else {
+            orders.clearCache();
+          }
+          const revision = orders.getDeliveryRevision();
+          callback.mockClear();
+          onError.mockClear();
+          onDelivery.mockClear();
+
+          original.onError(
+            new Error('Old account authentication failed'),
+            'lighter',
+          );
+
+          expect(orders.getSnapshot()).toBeNull();
+          expect(orders.getError()).toBeNull();
+          expect(orders.getDeliveryRevision()).toBe(revision);
+          expect(callback).not.toHaveBeenCalled();
+          expect(onError).not.toHaveBeenCalled();
+          expect(onDelivery).not.toHaveBeenCalled();
+        },
+      );
+
+      it('rejects the first account generation after switching away and back', () => {
+        const callback = jest.fn();
+        const onError = jest.fn();
+        const onDelivery = jest.fn();
+        const orders = testStreamManager.orders;
+        orders.subscribe({ callback, onError, onDelivery, throttleMs: 0 });
+        const original = getSubscription(0);
+        original.callback([createOrder('first-account-old')], 'lighter');
+        selectAccount('0x987654321');
+        orders.clearCache();
+        orders.reconnect();
+        getSubscription(1).callback([createOrder('second-account')], 'lighter');
+        selectAccount('0x123456789');
+        orders.clearCache();
+        orders.reconnect();
+        const current = getSubscription(2);
+        const currentOrders = [createOrder('first-account-current')];
+        const currentError = new Error('Current subscription failed');
+        current.callback(currentOrders, 'lighter');
+        current.onError(currentError, 'lighter');
+        expect(callback).toHaveBeenLastCalledWith(currentOrders);
+        expect(onError).toHaveBeenLastCalledWith(currentError);
+        const revision = orders.getDeliveryRevision();
+        callback.mockClear();
+        onError.mockClear();
+        onDelivery.mockClear();
+
+        original.callback([createOrder('first-account-late')], 'lighter');
+        original.onError(new Error('First generation failed'), 'lighter');
+
+        expect(orders.getSnapshot()).toEqual(currentOrders);
+        expect(orders.getError()).toBe(currentError);
+        expect(orders.getDeliveryRevision()).toBe(revision);
+        expect(callback).not.toHaveBeenCalled();
+        expect(onError).not.toHaveBeenCalled();
+        expect(onDelivery).not.toHaveBeenCalled();
+      });
+
+      it.each(['clearCache', 'disconnect'] as const)(
+        'cancels queued order delivery after %s with the same selected account',
+        (reset) => {
+          const callback = jest.fn();
+          const onError = jest.fn();
+          const onDelivery = jest.fn();
+          const orders = testStreamManager.orders;
+          orders.subscribe({ callback, onError, onDelivery, throttleMs: 1000 });
+          const original = getSubscription(0);
+          original.callback([createOrder('original')], 'lighter');
+          original.callback([createOrder('queued-old')], 'lighter');
+          expect(callback).toHaveBeenCalledTimes(1);
+          orders[reset]();
+          orders.reconnect();
+          const current = getSubscription(1);
+          const currentOrders = [createOrder('current')];
+          current.callback(currentOrders, 'lighter');
+          expect(callback).toHaveBeenLastCalledWith(currentOrders);
+          const revision = orders.getDeliveryRevision();
+          callback.mockClear();
+          onError.mockClear();
+          onDelivery.mockClear();
+
+          original.callback([createOrder('late-old')], 'lighter');
+          original.onError(new Error('Old subscription failed'), 'lighter');
+          jest.advanceTimersByTime(1000);
+
+          expect(orders.getSnapshot()).toEqual(currentOrders);
+          expect(orders.getError()).toBeNull();
+          expect(orders.getDeliveryRevision()).toBe(revision);
+          expect(callback).not.toHaveBeenCalled();
+          expect(onError).not.toHaveBeenCalled();
+          expect(onDelivery).not.toHaveBeenCalled();
+        },
+      );
     });
 
     it('cleans up prewarm subscription when clearing account cache', () => {
@@ -5161,6 +5540,30 @@ describe('PerpsStreamManager', () => {
       topOfBookDisconnect.mockRestore();
       focusedPriceDisconnect.mockRestore();
       candlesDisconnect.mockRestore();
+    });
+
+    it('retries orders and fills together after one authenticated channel fails', () => {
+      const ordersReconnect = jest.spyOn(testStreamManager.orders, 'reconnect');
+      const fillsReconnect = jest.spyOn(testStreamManager.fills, 'reconnect');
+      const fillsSubscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToOrderFills = fillsSubscribe;
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      const orderSource = mockSubscribeToOrders.mock.calls[0][0];
+      const fillSource = fillsSubscribe.mock.calls[0][0] as {
+        onError: (error: Error, provider?: string) => void;
+      };
+      orderSource.onError(new Error('Trading key rejected'), 'lighter');
+      fillSource.onError(new Error('Trading key rejected'), 'lighter');
+
+      testStreamManager.retryOrderStreams();
+
+      expect(ordersReconnect).toHaveBeenCalledTimes(1);
+      expect(fillsReconnect).toHaveBeenCalledTimes(1);
+      expect(testStreamManager.orders.getError()).toBeNull();
+      expect(testStreamManager.fills.getError()).toBeNull();
+      ordersReconnect.mockRestore();
+      fillsReconnect.mockRestore();
     });
 
     it('clears WebSocket subscriptions from all channels', () => {

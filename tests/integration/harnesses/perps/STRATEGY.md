@@ -45,6 +45,7 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Shape:** A — provider-level harness
 - **Real:** `HyperLiquidProvider` (mobile), all of its order / close / validation logic, asset-map lookups, in-memory state transitions
 - **Mocked:** `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, injected `streamManager` platform dependency, `hyperLiquidValidation` utility module
+- **SDK boundary:** Operation-local exchange clients await the supplied dispatch guard before mocked writes. SDK signing remains mocked. Order-status reads default to `unknownOid`; receipt tests must supply authoritative coin, client order ID and venue order ID.
 - **Factory:** `buildPerpsIntegrationHarness({ isTestnet?, assetMapping?, cachedPrices? })`
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
@@ -66,6 +67,18 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Factory:** `buildPerpsComponentHarness({ isTestnet?, assetMapping?, cachedPrices? })`
 - **Returns:** `{ renderWithFlow, renderScreenWithFlow, harness, tradingService, mocks, teardown }`
 - **Use when:** the rendered button press is the integration surface, e.g. `PerpsOrderView` place-order or `PerpsFlipPositionConfirmSheet` reverse-position. Prefer CV tests for pure UI variants that do not need real controller code.
+
+### Lighter recovery, Scale and bounded testnet Chase — [`lighter-recovery.ts`](lighter-recovery.ts)
+
+- **Shape:** A for installed controller/provider recovery reads and direct Scale inventory actions; B for Mobile preview/trading hook consumers. Both use actual Mobile messenger delegation.
+- **Real:** installed Core `PerpsController`, `LighterProvider`, wallet/client services, response validation and account session guards. Scale and Chase consumers mount `usePerpsScalePriceLadder` and `usePerpsTrading` with Redux and the Engine shell binding.
+- **Mocked:** venue HTTP, keyring actions, signer WASM, disk storage, observability and a reusable Engine shell binding. No controller/provider/recovery method or participating Mobile hook is replaced. The default read mode refuses financial signer calls and financial HTTP submissions, including with valid market/source fixtures. Unconfigured endpoints and key registration remain refused in both modes. Response overrides cannot bypass the submission boundary.
+- **Factory:** `buildLighterRecoveryHarness()` for reads; explicit `buildLighterRecoveryHarness({ mode: 'isolated-write' })` for Scale and Chase submission tests. Optional shared `disk` and `venue` fixtures support controller recreation without native storage or real network access. Typed `clientConfig` and `isTestnet` options exercise public provider construction and actual-network guards; the harness injects only its external signer I/O fixture.
+- **Chase consumers:** `lighterScaleOrders.integration.test.tsx` verifies default-off, opted-in testnet and mainnet capability behavior through the actual Mobile client config. It also submits the production USD builder request through the real trading hook and controller against isolated signer/book/account/venue I/O. This is host integration evidence only.
+- **Scale consumers:** `lighterScaleOrders.integration.test.tsx` runs the real Mobile preview and trading hooks with Redux, then sends the production order builder payload to the installed controller for quote, base and reduce-only placement. It binds the exact preview ladder to execution and rejects changed venue metadata before any financial signer call or submission. Each harness owns its mutable market metadata fixture. Isolated ordinary limit submissions model GTC resting children. Group inventory, review and cancellation call the installed Core APIs directly. Unknown-placement review does not replay child creation, and exact-group cancellation preserves an unrelated stop order. All HTTP, native signing and disk storage remain harness I/O fixtures.
+- **Returns:** controller, external-I/O mocks, recorded requests/submissions/storage writes, response overrides, disk, market and venue fixtures, parked-source/trigger seed helpers, selected-account switch, `bindEngine()` and teardown.
+- **Use when:** read authoritative wallet-owned positions/orders or validate Mobile preview/trading requests through the installed Core package. `lighterRecovery.integration.test.ts` checks retained-key matching, response identity and late-read expiry after account A-to-B-to-A transitions and real-controller network changes. Component-view tests cover the existing forms and absence of added recovery/status panels. Live recipes still own real native signing/storage and venue proof.
+- **Availability:** the recovery review tests require the strict Core recovery APIs in the installed package. A failure on their absence is an adoption failure, not a reason to replace the real controller with a shim.
 
 ## Coverage plan (summary)
 

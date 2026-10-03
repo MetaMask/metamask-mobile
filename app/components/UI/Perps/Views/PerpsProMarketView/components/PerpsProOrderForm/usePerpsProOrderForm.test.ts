@@ -10,7 +10,9 @@ import {
   formatHyperLiquidPrice,
   type PerpsMarketData,
   type OrderResult,
+  TRIGGER_ORDER_TYPES,
   type PerpsProviderType,
+  type TriggerOrderType,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
@@ -497,8 +499,19 @@ const renderProForm = (
     isScreenFocused?: boolean;
   } = {},
   formMarket: PerpsMarketData = market,
+  triggerGate: {
+    enabled?: boolean;
+    pending?: boolean;
+    providerId?: PerpsProviderType;
+    types?: readonly TriggerOrderType[];
+    checkSupport?: (type: TriggerOrderType) => Promise<boolean>;
+  } = {},
+  checkTwapSupport?: () => Promise<boolean>,
 ) => {
-  const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
+  const checkTriggerOrderSupport =
+    triggerGate.checkSupport ?? jest.fn().mockResolvedValue(true);
+  const checkTwapOrderSupport =
+    checkTwapSupport ?? jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
     scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true);
   const refreshChaseCapability =
@@ -507,7 +520,12 @@ const renderProForm = (
   return renderHook(() =>
     usePerpsProOrderForm({
       market: formMarket,
-      isTriggeredOrdersEnabled,
+      isTriggeredOrdersEnabled: triggerGate.enabled ?? isTriggeredOrdersEnabled,
+      isTriggerAvailabilityPending: triggerGate.pending ?? false,
+      supportedTriggerOrderTypes: triggerGate.types ?? TRIGGER_ORDER_TYPES,
+      resolvedTriggerProviderId:
+        triggerGate.providerId ?? formMarket.providerId,
+      checkTriggerOrderSupport,
       isTwapEnabled,
       isTwapAvailabilityPending,
       resolvedTwapProviderId,
@@ -543,6 +561,10 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
       usePerpsProOrderForm({
         market,
         isTriggeredOrdersEnabled: true,
+        isTriggerAvailabilityPending: false,
+        supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+        resolvedTriggerProviderId: 'hyperliquid',
+        checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
         isTwapEnabled: true,
         isTwapAvailabilityPending: false,
         resolvedTwapProviderId: 'hyperliquid',
@@ -1491,6 +1513,10 @@ describe('usePerpsProOrderForm', () => {
         usePerpsProOrderForm({
           market,
           isTriggeredOrdersEnabled: true,
+          isTriggerAvailabilityPending: false,
+          supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+          resolvedTriggerProviderId: 'hyperliquid',
+          checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
           isTwapEnabled: true,
           isTwapAvailabilityPending: false,
           resolvedTwapProviderId: 'hyperliquid',
@@ -1517,6 +1543,54 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it.each([
+      { unmount: false, toastCount: 1, errorCount: 1 },
+      { unmount: true, toastCount: 0, errorCount: 0 },
+    ])(
+      'respects TWAP submission lifetime during capability refusal: %j',
+      async (scenario) => {
+        let resolveSupport: ((supported: boolean) => void) | undefined;
+        const checkSupport = jest.fn(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSupport = resolve;
+            }),
+        );
+        mockOrderForm.type = 'twap';
+        const form = renderProForm(
+          true,
+          true,
+          'hyperliquid',
+          false,
+          {},
+          {},
+          market,
+          {},
+          checkSupport,
+        );
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() => expect(checkSupport).toHaveBeenCalledTimes(1));
+        if (scenario.unmount) form.unmount();
+        await act(async () => {
+          resolveSupport?.(false);
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalledTimes(scenario.toastCount);
+        expect(
+          mockTrack.mock.calls.filter(
+            (call: unknown[]) => call[0] === MetaMetricsEvents.PERPS_ERROR,
+          ),
+        ).toHaveLength(scenario.errorCount);
+        expect(playImpact).not.toHaveBeenCalled();
+      },
+    );
+
     it('re-checks TWAP rollout after an asynchronous compliance gate', async () => {
       let continuePlacement: (() => Promise<unknown>) | undefined;
       mockComplianceGate.mockImplementation((action) => {
@@ -1529,6 +1603,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -1579,6 +1657,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: providerId,
@@ -1623,6 +1705,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -1653,6 +1739,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -1696,6 +1786,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled,
             isTwapAvailabilityPending,
             resolvedTwapProviderId,
@@ -3672,6 +3766,29 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('TP/SL handling', () => {
+    it.each([
+      [
+        PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        strings('perps.errors.clientReinitializing'),
+      ],
+      [undefined, strings('perps.errors.unknownError')],
+    ])(
+      'translates post-order TP/SL failure %s into a string toast',
+      async (error, expectedMessage) => {
+        mockOrderForm.takeProfitPrice = '95000';
+        mockUpdatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+        const { result } = renderProForm();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+        expect(mockUpdatePositionTPSL).toHaveBeenCalledTimes(1);
+        expect(updateTPSLError).toHaveBeenCalledWith(expectedMessage);
+      },
+    );
+
     it('places the order without TP/SL then updates position TP/SL when flagged', async () => {
       // Arrange: new market position with TP set -> handled separately
       mockOrderForm.takeProfitPrice = '95000';
@@ -4793,6 +4910,10 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.scaleOrder.rungs).toEqual([]);
+      expect(result.current.summary.fee).toBe(5);
+      expect(result.current.summary.liquidationPrice).not.toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
       const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
         -1,
       )?.[0] as {
@@ -5019,6 +5140,103 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({ id: 'validationError' }),
       );
     });
+
+    it.each([
+      { unmount: false, toastCount: 1 },
+      { unmount: true, toastCount: 0 },
+    ])(
+      'respects Scale submission lifetime during capability refusal: %j',
+      async (scenario) => {
+        let resolveSupport: ((supported: boolean) => void) | undefined;
+        const checkSupport = jest.fn(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSupport = resolve;
+            }),
+        );
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const form = renderProForm(true, true, 'hyperliquid', false, {
+          checkSupport,
+        });
+        configureScaleOrder(form.result);
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() => expect(checkSupport).toHaveBeenCalledTimes(1));
+        if (scenario.unmount) form.unmount();
+        await act(async () => {
+          resolveSupport?.(false);
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalledTimes(scenario.toastCount);
+        expect(mockTrack).not.toHaveBeenCalledWith(
+          MetaMetricsEvents.PERPS_ERROR,
+          expect.anything(),
+        );
+        expect(playImpact).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      { unmount: false, valid: true, placementCount: 1, toastCount: 2 },
+      { unmount: true, valid: true, placementCount: 0, toastCount: 0 },
+      { unmount: false, valid: false, placementCount: 0, toastCount: 1 },
+      { unmount: true, valid: false, placementCount: 0, toastCount: 0 },
+    ])(
+      'respects Scale submission lifetime after final validation: %j',
+      async (scenario) => {
+        const validResult = {
+          errors: [] as string[],
+          warnings: [] as string[],
+          fieldIssues: [] as OrderFormFieldIssue[],
+          isValid: true,
+        };
+        let resolveValidation:
+          | ((value: typeof validResult) => void)
+          | undefined;
+        mockValidation.validateNow
+          .mockResolvedValueOnce(validResult)
+          .mockReturnValueOnce(
+            new Promise<typeof validResult>((resolve) => {
+              resolveValidation = resolve;
+            }),
+          );
+        const checkSupport = jest.fn().mockResolvedValue(true);
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const form = renderProForm(true, true, 'hyperliquid', false, {
+          checkSupport,
+        });
+        configureScaleOrder(form.result);
+        let submission: Promise<void> | undefined;
+
+        act(() => {
+          submission = form.result.current.onPlaceOrderPress();
+        });
+        await waitFor(() =>
+          expect(mockValidation.validateNow).toHaveBeenCalledTimes(2),
+        );
+        expect(checkSupport).toHaveBeenCalledTimes(1);
+        if (scenario.unmount) form.unmount();
+        await act(async () => {
+          resolveValidation?.({
+            ...validResult,
+            isValid: scenario.valid,
+            errors: scenario.valid ? [] : ['Final Scale validation refused'],
+          });
+          await submission;
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledTimes(scenario.placementCount);
+        expect(mockShowToast).toHaveBeenCalledTimes(scenario.toastCount);
+        expect(playImpact).toHaveBeenCalledTimes(scenario.placementCount);
+      },
+    );
 
     it('restarts Scale validation when the live position changes during validation', async () => {
       let resolveValidation:
@@ -5406,8 +5624,9 @@ describe('usePerpsProOrderForm', () => {
 
       expect(checkScaleOrderSupport).not.toHaveBeenCalled();
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledTimes(1);
       expect(validationError).toHaveBeenCalledWith(
-        strings('perps.pro_order_form.scale.validation.unavailable'),
+        strings('perps.pro_order_form.scale.validation.route_changed'),
       );
     });
 
@@ -5849,6 +6068,33 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('trigger orders', () => {
+    it('blocks programmatic trigger placement while capability refresh is pending', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const checkSupport = jest.fn().mockResolvedValue(true);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        { pending: true, checkSupport },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'trigger-orders-unavailable' }),
+      );
+      expect(checkSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
     it('explains and blocks a preserved trigger order when the feature is disabled', async () => {
       mockOrderForm.type = 'stop_market';
       mockOrderForm.limitPrice = '90500';
@@ -5881,6 +6127,156 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
         'Triggered orders are temporarily unavailable. Select a market order.',
+      );
+    });
+
+    it('preserves a draft whose type is absent from the declared subset', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockOrderForm.limitPrice = '90500';
+      mockContextValue.triggerPrice = '91000';
+      const checkSupport = jest.fn().mockResolvedValue(true);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        { types: ['stop_limit'], checkSupport },
+      );
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.triggerPrice).toBe('91000');
+      expect(result.current.limitPrice).toBe('90500');
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      act(() => result.current.onOrderTypeSelect('stop_market'));
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(checkSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('blocks placement when fresh trigger capability is removed', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const checkSupport = jest.fn().mockResolvedValue(false);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        { checkSupport },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkSupport).toHaveBeenCalledWith('stop_market');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.trigger_orders_unavailable'),
+      );
+    });
+
+    it.each([
+      'rollout',
+      'pending',
+      'types',
+      'account',
+      'network',
+      'provider',
+      'price',
+      'unmount',
+    ] as const)(
+      'blocks a pending trigger submission after %s changes',
+      async (transition) => {
+        mockOrderForm.type = 'stop_market';
+        mockContextValue.triggerPrice = '91000';
+        let resolveSupport = (_supported: boolean): void => undefined;
+        const checkSupport = jest.fn(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSupport = resolve;
+            }),
+        );
+        const triggerGate = {
+          enabled: true,
+          pending: false,
+          types: TRIGGER_ORDER_TYPES as readonly TriggerOrderType[],
+          checkSupport,
+        };
+        const formMarket = { ...market };
+        const { result, rerender, unmount } = renderProForm(
+          true,
+          true,
+          'hyperliquid',
+          false,
+          {},
+          {},
+          formMarket,
+          triggerGate,
+        );
+        let submission: Promise<void>;
+        act(() => {
+          submission = result.current.onPlaceOrderPress();
+        });
+        await waitFor(() =>
+          expect(checkSupport).toHaveBeenCalledWith('stop_market'),
+        );
+
+        if (transition === 'unmount') unmount();
+        else {
+          if (transition === 'rollout') triggerGate.enabled = false;
+          if (transition === 'pending') triggerGate.pending = true;
+          if (transition === 'types') triggerGate.types = ['stop_limit'];
+          if (transition === 'account') mockSelectedAddress = '0xaccount-b';
+          if (transition === 'network') mockPerpsNetwork = 'testnet';
+          if (transition === 'provider') formMarket.providerId = 'lighter';
+          if (transition === 'price') mockContextValue.triggerPrice = '92000';
+          rerender({});
+        }
+        await act(async () => {
+          resolveSupport(true);
+          await submission;
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockSetOrderType).not.toHaveBeenCalled();
+        expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+      },
+    );
+
+    it('pins the capability provider when the market omits a concrete route', async () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: undefined },
+        { providerId: 'hyperliquid' },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'hyperliquid',
+          orderType: 'stop_market',
+        }),
       );
     });
 

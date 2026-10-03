@@ -1932,6 +1932,10 @@
         "start": "Mulai",
         "end": "Akhiri",
         "margin": "Margin",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Order bertahap dikirimkan",
         "orders_placed": "Order bertahap dibuat",
         "orders_partially_placed": "Order bertahap sebagian dibuat",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "Jumlah order harus antara {{minOrderCount}} dan {{maxOrderCount}}",
           "invalid_skew": "Ketimpangan ukuran harus lebih dari 0",
           "minimum_lot": "Order terkecil harus memiliki nilai minimum ${{minOrderValue}}",
-          "unavailable": "Order bertahap untuk sementara tidak tersedia. Pilih jenis order lainnya."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Order bertahap untuk sementara tidak tersedia. Pilih jenis order lainnya."
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "Harga maksimum order penskalaan harus di atas harga minimum",
         "scaleCountInvalid": "Jumlah order penskalaan tidak valid",
         "scaleSizeTooSmall": "Setiap order penskalaan berada di bawah ukuran minimum",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Setiap order penskalaan berada di bawah nilai tukar minimum",
         "chaseIntervalInvalid": "Interval pergeseran tidak valid",
         "chaseDurationInvalid": "Durasi pergeseran tidak valid",

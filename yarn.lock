@@ -10232,7 +10232,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^13.0.0":
+"@metamask/eth-simple-keyring@npm:13.0.0, @metamask/eth-simple-keyring@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/eth-simple-keyring@npm:13.0.0"
   dependencies:
@@ -11267,7 +11267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^19.0.0":
+"@metamask/perps-controller@npm:19.0.0":
   version: 19.0.0
   resolution: "@metamask/perps-controller@npm:19.0.0"
   dependencies:
@@ -11282,6 +11282,24 @@ __metadata:
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
   checksum: 10/71450bb2a3d9398c732e3137b9564a3465a720e6a272d88dbc74f5e7fe67214fba11b0eec3ffbccce0273dbc9f7f0669b377cd8117c24198b6680bdf76f7ee3b
+  languageName: node
+  linkType: hard
+
+"@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A19.0.0#~/.yarn/patches/@metamask-perps-controller-npm-19.0.0-234a40bf68.patch":
+  version: 19.0.0
+  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A19.0.0#~/.yarn/patches/@metamask-perps-controller-npm-19.0.0-234a40bf68.patch::version=19.0.0&hash=2e4be2"
+  dependencies:
+    "@metamask/abi-utils": "npm:^2.0.3"
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.0"
+    "@nktkas/hyperliquid": "npm:^0.33.3"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^11.1.1"
+  checksum: 10/8fd6781072457770e981c2a3df7430e690ee2848b10374de1083199a75def7625355984c8dc0479b548cd090f32d687f1254495c7e1ea0f9665b80e71b655c0a
   languageName: node
   linkType: hard
 
@@ -39187,6 +39205,7 @@ __metadata:
     "@metamask/eth-qr-keyring": "npm:^2.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^9.0.0"
+    "@metamask/eth-simple-keyring": "npm:13.0.0"
     "@metamask/eth-snap-keyring": "npm:^24.1.0"
     "@metamask/etherscan-link": "npm:^2.0.0"
     "@metamask/ethjs-contract": "npm:^0.4.1"
@@ -39232,7 +39251,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^19.0.0"
+    "@metamask/perps-controller": "patch:@metamask/perps-controller@npm%3A19.0.0#~/.yarn/patches/@metamask-perps-controller-npm-19.0.0-234a40bf68.patch"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"

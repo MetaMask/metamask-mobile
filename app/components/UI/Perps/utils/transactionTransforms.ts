@@ -9,6 +9,7 @@ import {
   Order,
   OrderFill,
   UserHistoryItem,
+  PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -355,7 +356,7 @@ export function aggregateFillsByOrderWithIds(
 
     // Sum sizes, PnLs, and fees
     let totalSize = BigNumber(0);
-    let totalPnl = BigNumber(0);
+    let totalPnl: BigNumber | undefined = BigNumber(0);
     let totalFee = BigNumber(0);
     let totalNotional = BigNumber(0); // For VWAP calculation: sum of (size * price)
 
@@ -367,11 +368,12 @@ export function aggregateFillsByOrderWithIds(
     for (const fill of fillsOldestFirst) {
       const size = BigNumber(fill.size);
       const price = BigNumber(fill.price);
-      const pnl = BigNumber(fill.pnl || '0');
       const fee = BigNumber(fill.fee || '0');
 
       totalSize = totalSize.plus(size);
-      totalPnl = totalPnl.plus(pnl);
+      const reportedPnl = parseReportedFillPnl(fill.pnl);
+      totalPnl =
+        reportedPnl === undefined ? undefined : totalPnl?.plus(reportedPnl);
       totalFee = totalFee.plus(fee);
       totalNotional = totalNotional.plus(size.times(price));
 
@@ -398,7 +400,7 @@ export function aggregateFillsByOrderWithIds(
       side: latestFill.side,
       size: totalSize.toString(),
       price: vwapPrice.toString(),
-      pnl: totalPnl.toString(),
+      pnl: totalPnl?.toString(),
       direction: latestFill.direction,
       fee: totalFee.toString(),
       feeToken: latestFill.feeToken,
@@ -532,6 +534,13 @@ export interface TransformFillsToTransactionsOptions {
   aggregate?: boolean;
 }
 
+/** Parse a reported amount without treating empty or non-finite values as zero. */
+function parseReportedFillPnl(pnl: string | undefined): BigNumber | undefined {
+  if (pnl === undefined || pnl.trim() === '') return undefined;
+  const value = BigNumber(pnl);
+  return value.isFinite() ? value : undefined;
+}
+
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format.
  * When `aggregate` is true the fills of one order are collapsed first, so an open, close or
@@ -567,10 +576,12 @@ export function transformFillsToTransactions(
       fee,
       timestamp,
       feeToken,
-      pnl,
+      pnl: rawPnl,
       liquidation,
       detailedOrderType,
     } = fill;
+    const reportedPnl = parseReportedFillPnl(rawPnl);
+    const pnl = reportedPnl?.toString();
     const [part1, part2] = direction ? direction.split(' ') : [];
     const isOpened = part1 === 'Open';
     const isClosed = part1 === 'Close';
@@ -582,7 +593,7 @@ export function transformFillsToTransactions(
     const isSell = direction === 'Sell';
 
     let action = '';
-    let isPositive = false;
+    let isPositive: boolean | undefined;
     if (isOpened || isBuy) {
       action = isBuy ? 'Bought' : 'Opened';
       // Will be set based on fee calculation below
@@ -603,7 +614,7 @@ export function transformFillsToTransactions(
       return acc;
     }
 
-    let amountBN = BigNumber(0);
+    let amountBN: BigNumber | undefined;
     let displayAmount = '';
     let fillSize = size;
     if (isFlipped) {
@@ -622,11 +633,18 @@ export function transformFillsToTransactions(
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed || isSell || isFlipped || isAutoDeleveraging) {
-      // For closing positions: show PnL minus fee
-      const pnlValue = BigNumber(fill.pnl || 0);
+    } else if (
+      (isClosed || isSell || isFlipped || isAutoDeleveraging) &&
+      reportedPnl === undefined
+    ) {
+      displayAmount = PERPS_CONSTANTS.FallbackDataDisplay;
+    } else if (
+      reportedPnl !== undefined &&
+      (isClosed || isSell || isFlipped || isAutoDeleveraging)
+    ) {
+      // For closing positions: show reported PnL minus fee
       const feeValue = BigNumber(fill.fee || 0);
-      amountBN = pnlValue.minus(feeValue);
+      amountBN = reportedPnl.minus(feeValue);
       const netPnL = amountBN.toNumber();
       // For display, show + for positive, - for negative, nothing for 0
       if (netPnL > 0) {
@@ -700,7 +718,8 @@ export function transformFillsToTransactions(
         // this is the amount that is displayed in the transaction view for what has been spent/gained
         // it may be the fee spent or the pnl depending on the case
         amount: displayAmount,
-        amountNumber: parseFloat(amountBN.toFixed(2)),
+        amountNumber:
+          amountBN === undefined ? undefined : parseFloat(amountBN.toFixed(2)),
         isPositive,
         size: fillSize,
         entryPrice: price,

@@ -77,6 +77,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PERPS_ERROR_CODES,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
@@ -2038,6 +2039,53 @@ describe('PerpsOrderView', () => {
       }),
     );
   });
+
+  it.each([
+    [
+      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      'perps.errors.clientReinitializing',
+    ],
+    [undefined, 'perps.errors.unknownError'],
+  ])(
+    'translates post-order TP/SL failure %s into a string toast',
+    async (error, expectedMessage) => {
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      const updatePositionTPSL = jest
+        .fn()
+        .mockResolvedValue({ success: false, error });
+      const toasts = mockDefaultUsePerpsToasts();
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+        error: undefined,
+      });
+      (usePerpsTrading as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsTrading,
+        updatePositionTPSL,
+      });
+      (usePerpsToasts as jest.Mock).mockReturnValue(toasts);
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          takeProfitPrice: '3500',
+        },
+      });
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        await getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(updatePositionTPSL).toHaveBeenCalledTimes(1);
+      expect(
+        toasts.PerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+      ).toHaveBeenCalledWith(expectedMessage);
+    },
+  );
 
   describe('when the Trade sheet is dismissed while validation is pending', () => {
     interface ValidationResult {

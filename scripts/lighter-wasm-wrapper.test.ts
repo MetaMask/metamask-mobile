@@ -2,9 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
+import type {
+  LighterSignModifyOrderWireParams,
+  LighterWasmCall,
+} from '@metamask/perps-controller';
 
 const html = fs.readFileSync(
-  path.join(__dirname, '../app/components/UI/Perps/Lighter/wasm-wrapper.standalone.html'),
+  path.join(
+    __dirname,
+    '../app/components/UI/Perps/Lighter/wasm-wrapper.standalone.html',
+  ),
   'utf8',
 );
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/gu)].map(
@@ -15,6 +22,7 @@ const operations = [
   '_signChangePubKey',
   '_signCreateOrder',
   '_signCreateGroupedOrders',
+  '_signModifyOrder',
   '_signCancelOrder',
   '_signUpdateLeverage',
   '_signUpdateMargin',
@@ -87,10 +95,7 @@ function createPage(
   vm.runInContext('window = globalThis', context);
   // Use the actual producer and dispatcher; only the Go engine is substituted.
   for (const index of [0, 2, 3]) {
-    vm.runInContext(
-      withStubbedWasm(scripts[index]),
-      context,
-    );
+    vm.runInContext(withStubbedWasm(scripts[index]), context);
   }
   return {
     context,
@@ -106,6 +111,26 @@ function createPage(
   };
 }
 
+function createGroupedOrderParams(groupingType: number, orderCount: number) {
+  const orders = Array.from({ length: orderCount }, (_unused, index) => [
+    4095,
+    100 + index,
+    index === 0 || groupingType === 1 ? '100' : '0',
+    '270000',
+    index === 0 ? 0 : 1,
+    index === 0 ? 0 : index === 1 ? 2 : 4,
+    1,
+    index === 0 ? 0 : 1,
+    index === 0 ? '0' : '260000',
+    -1,
+  ]).flat();
+  return [64, groupingType, orderCount, ...orders, 7];
+}
+
+function createModifyOrderParams(): LighterSignModifyOrderWireParams {
+  return [64, 4097, '288230376151711745', 169, 94632, 0, 7];
+}
+
 describe('Lighter WASM page', () => {
   it('allows only the exact embedded scripts in its content security policy', () => {
     const policy = html.match(
@@ -116,7 +141,8 @@ describe('Lighter WASM page', () => {
       .map((directive) => directive.trim())
       .find((directive) => directive.startsWith('script-src '));
     const hashes = scripts.map(
-      (script) => `'sha256-${createHash('sha256').update(script).digest('base64')}'`,
+      (script) =>
+        `'sha256-${createHash('sha256').update(script).digest('base64')}'`,
     );
 
     expect(scripts).toHaveLength(4);
@@ -274,5 +300,304 @@ describe('Lighter WASM page', () => {
       executeId: 'cancel',
       result: { txInfo: 'signed' },
     });
+  });
+
+  describe('native order edits', () => {
+    it('refuses readiness when the modify signer export is missing', async () => {
+      const page = createPage((context) => {
+        installOperations(context);
+        delete context._signModifyOrder;
+        return new Promise(() => undefined);
+      });
+
+      await page.load();
+
+      expect(page.messages).toEqual([
+        {
+          type: 'initError',
+          message: 'Lighter signer runtime did not initialize its operations',
+        },
+      ]);
+    });
+
+    const validEdits: {
+      name: string;
+      params: LighterSignModifyOrderWireParams;
+    }[] = [
+      { name: 'Core native-edit tuple', params: createModifyOrderParams() },
+      { name: 'minimum wire bounds', params: [0, 0, '1', 1, 1, 0, 0] },
+      {
+        name: 'maximum wire bounds',
+        params: [
+          281474976710654,
+          32767,
+          '1152921504606846975',
+          281474976710655,
+          4294967295,
+          0,
+          Number.MAX_SAFE_INTEGER,
+        ],
+      },
+    ];
+
+    it.each(validEdits)(
+      'forwards the exact $name to the signer',
+      async ({ params }) => {
+        const page = createPage((context) => {
+          installOperations(context);
+          context._signModifyOrder = jest.fn(() => () => ({
+            txInfo: 'signed-modify',
+            txHash: 'modify-hash',
+            prv: 'private',
+          }));
+          return new Promise(() => undefined);
+        });
+        const call: LighterWasmCall<'_signModifyOrder'> = {
+          function: '_signModifyOrder',
+          params,
+        };
+        await page.load();
+
+        await page.send({ type: 'execute', ...call, executeId: 'modify' });
+
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeResult',
+          executeId: 'modify',
+          result: { txInfo: 'signed-modify', txHash: 'modify-hash' },
+        });
+        expect(page.context._signModifyOrder).toHaveBeenCalledTimes(1);
+        expect(page.context._signModifyOrder).toHaveBeenCalledWith(...params);
+      },
+    );
+
+    it.each([
+      ['missing nonce', createModifyOrderParams().slice(0, -1)],
+      ['extra expiry argument', [...createModifyOrderParams(), -1]],
+      ['object parameters', { account: 64 }],
+      ['null parameters', null],
+    ])('rejects %s before signing', async (_name, params) => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signModifyOrder',
+        params,
+        executeId: 'modify-arity',
+      });
+
+      expect(page.context._signModifyOrder).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'modify-arity',
+        message: 'Invalid signer parameters',
+      });
+    });
+
+    it.each([
+      ['negative account', 0, -1],
+      ['fractional account', 0, 64.5],
+      ['string account', 0, '64'],
+      ['reserved account index', 0, 281474976710655],
+      ['unsafe account', 0, Number.MAX_SAFE_INTEGER + 1],
+      ['negative market', 1, -1],
+      ['fractional market', 1, 4097.5],
+      ['string market', 1, '4097'],
+      ['reserved market', 1, 255],
+      ['market overflow', 1, 32768],
+      ['numeric order ID', 2, 123],
+      ['zero order ID', 2, '0'],
+      ['negative order ID', 2, '-1'],
+      ['leading-zero order ID', 2, '01'],
+      ['fractional order ID', 2, '1.5'],
+      ['exponent order ID', 2, '1e3'],
+      ['empty order ID', 2, ''],
+      ['null order ID', 2, null],
+      ['order ID overflow', 2, '1152921504606846976'],
+      ['int64 order ID overflow', 2, '9223372036854775808'],
+      ['oversized order ID', 2, '10000000000000000000'],
+      ['zero size sentinel', 3, 0],
+      ['negative size', 3, -1],
+      ['fractional size', 3, 169.5],
+      ['string size', 3, '169'],
+      ['size overflow', 3, 281474976710656],
+      ['zero price', 4, 0],
+      ['negative price', 4, -1],
+      ['fractional price', 4, 94632.5],
+      ['string price', 4, '94632'],
+      ['price overflow', 4, 4294967296],
+      ['price that wraps to one', 4, 4294967297],
+      ['nonzero trigger price', 5, 1],
+      ['negative trigger price', 5, -1],
+      ['fractional trigger price', 5, 0.5],
+      ['string trigger price', 5, '0'],
+      ['trigger price that wraps to zero', 5, 4294967296],
+      ['negative nonce', 6, -1],
+      ['fractional nonce', 6, 7.5],
+      ['string nonce', 6, '7'],
+      ['unsafe nonce', 6, Number.MAX_SAFE_INTEGER + 1],
+    ] as const)('rejects %s before signing', async (_name, index, value) => {
+      const page = createPage();
+      const params: unknown[] = [...createModifyOrderParams()];
+      params[index] = value;
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signModifyOrder',
+        params,
+        executeId: 'modify-field',
+      });
+
+      expect(page.context._signModifyOrder).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'modify-field',
+        message: 'Invalid signer parameters',
+      });
+    });
+  });
+
+  describe('grouped orders', () => {
+    it.each([
+      ['OTO', 1, 2],
+      ['OCO', 2, 2],
+      ['OTOCO', 3, 3],
+    ] as const)(
+      'forwards the exact %s tuple to the signer',
+      async (_name, groupingType, orderCount) => {
+        const page = createPage();
+        const params = createGroupedOrderParams(groupingType, orderCount);
+        await page.load();
+
+        await page.send({
+          type: 'execute',
+          function: '_signCreateGroupedOrders',
+          params,
+          executeId: 'grouped',
+        });
+
+        expect(page.context._signCreateGroupedOrders).toHaveBeenCalledWith(
+          ...params,
+        );
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeResult',
+          executeId: 'grouped',
+          result: { txInfo: 'signed' },
+        });
+      },
+    );
+
+    it.each([
+      [0, 2],
+      [1, 3],
+      [2, 3],
+      [3, 2],
+      [4, 2],
+      [3, 4],
+    ])(
+      'rejects grouping %i with count %i before signing',
+      async (groupingType, orderCount) => {
+        const page = createPage();
+        const params = createGroupedOrderParams(groupingType, orderCount);
+        await page.load();
+
+        await page.send({
+          type: 'execute',
+          function: '_signCreateGroupedOrders',
+          params,
+          executeId: 'wrong-group',
+        });
+
+        expect(page.context._signCreateGroupedOrders).not.toHaveBeenCalled();
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeError',
+          executeId: 'wrong-group',
+          message: 'Invalid signer parameters',
+        });
+      },
+    );
+
+    it.each([
+      ['truncated OCO', createGroupedOrderParams(2, 2).slice(0, -1)],
+      ['extra OCO parameter', [...createGroupedOrderParams(2, 2), 0]],
+      ['truncated OTOCO', createGroupedOrderParams(3, 3).slice(0, -1)],
+      ['extra OTOCO parameter', [...createGroupedOrderParams(3, 3), 0]],
+      [
+        'missing third order',
+        createGroupedOrderParams(3, 3).filter(
+          (_value, index) => index < 23 || index === 33,
+        ),
+      ],
+      ['object parameters', { account: 64 }],
+    ])('rejects %s before signing', async (_name, params) => {
+      const page = createPage();
+      await page.load();
+
+      await page.send({
+        type: 'execute',
+        function: '_signCreateGroupedOrders',
+        params,
+        executeId: 'wrong-arity',
+      });
+
+      expect(page.context._signCreateGroupedOrders).not.toHaveBeenCalled();
+      expect(page.messages.at(-1)).toEqual({
+        type: 'executeError',
+        executeId: 'wrong-arity',
+        message: 'Invalid signer parameters',
+      });
+    });
+
+    const malformedOrderFields = [
+      ['market ID', -1],
+      ['client order ID', Number.MAX_SAFE_INTEGER + 1],
+      ['base amount', '1.2'],
+      ['price', '270000USD'],
+      ['side', 2],
+      ['order type', -1],
+      ['time in force', 1.5],
+      ['reduce only', 2],
+      ['trigger price', '-1'],
+      ['expiry', Number.MAX_SAFE_INTEGER + 1],
+    ] as const;
+    const malformedFields = [
+      ...[0, 1, 2].flatMap((orderIndex) =>
+        malformedOrderFields.map(
+          ([field, value], fieldIndex) =>
+            [
+              `order ${orderIndex + 1} ${field}`,
+              3 + orderIndex * 10 + fieldIndex,
+              value,
+            ] as const,
+        ),
+      ),
+      ['account', 0, -1] as const,
+      ['nonce', 33, -1] as const,
+    ];
+
+    it.each(malformedFields)(
+      'rejects malformed %s before signing',
+      async (_field, index, value) => {
+        const page = createPage();
+        const params = createGroupedOrderParams(3, 3);
+        params[index] = value;
+        await page.load();
+
+        await page.send({
+          type: 'execute',
+          function: '_signCreateGroupedOrders',
+          params,
+          executeId: 'malformed-field',
+        });
+
+        expect(page.context._signCreateGroupedOrders).not.toHaveBeenCalled();
+        expect(page.messages.at(-1)).toEqual({
+          type: 'executeError',
+          executeId: 'malformed-field',
+          message: 'Invalid signer parameters',
+        });
+      },
+    );
   });
 });

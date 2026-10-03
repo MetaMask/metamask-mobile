@@ -1932,6 +1932,10 @@
         "start": "शुरु करें",
         "end": "समाप्त करें",
         "margin": "मार्जिन",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "स्केल ऑर्डर सबमिट किए गए",
         "orders_placed": "स्केल ऑर्डर लगाए गए",
         "orders_partially_placed": "स्केल ऑर्डर आंशिक रूप से लगाए गए",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "ऑर्डर की संख्या {{minOrderCount}} और {{maxOrderCount}} के बीच होनी चाहिए",
           "invalid_skew": "साइज़ स्क्यू 0 से अधिक होना चाहिए",
           "minimum_lot": "सबसे छोटे ऑर्डर का न्यूनतम मूल्य ${{minOrderValue}} होना चाहिए",
-          "unavailable": "स्केल ऑर्डर अस्थायी रूप से उपलब्ध नहीं हैं। कोई अन्य ऑर्डर प्रकार चुनें।"
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "स्केल ऑर्डर अस्थायी रूप से उपलब्ध नहीं हैं। कोई अन्य ऑर्डर प्रकार चुनें।"
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "स्केल ऑर्डर की मैक्सिमम प्राइस मिनिमम से ज़्यादा होनी चाहिए",
         "scaleCountInvalid": "स्केल ऑर्डर काउंट ग़लत है",
         "scaleSizeTooSmall": "हर स्केल ऑर्डर मिनिमम साइज़ से कम होता है",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "हर स्केल ऑर्डर एक्सचेंज मिनिमम वैल्यू से कम होता है",
         "chaseIntervalInvalid": "चेज़ इंटरवल ग़लत है",
         "chaseDurationInvalid": "चेज़ अवधि ग़लत है",
