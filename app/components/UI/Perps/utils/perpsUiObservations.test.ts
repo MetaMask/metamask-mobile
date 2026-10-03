@@ -1,8 +1,13 @@
-import type { OrderParams, OrderResult } from '@metamask/perps-controller';
+import type {
+  CancelOrderParams,
+  OrderParams,
+  OrderResult,
+} from '@metamask/perps-controller';
 import {
   PerpsUiObservationStore,
   perpsUiInputDigest,
   beginPerpsUiSubmission,
+  beginPerpsUiCancellation,
   readPerpsUiObservations,
   type PerpsUiScaleForm,
   type PerpsUiScope,
@@ -41,12 +46,25 @@ it('returns no captured data or writes when development observation is disabled'
   try {
     (globalThis as { __DEV__?: boolean }).__DEV__ = true;
     beginPerpsUiSubmission(scope, request());
+    beginPerpsUiCancellation(scope, {
+      symbol: 'ETH',
+      orderId: 'owned',
+      orderType: 'chase',
+    });
     expect(readPerpsUiObservations().submissions.length).toBeGreaterThan(0);
 
     (globalThis as { __DEV__?: boolean }).__DEV__ = false;
     expect(beginPerpsUiSubmission(scope, request())).toBeUndefined();
+    expect(
+      beginPerpsUiCancellation(scope, {
+        symbol: 'ETH',
+        orderId: 'owned',
+        orderType: 'chase',
+      }),
+    ).toBeUndefined();
     expect(readPerpsUiObservations()).toEqual({
       version: 1,
+      cancellationObservationVersion: 1,
       enabled: false,
       sessionId: '',
       submissionSequence: 0,
@@ -54,6 +72,10 @@ it('returns no captured data or writes when development observation is disabled'
       droppedSettlements: 0,
       captureFailures: 0,
       submissions: [],
+      cancellationSequence: 0,
+      evictedCancellationThrough: 0,
+      droppedCancellationSettlements: 0,
+      cancellations: [],
       scaleForms: [],
     });
   } finally {
@@ -91,6 +113,78 @@ describe('Perps UI observation ownership', () => {
   let store: PerpsUiObservationStore;
   beforeEach(() => {
     store = new PerpsUiObservationStore('session-one');
+  });
+
+  it('bounds cancellation history without advancing the placement cursor', () => {
+    const params: CancelOrderParams = {
+      symbol: 'ETH',
+      orderId: 'owned',
+      orderType: 'chase',
+    };
+    const first = store.beginCancellation(scope, params);
+    for (let i = 0; i < PERPS_UI_OBSERVATION_LIMIT; i++)
+      store.beginCancellation(scope, params);
+
+    store.settleCancellation(first, { success: true, orderId: 'owned' });
+
+    expect(store.read().cancellations).toHaveLength(PERPS_UI_OBSERVATION_LIMIT);
+    expect(store.read().evictedCancellationThrough).toBe(1);
+    expect(store.read().droppedCancellationSettlements).toBe(1);
+    expect(store.read().submissionSequence).toBe(0);
+    expect(store.read().submissions).toEqual([]);
+  });
+
+  it('copies public cancellation data and preserves the first outcome', () => {
+    const params = {
+      symbol: 'ETH',
+      orderId: 'owned',
+      orderType: 'chase' as const,
+      trackingData: { marginUsed: 20, totalFee: 0, marketPrice: 2000 },
+      authToken: 'secret',
+    };
+    const first = store.beginCancellation(scope, params);
+    const outcome = {
+      success: false,
+      orderId: 'owned',
+      authToken: 'secret',
+      signedPayload: 'signed',
+    };
+    store.settleCancellation(first, outcome);
+    const observed = store.read();
+
+    params.orderId = 'foreign';
+    outcome.success = true;
+    observed.cancellations[0].request.orderId = 'foreign';
+    store.settleCancellation(first, { success: true, orderId: 'owned' });
+
+    expect(store.read().cancellations[0]).toEqual(
+      expect.objectContaining({
+        request: { symbol: 'ETH', orderId: 'owned', orderType: 'chase' },
+        result: { success: false, orderId: 'owned' },
+        state: 'settled',
+      }),
+    );
+    expect(store.read().droppedCancellationSettlements).toBe(1);
+    expect(JSON.stringify(store.read())).not.toMatch(
+      /secret|signed|trackingData/,
+    );
+  });
+
+  it('makes cancellation identities distinct across a restarted observation session', () => {
+    const params: CancelOrderParams = {
+      symbol: 'ETH',
+      orderId: 'owned',
+      orderType: 'chase',
+    };
+    const first = store.beginCancellation(scope, params);
+    const restarted = new PerpsUiObservationStore('session-two');
+
+    const second = restarted.beginCancellation(scope, params);
+
+    expect(first).not.toBe(second);
+    expect(restarted.read().cancellationSequence).toBe(
+      store.read().cancellationSequence,
+    );
   });
 
   it.each(['scale', 'chase', 'twap'] as const)(

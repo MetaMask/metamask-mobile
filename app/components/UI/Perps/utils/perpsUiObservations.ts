@@ -2,6 +2,8 @@ import { sha256 } from '@noble/hashes/sha2';
 import { bytesToHex } from '@noble/hashes/utils';
 import { v4 as uuidv4 } from 'uuid';
 import type {
+  CancelOrderParams,
+  CancelOrderResult,
   OrderParams,
   OrderResult,
   PerpsActiveProviderMode,
@@ -28,6 +30,21 @@ export interface PerpsUiSubmission {
   state: 'pending' | 'settled' | 'unknown';
   settledAt?: number;
   result?: PerpsUiOrderResult;
+}
+export type PerpsUiCancellationRequest = Omit<
+  CancelOrderParams,
+  'trackingData'
+>;
+export interface PerpsUiCancellation {
+  requestId: string;
+  sequence: number;
+  issuedAt: number;
+  scope: PerpsUiScope;
+  request: PerpsUiCancellationRequest;
+  requestDigest: string;
+  state: 'pending' | 'settled' | 'unknown';
+  settledAt?: number;
+  result?: CancelOrderResult;
 }
 export interface PerpsUiScaleForm {
   formId: string;
@@ -58,6 +75,7 @@ export interface PerpsUiScaleForm {
 }
 export interface PerpsUiObservationSnapshot {
   version: 1;
+  cancellationObservationVersion: 1;
   enabled: boolean;
   sessionId: string;
   submissionSequence: number;
@@ -65,6 +83,10 @@ export interface PerpsUiObservationSnapshot {
   droppedSettlements: number;
   captureFailures: number;
   submissions: PerpsUiSubmission[];
+  cancellationSequence: number;
+  evictedCancellationThrough: number;
+  droppedCancellationSettlements: number;
+  cancellations: PerpsUiCancellation[];
   scaleForms: PerpsUiScaleForm[];
 }
 
@@ -253,6 +275,10 @@ export class PerpsUiObservationStore {
   private droppedSettlements = 0;
   private captureFailures = 0;
   private submissions: PerpsUiSubmission[] = [];
+  private cancellationSequence = 0;
+  private evictedCancellationThrough = 0;
+  private droppedCancellationSettlements = 0;
+  private cancellations: PerpsUiCancellation[] = [];
   private scaleForms: PerpsUiScaleForm[] = [];
 
   private readonly sessionId: string;
@@ -300,6 +326,68 @@ export class PerpsUiObservationStore {
     }
     try {
       record.result = value ? publicResult(value) : undefined;
+      record.state = value ? 'settled' : 'unknown';
+      record.settledAt = Date.now();
+    } catch {
+      record.state = 'unknown';
+      this.captureFailures++;
+    }
+  }
+
+  beginCancellation(
+    scope: PerpsUiScope | (() => PerpsUiScope),
+    params: CancelOrderParams,
+  ): string | undefined {
+    const sequence = ++this.cancellationSequence;
+    try {
+      const request = primitives(params, [
+        'orderId',
+        'symbol',
+        'orderType',
+        'providerId',
+      ]) as PerpsUiCancellationRequest;
+      const requestId = this.sessionId + ':cancellation:' + sequence;
+      this.cancellations.push({
+        requestId,
+        sequence,
+        issuedAt: Date.now(),
+        scope: copy(publicScope(typeof scope === 'function' ? scope() : scope)),
+        request,
+        requestDigest: perpsUiInputDigest(request),
+        state: 'pending',
+      });
+      if (this.cancellations.length > PERPS_UI_OBSERVATION_LIMIT)
+        this.evictedCancellationThrough =
+          this.cancellations.shift()?.sequence ??
+          this.evictedCancellationThrough;
+      return requestId;
+    } catch {
+      this.captureFailures++;
+      return undefined;
+    }
+  }
+
+  settleCancellation(
+    requestId: string | undefined,
+    value?: CancelOrderResult,
+  ): void {
+    if (!requestId) return;
+    const record = this.cancellations.find(
+      (item) => item.requestId === requestId,
+    );
+    if (!record || record.state !== 'pending') {
+      this.droppedCancellationSettlements++;
+      return;
+    }
+    try {
+      record.result = value
+        ? (primitives(value, [
+            'success',
+            'orderId',
+            'providerId',
+            'error',
+          ]) as CancelOrderResult)
+        : undefined;
       record.state = value ? 'settled' : 'unknown';
       record.settledAt = Date.now();
     } catch {
@@ -375,6 +463,7 @@ export class PerpsUiObservationStore {
   read(): PerpsUiObservationSnapshot {
     return copy({
       version: 1,
+      cancellationObservationVersion: 1,
       enabled: true,
       sessionId: this.sessionId,
       submissionSequence: this.submissionSequence,
@@ -382,6 +471,10 @@ export class PerpsUiObservationStore {
       droppedSettlements: this.droppedSettlements,
       captureFailures: this.captureFailures,
       submissions: this.submissions,
+      cancellationSequence: this.cancellationSequence,
+      evictedCancellationThrough: this.evictedCancellationThrough,
+      droppedCancellationSettlements: this.droppedCancellationSettlements,
+      cancellations: this.cancellations,
       scaleForms: this.scaleForms,
     });
   }
@@ -403,6 +496,22 @@ export const settlePerpsUiSubmission = (
 ) => {
   if (__DEV__) observations.settle(requestId, result);
 };
+/** Observe the existing advanced cancellation dispatch without changing its result. */
+export const beginPerpsUiCancellation = (
+  scope: PerpsUiScope | (() => PerpsUiScope),
+  params: CancelOrderParams,
+) =>
+  __DEV__ &&
+  params.orderType !== undefined &&
+  ['scale', 'chase', 'twap'].includes(params.orderType)
+    ? observations.beginCancellation(scope, params)
+    : undefined;
+export const settlePerpsUiCancellation = (
+  requestId: string | undefined,
+  result?: CancelOrderResult,
+) => {
+  if (__DEV__) observations.settleCancellation(requestId, result);
+};
 export const recordPerpsUiScaleForm = (
   form: Omit<PerpsUiScaleForm, 'inputDigest' | 'expectedRequestDigest'>,
 ) => {
@@ -417,6 +526,7 @@ export const readPerpsUiObservations = (): PerpsUiObservationSnapshot =>
     ? observations.read()
     : {
         version: 1,
+        cancellationObservationVersion: 1,
         enabled: false,
         sessionId: '',
         submissionSequence: 0,
@@ -424,5 +534,9 @@ export const readPerpsUiObservations = (): PerpsUiObservationSnapshot =>
         droppedSettlements: 0,
         captureFailures: 0,
         submissions: [],
+        cancellationSequence: 0,
+        evictedCancellationThrough: 0,
+        droppedCancellationSettlements: 0,
+        cancellations: [],
         scaleForms: [],
       };

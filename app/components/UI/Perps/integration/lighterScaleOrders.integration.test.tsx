@@ -430,87 +430,142 @@ describe('public bounded testnet Chase configuration', () => {
   );
 });
 
-it('submits the production Chase USD builder request through the real Mobile trading hook and testnet controller', async () => {
-  const perps = buildLighterRecoveryHarness({
-    mode: 'isolated-write',
-    clientConfig: {
-      providerCredentials: { lighter: { chaseTestnetProbe: true } },
-    },
-  });
-  Object.assign(perps.venue.positions[0], {
-    position: '0',
-    positionValue: '0',
-    initialMarginFraction: '100',
-    openOrderCount: 0,
-  });
-  perps.responses.set('/api/v1/orderBookOrders', {
-    code: 200,
-    totalBids: 1,
-    totalAsks: 1,
-    bids: [
-      {
-        orderId: '101',
-        orderIndex: 101,
-        ownerAccountIndex: 99,
-        initialBaseAmount: '1',
-        remainingBaseAmount: '1',
-        price: '99999.9',
-        orderExpiry: 0,
-        transactionTime: 1,
-      },
-    ],
-    asks: [
-      {
-        orderId: '102',
-        orderIndex: 102,
-        ownerAccountIndex: 99,
-        initialBaseAmount: '1',
-        remainingBaseAmount: '1',
-        price: '100000.1',
-        orderExpiry: 0,
-        transactionTime: 1,
-      },
-    ],
-  });
-  perps.responses.set('/api/v1/trades', { code: 200, trades: [] });
-  const request = buildPerpsOrderParams({
-    asset: 'BTC',
-    providerId: 'lighter',
-    isBuy: true,
-    size: '0.00020',
-    orderType: 'chase',
-    effectivePrice: 100000,
-    leverage: 1,
-    usdAmount: '20',
-    maxSlippageBps: 500,
-    reduceOnly: false,
-    chaseMaxDistanceBps: 50,
-    trackingData: { marginUsed: 20, marketPrice: 100000, totalFee: 0 },
-  });
+it.each(['settle', 'unknown'] as const)(
+  'captures the real Chase cancellation outcome when venue submission is %s',
+  async (cancellationSubmission) => {
+    const savedDev = __DEV__;
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+    try {
+      const perps = buildLighterRecoveryHarness({
+        mode: 'isolated-write',
+        clientConfig: {
+          providerCredentials: { lighter: { chaseTestnetProbe: true } },
+        },
+      });
+      Object.assign(perps.venue.positions[0], {
+        position: '0',
+        positionValue: '0',
+        initialMarginFraction: '100',
+        openOrderCount: 0,
+      });
+      perps.responses.set('/api/v1/orderBookOrders', {
+        code: 200,
+        totalBids: 1,
+        totalAsks: 1,
+        bids: [
+          {
+            orderId: '101',
+            orderIndex: 101,
+            ownerAccountIndex: 99,
+            initialBaseAmount: '1',
+            remainingBaseAmount: '1',
+            price: '99999.9',
+            orderExpiry: 0,
+            transactionTime: 1,
+          },
+        ],
+        asks: [
+          {
+            orderId: '102',
+            orderIndex: 102,
+            ownerAccountIndex: 99,
+            initialBaseAmount: '1',
+            remainingBaseAmount: '1',
+            price: '100000.1',
+            orderExpiry: 0,
+            transactionTime: 1,
+          },
+        ],
+      });
+      perps.responses.set('/api/v1/trades', { code: 200, trades: [] });
+      const request = buildPerpsOrderParams({
+        asset: 'BTC',
+        providerId: 'lighter',
+        isBuy: true,
+        size: '0.00020',
+        orderType: 'chase',
+        effectivePrice: 100000,
+        leverage: 1,
+        usdAmount: '20',
+        maxSlippageBps: 500,
+        reduceOnly: false,
+        chaseMaxDistanceBps: 50,
+        trackingData: { marginUsed: 20, marketPrice: 100000, totalFee: 0 },
+      });
 
-  await withScale(perps, async (mounted) => {
-    let result:
-      | Awaited<ReturnType<typeof perps.controller.placeOrder>>
-      | undefined;
-    await act(async () => {
-      result = await mounted.result.current.trading.placeOrder(request);
-    });
+      await withScale(perps, async (mounted) => {
+        let result:
+          | Awaited<ReturnType<typeof perps.controller.placeOrder>>
+          | undefined;
+        await act(async () => {
+          result = await mounted.result.current.trading.placeOrder(request);
+        });
 
-    expect(result?.error).toBeUndefined();
-    expect(result).toMatchObject({ success: true, submittedSize: '0.0002' });
-    expect(result?.orderId).toContain('lighter-chase:');
-    expect(perps.submissions).toHaveLength(1);
-    expect(perps.venue.active).toHaveLength(1);
-    expect(perps.venue.active[0]).toMatchObject({
-      initialBaseAmount: '0.0002',
-      type: 'limit',
-      price: '100000',
-      reduceOnly: 0,
-    });
-    expect(request).toMatchObject({
-      usdAmount: '20',
-      currentPrice: 100000,
-      priceAtCalculation: 100000,
-    });
-  });
-});
+        expect(result?.error).toBeUndefined();
+        expect(result).toMatchObject({
+          success: true,
+          submittedSize: '0.0002',
+        });
+        expect(result?.orderId).toContain('lighter-chase:');
+        expect(perps.submissions).toHaveLength(1);
+        expect(perps.venue.active).toHaveLength(1);
+        expect(perps.venue.active[0]).toMatchObject({
+          initialBaseAmount: '0.0002',
+          type: 'limit',
+          price: '100000',
+          reduceOnly: 0,
+        });
+        expect(request).toMatchObject({
+          usdAmount: '20',
+          currentPrice: 100000,
+          priceAtCalculation: 100000,
+        });
+        const handle = result?.orderId;
+        if (!handle) throw new Error('Expected the real Chase handle');
+        const cursor = readPerpsUiObservations().cancellationSequence;
+        const cancellationRequest = {
+          symbol: 'BTC',
+          orderId: handle,
+          orderType: 'chase' as const,
+          providerId: 'lighter' as const,
+        };
+        perps.venue.submission = cancellationSubmission;
+        let cancellation:
+          | Awaited<ReturnType<typeof perps.controller.cancelOrder>>
+          | undefined;
+
+        await act(async () => {
+          cancellation = await mounted.result.current.trading.cancelOrder({
+            ...cancellationRequest,
+            skipCufConfirmationTrace: true,
+          });
+        });
+        const captured = readPerpsUiObservations().cancellations.filter(
+          (item) => item.sequence > cursor,
+        );
+
+        expect(cancellation?.success).toBe(cancellationSubmission === 'settle');
+        expect(captured).toEqual([
+          expect.objectContaining({
+            scope: {
+              account: perps.walletAddress.toLowerCase(),
+              provider: 'lighter',
+              network: 'testnet',
+              market: 'BTC',
+            },
+            request: cancellationRequest,
+            requestDigest: perpsUiInputDigest(cancellationRequest),
+            state: 'settled',
+            result: cancellation,
+          }),
+        ]);
+        expect(perps.submissions).toHaveLength(2);
+        expect(perps.venue.active).toHaveLength(
+          cancellationSubmission === 'settle' ? 0 : 1,
+        );
+      });
+    } finally {
+      (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
+    }
+  },
+);
