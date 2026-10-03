@@ -6,16 +6,21 @@ These records describe UI dispatch and preview state. They do not establish venu
 
 ## Snapshot version 1
 
-| Field                      | Meaning                                                                    |
-| -------------------------- | -------------------------------------------------------------------------- |
-| `version`, `enabled`       | Schema version `1` and development capture availability.                   |
-| `sessionId`                | Opaque identity for this JavaScript runtime.                               |
-| `submissionSequence`       | Monotonic dispatch cursor, including failed captures.                      |
-| `evictedSubmissionThrough` | Last submission sequence removed by the 50-record bound.                   |
-| `droppedSettlements`       | Settlements whose records had already been evicted.                        |
-| `captureFailures`          | Request, context, result or form captures that could not be copied safely. |
-| `submissions`              | Up to 50 advanced UI dispatch records, in issuing order.                   |
-| `scaleForms`               | Up to 50 Scale form snapshots, one latest snapshot per form lifetime.      |
+| Field                            | Meaning                                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `version`, `enabled`             | Schema version `1` and development capture availability.                                 |
+| `sessionId`                      | Opaque identity for this JavaScript runtime.                                             |
+| `submissionSequence`             | Monotonic dispatch cursor, including failed captures.                                    |
+| `evictedSubmissionThrough`       | Last submission sequence removed by the 50-record bound.                                 |
+| `droppedSettlements`             | Settlements whose records had already been evicted.                                      |
+| `captureFailures`                | Request, context, result, form or cancellation captures that could not be copied safely. |
+| `submissions`                    | Up to 50 advanced UI dispatch records, in issuing order.                                 |
+| `scaleForms`                     | Up to 50 Scale form snapshots, one latest snapshot per form lifetime.                    |
+| `cancellationObservationVersion` | Cancellation record schema version `1`.                                                  |
+| `cancellationSequence`           | Monotonic cancellation cursor, including failed captures.                                |
+| `evictedCancellationThrough`     | Last cancellation sequence removed by the 50-record bound.                               |
+| `droppedCancellationSettlements` | Cancellation settlements whose records were unavailable or already settled.              |
+| `cancellations`                  | Up to 50 advanced UI cancellation records, in issuing order.                             |
 
 Scope is `{ account, provider, network, market }`. The account is the selected EVM address, normalized to lowercase using the existing Perps messenger helper. An unresolved account or network is `null`. Provider records the explicit request route or current controller provider mode; `aggregated` alone does not establish a concrete venue. Scope describes the selection at the synchronous dispatch boundary, before the controller is called. It is retained when later selections change. Controller/provider session fences and independent venue observations remain necessary.
 
@@ -36,6 +41,14 @@ Each submission contains:
 A false or missing `success` value is preserved. An error does not mean that nothing reached the venue. A handle or child ID is never selected from a nearby log or another record. Pending, partial and unknown records do not authorize a retry.
 
 Canonical JSON recursively sorts object keys, omits undefined object fields, preserves array order and uses JSON scalar representations without numeric/string conversion. The digest excludes timestamps, scope and telemetry. A consumer must hash the same allowlisted public request or compare its full public fields. `inputDigest`, below, hashes `{ scope, input }` using the same algorithm.
+
+## Cancellation
+
+Scale and Chase cancellation captures begin immediately before the existing controller call in `usePerpsTrading.cancelOrder`. Ordinary cancellations are not captured. Each record retains its original issuing scope and a request ID of `<sessionId>:cancellation:<sequence>`. The public request allowlists `orderId`, `symbol`, `orderType` and `providerId`; `requestDigest` hashes that request using the same canonical JSON as submissions. Results retain only `success`, `orderId`, `providerId` and `error`.
+
+The cancellation sequence advances for every capture attempt, even when copying fails and no record is stored. A consumer must check that cursor, the eviction watermark, capture failures and dropped cancellation settlements around its single press. Missing or ambiguous records do not authorize another cancellation.
+
+`pending` means the hook call has not returned. `settled` means the hook returned a public result, including `success: false`; it does not establish venue settlement. `unknown` covers an exception, an absent result or a failed result capture. The original result or exception is preserved for the caller. Independent venue and durable-child evidence are still required before claiming cancellation or cleanup.
 
 ## Scale form
 
