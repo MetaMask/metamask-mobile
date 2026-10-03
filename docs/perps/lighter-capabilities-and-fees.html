@@ -372,10 +372,11 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        October 3 final source: Mobile
-        <code>52748889b2a81dd9f61ac641a9e9f9ca51457053</code>, Core
-        <code>a3afafb4fae949ba91dc8d2d3a6c0eb01d95fd4f</code> patched into
-        controller 19.0.0, and merged recipe #28 validation library
+        October 3 current source: Mobile
+        <code>655ad1c2f6964307e5242f837baecc2a77e1a832</code>, Core
+        <code>d436afc30244e017aa2309bd64919acf00a0aa0a</code> patched into
+        controller 19.0.0. Recipes #28 and #29 are merged; runtime validation
+        remains pinned to the #28 library
         <code>6bda9513764f564e9c30d14840386e8a13b732e5</code>. Exact source,
         installed package and loaded-module binding pass. Mobile includes merged
         #37025 and Hyperliquid SDK 0.33.3. Binding identifies the loaded source;
@@ -390,13 +391,11 @@
         targets main.
         <a href="https://github.com/MetaMask/core/pull/10618">#10618</a> is
         closed as superseded; #10629 was closed and #10644 was incorporated into
-        the feature branch. Final Core source is
-        <code>a3afafb4fae949ba91dc8d2d3a6c0eb01d95fd4f</code>. Earlier check
-        counts belong to their recorded revisions. Twenty affected Mobile
-        integration tests and full TypeScript checks pass against matching final
-        package bytes. Core CI passes and external approval is pending. Mobile
-        remains a draft; package release and remaining runtime checks are
-        pending.
+        the feature branch. Core CI passes and external approval is pending. The
+        latest Mobile key-decryption fix passes 62 focused tests, nine
+        integration tests and full TypeScript checks. Earlier check counts
+        belong to their recorded revisions. Mobile remains a draft while current
+        CI and runtime checks finish; the Core package release is pending.
       </p>
       <p>
         Current source includes bounded key recovery, standalone triggers,
@@ -432,11 +431,12 @@
         <a href="#current-source-state">[C18]</a>
       </p>
       <p>
-        Final Scale UI, Hyperliquid post-only, isolated-margin and bounded
-        testnet Chase outcomes require their own completed runtime evidence.
-        Recovery and reconnect passed on the recorded final build without a new
-        key registration. Account/network isolation and order-error recovery
-        remain unproved. Deposits, withdrawals and Extension delivery are
+        Hyperliquid post-only passed 20/20. Lighter Scale placed and canceled
+        its exact children, but the original lifecycle recipe remains failed.
+        Corrected native edit, isolated margin and bounded testnet Chase still
+        lack completed venue lifecycles. Normal account/network transitions and
+        testnet restoration passed; forced stale delivery and same-account Retry
+        recovery remain unproved. Deposits, withdrawals and Extension are
         deferred. Financial validation is testnet-only; no mainnet trading pass
         is claimed.
       </p>
@@ -836,21 +836,23 @@
                 recovery listing, dispatch reconciliation, acknowledgment and
                 previous-key protection APIs. Stale reconciliation results are
                 rejected after account, network or provider changes. Automatic
-                recovery uses existing trading flows. Final Mobile restores the
-                original Scale and market design and removes unrequested
-                recovery/status controls; manual recovery UI is deferred.
+                recovery uses existing trading flows. Software wallets can
+                reconstruct their trading key after a typed decryption failure
+                without replacing unreadable storage. Native access failures and
+                hardware wallets remain strict. Mobile retains the original
+                Scale and market design; unrequested recovery/status controls
+                are removed and manual recovery UI is deferred.
               </td>
               <td>
-                Final source/package binding and passive observation of all 47
-                restored accounts and eight absent scoped entries pass. Twenty
-                affected integration tests cover recovery and Scale consumers
-                with external I/O mocked. Live recovery received an
-                authenticated orders snapshot; reconnect reused the registered
-                keys with no new registration. Account/network isolation and
-                order-error recovery remain unproved. The account-switch monitor
-                observed callbacks before Mobile's context guard, so its failure
-                does not prove a UI leak. Genuine reinstall and uninstall-caused
-                key loss remain unproved.
+                Earlier authenticated testnet recovery and reconnect reused
+                existing keys. Account/network transition checks passed, with
+                target errors and successful testnet restoration. On the latest
+                build, mainnet passed the prior decryption failure, then tried
+                to register a key and was stopped by the deny-all test guard.
+                Mainnet authentication is not proved. Public key maps remained
+                unchanged and testnet received fresh order data after
+                restoration. Genuine reinstall/key-loss, forced stale delivery
+                and same-account Retry recovery remain unproved.
               </td>
             </tr>
             <tr>
@@ -967,8 +969,15 @@
             href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/28"
             >#28</a
           >
-          is merged. Remove the local patch after the upstream package release.
-          No <code>.yalc</code> package or <code>yalc.lock</code> is committed.
+          and
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/29"
+            >#29</a
+          >
+          are merged. #29 waits for an exact pending UI order receipt without
+          resubmitting; its financial lifecycle has not been rerun. Remove the
+          local patch after the upstream package release. No
+          <code>.yalc</code> package or <code>yalc.lock</code> is committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,
@@ -996,6 +1005,27 @@
     <section id="evidence">
       <h2>Retained validation evidence</h2>
       <p>
+        October 3 recovery follow-up loaded Mobile <code>655ad1c2</code> with
+        Core <code>d436afc3</code>. The mainnet existing-key recipe failed at
+        trading readiness, with 11 steps passed and one failed. The earlier
+        decryption error no longer stopped recovery, but the app attempted
+        registration and the deny-all test guard blocked it. This is not a
+        mainnet authentication pass. Testnet restoration received fresh order
+        data at 13:16:01.513 UTC. Both post-run guard checks passed, public key
+        maps were unchanged, and no trade or registration was delegated.
+        Evidence: <code>key-decryption-mainnet-validation-01</code>.
+      </p>
+      <p>
+        Earlier on Mobile <code>a771aea5</code>, account transitions passed
+        26/26 and network transitions passed 25/25 for selection, visible target
+        errors and testnet restoration. The mainnet target exposed the original
+        decryption error; dev2 was blocked from registering by the test guard.
+        Those runs do not prove target authentication, forced stale-callback
+        rejection or same-account Retry recovery. See
+        <code>transition-evidence-review-01</code>. The original failed account
+        observer and genuine reinstall attempt remain failed.
+      </p>
+      <p>
         October 3 follow-up used Mobile <code>54d9669</code>, Core
         <code>a3afafb4</code> and recipe library <code>6bda9513</code> on mm-3.
         Hyperliquid post-only passed 20/20. Lighter Scale placed two exact
@@ -1006,10 +1036,11 @@
         positions. The order-error experiment never reached its injected
         failure; cleanup passed, but recovery remains unproved. Accepted
         account/network isolation and genuine reinstall proof are also
-        incomplete. The margin correction in Core <code>d436afc3</code> and
-        Mobile <code>19c2b36a</code> passes host checks, including 46 Mobile
-        tests and full typechecking, but was not in that live run. Evidence is
-        under <code>goal/final-runtime/</code>.
+        incomplete in that run; subsequent transition evidence is recorded
+        above. The margin correction in Core <code>d436afc3</code> and Mobile
+        <code>19c2b36a</code> passes host checks, including 46 Mobile tests and
+        full typechecking, but was not in that financial run. Evidence is under
+        <code>goal/final-runtime/</code>.
       </p>
       <p>
         September 30 mm-3 validation on controller 19.0.0 uses dev1
@@ -1316,10 +1347,10 @@
           do not identify the current runtime.
         </li>
         <li>
-          C17 · Final inspected development source as of October 3: Core
-          <code>a3afafb4fae949ba91dc8d2d3a6c0eb01d95fd4f</code>, Mobile
-          <code>52748889b2a81dd9f61ac641a9e9f9ca51457053</code> and merged
-          recipe #28 library
+          C17 · Current inspected development source as of October 3: Core
+          <code>d436afc30244e017aa2309bd64919acf00a0aa0a</code>, Mobile
+          <code>655ad1c2f6964307e5242f837baecc2a77e1a832</code>. Recipes #28 and
+          #29 are merged; recorded runtime checks use #28 library
           <code>6bda9513764f564e9c30d14840386e8a13b732e5</code>. Exact
           source/package and loaded-module binding pass. Matching final-package
           Mobile integration and TypeScript checks pass. Runtime outcomes and
