@@ -20,6 +20,7 @@ export enum CardProviderErrorCode {
   Forbidden = 'forbidden',
   NotFound = 'not_found',
   NoCard = 'no_card',
+  InvalidRequest = 'invalid_request',
   ServerError = 'server_error',
   Timeout = 'timeout',
   Network = 'network',
@@ -104,6 +105,56 @@ export type CardProviderId =
 
 export type CardAuthMethod = 'email_password' | 'siwe';
 
+export type CardAccountLookupResult = 'found' | 'not_found' | 'unknown';
+
+export interface CardSignInOption {
+  providerId: CardProviderId;
+  method: CardAuthMethod;
+}
+
+export type CardSignInLinkStatus = 'started' | 'completed' | 'linked';
+
+export type CardSignInLinkStage = 'identity' | 'spending';
+
+export interface CardSignInLink {
+  providerId: CardProviderId;
+  status: CardSignInLinkStatus;
+  address: string;
+  providerUserId?: string;
+  stage?: CardSignInLinkStage;
+  updatedAt: number;
+}
+
+export type CardSignInResolution =
+  | {
+      kind: 'wallet';
+      option: CardSignInOption;
+      address: string;
+      source: 'record' | 'lookup';
+    }
+  | {
+      kind: 'wallet_account_missing';
+      option: CardSignInOption;
+      address: string;
+    }
+  | {
+      kind: 'resume';
+      option: CardSignInOption;
+      address: string;
+      stage: CardSignInLinkStage | null;
+    }
+  | { kind: 'email'; option: CardSignInOption }
+  | {
+      kind: 'unresolved';
+      options: CardSignInOption[];
+      reason: 'no_match' | 'check_failed';
+    };
+
+export interface CardInitiateAuthOptions {
+  address?: string;
+  autoSignup?: boolean;
+}
+
 // -- Auth Tokens --
 
 export interface CardAuthTokens {
@@ -168,7 +219,7 @@ export interface CardProviderCapabilities {
   supportsFundingLimits: boolean;
   fundingChains: CaipChainId[];
   supportsFreeze: boolean;
-  supportsPushProvisioning: boolean;
+  pushProvisioning: { applePay: boolean; googlePay: boolean };
   onboarding: CardOnboardingCapability;
   supportsPinView: boolean;
   supportsPinSet: boolean;
@@ -251,7 +302,6 @@ export interface CardShippingAddress {
 
 export interface CardAccountStatus {
   verificationStatus: string | null;
-  provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
   countryOfResidence: string | null;
@@ -287,12 +337,22 @@ export type CardAction =
 
 // -- Card Home Data --
 
+export interface CardWalletProvisioningInfo {
+  eligible: boolean;
+  cardholderName: string;
+  lastFour: string;
+  network: 'MASTERCARD';
+  /** Opaque issuer id. Immersve seriesId. Absent for Baanx. */
+  primaryAccountIdentifier?: string;
+}
+
 export interface CardHomeData {
   primaryFundingAsset: CardFundingAsset | null;
   fundingAssets: CardFundingAsset[];
   availableFundingAssets: CardFundingAsset[];
   card: CardDetails | null;
   account: CardAccountStatus | null;
+  walletProvisioning: CardWalletProvisioningInfo | null;
   alerts: CardAlert[];
   actions: CardAction[];
   delegationSettings: DelegationSettingsResponse | null;
@@ -306,6 +366,7 @@ export function emptyCardHomeData(): CardHomeData {
     availableFundingAssets: [],
     card: null,
     account: null,
+    walletProvisioning: null,
     alerts: [],
     actions: [],
     delegationSettings: null,
@@ -360,10 +421,12 @@ export interface GoogleWalletProvisioningResponse {
 }
 
 export interface ApplePayProvisioningParams {
-  leafCertificate: string;
-  intermediateCertificate: string;
+  /** Base64, as delivered by PassKit. */
   nonce: string;
+  /** Base64. */
   nonceSignature: string;
+  /** Base64 certificate chain, leaf first. */
+  certificates: string[];
 }
 
 export interface ApplePayProvisioningResponse {
@@ -574,8 +637,9 @@ export interface ICardProvider {
 
   initiateAuth(
     country: string,
-    options?: { address?: string },
+    options?: CardInitiateAuthOptions,
   ): Promise<CardAuthSession>;
+  lookupAccount?(address: string): Promise<CardAccountLookupResult>;
   submitCredentials(
     session: CardAuthSession,
     credentials: CardCredentials,
@@ -673,11 +737,8 @@ export interface ICardProvider {
     details: CardContactDetails,
     tokens: CardAuthTokens,
   ): Promise<void>;
-  /**
-   * Authenticated Baanx profile (`GET /v1/user`). Used for contact prefill
-   * (e.g. UK migration SignUp) while a Baanx session is still active.
-   */
   getUserDetails?(tokens: CardAuthTokens): Promise<UserResponse>;
+  requestAccountClosure?(tokens: CardAuthTokens): Promise<void>;
   getSpendingPrerequisites?(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,

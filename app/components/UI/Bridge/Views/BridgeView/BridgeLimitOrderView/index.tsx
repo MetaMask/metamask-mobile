@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, type LayoutChangeEvent } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -14,11 +20,13 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   selectLimitOrderCostTolerance,
+  selectOrdersNetworkFilter,
   setLimitOrderCostTolerance,
   setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
-import OrdersTabs from '../../../components/OrdersTabs';
+import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import {
   DestAssetRequireActivateBanner,
   SwapsBanners,
@@ -31,8 +39,8 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
-import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
-import { LIMIT_MOCK_OPEN_ORDERS_TAB } from './BridgeLimitOrderView.mockOpenOrders';
+import { useLimitOrders } from '../../../hooks/useLimitOrders';
+import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
 import LimitOrderDetails from '../../../components/LimitOrderDetails';
@@ -42,8 +50,11 @@ import type {
   InputSectionRef,
 } from '../../../components/LimitOrderPriceAdjustCard/types';
 import {
+  HISTORY_LIMIT_ORDER_STATES,
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD,
+  OPEN_LIMIT_ORDER_STATES,
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
   getSwapsLimitOrderExpirationLabel,
   type SwapsLimitOrderExpirationMinutes,
@@ -61,6 +72,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
+import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
@@ -77,6 +90,14 @@ const BridgeLimitOrderViewContent = () => {
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
   const { latestSourceBalance } = useBridgeSession();
+  const [activeOrdersTab, setActiveOrdersTab] = useState(
+    OrdersTabKey.OpenOrders,
+  );
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+  const walletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const ordersNetworkFilter = useSelector(selectOrdersNetworkFilter);
   const {
     destToken,
     enabledChainIds,
@@ -91,6 +112,18 @@ const BridgeLimitOrderViewContent = () => {
     sourceAmount,
     isSourceNetworkGasSponsored,
   } = useLimitOrderSwapInputs();
+  const openOrdersQuery = useLimitOrders({
+    walletAddress,
+    states: OPEN_LIMIT_ORDER_STATES,
+    chainId: ordersNetworkFilter,
+    enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+  });
+  const historyQuery = useLimitOrders({
+    walletAddress,
+    states: HISTORY_LIMIT_ORDER_STATES,
+    chainId: ordersNetworkFilter,
+    enabled: activeOrdersTab === OrdersTabKey.History,
+  });
   const {
     commitCustomPercent,
     counterFiatRate,
@@ -201,6 +234,57 @@ const BridgeLimitOrderViewContent = () => {
     closeKeypad();
   }, [blurLimitAdjustInputs, closeKeypad, commitCustomPercentIfFocused]);
 
+  const openOrders = createLimitOrdersTab({
+    orders: openOrdersQuery.orders,
+    isLoading: openOrdersQuery.isLoading,
+    isError: openOrdersQuery.isError,
+    isFetchingNextPage: openOrdersQuery.isFetchingNextPage,
+    onRetry: () => openOrdersQuery.refetch(),
+  });
+
+  const history = createLimitOrdersTab({
+    orders: historyQuery.orders,
+    isLoading: historyQuery.isLoading,
+    isError: historyQuery.isError,
+    isFetchingNextPage: historyQuery.isFetchingNextPage,
+    onRetry: () => historyQuery.refetch(),
+  });
+
+  const handleOrdersScroll = useCallback(
+    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const distanceFromBottom =
+        nativeEvent.contentSize.height -
+        nativeEvent.layoutMeasurement.height -
+        nativeEvent.contentOffset.y;
+
+      if (distanceFromBottom > LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD) {
+        return;
+      }
+
+      if (activeOrdersTab === OrdersTabKey.OpenOrders) {
+        openOrdersQuery.fetchNextPage();
+        return;
+      }
+
+      historyQuery.fetchNextPage();
+    },
+    [activeOrdersTab, historyQuery, openOrdersQuery],
+  );
+
+  const handleOrdersRefresh = useCallback(async () => {
+    const activeOrdersQuery =
+      activeOrdersTab === OrdersTabKey.OpenOrders
+        ? openOrdersQuery
+        : historyQuery;
+
+    setIsRefreshingOrders(true);
+    try {
+      await activeOrdersQuery.refresh();
+    } finally {
+      setIsRefreshingOrders(false);
+    }
+  }, [activeOrdersTab, historyQuery, openOrdersQuery]);
+
   const onSourceInputPress = useCallback(() => {
     commitCustomPercentIfFocused();
     focusAmount();
@@ -291,16 +375,32 @@ const BridgeLimitOrderViewContent = () => {
         triggerPrice,
         triggerToken: quotedToken,
         expiry: expiration,
-        networkFee: '0',
-        feeToken: sourceToken,
-        feeDisclaimer: '',
+        order: getLimitOrderDelegationsParams({
+          sourceToken,
+          destToken,
+          sourceAmount,
+          destTokenAmount,
+          expiresInMinutes: expirationMinutes,
+        }),
+        triggerInput: {
+          executionType,
+          isLimitFiatMode,
+          limitPrice,
+          priceComparisonDirection,
+        },
       },
     });
   }, [
     destToken,
+    destTokenAmount,
     dismissInputAndKeypad,
     expiration,
+    executionType,
+    expirationMinutes,
+    isLimitFiatMode,
+    limitPrice,
     navigation,
+    priceComparisonDirection,
     quotedToken,
     sourceAmount,
     sourceToken,
@@ -333,6 +433,14 @@ const BridgeLimitOrderViewContent = () => {
           contentContainerStyle={tw.style('grow')}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
+          onScroll={handleOrdersScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshingOrders}
+              onRefresh={handleOrdersRefresh}
+            />
+          }
         >
           <Box
             twClassName="flex-1"
@@ -422,11 +530,12 @@ const BridgeLimitOrderViewContent = () => {
               />
             </Box>
 
-            <Box onTouchEnd={dismissInputAndKeypad}>
+            <Box onTouchEnd={dismissInputAndKeypad} paddingBottom={3}>
               <OrdersTabs
                 enabledChainIds={enabledChainIds}
-                openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
-                history={LIMIT_MOCK_HISTORY_TAB}
+                openOrders={openOrders}
+                history={history}
+                onTabChange={setActiveOrdersTab}
               />
             </Box>
           </Box>

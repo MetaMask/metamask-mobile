@@ -43,6 +43,7 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import {
   createMockAccountGroup,
+  createMockHiddenAccountGroup,
   createMockWallet,
   createMockEntropyWallet,
   createMockState,
@@ -195,6 +196,34 @@ describe('MultichainAccountSelectorList', () => {
 
     expect(getByText('Wallet 1')).toBeTruthy();
     expect(getByText('Wallet 2')).toBeTruthy();
+  });
+
+  it('excludes hidden account groups from the default selector list', () => {
+    const visibleAccount = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Visible Account',
+    );
+    const hiddenAccount = createMockHiddenAccountGroup(
+      'keyring:wallet1/group2',
+      'Hidden Account',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+      visibleAccount,
+      hiddenAccount,
+    ]);
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      visibleAccount,
+      hiddenAccount,
+    ]);
+
+    const { getByText, queryByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
+
+    expect(getByText('Visible Account')).toBeTruthy();
+    expect(queryByText('Hidden Account')).toBeNull();
   });
 
   it('renders the search field by default', () => {

@@ -255,8 +255,12 @@ jest.mock('../../../core/Engine', () => ({
           metadata: { id: '1234' },
         }),
     },
-    AccountTrackerController: {
-      syncBalanceWithAddresses: jest.fn(),
+    NetworkController: {
+      state: { selectedNetworkClientId: 'mainnet' },
+      getNetworkClientById: jest.fn(() => ({ provider: {} })),
+      getSelectedNetworkClient: jest.fn(() => ({
+        provider: { request: jest.fn().mockResolvedValue('0x0') },
+      })),
     },
   },
   controllerMessenger: {
@@ -267,6 +271,11 @@ jest.mock('../../../core/Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn().mockResolvedValue('0x0'),
+}));
 
 const mockInitialState = {
   engine: {
@@ -304,8 +313,6 @@ const mockForgetDeviceRejected = (reason: unknown = MOCK_FORGET_DEVICE_ERROR) =>
 
 describe('ConnectQRHardware', () => {
   const mockKeyringController = MockEngine.context.KeyringController;
-  const mockAccountTrackerController =
-    MockEngine.context.AccountTrackerController;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -343,21 +350,6 @@ describe('ConnectQRHardware', () => {
         address: '0x4678901234567890123456789012345678901210',
       } as unknown as KeyringAccount,
     ]);
-
-    mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
-      (addresses) =>
-        Promise.resolve(
-          addresses.reduce(
-            (acc: { [key: string]: { balance: string } }, address) => {
-              acc[address] = {
-                balance: '0x0',
-              };
-              return acc;
-            },
-            {},
-          ),
-        ),
-    );
   });
 
   it('adds header top margin for the top inset', async () => {
@@ -376,6 +368,8 @@ describe('ConnectQRHardware', () => {
 
     expect(header).toBeOnTheScreen();
     expect(StyleSheet.flatten(header.props.style).marginTop).toBe(44);
+    expect(StyleSheet.flatten(header.props.style).paddingLeft).toBe(16);
+    expect(StyleSheet.flatten(header.props.style).paddingRight).toBe(16);
   });
 
   it('excludes top and bottom edges from parent SafeAreaView because header and instruction own spacing', async () => {

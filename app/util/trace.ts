@@ -71,6 +71,7 @@ export enum TraceName {
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
+  RampScreenLoad = 'Ramp Screen Load',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -217,6 +218,8 @@ export enum TraceName {
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Trade action -> bottom sheet content laid out and interactive. */
+  PerpsTradeSheetInteractive = 'Perps Trade Sheet Interactive',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
   /** Limit order submit tap -> resting order rendered in the live orders stream. */
@@ -282,6 +285,9 @@ export enum TraceName {
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
   PredictNextGetMarketHistory = 'PredictNext Get Market History',
+  PredictNextSearchEvents = 'PredictNext Search Events',
+  PredictNextOrderPreview = 'PredictNext Order Preview',
+  PredictNextOrderCommit = 'PredictNext Order Commit',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -498,6 +504,7 @@ function getSpanAttributes(
 
 export interface PendingTrace {
   end: (timestamp?: number) => void;
+  maxLifetimeMs: number;
   request: TraceRequest;
   startTime: number;
   timeoutId: NodeJS.Timeout;
@@ -563,6 +570,12 @@ export interface TraceRequest {
    * Custom operation name to associate with the trace.
    */
   op?: string;
+
+  /**
+   * Maximum lifetime for a manually-ended trace.
+   * Defaults to {@link TRACES_CLEANUP_INTERVAL}.
+   */
+  maxLifetimeMs?: number;
 }
 /**
  * A request to end a pending trace.
@@ -648,7 +661,7 @@ function getEffectiveEndTime(
   pendingTrace: PendingTrace,
   requestedEndTime?: number,
 ): number {
-  const maximumEndTime = pendingTrace.startTime + TRACES_CLEANUP_INTERVAL;
+  const maximumEndTime = pendingTrace.startTime + pendingTrace.maxLifetimeMs;
   const endTime = requestedEndTime ?? getPerformanceTimestamp();
 
   // Guard against non-finite timestamps (e.g. environments without a
@@ -1256,6 +1269,7 @@ function startTrace(request: TraceRequest): TraceContext {
       finishPendingTrace(key, previousTrace);
     }
 
+    const maxLifetimeMs = request.maxLifetimeMs ?? TRACES_CLEANUP_INTERVAL;
     const timeoutId = setTimeout(() => {
       // Defensive identity check: a stale timer must never touch a newer
       // trace registered under the same key.
@@ -1274,12 +1288,13 @@ function startTrace(request: TraceRequest): TraceContext {
       // The timer only fires at or after the maximum lifetime (possibly hours
       // late when the app was backgrounded), so record the capped timestamp
       // rather than the current time.
-      end(startTime + TRACES_CLEANUP_INTERVAL);
+      end(startTime + maxLifetimeMs);
       tracesByKey.delete(key);
-    }, TRACES_CLEANUP_INTERVAL);
+    }, maxLifetimeMs);
 
     const pendingTrace: PendingTrace = {
       end,
+      maxLifetimeMs,
       request,
       startTime,
       timeoutId,

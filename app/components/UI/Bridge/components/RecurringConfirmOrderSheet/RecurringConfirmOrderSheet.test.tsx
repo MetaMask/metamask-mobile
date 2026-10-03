@@ -99,11 +99,14 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
+  currentCurrency = 'USD',
   delegationFee = {
     status: 'ready',
     displayFee: '$1.23',
     preciseNativeFeeInHex: '0x1',
+    retry: jest.fn(),
   },
+  fiatToUsdRate = 1,
   goBack = jest.fn(),
   isSubmitting = false,
   onConfirm = jest.fn(),
@@ -112,7 +115,9 @@ function renderSheet({
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
+  currentCurrency?: string;
   delegationFee?: EIP7702UpgradeFee;
+  fiatToUsdRate?: number;
   goBack?: () => void;
   isSubmitting?: boolean;
   onConfirm?: () => void;
@@ -133,7 +138,10 @@ function renderSheet({
   });
   return renderWithProvider(
     <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency}
       delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
+      isPriceRangeConversionReady
       isSubmitting={isSubmitting}
       onConfirm={onConfirm}
       onEditSlippagePress={onEditSlippagePress}
@@ -181,6 +189,118 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
+  });
+
+  it('shows the stored currency range with its selected token', () => {
+    const { getByTestId } = renderSheet({
+      state: buildState({
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'day',
+          repeatCount: '10',
+          priceRange: {
+            tokenSide: 'source',
+            currency: 'EUR',
+            min: '900',
+            max: '1100',
+          },
+        },
+      }),
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.price_range.label')}€900.00 - €1,100.00`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Not set when no price range exists', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.price_range.label')}${strings(
+        'bridge.recurring.price_range.not_set',
+      )}`,
+    );
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the local currency notice when EUR is selected for a configured range', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'EUR',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { getByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      fiatToUsdRate: 0.5,
+      state,
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE),
+    ).toHaveTextContent(
+      strings('bridge.recurring.local_currency_notice', {
+        rate: '2.00',
+        currency: 'EUR',
+      }),
+    );
+  });
+
+  it('hides the local currency notice when USD is selected', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'USD',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { queryByTestId } = renderSheet({ state });
+
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the local currency notice when no price range is set', () => {
+    const state = buildState();
+
+    const { queryByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      state,
+    });
+
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows estimated dest amounts per order and across all orders', () => {
@@ -541,6 +661,7 @@ describe('RecurringConfirmOrderSheet', () => {
         status: 'ready',
         displayFee: '$1.23',
         preciseNativeFeeInHex: '0x123',
+        retry: jest.fn(),
       },
     });
 
@@ -553,7 +674,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
-      delegationFee: { status: 'loading' },
+      delegationFee: { status: 'loading', retry: jest.fn() },
       onConfirm,
     });
 
@@ -574,7 +695,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('hides the delegation fee row when an upgrade is not required', () => {
     const onConfirm = jest.fn();
     const { getByTestId, queryByTestId } = renderSheet({
-      delegationFee: { status: 'not-required' },
+      delegationFee: { status: 'not-required', retry: jest.fn() },
       onConfirm,
     });
 
@@ -590,7 +711,7 @@ describe('RecurringConfirmOrderSheet', () => {
   it('shows a placeholder and disables Confirm when estimation fails', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = renderSheet({
-      delegationFee: { status: 'error' },
+      delegationFee: { status: 'error', retry: jest.fn() },
       onConfirm,
     });
 

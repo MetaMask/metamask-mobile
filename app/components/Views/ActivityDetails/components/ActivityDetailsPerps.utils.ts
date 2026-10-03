@@ -12,12 +12,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
+import type { PerpsTransaction as PerpsTransactionSource } from '../../../UI/Perps/types/transactionHistory';
 /* eslint-enable import-x/no-restricted-paths */
 
-export type PerpsTransaction = Extract<
-  NonNullable<ActivityListItem['raw']>,
-  { type: 'perpsTransaction' }
->['data'];
+export type PerpsTransaction = PerpsTransactionSource;
 
 export type PerpsDepositWithdrawalStatus = NonNullable<
   PerpsTransaction['depositWithdrawal']

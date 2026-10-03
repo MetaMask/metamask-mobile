@@ -9,7 +9,12 @@ import {
   type SortDirection,
   type SortOptionId,
   type MarketTypeFilter,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
+import type {
+  PriceAlertRouteParams,
+  CreatePriceAlertRouteParams,
+} from '../../Assets/PriceAlerts/constants';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -25,6 +30,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
+  PerpsOutreachDetails: undefined;
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;
@@ -58,6 +64,7 @@ export type PerpsClosePositionModalsNavigationParamList = {
 export type PerpsOrderRouteParams = {
   direction: 'long' | 'short';
   asset: string;
+  providerId?: PerpsProviderType;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
   leverage?: number;
@@ -78,6 +85,12 @@ export type PerpsOrderRouteParams = {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
   useBottomSheet?: boolean;
+  /**
+   * Read by the shared `Confirm` screen: while the Trade sheet variant has no
+   * approval (before it attaches, and after Place order removes it), show the
+   * loader inside a bottom sheet instead of a full-screen spinner.
+   */
+  forceBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -85,6 +98,7 @@ export type PerpsOrderRouteParams = {
 export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: PerpsOrderRouteParams;
+  PerpsBalanceOrder: PerpsOrderRouteParams;
 
   PerpsOrderSuccess: {
     orderId: string;
@@ -144,6 +158,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * When true, selecting a market replaces the underlying MARKET_DETAILS
          * (and dismisses this list) instead of pushing another details screen.
@@ -207,6 +222,8 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes
@@ -279,6 +296,17 @@ export type PerpsStackParamList = {
      * Defaults off so Lite entry points stay silent.
      */
     enableHaptics?: boolean;
+    /**
+     * Screen-vs-bottom-sheet treatment, resolved by the caller. Only the
+     * position-edit entry points pass it; the order flow keeps the full screen
+     * either way and must not read the experiment.
+     *
+     * The navigator needs the arm before the screen mounts, so it cannot be
+     * resolved inside the view: screen `options` is a plain function and the
+     * sheet must skip the stack animation that would otherwise slide its
+     * backdrop in.
+     */
+    useBottomSheet?: boolean;
     /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
@@ -353,6 +381,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * Stamped when Perps Home was removed from this stack (TAT-3786).
          * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
@@ -380,6 +409,10 @@ export type PerpsStackParamList = {
   PerpsSelectProvider: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
+
+  // Price alert routes (perps variants of the shared alert UI)
+  PerpsPriceAlerts: PriceAlertRouteParams;
+  PerpsCreatePriceAlert: CreatePriceAlertRouteParams;
 };
 
 /** Screens inside the Perps stack plus the root `Perps` entry for cross-stack navigation. */

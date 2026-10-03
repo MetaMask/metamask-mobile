@@ -705,6 +705,8 @@ const Transactions = (props) => {
     />
   );
 
+  const transactionByActivityItem = new Map();
+
   const renderGroupedActivityItem = ({ item, index }) => {
     if (item.type === 'pending-header') {
       return <ActivityListDateHeader label={strings('transaction.pending')} />;
@@ -712,10 +714,7 @@ const Transactions = (props) => {
     if (item.type === 'date-header') {
       return <ActivityListDateHeader timestamp={item.date} />;
     }
-    const tx =
-      item.item.raw?.type === 'localTransaction'
-        ? item.item.raw.data.primaryTransaction
-        : undefined;
+    const tx = transactionByActivityItem.get(item.item);
     return tx ? (
       <AssetDetailsActivityListItem
         transaction={tx}
@@ -748,14 +747,16 @@ const Transactions = (props) => {
     location === TransactionDetailLocation.AssetDetails;
   const activityListData = shouldUseActivityRedesign
     ? groupActivityListItems(
-        filteredTransactions.map((transaction) =>
-          mapTransactionToActivityItem({
+        filteredTransactions.map((transaction) => {
+          const activityItem = mapTransactionToActivityItem({
             transaction,
             assetSymbol,
             currentChainId: chainId,
             tokenChainId,
-          }),
-        ),
+          });
+          transactionByActivityItem.set(activityItem, transaction);
+          return activityItem;
+        }),
       )
     : filteredTransactions;
   const useAssetOnlyExplorer = isAssetDetailsExplorer || Boolean(tokenChainId);

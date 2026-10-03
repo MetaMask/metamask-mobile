@@ -20,6 +20,8 @@ interface SelectFieldProps {
   hideIcon?: boolean;
   /** Optional content displayed before the selected value. */
   startAccessory?: React.ReactNode;
+  /** Optional content displayed after the selected value (replaces arrow when set). */
+  endAccessory?: React.ReactNode;
   /** Test ID for the touchable element */
   testID?: string;
 }
@@ -35,10 +37,11 @@ const SelectField: React.FC<SelectFieldProps> = ({
   isDisabled = false,
   hideIcon = false,
   startAccessory,
+  endAccessory,
   testID,
 }) => {
   const isReadOnly = !onPress;
-  const showIcon = !isReadOnly && !hideIcon;
+  const showIcon = !isReadOnly && !hideIcon && endAccessory == null;
 
   const content = (
     <Box
@@ -54,6 +57,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
           {value}
         </Text>
       </Box>
+      {endAccessory}
       {showIcon && <Icon name={IconName.ArrowDown} size={IconSize.Sm} />}
     </Box>
   );
