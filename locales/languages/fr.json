@@ -1936,27 +1936,6 @@
         "orders_rejected": "Scale orders were not placed",
         "rejected_placement_summary": "The venue confirmed that no orders were accepted",
         "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
-        "groups": {
-          "market_provider": "{{assetSymbol}} · {{providerName}}",
-        "title": "Scale orders",
-          "review": "Review venue status",
-          "cancel": "Cancel remaining orders",
-          "accepted": "{{count}} accepted orders · {{size}} {{assetSymbol}}",
-          "filled": "Filled: {{size}} {{assetSymbol}}",
-          "state": {
-            "placing": "Placement in progress",
-            "stopped": "Placement stopped",
-            "unknown": "Some order outcomes are unresolved",
-            "terminal": "All orders settled"
-          },
-          "child": {
-            "resting": "Resting · {{orderId}}",
-            "filled": "Filled · {{orderId}}",
-            "canceled": "Canceled · {{orderId}}",
-            "waitingForFill": "Accepted · Waiting for fill status",
-            "waitingForTrigger": "Accepted · Waiting for trigger"
-          }
-        },
         "orders_submitted": "Ordres échelonnés soumis",
         "orders_placed": "Ordres échelonnés exécutés",
         "orders_partially_placed": "Ordres échelonnés partiellement exécutés",

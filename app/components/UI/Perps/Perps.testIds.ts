@@ -746,23 +746,9 @@ export const getPerpsProTwapFillRowSelector = (
     fillId,
   );
 
+// Retired panel identifiers retained to guard the established layout.
 export const PerpsScaleOrderGroupsSelectorsIDs = {
   PANEL: 'perps-scale-groups',
-  state: (providerId: string, groupId: string) =>
-    `perps-scale-group-state-${providerId}-${groupId}`,
-  accepted: (providerId: string, groupId: string) =>
-    `perps-scale-group-accepted-${providerId}-${groupId}`,
-  filled: (providerId: string, groupId: string) =>
-    `perps-scale-group-filled-${providerId}-${groupId}`,
-  child: (providerId: string, groupId: string, index: number) =>
-    `perps-scale-group-child-${providerId}-${groupId}-${index}`,
-  ERROR: 'perps-scale-groups-error',
-  row: (providerId: string, groupId: string) =>
-    `perps-scale-group-${providerId}-${groupId}`,
-  review: (providerId: string, groupId: string) =>
-    `perps-scale-group-review-${providerId}-${groupId}`,
-  cancel: (providerId: string, groupId: string) =>
-    `perps-scale-group-cancel-${providerId}-${groupId}`,
 } as const;
 
 export const PerpsProOrderFormSelectorsIDs = {
@@ -1477,7 +1463,6 @@ export const PerpsRecentActivityListSelectorsIDs = {
   LIST: 'perps-recent-activity-list',
   ROW: (index: number) => `perps-recent-activity-row-${index}`,
 } as const;
-export {
-  PerpsRecoveryPanelTestIds,
-  getPerpsRecoveryEntryTestId,
-} from './components/PerpsRecoveryPanel/PerpsRecoveryPanel.testIds';
+export const PerpsRecoveryPanelTestIds = {
+  PANEL: 'perps-recovery-panel',
+} as const;

@@ -11,7 +11,6 @@ import type { RootState } from '../../../../reducers';
 import { initialStatePerps } from '../../../../../tests/component-view/presets/perpsStatePreset';
 import { buildLighterRecoveryHarness } from '../../../../../tests/integration/harnesses/perps/lighter-recovery';
 import { usePerpsScalePriceLadder } from '../hooks/usePerpsScalePriceLadder';
-import { usePerpsScaleOrderGroups } from '../hooks/usePerpsScaleOrderGroups';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { createMobileClientConfig } from '../adapters/mobileInfrastructure';
 import {
@@ -77,7 +76,6 @@ async function withScale(
 function useScale(request: GetScalePriceLadderParams = intent) {
   return {
     preview: usePerpsScalePriceLadder(request),
-    inventory: usePerpsScaleOrderGroups(),
     trading: usePerpsTrading(),
   };
 }
@@ -298,26 +296,27 @@ describe('Mobile Scale consumers through the installed Lighter controller', () =
       expect(receipt.success).toBe(true);
       expect(receipt.acceptedChildren).toHaveLength(3);
       expect(receipt.childOrderIds).toHaveLength(3);
-      await act(async () => {
-        await mounted.result.current.inventory.reload();
-      });
-      const group = mounted.result.current.inventory.groups[0];
+      const [group] = await perps.controller.getScaleOrderGroups();
       expect(group.groupId).toBe(receipt.orderId);
       expect(group.acceptedSize).toBe(receipt.acceptedSize);
 
-      await act(async () => {
-        await mounted.result.current.inventory.review(group);
+      await perps.controller.reviewScaleOrderGroups({
+        providerId: group.providerId,
       });
-      const reviewed = mounted.result.current.inventory.groups[0];
-      await act(async () => {
-        await mounted.result.current.inventory.cancel(reviewed);
+      const [reviewed] = await perps.controller.getScaleOrderGroups();
+      const cancellation = await perps.controller.cancelOrder({
+        orderId: reviewed.groupId,
+        symbol: reviewed.symbol,
+        providerId: reviewed.providerId,
+        orderType: 'scale',
       });
 
-      expect(mounted.result.current.inventory.error).toBeNull();
+      expect(cancellation.success).toBe(true);
       expect(
         perps.venue.active.map(({ orderIndex }) => String(orderIndex)),
       ).toEqual([unrelated]);
-      expect(mounted.result.current.inventory.groups[0].state).toBe('terminal');
+      const [canceled] = await perps.controller.getScaleOrderGroups();
+      expect(canceled.state).toBe('terminal');
     });
   });
 
@@ -358,21 +357,19 @@ describe('Mobile Scale consumers through the installed Lighter controller', () =
         orderForPreview(mounted),
       );
       expect(receipt.success).toBe(false);
-      await act(async () => {
-        await mounted.result.current.inventory.reload();
-      });
-      const group = mounted.result.current.inventory.groups[0];
+      const [group] = await perps.controller.getScaleOrderGroups();
       expect(group.state).toBe('unknown');
       expect(group.acceptedSize).toBeUndefined();
       const signedBefore = perps.mocks.execute.mock.calls.filter(
         ([call]) => call.function === '_signCreateOrder',
       ).length;
 
-      await act(async () => {
-        await mounted.result.current.inventory.review(group);
+      await perps.controller.reviewScaleOrderGroups({
+        providerId: group.providerId,
       });
 
-      expect(mounted.result.current.inventory.groups[0].state).toBe('unknown');
+      const [reviewed] = await perps.controller.getScaleOrderGroups();
+      expect(reviewed.state).toBe('unknown');
       expect(
         perps.mocks.execute.mock.calls.filter(
           ([call]) => call.function === '_signCreateOrder',

@@ -134,10 +134,6 @@ jest.mock('react-redux', () => ({
 
 // Mock components to prevent complex module initialization chains
 jest.mock(
-  '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer',
-  () => 'PerpsRecoveryPanelContainer',
-);
-jest.mock(
   '../../components/PerpsMarketTypeSection',
   () => 'PerpsMarketTypeSection',
 );

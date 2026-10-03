@@ -29,16 +29,6 @@ import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors
 
 jest.mock('../../../../../util/haptics');
 
-jest.mock(
-  '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer',
-  () => 'PerpsRecoveryPanelContainer',
-);
-
-jest.mock(
-  '../../components/PerpsScaleOrderGroups/PerpsScaleOrderGroups',
-  () => 'PerpsScaleOrderGroups',
-);
-
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),

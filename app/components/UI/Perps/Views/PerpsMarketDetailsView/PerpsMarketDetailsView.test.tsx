@@ -52,11 +52,6 @@ let mockActiveProvider: PerpsActiveProviderMode | undefined;
 
 jest.mock('../../../../../util/haptics');
 
-jest.mock(
-  '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer',
-  () => 'PerpsRecoveryPanelContainer',
-);
-
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');

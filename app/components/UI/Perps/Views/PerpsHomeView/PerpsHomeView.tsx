@@ -94,7 +94,6 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
-import PerpsRecoveryPanelContainer from '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
@@ -1291,7 +1290,6 @@ const PerpsHomeView = () => {
           />
         </Box>
 
-        <PerpsRecoveryPanelContainer />
         <PerpsHomeSectionList sections={homeSections} />
 
         {/* Bottom spacing for tab bar */}
