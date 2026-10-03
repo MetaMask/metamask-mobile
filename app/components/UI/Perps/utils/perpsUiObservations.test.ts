@@ -1,5 +1,6 @@
 import type {
   CancelOrderParams,
+  CancelOrderResult,
   OrderParams,
   OrderResult,
 } from '@metamask/perps-controller';
@@ -185,6 +186,49 @@ describe('Perps UI observation ownership', () => {
     expect(restarted.read().cancellationSequence).toBe(
       store.read().cancellationSequence,
     );
+  });
+
+  it('makes a throwing cancellation sanitizer unknown without copying private data', () => {
+    const params: CancelOrderParams = {
+      symbol: 'ETH',
+      orderId: 'owned',
+      orderType: 'chase',
+    };
+    const first = store.beginCancellation(scope, params);
+    const outcome: CancelOrderResult = { success: true, orderId: 'owned' };
+    Object.defineProperty(outcome, 'error', {
+      get: () => {
+        throw new Error('private signed payload');
+      },
+    });
+
+    store.settleCancellation(first, outcome);
+
+    expect(store.read().cancellations[0]).toEqual(
+      expect.objectContaining({ requestId: first, state: 'unknown' }),
+    );
+    expect(store.read().cancellations[0].result).toBeUndefined();
+    expect(store.read().captureFailures).toBe(1);
+    expect(store.read().droppedCancellationSettlements).toBe(0);
+    expect(JSON.stringify(store.read())).not.toMatch(/private|signed/);
+  });
+
+  it('preserves an unknown first cancellation outcome when a duplicate success arrives', () => {
+    const first = store.beginCancellation(scope, {
+      symbol: 'ETH',
+      orderId: 'owned',
+      orderType: 'chase',
+    });
+    store.settleCancellation(first);
+    const original = store.read().cancellations[0];
+
+    store.settleCancellation(first, { success: true, orderId: 'owned' });
+
+    expect(original.state).toBe('unknown');
+    expect(original.result).toBeUndefined();
+    expect(store.read().cancellations[0]).toEqual(original);
+    expect(store.read().droppedCancellationSettlements).toBe(1);
+    expect(store.read().captureFailures).toBe(0);
   });
 
   it.each(['scale', 'chase', 'twap'] as const)(

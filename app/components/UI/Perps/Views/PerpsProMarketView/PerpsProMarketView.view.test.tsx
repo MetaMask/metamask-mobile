@@ -61,6 +61,7 @@ import {
 } from '../../Perps.testIds';
 import { formatProOrderCardTimestamp } from '../../utils/formatUtils';
 import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
+import { readPerpsUiObservations } from '../../utils/perpsUiObservations';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const TIMEOUT_MS = 5000;
@@ -1170,6 +1171,65 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       },
     );
   }
+
+  itForPlatforms(
+    'records the hook cancellation result after pressing the Chase terminate control',
+    async () => {
+      const savedDev = __DEV__;
+      (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+      try {
+        const cursor = readPerpsUiObservations().cancellationSequence;
+        const outcome = { success: true, orderId: activeChase.handle };
+        const cancelOrder = jest.mocked(
+          Engine.context.PerpsController.cancelOrder,
+        );
+        cancelOrder.mockResolvedValue(outcome);
+        jest
+          .mocked(Engine.context.PerpsController.getChaseOrders)
+          .mockResolvedValueOnce([activeChase])
+          .mockResolvedValue([]);
+        renderFundedProMarket();
+        await openChaseManagementTab();
+
+        fireEvent.press(
+          await screen.findByTestId(
+            getPerpsProChaseTerminateSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        );
+
+        await waitFor(() => {
+          expect(cancelOrder).toHaveBeenCalledTimes(1);
+          expect(cancelOrder).toHaveBeenCalledWith({
+            orderId: activeChase.handle,
+            symbol: 'ETH',
+            orderType: 'chase',
+          });
+          expect(
+            readPerpsUiObservations().cancellations.filter(
+              (item) => item.sequence > cursor,
+            ),
+          ).toEqual([
+            expect.objectContaining({
+              request: {
+                orderId: activeChase.handle,
+                symbol: 'ETH',
+                orderType: 'chase',
+              },
+              state: 'settled',
+              result: outcome,
+            }),
+          ]);
+        });
+      } finally {
+        (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
+      }
+    },
+  );
 
   itForPlatforms(
     'retains canceled History when the controller omits the terminated session',

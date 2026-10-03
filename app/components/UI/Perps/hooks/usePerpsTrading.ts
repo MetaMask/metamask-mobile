@@ -7,6 +7,7 @@ import {
   settlePerpsUiSubmission,
   beginPerpsUiCancellation,
   settlePerpsUiCancellation,
+  type PerpsUiScope,
 } from '../utils/perpsUiObservations';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
@@ -74,6 +75,27 @@ type MobileCancelOrderParams = CancelOrderParams & {
   skipCufConfirmationTrace?: boolean;
 };
 
+/** Read public issuing identity synchronously inside the diagnostic capture guard. */
+function getIssuingPerpsUiScope(
+  controller: typeof Engine.context.PerpsController,
+  params: Pick<CancelOrderParams, 'symbol' | 'providerId'>,
+): PerpsUiScope {
+  return {
+    account:
+      getSelectedEvmAccountFromMessenger(
+        Engine.controllerMessenger,
+      )?.address.toLowerCase() ?? null,
+    provider: params.providerId ?? controller.state?.activeProvider ?? null,
+    network:
+      controller.state?.isTestnet === undefined
+        ? null
+        : controller.state.isTestnet
+          ? 'testnet'
+          : 'mainnet',
+    market: params.symbol,
+  };
+}
+
 /**
  * Hook for trading operations
  * Provides methods for placing, canceling, and closing trading positions
@@ -87,21 +109,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       const requestId = __DEV__
         ? beginPerpsUiSubmission(
-            () => ({
-              account:
-                getSelectedEvmAccountFromMessenger(
-                  Engine.controllerMessenger,
-                )?.address.toLowerCase() ?? null,
-              provider:
-                params.providerId ?? controller.state?.activeProvider ?? null,
-              network:
-                controller.state?.isTestnet === undefined
-                  ? null
-                  : controller.state.isTestnet
-                    ? 'testnet'
-                    : 'mainnet',
-              market: params.symbol,
-            }),
+            () => getIssuingPerpsUiScope(controller, params),
             params,
           )
         : undefined;
@@ -125,33 +133,21 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       const requestId = __DEV__
         ? beginPerpsUiCancellation(
-            () => ({
-              account:
-                getSelectedEvmAccountFromMessenger(
-                  Engine.controllerMessenger,
-                )?.address.toLowerCase() ?? null,
-              provider:
-                params.providerId ?? controller.state?.activeProvider ?? null,
-              network:
-                controller.state?.isTestnet === undefined
-                  ? null
-                  : controller.state.isTestnet
-                    ? 'testnet'
-                    : 'mainnet',
-              market: params.symbol,
-            }),
+            () => getIssuingPerpsUiScope(controller, params),
             params,
           )
         : undefined;
       const dispatch = async (): Promise<CancelOrderResult> => {
+        let result: CancelOrderResult;
         try {
-          const result = await controller.cancelOrder(params);
-          settlePerpsUiCancellation(requestId, result);
-          return result;
+          result = await controller.cancelOrder(params);
         } catch (error) {
           settlePerpsUiCancellation(requestId);
           throw error;
         }
+        // Diagnostic sanitization is nonthrowing and cannot change this outcome.
+        settlePerpsUiCancellation(requestId, result);
+        return result;
       };
       if (skipCufConfirmationTrace) {
         return dispatch();

@@ -7,13 +7,26 @@ import type {
 import Engine from '../../../../core/Engine';
 import { usePerpsTrading } from './usePerpsTrading';
 import { readPerpsUiObservations } from '../utils/perpsUiObservations';
+import { TraceName } from '../../../../util/trace';
+import {
+  acceptPerpsCufRequest,
+  endPerpsCufRequestAfter,
+  endPerpsCufTrace,
+  startPerpsCufTrace,
+  watchPerpsCufOrderAbsent,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+  PERPS_CUF_TAG,
+} from '../constants/perpsCufTags';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('./usePerpsNetworkManagement', () => ({
   usePerpsNetworkManagement: () => ({ ensureArbitrumNetworkExists: jest.fn() }),
 }));
 jest.mock('../utils/perpsCufTrace', () => ({
-  startPerpsCufTrace: () => 'cancel-observation-cuf',
+  startPerpsCufTrace: jest.fn(() => 'cancel-observation-cuf'),
   endPerpsCufTrace: jest.fn(),
   endPerpsCufRequestAfter: jest.fn(),
   watchPerpsCufOrderAbsent: jest.fn(),
@@ -48,6 +61,14 @@ const after = (cursor: number) =>
   readPerpsUiObservations().cancellations.filter(
     (item) => item.sequence > cursor,
   );
+const cufId = 'cancel-observation-cuf';
+const expectNoCufCalls = () => {
+  expect(startPerpsCufTrace).not.toHaveBeenCalled();
+  expect(watchPerpsCufOrderAbsent).not.toHaveBeenCalled();
+  expect(endPerpsCufRequestAfter).not.toHaveBeenCalled();
+  expect(acceptPerpsCufRequest).not.toHaveBeenCalled();
+  expect(endPerpsCufTrace).not.toHaveBeenCalled();
+};
 
 describe('UI cancellation result observations', () => {
   const savedDev = __DEV__;
@@ -66,13 +87,18 @@ describe('UI cancellation result observations', () => {
     (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
   });
 
-  it.each([true, false])(
-    'captures the exact controller result when skipCufConfirmationTrace is %s',
-    async (skipCufConfirmationTrace) => {
+  it.each([
+    { skipCufConfirmationTrace: true, success: true },
+    { skipCufConfirmationTrace: true, success: false },
+    { skipCufConfirmationTrace: false, success: true },
+    { skipCufConfirmationTrace: false, success: false },
+  ])(
+    'returns the original success:$success result with trace bypass:$skipCufConfirmationTrace',
+    async ({ skipCufConfirmationTrace, success }) => {
       const cursor = readPerpsUiObservations().cancellationSequence;
       const outcome: CancelOrderResult = {
-        success: false,
-        error: 'venue refused cancellation',
+        success,
+        ...(!success && { error: 'venue refused cancellation' }),
         orderId: request().orderId,
         providerId: 'lighter',
       };
@@ -97,8 +123,94 @@ describe('UI cancellation result observations', () => {
       ]);
       expect(controller.cancelOrder).toHaveBeenCalledTimes(1);
       expect(controller.cancelOrder).toHaveBeenCalledWith(request());
+      if (skipCufConfirmationTrace) {
+        expectNoCufCalls();
+      } else {
+        expect(startPerpsCufTrace).toHaveBeenCalledTimes(1);
+        expect(startPerpsCufTrace).toHaveBeenCalledWith({
+          name: TraceName.PerpsCancelOrderToConfirmation,
+        });
+        expect(watchPerpsCufOrderAbsent).toHaveBeenCalledWith(
+          cufId,
+          request().orderId,
+        );
+        expect(endPerpsCufRequestAfter).toHaveBeenCalledWith(
+          cufId,
+          expect.any(Function),
+          PERPS_CUF_STREAM_TIMEOUT_MS,
+        );
+        const [, hasControllerSettled] = jest.mocked(endPerpsCufRequestAfter)
+          .mock.calls[0];
+        expect(hasControllerSettled()).toBe(true);
+        if (success) {
+          expect(acceptPerpsCufRequest).toHaveBeenCalledTimes(1);
+          expect(acceptPerpsCufRequest).toHaveBeenCalledWith(cufId);
+          expect(endPerpsCufTrace).not.toHaveBeenCalled();
+        } else {
+          expect(acceptPerpsCufRequest).not.toHaveBeenCalled();
+          expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+          expect(endPerpsCufTrace).toHaveBeenCalledWith({
+            id: cufId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        }
+      }
     },
   );
+
+  it('leaves the cancellation cursor unchanged for an ordinary order without orderType', async () => {
+    const before = readPerpsUiObservations();
+    const params: CancelOrderParams = { symbol: 'ETH', orderId: 'ordinary' };
+    const outcome: CancelOrderResult = { success: true, orderId: 'ordinary' };
+    jest.mocked(controller.cancelOrder).mockResolvedValue(outcome);
+    const { result } = renderHook(() => usePerpsTrading());
+
+    const returned = await result.current.cancelOrder(params);
+
+    expect(returned).toBe(outcome);
+    expect(controller.cancelOrder).toHaveBeenCalledTimes(1);
+    expect(controller.cancelOrder).toHaveBeenCalledWith(params);
+    expect(readPerpsUiObservations().cancellationSequence).toBe(
+      before.cancellationSequence,
+    );
+    expect(readPerpsUiObservations().cancellations).toEqual(
+      before.cancellations,
+    );
+    expect(acceptPerpsCufRequest).toHaveBeenCalledWith(cufId);
+  });
+
+  it('returns the original accepted cancellation when result sanitization throws', async () => {
+    const before = readPerpsUiObservations();
+    const outcome: CancelOrderResult = {
+      success: true,
+      orderId: request().orderId,
+    };
+    Object.defineProperty(outcome, 'error', {
+      get: () => {
+        throw new Error('private signed payload');
+      },
+    });
+    jest.mocked(controller.cancelOrder).mockResolvedValue(outcome);
+    const { result } = renderHook(() => usePerpsTrading());
+
+    const returned = await result.current.cancelOrder(request());
+
+    expect(returned).toBe(outcome);
+    expect(controller.cancelOrder).toHaveBeenCalledTimes(1);
+    expect(after(before.cancellationSequence)[0].state).toBe('unknown');
+    expect(after(before.cancellationSequence)[0].result).toBeUndefined();
+    expect(readPerpsUiObservations().captureFailures).toBe(
+      before.captureFailures + 1,
+    );
+    expect(JSON.stringify(after(before.cancellationSequence))).not.toContain(
+      'private signed payload',
+    );
+    expect(acceptPerpsCufRequest).toHaveBeenCalledWith(cufId);
+    expect(endPerpsCufTrace).not.toHaveBeenCalled();
+  });
 
   it('retains pending cancellation and its issuing scope after the hook exits', async () => {
     const cursor = readPerpsUiObservations().cancellationSequence;
@@ -202,27 +314,58 @@ describe('UI cancellation result observations', () => {
     expect(controller.cancelOrder).toHaveBeenCalledTimes(2);
   });
 
-  it('retains a thrown cancellation as unknown without copying the exception or replaying', async () => {
-    const cursor = readPerpsUiObservations().cancellationSequence;
-    jest
-      .mocked(controller.cancelOrder)
-      .mockRejectedValue(new Error('private signed payload'));
-    const { result } = renderHook(() => usePerpsTrading());
+  it.each([true, false])(
+    'rethrows the original cancellation exception with trace bypass:%s',
+    async (skipCufConfirmationTrace) => {
+      const cursor = readPerpsUiObservations().cancellationSequence;
+      const exception = new Error('private signed payload');
+      jest.mocked(controller.cancelOrder).mockRejectedValue(exception);
+      const { result } = renderHook(() => usePerpsTrading());
 
-    await expect(
-      result.current.cancelOrder({
-        ...request(),
-        skipCufConfirmationTrace: true,
-      }),
-    ).rejects.toThrow('private signed payload');
+      await expect(
+        result.current.cancelOrder({
+          ...request(),
+          skipCufConfirmationTrace,
+        }),
+      ).rejects.toBe(exception);
 
-    expect(after(cursor)[0].state).toBe('unknown');
-    expect(after(cursor)[0].result).toBeUndefined();
-    expect(JSON.stringify(after(cursor))).not.toContain(
-      'private signed payload',
-    );
-    expect(controller.cancelOrder).toHaveBeenCalledTimes(1);
-  });
+      expect(after(cursor)[0].state).toBe('unknown');
+      expect(after(cursor)[0].result).toBeUndefined();
+      expect(JSON.stringify(after(cursor))).not.toContain(
+        'private signed payload',
+      );
+      expect(controller.cancelOrder).toHaveBeenCalledTimes(1);
+      expect(controller.cancelOrder).toHaveBeenCalledWith(request());
+      if (skipCufConfirmationTrace) {
+        expectNoCufCalls();
+      } else {
+        expect(startPerpsCufTrace).toHaveBeenCalledWith({
+          name: TraceName.PerpsCancelOrderToConfirmation,
+        });
+        expect(watchPerpsCufOrderAbsent).toHaveBeenCalledWith(
+          cufId,
+          request().orderId,
+        );
+        expect(endPerpsCufRequestAfter).toHaveBeenCalledWith(
+          cufId,
+          expect.any(Function),
+          PERPS_CUF_STREAM_TIMEOUT_MS,
+        );
+        const [, hasControllerSettled] = jest.mocked(endPerpsCufRequestAfter)
+          .mock.calls[0];
+        expect(hasControllerSettled()).toBe(false);
+        expect(acceptPerpsCufRequest).not.toHaveBeenCalled();
+        expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+        expect(endPerpsCufTrace).toHaveBeenCalledWith({
+          id: cufId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+      }
+    },
+  );
 
   it('continues the original cancellation when observation context cannot be read', async () => {
     const before = readPerpsUiObservations();
@@ -257,6 +400,9 @@ describe('UI cancellation result observations', () => {
 
     expect(readPerpsUiObservations().captureFailures).toBe(
       before.captureFailures + 1,
+    );
+    expect(readPerpsUiObservations().cancellationSequence).toBe(
+      before.cancellationSequence + 1,
     );
     expect(after(before.cancellationSequence)).toEqual([]);
     expect(controller.cancelOrder).toHaveBeenCalledTimes(1);
