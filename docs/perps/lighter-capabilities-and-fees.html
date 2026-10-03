@@ -1438,11 +1438,11 @@
         </li>
         <li>
           C19 · Settlement source inspected October 4: Core
-          <code>e3d7a4c80c26ebf3bf22c4d419af109fd8419752</code>, matching Mobile
+          <code>db75bdee45aae4237362d0def034b3410169f13f</code>, matching Mobile
           controller integration
-          <code>873699d647e1f0938edfa58c58aaedbcfef1b3e6</code>. Core #10638 and
+          <code>02fba095da03c40bc96b32f78aabc20f8630b4a7</code>. Core #10638 and
           Mobile #37161 publish these corrections. Source/package matching,
-          1,658 Core tests, 77 tests across seven Mobile Perps integration
+          1,668 Core tests, 77 tests across seven Mobile Perps integration
           suites including both recovery suites, and full Mobile TypeScript
           checks pass. Source adds bounded Scale visibility, durable exact
           cancellation identities and Chase settlement reads. Exact observed
@@ -1450,9 +1450,12 @@
           transaction lookups. Conflicting or unknown evidence remains
           nonretryable. Accepted placement and cancellation dispatches persist
           under their original account and key before session checks or nonce
-          retirement; storage failure preserves unresolved evidence. These are
-          source and integration checks; corrected-build native and venue proof
-          remains pending, and no upstream package release is claimed.
+          retirement; storage failure preserves unresolved evidence. Acceptance
+          phase and flag stay consistent when completion reads, parsing or
+          matching fail, so journal readback and restart retain the accepted
+          action without replay. These are source and integration checks;
+          corrected-build native and venue proof remains pending, and no
+          upstream package release is claimed.
         </li>
         <li>
           C20 · Recipe #31 merged October 3 at
