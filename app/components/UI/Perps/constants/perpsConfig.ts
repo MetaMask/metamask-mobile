@@ -521,5 +521,5 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
   orderBookExpanded: true,
   orderBookPosition: 'right',
 } as const;
-/** Maximum retained development submission records and Scale form lifetimes. */
+/** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;
