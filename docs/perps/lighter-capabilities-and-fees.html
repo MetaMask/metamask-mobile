@@ -584,7 +584,9 @@
                 Latest Lighter order accepted, rested unfilled and exactly
                 canceled. The recipe failed on an empty management default; that
                 correction is active, but the failed run is not a pass.
-                Hyperliquid comparison remains unused.
+                Hyperliquid post-only passed all 20 recipe steps on October 3,
+                including exact cancellation and an independent flat-account
+                check.
               </td>
             </tr>
             <tr>
@@ -639,8 +641,12 @@
                 refuse the request.
               </td>
               <td>
-                Earlier 2x order cycle validated; no margin-mode switching
-                proof.
+                Earlier 2x order cycle validated. The October 3 isolated-mode
+                transaction executed after the immediate result check, so the
+                opening failed before placing a position. Its exact outcome was
+                reconciled and acknowledged. Core now polls that transaction
+                without resending; the correction has host tests but no new
+                financial run.
               </td>
             </tr>
             <tr>
@@ -782,8 +788,12 @@
                 retirement and exact result correlation. The historical
                 controller lifecycle passed on its recorded build with two exact
                 children, cancellation, zero fills and no remaining exposure.
-                Final UI placement and cleanup need completed evidence on both
-                protocols. <a href="#current-source-state">[C17]</a>
+                October 3 UI placement produced both exact $10 children. Initial
+                placement and cancellation receipts lagged venue state; later
+                exact reconciliation proved both children canceled with zero
+                fills. The original lifecycle recipe remains failed. Hyperliquid
+                two-child comparison exceeds the $20 case cap.
+                <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
             <tr>
@@ -807,8 +817,10 @@
                 independent exact child and scopes the existing UI button to its
                 stable handle. An earlier bounded testnet attempt refused a
                 stale quote before dispatch. Exact transaction, nonce and venue
-                reads showed no acceptance. The remaining bounded testnet case
-                is unused; a successful child lifecycle remains unproved.
+                reads showed no acceptance. The final bounded case failed before
+                child dispatch because a previous margin result still required
+                acknowledgment. That result was subsequently acknowledged. No
+                Chase replay or successful child lifecycle is claimed.
                 <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
@@ -939,19 +951,24 @@
           patch for wallet-key recovery, stream failures/history, unknown
           closing-fill PnL, capability gating, native standalone triggers,
           position protection and non-financial dispatch reconciliation. Core
-          #10605 is merged. As recorded on October 3, #10638 is the single Core
-          draft and targets main. #10618 is closed as superseded, with its
-          review history and recovery branch retained. #10629 is closed and
-          #10644 is incorporated into #10638's feature branch. Final
-          corrections, current-head review of the combined scope and current
-          UI/venue proof remain pending. Mobile
+          #10605 is merged. Core
+          <a href="https://github.com/MetaMask/core/pull/10638">#10638</a>
+          is the single open Core PR against main and is ready for external
+          review. It supersedes #10618, #10629 and #10644. Its latest correction
+          waits for exact margin-transaction execution without resubmitting.
+          Mobile
           <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
             >#37161</a
           >
-          and the validation-library PR remain drafts. The locally committed
-          signer correction is not yet adopted. Remove the patch after all
-          corrections are published upstream. No <code>.yalc</code> package or
-          <code>yalc.lock</code> is committed.
+          includes the matching package patch and remains draft while CI and
+          runtime gaps are reviewed. The original Scale layout is restored;
+          unrequested controls are removed. The reusable Perps recipe library
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/28"
+            >#28</a
+          >
+          is merged. Remove the local patch after the upstream package release.
+          No <code>.yalc</code> package or <code>yalc.lock</code> is committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,
@@ -978,6 +995,22 @@
 
     <section id="evidence">
       <h2>Retained validation evidence</h2>
+      <p>
+        October 3 follow-up used Mobile <code>54d9669</code>, Core
+        <code>a3afafb4</code> and recipe library <code>6bda9513</code> on mm-3.
+        Hyperliquid post-only passed 20/20. Lighter Scale placed two exact
+        children, then canceled both with zero fills; delayed results required
+        receipt-only reconciliation, and the original recipe failure is
+        retained. Isolated-margin opening and Chase failed before exposure. No
+        financial case was replayed. Final public reads found no orders or
+        positions. The order-error experiment never reached its injected
+        failure; cleanup passed, but recovery remains unproved. Accepted
+        account/network isolation and genuine reinstall proof are also
+        incomplete. The margin correction in Core <code>d436afc3</code> and
+        Mobile <code>19c2b36a</code> passes host checks, including 46 Mobile
+        tests and full typechecking, but was not in that live run. Evidence is
+        under <code>goal/final-runtime/</code>.
+      </p>
       <p>
         September 30 mm-3 validation on controller 19.0.0 uses dev1
         <code>0x8dc623e964475d4d669da601fd15ea9125469003</code> on both
