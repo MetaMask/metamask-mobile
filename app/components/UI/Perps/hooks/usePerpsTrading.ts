@@ -5,6 +5,8 @@ import Engine from '../../../../core/Engine';
 import {
   beginPerpsUiSubmission,
   settlePerpsUiSubmission,
+  beginPerpsUiCancellation,
+  settlePerpsUiCancellation,
 } from '../utils/perpsUiObservations';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
@@ -121,8 +123,38 @@ export function usePerpsTrading() {
       ...params
     }: MobileCancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
+      const requestId = __DEV__
+        ? beginPerpsUiCancellation(
+            () => ({
+              account:
+                getSelectedEvmAccountFromMessenger(
+                  Engine.controllerMessenger,
+                )?.address.toLowerCase() ?? null,
+              provider:
+                params.providerId ?? controller.state?.activeProvider ?? null,
+              network:
+                controller.state?.isTestnet === undefined
+                  ? null
+                  : controller.state.isTestnet
+                    ? 'testnet'
+                    : 'mainnet',
+              market: params.symbol,
+            }),
+            params,
+          )
+        : undefined;
+      const dispatch = async (): Promise<CancelOrderResult> => {
+        try {
+          const result = await controller.cancelOrder(params);
+          settlePerpsUiCancellation(requestId, result);
+          return result;
+        } catch (error) {
+          settlePerpsUiCancellation(requestId);
+          throw error;
+        }
+      };
       if (skipCufConfirmationTrace) {
-        return controller.cancelOrder(params);
+        return dispatch();
       }
       // Confirmation CUF: every cancel UI path funnels through here; the span
       // ends when the stream no longer lists the order.
@@ -137,7 +169,7 @@ export function usePerpsTrading() {
         PERPS_CUF_STREAM_TIMEOUT_MS,
       );
       try {
-        const result = await controller.cancelOrder(params);
+        const result = await dispatch();
         controllerSettled = true;
         if (!result?.success) {
           endPerpsCufTrace({
