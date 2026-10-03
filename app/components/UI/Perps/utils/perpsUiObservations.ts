@@ -42,6 +42,7 @@ export interface PerpsUiCancellation {
   scope: PerpsUiScope;
   request: PerpsUiCancellationRequest;
   requestDigest: string;
+  /** Settled means the hook returned, including success:false; venue settlement is separate. */
   state: 'pending' | 'settled' | 'unknown';
   settledAt?: number;
   result?: CancelOrderResult;
@@ -81,8 +82,10 @@ export interface PerpsUiObservationSnapshot {
   submissionSequence: number;
   evictedSubmissionThrough: number;
   droppedSettlements: number;
+  /** Aggregate capture failures across submissions, forms and cancellations. */
   captureFailures: number;
   submissions: PerpsUiSubmission[];
+  /** Advances for every attempted capture; a gap without a receipt signals failed capture. */
   cancellationSequence: number;
   evictedCancellationThrough: number;
   droppedCancellationSettlements: number;
@@ -90,6 +93,11 @@ export interface PerpsUiObservationSnapshot {
   scaleForms: PerpsUiScaleForm[];
 }
 
+const OBSERVED_ORDER_TYPES: readonly OrderParams['orderType'][] = [
+  'scale',
+  'chase',
+  'twap',
+];
 const REQUEST_FIELDS = [
   'symbol',
   'isBuy',
@@ -362,6 +370,8 @@ export class PerpsUiObservationStore {
           this.evictedCancellationThrough;
       return requestId;
     } catch {
+      // The advanced cancellation cursor exposes this missed receipt; the
+      // aggregate failure counter also includes placement and form captures.
       this.captureFailures++;
       return undefined;
     }
@@ -487,7 +497,7 @@ export const beginPerpsUiSubmission = (
   scope: PerpsUiScope | (() => PerpsUiScope),
   params: OrderParams,
 ) =>
-  __DEV__ && ['scale', 'chase', 'twap'].includes(params.orderType)
+  __DEV__ && OBSERVED_ORDER_TYPES.includes(params.orderType)
     ? observations.begin(scope, params)
     : undefined;
 export const settlePerpsUiSubmission = (
@@ -496,16 +506,20 @@ export const settlePerpsUiSubmission = (
 ) => {
   if (__DEV__) observations.settle(requestId, result);
 };
-/** Observe the existing advanced cancellation dispatch without changing its result. */
+/**
+ * Observe advanced cancellations routed through usePerpsTrading (currently Chase UI).
+ * The separate TWAP termination hook does not use this boundary.
+ */
 export const beginPerpsUiCancellation = (
   scope: PerpsUiScope | (() => PerpsUiScope),
   params: CancelOrderParams,
 ) =>
   __DEV__ &&
   params.orderType !== undefined &&
-  ['scale', 'chase', 'twap'].includes(params.orderType)
+  OBSERVED_ORDER_TYPES.includes(params.orderType)
     ? observations.beginCancellation(scope, params)
     : undefined;
+/** Capture sanitization failures as unknown without throwing or changing the controller result. */
 export const settlePerpsUiCancellation = (
   requestId: string | undefined,
   result?: CancelOrderResult,
