@@ -372,7 +372,7 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        October 3 current source: Mobile
+        October 3 validated runtime: Mobile
         <code>655ad1c2f6964307e5242f837baecc2a77e1a832</code>, Core
         <code>d436afc30244e017aa2309bd64919acf00a0aa0a</code> patched into
         controller 19.0.0. Recipes #28 and #29 are merged; runtime validation
@@ -382,6 +382,12 @@
         #37025 and Hyperliquid SDK 0.33.3. Binding identifies the loaded source;
         order, recovery and production rollout outcomes need separate evidence.
         <a href="#current-source-state">[C17]</a>
+      </p>
+      <p>
+        Published follow-up: Core <code>c38cd553</code> and Mobile
+        <code>341b20d1</code> add bounded native-edit settlement. Package checks
+        and 85 Mobile tests pass; that follow-up has not been loaded into the
+        simulator. The Chase nonce correction remains separate unfinished work.
       </p>
       <p>
         The combined Core PR
@@ -620,11 +626,13 @@
                 remains.
               </td>
               <td>
-                Individual cancel validated. Latest edit failed unsent; its
-                exact opening order was canceled with zero fill. The signer
-                correction passes 111 host tests, but same-order price/size
-                changes and edit settlement still need native/venue proof.
-                Cancel/re-place is not an atomic native edit.
+                October 3 native edit changed the same venue order from 89.473
+                to 95.438 while preserving its identity and size. The immediate
+                response incorrectly remained pending; later exact
+                reconciliation proved execution, and cleanup canceled that order
+                with zero fills. Core c38cd553 and the Mobile patch now wait for
+                exact settlement; the corrected full edit recipe still needs a
+                passing run.
               </td>
             </tr>
             <tr>
@@ -641,12 +649,10 @@
                 refuse the request.
               </td>
               <td>
-                Earlier 2x order cycle validated. The October 3 isolated-mode
-                transaction executed after the immediate result check, so the
-                opening failed before placing a position. Its exact outcome was
-                reconciled and acknowledged. Core now polls that transaction
-                without resending; the correction has host tests but no new
-                financial run.
+                The corrected October 3 recipe passes 22/22 checks: open a $15
+                isolated 1x SOL position, add $1 collateral, and close the exact
+                position. The original delayed-confirmation failure is retained.
+                This proves the controller-backed testnet lifecycle.
               </td>
             </tr>
             <tr>
@@ -657,9 +663,10 @@
                 <code>previewPositionModify</code> returns unsupported.
               </td>
               <td>
-                Final margin-addition UI parity and native/venue proof remain
-                unproved. Source support alone does not establish a completed
-                margin lifecycle.
+                Testnet add-margin proof shows allocated collateral increasing
+                by exactly $1 without changing the position identity or size,
+                followed by a filled close. Manual UI parity and margin removal
+                remain unproved.
               </td>
             </tr>
             <tr>
@@ -815,12 +822,12 @@
                 the original wallet/network/account/key owner. It is local
                 history, not fresh venue proof. Recipe cleanup requires every
                 independent exact child and scopes the existing UI button to its
-                stable handle. An earlier bounded testnet attempt refused a
-                stale quote before dispatch. Exact transaction, nonce and venue
-                reads showed no acceptance. The final bounded case failed before
-                child dispatch because a previous margin result still required
-                acknowledgment. That result was subsequently acknowledged. No
-                Chase replay or successful child lifecycle is claimed.
+                stable handle. The latest testnet case placed one exact child,
+                then failed because Core compared the signed transaction nonce
+                with the order's different venue nonce. Normal termination also
+                refused. Exact child cancellation left zero fills or exposure;
+                the retained strategy still needs reconciliation through a fix.
+                No passing Chase lifecycle is claimed.
                 <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
@@ -957,7 +964,7 @@
           <a href="https://github.com/MetaMask/core/pull/10638">#10638</a>
           is the single open Core PR against main and is ready for external
           review. It supersedes #10618, #10629 and #10644. Its latest correction
-          waits for exact margin-transaction execution without resubmitting.
+          waits for exact margin and native-edit execution without resubmitting.
           Mobile
           <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
             >#37161</a
@@ -975,8 +982,9 @@
             >#29</a
           >
           are merged. #29 waits for an exact pending UI order receipt without
-          resubmitting; its financial lifecycle has not been rerun. Remove the
-          local patch after the upstream package release. No
+          resubmitting. The current frozen runtime still uses the older library;
+          a separate initial-dispatch observation race is being corrected.
+          Remove the local patch after the upstream package release. No
           <code>.yalc</code> package or <code>yalc.lock</code> is committed.
         </li>
         <li>
@@ -1004,6 +1012,18 @@
 
     <section id="evidence">
       <h2>Retained validation evidence</h2>
+      <p>
+        October 3 follow-up on Mobile <code>655ad1c2</code>, Core
+        <code>d436afc3</code>, and recipe library <code>6bda9513</code>:
+        <code>corrected-margin-validation-01</code> passes 22/22 checks with
+        independent flat-account confirmation. Native edit executed but its
+        original recipe failed on early pending confirmation. Scale created two
+        exact $10 children; observation timing failed the recipe, while later
+        reconciliation proved both canceled with zero fills. Chase revealed a
+        transaction/order nonce mismatch; its exact child was canceled with zero
+        fills. Original failures remain retained. Source fixes and publication
+        do not replace corrected-build runtime proof.
+      </p>
       <p>
         October 3 recovery follow-up loaded Mobile <code>655ad1c2</code> with
         Core <code>d436afc3</code>. The mainnet existing-key recipe failed at
@@ -1347,7 +1367,7 @@
           do not identify the current runtime.
         </li>
         <li>
-          C17 · Current inspected development source as of October 3: Core
+          C17 · Current validated runtime source as of October 3: Core
           <code>d436afc30244e017aa2309bd64919acf00a0aa0a</code>, Mobile
           <code>655ad1c2f6964307e5242f837baecc2a77e1a832</code>. Recipes #28 and
           #29 are merged; recorded runtime checks use #28 library
