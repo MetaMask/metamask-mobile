@@ -37,7 +37,7 @@ import {
 jest.mock('../../../../app/core/Engine', () => ({
   __esModule: true,
   default: {
-    context: { PerpsController: undefined },
+    context: { PerpsController: undefined, KeyringController: undefined },
     controllerMessenger: undefined,
   },
 }));
@@ -96,6 +96,7 @@ interface RecoveryVenue {
 
 interface RecoveryHarnessOptions {
   mode?: 'read' | 'isolated-write';
+  signerBridge?: LighterSignerBridge;
   clientConfig?: PerpsControllerConfig;
   isTestnet?: boolean;
   disk?: Map<string, string>;
@@ -493,7 +494,7 @@ export function buildLighterRecoveryHarness(
         lighter: {
           enabled: true,
           ...options.clientConfig?.providerCredentials?.lighter,
-          signerBridge: bridge,
+          signerBridge: options.signerBridge ?? bridge,
         },
       },
     },

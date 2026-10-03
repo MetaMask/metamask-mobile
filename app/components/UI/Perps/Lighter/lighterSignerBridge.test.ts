@@ -10,6 +10,7 @@ import {
 import QuickCrypto from 'react-native-quick-crypto';
 import type { Result as KeychainResult } from 'react-native-keychain';
 import SecureKeychain from '../../../../core/SecureKeychain';
+import { SecureKeychainDecryptionError } from '../../../../core/SecureKeychainError';
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -420,6 +421,221 @@ describe('lighterSignerBridge', () => {
     expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
   });
 
+  describe('unreadable encrypted keys', () => {
+    const params = { chainId: 300, accountIndex: 28, nonce: 9, apiKeyIndex: 7 };
+    const discoveryParams = {
+      chainId: 300,
+      accountIndex: 28,
+      apiKeyIndices: [7, 19],
+    };
+    const setSoftwareKeyring = (
+      exportAccount = jest.fn().mockResolvedValue('c'.repeat(64)),
+    ) => {
+      jest
+        .mocked(Engine.context.KeyringController.withKeyring)
+        .mockImplementation(async (_selector, operation) =>
+          operation({
+            keyring: { type: 'HD Key Tree', exportAccount },
+          } as never),
+        );
+      return exportAccount;
+    };
+
+    it('discovers healthy stored slots first and derives unreadable software slots without exports', async () => {
+      const exportAccount = setSoftwareKeyring();
+      mockSecureKeychain.getSecureItem.mockImplementation(async (scope) => {
+        if (scope.service?.endsWith('.7'))
+          throw new SecureKeychainDecryptionError();
+        return { key: 'LIGHTER_SIGNER_PRIVATE_KEY', value: 'a'.repeat(64) };
+      });
+
+      const indices =
+        await lighterSignerBridge.getRecoverableKeyIndices(discoveryParams);
+
+      expect(indices).toEqual([19, 7]);
+      expect(exportAccount).not.toHaveBeenCalled();
+      expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    });
+
+    it('recreates the same software key after a reset without replacing unreadable storage', async () => {
+      const exportAccount = setSoftwareKeyring();
+      mockSecureKeychain.getSecureItem.mockRejectedValue(
+        new SecureKeychainDecryptionError(),
+      );
+      const executor = jest.fn().mockResolvedValue(clientResult);
+      connectLighterExecutor(executor);
+
+      await lighterSignerBridge.createClient(params);
+      resetLighterBridge();
+      connectLighterExecutor(executor);
+      await lighterSignerBridge.createClient(params);
+
+      expect(executor.mock.calls.map(([call]) => call.params[0])).toEqual([
+        'c'.repeat(64),
+        'c'.repeat(64),
+      ]);
+      expect(exportAccount).toHaveBeenCalledWith(`0x${'1'.repeat(40)}`, {
+        withAppKeyOrigin:
+          'metamask-internal://perps/lighter/trading-key/v1/300/28',
+      });
+      expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    });
+
+    it('keeps public stored-key discovery strict for software wallets', async () => {
+      setSoftwareKeyring();
+      mockSecureKeychain.getSecureItem.mockRejectedValue(
+        new SecureKeychainDecryptionError(),
+      );
+
+      await expect(
+        lighterSignerBridge.getStoredKeyIndices(discoveryParams),
+      ).rejects.toBeInstanceOf(SecureKeychainDecryptionError);
+
+      expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    });
+
+    it.each(['Ledger Hardware', 'Snap Keyring'])(
+      'blocks %s recovery instead of generating a replacement',
+      async (type) => {
+        const exportAccount = jest.fn();
+        jest
+          .mocked(Engine.context.KeyringController.withKeyring)
+          .mockImplementation(async (_selector, operation) =>
+            operation({ keyring: { type, exportAccount } } as never),
+          );
+        mockSecureKeychain.getSecureItem.mockRejectedValue(
+          new SecureKeychainDecryptionError(),
+        );
+        const executor = jest.fn();
+        connectLighterExecutor(executor);
+
+        await expect(
+          lighterSignerBridge.getRecoverableKeyIndices(discoveryParams),
+        ).rejects.toBeInstanceOf(SecureKeychainDecryptionError);
+        await expect(
+          lighterSignerBridge.createClient(params),
+        ).rejects.toBeInstanceOf(SecureKeychainDecryptionError);
+
+        expect(exportAccount).not.toHaveBeenCalled();
+        expect(executor).not.toHaveBeenCalled();
+        expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+        expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+      },
+    );
+
+    it('retains a healthy legacy software key without deriving a replacement', async () => {
+      const exportAccount = setSoftwareKeyring();
+      mockSecureKeychain.getSecureItem.mockResolvedValue({
+        key: 'LIGHTER_SIGNER_PRIVATE_KEY',
+        value: 'a'.repeat(64),
+      });
+      const executor = jest.fn().mockResolvedValue(clientResult);
+      connectLighterExecutor(executor);
+
+      await lighterSignerBridge.createClient(params);
+
+      expect(executor).toHaveBeenCalledWith(
+        expect.objectContaining({ params: ['a'.repeat(64), 300, 28, 9, 7] }),
+        expect.any(Number),
+      );
+      expect(exportAccount).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    });
+
+    it.each(['create', 'discover'])(
+      'rejects a wallet lock during failed storage retrieval before %s fallback',
+      async (operation) => {
+        const exportAccount = setSoftwareKeyring();
+        mockSecureKeychain.getSecureItem.mockImplementation(async () => {
+          jest
+            .mocked(Engine.context.KeyringController.isUnlocked)
+            .mockReturnValue(false);
+          throw new SecureKeychainDecryptionError();
+        });
+
+        const pending =
+          operation === 'create'
+            ? lighterSignerBridge.createClient(params)
+            : lighterSignerBridge.getRecoverableKeyIndices(discoveryParams);
+
+        await expect(pending).rejects.toThrow('wallet is locked');
+        expect(exportAccount).not.toHaveBeenCalled();
+        expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+        expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['Native keychain access denied', 'Unable to decrypt secure item'])(
+      'blocks untyped read errors for software wallets: %s',
+      async (message) => {
+        const exportAccount = setSoftwareKeyring();
+        mockSecureKeychain.getSecureItem.mockRejectedValue(new Error(message));
+        const executor = jest.fn();
+        connectLighterExecutor(executor);
+
+        await expect(
+          lighterSignerBridge.getRecoverableKeyIndices(discoveryParams),
+        ).rejects.toThrow(message);
+        await expect(lighterSignerBridge.createClient(params)).rejects.toThrow(
+          message,
+        );
+
+        expect(exportAccount).not.toHaveBeenCalled();
+        expect(executor).not.toHaveBeenCalled();
+        expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+        expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+      },
+    );
+
+    it('blocks a failed software derivation without generating a replacement', async () => {
+      setSoftwareKeyring(
+        jest.fn().mockRejectedValue(new Error('Derivation unavailable')),
+      );
+      mockSecureKeychain.getSecureItem.mockRejectedValue(
+        new SecureKeychainDecryptionError(),
+      );
+      const executor = jest.fn();
+      connectLighterExecutor(executor);
+
+      await expect(lighterSignerBridge.createClient(params)).rejects.toThrow(
+        'Derivation unavailable',
+      );
+
+      expect(executor).not.toHaveBeenCalled();
+      expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    });
+
+    it.each(['create', 'discover'])(
+      'rejects wallet changes during failed storage retrieval before %s fallback',
+      async (operation) => {
+        const exportAccount = setSoftwareKeyring();
+        mockSecureKeychain.getSecureItem.mockImplementation(async () => {
+          jest
+            .mocked(Engine.context.AccountsController.getSelectedAccount)
+            .mockReturnValue({
+              address: `0x${'2'.repeat(40)}`,
+              type: 'eip155:eoa',
+            } as never);
+          throw new SecureKeychainDecryptionError();
+        });
+
+        const pending =
+          operation === 'create'
+            ? lighterSignerBridge.createClient(params)
+            : lighterSignerBridge.getRecoverableKeyIndices(discoveryParams);
+
+        await expect(pending).rejects.toThrow('wallet changed');
+        expect(exportAccount).not.toHaveBeenCalled();
+        expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+        expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   it.each([null, { value: 'a'.repeat(64) }])(
     'uses the selected group EVM account with a non-EVM selection (stored: %s)',
     async (stored) => {
@@ -489,7 +705,9 @@ describe('lighterSignerBridge', () => {
     ).rejects.toThrow('wallet changed');
 
     expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
-    expect(Engine.context.KeyringController.withKeyring).not.toHaveBeenCalled();
+    expect(Engine.context.KeyringController.withKeyring).toHaveBeenCalledTimes(
+      1,
+    );
   });
 
   it('rejects a wallet switch during derivation before persisting the key', async () => {
