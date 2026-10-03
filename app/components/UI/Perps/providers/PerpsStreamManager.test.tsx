@@ -1337,6 +1337,152 @@ describe('PerpsStreamManager', () => {
       expect(testStreamManager.fills.getSnapshot()).toBeNull();
     });
 
+    describe('order subscription context isolation', () => {
+      const createOrder = (orderId: string): Order => ({
+        orderId,
+        symbol: 'BTC',
+        side: 'buy',
+        originalSize: '1',
+        size: '1',
+        remainingSize: '1',
+        filledSize: '0',
+        price: '50000',
+        orderType: 'limit',
+        status: 'open',
+        timestamp: 1,
+        providerId: 'lighter',
+      });
+
+      const selectAccount = (address: string) => {
+        const getAccounts = jest.mocked(
+          mockEngine.context.AccountTreeController
+            .getAccountsFromSelectedAccountGroup,
+        );
+        getAccounts.mockReturnValue([{ ...getAccounts()[0], address }]);
+        mockSelectPerpsSelectedAccountAddress.mockReturnValue(address);
+      };
+
+      const getSubscription = (index: number) => {
+        const subscription = mockSubscribeToOrders.mock.calls[
+          index
+        ][0] as Parameters<
+          typeof Engine.context.PerpsController.subscribeToOrders
+        >[0];
+        if (!subscription.onError) {
+          throw new Error('Order subscription must expose its error callback');
+        }
+        return { ...subscription, onError: subscription.onError };
+      };
+
+      it.each(['account change', 'cache clear'])(
+        'rejects stale order errors after %s',
+        (transition) => {
+          const callback = jest.fn();
+          const onError = jest.fn();
+          const onDelivery = jest.fn();
+          const orders = testStreamManager.orders;
+          orders.subscribe({ callback, onError, onDelivery, throttleMs: 0 });
+          const original = getSubscription(0);
+          original.callback([createOrder('original')], 'lighter');
+          if (transition === 'account change') {
+            selectAccount('0x987654321');
+          } else {
+            orders.clearCache();
+          }
+          const revision = orders.getDeliveryRevision();
+          callback.mockClear();
+          onError.mockClear();
+          onDelivery.mockClear();
+
+          original.onError(
+            new Error('Old account authentication failed'),
+            'lighter',
+          );
+
+          expect(orders.getSnapshot()).toBeNull();
+          expect(orders.getError()).toBeNull();
+          expect(orders.getDeliveryRevision()).toBe(revision);
+          expect(callback).not.toHaveBeenCalled();
+          expect(onError).not.toHaveBeenCalled();
+          expect(onDelivery).not.toHaveBeenCalled();
+        },
+      );
+
+      it('rejects the first account generation after switching away and back', () => {
+        const callback = jest.fn();
+        const onError = jest.fn();
+        const onDelivery = jest.fn();
+        const orders = testStreamManager.orders;
+        orders.subscribe({ callback, onError, onDelivery, throttleMs: 0 });
+        const original = getSubscription(0);
+        original.callback([createOrder('first-account-old')], 'lighter');
+        selectAccount('0x987654321');
+        orders.clearCache();
+        orders.reconnect();
+        getSubscription(1).callback([createOrder('second-account')], 'lighter');
+        selectAccount('0x123456789');
+        orders.clearCache();
+        orders.reconnect();
+        const current = getSubscription(2);
+        const currentOrders = [createOrder('first-account-current')];
+        const currentError = new Error('Current subscription failed');
+        current.callback(currentOrders, 'lighter');
+        current.onError(currentError, 'lighter');
+        expect(callback).toHaveBeenLastCalledWith(currentOrders);
+        expect(onError).toHaveBeenLastCalledWith(currentError);
+        const revision = orders.getDeliveryRevision();
+        callback.mockClear();
+        onError.mockClear();
+        onDelivery.mockClear();
+
+        original.callback([createOrder('first-account-late')], 'lighter');
+        original.onError(new Error('First generation failed'), 'lighter');
+
+        expect(orders.getSnapshot()).toEqual(currentOrders);
+        expect(orders.getError()).toBe(currentError);
+        expect(orders.getDeliveryRevision()).toBe(revision);
+        expect(callback).not.toHaveBeenCalled();
+        expect(onError).not.toHaveBeenCalled();
+        expect(onDelivery).not.toHaveBeenCalled();
+      });
+
+      it.each(['clearCache', 'disconnect'] as const)(
+        'cancels queued order delivery after %s with the same selected account',
+        (reset) => {
+          const callback = jest.fn();
+          const onError = jest.fn();
+          const onDelivery = jest.fn();
+          const orders = testStreamManager.orders;
+          orders.subscribe({ callback, onError, onDelivery, throttleMs: 1000 });
+          const original = getSubscription(0);
+          original.callback([createOrder('original')], 'lighter');
+          original.callback([createOrder('queued-old')], 'lighter');
+          expect(callback).toHaveBeenCalledTimes(1);
+          orders[reset]();
+          orders.reconnect();
+          const current = getSubscription(1);
+          const currentOrders = [createOrder('current')];
+          current.callback(currentOrders, 'lighter');
+          expect(callback).toHaveBeenLastCalledWith(currentOrders);
+          const revision = orders.getDeliveryRevision();
+          callback.mockClear();
+          onError.mockClear();
+          onDelivery.mockClear();
+
+          original.callback([createOrder('late-old')], 'lighter');
+          original.onError(new Error('Old subscription failed'), 'lighter');
+          jest.advanceTimersByTime(1000);
+
+          expect(orders.getSnapshot()).toEqual(currentOrders);
+          expect(orders.getError()).toBeNull();
+          expect(orders.getDeliveryRevision()).toBe(revision);
+          expect(callback).not.toHaveBeenCalled();
+          expect(onError).not.toHaveBeenCalled();
+          expect(onDelivery).not.toHaveBeenCalled();
+        },
+      );
+    });
+
     it('cleans up prewarm subscription when clearing account cache', () => {
       // Mock the cleanupPrewarm method to verify it's called
       const cleanupPrewarmSpy = jest.spyOn(
