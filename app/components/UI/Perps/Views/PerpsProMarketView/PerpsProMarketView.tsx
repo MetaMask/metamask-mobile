@@ -43,8 +43,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useHaptics } from '../../../../../util/haptics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
-import PerpsRecoveryPanelContainer from '../../components/PerpsRecoveryPanel/PerpsRecoveryPanelContainer';
-import PerpsScaleOrderGroups from '../../components/PerpsScaleOrderGroups/PerpsScaleOrderGroups';
 import { CandlePeriodBottomSheet } from '../../../Charts/CandlePeriodSelector';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsMarketData } from '../../hooks';
@@ -633,16 +631,6 @@ const PerpsProMarketView = ({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        <PerpsRecoveryPanelContainer
-          key={`${market.providerId}:${market.symbol}`}
-          symbol={market.symbol}
-          providerId={market.providerId}
-        />
-        <PerpsScaleOrderGroups
-          key={`scale:${market.providerId}:${market.symbol}`}
-          symbol={market.symbol}
-          providerId={market.providerId}
-        />
         <PerpsProChartPanel
           symbol={market.symbol}
           selectedCandlePeriod={selectedCandlePeriod}

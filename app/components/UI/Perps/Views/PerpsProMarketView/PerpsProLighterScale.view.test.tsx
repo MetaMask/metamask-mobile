@@ -28,6 +28,7 @@ import {
   createEthMarketForViews,
   createFundedAccountForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   PerpsProOrderFormSelectorsIDs as FORM,
   PerpsOrderTypeBottomSheetSelectorsIDs as PICKER,
@@ -40,6 +41,7 @@ import {
 } from '../../utils/perpsUiObservations';
 
 const controller = Engine.context.PerpsController;
+let unwirePerpsControllerForStore: (() => void) | undefined;
 const preview: Extract<PerpsScalePriceLadder, { status: 'ready' }> = {
   status: 'ready',
   providerId: 'lighter',
@@ -77,7 +79,7 @@ const renderLighter = (leverage?: number) => {
     ...createEthMarketForViews(),
     providerId: 'lighter' as const,
   };
-  return renderPerpsProMarketView({
+  const mounted = renderPerpsProMarketView({
     includeToasts: true,
     initialParams: { market },
     streamOverrides: {
@@ -107,6 +109,8 @@ const renderLighter = (leverage?: number) => {
       },
     },
   });
+  unwirePerpsControllerForStore = wirePerpsControllerForStore(mounted.store);
+  return mounted;
 };
 async function configureScale() {
   const size = await screen.findByTestId(FORM.SIZE_INPUT);
@@ -154,6 +158,8 @@ describe('Lighter Scale through the Pro market screen', () => {
   });
   afterEach(async () => {
     cleanup();
+    unwirePerpsControllerForStore?.();
+    unwirePerpsControllerForStore = undefined;
     await act(async () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 50));
     });
@@ -510,9 +516,7 @@ describe('Lighter Scale through the Pro market screen', () => {
       'value',
       '2200',
     );
-    expect(
-      await screen.findByTestId(GROUP.row('lighter', group.groupId)),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(GROUP.PANEL)).not.toBeOnTheScreen();
     expect(controller.clearPendingTradeConfiguration).not.toHaveBeenCalled();
   });
 
@@ -772,125 +776,5 @@ describe('Lighter Scale through the Pro market screen', () => {
     ).toBeOnTheScreen();
     expect(controller.placeOrder).not.toHaveBeenCalled();
     expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '100');
-  });
-
-  it('shows every owned child and cancels only the exact strategy handle', async () => {
-    jest.mocked(controller.getScaleOrderGroups).mockResolvedValue([
-      group,
-      {
-        ...group,
-        symbol: 'BTC',
-        groupId: 'other-market',
-        orderId: 'other-market',
-      },
-    ]);
-    const { stream } = renderLighter();
-    const row = await screen.findByTestId(GROUP.row('lighter', group.groupId));
-    expect(
-      within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.market_provider', {
-          assetSymbol: 'ETH',
-          providerName: 'Lighter',
-        }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      within(row).getByTestId(GROUP.accepted('lighter', group.groupId)),
-    ).toHaveTextContent(
-      strings('perps.pro_order_form.scale.groups.accepted', {
-        count: 2,
-        size: '0.025',
-        assetSymbol: 'ETH',
-      }),
-    );
-    expect(
-      within(row).getByTestId(GROUP.filled('lighter', group.groupId)),
-    ).toHaveTextContent(
-      strings('perps.pro_order_form.scale.groups.filled', {
-        size: '0.015',
-        assetSymbol: 'ETH',
-      }),
-    );
-    expect(
-      within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.child.resting', {
-          orderId: 'venue-resting-11',
-        }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.child.filled', {
-          orderId: 'venue-filled-12',
-        }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      within(row).getByTestId(GROUP.state('lighter', group.groupId)),
-    ).toHaveTextContent(
-      strings('perps.pro_order_form.scale.groups.state.stopped'),
-    );
-    expect(
-      within(row).getByTestId(GROUP.child('lighter', group.groupId, 0)),
-    ).toHaveTextContent(
-      strings('perps.pro_order_form.scale.groups.child.resting', {
-        orderId: 'venue-resting-11',
-      }),
-    );
-    expect(
-      within(row).getByTestId(GROUP.child('lighter', group.groupId, 1)),
-    ).toHaveTextContent(
-      strings('perps.pro_order_form.scale.groups.child.filled', {
-        orderId: 'venue-filled-12',
-      }),
-    );
-    expect(
-      screen.queryByTestId(GROUP.row('lighter', 'other-market')),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(GROUP.cancel('lighter', group.groupId)));
-
-    await waitFor(() =>
-      expect(controller.cancelOrder).toHaveBeenCalledWith({
-        orderId: group.groupId,
-        symbol: 'ETH',
-        providerId: 'lighter',
-        orderType: 'scale',
-      }),
-    );
-    await waitFor(() => expect(stream.getOrdersReconnectCount()).toBe(1));
-  });
-
-  it('reviews unknown outcomes without creating more children', async () => {
-    const unresolved: ScaleOrderGroup = {
-      ...group,
-      state: 'unknown',
-      acceptedSize: undefined,
-      filledSize: undefined,
-      acceptedChildren: [{ state: 'waitingForFill' }],
-      childOrderIds: [],
-    };
-    jest.mocked(controller.getScaleOrderGroups).mockResolvedValue([unresolved]);
-    renderLighter();
-    const row = await screen.findByTestId(GROUP.row('lighter', group.groupId));
-    expect(
-      within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.state.unknown'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      within(row).getByText(
-        strings('perps.pro_order_form.scale.groups.child.waitingForFill'),
-      ),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(GROUP.review('lighter', group.groupId)));
-
-    await waitFor(() =>
-      expect(controller.reviewScaleOrderGroups).toHaveBeenCalledWith({
-        providerId: 'lighter',
-      }),
-    );
-    expect(controller.placeOrder).not.toHaveBeenCalled();
   });
 });
