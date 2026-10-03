@@ -856,11 +856,13 @@
                 settlement. Subsequent exact reconciliation closes the local
                 strategy with no second cancellation or nonce change, zero fills
                 and no exposure. Current source [C19] waits for exact
-                cancellation settlement and preserves exact observed acceptance
-                across restart and later missing lookups. Cancellation with
-                conflicting evidence and acceptance during account switching
-                still require durability corrections. Corrected-build live proof
-                remains pending. No passing Chase lifecycle is claimed.
+                cancellation settlement and preserves accepted or conflicting
+                evidence across restart, expiry and missing lookups. Placement
+                and cancellation acceptance stay tied to the original account
+                and key during account or network changes. Explicit retry
+                requires complete proof that the attempt never landed.
+                Corrected-build live proof remains pending. No passing Chase
+                lifecycle is claimed.
                 <a href="#current-source-state">[C17]</a>
               </td>
             </tr>
@@ -1436,20 +1438,21 @@
         </li>
         <li>
           C19 · Settlement source inspected October 4: Core
-          <code>af5b7abe960f0a3ec52a9f12219f255058435077</code>, Mobile
-          <code>050fd25bf059eaffb3b8791afe089231d7b1f520</code>. Core #10638
-          publishes that Core revision; Mobile #37161 publishes its matching
-          controller integration at
-          <code>8099e9284d9abf1da787c5fe72131fe9277c29cc</code>. Source/package
-          matching, 13 Scale integration cases, 77 tests across seven Perps
-          integration suites and full Mobile TypeScript checks pass. Source adds
-          bounded Scale visibility, durable exact cancellation identities and
-          Chase settlement reads. Exact observed cancellation acceptance
-          persists across restart and later missing transaction lookups. Further
-          corrections must retain conflicting evidence and accepted dispatch
-          during account switching or storage failure. These are source and
-          integration checks; corrected-build native and venue proof remains
-          pending, and no upstream package release is claimed.
+          <code>e3d7a4c80c26ebf3bf22c4d419af109fd8419752</code>, matching Mobile
+          controller integration
+          <code>873699d647e1f0938edfa58c58aaedbcfef1b3e6</code>. Core #10638 and
+          Mobile #37161 publish these corrections. Source/package matching,
+          1,658 Core tests, 77 tests across seven Mobile Perps integration
+          suites including both recovery suites, and full Mobile TypeScript
+          checks pass. Source adds bounded Scale visibility, durable exact
+          cancellation identities and Chase settlement reads. Exact observed
+          cancellation acceptance persists across restart and later missing
+          transaction lookups. Conflicting or unknown evidence remains
+          nonretryable. Accepted placement and cancellation dispatches persist
+          under their original account and key before session checks or nonce
+          retirement; storage failure preserves unresolved evidence. These are
+          source and integration checks; corrected-build native and venue proof
+          remains pending, and no upstream package release is claimed.
         </li>
         <li>
           C20 · Recipe #31 merged October 3 at
