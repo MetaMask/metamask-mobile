@@ -4,6 +4,7 @@ export {
   type GameSelectionQuote,
 } from './findGameSelectionQuote';
 export {
+  findGameTradingQuote,
   findWinnerMarketQuotes,
   type WinnerMarketQuotes,
 } from './findWinnerMarketQuotes';

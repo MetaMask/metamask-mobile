@@ -99,7 +99,28 @@ module.exports = {
     // `"use strict"` directive into every such module, which breaks code that
     // relies on sloppy-mode semantics. Pinning this to `false` reproduces the
     // pre-Expo-transformer pipeline and prevents the forced strict mode.
-    ['babel-preset-expo', { disableImportExportTransform: false }],
+    //
+    // `unstable_transformProfile` must be pinned: babel-preset-expo picks its
+    // engine preset from the Babel caller's `engine` flag, which only
+    // `@expo/metro-config` sets (from `customTransformOptions.engine`). We
+    // bundle through the React Native CLI, which never sets it, so the preset
+    // silently falls back to the legacy `hermes-v0` profile. That profile runs
+    // `@babel/plugin-transform-named-capturing-groups-regex`, rewriting every
+    // named-group regex into the `@babel/runtime` `_wrapRegExp` helper. The
+    // helper installs its `exec` override via plain assignment onto a prototype
+    // inheriting from `RegExp.prototype`, which LavaMoat's lockdown has already
+    // frozen — so the assignment silently no-ops in sloppy mode and `.groups`
+    // is never populated. Matches then succeed with `match.groups === undefined`
+    // (e.g. `parseCaipChainId('eip155:8453')` throwing "Invalid CAIP chain ID").
+    // Current Hermes supports named capture groups natively, so `hermes-stable`
+    // leaves these regexes alone.
+    [
+      'babel-preset-expo',
+      {
+        disableImportExportTransform: false,
+        unstable_transformProfile: 'hermes-stable',
+      },
+    ],
   ],
   plugins: [
     ...reactCompilerBabelConfig,
@@ -116,10 +137,17 @@ module.exports = {
     // them to `undefined` first, producing the runtime error
     // "The global process.env.EXPO_OS is not defined". Excluding them lets
     // babel-preset-expo define them correctly.
+    // `NODE_ENV` is excluded for the same reason: babel-preset-expo inlines it
+    // from Metro's `dev` option, which is part of Metro's transform cache key.
+    // Inlining the bundler process's NODE_ENV instead is not cache-keyed, so
+    // `expo export:embed --dev false` (which skips --reset-cache in CI) could
+    // reuse transforms made under NODE_ENV=development and ship dev React
+    // (react.development.js, withDevTools) in a release bundle.
     [
       'transform-inline-environment-variables',
       {
         exclude: [
+          'NODE_ENV',
           'JEST_WORKER_ID',
           'EXPO_OS',
           'EXPO_SERVER',
@@ -205,6 +233,14 @@ module.exports = {
     },
     {
       test: pathIncludes('/app/lib/snaps/SnapsExecutionWebView.tsx'),
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
+    },
+    {
+      // Lighter Go/WASM signer page (base64-embedded WASM, ~10 MB) inlined as
+      // a string for the hidden signer WebView.
+      test: pathIncludes(
+        '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+      ),
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
     {

@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
   hasTransactionType,
@@ -14,6 +15,7 @@ import {
 import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
+import { MembershipInfo } from '../../../external/subscriptions/components/membership-info';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
@@ -75,6 +77,9 @@ import {
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
@@ -157,6 +162,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
+    const isMembershipSubscription = hasTransactionType(transactionMeta, [
+      TransactionType.membershipSubscription,
+    ]);
 
     const {
       amountFiat,
@@ -189,7 +197,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const { isAmountUpdating, stage, setStage } = useCustomAmountStage({
+    const {
+      isAmountUpdating,
+      stage: amountStage,
+      setStage,
+    } = useCustomAmountStage({
       amountFiat,
       disablePay,
       hasAccountNoFunds,
@@ -199,11 +211,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isDepositPrefillLoading,
       skipDepositPrefill,
     });
+    // A fixed membership payment never opens amount entry, including on errors
+    // or when the selected funding source cannot cover the payment.
+    const stage =
+      isMembershipSubscription && amountStage === CustomAmountStage.AmountInput
+        ? CustomAmountStage.NoQuote
+        : amountStage;
 
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
-    useMMPayNavigation(stage, setStage);
+    useMMPayNavigation(stage, setStage, isMembershipSubscription);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -237,6 +255,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // later is never dismissed from under them.
     const wasPrefillSkippedRef = useRef(skipDepositPrefill);
     const isPrefillSkipReleasedRef = useRef(false);
+
+    // Tapping the amount is an explicit request to edit, which the user can
+    // make as soon as the prefilled value renders — long before quotes arrive.
+    // A prefill landing or re-running afterwards must not auto-submit that
+    // keypad closed, which left the amount unresponsive until quotes settled.
+    const hasUserOpenedKeypadRef = useRef(false);
+
+    // Only a commit the user made freezes the amount while the request
+    // prepares. An amount committed on their behalf by a prefill stays
+    // tappable, so editing it never waits on quotes.
+    const hasUserCommittedAmountRef = useRef(false);
+
     useEffect(() => {
       if (wasPrefillSkippedRef.current && !skipDepositPrefill) {
         isPrefillSkipReleasedRef.current = true;
@@ -310,7 +340,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
-      if (wasPrefillPending.current && !isPrefillPending) {
+      if (
+        wasPrefillPending.current &&
+        !isPrefillPending &&
+        !hasUserOpenedKeypadRef.current
+      ) {
         handleDone();
       }
       wasPrefillPending.current = isPrefillPending;
@@ -328,10 +362,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      // A keypad opened only because the prefill was skipped is not editing.
+      // A keypad opened only because the prefill was skipped is not editing;
+      // one the user opened by tapping the amount is.
       if (
         stage === CustomAmountStage.AmountInput &&
-        (hasUserEditedAmountRef.current || !isPrefillSkipReleasedRef.current)
+        (hasUserEditedAmountRef.current ||
+          hasUserOpenedKeypadRef.current ||
+          !isPrefillSkipReleasedRef.current)
       ) {
         return;
       }
@@ -349,6 +386,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       stage,
     ]);
 
+    const handleDonePress = useCallback(() => {
+      hasUserCommittedAmountRef.current = true;
+      handleDone();
+    }, [handleDone]);
+
     const isMaxAutoSubmitPending = useRef(false);
 
     const handlePercentagePress = useCallback(
@@ -358,6 +400,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // withdraw — the amount stays $0, so leave the keyboard open instead of
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
+          hasUserCommittedAmountRef.current = true;
           isMaxAutoSubmitPending.current = true;
           // Max defers the commit to the effect below once the amount lands;
           // show the loading skeleton through that gap rather than the derived
@@ -383,6 +426,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone, stage]);
 
     const handleAmountPress = useCallback(() => {
+      hasUserOpenedKeypadRef.current = true;
       setStage(CustomAmountStage.AmountInput);
     }, [setStage]);
 
@@ -406,11 +450,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
-    const canEditZeroAmount =
-      !isPrefillPending &&
-      !isDepositPrefillLoading &&
-      (amountFiat === '0' || amountFiat === '');
-
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
     // Keep payment details fixed while the amount update prepares the request.
@@ -427,15 +466,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
+              stage !== CustomAmountStage.AmountInput &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            onPress={
-              stage === CustomAmountStage.Loading && !canEditZeroAmount
-                ? undefined
-                : handleAmountPress
-            }
+            // Editable amounts remain an escape hatch from stalled quotes.
+            onPress={isMembershipSubscription ? undefined : handleAmountPress}
             disabled={!hasPaymentOption}
-            showCursor={stage === CustomAmountStage.AmountInput}
+            showCursor={
+              !isMembershipSubscription &&
+              stage === CustomAmountStage.AmountInput
+            }
           />
           {hasAlert && (
             <AlertMessage content={alertContent} alertMessage={alertMessage} />
@@ -443,7 +483,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount &&
             disablePay !== true &&
             !hasAlert &&
-            (isMoneyAccountDeposit ? (
+            (isMembershipSubscription ? (
+              <MembershipInfo amountFiat={amountFiat} />
+            ) : isMoneyAccountDeposit ? (
               <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
             ) : (
               <PayTokenAmount
@@ -496,7 +538,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {stage === CustomAmountStage.AmountInput &&
+          {!isMembershipSubscription &&
+            stage === CustomAmountStage.AmountInput &&
             (hasPaymentOption || hasAccountNoFunds) && (
               <DepositKeyboard
                 hidePercentageButtons={
@@ -506,7 +549,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
-                onDonePress={handleDone}
+                onDonePress={handleDonePress}
                 onPercentagePress={handlePercentagePress}
                 hasInput={hasInput}
                 hasMax={
@@ -516,17 +559,38 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               />
             )}
           {showBuyButton && <CustomAmountBuy />}
-          {stage !== CustomAmountStage.AmountInput && (
-            <CustomAmountConfirmButton
+          {isMembershipSubscription &&
+          amountStage === CustomAmountStage.AmountInput ? (
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
               isDisabled={
                 disableConfirm ||
                 isAccountSelectionNeeded ||
                 isPrefillPending ||
-                hasAlert
+                hasBlockingAlert ||
+                !hasPaymentOption ||
+                !hasInput
               }
-              onContinue={trackContinue}
-              stage={stage}
-            />
+              onPress={handleDone}
+              testID="membership-top-up-prepare-button"
+            >
+              {strings('confirm.edit_amount_done')}
+            </Button>
+          ) : (
+            stage !== CustomAmountStage.AmountInput && (
+              <CustomAmountConfirmButton
+                isDisabled={
+                  disableConfirm ||
+                  isAccountSelectionNeeded ||
+                  isPrefillPending ||
+                  hasAlert
+                }
+                onContinue={trackContinue}
+                stage={stage}
+              />
+            )
           )}
         </Box>
       </Box>

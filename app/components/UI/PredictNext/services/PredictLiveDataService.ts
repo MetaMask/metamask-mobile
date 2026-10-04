@@ -6,33 +6,38 @@ import type {
   PredictQuote,
 } from '../contracts/v1/liveData';
 import { PredictError, PredictErrorCode } from '../errors';
-import type { PredictEntityId, PredictVenueId } from '../types';
+import type { PredictEntityId, PredictEvent, PredictVenueId } from '../types';
 import { isOlderLiveFrame, mergeGameLiveFrames } from '../utils/mergeLiveData';
+import {
+  LiveEventSubscriptions,
+  type LiveMarketScope,
+} from './internal/LiveEventSubscriptions';
 
 export const PREDICT_LIVE_DATA_SERVICE_NAME = 'PredictLiveDataService' as const;
 
+export type { LiveMarketScope as PredictLiveMarketScope } from './internal/LiveEventSubscriptions';
+
+export interface PredictLiveDataWatchOptions {
+  /**
+   * Which of each Event's Markets to hold live prices for. Defaults to `all`;
+   * Home and Feed pass `card` so hidden lines stay off the wire.
+   */
+  marketScope?: LiveMarketScope;
+}
+
 type WatchHandler = (
   venueId: PredictVenueId,
-  ids: readonly PredictEntityId[],
+  eventIds: readonly PredictEntityId[],
+  options?: PredictLiveDataWatchOptions,
 ) => void;
 
-export interface PredictLiveDataServiceWatchGamesAction {
-  type: 'PredictLiveDataService:watchGames';
+export interface PredictLiveDataServiceWatchEventsAction {
+  type: 'PredictLiveDataService:watchEvents';
   handler: WatchHandler;
 }
 
-export interface PredictLiveDataServiceUnwatchGamesAction {
-  type: 'PredictLiveDataService:unwatchGames';
-  handler: WatchHandler;
-}
-
-export interface PredictLiveDataServiceWatchMarketsAction {
-  type: 'PredictLiveDataService:watchMarkets';
-  handler: WatchHandler;
-}
-
-export interface PredictLiveDataServiceUnwatchMarketsAction {
-  type: 'PredictLiveDataService:unwatchMarkets';
+export interface PredictLiveDataServiceUnwatchEventsAction {
+  type: 'PredictLiveDataService:unwatchEvents';
   handler: WatchHandler;
 }
 
@@ -47,10 +52,8 @@ export interface PredictLiveDataServiceQuoteUpdatedEvent {
 }
 
 export type PredictLiveDataServiceActions =
-  | PredictLiveDataServiceWatchGamesAction
-  | PredictLiveDataServiceUnwatchGamesAction
-  | PredictLiveDataServiceWatchMarketsAction
-  | PredictLiveDataServiceUnwatchMarketsAction;
+  | PredictLiveDataServiceWatchEventsAction
+  | PredictLiveDataServiceUnwatchEventsAction;
 
 export type PredictLiveDataServiceEvents =
   | PredictLiveDataServiceGameLiveUpdatedEvent
@@ -71,10 +74,18 @@ export type PredictLiveDataTransportFactory = (
   callbacks: PredictLiveDataTransportCallbacks,
 ) => PredictLiveDataTransport;
 
+export type PredictLiveDataEventResolver = (
+  venueId: PredictVenueId,
+  eventId: PredictEntityId,
+) => Promise<PredictEvent>;
+
 export interface PredictLiveDataServiceOptions {
   messenger: PredictLiveDataServiceMessenger;
   createClient: PredictLiveDataTransportFactory;
+  /** The cached REST Event read used to map an Event to its Market ids. */
+  resolveEvent: PredictLiveDataEventResolver;
   venueId: PredictVenueId;
+  now?: () => number;
 }
 
 /**
@@ -112,17 +123,26 @@ class TopicCache<TValue> {
   }
 }
 
+/**
+ * Owns live-data subscriptions for one Venue. Surfaces watch Events; the
+ * service resolves each Event to its Markets, holds one upstream subscription
+ * per Market (and per live Game) for as long as any surface watches it, and
+ * publishes every accepted frame on the messenger.
+ */
 export class PredictLiveDataService {
   readonly #messenger: PredictLiveDataServiceMessenger;
   readonly #client: PredictLiveDataTransport;
   readonly #venueId: PredictVenueId;
   readonly #games = new TopicCache<PredictGameLive>();
   readonly #quotes = new TopicCache<PredictQuote>();
+  readonly #events: LiveEventSubscriptions;
 
   constructor({
     messenger,
     createClient,
+    resolveEvent,
     venueId,
+    now,
   }: PredictLiveDataServiceOptions) {
     this.#messenger = messenger;
     this.#venueId = venueId;
@@ -130,55 +150,45 @@ export class PredictLiveDataService {
       onGameUpdate: (game) => this.onGameUpdate(game),
       onQuoteUpdate: (quote) => this.onQuoteUpdate(quote),
     });
+    this.#events = new LiveEventSubscriptions({
+      resolveEvent: (eventId) => resolveEvent(venueId, eventId),
+      subscribe: (topic, ids) => this.#watch(topic, ids),
+      unsubscribe: (topic, ids) => this.#unwatch(topic, ids),
+      replay: (topic, ids) => this.#replay(topic, ids),
+      now,
+    });
 
     messenger.registerActionHandler(
-      'PredictLiveDataService:watchGames',
-      this.watchGames.bind(this),
+      'PredictLiveDataService:watchEvents',
+      this.watchEvents.bind(this),
     );
     messenger.registerActionHandler(
-      'PredictLiveDataService:unwatchGames',
-      this.unwatchGames.bind(this),
-    );
-    messenger.registerActionHandler(
-      'PredictLiveDataService:watchMarkets',
-      this.watchMarkets.bind(this),
-    );
-    messenger.registerActionHandler(
-      'PredictLiveDataService:unwatchMarkets',
-      this.unwatchMarkets.bind(this),
+      'PredictLiveDataService:unwatchEvents',
+      this.unwatchEvents.bind(this),
     );
   }
 
-  watchGames(
+  watchEvents(
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
+    { marketScope = 'all' }: PredictLiveDataWatchOptions = {},
   ): void {
-    this.#watch('game', this.#games, venueId, eventIds, (game) =>
-      this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', game),
-    );
+    this.#assertVenue(venueId);
+    this.#events.watch(eventIds, marketScope);
   }
 
-  unwatchGames(
+  unwatchEvents(
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
+    { marketScope = 'all' }: PredictLiveDataWatchOptions = {},
   ): void {
-    this.#unwatch('game', this.#games, venueId, eventIds);
+    this.#assertVenue(venueId);
+    this.#events.unwatch(eventIds, marketScope);
   }
 
-  watchMarkets(
-    venueId: PredictVenueId,
-    marketIds: readonly PredictEntityId[],
-  ): void {
-    this.#watch('market', this.#quotes, venueId, marketIds, (quote) =>
-      this.#messenger.publish('PredictLiveDataService:quoteUpdated', quote),
-    );
-  }
-
-  unwatchMarkets(
-    venueId: PredictVenueId,
-    marketIds: readonly PredictEntityId[],
-  ): void {
-    this.#unwatch('market', this.#quotes, venueId, marketIds);
+  /** Event ids at least one surface currently watches. */
+  get watchedEventIds(): readonly PredictEntityId[] {
+    return this.#events.watchedEventIds;
   }
 
   onGameUpdate(game: PredictGameLive): void {
@@ -222,54 +232,56 @@ export class PredictLiveDataService {
 
   destroy(): void {
     this.#messenger.unregisterActionHandler(
-      'PredictLiveDataService:watchGames',
+      'PredictLiveDataService:watchEvents',
     );
     this.#messenger.unregisterActionHandler(
-      'PredictLiveDataService:unwatchGames',
+      'PredictLiveDataService:unwatchEvents',
     );
-    this.#messenger.unregisterActionHandler(
-      'PredictLiveDataService:watchMarkets',
-    );
-    this.#messenger.unregisterActionHandler(
-      'PredictLiveDataService:unwatchMarkets',
-    );
+    this.#events.clear();
     this.#games.clear();
     this.#quotes.clear();
     this.#client.destroy();
   }
 
-  #watch<TValue>(
-    topic: PredictLiveDataTopic,
-    cache: TopicCache<TValue>,
-    venueId: PredictVenueId,
-    ids: readonly PredictEntityId[],
-    replay: (value: TValue) => void,
-  ): void {
-    this.#assertVenue(venueId);
+  #watch(topic: PredictLiveDataTopic, ids: readonly PredictEntityId[]): void {
+    const cache = topic === 'game' ? this.#games : this.#quotes;
     cache.watch(ids);
-    this.#client.subscribe(topic, venueId, ids);
+    this.#client.subscribe(topic, this.#venueId, ids);
+    this.#replay(topic, ids);
+  }
 
-    // The Venue only sends a snapshot when an id is first subscribed, so a
-    // screen opened over an existing watcher would otherwise render the stale
-    // read-model value until the next update.
+  /**
+   * Publishes the last known value for each id. The Venue only sends a
+   * snapshot when an id is first subscribed, so a screen opened over an
+   * existing watcher would otherwise render the stale read-model value until
+   * the next update.
+   */
+  #replay(topic: PredictLiveDataTopic, ids: readonly PredictEntityId[]): void {
+    if (topic === 'game') {
+      ids.forEach((id) => {
+        const game = this.#games.values.get(id);
+        if (game) {
+          this.#messenger.publish(
+            'PredictLiveDataService:gameLiveUpdated',
+            game,
+          );
+        }
+      });
+      return;
+    }
     ids.forEach((id) => {
-      const value = cache.values.get(id);
-      if (value) {
-        replay(value);
+      const quote = this.#quotes.values.get(id);
+      if (quote) {
+        this.#messenger.publish('PredictLiveDataService:quoteUpdated', quote);
       }
     });
   }
 
-  #unwatch<TValue>(
-    topic: PredictLiveDataTopic,
-    cache: TopicCache<TValue>,
-    venueId: PredictVenueId,
-    ids: readonly PredictEntityId[],
-  ): void {
-    this.#assertVenue(venueId);
+  #unwatch(topic: PredictLiveDataTopic, ids: readonly PredictEntityId[]): void {
+    const cache = topic === 'game' ? this.#games : this.#quotes;
     cache.unwatch(ids);
     this.#client
-      .unsubscribe(topic, venueId, ids)
+      .unsubscribe(topic, this.#venueId, ids)
       .forEach((id) => cache.values.delete(id));
   }
 

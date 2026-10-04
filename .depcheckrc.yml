@@ -55,6 +55,14 @@ ignores:
   # direct dependency.
   - 'babel-preset-expo'
 
+  # Required directly only by shimPerf.test.js, the regression guard asserting
+  # that @scure/bip32 resolves the same @noble/curves copy shimPerf.js patches
+  # with native secp256k1. It reaches us transitively via
+  # @metamask/eth-hd-keyring -> ethereum-cryptography, and declaring it as a
+  # direct dependency would pin a second range on the very edge the guard
+  # exists to keep deduped. See docs/performance/native-crypto.md.
+  - '@scure/bip32'
+
   # tsconfig path alias pointing to app/controllers/perps (not an npm package)
   - '@metamask/perps-controller'
   # Used in scripts/repack for CI optimization

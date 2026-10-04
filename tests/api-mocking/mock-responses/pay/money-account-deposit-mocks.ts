@@ -39,6 +39,33 @@ const MAINNET_SPOT_PRICES = {
   },
 };
 
+/**
+ * Empty positions document accepted by
+ * `@metamask/money-account-api-data-service` 2.x. `balance` is optional; when
+ * present it must include `by_asset` and `total_balance_usd`.
+ */
+function emptyPositionsResponse(includeBalance: boolean) {
+  return {
+    address: DEFAULT_FIXTURE_ACCOUNT,
+    as_of_block: 1234568,
+    as_of_timestamp: new Date().toISOString(),
+    data_freshness: 'live' as const,
+    indexer_lag_seconds: 0,
+    positions: [],
+    ...(includeBalance
+      ? {
+          balance: {
+            musd_balance: '0',
+            vmusd_value_in_musd: '0',
+            total_balance: '0',
+            total_balance_usd: '0',
+            by_asset: [],
+          },
+        }
+      : {}),
+  };
+}
+
 export async function mockMoneyAccountApis(mockServer: Mockttp) {
   await mockServer
     .forGet('/proxy')
@@ -49,7 +76,7 @@ export async function mockMoneyAccountApis(mockServer: Mockttp) {
     })
     .thenCallback(() => ({
       statusCode: 200,
-      json: { positions: [] },
+      json: emptyPositionsResponse(false),
     }));
 }
 
@@ -316,14 +343,7 @@ async function mockMoneyAccountBalance(mockServer: Mockttp) {
     })
     .thenCallback(() => ({
       statusCode: 200,
-      json: {
-        positions: [],
-        balance: {
-          musd_balance: '0',
-          vmusd_value_in_musd: '0',
-          total_balance: '0',
-        },
-      },
+      json: emptyPositionsResponse(true),
     }));
 }
 

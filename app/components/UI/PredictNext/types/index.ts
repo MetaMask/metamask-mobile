@@ -190,10 +190,27 @@ export interface PredictFeed {
   nextCursor?: string;
 }
 
+// A type alias so the params satisfy Json as part of a query key.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FetchSearchParams = {
+  /** Free text; every whitespace-separated term must match. */
+  q: string;
+  limit?: number;
+};
+
+/** Ranked, unpaginated Events matching a text query. */
+export interface PredictSearchResults {
+  venueId: PredictVenueId;
+  events: readonly PredictEvent[];
+}
+
 export interface PredictVenueStatus {
   venueId: PredictVenueId;
   status: 'available' | 'degraded' | 'unavailable';
   checkedAt: PredictTimestamp;
+  /** Backend-owned link for the platform-terms affordance. Absent when the
+   * Venue has no agreement to link, in which case no link is rendered. */
+  termsUrl?: string;
 }
 
 export interface PredictBalance {
@@ -201,6 +218,190 @@ export interface PredictBalance {
   currency: 'USD';
   available: PredictAmount;
 }
+
+/** A canonical Order intent, discriminated by the Order Action (ADR-0001):
+ * a buy spends USD on an Outcome; a sell (Cash Out) offers whole contracts
+ * of a held Position. Every Order has exactly one Action. */
+export type PredictOrderPreviewParams =
+  | {
+      marketId: PredictEntityId;
+      side: PredictOutcomeSide;
+      action: 'buy';
+      /** The entered maximum USD spend before fees. */
+      amount: PredictAmount;
+    }
+  | {
+      marketId: PredictEntityId;
+      side: PredictOutcomeSide;
+      action: 'sell';
+      /** Whole contracts to sell, as a positive-integer decimal string:
+       * a Position is share-denominated and the Venue matches whole
+       * contracts only. */
+      contracts: PredictAmount;
+    };
+
+/** Wire-shape twin of PredictOrderPreviewParams for the API transport.
+ * Version tolerance (ADR-0001): a buy keeps the exact PRED-1194 body — a
+ * strict deployed schema rejects unknown keys, so it carries no `action` —
+ * while a sell carries the `action: 'sell'` discriminator it needs. The
+ * adapter maps the canonical union to this shape. */
+export type FetchOrderPreviewParams =
+  | {
+      marketId: string;
+      side: PredictOutcomeSide;
+      amount: string;
+    }
+  | {
+      marketId: string;
+      side: PredictOutcomeSide;
+      action: 'sell';
+      /** Positive-integer decimal string: whole contracts only. */
+      contracts: string;
+    };
+
+/** Structured fee component source, keyed by the client into localized
+ * labels; the server never sends display strings. */
+export type PredictOrderPreviewFeeSource = 'venue' | 'metamask';
+
+export interface PredictOrderPreviewFeeComponent {
+  source: PredictOrderPreviewFeeSource;
+  amount: PredictAmount;
+}
+
+/** Shared header of a server-authoritative Order Preview. All monetary
+ * values are quoted by the backend; the client never calculates them. */
+interface PredictOrderPreviewBase {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  estimatedContracts: number;
+  averagePrice: PredictDecimal;
+  fee: PredictAmount;
+  /** Backend-owned breakdown of the fee; present when the backend reports it. */
+  feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
+  expiresAt: PredictTimestamp;
+}
+
+/** A buy Order Preview: estimated cost, fees, and potential return. */
+export interface PredictBuyOrderPreview extends PredictOrderPreviewBase {
+  action: 'buy';
+  /** The entered maximum USD spend before fees. */
+  requestedAmount: PredictAmount;
+  /** Estimated cost of the quoted contracts; never above requestedAmount. */
+  orderAmount: PredictAmount;
+  /** The Order amount plus the fee: the total expected debit. */
+  totalDebit: PredictAmount;
+  potentialPayout: PredictAmount;
+  potentialProfit: PredictSignedAmount;
+}
+
+/** A sell (Cash Out) Order Preview: contracts offered, estimated Proceeds,
+ * and estimated Net Proceeds. Buy-only fields are absent, not null. */
+export interface PredictSellOrderPreview extends PredictOrderPreviewBase {
+  action: 'sell';
+  /** The requested whole-contract count. */
+  requestedContracts: number;
+  /** The worst Bid the sale would consume: the Immediate Order price floor.
+   * Shared wire field — buy Previews report the worst ask, which the mobile
+   * buy schema masks rather than rejects. */
+  limitPrice: PredictDecimal;
+  /** Gross Proceeds the quoted contracts sell for, before fees. */
+  estimatedProceeds: PredictAmount;
+  /** Proceeds minus the fee: the amount credited to the Venue Account. */
+  estimatedNetProceeds: PredictAmount;
+}
+
+/** A server-authoritative Order Preview, discriminated by the Order Action.
+ * Cross-action fields fail validation at the parse boundary. */
+export type PredictOrderPreview =
+  | PredictBuyOrderPreview
+  | PredictSellOrderPreview;
+
+/** Wire-shape body for committing an approved Order Preview. Strictly the
+ * Preview reference only: the backend derives every executable detail from
+ * the stored, expiring Order Preview, so the client can never alter Market,
+ * Outcome, spend, quantity, price, or fee at commit time. */
+export interface FetchOrderCommitParams {
+  previewId: string;
+}
+
+/** Status of a committed Order operation, as projected by the backend onto
+ * the canonical Order Receipt. `pending` and `submitted` are in-progress
+ * projections: the backend has accepted the Commit and is still working, so
+ * keep observing by committing the same Order Preview again — the Commit is
+ * idempotent by `previewId`. `filled` is a complete fill of the quoted
+ * contracts. `partially_filled` is a non-zero partial fill: a success
+ * rendered with honest partial-fill copy. `not_filled` is the canonical
+ * outcome for zero fills; nothing was spent and no Position changed.
+ * `rejected` means the Venue refused the Order; nothing was filled.
+ * `reconciliation_required` means the backend is still resolving the true
+ * outcome; render it like an in-progress status and re-observe by committing
+ * the same Order Preview again. */
+export type PredictOrderReceiptStatus =
+  | 'pending'
+  | 'submitted'
+  | 'filled'
+  | 'partially_filled'
+  | 'not_filled'
+  | 'rejected'
+  | 'reconciliation_required';
+
+/** Shared header of a committed Order's canonical result. One Order
+ * produces exactly one Order Receipt, and repeated Commits of the same
+ * `previewId` converge on it. Nullable fill fields are null until the
+ * Venue reports them. */
+interface PredictOrderReceiptBase {
+  /** Durable backend operation identity; stable across repeated Commits. */
+  operationId: string;
+  /** The committed Order Preview; the idempotency key for re-observation. */
+  previewId: string;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  status: PredictOrderReceiptStatus;
+  /** Contracts the committed Order Preview quoted; never zero. */
+  quotedContracts: number;
+  /** Venue order identifier once the Venue has produced one. */
+  venueOrderId: string | null;
+  /** Average fill price in [0, 1]; null until the Venue reports fills. */
+  averageFillPrice: PredictDecimal | null;
+  /** Fees charged for the fills; null until the Venue reports fills. */
+  fee: PredictAmount | null;
+}
+
+/** A buy Order Receipt: what was spent and what exposure it opened. */
+export interface PredictBuyOrderReceipt extends PredictOrderReceiptBase {
+  action: 'buy';
+  /** Quoted maximum USD spend before fees, from the committed Order Preview. */
+  requestedMaxSpend: PredictAmount;
+  /** Contracts actually filled; null until the Venue reports fills. */
+  filledContracts: PredictAmount | null;
+  /** Total debit actually incurred; null until the Venue reports fills. */
+  actualSpend: PredictAmount | null;
+  /** Settlement value of the filled contracts; null for zero fills. */
+  payoutExposure: PredictAmount | null;
+}
+
+/** A sell (Cash Out) Order Receipt: what was sold and what it credited.
+ * Buy-only fields are absent, not null. Fill fields are projected as
+ * fixed-point decimal strings, identical across actions. */
+export interface PredictSellOrderReceipt extends PredictOrderReceiptBase {
+  action: 'sell';
+  /** Contracts actually filled; null until the Venue reports fills. */
+  filledContracts: PredictAmount | null;
+  /** Gross Proceeds of the fills; null for zero fills. */
+  actualProceeds: PredictAmount | null;
+  /** Proceeds of the fills minus the fee; null for zero fills. */
+  netProceeds: PredictAmount | null;
+}
+
+/** The canonical result of a committed Order, discriminated by the Order
+ * Action. Cross-action fields fail validation at the parse boundary. */
+export type PredictOrderReceipt =
+  | PredictBuyOrderReceipt
+  | PredictSellOrderReceipt;
 
 export interface FetchPortfolioPageParams {
   cursor?: string;

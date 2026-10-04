@@ -4,6 +4,7 @@ import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet'
 import { Assertions } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
 
 const logger = createLogger({ name: 'SwapUnifiedUI' });
 
@@ -74,7 +75,9 @@ export async function submitSwapUnifiedUI(
     await QuoteView.verifySlippageDisplayed(DEFAULT_SLIPPAGE_VALUE);
   }
 
-  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
+  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap, {
+    timeout: 30_000,
+  });
 
   await QuoteView.tapConfirmSwap();
 }
@@ -87,5 +90,14 @@ export async function checkSwapActivity(
   await PostTradeBottomSheet.tapViewActivity();
 
   // Check the swap activity completed
-  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
+  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen, {
+    timeout: 30_000,
+  });
+}
+
+export async function returnToWalletFromSwapActivity(): Promise<void> {
+  await ActivitiesView.tapBackButton();
+  await QuoteView.tapOnBackButton();
+  // iOS: wallet-screen often exists with displayed=false; use home indicators.
+  await waitForWalletHomePlaywright(15000);
 }

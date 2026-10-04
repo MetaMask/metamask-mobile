@@ -34,6 +34,7 @@ import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswor
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
 import ImmersveRevokeAllowanceSheet from '../components/ImmersveRevokeAllowanceSheet';
 import UkMigrationBottomSheet from '../components/UkMigrationBottomSheet';
+import SignInHelpBottomSheet from '../components/SignInHelpBottomSheet/SignInHelpBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
@@ -221,6 +222,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.UK_MIGRATION}
       component={UkMigrationBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.SIGN_IN_HELP}
+      component={SignInHelpBottomSheet}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS}

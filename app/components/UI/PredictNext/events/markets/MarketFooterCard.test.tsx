@@ -70,15 +70,15 @@ const homeMarket = createMarket(
 const renderFooter = (
   overrides: Partial<React.ComponentProps<typeof MarketFooterCard>> = {},
 ) => {
-  const onSelectMarket = overrides.onSelectMarket ?? jest.fn();
+  const onOrder = overrides.onOrder ?? jest.fn();
   return {
-    onSelectMarket,
+    onOrder,
     ...render(
       <MarketFooterCard
         game={createGame()}
         awayQuote={createQuote(awayMarket, awayYes)}
         homeQuote={createQuote(homeMarket, homeYes)}
-        onSelectMarket={onSelectMarket}
+        onOrder={onOrder}
         {...overrides}
       />,
     ),
@@ -170,27 +170,78 @@ describe('MarketFooterCard', () => {
     });
   });
 
-  it('emits the Market id when a Team control is pressed', () => {
-    const { onSelectMarket } = renderFooter({
-      selectedMarketId: homeMarket.id,
-    });
+  it('starts the Order flow for the Yes Outcome when a Team control is pressed', () => {
+    const { onOrder } = renderFooter();
 
     fireEvent.press(screen.getByTestId(MarketFooterCardTestIds.button('away')));
 
-    expect(onSelectMarket).toHaveBeenCalledWith(awayMarket.id);
-    expect(onSelectMarket).toHaveBeenCalledTimes(1);
+    expect(onOrder).toHaveBeenCalledWith(createQuote(awayMarket, awayYes));
+    expect(onOrder).toHaveBeenCalledTimes(1);
   });
 
-  it('marks the selected Market control without disabling it', () => {
-    renderFooter({ selectedMarketId: awayMarket.id });
+  it('displays and trades the Yes Outcome even when the tagged Outcome is No', () => {
+    // The quote's Outcome carries the Game Selection tag (chart association)
+    // and may be the No side; the Team control still trades the Yes side.
+    const taggedNo = createOutcome('away-no', 'no', undefined, 'Away loses');
+    const yes = createOutcome('away-yes', 'yes', '0.47', 'Buffalo');
+    const { onOrder } = renderFooter({
+      awayQuote: createQuote(
+        createMarket('away-market', yes, taggedNo),
+        taggedNo,
+      ),
+    });
 
-    expect(
-      screen.getByTestId(MarketFooterCardTestIds.button('away')).props
-        .accessibilityState,
-    ).toEqual({ selected: true, disabled: false });
-    expect(
-      screen.getByTestId(MarketFooterCardTestIds.button('home')).props
-        .accessibilityState,
-    ).toEqual({ selected: false, disabled: false });
+    expect(screen.getByText('ARI · 47¢')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(MarketFooterCardTestIds.button('away')));
+    expect(onOrder).toHaveBeenCalledWith({
+      market: expect.objectContaining({ id: 'away-market' }),
+      outcome: yes,
+    });
+  });
+
+  it('fails closed when the winner Market has no Yes Outcome', () => {
+    // A Team control trades the Yes side of the winner Market; a Market
+    // without a Yes Outcome offers no trade, matching findGameTradingQuote.
+    const taggedNo = createOutcome('away-no', 'no', '0.47', 'Away loses');
+    const noYesMarket: PredictMarket = {
+      ...awayMarket,
+      outcomes: [taggedNo, createOutcome('away-no-2', 'no')],
+    };
+    const { onOrder } = renderFooter({
+      awayQuote: createQuote(noYesMarket, taggedNo),
+    });
+
+    expect(screen.getByText('ARI')).toBeOnTheScreen();
+    expect(screen.queryByText('ARI · 47¢')).not.toBeOnTheScreen();
+    const button = screen.getByTestId(MarketFooterCardTestIds.button('away'));
+    expect(button).toBeDisabled();
+    fireEvent.press(button);
+    expect(onOrder).not.toHaveBeenCalled();
+  });
+
+  it('disables a Team control whose Market is not active', () => {
+    const { onOrder } = renderFooter({
+      awayQuote: createQuote({ ...awayMarket, status: 'inactive' }, awayYes),
+    });
+
+    const button = screen.getByTestId(MarketFooterCardTestIds.button('away'));
+    expect(button).toBeDisabled();
+    fireEvent.press(button);
+    expect(onOrder).not.toHaveBeenCalled();
+  });
+
+  it('disables a Team control without an Ask Price', () => {
+    const noPriceYes = createOutcome('away-yes', 'yes', undefined, 'Buffalo');
+    const { onOrder } = renderFooter({
+      awayQuote: createQuote(
+        createMarket('away-market', noPriceYes, createOutcome('away-no', 'no')),
+        noPriceYes,
+      ),
+    });
+
+    const button = screen.getByTestId(MarketFooterCardTestIds.button('away'));
+    expect(button).toBeDisabled();
+    fireEvent.press(button);
+    expect(onOrder).not.toHaveBeenCalled();
   });
 });

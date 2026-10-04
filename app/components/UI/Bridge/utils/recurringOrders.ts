@@ -1,10 +1,13 @@
+import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
-import type {
-  RecurringOrder,
-  RecurringPriceRange,
-  RecurringSchedule,
+import {
+  RecurringSwapStatus,
+  type RecurringOrder,
+  type RecurringPriceRange,
+  type RecurringSchedule,
+  type RecurringSwap,
 } from '../api/recurringOrders.types';
 import type { BridgeToken } from '../types';
 import { formatTokenBalance } from '.';
@@ -26,6 +29,29 @@ export function getRecurringOrderTokens(order: RecurringOrder): {
       iconUrl: order.dest.asset.iconUrl ?? undefined,
     }),
   };
+}
+
+export function isRecurringSwapEligibleForAddFunds(
+  swap: RecurringSwap,
+  orderedSwaps: readonly RecurringSwap[],
+): boolean {
+  if (
+    swap.status !== RecurringSwapStatus.Skipped ||
+    swap.skipReason !== 'insufficient_balance'
+  ) {
+    return false;
+  }
+
+  const swapIndex = orderedSwaps.findIndex(
+    ({ swapId }) => swapId === swap.swapId,
+  );
+  if (swapIndex === -1) {
+    return false;
+  }
+
+  return !orderedSwaps
+    .slice(0, swapIndex)
+    .some(({ status }) => status === RecurringSwapStatus.Filled);
 }
 
 export function formatRecurringTokenAmount(
@@ -93,22 +119,6 @@ export function getUsdToCurrentCurrencyRate({
   return conversionRate / usdConversionRate;
 }
 
-function convertUsdBound(
-  value: string | undefined,
-  usdToCurrentCurrencyRate: number | undefined,
-): string {
-  if (!value || usdToCurrentCurrencyRate === undefined) {
-    return '';
-  }
-
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) {
-    return '';
-  }
-
-  return String(numericValue * usdToCurrentCurrencyRate);
-}
-
 export function formatRecurringPriceRange({
   priceRange,
   currentCurrency,
@@ -118,13 +128,31 @@ export function formatRecurringPriceRange({
   currentCurrency: string;
   usdToCurrentCurrencyRate?: number;
 }): string {
-  if (!priceRange || usdToCurrentCurrencyRate === undefined) {
+  if (
+    !priceRange ||
+    usdToCurrentCurrencyRate === undefined ||
+    !Number.isFinite(usdToCurrentCurrencyRate) ||
+    usdToCurrentCurrencyRate <= 0
+  ) {
     return PRICE_RANGE_MISSING_VALUE;
   }
 
+  const convertBound = (bound: string | undefined): string => {
+    if (!bound) {
+      return '';
+    }
+
+    const value = new BigNumber(bound);
+    if (!value.isFinite() || value.lte(0)) {
+      return '';
+    }
+
+    return value.multipliedBy(usdToCurrentCurrencyRate).toFixed();
+  };
+
   return formatPriceRangeLabel(
-    convertUsdBound(priceRange.min, usdToCurrentCurrencyRate),
-    convertUsdBound(priceRange.max, usdToCurrentCurrencyRate),
+    convertBound(priceRange.min),
+    convertBound(priceRange.max),
     currentCurrency,
   );
 }

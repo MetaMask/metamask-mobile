@@ -1,5 +1,5 @@
 import type { BridgeAssetV2 } from '@metamask/bridge-controller';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import type { RecurringIntervalUnit } from '../utils/recurringSchedule';
 
 export enum RecurringOrderStatus {
@@ -16,7 +16,6 @@ export enum RecurringSwapStatus {
 }
 
 export type RecurringSwapSkipReason =
-  | 'not_enough_gas'
   | 'out_of_price_range'
   | 'insufficient_balance'
   | 'no_quotes_available'
@@ -89,6 +88,13 @@ export interface GetRecurringOrdersResponse {
   orders: RecurringOrder[];
   nextCursor?: string;
 }
+
+export interface GetRecurringOrdersByAssetQuery {
+  walletAddress: string;
+  assetId: CaipAssetType;
+}
+
+export type GetRecurringOrdersByAssetResponse = RecurringOrder[];
 
 export interface GetRecurringSwapsQuery {
   limit?: number;

@@ -251,7 +251,7 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
         (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
       }}
     environment: ${{ needs.prepare.outputs.github_environment }}
@@ -417,7 +417,7 @@ jobs:
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
         run: |
-          sudo xcodes select 26.3
+          sudo xcodes select 26.6
           xcodebuild -version
 
       # TapAndPay SDK Setup (Android only)
@@ -470,7 +470,7 @@ jobs:
         if: matrix.platform == 'ios'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -586,7 +586,7 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 55
           max_attempts: 2
@@ -614,8 +614,18 @@ jobs:
                 find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
               fi
             fi
-            export NODE_OPTIONS='--max-old-space-size=4096'
-            export METRO_MAX_WORKERS='4'
+            # Each Metro transform worker on this codebase grows to a ~7GB working
+            # set and holds it (measured locally with --trace-gc). Two consequences:
+            #   1. A 4096 cap sits below that, so every worker pins at the ceiling,
+            #      GC utilisation collapses, and serialization dies without ever
+            #      writing a bundle. That is the 8.11.0 stall.
+            #   2. NODE_OPTIONS is inherited by every worker, so peak demand is
+            #      workers x heap. 6 workers x 8GB exceeds both runners and forces
+            #      swapping, which costs far more than the lost parallelism.
+            # Runners are 28GB (iOS) / 32GB (Android); keep workers low enough that
+            # workers x heap still leaves room for clang/Gradle running alongside.
+            export NODE_OPTIONS='--max-old-space-size=8192'
+            export METRO_MAX_WORKERS='2'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"

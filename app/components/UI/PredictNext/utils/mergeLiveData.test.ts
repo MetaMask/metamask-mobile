@@ -325,4 +325,27 @@ describe('mergeMarketQuote', () => {
 
     expect(result.outcomes).toEqual(currentMarket.outcomes);
   });
+
+  it('returns the current Market when the quote already matches', () => {
+    const result = mergeMarketQuote(currentMarket, {
+      outcomes: [
+        {
+          id: id('KXTEST-A:yes'),
+          side: 'yes',
+          bidPrice: price('0.40'),
+          askPrice: price('0.45'),
+        },
+        {
+          id: id('KXTEST-A:no'),
+          side: 'no',
+          bidPrice: price('0.55'),
+          askPrice: price('0.60'),
+        },
+      ],
+      volume: '100.00',
+      updatedAt: at('2026-09-08T12:00:00.000Z'),
+    });
+
+    expect(result).toBe(currentMarket);
+  });
 });

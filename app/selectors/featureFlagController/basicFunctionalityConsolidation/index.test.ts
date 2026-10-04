@@ -1,6 +1,7 @@
 import {
   BFT_CHILD_PREFERENCES,
   MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME,
+  type BasicFunctionalityMigrationNotification,
   selectIsBasicFunctionalityConsistent,
   selectIsBasicFunctionalityConsolidationEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
@@ -352,6 +353,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
             accountType,
             authConnection,
             hasSeedlessVault,
+            false,
           ),
         ).toBe(true);
       },
@@ -363,8 +365,20 @@ describe('basicFunctionalityConsolidation selectors', () => {
           AccountType.Metamask,
           undefined,
           false,
+          false,
         ),
       ).toBe(false);
+    });
+
+    it('detects a social wallet from a linked profile marker', () => {
+      expect(
+        selectIsBasicFunctionalitySocialLoginUser.resultFunc(
+          AccountType.Imported,
+          undefined,
+          false,
+          true,
+        ),
+      ).toBe(true);
     });
   });
 
@@ -413,54 +427,116 @@ describe('basicFunctionalityConsolidation selectors', () => {
   });
 
   describe('selectShouldRepairSocialLoginBasicFunctionality', () => {
+    const shouldRepair = ({
+      isConsolidated = true,
+      isBasicFunctionalityEnabled = false,
+      isSocialLoginUser = true,
+      isLocallyKnownSocialLoginUser = false,
+      hasLinkedSocialLoginProfile = false,
+      migrationNotification = null,
+      isMigrationNotificationDismissed = false,
+    }: {
+      isConsolidated?: boolean;
+      isBasicFunctionalityEnabled?: boolean;
+      isSocialLoginUser?: boolean;
+      isLocallyKnownSocialLoginUser?: boolean;
+      hasLinkedSocialLoginProfile?: boolean;
+      migrationNotification?: BasicFunctionalityMigrationNotification;
+      isMigrationNotificationDismissed?: boolean;
+    }) =>
+      selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
+        isConsolidated,
+        isBasicFunctionalityEnabled,
+        isSocialLoginUser,
+        isLocallyKnownSocialLoginUser,
+        hasLinkedSocialLoginProfile,
+        migrationNotification,
+        isMigrationNotificationDismissed,
+      );
+
     it('repairs a consolidated social wallet left with Basic Functionality off', () => {
-      expect(
-        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
-          true,
-          false,
-          true,
-        ),
-      ).toBe(true);
+      expect(shouldRepair({ isLocallyKnownSocialLoginUser: true })).toBe(true);
     });
 
     it('does not repair a social wallet that is already on', () => {
       expect(
-        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
-          true,
-          true,
-          true,
-        ),
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          isLocallyKnownSocialLoginUser: true,
+        }),
       ).toBe(false);
     });
 
     it('does not repair an SRP wallet that chose to stay off', () => {
-      expect(
-        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
-          true,
-          false,
-          false,
-        ),
-      ).toBe(false);
+      expect(shouldRepair({ isSocialLoginUser: false })).toBe(false);
     });
 
     it('leaves an unconsolidated social wallet to the one-time migration', () => {
       expect(
-        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
-          false,
-          false,
-          true,
-        ),
+        shouldRepair({
+          isConsolidated: false,
+          hasLinkedSocialLoginProfile: true,
+        }),
       ).toBe(false);
     });
 
-    it('repairs from the persisted marker without a live enrollment flag', () => {
+    it('repairs a consolidated linked-social wallet missing its notice', () => {
       expect(
-        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
-          true,
-          false,
-          true,
-        ),
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+        }),
       ).toBe(true);
+    });
+
+    it('does not repair a wallet already known to be social before sign-in', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          isLocallyKnownSocialLoginUser: true,
+          hasLinkedSocialLoginProfile: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('does not repair a linked-social wallet after notice dismissal', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+          isMigrationNotificationDismissed: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('does not repair a linked-social wallet with the social sheet already scheduled', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+          migrationNotification: 'bottom-sheet',
+        }),
+      ).toBe(false);
+    });
+
+    it('repairs a linked-social wallet that migrated to the mixed toast', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+          migrationNotification: 'toast',
+        }),
+      ).toBe(true);
+    });
+
+    it('does not repair a mixed toast on a wallet with no linked social profile', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          isSocialLoginUser: false,
+          migrationNotification: 'toast',
+        }),
+      ).toBe(false);
     });
   });
 });

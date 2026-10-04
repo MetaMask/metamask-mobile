@@ -71,7 +71,10 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import PerpsDirectionButton from '../../components/PerpsDirectionButton';
@@ -79,6 +82,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -107,6 +111,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
+  const activeProvider = useSelector(selectPerpsProvider);
 
   // Geo-restriction eligibility check
   const isEligible = useSelector(selectPerpsEligibility);
@@ -124,9 +129,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       return undefined;
     }
 
-    const marketFromList = markets.find((m) => m.symbol === symbol);
+    const defaultCandidateProvider =
+      activeProvider !== undefined &&
+      activeProvider !== PROVIDER_CONFIG.AggregatedProvider
+        ? activeProvider
+        : PROVIDER_CONFIG.DefaultProvider;
+    const preferredProvider =
+      routeMarketData?.providerId ?? defaultCandidateProvider;
+    const marketFromList = markets.find(
+      (candidate) =>
+        candidate.symbol === symbol &&
+        (candidate.providerId ?? defaultCandidateProvider) ===
+          preferredProvider,
+    );
     return marketFromList ?? routeMarketData;
-  }, [markets, symbol, routeMarketData]);
+  }, [activeProvider, markets, symbol, routeMarketData]);
 
   // Check if user has an existing position for this market
   const { existingPosition } = useHasExistingPosition({
@@ -505,11 +522,20 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         navigateToOrder({
           direction: 'long',
           asset: symbol || '',
+          ...(market?.providerId ? { providerId: market.providerId } : {}),
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
           ...(useBottomSheet ? { useBottomSheet: true } : {}),
         });
       }),
-    [gate, isEligible, symbol, navigateToOrder, track, useBottomSheet],
+    [
+      gate,
+      isEligible,
+      symbol,
+      market?.providerId,
+      navigateToOrder,
+      track,
+      useBottomSheet,
+    ],
   );
 
   // Handle Short button press
@@ -540,11 +566,20 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         navigateToOrder({
           direction: 'short',
           asset: symbol || '',
+          ...(market?.providerId ? { providerId: market.providerId } : {}),
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
           ...(useBottomSheet ? { useBottomSheet: true } : {}),
         });
       }),
-    [gate, isEligible, symbol, navigateToOrder, track, useBottomSheet],
+    [
+      gate,
+      isEligible,
+      symbol,
+      market?.providerId,
+      navigateToOrder,
+      track,
+      useBottomSheet,
+    ],
   );
 
   // Handle Close position button press
