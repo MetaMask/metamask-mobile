@@ -44,6 +44,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -146,6 +147,11 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     if (isFlipping || !hasValidAmount) {
       return;
     }
+    if (parseFloat(usdAmount) < 10 * 1.03) {
+      DevLogger.log(
+        `[TAT-3991] BUG_MARKER: flip submitted below minimum notional usdAmount=${usdAmount}`,
+      );
+    }
     if (enableHaptics) {
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
@@ -169,6 +175,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     enableHaptics,
     handleFlipPosition,
     hasValidAmount,
+    usdAmount,
     isFlipping,
     playImpact,
     feeResults.totalFee,
