@@ -8,8 +8,6 @@ import {
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -818,12 +816,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             >
               {submitLabel ?? directionLabel}
             </PerpsDirectionButton>
-            {feePercentage ? (
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                twClassName="text-center"
-            </ButtonSemantic>
             {isFeeLoading ? (
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
