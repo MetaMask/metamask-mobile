@@ -387,9 +387,10 @@
         build; controller release and mainnet trading remain unproved. Later
         recovery authentication after reset passed. Controlled same-account
         Retry passed within its five-minute inspection budget; the earlier
-        60-second cases remain failed. Saved-key erasure and genuine reinstall
-        remain unproved.
-        <a href="#current-source-state">[C22]</a>
+        60-second cases remain failed. Native iOS reinstall followed by
+        authenticated recovery without a saved signer entry is evidenced.
+        Saved-key erasure was not exercised.
+        <a href="#current-source-state">[C22, C23]</a>
       </p>
       <p>
         Earlier native-edit validation passes its 21-check testnet lifecycle on
@@ -482,9 +483,11 @@
         controlled Retry attempts 161 and 170 remain failed with cleanup
         confirmed and zero presses. The earlier Retry UI recovered and
         authenticated, but timed closeout began 295 ms late, so that result
-        remains failed. Genuine reinstall/key-loss remains unproved. Deposits,
-        withdrawals and Extension are deferred. Financial validation is
-        testnet-only; no mainnet trading pass is claimed.
+        remains failed. Native iOS reinstall followed by authenticated recovery
+        without a saved signer entry is evidenced separately
+        <a href="#current-source-state">[C23]</a>. Saved-key erasure was not
+        exercised. Deposits, withdrawals and Extension are deferred. Financial
+        validation is testnet-only; no mainnet trading pass is claimed.
       </p>
       <p class="note">
         The original reset failed during wallet restoration with
@@ -495,11 +498,13 @@
         entries. Those entries were also absent in the original before record.
         That historical recovery received an authenticated orders snapshot and
         reconnect preserved the registered key map, with no new registration. A
-        genuine reinstall and reset-caused key loss remain unproved. Later
-        recovery authentication after reset passed; the earlier locked Login
-        observation remains historical. The account-switch observer counted raw
-        callbacks before Mobile's stale account guard, so its failure does not
-        establish stale UI delivery. The original failed run remains recorded.
+        genuine reinstall and reset-caused key loss were not proved by that
+        failed run. Later native iOS reinstall and recovery authentication are
+        evidenced separately <a href="#current-source-state">[C23]</a>; the
+        earlier locked Login observation remains historical. The account-switch
+        observer counted raw callbacks before Mobile's stale account guard, so
+        its failure does not establish stale UI delivery. The original failed
+        run remains recorded.
       </p>
       <p class="note" id="tpsl-follow-up">
         TP/SL follow-up, deposits, withdrawals and Extension delivery are
@@ -943,8 +948,10 @@
                 found locked Login. Later recovery authentication after reset
                 passed for account 64/API key 2, with a fresh authenticated
                 orders snapshot, unchanged key inventory and nonce, and zero
-                registration or financial writes. This does not prove saved-key
-                erasure or genuine reinstall/key-loss. Authenticated target
+                registration or financial writes. Native iOS reinstall followed
+                by authenticated recovery without a saved signer entry is
+                evidenced separately <a href="#current-source-state">[C23]</a>.
+                Saved-key erasure was not exercised. Authenticated target
                 trading, continuous stale-callback isolation, rendered
                 loaded-empty remain unproved. Controlled same-account Retry
                 passed with one reconnect, one actual UI press, a fresh
@@ -1090,9 +1097,11 @@
           restart/reconnect passes remain historical. Later recovery
           authentication after reset and controlled same-account Retry pass.
           Retry used a fixed five-minute inspection budget; the prior 60-second
-          cases remain failed. Genuine reinstall/key-loss remains unproved. Core
-          source [C22] is live-validated for the stated trading cases, but its
-          controller package is not yet released. Mobile stays
+          cases remain failed. Native iOS reinstall followed by authenticated
+          recovery without a saved signer entry is evidenced separately [C23].
+          Saved-key erasure was not exercised. Core source [C22] is
+          live-validated for the stated trading cases, but its controller
+          package is not yet released. Mobile stays
           <code>[NOT-READY]</code> for human review and merge until Core merges
           and a new controller version is published. Replace the local patch
           with that release, reduce the Mobile diff and revalidate. Mobile size
@@ -1148,12 +1157,16 @@
         claim. No mainnet financial execution is claimed.
       </p>
       <p>
-        October 4 recovery authentication after reset passed for account 64/API
-        key 2, receiving a fresh authenticated
+        October 4 native iOS reinstall at reset 104 is evidenced by the pinned
+        executed reset implementation and passing receipt. Its successful path
+        uninstalls and reinstalls the preserved app. Later recovery 146
+        authenticated account 64/API key 2, receiving a fresh
         <code>account_all_orders:64</code> snapshot. Venue key inventory and
-        nonce were unchanged, with zero registration attempts and zero financial
-        writes. Local trading-key storage was absent; saved-key erasure and a
-        genuine reinstall are not proved. Evidence:
+        nonce 244 were unchanged, with zero registration attempts and zero
+        financial writes. All eight native signer scopes were absent before and
+        after authentication. Saved-key erasure was not exercised. The
+        intermediate uninstalled state was not independently captured.
+        <a href="#current-source-state">[C23]</a> Evidence:
         <code
           >service-product-link-successor-141/service/recovery-authentication-114/result.json</code
         >. Later ordinary reconnect preparation completed once. The before/after
@@ -1680,11 +1693,34 @@
           restoration. These trading passes do not cover recovery after reset.
           Separately recorded recovery authentication and controlled
           same-account Retry now pass. Retry passed within its five-minute
-          inspection budget; the prior 60-second cases remain failed. Genuine
-          reinstall/key-loss remains unproved. Earlier [C21] passes retain their
-          own revisions. Core human approval and the controller release remain
-          pending; Mobile human review and merge are held with
-          <code>[NOT-READY]</code>.
+          inspection budget; the prior 60-second cases remain failed. Native iOS
+          reinstall followed by authenticated recovery without a saved signer
+          entry is evidenced separately [C23]. Saved-key erasure was not
+          exercised. Earlier [C21] passes retain their own revisions. Core human
+          approval and the controller release remain pending; Mobile human
+          review and merge are held with <code>[NOT-READY]</code>.
+        </li>
+        <li>
+          C23 · October 4 iOS testnet reinstall and recovery evidence for a
+          software wallet. Reset 104's exact argv, pinned source/dist and iOS
+          reset leaf at harness
+          <code>67527610e5e95bbc14f79417404b7ed31707d261</code>, plus its
+          passing receipt, establish native uninstall/reinstall. Recovery 146
+          then authenticated with all eight signer scopes absent, unchanged
+          venue keys and nonce 244, and zero registration attempts or financial
+          writes. Raw OS output and the intermediate uninstalled state were not
+          retained. Saved-key erasure was not exercised. The adopted assessment
+          is in <code>goal/native-reinstall-plan-185/report.md</code>,
+          <code>historical-evidence.json</code> and
+          <code>root-adoption.json</code>. Exact executed and recovery receipts
+          remain under <code>goal/final-runtime</code> in
+          <code
+            >host-reset-wrapper-correction-54/execution-reset-1ffc-1f5c-357d9df-104/result.json</code
+          >
+          and
+          <code
+            >service-product-link-successor-141/service/recovery-authentication-114/result.json</code
+          >.
         </li>
       </ul>
       <p id="mobile-sources">
