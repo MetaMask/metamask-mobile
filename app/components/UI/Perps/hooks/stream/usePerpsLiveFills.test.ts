@@ -38,6 +38,7 @@ describe('usePerpsLiveFills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSubscribe.mockReset().mockReturnValue(jest.fn());
     mockGetError.mockReturnValue(null);
     mockGetSnapshot.mockReturnValue([]);
     jest.useFakeTimers();

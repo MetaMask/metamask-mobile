@@ -10,8 +10,10 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
@@ -156,14 +158,22 @@ describe('PerpsHomeView', () => {
       stream.emitFillsError(new Error('Trading key unavailable'));
     });
 
+    const activityError = await screen.findByTestId(
+      PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR,
+    );
     expect(
-      await screen.findByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
+      screen.getByText(strings('perps.home.recent_activity')),
     ).toBeOnTheScreen();
-    const renderedSection = JSON.stringify(screen.toJSON());
-    expect(renderedSection.indexOf('Activity')).toBeGreaterThanOrEqual(0);
     expect(
-      renderedSection.indexOf(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
-    ).toBeGreaterThan(renderedSection.indexOf('Activity'));
+      within(activityError).getByText(
+        strings('perps.home.activity_load_error'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(activityError).getByTestId(
+        PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY,
+      ),
+    ).toBeOnTheScreen();
     fireEvent.press(
       screen.getByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
     );

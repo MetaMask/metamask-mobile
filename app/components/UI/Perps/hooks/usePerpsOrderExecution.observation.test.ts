@@ -229,14 +229,17 @@ describe('the real UI execution observation dispatch boundary', () => {
     jest.mocked(controller.placeOrder).mockResolvedValue(outcome);
     const { result } = renderHook(() => usePerpsOrderExecution());
 
-    await act(async () => {
-      await result.current.placeOrder(request('chase'));
-    });
-    Object.defineProperty(controller, 'state', {
-      configurable: true,
-      writable: true,
-      value: originalState,
-    });
+    try {
+      await act(async () => {
+        await result.current.placeOrder(request('chase'));
+      });
+    } finally {
+      Object.defineProperty(controller, 'state', {
+        configurable: true,
+        writable: true,
+        value: originalState,
+      });
+    }
 
     expect(controller.placeOrder).toHaveBeenCalledWith(request('chase'));
     expect(result.current.lastResult).toEqual(outcome);

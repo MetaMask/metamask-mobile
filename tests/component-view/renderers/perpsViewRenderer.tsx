@@ -658,7 +658,7 @@ export function renderPerpsView(
       queryClient={queryClient}
       streamManager={testStreamManager}
       connectionValue={connectionValue}
-      includeToasts={includeToasts}
+      includeToasts={includeToasts && !extraRoutes?.length}
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -731,7 +731,16 @@ export function renderPerpsView(
         ) : null}
       </Stack.Navigator>
     );
-    return withStreamControls(renderWithProvider(stackTree, { state }), stream);
+    // App toasts outlive the submitting route and remain visible after navigation.
+    const navigationTree = includeToasts ? (
+      <PerpsTestToastHost>{stackTree}</PerpsTestToastHost>
+    ) : (
+      stackTree
+    );
+    return withStreamControls(
+      renderWithProvider(navigationTree, { state }),
+      stream,
+    );
   }
 
   return withStreamControls(

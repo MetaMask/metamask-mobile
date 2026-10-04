@@ -58,6 +58,7 @@ describe('usePerpsLiveOrders', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSubscribe.mockReset().mockReturnValue(jest.fn());
     mockGetError.mockReturnValue(null);
     jest.useFakeTimers();
     mockCachedUserData = null;

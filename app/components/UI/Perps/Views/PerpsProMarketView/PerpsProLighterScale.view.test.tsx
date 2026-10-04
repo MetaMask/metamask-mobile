@@ -134,26 +134,44 @@ async function configureScale() {
 describe('Lighter Scale through the Pro market screen', () => {
   const savedDev = __DEV__;
   beforeEach(() => {
-    jest.mocked(controller.getOrderCapabilities).mockResolvedValue({
-      status: 'ready',
-      providerId: 'lighter',
-      supportedStrategies: ['scale'],
-    });
-    jest.mocked(controller.getScalePriceLadder).mockResolvedValue(preview);
-    jest.mocked(controller.getScaleOrderGroups).mockResolvedValue([]);
-    jest.mocked(controller.reviewScaleOrderGroups).mockResolvedValue([]);
-    jest.mocked(controller.placeOrder).mockResolvedValue({
-      success: true,
-      orderId: group.groupId,
-      acceptedSize: '0.04',
-      acceptedChildren: [
-        { state: 'resting', orderId: 'child-1' },
-        { state: 'filled', orderId: 'child-2' },
-        { state: 'waitingForFill' },
-      ],
-      childOrderIds: ['child-1'],
-    });
-    jest.mocked(controller.cancelOrder).mockResolvedValue({ success: true });
+    jest
+      .mocked(controller.getOrderCapabilities)
+      .mockReset()
+      .mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: ['scale'],
+      });
+    jest
+      .mocked(controller.getScalePriceLadder)
+      .mockReset()
+      .mockResolvedValue(preview);
+    jest
+      .mocked(controller.getScaleOrderGroups)
+      .mockReset()
+      .mockResolvedValue([]);
+    jest
+      .mocked(controller.reviewScaleOrderGroups)
+      .mockReset()
+      .mockResolvedValue([]);
+    jest
+      .mocked(controller.placeOrder)
+      .mockReset()
+      .mockResolvedValue({
+        success: true,
+        orderId: group.groupId,
+        acceptedSize: '0.04',
+        acceptedChildren: [
+          { state: 'resting', orderId: 'child-1' },
+          { state: 'filled', orderId: 'child-2' },
+          { state: 'waitingForFill' },
+        ],
+        childOrderIds: ['child-1'],
+      });
+    jest
+      .mocked(controller.cancelOrder)
+      .mockReset()
+      .mockResolvedValue({ success: true });
     jest.clearAllMocks();
   });
   afterEach(async () => {
