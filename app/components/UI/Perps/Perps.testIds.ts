@@ -1394,6 +1394,7 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+  MINIMUM_ERROR: 'perps-flip-position-minimum-error',
 } as const;
 
 // ========================================
