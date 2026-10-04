@@ -108,11 +108,16 @@ describe('Established Perps layout with retained recovery state', () => {
     setupPerpsOutreachApiMock();
     jest
       .mocked(controller.getRecoveredDispatches)
+      .mockReset()
       .mockResolvedValue([dispatch]);
     jest
       .mocked(controller.getPendingManualRecoveries)
+      .mockReset()
       .mockResolvedValue([protection]);
-    jest.mocked(controller.getScaleOrderGroups).mockResolvedValue([group]);
+    jest
+      .mocked(controller.getScaleOrderGroups)
+      .mockReset()
+      .mockResolvedValue([group]);
   });
 
   afterEach(() => {

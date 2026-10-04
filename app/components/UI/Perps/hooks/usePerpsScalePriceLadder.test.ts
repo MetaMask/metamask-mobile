@@ -64,7 +64,7 @@ describe('usePerpsScalePriceLadder', () => {
       if (selector === selectPerpsInitializationState) return initialization;
       return undefined;
     });
-    mockGetLadder.mockResolvedValue(ready);
+    mockGetLadder.mockReset().mockResolvedValue(ready);
   });
   afterEach(() => {
     (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;

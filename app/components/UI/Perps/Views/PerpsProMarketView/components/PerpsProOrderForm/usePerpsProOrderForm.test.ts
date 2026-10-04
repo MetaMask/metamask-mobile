@@ -661,7 +661,7 @@ describe('usePerpsProOrderForm', () => {
     mockValidation.isValidating = false;
     mockValidation.errors = [];
     mockValidation.fieldIssues = [];
-    mockValidation.validateNow.mockResolvedValue({
+    mockValidation.validateNow.mockReset().mockResolvedValue({
       errors: [],
       warnings: [],
       fieldIssues: [],
@@ -712,7 +712,7 @@ describe('usePerpsProOrderForm', () => {
       mockContextValue.hasBlurredLimitPrice = false;
       mockContextValue.hasBlurredTriggerPrice = false;
     });
-    mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+    mockUpdatePositionTPSL.mockReset().mockResolvedValue({ success: true });
     mockExecuteOrder.mockResolvedValue({ success: true });
     mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
     mockMarginModeLockRefreshing = false;

@@ -13,6 +13,7 @@ import {
 } from '@testing-library/react-native';
 import {
   CandlePeriod,
+  PERPS_ERROR_CODES,
   PERPS_EVENT_VALUE,
   type CandleData,
   type PriceUpdate,
@@ -110,6 +111,10 @@ describe('PerpsOrderView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(Engine.context.PerpsController.updatePositionTPSL)
+      .mockReset()
+      .mockResolvedValue({ success: true });
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
     ).mockResolvedValue({});
@@ -208,6 +213,93 @@ describe('PerpsOrderView', () => {
     );
     await waitForDeferredOrderData();
   });
+
+  it.each([
+    [
+      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      'perps.errors.clientReinitializing',
+    ],
+    [undefined, 'perps.errors.unknownError'],
+  ])(
+    'shows the translated TP/SL failure %s after submitting a market order',
+    async (error, messageKey) => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const updatePositionTPSL = Engine.context.PerpsController
+        .updatePositionTPSL as jest.Mock;
+      updatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+      const { stream } = renderPerpsOrderView({
+        includeToasts: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                ...eligibleOverrides.engine.backgroundState.PerpsController,
+                tradeConfigurations: {
+                  mainnet: {
+                    ETH: {
+                      pendingConfig: {
+                        takeProfitPrice: '3500',
+                        timestamp: Date.now(),
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON);
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+        ).not.toBeDisabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+        );
+      });
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByText(
+          strings(messageKey),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(updatePositionTPSL).toHaveBeenCalledTimes(1);
+      expect(updatePositionTPSL).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        takeProfitPrice: '3500',
+        stopLossPrice: undefined,
+      });
+      expect(
+        screen.getByText(strings('perps.position.tpsl.update_failed')),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController

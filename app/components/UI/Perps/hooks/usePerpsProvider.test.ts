@@ -78,7 +78,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockIsLighterProviderEnabled.mockReturnValue(false);
   mockLighterRemoteFlagEnabled.mockReturnValue(false);
-  mockGetOrderCapabilities.mockResolvedValue({
+  mockGetOrderCapabilities.mockReset().mockResolvedValue({
     status: 'ready',
     providerId: 'hyperliquid',
     supportedStrategies: [],
