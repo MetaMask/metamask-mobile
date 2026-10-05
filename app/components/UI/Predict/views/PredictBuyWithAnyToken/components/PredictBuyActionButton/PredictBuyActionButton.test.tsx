@@ -94,7 +94,6 @@ describe('PredictBuyActionButton', () => {
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
     });
-
   });
 
   describe('when isLoading is false', () => {
