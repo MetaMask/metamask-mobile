@@ -82,7 +82,10 @@ describe('PerpsProCompactInput', () => {
         <PerpsProCompactInput {...defaultProps} variant="inline-labeled" />,
       );
 
-      expect(screen.queryByTestId(defaultProps.testID)).not.toBeOnTheScreen();
+      expect(mockInputFocus).not.toHaveBeenCalled();
+      expect(screen.getByTestId(`${defaultProps.testID}-label`)).toHaveStyle({
+        position: 'absolute',
+      });
     });
 
     it('focuses an empty inline field from the keyboard arrow', () => {
@@ -105,7 +108,9 @@ describe('PerpsProCompactInput', () => {
           twClassName: 'flex-1 border-0 bg-transparent p-0',
         }),
       );
-      expect(screen.getByTestId(defaultProps.testID)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(`${defaultProps.testID}-label`),
+      ).not.toHaveStyle({ position: 'absolute' });
     });
 
     it('does not expand a disabled field when an arrow moves to it', () => {
@@ -127,7 +132,9 @@ describe('PerpsProCompactInput', () => {
 
       expect(mockInputFocus).not.toHaveBeenCalled();
       expect(onFieldPress).not.toHaveBeenCalled();
-      expect(screen.queryByTestId(defaultProps.testID)).not.toBeOnTheScreen();
+      expect(screen.getByTestId(`${defaultProps.testID}-label`)).toHaveStyle({
+        position: 'absolute',
+      });
     });
   });
 
