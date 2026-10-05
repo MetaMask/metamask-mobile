@@ -231,8 +231,11 @@ export const createAnalyticsQueueManager = (
         payload: { count: operationsCount },
       });
 
-      // Process operations (side effects isolated)
-      for (const operation of operations) {
+      // Each operation waits for the previous one so a marketing opt-in is
+      // applied before the events queued behind it. A failure is logged and
+      // the rest of the batch still runs.
+      await operations.reduce<Promise<void>>(async (previous, operation) => {
+        await previous;
         try {
           await executeQueuedOperation(
             messengerInstance,
@@ -245,7 +248,7 @@ export const createAnalyticsQueueManager = (
             `Analytics: Failed to process queued operation '${operation.action}' - continuing with next operation`,
           );
         }
-      }
+      }, Promise.resolve());
 
       // Mark as not processing (immutable update)
       dispatch({
