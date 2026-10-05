@@ -2395,6 +2395,9 @@ describe('MainNavigator', () => {
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
         );
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+        );
       });
 
       describe('Rewards Money routing', () => {
@@ -2565,6 +2568,7 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             Routes.MODAL.REWARDS_SELECT_SHEET,
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+            Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           ]),
         );
       });
@@ -2605,6 +2609,7 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
         ]);
       });
 
