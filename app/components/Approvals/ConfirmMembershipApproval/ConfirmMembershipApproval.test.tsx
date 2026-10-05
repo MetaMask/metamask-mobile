@@ -94,6 +94,29 @@ describe('ConfirmMembershipApproval', () => {
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
   });
 
+  it('does not call onReject when the confirm button is pressed', () => {
+    mockApprovalRequest(createApprovalRequest());
+
+    const { getByTestId } = renderComponent();
+    fireEvent.press(
+      getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    );
+
+    expect(mockOnReject).not.toHaveBeenCalled();
+  });
+
+  it('calls onReject but not onConfirm when the close button is pressed', () => {
+    mockApprovalRequest(createApprovalRequest());
+
+    const { getByTestId } = renderComponent();
+    fireEvent.press(
+      getByTestId(ConfirmMembershipApprovalTestIds.CLOSE_BUTTON),
+    );
+
+    expect(mockOnReject).toHaveBeenCalledTimes(1);
+    expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
+
   it('passes trial requestData through to the trial confirm button and billed-on row', () => {
     mockApprovalRequest(
       createApprovalRequest({
