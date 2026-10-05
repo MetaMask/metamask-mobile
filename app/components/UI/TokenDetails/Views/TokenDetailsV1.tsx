@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
@@ -18,6 +18,8 @@ import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import StatBar from '../components/V1/StatBar/StatBar';
+import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
+import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
@@ -66,14 +68,20 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const statBarStats = useTokenStatBarStats();
 
+  /** Which stat's explainer is open, or `null` for none. */
+  const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // TODO(ASSETS-4019): open the explainer bottom sheet for the tapped stat.
-  // The labels are already buttons so the press target and its accessibility
-  // label do not need revisiting when the sheet lands.
-  const handleStatPress = useCallback(() => undefined, []);
+  const handleStatPress = useCallback((statKey: TokenStatKey) => {
+    setExplainedStat(statKey);
+  }, []);
+
+  const handleExplainerClose = useCallback(() => {
+    setExplainedStat(null);
+  }, []);
 
   return (
     <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
@@ -107,6 +115,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         stats={statBarStats}
         onStatPress={handleStatPress}
       />
+
+      {explainedStat && (
+        <StatExplainerSheet
+          statKey={explainedStat}
+          onClose={handleExplainerClose}
+        />
+      )}
     </View>
   );
 };

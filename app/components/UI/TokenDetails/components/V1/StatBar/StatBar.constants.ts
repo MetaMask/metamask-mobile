@@ -42,5 +42,56 @@ export const STAT_LABEL_KEYS: Record<TokenStatKey, string> = {
   [TokenStatKey.CirculatingSupply]: 'token_details_v1.stats.circulating_supply',
 };
 
+/**
+ * Copy for each stat's explainer sheet.
+ *
+ * The title is separate from the bar label rather than reused: the bar
+ * abbreviates to fit a cell (`MCap`, `Liq/MC`) while the sheet spells the name
+ * out. Six of the nine differ.
+ */
+export const STAT_EXPLAINER_KEYS: Record<
+  TokenStatKey,
+  { title: string; description: string }
+> = {
+  [TokenStatKey.MarketCap]: {
+    title: 'token_details_v1.stats.explainers.market_cap.title',
+    description: 'token_details_v1.stats.explainers.market_cap.description',
+  },
+  [TokenStatKey.Liquidity]: {
+    title: 'token_details_v1.stats.explainers.liquidity.title',
+    description: 'token_details_v1.stats.explainers.liquidity.description',
+  },
+  [TokenStatKey.Volume24h]: {
+    title: 'token_details_v1.stats.explainers.volume_24h.title',
+    description: 'token_details_v1.stats.explainers.volume_24h.description',
+  },
+  [TokenStatKey.Holders]: {
+    title: 'token_details_v1.stats.explainers.holders.title',
+    description: 'token_details_v1.stats.explainers.holders.description',
+  },
+  [TokenStatKey.Top10]: {
+    title: 'token_details_v1.stats.explainers.top_10.title',
+    description: 'token_details_v1.stats.explainers.top_10.description',
+  },
+  [TokenStatKey.LiquidityToMarketCap]: {
+    title: 'token_details_v1.stats.explainers.liquidity_to_market_cap.title',
+    description:
+      'token_details_v1.stats.explainers.liquidity_to_market_cap.description',
+  },
+  [TokenStatKey.Tax]: {
+    title: 'token_details_v1.stats.explainers.tax.title',
+    description: 'token_details_v1.stats.explainers.tax.description',
+  },
+  [TokenStatKey.HighLow24h]: {
+    title: 'token_details_v1.stats.explainers.high_low_24h.title',
+    description: 'token_details_v1.stats.explainers.high_low_24h.description',
+  },
+  [TokenStatKey.CirculatingSupply]: {
+    title: 'token_details_v1.stats.explainers.circulating_supply.title',
+    description:
+      'token_details_v1.stats.explainers.circulating_supply.description',
+  },
+};
+
 /** Stands in for a value the API did not return. */
 export const STAT_EMPTY_VALUE = '—';

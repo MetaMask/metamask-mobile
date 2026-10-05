@@ -12,7 +12,10 @@ import {
 } from '../constants/constants';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
-import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
+import {
+  StatBarSelectors,
+  StatExplainerSheetSelectors,
+} from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 
 const mockGoBack = jest.fn();
@@ -170,5 +173,50 @@ describe('TokenDetailsV1', () => {
     expect(
       getByTestId(StatBarSelectors.cell(TokenStatKey.MarketCap)),
     ).toBeOnTheScreen();
+  });
+
+  it('does not render a stat explainer until a label is tapped', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+  });
+
+  it('opens the explainer for the stat whose label was tapped', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Holders)));
+
+    // Asserts the copy, not just that a sheet opened: the press has to carry
+    // which stat it was through to the sheet.
+    expect(getByTestId(StatExplainerSheetSelectors.TITLE)).toHaveTextContent(
+      'Holders',
+    );
+    expect(
+      getByTestId(StatExplainerSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent('Number of unique addresses holding this token.');
+  });
+
+  it('dismisses the explainer when the button is pressed', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Tax)));
+    fireEvent.press(getByTestId(StatExplainerSheetSelectors.GOT_IT_BUTTON));
+
+    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
   });
 });
