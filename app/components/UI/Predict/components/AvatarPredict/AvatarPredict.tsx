@@ -10,22 +10,27 @@ import { AvatarPredictProps } from './AvatarPredict.types';
 import { AvatarPredictSelectorsIDs } from './AvatarPredict.testIds';
 
 /**
- * Prediction market or position image rendered through AvatarBase.
+ * Prediction market or position image. Shape stays square so every call site
+ * uses the same AvatarBase radius.
  */
 const AvatarPredict = ({
-  uri,
+  src,
   size = AvatarBaseSize.Lg,
-  shape = AvatarBaseShape.Square,
+  twClassName,
   testID = AvatarPredictSelectorsIDs.CONTAINER,
-  ...props
 }: AvatarPredictProps) => {
   const tw = useTailwind();
 
   return (
-    <AvatarBase size={size} shape={shape} testID={testID} {...props}>
-      {uri ? (
+    <AvatarBase
+      size={size}
+      shape={AvatarBaseShape.Square}
+      twClassName={twClassName}
+      testID={testID}
+    >
+      {src?.uri ? (
         <Image
-          source={{ uri }}
+          source={{ uri: src.uri }}
           style={tw.style('w-full h-full')}
           contentFit="cover"
           testID={AvatarPredictSelectorsIDs.IMAGE}

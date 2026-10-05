@@ -1,32 +1,26 @@
-import type {
-  AvatarBaseProps,
-  AvatarBaseShape,
-  AvatarBaseSize,
-} from '@metamask/design-system-react-native';
+import type { AvatarBaseSize } from '@metamask/design-system-react-native';
 
 /**
  * AvatarPredict component props.
  */
-export interface AvatarPredictProps
-  extends Omit<AvatarBaseProps, 'children' | 'size' | 'shape'> {
+export interface AvatarPredictProps {
   /**
-   * Remote URI of the prediction image. Renders the AvatarBase placeholder
-   * when omitted.
+   * Image source, matching `AvatarToken` and `AvatarNetwork`.
+   * The placeholder is rendered when omitted or when `uri` is empty.
    */
-  uri?: string;
+  src?: { uri?: string };
   /**
-   * Optional AvatarBase size.
+   * Avatar size.
    * @default AvatarBaseSize.Lg
    */
   size?: AvatarBaseSize;
   /**
-   * Optional AvatarBase shape.
-   * @default AvatarBaseShape.Square
-   */
-  shape?: AvatarBaseShape;
-  /**
-   * Optional layout classes such as margin or alignment. Size and radius
-   * come from `size` and `shape`.
+   * Layout classes such as margin or alignment. Size and radius stay on
+   * AvatarBase.
    */
   twClassName?: string;
+  /**
+   * Test ID for the avatar container.
+   */
+  testID?: string;
 }

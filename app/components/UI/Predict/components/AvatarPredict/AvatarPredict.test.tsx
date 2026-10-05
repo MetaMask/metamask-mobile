@@ -3,36 +3,35 @@ import { render, screen } from '@testing-library/react-native';
 import AvatarPredict from './AvatarPredict';
 import { AvatarPredictSelectorsIDs } from './AvatarPredict.testIds';
 
-const MOCK_URI = 'https://example.com/predict-icon.png';
+const MOCK_SRC = { uri: 'https://example.com/predict-icon.png' };
 
 describe('AvatarPredict', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the image with the provided uri', () => {
-    render(<AvatarPredict uri={MOCK_URI} />);
+  it('renders the image from src', () => {
+    render(<AvatarPredict src={MOCK_SRC} />);
 
     const image = screen.getByTestId(AvatarPredictSelectorsIDs.IMAGE);
 
     expect(image).toBeOnTheScreen();
-    expect(image.props.source).toEqual({ uri: MOCK_URI });
+    expect(image.props.source).toEqual(MOCK_SRC);
   });
 
-  it('renders only the avatar container when uri is omitted', () => {
+  it('omits the image when src is missing', () => {
     render(<AvatarPredict />);
 
-    expect(
-      screen.getByTestId(AvatarPredictSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(AvatarPredictSelectorsIDs.IMAGE),
     ).not.toBeOnTheScreen();
   });
 
-  it('applies a custom testID to the container', () => {
-    render(<AvatarPredict uri={MOCK_URI} testID="custom-avatar" />);
+  it('omits the image when src has no uri', () => {
+    render(<AvatarPredict src={{}} />);
 
-    expect(screen.getByTestId('custom-avatar')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(AvatarPredictSelectorsIDs.IMAGE),
+    ).not.toBeOnTheScreen();
   });
 });

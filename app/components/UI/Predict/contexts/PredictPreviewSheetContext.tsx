@@ -132,7 +132,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-3 flex-1 min-w-0"
     >
-      {position?.icon && <AvatarPredict uri={position.icon} />}
+      {position?.icon && <AvatarPredict src={{ uri: position.icon }} />}
       <Box twClassName="flex-1 min-w-0">
         <Text
           variant={TextVariant.HeadingSm}
