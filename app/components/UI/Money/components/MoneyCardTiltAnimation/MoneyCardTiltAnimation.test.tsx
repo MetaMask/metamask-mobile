@@ -309,8 +309,8 @@ describe('MoneyCardTiltAnimation', () => {
       );
 
       expect(getByTestId(MoneyCardTiltAnimationTestIds.CONTAINER)).toHaveStyle({
-        width: 104,
-        height: 66,
+        width: 120,
+        height: 76,
       });
     });
 

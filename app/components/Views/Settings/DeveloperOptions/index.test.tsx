@@ -11,6 +11,7 @@ jest.mock(
 );
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../../UI/Perps/selectors/featureFlags'),
   selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));
 

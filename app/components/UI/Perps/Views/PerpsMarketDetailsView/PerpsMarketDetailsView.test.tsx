@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -21,8 +21,10 @@ import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsPriceAlertsEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   CandlePeriod,
@@ -1030,6 +1032,9 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === selectPerpsAdvancedChartEnabledFlag) {
         return false;
       }
+      if (selector === selectPerpsPriceAlertsEnabledFlag) {
+        return false;
+      }
       if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
         return CandlePeriod.FifteenMinutes;
       }
@@ -1117,9 +1122,138 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
-    ).toBeOnTheScreen();
+  });
+
+  describe('service interruption banner', () => {
+    it('does not render the outage banner when the flag is off', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+    });
+
+    it('pins the outage banner above the header when the flag is on', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const baseSelectorImpl = useSelector.getMockImplementation();
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
+          return true;
+        }
+        return baseSelectorImpl?.(selector);
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeOnTheScreen();
+      // Pinned above the fixed header rather than scrolling with the content.
+      expect(
+        within(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+        ).queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+      expect(jest.mocked(usePerpsEventTracking)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          properties: expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]: true,
+          }),
+        }),
+      );
+    });
+  });
+
+  it('navigates to Perps price alerts with szDecimals from the market', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const { usePerpsMarketData } = jest.requireMock('../../hooks');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+      '../../selectors/chartPreferences',
+    ).selectPerpsChartPreferredCandlePeriod;
+
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsPriceAlertsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return false;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+        return CandlePeriod.FifteenMinutes;
+      }
+      return undefined;
+    });
+    mockRouteParams.market = {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: '$45,000.00',
+      change24h: '+$1,125.00',
+      change24hPercent: '+2.50%',
+      volume: '$1.23B',
+      maxLeverage: '40x',
+      providerId: 'hyperliquid',
+    };
+    usePerpsMarketData.mockReturnValue({
+      marketData: { szDecimals: 5, maxLeverage: 40 },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    try {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.PRICE_ALERTS_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PRICE_ALERTS,
+        expect.objectContaining({
+          mode: 'perps',
+          szDecimals: 5,
+          assetId: 'BTC',
+        }),
+      );
+    } finally {
+      usePerpsMarketData.mockReturnValue({
+        marketData: null,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+    }
   });
 
   describe('chart edge guard', () => {

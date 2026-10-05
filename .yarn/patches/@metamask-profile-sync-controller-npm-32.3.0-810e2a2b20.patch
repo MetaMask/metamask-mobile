@@ -1,0 +1,61 @@
+diff --git a/dist/controllers/authentication/AuthenticationController.js b/dist/controllers/authentication/AuthenticationController.js
+index 7a8208ccea568da3a04b275b0e89906ce5e46e96..d4f88b298adf939cce3ef9c1e7e8029dee20f080 100644
+--- a/dist/controllers/authentication/AuthenticationController.js
++++ b/dist/controllers/authentication/AuthenticationController.js
+@@ -1,10 +1,9 @@
+ import { BaseController } from '@metamask/base-controller';
+-import { selectHdKeyringEntropySourceIds } from '@metamask/keyring-controller';
+ import { BeginEnrollmentRequestStruct, CompleteEnrollmentRequestStruct, assertValidMfaRequest, BeginStepUpRequestStruct, CompleteStepUpRequestStruct, GetElevatedTokenRequestStruct, parseElevatedTokenClaims, } from '../../sdk/authentication-jwt-bearer/mfa/schemas.js';
+ import { assertMessageStartsWithMetamask, AuthType, Env, JwtBearerAuth, PairConflictError, getMfaErrorCode, ElevatedTokenInvalidError, } from '../../sdk/index.js';
+ import { decodeJwtPayload } from '../../sdk/utils/jwt.js';
+ import { toErrorMessage } from '../../sdk/utils/to-error-message.js';
+-import { getPrimaryHdKeyringEntropySourceId } from '../../shared/utils/entropy-source.js';
++import { getPrimaryHdKeyringEntropySourceId, selectHdKeyringEntropySourceIds, } from '../../shared/utils/entropy-source.js';
+ import { getHdKeyringSeed } from '../../shared/utils/hd-keyring-seed.js';
+ import { getMessageSigningPublicKey, signMessageWithMessageSigningKey, } from '../../shared/utils/message-signing.js';
+ const controllerName = 'AuthenticationController';
+diff --git a/dist/controllers/user-storage/UserStorageController.js b/dist/controllers/user-storage/UserStorageController.js
+index df9524f26a5ef16b3083a9dd88e745bbfe91c28f..ff183b54e358d337b280f5ef6c5c8eb85643ea62 100644
+--- a/dist/controllers/user-storage/UserStorageController.js
++++ b/dist/controllers/user-storage/UserStorageController.js
+@@ -1,7 +1,6 @@
+ import { BaseController } from '@metamask/base-controller';
+-import { selectHdKeyringEntropySourceIds } from '@metamask/keyring-controller';
+ import { Env, UserStorage } from '../../sdk/index.js';
+-import { getPrimaryHdKeyringEntropySourceId } from '../../shared/utils/entropy-source.js';
++import { getPrimaryHdKeyringEntropySourceId, selectHdKeyringEntropySourceIds, } from '../../shared/utils/entropy-source.js';
+ import { EventQueue } from '../../shared/utils/event-queue.js';
+ import { getHdKeyringSeed } from '../../shared/utils/hd-keyring-seed.js';
+ import { signMessageWithMessageSigningKey } from '../../shared/utils/message-signing.js';
+diff --git a/dist/shared/utils/entropy-source.js b/dist/shared/utils/entropy-source.js
+index 2257e631a610884714fbb47334ece2ed0fa65534..93bce7630dacc074c4fe1b20043bcc4dbb78382b 100644
+--- a/dist/shared/utils/entropy-source.js
++++ b/dist/shared/utils/entropy-source.js
+@@ -1,4 +1,17 @@
+-import { selectPrimaryHdKeyringEntropySourceId } from '@metamask/keyring-controller';
++import { KeyringTypes } from '@metamask/keyring-controller';
++/**
++ * Reads HD keyring entropy source IDs (metadata IDs) from KeyringController
++ * state, primary first. Returns an empty array when none are available
++ * (e.g. the wallet is locked, where `keyrings` is cleared).
++ *
++ * @param keyringState - KeyringController state.
++ * @returns The HD keyring metadata IDs, primary first.
++ */
++export function selectHdKeyringEntropySourceIds(keyringState) {
++    return (keyringState?.keyrings ?? [])
++        .filter((keyring) => keyring.type === KeyringTypes.hd.toString())
++        .map((keyring) => keyring.metadata.id);
++}
+ /**
+  * Resolves the primary SRP's entropy source ID (the first HD keyring's
+  * metadata ID). The ID is randomly regenerated whenever the vault is
+@@ -10,7 +23,7 @@ import { selectPrimaryHdKeyringEntropySourceId } from '@metamask/keyring-control
+  * the wallet is unlocked.
+  */
+ export function getPrimaryHdKeyringEntropySourceId(keyringState) {
+-    const primaryEntropySourceId = selectPrimaryHdKeyringEntropySourceId(keyringState);
++    const [primaryEntropySourceId] = selectHdKeyringEntropySourceIds(keyringState);
+     if (!primaryEntropySourceId) {
+         throw new Error('getPrimaryHdKeyringEntropySourceId - no HD keyring available');
+     }

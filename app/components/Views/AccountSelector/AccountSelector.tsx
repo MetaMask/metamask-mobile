@@ -51,6 +51,7 @@ import {
   SearchInteractionType,
   buildSearchInteractedProperties,
 } from '../../../core/Analytics/events/navigation';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import {
   TraceName,
   TraceOperation,
@@ -128,7 +129,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [navigation]);
 
   const handleManageAccountsPress = useCallback(() => {
-    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW);
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   }, [navigation]);
 
   useEffect(() => {

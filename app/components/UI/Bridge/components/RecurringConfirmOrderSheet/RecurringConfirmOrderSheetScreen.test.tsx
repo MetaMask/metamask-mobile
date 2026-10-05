@@ -6,6 +6,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { createBridgeTestState } from '../../testUtils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import {
   showRecurringAutoUpgradeError,
   showRecurringOrderCreatedToast,
@@ -46,6 +47,10 @@ jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
   useEIP7702UpgradeFee: jest.fn(),
 }));
 
+jest.mock('../../hooks/useFiatToUsdRate', () => ({
+  useFiatToUsdRate: jest.fn(),
+}));
+
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
   showRecurringAutoUpgradeError: jest.fn(),
   showRecurringOrderCreatedToast: jest.fn(),
@@ -56,6 +61,7 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
   __esModule: true,
   default: ({
     delegationFee,
+    isPriceRangeConversionReady,
     isSubmitting,
     onConfirm,
     onEditSlippagePress,
@@ -63,6 +69,7 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     goBack,
   }: {
     delegationFee: { status: string };
+    isPriceRangeConversionReady: boolean;
     isSubmitting: boolean;
     onConfirm: () => void;
     onEditSlippagePress: () => void;
@@ -83,7 +90,14 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
       ),
       ReactModule.createElement(
         Pressable,
-        { testID: 'confirm-order', onPress: onConfirm },
+        {
+          testID: 'confirm-order',
+          onPress: onConfirm,
+          disabled: !isPriceRangeConversionReady,
+          accessibilityState: {
+            disabled: !isPriceRangeConversionReady,
+          },
+        },
         ReactModule.createElement(
           Text,
           null,
@@ -146,15 +160,34 @@ function renderScreen(
   bridgeReducerOverrides: NonNullable<
     Parameters<typeof createBridgeTestState>[0]
   >['bridgeReducerOverrides'] = {},
+  currentCurrency: 'usd' | 'eur' = 'usd',
 ) {
+  const state = createBridgeTestState({
+    bridgeReducerOverrides: {
+      sourceToken,
+      destToken,
+      ...bridgeReducerOverrides,
+    },
+  });
+
   return renderWithProvider(<RecurringConfirmOrderSheetScreen />, {
-    state: createBridgeTestState({
-      bridgeReducerOverrides: {
-        sourceToken,
-        destToken,
-        ...bridgeReducerOverrides,
+    state: {
+      ...state,
+      engine: {
+        ...state.engine,
+        backgroundState: {
+          ...state.engine?.backgroundState,
+          CurrencyRateController: {
+            ...state.engine?.backgroundState?.CurrencyRateController,
+            currentCurrency,
+          },
+          AssetsController: {
+            ...state.engine?.backgroundState?.AssetsController,
+            selectedCurrency: currentCurrency,
+          },
+        },
       },
-    }),
+    },
   });
 }
 
@@ -170,6 +203,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       getUpgradeStatus: jest.fn(),
     });
     mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1);
     jest.mocked(submitRecurringOrder).mockResolvedValue(undefined);
   });
 
@@ -241,6 +275,55 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       expect(showRecurringOrderCreatedToast).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('submits when the EUR-to-USD conversion is available', async () => {
+    jest.mocked(useFiatToUsdRate).mockReturnValue(1.08);
+    const { getByTestId } = renderScreen(
+      {
+        recurring: {
+          ...configuredRecurringState,
+          priceRange: {
+            tokenSide: 'source',
+            currency: 'EUR',
+            min: '1000',
+            max: '2000',
+          },
+        },
+      },
+      'eur',
+    );
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(submitRecurringOrder).toHaveBeenCalledWith();
+    });
+  });
+
+  it('disables submission while a non-USD conversion rate is unavailable', () => {
+    jest.mocked(useFiatToUsdRate).mockReturnValue(undefined);
+    const { getByTestId } = renderScreen(
+      {
+        recurring: {
+          ...configuredRecurringState,
+          priceRange: {
+            tokenSide: 'source',
+            currency: 'EUR',
+            min: '1000',
+            max: '2000',
+          },
+        },
+      },
+      'eur',
+    );
+
+    const confirmButton = getByTestId('confirm-order');
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockAutoUpgradeEIP7702Account).not.toHaveBeenCalled();
+    expect(submitRecurringOrder).not.toHaveBeenCalled();
   });
 
   it('resets shared market inputs while preserving recurring fields', async () => {
