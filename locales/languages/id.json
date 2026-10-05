@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Keanggotaan Anda",
       "plan": "Keanggotaan",
-      "earned_this_month": "Diperoleh bulan ini",
       "payment_details": "Detail pembayaran",
       "total": "Total",
       "paying_with": "Membayar dengan",
@@ -12214,15 +12213,7 @@
       "manage": "Kelola",
       "invoices": "Faktur",
       "contact_support": "Hubungi dukungan",
-      "cancel_membership": "Batalkan keanggotaan",
-      "earned_info": {
-        "title": "Diperoleh bulan ini",
-        "description": "Jumlah yang Anda peroleh dalam cashback APY dan mUSD sebagai anggota Pro."
-      },
-      "saved_info": {
-        "title": "Disimpan bulan ini",
-        "description": "Jumlah yang Anda hemat sebagai anggota Pro pada biaya MetaMask untuk swap, perp, dan prediksi bulan ini, ditambah biaya ATM dan FX."
-      }
+      "cancel_membership": "Batalkan keanggotaan"
     },
     "cancel_membership": {
       "title": "Mengapa Anda membatalkannya?",

@@ -12203,7 +12203,6 @@
     "membership": {
       "title": "Tu membresía",
       "plan": "Membresía",
-      "earned_this_month": "Ganado este mes",
       "payment_details": "Detalles de pago",
       "total": "Total",
       "paying_with": "Pagar con",
@@ -12214,15 +12213,7 @@
       "manage": "Gestionar",
       "invoices": "Facturas",
       "contact_support": "Contactar a soporte",
-      "cancel_membership": "Cancelar membresía",
-      "earned_info": {
-        "title": "Ganado este mes",
-        "description": "El monto que ganaste en APY y en cashback en mUSD como miembro Pro."
-      },
-      "saved_info": {
-        "title": "Ahorrado este mes",
-        "description": "El monto que ahorraste este mes como miembro Pro en tarifas de MetaMask por canjes, contratos perpetuos y predicciones, además de tarifas por retiros en cajeros automáticos y cambio de divisas."
-      }
+      "cancel_membership": "Cancelar membresía"
     },
     "cancel_membership": {
       "title": "¿Por qué cancelas?",

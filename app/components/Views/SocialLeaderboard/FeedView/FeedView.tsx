@@ -72,12 +72,8 @@ import { TypeFilterSelector, TypeFilterSheet } from '../components/Filters';
 import FollowingEmptyState from './components/FollowingEmptyState';
 import { useFeedNow } from './hooks/useFeedNow';
 import { useTraderFeed } from './hooks/useTraderFeed';
-import type {
-  FeedAudience,
-  FeedItem,
-  FeedSection,
-  FeedTypeFilter,
-} from './types';
+import type { FeedAudience, FeedItem } from '../../../UI/SocialFeed/types';
+import type { FeedSection, FeedTypeFilter } from './types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
 
