@@ -7,7 +7,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
 import React from 'react';
-import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -39,6 +38,7 @@ import {
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictCashOut } from '../../hooks/usePredictCashOut';
+import PredictPositionIcon from '../PredictPositionIcon';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -151,13 +151,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
       <Box twClassName="flex-row items-start gap-4">
         {Boolean(icon) && (
-          <Box twClassName="w-10 h-10 self-start mt-1">
-            <Image
-              source={{ uri: icon }}
-              contentFit="cover"
-              style={tw.style('w-full h-full rounded-lg')}
-            />
-          </Box>
+          <PredictPositionIcon uri={icon} twClassName="self-start mt-1" />
         )}
         <Box twClassName="flex-1">
           <Text

@@ -32,14 +32,12 @@ interface PredictPositionProps {
   position: PredictPositionType;
   onPress?: (position: PredictPositionType) => void;
   privacyMode: boolean;
-  testID?: string;
 }
 
 const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
   privacyMode,
-  testID = PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
@@ -57,23 +55,12 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   return (
     <TouchableOpacity
-      accessibilityLabel={`${title} - ${outcome}`}
-      accessibilityRole="button"
-      testID={testID}
+      testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
       <View style={styles.positionImageContainer}>
-        {icon ? (
-          <Image source={{ uri: icon }} style={styles.positionImage} />
-        ) : (
-          <View
-            style={[
-              styles.positionImage,
-              tw.style('bg-background-alternative'),
-            ]}
-          />
-        )}
+        <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
         <Text

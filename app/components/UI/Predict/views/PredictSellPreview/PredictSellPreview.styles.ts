@@ -55,11 +55,6 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 14,
       fontWeight: '500',
     },
-    positionIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 100,
-    },
     cashOutButtonContainer: {
       justifyContent: 'center',
       gap: 8,
