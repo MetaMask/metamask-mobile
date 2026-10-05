@@ -40,6 +40,7 @@ import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPagin
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
+import { SHOW_TRADING_COMMISSIONS } from '../constants';
 import ReferralFunnelBar from '../ReferralFunnelBar';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 import {
@@ -403,8 +404,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isReferrer = variant === 'REFERRER';
   const isReferee = variant === 'REFEREE';
-  // Disable commissions for this pilot until the section is ready to show.
-  const showCommissions = false; // isReferrer || isReferee;
+  const showCommissions = (isReferrer || isReferee) && SHOW_TRADING_COMMISSIONS;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
