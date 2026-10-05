@@ -1,16 +1,13 @@
 import React from 'react';
-import { View, type ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   ListItem,
   ListItemVariant,
   SensitiveText,
@@ -24,43 +21,26 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { useTheme } from '../../../../../util/theme';
 import { useFormatters } from '../../../../hooks/useFormatters';
+import DottedUnderline from '../../../../UI/DottedUnderline';
 import type { SliceData } from '../../BalanceBreakdown/types';
-import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
-import {
-  getSliceLabel,
-  SLICE_ICONS,
-  SLICE_ICON_SYMBOLS,
-} from './homepageBalanceBreakdown.constants';
-
-const getAllocationColorStyle = (slice: SliceData): ViewStyle => ({
-  backgroundColor: slice.color,
-});
-
-const allocationDotStyle: ViewStyle = {
-  width: 8,
-  height: 8,
-  borderRadius: 999,
-  marginRight: 4,
-};
+import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 
 export interface HomepageBalanceBreakdownRowProps {
   slice: SliceData;
   userCurrency: string;
   onPress: () => void;
-  layout: HomepageBalanceBreakdownLayout;
-  showArrow: boolean;
 }
 
 const HomepageBalanceBreakdownRow = ({
   slice,
   userCurrency,
   onPress,
-  layout,
-  showArrow,
 }: HomepageBalanceBreakdownRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
+  const { colors } = useTheme();
   const { formatCurrency } = useFormatters();
   const isLoading = slice.status === 'loading';
   const percentageLabel =
@@ -93,47 +73,19 @@ const HomepageBalanceBreakdownRow = ({
     formattedMoneyApy !== undefined
       ? strings('money.apy_label', { percentage: formattedMoneyApy })
       : undefined;
+  const showMoneyBuyButton = slice.key === 'money';
   const accessibilityLabel = privacyMode
     ? getSliceLabel(slice.key)
     : [
         getSliceLabel(slice.key),
-        slice.status === 'ready' ? displayValue : undefined,
+        !showMoneyBuyButton && slice.status === 'ready'
+          ? displayValue
+          : undefined,
         percentageLabel,
         apyLabel,
       ]
         .filter(Boolean)
         .join(', ');
-  const showIcon = layout === 'icons';
-  const showAllocationDot = layout === 'allocation';
-  const iconName = SLICE_ICONS[slice.key];
-  const iconSymbol = SLICE_ICON_SYMBOLS[slice.key];
-
-  const avatar = showIcon ? (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="h-8 w-8 rounded-full bg-muted"
-    >
-      {iconName ? (
-        <Icon
-          color={IconColor.IconDefault}
-          name={iconName}
-          size={IconSize.Md}
-          testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-        />
-      ) : (
-        <Text
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-          testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-          variant={TextVariant.HeadingSm}
-        >
-          {iconSymbol}
-        </Text>
-      )}
-    </Box>
-  ) : undefined;
-
   const title = (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -147,12 +99,6 @@ const HomepageBalanceBreakdownRow = ({
         twClassName="min-w-0 shrink"
         gap={1}
       >
-        {showAllocationDot ? (
-          <View
-            testID={HomepageBalanceBreakdownTestIds.DOT(slice.key)}
-            style={[allocationDotStyle, getAllocationColorStyle(slice)]}
-          />
-        ) : null}
         <Text
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
@@ -206,38 +152,41 @@ const HomepageBalanceBreakdownRow = ({
     </Box>
   );
 
-  const value = (
+  const value = showMoneyBuyButton ? (
+    <Button
+      onPress={onPress}
+      size={ButtonSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="h-7 self-end px-4"
+      variant={ButtonVariant.Primary}
+    >
+      {strings('homepage.action_buttons.buy')}
+    </Button>
+  ) : (
     <Skeleton
       hideChildren={isLoading}
       testID={HomepageBalanceBreakdownTestIds.SKELETON(slice.key)}
     >
-      <SensitiveText
-        color={valueColor}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Medium}
-        testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
-        variant={TextVariant.BodyMd}
+      <DottedUnderline
+        color={colors.text.alternative}
+        testID={HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE(slice.key)}
       >
-        {displayValue}
-      </SensitiveText>
+        <SensitiveText
+          color={valueColor}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+          testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
+          variant={TextVariant.BodyMd}
+        >
+          {displayValue}
+        </SensitiveText>
+      </DottedUnderline>
     </Skeleton>
   );
 
   return (
     <ListItem
       accessibilityLabel={accessibilityLabel}
-      avatar={avatar}
-      endAccessory={
-        showArrow ? (
-          <Icon
-            color={IconColor.IconAlternative}
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            testID={HomepageBalanceBreakdownTestIds.ARROW(slice.key)}
-            twClassName="ml-1"
-          />
-        ) : undefined
-      }
       isInteractive
       onPress={onPress}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
