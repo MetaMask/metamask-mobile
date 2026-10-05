@@ -455,6 +455,16 @@ export function usePerpsOrderFees({
                 BASIS_POINTS_DIVISOR,
             ) / 100
           : undefined;
+        DevLogger.log(
+          `[TAT-4055] BUG_MARKER: order preview rate vs resolved rate ${JSON.stringify(
+            {
+              metamaskFeeRate: coreFeesResult.metamaskFeeRate,
+              previewRate: resolvedMetamaskRate,
+              discountPercentage,
+              amount,
+            },
+          )}`,
+        );
 
         // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};

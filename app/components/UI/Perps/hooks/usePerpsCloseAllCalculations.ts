@@ -382,6 +382,17 @@ export function usePerpsCloseAllCalculations({
                 metamaskFeeAmount: adjustedMetamaskFeeAmount,
                 feeAmount: adjustedTotalFee,
               };
+              DevLogger.log(
+                `[TAT-4055] BUG_MARKER: close-all re-discounts resolved metamaskFeeRate ${JSON.stringify(
+                  {
+                    symbol: pos.symbol,
+                    metamaskFeeRate: baseFees.metamaskFeeRate,
+                    hookDiscountBips: feeDiscountBips,
+                    previewRate: adjustedMetamaskFeeRate,
+                    positionValue,
+                  },
+                )}`,
+              );
 
               return {
                 position: pos,
