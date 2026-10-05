@@ -1,6 +1,10 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import {
+  toMultichainAccountGroupId,
+  toMultichainAccountWalletId,
+} from '@metamask/account-api';
+import React, { useCallback, useMemo } from 'react';
+import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -29,16 +33,25 @@ import {
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
 import { AccountCellIds } from './AccountCell.testIds';
+import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectInternalAccountByAccountGroupAndScope } from '../../../../selectors/multichainAccounts/accounts';
-import {
-  useAccountGroupBalance,
-  useAccountGroupIconSeedAddress,
-} from '../useAccountGroupDisplay';
+import { useAccountGroupIconSeedAddress } from '../useAccountGroupDisplay';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
+import {
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+  HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+} from '../../../../components/Views/Homepage/abTestConfig';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { formatWithThreshold } from '../../../../util/assets';
+import I18n from '../../../../../locales/i18n';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { renderShortAddress } from '../../../../util/address';
+import { useABTest } from '../../../../hooks/useABTest';
+import useMoneyAccountBalance from '../../../../components/UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../../../components/UI/Money/hooks/useMoneyAccountInfo';
+import { useFiatNormalizer } from '../../../../components/Views/Homepage/BalanceBreakdown/hooks/useFiatNormalizer';
 import {
   type AccountAvatarVariant,
   getAvatarAccountVariant,
@@ -61,6 +74,107 @@ type BalanceEndContainerProps = Pick<
   networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
 };
 
+interface BalanceDisplayProps {
+  totalBalance?: number;
+  userCurrency?: string;
+  privacyMode: boolean;
+  onSelectAccount?: () => void;
+  networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
+}
+
+const BalanceDisplay = ({
+  totalBalance,
+  userCurrency,
+  privacyMode,
+  onSelectAccount,
+  networkImageSource,
+}: BalanceDisplayProps) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  const displayBalance = useMemo(() => {
+    if (totalBalance == null || !userCurrency) {
+      return undefined;
+    }
+    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
+      style: 'currency',
+      currency: userCurrency.toUpperCase(),
+    });
+  }, [totalBalance, userCurrency]);
+
+  return (
+    <Pressable onPress={onSelectAccount}>
+      <View style={styles.balanceContainer}>
+        {/* Keep zero balances blank. `selectBalanceByAccountGroup` synthesizes
+            0 before assets load, so "$0.00" reads as a real empty wallet.
+            Product keeps the amount empty until a loaded non-zero balance
+            exists so users do not think funds disappeared. */}
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
+          length={SensitiveTextLength.Long}
+          isHidden={
+            privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
+          }
+          testID={AccountCellIds.BALANCE}
+        >
+          {totalBalance ? displayBalance : null}
+        </SensitiveText>
+        {networkImageSource && (
+          <AvatarNetwork
+            size={AvatarNetworkSize.Xs}
+            style={styles.networkBadge}
+            src={networkImageSource}
+          />
+        )}
+      </View>
+    </Pressable>
+  );
+};
+
+interface MoneyBalanceDisplayProps
+  extends Omit<BalanceDisplayProps, 'totalBalance'> {
+  tokenBalance?: number;
+}
+
+const MoneyBalanceDisplay = ({
+  tokenBalance,
+  userCurrency,
+  privacyMode,
+  onSelectAccount,
+  networkImageSource,
+}: MoneyBalanceDisplayProps) => {
+  const { toUserCurrency } = useFiatNormalizer();
+  const { isBalanceUnavailable, totalFiatRaw } = useMoneyAccountBalance();
+
+  const moneyAccountBalanceInUserCurrency = useMemo(() => {
+    if (isBalanceUnavailable || totalFiatRaw === undefined) {
+      return undefined;
+    }
+    return toUserCurrency(Number(totalFiatRaw));
+  }, [isBalanceUnavailable, toUserCurrency, totalFiatRaw]);
+
+  const totalBalance = useMemo(() => {
+    if (
+      tokenBalance === undefined ||
+      moneyAccountBalanceInUserCurrency === undefined
+    ) {
+      return undefined;
+    }
+    return tokenBalance + moneyAccountBalanceInUserCurrency;
+  }, [moneyAccountBalanceInUserCurrency, tokenBalance]);
+
+  return (
+    <BalanceDisplay
+      totalBalance={totalBalance}
+      userCurrency={userCurrency}
+      privacyMode={privacyMode}
+      onSelectAccount={onSelectAccount}
+      networkImageSource={networkImageSource}
+    />
+  );
+};
+
 const BalanceEndContainer = ({
   accountGroup,
   hideMenu,
@@ -77,35 +191,65 @@ const BalanceEndContainer = ({
     );
   }, [navigate, accountGroup]);
 
-  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
-    accountGroup.id,
+  const selectBalanceForGroup = useMemo(
+    () => selectBalanceByAccountGroup(accountGroup.id),
+    [accountGroup.id],
   );
+  const groupBalance = useSelector(selectBalanceForGroup);
+  const { isMoneyAccountFeatureEnabled, hasMoneyAccount, primaryMoneyAccount } =
+    useMoneyAccountInfo();
+  const {
+    variant: balanceBreakdownVariant,
+    isActive: isBalanceBreakdownExperimentActive,
+  } = useABTest(
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+    { trackExposure: false },
+  );
+  const isBalanceBreakdownEnabled =
+    isBalanceBreakdownExperimentActive &&
+    balanceBreakdownVariant.showBalanceBreakdown;
+
+  const moneyAccountGroupId = useMemo(() => {
+    const entropy = primaryMoneyAccount?.options?.entropy;
+    if (!entropy) {
+      return undefined;
+    }
+
+    return toMultichainAccountGroupId(
+      toMultichainAccountWalletId(entropy.id),
+      entropy.groupIndex,
+    );
+  }, [primaryMoneyAccount]);
+  const isMoneyAccountGroup =
+    isBalanceBreakdownEnabled &&
+    isMoneyAccountFeatureEnabled &&
+    hasMoneyAccount &&
+    accountGroup.id === moneyAccountGroupId;
+  const userCurrency = groupBalance?.userCurrency;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   return (
     <>
-      <TouchableOpacity onPress={onSelectAccount}>
-        <View style={styles.balanceContainer}>
-          <SensitiveText
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            fontWeight={FontWeight.Medium}
-            length={SensitiveTextLength.Long}
-            isHidden={isBalanceHidden}
-            testID={AccountCellIds.BALANCE}
-          >
-            {balanceLabel ?? null}
-          </SensitiveText>
-          {networkImageSource && (
-            <AvatarNetwork
-              size={AvatarNetworkSize.Xs}
-              style={styles.networkBadge}
-              src={networkImageSource}
-            />
-          )}
-        </View>
-      </TouchableOpacity>
+      {isMoneyAccountGroup ? (
+        <MoneyBalanceDisplay
+          tokenBalance={groupBalance?.totalBalanceInUserCurrency}
+          userCurrency={userCurrency}
+          privacyMode={privacyMode}
+          onSelectAccount={onSelectAccount}
+          networkImageSource={networkImageSource}
+        />
+      ) : (
+        <BalanceDisplay
+          totalBalance={groupBalance?.totalBalanceInUserCurrency}
+          userCurrency={userCurrency}
+          privacyMode={privacyMode}
+          onSelectAccount={onSelectAccount}
+          networkImageSource={networkImageSource}
+        />
+      )}
       {!hideMenu && (
-        <TouchableOpacity
+        <Pressable
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -115,7 +259,7 @@ const BalanceEndContainer = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
   );
@@ -191,7 +335,7 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={onSelectAccount}
         style={styles.mainTouchable}
         testID={AccountCellIds.SELECT}
@@ -223,7 +367,7 @@ const AccountCell = ({
             />
           ) : null}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer

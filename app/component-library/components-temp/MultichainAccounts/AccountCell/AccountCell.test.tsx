@@ -24,6 +24,56 @@ const mockBalance: { value: number; currency: string } = {
   currency: 'usd',
 };
 
+const mockMoneyAccountInfo: {
+  isMoneyAccountFeatureEnabled: boolean;
+  hasMoneyAccount: boolean;
+  primaryMoneyAccount: unknown;
+} = {
+  isMoneyAccountFeatureEnabled: false,
+  hasMoneyAccount: false,
+  primaryMoneyAccount: undefined,
+};
+
+const mockMoneyAccountBalance: {
+  isBalanceUnavailable: boolean;
+  totalFiatRaw: string | undefined;
+} = {
+  isBalanceUnavailable: true,
+  totalFiatRaw: undefined,
+};
+
+let mockBalanceBreakdownEnabled = false;
+
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showBalanceBreakdown: mockBalanceBreakdownEnabled },
+    variantName: mockBalanceBreakdownEnabled ? 'treatment' : 'control',
+    isActive: mockBalanceBreakdownEnabled,
+  }),
+}));
+
+jest.mock('../../../../components/UI/Money/hooks/useMoneyAccountInfo', () => ({
+  __esModule: true,
+  default: () => mockMoneyAccountInfo,
+}));
+
+jest.mock(
+  '../../../../components/UI/Money/hooks/useMoneyAccountBalance',
+  () => ({
+    __esModule: true,
+    default: () => mockMoneyAccountBalance,
+  }),
+);
+
+jest.mock(
+  '../../../../components/Views/Homepage/BalanceBreakdown/hooks/useFiatNormalizer',
+  () => ({
+    useFiatNormalizer: () => ({
+      toUserCurrency: (amount: number) => amount,
+    }),
+  }),
+);
+
 // Mock balance selector to avoid deep store dependencies
 jest.mock('../../../../selectors/assets/balances', () => {
   const actual = jest.requireActual('../../../../selectors/assets/balances');
@@ -113,6 +163,12 @@ describe('AccountCell', () => {
     jest.clearAllMocks();
     mockBalance.value = 0;
     mockBalance.currency = 'usd';
+    mockBalanceBreakdownEnabled = false;
+    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = false;
+    mockMoneyAccountInfo.hasMoneyAccount = false;
+    mockMoneyAccountInfo.primaryMoneyAccount = undefined;
+    mockMoneyAccountBalance.isBalanceUnavailable = true;
+    mockMoneyAccountBalance.totalFiatRaw = undefined;
   });
 
   it('displays account name', () => {
@@ -133,6 +189,109 @@ describe('AccountCell', () => {
     mockBalance.currency = currency;
     const { getByText } = renderAccountCell();
     expect(getByText(expected)).toBeTruthy();
+  });
+
+  it('includes the Money Account balance in its account group balance', () => {
+    const moneyAccountGroup = createMockAccountGroup(
+      'entropy:test-entropy-id/0',
+      'Test Account Group',
+      ['account-1'],
+    );
+    mockBalanceBreakdownEnabled = true;
+    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
+    mockMoneyAccountInfo.hasMoneyAccount = true;
+    mockMoneyAccountInfo.primaryMoneyAccount = {
+      options: {
+        entropy: {
+          id: 'test-entropy-id',
+          groupIndex: 0,
+        },
+      },
+    };
+    mockMoneyAccountBalance.isBalanceUnavailable = false;
+    mockMoneyAccountBalance.totalFiatRaw = '3';
+    mockBalance.value = 100;
+
+    const { getByText } = renderAccountCell({
+      accountGroup: moneyAccountGroup,
+    });
+
+    expect(getByText('$103.00')).toBeTruthy();
+  });
+
+  it('does not include the Money Account balance in another account group', () => {
+    mockBalanceBreakdownEnabled = true;
+    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
+    mockMoneyAccountInfo.hasMoneyAccount = true;
+    mockMoneyAccountInfo.primaryMoneyAccount = {
+      options: {
+        entropy: {
+          id: 'test-entropy-id',
+          groupIndex: 0,
+        },
+      },
+    };
+    mockMoneyAccountBalance.isBalanceUnavailable = false;
+    mockMoneyAccountBalance.totalFiatRaw = '3';
+    mockBalance.value = 100;
+
+    const { getByText } = renderAccountCell();
+
+    expect(getByText('$100.00')).toBeTruthy();
+  });
+
+  it('does not include the Money Account balance when its feature flag is disabled', () => {
+    const moneyAccountGroup = createMockAccountGroup(
+      'entropy:test-entropy-id/0',
+      'Test Account Group',
+      ['account-1'],
+    );
+    mockBalanceBreakdownEnabled = true;
+    mockMoneyAccountInfo.hasMoneyAccount = true;
+    mockMoneyAccountInfo.primaryMoneyAccount = {
+      options: {
+        entropy: {
+          id: 'test-entropy-id',
+          groupIndex: 0,
+        },
+      },
+    };
+    mockMoneyAccountBalance.isBalanceUnavailable = false;
+    mockMoneyAccountBalance.totalFiatRaw = '3';
+    mockBalance.value = 100;
+
+    const { getByText, queryByText } = renderAccountCell({
+      accountGroup: moneyAccountGroup,
+    });
+
+    expect(getByText('$100.00')).toBeTruthy();
+    expect(queryByText('$103.00')).toBeNull();
+  });
+
+  it('keeps the Money Account group balance blank while Money balance is unavailable', () => {
+    const moneyAccountGroup = createMockAccountGroup(
+      'entropy:test-entropy-id/0',
+      'Test Account Group',
+      ['account-1'],
+    );
+    mockBalanceBreakdownEnabled = true;
+    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
+    mockMoneyAccountInfo.hasMoneyAccount = true;
+    mockMoneyAccountInfo.primaryMoneyAccount = {
+      options: {
+        entropy: {
+          id: 'test-entropy-id',
+          groupIndex: 0,
+        },
+      },
+    };
+    mockBalance.value = 100;
+
+    const { queryByText } = renderAccountCell({
+      accountGroup: moneyAccountGroup,
+    });
+
+    expect(queryByText('$100.00')).toBeNull();
   });
 
   it.each([
