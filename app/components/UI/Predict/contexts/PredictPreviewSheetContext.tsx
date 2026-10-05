@@ -56,7 +56,7 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
-import PredictPositionIcon from '../components/PredictPositionIcon';
+import AvatarPredict from '../components/AvatarPredict';
 import { getBuyOutcomeImage } from '../utils/sports';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
@@ -132,7 +132,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-3 flex-1 min-w-0"
     >
-      {position?.icon && <PredictPositionIcon uri={position.icon} />}
+      {position?.icon && <AvatarPredict uri={position.icon} />}
       <Box twClassName="flex-1 min-w-0">
         <Text
           variant={TextVariant.HeadingSm}

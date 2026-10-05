@@ -60,7 +60,7 @@ import {
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
-import PredictPositionIcon from '../../components/PredictPositionIcon';
+import AvatarPredict from '../../components/AvatarPredict';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import styleSheet from './PredictSellPreview.styles';
@@ -398,7 +398,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           )}
           {!isSheetMode && (
             <Box twClassName="flex-row items-center gap-4">
-              <PredictPositionIcon uri={icon} twClassName="self-start mt-1" />
+              <AvatarPredict uri={icon} twClassName="self-start mt-1" />
               <Box twClassName="flex-col gap-1 flex-1">
                 <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
                 <Text

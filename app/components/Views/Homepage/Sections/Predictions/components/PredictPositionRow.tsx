@@ -27,7 +27,7 @@ import {
   getPredictPositionDisplay,
 } from '../../../../../UI/Predict/utils/orders';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
-import PredictPositionIcon from '../../../../../UI/Predict/components/PredictPositionIcon';
+import AvatarPredict from '../../../../../UI/Predict/components/AvatarPredict';
 import { strings } from '../../../../../../../locales/i18n';
 
 interface PredictPositionRowProps {
@@ -72,7 +72,7 @@ const PredictPositionRowBase = ({
       testID={`predict-position-row-${position.id}`}
       style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
-      <PredictPositionIcon uri={position.icon} twClassName="mt-1" />
+      <AvatarPredict uri={position.icon} twClassName="mt-1" />
       <Box style={tw.style('flex-1')} gap={0}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {title}

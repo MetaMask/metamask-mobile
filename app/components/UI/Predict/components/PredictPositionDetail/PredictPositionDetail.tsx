@@ -38,7 +38,7 @@ import {
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictCashOut } from '../../hooks/usePredictCashOut';
-import PredictPositionIcon from '../PredictPositionIcon';
+import AvatarPredict from '../AvatarPredict';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -151,7 +151,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
       <Box twClassName="flex-row items-start gap-4">
         {Boolean(icon) && (
-          <PredictPositionIcon uri={icon} twClassName="self-start mt-1" />
+          <AvatarPredict uri={icon} twClassName="self-start mt-1" />
         )}
         <Box twClassName="flex-1">
           <Text
