@@ -10,6 +10,8 @@ import { KOL_EARNINGS_FIXTURE } from './rewardsUiFixtures';
  */
 let claimableRewards = KOL_EARNINGS_FIXTURE.availableToClaim;
 let isTaxFormPending = false;
+let isClaimOnHold = false;
+let isClaimsPaused = false;
 
 const listeners = new Set<() => void>();
 
@@ -60,8 +62,46 @@ export const markTaxFormPending = (): void => setIsTaxFormPending(true);
 /** Clears the pending tax form review. */
 export const resetTaxFormPending = (): void => setIsTaxFormPending(false);
 
+export const getIsClaimOnHold = (): boolean => isClaimOnHold;
+
+const setIsClaimOnHold = (onHold: boolean): void => {
+  if (onHold === isClaimOnHold) {
+    return;
+  }
+  isClaimOnHold = onHold;
+  emit();
+};
+
+/** Flags claims as on hold so the Claims tab shows On hold instead of Claim. */
+export const markClaimOnHold = (): void => setIsClaimOnHold(true);
+
+/** Clears the on-hold claim gate. */
+export const resetClaimOnHold = (): void => setIsClaimOnHold(false);
+
+export const getIsClaimsPaused = (): boolean => isClaimsPaused;
+
+const setIsClaimsPaused = (paused: boolean): void => {
+  if (paused === isClaimsPaused) {
+    return;
+  }
+  isClaimsPaused = paused;
+  emit();
+};
+
+/** Flags claims as paused so the Claims tab shows Paused instead of Claim. */
+export const markClaimsPaused = (): void => setIsClaimsPaused(true);
+
+/** Clears the paused claim gate. */
+export const resetClaimsPaused = (): void => setIsClaimsPaused(false);
+
 export const useClaimableRewards = (): number =>
   useSyncExternalStore(subscribe, getClaimableRewards);
 
 export const useIsTaxFormPending = (): boolean =>
   useSyncExternalStore(subscribe, getIsTaxFormPending);
+
+export const useIsClaimOnHold = (): boolean =>
+  useSyncExternalStore(subscribe, getIsClaimOnHold);
+
+export const useIsClaimsPaused = (): boolean =>
+  useSyncExternalStore(subscribe, getIsClaimsPaused);

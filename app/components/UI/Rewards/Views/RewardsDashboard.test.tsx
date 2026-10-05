@@ -9,6 +9,12 @@ import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
+import {
+  resetClaimableRewards,
+  resetClaimOnHold,
+  resetClaimsPaused,
+  resetTaxFormPending,
+} from '../components/KolDashboard/rewardsClaimStore';
 
 // Mock dependencies
 const mockDispatch = jest.fn();
@@ -285,6 +291,52 @@ jest.mock('../components/KolDashboard/RewardsDashboardTabs', () => ({
   },
 }));
 
+jest.mock('../components/KolDashboard/RewardsPreviewSheet', () => {
+  const { KOL_DASHBOARD_SELECTORS: selectors } = jest.requireActual(
+    '../components/KolDashboard/KolDashboard.testIds',
+  );
+  return {
+    __esModule: true,
+    default: function MockRewardsPreviewSheet({
+      isVisible,
+      onSelect,
+    }: {
+      isVisible: boolean;
+      onSelect: (action: string) => void;
+    }) {
+      const ReactActual = jest.requireActual('react');
+      const { Pressable, View } = jest.requireActual('react-native');
+      if (!isVisible) {
+        return null;
+      }
+      return ReactActual.createElement(
+        View,
+        { testID: selectors.PREVIEW_SHEET },
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_MAIN_DASHBOARD,
+          onPress: () => onSelect('mainDashboard'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_INVITED_EXISTING_USER,
+          onPress: () => onSelect('invitedExistingUser'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_CLAIMS_ON_HOLD,
+          onPress: () => onSelect('claimsOnHold'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_CLAIMS_PAUSED,
+          onPress: () => onSelect('claimsPaused'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_RESET_CLAIM,
+          onPress: () => onSelect('resetClaim'),
+        }),
+      );
+    },
+  };
+});
+
 jest.mock('../components/KolDashboard/ReferralInviteSheet', () => ({
   __esModule: true,
   default: function MockReferralInviteSheet({
@@ -522,6 +574,10 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetClaimableRewards();
+    resetTaxFormPending();
+    resetClaimOnHold();
+    resetClaimsPaused();
 
     // Configure mocks before passing them to the mock hook factory
     // so the hook receives already-configured references
@@ -2285,8 +2341,15 @@ describe('RewardsDashboard', () => {
       fireEvent(getByTestId(REWARDS_VIEW_SELECTORS.TITLE), 'longPress');
     };
 
-    const acceptInvite = (getByTestId: GetByTestId) => {
+    const openInviteSheet = (getByTestId: GetByTestId) => {
       longPressTitle(getByTestId);
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_INVITED_EXISTING_USER),
+      );
+    };
+
+    const acceptInvite = (getByTestId: GetByTestId) => {
+      openInviteSheet(getByTestId);
       fireEvent.press(getByTestId('referral-invite-accept'));
     };
 
@@ -2299,16 +2362,95 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('referral-invite-sheet')).toBeNull();
     });
 
-    it('opens the invite sheet from the hidden long press on the title', () => {
-      // Arrange
-      const { getByTestId } = render(<RewardsDashboard />);
+    it('opens the preview sheet from the hidden long press on the title', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Act
       longPressTitle(getByTestId);
 
-      // Assert — the KOL dashboard stays underneath the sheet
+      expect(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+    });
+
+    it('opens the invite sheet from Invited existing user', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      openInviteSheet(getByTestId);
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
       expect(getByTestId('referral-invite-sheet')).toBeOnTheScreen();
       expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+    });
+
+    it('restores the KOL dashboard from Main dashboard', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_MAIN_DASHBOARD),
+      );
+
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO)).toBeNull();
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+    });
+
+    it('opens the Claims tab without the on-hold sheet or earnings dot', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_CLAIMS_ON_HOLD),
+      );
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(
+        queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
+      ).toBeNull();
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeTab: 'earnings',
+          showEarningsDot: false,
+        }),
+      );
+    });
+
+    it('opens the Claims tab without the paused sheet or earnings dot', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_CLAIMS_PAUSED),
+      );
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(
+        queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
+      ).toBeNull();
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeTab: 'earnings',
+          showEarningsDot: false,
+        }),
+      );
+    });
+
+    it('opens the Claims tab from Reset claim', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_RESET_CLAIM));
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ activeTab: 'earnings' }),
+      );
     });
 
     it('swaps the referral card for the referred card on accept', () => {
@@ -2422,7 +2564,7 @@ describe('RewardsDashboard', () => {
     it('returns to the KOL dashboard on decline', () => {
       // Arrange
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-      longPressTitle(getByTestId);
+      openInviteSheet(getByTestId);
 
       // Act
       fireEvent.press(getByTestId('referral-invite-decline'));
@@ -2436,7 +2578,7 @@ describe('RewardsDashboard', () => {
     it('hides the invite without changing persona when the sheet is dismissed', () => {
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
       acceptInvite(getByTestId);
-      longPressTitle(getByTestId);
+      openInviteSheet(getByTestId);
 
       fireEvent.press(getByTestId('referral-invite-close'));
 
@@ -2449,7 +2591,7 @@ describe('RewardsDashboard', () => {
     it('returns to the KOL dashboard when declining after a previous accept', () => {
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
       acceptInvite(getByTestId);
-      longPressTitle(getByTestId);
+      openInviteSheet(getByTestId);
 
       fireEvent.press(getByTestId('referral-invite-decline'));
 

@@ -1,9 +1,15 @@
 import {
   claimAllRewards,
   getClaimableRewards,
+  getIsClaimOnHold,
+  getIsClaimsPaused,
   getIsTaxFormPending,
+  markClaimOnHold,
+  markClaimsPaused,
   markTaxFormPending,
   resetClaimableRewards,
+  resetClaimOnHold,
+  resetClaimsPaused,
   resetTaxFormPending,
 } from './rewardsClaimStore';
 import { KOL_EARNINGS_FIXTURE } from './rewardsUiFixtures';
@@ -12,6 +18,8 @@ describe('rewardsClaimStore', () => {
   afterEach(() => {
     resetClaimableRewards();
     resetTaxFormPending();
+    resetClaimOnHold();
+    resetClaimsPaused();
   });
 
   it('starts at the fixture balance', () => {
@@ -48,5 +56,41 @@ describe('rewardsClaimStore', () => {
     resetTaxFormPending();
 
     expect(getIsTaxFormPending()).toBe(false);
+  });
+
+  it('starts with claims not on hold', () => {
+    expect(getIsClaimOnHold()).toBe(false);
+  });
+
+  it('reports claims on hold after the preview flag is set', () => {
+    markClaimOnHold();
+
+    expect(getIsClaimOnHold()).toBe(true);
+  });
+
+  it('clears the on-hold flag after a reset', () => {
+    markClaimOnHold();
+
+    resetClaimOnHold();
+
+    expect(getIsClaimOnHold()).toBe(false);
+  });
+
+  it('starts with claims not paused', () => {
+    expect(getIsClaimsPaused()).toBe(false);
+  });
+
+  it('reports claims paused after the preview flag is set', () => {
+    markClaimsPaused();
+
+    expect(getIsClaimsPaused()).toBe(true);
+  });
+
+  it('clears the paused flag after a reset', () => {
+    markClaimsPaused();
+
+    resetClaimsPaused();
+
+    expect(getIsClaimsPaused()).toBe(false);
   });
 });

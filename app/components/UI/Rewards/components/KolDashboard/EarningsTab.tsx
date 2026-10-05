@@ -34,9 +34,16 @@ import {
   KOL_EARNINGS_HISTORY_PREVIEW_COUNT,
   type KolEarningsHistoryKind,
 } from './rewardsUiFixtures';
-import { claimAllRewards, useClaimableRewards } from './rewardsClaimStore';
+import {
+  claimAllRewards,
+  useClaimableRewards,
+  useIsClaimOnHold,
+  useIsClaimsPaused,
+} from './rewardsClaimStore';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
+import ClaimOnHoldSheet from './ClaimOnHoldSheet';
+import ClaimsPausedSheet from './ClaimsPausedSheet';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
 import { useClaimEligibilityFlow } from './ClaimEligibilityFlow';
 
@@ -82,6 +89,10 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, closeToast, RewardsToastOptions } = useRewardsToast();
   const claimableRewards = useClaimableRewards();
+  const isClaimOnHold = useIsClaimOnHold();
+  const isClaimsPaused = useIsClaimsPaused();
+  const [isOnHoldSheetVisible, setIsOnHoldSheetVisible] = useState(false);
+  const [isPausedSheetVisible, setIsPausedSheetVisible] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
   // The store drops to zero the moment a claim starts, so the rolling digits
   // read from local state until they land on the same value.
@@ -229,16 +240,48 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     useClaimEligibilityFlow(completeClaim);
 
   const handleClaim = useCallback(() => {
+    if (isClaimsPaused) {
+      setIsPausedSheetVisible(true);
+      return;
+    }
+    if (isClaimOnHold) {
+      setIsOnHoldSheetVisible(true);
+      return;
+    }
     if (claimableRewards <= 0) {
       return;
     }
     startClaimFlow();
-  }, [claimableRewards, startClaimFlow]);
+  }, [claimableRewards, isClaimOnHold, isClaimsPaused, startClaimFlow]);
+
+  const isClaimGated = isClaimOnHold || isClaimsPaused;
+
+  const claimButtonLabel = isClaimsPaused
+    ? strings('rewards.kol.claims_paused_action')
+    : isClaimOnHold
+      ? strings('rewards.kol.claim_on_hold_action')
+      : strings(isClaimed ? 'rewards.kol.claimed' : 'rewards.kol.claim');
+
+  const availableLabel = isClaimGated
+    ? strings('rewards.kol.available_paused', {
+        symbol: strings('rewards.kol.claim_token_symbol'),
+      })
+    : strings('rewards.kol.available_to_claim', {
+        symbol: strings('rewards.kol.claim_token_symbol'),
+      });
 
   return (
     <Box twClassName="pt-8 pb-6" testID={KOL_DASHBOARD_SELECTORS.EARNINGS_TAB}>
       <ClaimMoneyFallOverlay visible={isFalling} />
       {claimEligibilitySheets}
+      <ClaimOnHoldSheet
+        isVisible={isOnHoldSheetVisible}
+        onClose={() => setIsOnHoldSheetVisible(false)}
+      />
+      <ClaimsPausedSheet
+        isVisible={isPausedSheetVisible}
+        onClose={() => setIsPausedSheetVisible(false)}
+      />
       <Box twClassName="px-4">
         <Box twClassName="overflow-hidden rounded-2xl bg-muted">
           <Box
@@ -251,10 +294,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
+                testID={KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM_LABEL}
               >
-                {strings('rewards.kol.available_to_claim', {
-                  symbol: strings('rewards.kol.claim_token_symbol'),
-                })}
+                {availableLabel}
               </Text>
               <Animated.View style={amountAnimatedStyle}>
                 <Text
@@ -272,12 +314,10 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Md}
                 onPress={handleClaim}
-                isDisabled={isClaimed || available <= 0}
+                isDisabled={!isClaimGated && (isClaimed || available <= 0)}
                 testID={KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON}
               >
-                {strings(
-                  isClaimed ? 'rewards.kol.claimed' : 'rewards.kol.claim',
-                )}
+                {claimButtonLabel}
               </Button>
             </Box>
           </Box>
@@ -360,7 +400,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       <Box twClassName="px-4">
         <Box twClassName="gap-4" testID={KOL_DASHBOARD_SELECTORS.HISTORY_LIST}>
           {historyPreview.map((item) => (
-            <EarningsHistoryRow key={item.id} item={item} />
+            <EarningsHistoryRow
+              key={item.id}
+              item={item}
+              isPaused={isClaimsPaused}
+            />
           ))}
         </Box>
       </Box>

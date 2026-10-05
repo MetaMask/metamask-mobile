@@ -66,9 +66,22 @@ import ReferralHeroCard from '../components/KolDashboard/ReferralHeroCard';
 import InvitedBenefitCard from '../components/KolDashboard/InvitedBenefitCard';
 import InvitedOptInEmptyState from '../components/KolDashboard/InvitedOptInEmptyState';
 import ReferralInviteSheet from '../components/KolDashboard/ReferralInviteSheet';
+import RewardsPreviewSheet, {
+  type RewardsPreviewAction,
+} from '../components/KolDashboard/RewardsPreviewSheet';
 import EarningsTab from '../components/KolDashboard/EarningsTab';
 import PerformanceTab from '../components/KolDashboard/PerformanceTab';
-import { useClaimableRewards } from '../components/KolDashboard/rewardsClaimStore';
+import {
+  markClaimOnHold,
+  markClaimsPaused,
+  resetClaimableRewards,
+  resetClaimOnHold,
+  resetClaimsPaused,
+  resetTaxFormPending,
+  useClaimableRewards,
+  useIsClaimOnHold,
+  useIsClaimsPaused,
+} from '../components/KolDashboard/rewardsClaimStore';
 import type { RewardsDashboardTab } from '../components/KolDashboard/RewardsDashboardTabs.types';
 import {
   KOL_INVITE_FIXTURE,
@@ -123,12 +136,15 @@ const RewardsDashboard: React.FC = () => {
   const [dashboardTab, setDashboardTab] =
     useState<RewardsDashboardTab>('waysToEarn');
   const claimableRewards = useClaimableRewards();
+  const isClaimOnHold = useIsClaimOnHold();
+  const isClaimsPaused = useIsClaimsPaused();
   // Fixture persona for the visual shell: `kol` is the dashboard we ship today,
   // and `invited` is the referee layout. The invite sheet overlays whichever
   // persona is showing; engineers replace this with referral state.
   const [persona, setPersona] = useState<RewardsUiPersona>(
     REWARDS_UI_DEFAULT_PERSONA,
   );
+  const [isPreviewSheetVisible, setIsPreviewSheetVisible] = useState(false);
   const [isInviteSheetVisible, setIsInviteSheetVisible] = useState(false);
   const [hasOptedInAccounts, setHasOptedInAccounts] = useState(false);
   const [acceptedReferralCode, setAcceptedReferralCode] = useState(
@@ -514,10 +530,52 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
-  // Hidden replay for the invite flow, in the same spirit as the VIP tap above:
-  // a long press on the title overlays the sheet without changing the dashboard.
+  // Hidden prototype launcher: a long press on the title opens the fixture
+  // state picker. Engineers delete this when referral and claim state are wired.
   const handleTitleLongPress = useCallback(() => {
-    setIsInviteSheetVisible(true);
+    setIsPreviewSheetVisible(true);
+  }, []);
+
+  const handlePreviewSelect = useCallback((action: RewardsPreviewAction) => {
+    // Close the picker first so the next overlay never shares the screen.
+    setIsPreviewSheetVisible(false);
+    setIsInviteSheetVisible(false);
+
+    if (action === 'mainDashboard') {
+      resetClaimOnHold();
+      resetClaimsPaused();
+      setPersona('kol');
+      setHasOptedInAccounts(false);
+      setDashboardTab('waysToEarn');
+      return;
+    }
+
+    if (action === 'invitedExistingUser') {
+      setIsInviteSheetVisible(true);
+      return;
+    }
+
+    if (action === 'claimsOnHold') {
+      resetTaxFormPending();
+      resetClaimsPaused();
+      markClaimOnHold();
+      setDashboardTab('earnings');
+      return;
+    }
+
+    if (action === 'claimsPaused') {
+      resetClaimOnHold();
+      resetTaxFormPending();
+      markClaimsPaused();
+      setDashboardTab('earnings');
+      return;
+    }
+
+    resetClaimableRewards();
+    resetTaxFormPending();
+    resetClaimOnHold();
+    resetClaimsPaused();
+    setDashboardTab('earnings');
   }, []);
 
   const handleAcceptInvite = useCallback(
@@ -645,7 +703,9 @@ const RewardsDashboard: React.FC = () => {
             />
             <RewardsDashboardTabs
               activeTab={dashboardTab}
-              showEarningsDot={claimableRewards > 0}
+              showEarningsDot={
+                claimableRewards > 0 && !isClaimOnHold && !isClaimsPaused
+              }
               onChangeTab={setDashboardTab}
             />
             <Animated.ScrollView
@@ -685,6 +745,12 @@ const RewardsDashboard: React.FC = () => {
             </Animated.ScrollView>
           </Animated.View>
         </Box>
+        <RewardsPreviewSheet
+          isVisible={isPreviewSheetVisible}
+          isMainDashboardSelected={!isInvited}
+          onClose={() => setIsPreviewSheetVisible(false)}
+          onSelect={handlePreviewSelect}
+        />
         <ReferralInviteSheet
           isVisible={isInviteSheetVisible}
           referralCode={KOL_INVITE_FIXTURE.referralCode}

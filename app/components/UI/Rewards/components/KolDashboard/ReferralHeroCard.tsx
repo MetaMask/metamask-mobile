@@ -73,8 +73,9 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
             }}
             size={ButtonIconSize.Md}
             // Offsets the 6px inset between the 32px button and 20px glyph so
-            // the glyph lines up with the card's 16px content padding.
-            twClassName="-mr-1.5"
+            // the glyph lines up with the card's 16px content padding and the
+            // header stays as tall as the label.
+            twClassName="-mr-1.5 -my-1.5"
             onPress={() => setIsTermsOpen(true)}
             accessibilityLabel={strings('rewards.kol.terms_title')}
             testID={KOL_DASHBOARD_SELECTORS.TERMS_INFO_BUTTON}

@@ -11,7 +11,11 @@ import {
 import {
   getClaimableRewards,
   getIsTaxFormPending,
+  markClaimOnHold,
+  markClaimsPaused,
   resetClaimableRewards,
+  resetClaimOnHold,
+  resetClaimsPaused,
   resetTaxFormPending,
 } from './rewardsClaimStore';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -84,6 +88,8 @@ describe('EarningsTab', () => {
     // so each test has to start from the fixture amount and no pending form.
     resetClaimableRewards();
     resetTaxFormPending();
+    resetClaimOnHold();
+    resetClaimsPaused();
     mockShowToast.mockClear();
     mockCloseToast.mockClear();
     mockSuccessToast.mockClear();
@@ -95,6 +101,80 @@ describe('EarningsTab', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('labels the claim button On hold and opens the on-hold sheet', () => {
+    markClaimOnHold();
+    const { getByTestId, getByText, queryByTestId } = render(<EarningsTab />);
+
+    expect(getByText('rewards.kol.claim_on_hold_action')).toBeOnTheScreen();
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM_LABEL),
+    ).toHaveTextContent('rewards.kol.available_paused');
+    expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toBeEnabled();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeNull();
+  });
+
+  it('labels the claim button Paused and opens the paused sheet', () => {
+    markClaimsPaused();
+    const { getAllByTestId, getByTestId, queryByTestId } = render(
+      <EarningsTab />,
+    );
+
+    expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toHaveTextContent(
+      'rewards.kol.claims_paused_action',
+    );
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM_LABEL),
+    ).toHaveTextContent('rewards.kol.available_paused');
+    expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toBeEnabled();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
+    ).toBeNull();
+    expect(
+      getAllByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_TAG),
+    ).toHaveLength(1);
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeNull();
+  });
+
+  it('opens the history on-hold sheet when the paused Commission row is pressed', () => {
+    markClaimsPaused();
+    const { getByTestId, queryByTestId } = render(<EarningsTab />);
+
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_ON_HOLD_SHEET),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_ROW));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_ON_HOLD_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_ON_HOLD_TITLE),
+    ).toHaveTextContent('rewards.kol.history_on_hold_title');
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
+    ).toBeNull();
   });
 
   it('opens the residency sheet when Claim is pressed', () => {

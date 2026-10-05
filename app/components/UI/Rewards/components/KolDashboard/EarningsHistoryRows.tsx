@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Pressable } from 'react-native';
 import {
   AvatarBase,
   AvatarBaseShape,
@@ -11,6 +12,8 @@ import {
   BoxFlexDirection,
   IconColor,
   IconName,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -20,6 +23,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import HandCoinsIcon from '../../../../../images/rewards/hand-coins.svg';
 import UsersThreeIcon from '../../../../../images/rewards/users-three.svg';
+import HistoryOnHoldSheet from './HistoryOnHoldSheet';
+import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import {
   formatSignedUsd,
   KOL_EARNINGS_FIXTURE,
@@ -77,28 +82,80 @@ export const HistoryKindAvatar: React.FC<{ kind: KolEarningsHistoryKind }> = ({
 
 export const EarningsHistoryRow: React.FC<{
   item: (typeof KOL_EARNINGS_FIXTURE.history)[number];
-}> = ({ item }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-3"
-  >
-    <HistoryKindAvatar kind={item.kind} />
-    <Box twClassName="flex-1">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {strings(`rewards.kol.history_${item.kind}`)}
-      </Text>
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {item.relativeTime}
-      </Text>
-    </Box>
-    <Text
-      variant={TextVariant.BodyMd}
-      color={
-        item.amount < 0 ? TextColor.TextAlternative : TextColor.SuccessDefault
-      }
+  isPaused?: boolean;
+}> = ({ item, isPaused = false }) => {
+  const [isOnHoldSheetVisible, setIsOnHoldSheetVisible] = useState(false);
+  const showPausedTag = isPaused && item.kind === 'commission';
+
+  const row = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-3"
     >
-      {formatSignedUsd(item.amount)}
-    </Text>
-  </Box>
-);
+      <HistoryKindAvatar kind={item.kind} />
+      <Box twClassName="flex-1">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="shrink"
+          >
+            {strings(`rewards.kol.history_${item.kind}`)}
+          </Text>
+          {showPausedTag ? (
+            <Tag
+              severity={TagSeverity.Neutral}
+              testID={KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_TAG}
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('rewards.kol.claims_paused_action')}
+              </Text>
+            </Tag>
+          ) : null}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={
+              showPausedTag || item.amount < 0
+                ? TextColor.TextAlternative
+                : TextColor.SuccessDefault
+            }
+            twClassName="ml-auto"
+          >
+            {formatSignedUsd(item.amount)}
+          </Text>
+        </Box>
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {item.relativeTime}
+        </Text>
+      </Box>
+    </Box>
+  );
+
+  if (!showPausedTag) {
+    return row;
+  }
+
+  return (
+    <>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setIsOnHoldSheetVisible(true)}
+        testID={KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_ROW}
+      >
+        {row}
+      </Pressable>
+      <HistoryOnHoldSheet
+        isVisible={isOnHoldSheetVisible}
+        onClose={() => setIsOnHoldSheetVisible(false)}
+      />
+    </>
+  );
+};
