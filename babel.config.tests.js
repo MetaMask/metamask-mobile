@@ -115,6 +115,8 @@ const newOverrides = [
       'app/components/UI/Predict/controllers/PredictController.test.ts',
       'app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest.ts',
       'app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest.test.ts',
+      'scripts/run-mfa-recovery-cubist-test.ts',
+      'scripts/run-mfa-recovery-cubist-test.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
       'tests/framework/playwrightLogger.ts',

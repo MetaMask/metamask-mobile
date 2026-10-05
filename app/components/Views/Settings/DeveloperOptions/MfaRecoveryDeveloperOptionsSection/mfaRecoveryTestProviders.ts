@@ -1,73 +1,23 @@
 import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
 import type {
-  AuthControllerToken,
   Identifier,
   PendingOperation,
   PendingOperationEncryptor,
-  RecoveryAuthProvider,
   RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
+import { SoftwarePasskey, base64Url } from './softwarePasskey';
 
-const AUTH_TOKEN_LIFETIME_SECONDS = 60 * 60;
+/** Must be allowed by the escrow's IDENTIFIER_POLICY (siwe domains/chainIds). */
+export const SIWE_DOMAIN = 'metamask.io';
+export const SIWE_CHAIN_ID = 1;
+/** Must be allowed by the escrow's IDENTIFIER_POLICY (passkey rpIds/origins). */
+export const PASSKEY_RP_ID = 'metamask.io';
+export const PASSKEY_ORIGIN = 'https://metamask.io';
 
 type SignPersonalMessage = (params: {
   data: string;
   from: string;
 }) => Promise<string>;
-
-/**
- * Test-only AuthController replacement for the developer flow.
- *
- * The AuthenticationController bearer token is carried in `signature` so the
- * escrow receives the same SRP session token used for the Cubist OIDC login.
- */
-export class StubAuthProvider implements RecoveryAuthProvider {
-  readonly #profileId: string;
-
-  readonly #accessToken: string;
-
-  readonly #now: () => number;
-
-  constructor(
-    profileId: string,
-    accessToken: string,
-    now = () => Math.floor(Date.now() / 1000),
-  ) {
-    this.#profileId = profileId;
-    this.#accessToken = accessToken;
-    this.#now = now;
-  }
-
-  async getAuthenticatedProfileId(): Promise<string> {
-    return this.#profileId;
-  }
-
-  async authorizeRecoveryRequest(params: {
-    requestHash: string;
-    requireTwoFactor?: boolean;
-    identifiers?: Identifier[];
-  }): Promise<AuthControllerToken> {
-    const identifiersHash =
-      params.identifiers === undefined
-        ? undefined
-        : await hashIdentifiers(params.identifiers);
-
-    return {
-      profileId: this.#profileId,
-      requestHash: params.requestHash,
-      ...(params.requireTwoFactor ? { twoFactor: true as const } : {}),
-      ...(identifiersHash === undefined
-        ? {}
-        : {
-            identifiersHash,
-            identifierOwnershipApproved: true as const,
-          }),
-      issuer: 'mfa-recovery-developer-test',
-      expiresAt: this.#now() + AUTH_TOKEN_LIFETIME_SECONDS,
-      signature: this.#accessToken,
-    };
-  }
-}
 
 /**
  * Signs key-bound SIWE identifier proofs with the primary account.
@@ -94,11 +44,25 @@ export class SiweIdentifierAuthProvider
     requestHash: string;
     providerAssertion: unknown;
   }> {
+    // The escrow requires nonce = hash([proofPublicKey, requestHash]).
+    const nonce = bytesToHex(
+      await sha256(
+        stringToBytes(
+          JSON.stringify([params.proofPublicKey, params.requestHash]),
+        ),
+      ),
+    );
     const message = [
-      'MetaMask MFA recovery identifier proof',
-      `Address: ${this.#address}`,
-      `Proof public key: ${params.proofPublicKey}`,
-      `Request hash: ${params.requestHash}`,
+      `${SIWE_DOMAIN} wants you to sign in with your Ethereum account:`,
+      this.#address,
+      '',
+      'Authorize MetaMask MFA recovery.',
+      '',
+      `URI: https://${SIWE_DOMAIN}`,
+      'Version: 1',
+      `Chain ID: ${SIWE_CHAIN_ID}`,
+      `Nonce: ${nonce}`,
+      `Issued At: ${new Date().toISOString()}`,
     ].join('\n');
     const signature = await this.#signPersonalMessage({
       from: this.#address,
@@ -109,12 +73,63 @@ export class SiweIdentifierAuthProvider
       identifier: params.identifier,
       proofPublicKey: params.proofPublicKey,
       requestHash: params.requestHash,
-      providerAssertion: {
-        type: 'siwe',
-        address: this.#address,
-        message,
-        signature,
+      providerAssertion: { message, signature },
+    };
+  }
+}
+
+/**
+ * Signs key-bound passkey identifier proofs with in-memory software passkeys.
+ */
+export class PasskeyIdentifierAuthProvider
+  implements RecoveryIdentifierAuthProvider
+{
+  readonly #passkeys = new Map<string, SoftwarePasskey>();
+
+  /** Creates a passkey and returns its recovery identifier. */
+  createIdentifier(): Identifier {
+    const passkey = new SoftwarePasskey();
+    this.#passkeys.set(passkey.credentialId, passkey);
+    return {
+      type: 'passkey',
+      namespace: PASSKEY_RP_ID,
+      value: passkey.credentialId,
+      verifier: {
+        rpId: PASSKEY_RP_ID,
+        origins: [PASSKEY_ORIGIN],
+        credentialId: passkey.credentialId,
+        publicKey: passkey.publicJwk,
       },
+    };
+  }
+
+  async getKeyBoundIdentifierToken(params: {
+    identifier: Identifier;
+    proofPublicKey: string;
+    requestHash: string;
+  }) {
+    const passkey = this.#passkeys.get(params.identifier.value);
+    if (!passkey) {
+      throw new Error('Unknown test passkey');
+    }
+    // The escrow requires challenge = the raw digest of hash([proofPublicKey, requestHash]).
+    const challenge = base64Url(
+      await sha256(
+        stringToBytes(
+          JSON.stringify([params.proofPublicKey, params.requestHash]),
+        ),
+      ),
+    );
+    const { id, response } = await passkey.get({
+      rpId: PASSKEY_RP_ID,
+      origin: PASSKEY_ORIGIN,
+      challenge,
+    });
+    return {
+      identifier: params.identifier,
+      proofPublicKey: params.proofPublicKey,
+      requestHash: params.requestHash,
+      providerAssertion: { id, response },
     };
   }
 }
@@ -131,43 +146,3 @@ export const passthroughEncryptor: PendingOperationEncryptor = {
     return JSON.parse(ciphertext) as PendingOperation;
   },
 };
-
-async function hashIdentifiers(identifiers: Identifier[]): Promise<string> {
-  const canonicalIdentifiers = identifiers
-    .map((identifier) => ({
-      namespace: identifier.namespace,
-      type: identifier.type,
-      value: identifier.value,
-      verifier: identifier.verifier,
-    }))
-    .sort((left, right) =>
-      canonicalize(left).localeCompare(canonicalize(right)),
-    );
-
-  return bytesToHex(
-    await sha256(stringToBytes(canonicalize(canonicalIdentifiers))),
-  );
-}
-
-function canonicalize(value: unknown): string {
-  return JSON.stringify(sortKeys(value)) ?? 'null';
-}
-
-function sortKeys(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(sortKeys);
-  }
-  if (isRecord(value)) {
-    return Object.keys(value)
-      .sort()
-      .reduce<Record<string, unknown>>((sorted, key) => {
-        sorted[key] = sortKeys(value[key]);
-        return sorted;
-      }, {});
-  }
-  return value;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}

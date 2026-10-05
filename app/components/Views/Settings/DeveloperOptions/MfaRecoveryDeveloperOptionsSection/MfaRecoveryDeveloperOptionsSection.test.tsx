@@ -7,15 +7,31 @@ const mockRunMfaRecoveryCubistTest = jest.fn();
 const mockRunMfaRecoveryCubistRecover = jest.fn();
 const mockGetMfaRecoveryErrorCode = jest.fn();
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      KeyringController: {
+        state: { keyrings: [{ accounts: ['0xabc'] }] },
+        signPersonalMessage: jest.fn(),
+      },
+    },
+  },
+}));
+
 jest.mock('./runMfaRecoveryCubistTest', () => ({
   getMfaRecoveryErrorCode: (error: unknown) =>
     mockGetMfaRecoveryErrorCode(error),
   getMfaRecoveryErrorDetail: (error: unknown) =>
     error instanceof Error ? error.message : undefined,
-  runMfaRecoveryCubistTest: (onStep: (step: string) => void) =>
-    mockRunMfaRecoveryCubistTest(onStep),
-  runMfaRecoveryCubistRecover: (onStep: (step: string) => void) =>
-    mockRunMfaRecoveryCubistRecover(onStep),
+  runMfaRecoveryCubistTest: (
+    dependencies: unknown,
+    onStep: (step: string) => void,
+  ) => mockRunMfaRecoveryCubistTest(dependencies, onStep),
+  runMfaRecoveryCubistRecover: (
+    dependencies: unknown,
+    onStep: (step: string) => void,
+  ) => mockRunMfaRecoveryCubistRecover(dependencies, onStep),
 }));
 
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
