@@ -43,7 +43,7 @@ const eyebrowTrackingStyle = { letterSpacing: 0.8 };
 
 /**
  * `{date}` is the full trailing time phrase so both forms stay grammatical:
- * `through <formatted earning_end>` or `for a limited time`.
+ * `through <formatted cashback_earning_end>` or `for a limited time`.
  */
 export function fillInviteAcceptedBodyDate(
   template: string,
@@ -77,9 +77,12 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     () =>
       fillInviteAcceptedBodyDate(
         localizedText?.inviteAcceptedBody ?? '',
-        referralMe?.referred_by?.earning_end,
+        referralMe?.referred_by?.cashback_earning_end,
       ),
-    [localizedText?.inviteAcceptedBody, referralMe?.referred_by?.earning_end],
+    [
+      localizedText?.inviteAcceptedBody,
+      referralMe?.referred_by?.cashback_earning_end,
+    ],
   );
 
   // The tab picked its home from the pre-accept persona and does not remount

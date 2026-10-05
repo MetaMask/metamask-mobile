@@ -89,7 +89,10 @@ const buildReferralMe = (
   referred_by: {
     referral_code: 'KOL1',
     earning_start: '2026-09-01T00:00:00.000Z',
-    earning_end: '2026-10-24T00:00:00.000Z',
+    // Revenue share runs six months. The splash must not date the cashback
+    // copy from this.
+    earning_end: '2027-04-01T00:00:00.000Z',
+    cashback_earning_end: '2026-10-24T00:00:00.000Z',
   },
   earn_rates: {
     revshare_rate_bps: null,
@@ -143,7 +146,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     );
   };
 
-  it('renders activation copy with the earning end date phrase', () => {
+  it('renders activation copy through the cashback window end', () => {
     const { getByTestId, getByText } = renderSplash();
 
     expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
@@ -152,15 +155,17 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
       'Your rebate offer is active',
     );
     expect(getByTestId(TEST_IDS.BODY).props.children).toMatch(/through .+2026/);
+    expect(getByTestId(TEST_IDS.BODY).props.children).not.toMatch(/2027/);
   });
 
-  it('uses for a limited time when earning_end is missing', () => {
+  it('uses for a limited time when cashback_earning_end is missing', () => {
     const { getByTestId } = renderSplash(
       buildReferralMe({
         referred_by: {
           referral_code: 'KOL1',
           earning_start: null,
-          earning_end: null,
+          earning_end: '2027-04-01T00:00:00.000Z',
+          cashback_earning_end: null,
         },
       }),
     );

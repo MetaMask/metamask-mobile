@@ -30,6 +30,7 @@ const REFERRED_BY = {
   referral_code: 'INVITER',
   earning_start: null,
   earning_end: null,
+  cashback_earning_end: null,
 };
 
 const emptyBranch = {

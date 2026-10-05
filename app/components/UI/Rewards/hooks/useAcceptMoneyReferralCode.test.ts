@@ -50,6 +50,7 @@ const buildReferralMe = (
     referral_code: CODE,
     earning_start: null,
     earning_end: null,
+    cashback_earning_end: null,
   },
   earn_rates: {
     revshare_rate_bps: null,
