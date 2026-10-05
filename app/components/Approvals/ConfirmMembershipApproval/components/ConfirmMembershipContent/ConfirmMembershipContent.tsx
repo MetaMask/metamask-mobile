@@ -47,98 +47,61 @@ export function ConfirmMembershipContent({
   onClose,
   onConfirm,
 }: ConfirmMembershipContentProps) {
-  const totalFormatted = moneyFormatUsd(new BigNumber(totalAmount || '0'));
   const confirmButtonLabel = isTrial
     ? strings('confirm_membership.start_trial')
     : strings('confirm_membership.confirm_and_pay');
 
   return (
     <Box testID={ConfirmMembershipApprovalTestIds.CONTAINER}>
-      <BottomSheetHeader
-        onClose={onClose}
-        closeButtonProps={{
-          testID: ConfirmMembershipApprovalTestIds.CLOSE_BUTTON,
-        }}
-      >
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('confirm_membership.title')}
-        </Text>
-      </BottomSheetHeader>
+      <Header onClose={onClose} />
       <Box twClassName="px-4 gap-4">
-        <Box twClassName="items-center gap-1 pt-10 pb-12">
-          <CustomAmount
-            amountFiat={monthlyAmount}
-            currency="usd"
-            showCursor={false}
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={ConfirmMembershipApprovalTestIds.PLAN_NAME}
-          >
-            {strings('confirm_membership.plan_name')}
-          </Text>
-        </Box>
+        <AmountSection monthlyAmount={monthlyAmount} />
         <Box>
           <MoneyAccountFromRow />
-          <InfoRow
-            label={strings('confirm.label.total')}
-            rowVariant={InfoRowVariant.Small}
-            testID={ConfirmMembershipApprovalTestIds.TOTAL_ROW}
-          >
-            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-              {totalFormatted}
-            </Text>
-          </InfoRow>
-          {isTrial && (
-            <InfoRow
-              label={strings('confirm_membership.billed_on')}
-              rowVariant={InfoRowVariant.Small}
-              testID={ConfirmMembershipApprovalTestIds.BILLED_ON_ROW}
-            >
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {billedOn}
-              </Text>
-            </InfoRow>
-          )}
+          <TotalRow totalAmount={totalAmount} />
+          {isTrial && <BilledOnRow billedOn={billedOn} />}
         </Box>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          endIconName={IconName.Lock}
-          onPress={onConfirm}
-          isFullWidth
-          testID={ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON}
-        >
-          {confirmButtonLabel}
-        </Button>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-          testID={ConfirmMembershipApprovalTestIds.DISCLAIMER}
-        >
-          {strings('confirm_membership.disclaimer.part1', {
-            confirmAndPay: confirmButtonLabel,
-            monthlyAmount: moneyFormatUsd(new BigNumber(monthlyAmount || '0')),
-            renewDate,
-          })}
-          <TextButton
-            variant={TextVariant.BodyXs}
-            onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
-          >
-            {strings('confirm_membership.disclaimer.terms_of_use')}
-          </TextButton>
-          {strings('confirm_membership.disclaimer.part2')}
-          <TextButton
-            variant={TextVariant.BodyXs}
-            onPress={() => Linking.openURL(AppConstants.URLS.PRIVACY_POLICY)}
-          >
-            {strings('confirm_membership.disclaimer.privacy_policy')}
-          </TextButton>
-          {strings('confirm_membership.disclaimer.part3')}
-        </Text>
+        <ConfirmButton onPress={onConfirm} label={confirmButtonLabel} />
+        <Disclaimer
+          confirmButtonLabel={confirmButtonLabel}
+          monthlyAmount={monthlyAmount}
+          renewDate={renewDate}
+        />
       </Box>
+    </Box>
+  );
+}
+
+function Header({ onClose }: { onClose: () => void }) {
+  return (
+    <BottomSheetHeader
+      onClose={onClose}
+      closeButtonProps={{
+        testID: ConfirmMembershipApprovalTestIds.CLOSE_BUTTON,
+      }}
+    >
+      <Text variant={TextVariant.HeadingSm}>
+        {strings('confirm_membership.title')}
+      </Text>
+    </BottomSheetHeader>
+  );
+}
+
+function AmountSection({ monthlyAmount }: { monthlyAmount: string }) {
+  return (
+    <Box twClassName="items-center gap-1 pt-10 pb-12">
+      <CustomAmount
+        amountFiat={monthlyAmount}
+        currency="usd"
+        showCursor={false}
+      />
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        testID={ConfirmMembershipApprovalTestIds.PLAN_NAME}
+      >
+        {strings('confirm_membership.plan_name')}
+      </Text>
     </Box>
   );
 }
@@ -168,5 +131,95 @@ function MoneyAccountFromRow() {
         </Text>
       </Box>
     </InfoRow>
+  );
+}
+
+function TotalRow({ totalAmount }: { totalAmount: string }) {
+  const totalFormatted = moneyFormatUsd(new BigNumber(totalAmount || '0'));
+
+  return (
+    <InfoRow
+      label={strings('confirm.label.total')}
+      rowVariant={InfoRowVariant.Small}
+      testID={ConfirmMembershipApprovalTestIds.TOTAL_ROW}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+        {totalFormatted}
+      </Text>
+    </InfoRow>
+  );
+}
+
+function BilledOnRow({ billedOn }: { billedOn: string }) {
+  return (
+    <InfoRow
+      label={strings('confirm_membership.billed_on')}
+      rowVariant={InfoRowVariant.Small}
+      testID={ConfirmMembershipApprovalTestIds.BILLED_ON_ROW}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+        {billedOn}
+      </Text>
+    </InfoRow>
+  );
+}
+
+function ConfirmButton({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      endIconName={IconName.Lock}
+      onPress={onPress}
+      isFullWidth
+      testID={ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON}
+    >
+      {label}
+    </Button>
+  );
+}
+
+function Disclaimer({
+  confirmButtonLabel,
+  monthlyAmount,
+  renewDate,
+}: {
+  confirmButtonLabel: string;
+  monthlyAmount: string;
+  renewDate: string;
+}) {
+  return (
+    <Text
+      variant={TextVariant.BodyXs}
+      color={TextColor.TextAlternative}
+      twClassName="text-center"
+      testID={ConfirmMembershipApprovalTestIds.DISCLAIMER}
+    >
+      {strings('confirm_membership.disclaimer.part1', {
+        confirmAndPay: confirmButtonLabel,
+        monthlyAmount: moneyFormatUsd(new BigNumber(monthlyAmount || '0')),
+        renewDate,
+      })}
+      <TextButton
+        variant={TextVariant.BodyXs}
+        onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
+      >
+        {strings('confirm_membership.disclaimer.terms_of_use')}
+      </TextButton>
+      {strings('confirm_membership.disclaimer.part2')}
+      <TextButton
+        variant={TextVariant.BodyXs}
+        onPress={() => Linking.openURL(AppConstants.URLS.PRIVACY_POLICY)}
+      >
+        {strings('confirm_membership.disclaimer.privacy_policy')}
+      </TextButton>
+      {strings('confirm_membership.disclaimer.part3')}
+    </Text>
   );
 }
