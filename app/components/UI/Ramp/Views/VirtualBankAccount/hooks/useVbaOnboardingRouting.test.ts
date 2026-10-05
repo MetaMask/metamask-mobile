@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -10,12 +11,18 @@ import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const navigation = {
   navigate: mockNavigate,
+  dispatch: mockDispatch,
 } as unknown as AppNavigationProp;
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    dispatch: mockDispatch,
+  }),
 }));
 
 const mockHydrate = jest.fn();
@@ -220,15 +227,16 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current({ retryRejectedKyc: true });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-      params: {
-        snapshot: {
-          ...rejectedSnapshot,
-          vendorTermsAcceptedLocally: true,
-        },
-      },
-    });
+    const snapshot = {
+      ...rejectedSnapshot,
+      vendorTermsAcceptedLocally: true,
+    };
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+        snapshot,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens a retryable status when account provisioning fails', async () => {

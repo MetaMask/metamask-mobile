@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
@@ -65,6 +65,8 @@ export interface OpenVbaOnboardingRequest {
   /**
    * Re-enter identity verification when hydrate still reports a rejected KYC
    * session. Without this, Try again on the failure page routes back to itself.
+   * The retry pushes a new identity screen so SumSub mounts again instead of
+   * revealing the previous one.
    */
   retryRejectedKyc?: boolean;
 }
@@ -154,6 +156,14 @@ export const useOpenVbaOnboarding = (
           snapshot,
           destinationId,
         });
+        if (retryRejectedKyc && destinationId === 'identityVerification') {
+          navigation.dispatch(
+            StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+              snapshot,
+            }),
+          );
+          return;
+        }
         navigateToVbaOnboardingDestination(navigation, destinationId, snapshot);
       } catch (error) {
         Logger.error(error as Error, {
