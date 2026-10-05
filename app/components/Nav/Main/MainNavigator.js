@@ -219,6 +219,7 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
+import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
@@ -1042,6 +1043,10 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_MONEY_INVITE_SHEET}
           component={AcceptInviteSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
+          component={TermsSheet}
         />
       </NativeStack.Group>
       {/*

@@ -714,6 +714,9 @@ export type RootStackParamList = {
   RewardsMoneyInviteSheet:
     | RewardsNavigationParamList['RewardsMoneyInviteSheet']
     | undefined;
+  RewardsMoneyTermsSheet:
+    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
+    | undefined;
   /**
    * Post-accept confirmation. Registered on the root stack so it can fade
    * over the Money dashboard after the invite sheet dismisses.

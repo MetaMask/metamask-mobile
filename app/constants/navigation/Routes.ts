@@ -195,6 +195,7 @@ const Routes = {
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
     REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
+    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {

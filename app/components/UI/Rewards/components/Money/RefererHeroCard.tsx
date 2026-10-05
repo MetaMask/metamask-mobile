@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   EarningsSummaryDto,
   ReferralCodeView,
@@ -39,6 +47,7 @@ export const REFERER_HERO_CARD_TEST_IDS = {
   REFERRALS_TOTAL: 'referer-hero-card-referrals-total',
   TRADE_COMMISSIONS_TOTAL: 'referer-hero-card-trade-commissions-total',
   IDENTITY: 'referer-hero-card-identity',
+  TERMS_INFO_BUTTON: 'referer-hero-card-terms-info',
   REFERRAL_ERROR: 'referer-hero-card-referral-error',
   EARNINGS_ERROR: 'referer-hero-card-earnings-error',
 } as const;
@@ -63,6 +72,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
   referralCode,
   localizedText,
 }) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const [isShareOpen, setIsShareOpen] = useState(false);
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
@@ -123,10 +133,30 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
         twClassName="rounded-2xl bg-muted py-4"
         testID={REFERER_HERO_CARD_TEST_IDS.IDENTITY}
       >
-        <Box twClassName="px-4 pb-4">
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 pb-4"
+        >
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1 pr-2"
+          >
             {localizedText.earnEligibleFees}
           </Text>
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Md}
+            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Md }}
+            twClassName="-mr-1.5"
+            onPress={() =>
+              navigation.navigate(Routes.MODAL.REWARDS_MONEY_TERMS_SHEET)
+            }
+            accessibilityLabel={localizedText.termsTitle}
+            testID={REFERER_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
+          />
         </Box>
         <Box twClassName="h-px bg-border-muted" />
         <Box

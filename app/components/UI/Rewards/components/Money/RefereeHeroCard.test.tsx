@@ -10,6 +10,7 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
 jest.mock('../../hooks/useReferralMe');
@@ -17,6 +18,17 @@ jest.mock('../../hooks/useReferralMe');
 const PROFILE_ID = 'profile-a';
 const mockFetchEarningsSummary = jest.fn();
 const mockFetchReferralMe = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 const LOCALIZED_TEXT = {
   invitedBenefitTitle: 'Your referral benefit',
@@ -24,6 +36,7 @@ const LOCALIZED_TEXT = {
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
   recordedEarnings: 'recorded claims',
+  termsTitle: 'Terms and Conditions',
 } as unknown as ReferralLocalizedText;
 
 const REFERRED_BY = {
@@ -201,5 +214,15 @@ describe('RefereeHeroCard', () => {
     expect(
       childTestIds.indexOf(REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
     ).toBeLessThan(childTestIds.indexOf(REFEREE_HERO_CARD_TEST_IDS.IDENTITY));
+  });
+
+  it('opens the terms sheet from the info icon', () => {
+    const { getByTestId } = renderHero();
+
+    fireEvent.press(getByTestId(REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+    );
   });
 });
