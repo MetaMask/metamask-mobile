@@ -683,9 +683,12 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         fees: {
           ...TOTALS_MOCK.fees,
           sourceNetwork: {
+            ...TOTALS_MOCK.fees.sourceNetwork,
             max: {
               raw: '0',
               usd: '0',
+              fiat: '0',
+              human: '0',
             },
           },
         },
