@@ -129,6 +129,7 @@ import {
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { getExploreSearchScreenOptions } from '../../../constants/navigation/exploreSearchScreenOptions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
@@ -1291,6 +1292,10 @@ const MainNavigator = () => {
             component={MyProfileView}
           />
           <NativeStack.Screen
+            name={Routes.SOCIAL.V1_PROFILE}
+            component={MyProfileView}
+          />
+          <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
           />
@@ -1353,6 +1358,12 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
+          options={({ route }) =>
+            getExploreSearchScreenOptions(
+              route.params?.entryPoint,
+              slideFromRightNativeOptions,
+            )
+          }
         />
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}

@@ -581,6 +581,45 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBe('59.64');
     });
 
+    it('skips a stablecoin whose whole balance is sub-cent dust', () => {
+      // Dust renders as $0.00 and the percentage path refuses to apply it,
+      // so a prefill here would leave the previous token's amount in place.
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.005' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+      expect(result.current.percentage).toBeUndefined();
+    });
+
+    it('skips a non-stablecoin whose 50% share is sub-cent dust', () => {
+      setupMocks({
+        stablecoin: false,
+        payToken: makePayToken({ balanceUsd: '0.015' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    it('still prefills a balance of exactly one cent', () => {
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.01' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('0.01');
+    });
+
     it('settles instead of loading when the balance snapshot is not numeric', () => {
       // The snapshot on the pay token can be non-numeric while the reactive
       // balance in the pay-with row is fine. `NaN` produces no prefill amount
