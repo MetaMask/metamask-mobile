@@ -5,6 +5,15 @@ import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
 import Engine from '../../../../../core/Engine';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: mockGoBack,
+  }),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -100,6 +109,62 @@ describe('VbaSumSubKyc', () => {
       getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
     ).toBeOnTheScreen();
     expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
+  });
+
+  it('hides the back button while SumSub is launching', () => {
+    mockKycController.launchProviderFlow.mockReturnValue(
+      new Promise(() => undefined),
+    );
+
+    const { queryByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    expect(
+      queryByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a back button when SumSub is closed before submission', async () => {
+    mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
+
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('navigates back from more information needed without relaunching SumSub', () => {
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+    );
+
+    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
+  });
+
+  it('navigates back from the error state', async () => {
+    mockKycController.launchProviderFlow.mockResolvedValue('failed');
+
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('shows a retryable error when the provider flow fails', async () => {
