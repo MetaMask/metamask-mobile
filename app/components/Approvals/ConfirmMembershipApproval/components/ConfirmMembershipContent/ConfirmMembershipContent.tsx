@@ -47,10 +47,6 @@ export function ConfirmMembershipContent({
   onClose,
   onConfirm,
 }: ConfirmMembershipContentProps) {
-  const confirmButtonLabel = isTrial
-    ? strings('confirm_membership.start_trial')
-    : strings('confirm_membership.confirm_and_pay');
-
   return (
     <Box testID={ConfirmMembershipApprovalTestIds.CONTAINER}>
       <Header onClose={onClose} />
@@ -59,17 +55,23 @@ export function ConfirmMembershipContent({
         <Box>
           <MoneyAccountFromRow />
           <TotalRow totalAmount={totalAmount} />
-          {isTrial && <BilledOnRow billedOn={billedOn} />}
+          <BilledOnRow isTrial={isTrial} billedOn={billedOn} />
         </Box>
-        <ConfirmButton onPress={onConfirm} label={confirmButtonLabel} />
+        <ConfirmButton isTrial={isTrial} onPress={onConfirm} />
         <Disclaimer
-          confirmButtonLabel={confirmButtonLabel}
+          isTrial={isTrial}
           monthlyAmount={monthlyAmount}
           renewDate={renewDate}
         />
       </Box>
     </Box>
   );
+}
+
+function getConfirmButtonLabel(isTrial: boolean) {
+  return isTrial
+    ? strings('confirm_membership.start_trial')
+    : strings('confirm_membership.confirm_and_pay');
 }
 
 function Header({ onClose }: { onClose: () => void }) {
@@ -150,7 +152,17 @@ function TotalRow({ totalAmount }: { totalAmount: string }) {
   );
 }
 
-function BilledOnRow({ billedOn }: { billedOn: string }) {
+function BilledOnRow({
+  isTrial,
+  billedOn,
+}: {
+  isTrial: boolean;
+  billedOn: string;
+}) {
+  if (!isTrial) {
+    return null;
+  }
+
   return (
     <InfoRow
       label={strings('confirm_membership.billed_on')}
@@ -165,10 +177,10 @@ function BilledOnRow({ billedOn }: { billedOn: string }) {
 }
 
 function ConfirmButton({
-  label,
+  isTrial,
   onPress,
 }: {
-  label: string;
+  isTrial: boolean;
   onPress: () => void;
 }) {
   return (
@@ -180,17 +192,17 @@ function ConfirmButton({
       isFullWidth
       testID={ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON}
     >
-      {label}
+      {getConfirmButtonLabel(isTrial)}
     </Button>
   );
 }
 
 function Disclaimer({
-  confirmButtonLabel,
+  isTrial,
   monthlyAmount,
   renewDate,
 }: {
-  confirmButtonLabel: string;
+  isTrial: boolean;
   monthlyAmount: string;
   renewDate: string;
 }) {
@@ -202,7 +214,7 @@ function Disclaimer({
       testID={ConfirmMembershipApprovalTestIds.DISCLAIMER}
     >
       {strings('confirm_membership.disclaimer.part1', {
-        confirmAndPay: confirmButtonLabel,
+        confirmAndPay: getConfirmButtonLabel(isTrial),
         monthlyAmount: moneyFormatUsd(new BigNumber(monthlyAmount || '0')),
         renewDate,
       })}
