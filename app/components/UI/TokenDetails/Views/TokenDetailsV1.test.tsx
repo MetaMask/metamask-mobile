@@ -23,6 +23,27 @@ jest.mock('@metamask/assets-controllers', () => ({
   fetchTokenAssets: jest.fn().mockResolvedValue([]),
 }));
 
+jest.mock('../../SocialFeed/components/SocialFeed', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      source,
+      location,
+    }: {
+      source: { kind: string; assetId: string };
+      location: string;
+    }) =>
+      createElement(
+        Text,
+        { testID: 'token-details-v1-social-feed' },
+        `${source.kind}:${source.assetId}:${location}`,
+      ),
+  };
+});
+
 /** Minimal shape that satisfies the hook's prefetched-data validation. */
 const securityDataWithLinks = {
   resultType: 'Benign',
@@ -114,6 +135,29 @@ describe('TokenDetailsV1', () => {
   });
 
   // A native token's `address` is a placeholder, not something worth copying.
+  it('renders the social feed for this token', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    expect(getByTestId('token-details-v1-social-feed')).toHaveTextContent(
+      /^token:.+:token_details$/,
+    );
+  });
+
+  it('skips the social feed when the token has no asset id', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={{
+          ...baseToken,
+          address: 'not-an-address',
+          chainId: undefined,
+          caipAssetId: undefined,
+        }}
+      />,
+    );
+
+    expect(queryByTestId('token-details-v1-social-feed')).toBeNull();
+  });
+
   it('hides the copy chip for a native token', () => {
     const { queryByTestId } = render(
       <TokenDetailsV1 token={{ ...baseToken, isNative: true }} />,

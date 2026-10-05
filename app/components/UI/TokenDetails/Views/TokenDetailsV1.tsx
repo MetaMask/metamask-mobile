@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import {
@@ -14,6 +14,7 @@ import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
+import SocialFeed from '../../SocialFeed/components/SocialFeed';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID =
@@ -33,6 +34,9 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
+      flex: 1,
+    },
+    scroll: {
       flex: 1,
     },
   });
@@ -69,19 +73,26 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
         backButtonProps={{ testID: TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID }}
       />
 
-      {/* Owns the page gutter and the spacing between sections, so sections
-          render content only and never their own page padding. */}
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 gap-4 px-4 pt-2"
-      >
-        <SecuritySocialSection
-          securityVerdict={MOCK_SECURITY_VERDICT}
-          securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
-          externalLinks={securityData?.metadata?.externalLinks}
-          contractAddress={token.isNative ? null : token.address}
-        />
-      </Box>
+      {/* The security row uses the page gutter. SocialFeed pads its own
+          list, so it sits outside that gutter and scrolls with the page. */}
+      <ScrollView style={styles.scroll}>
+        <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4 pt-2">
+          <Box twClassName="px-4">
+            <SecuritySocialSection
+              securityVerdict={MOCK_SECURITY_VERDICT}
+              securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
+              externalLinks={securityData?.metadata?.externalLinks}
+              contractAddress={token.isNative ? null : token.address}
+            />
+          </Box>
+          {assetId ? (
+            <SocialFeed
+              source={{ kind: 'token', assetId }}
+              location="token_details"
+            />
+          ) : null}
+        </Box>
+      </ScrollView>
     </View>
   );
 };
