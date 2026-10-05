@@ -11,6 +11,7 @@ import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
 import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
 jest.mock('../../hooks/useReferralMe');
@@ -18,6 +19,17 @@ jest.mock('../../hooks/useReferralMe');
 const PROFILE_ID = 'profile-a';
 const mockFetchEarningsSummary = jest.fn();
 const mockFetchReferralMe = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 const LOCALIZED_TEXT = {
   earnEligibleFees: 'Earn on eligible fees',
@@ -27,6 +39,7 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   recordedEarnings: 'recorded claims',
   shareCode: 'Share code',
+  termsTitle: 'Terms and Conditions',
 } as unknown as ReferralLocalizedText;
 
 const REFERRAL_CODE = {
@@ -229,6 +242,16 @@ describe('RefererHeroCard', () => {
     expect(
       childTestIds.indexOf(REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR),
     ).toBeLessThan(childTestIds.indexOf(REFERER_HERO_CARD_TEST_IDS.IDENTITY));
+  });
+
+  it('opens the terms sheet from the info icon', () => {
+    const { getByTestId } = renderHero();
+
+    fireEvent.press(getByTestId(REFERER_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+    );
   });
 
   it('opens the inline share sheet from the Share button', () => {

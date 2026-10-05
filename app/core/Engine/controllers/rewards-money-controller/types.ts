@@ -158,7 +158,11 @@ export type ReferralLocalizedTextKey =
   | 'invitedOptInDescription'
   | 'invitedOptInAction'
   | 'invitedOptInSuccessToast'
-  | 'invitedOptInLegal';
+  | 'invitedOptInLegal'
+  | 'termsTitle'
+  | 'termsDescription'
+  | 'termsLearnMore'
+  | 'termsUrl';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
