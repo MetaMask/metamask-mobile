@@ -58,7 +58,11 @@ dev_boot_ios_simulator() {
   echo -e "${BLUE}Booting iOS simulator: ${device_name} (${udid})${NC}" >&2
   xcrun simctl boot "$udid" 2>/dev/null || true
   xcrun simctl bootstatus "$udid" -b >&2
-  open -a Simulator --args -CurrentDeviceUDID "$udid" 2>/dev/null || open -a Simulator
+  # Xcode 27+ replaces Simulator.app with DeviceHub.app, which can't be pointed at a specific device.
+  open -a Simulator --args -CurrentDeviceUDID "$udid" 2>/dev/null ||
+    open -a Simulator 2>/dev/null ||
+    open -a DeviceHub 2>/dev/null ||
+    true
   echo -e "${GREEN}✓ iOS simulator \"${device_name}\" is booted and ready${NC}" >&2
 }
 
