@@ -734,11 +734,9 @@ describe('HardwareWalletsSwaps', () => {
         steps: [step(Approval, Signed), step(Transaction, StepWaiting)],
       });
 
-      // Approval step keeps approve copy even though dest data is present.
       expect(
         getByText(`Approved ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
       ).toBeDefined();
-      // Transaction step shows swap copy built from source + dest selectors.
       expect(
         getByText(
           `Swap ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL} for ${DEST_AMOUNT} ${DEST_TOKEN_SYMBOL}`,
@@ -748,8 +746,6 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('renders swap titles from the confirm-time-locked route dest data when store destAmount is unset (production repro)', () => {
-      // Production shape: useBridgeConfirm locks postTradeModalParams onto the
-      // route, but state.destAmount is never populated in the store.
       mockRouteSubmissionParamsWithLockedDest();
 
       const { getByText, queryByText } = renderLockedQuoteScreen({
@@ -766,8 +762,6 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('renders swapped title for a signed transaction step on a same-chain swap', () => {
-      // Approval stays Waiting: an all-signed mount triggers the auto-done
-      // reset, which clears the steps before assertions can run.
       const { getByText } = renderSwapScreen({
         steps: [step(Approval, StepWaiting), step(Transaction, Signed)],
       });

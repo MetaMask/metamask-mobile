@@ -103,7 +103,6 @@ export function getStepTitle(
     );
   }
 
-  // Swap copy only when BOTH dest values are present; else send copy (extension parity).
   if (options?.destAmount && options?.destTokenSymbol) {
     const swapParams = {
       amount,

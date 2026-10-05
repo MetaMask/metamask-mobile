@@ -268,7 +268,6 @@ export function HardwareWalletsSwaps() {
                     ? strategy.gasTokenSymbol
                     : strategy.displayedTokenSymbol
                 }
-                // Dest props only flow through for same-chain swaps (swap copy vs send copy).
                 destAmount={
                   strategy.isSwap ? strategy.displayedDestAmount : undefined
                 }

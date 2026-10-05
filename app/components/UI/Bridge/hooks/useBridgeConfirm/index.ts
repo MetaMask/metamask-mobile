@@ -60,7 +60,6 @@ export const useBridgeConfirm = ({
       dispatch(setIsSubmittingTx(true));
       try {
         dispatch(resetHardwareWalletsSwaps());
-        // Same-chain detection uses the selected tokens (V2 quotes dropped V1 chainIds).
         const isSwap = isSameChainSwap(sourceToken, destToken);
         dispatch(
           updateHardwareWalletsSwaps(

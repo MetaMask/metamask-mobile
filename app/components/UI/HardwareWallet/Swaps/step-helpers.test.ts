@@ -14,8 +14,6 @@ import {
 
 describe('step-helpers', () => {
   describe('getStepTitle', () => {
-    // Extension parity: 'Approve' for pending, active, AND rejected approval
-    // steps — only Signed gets 'Approved'.
     it.each([
       ['Waiting', HardwareWalletsSwapsStepStatus.Waiting],
       ['Signing', HardwareWalletsSwapsStepStatus.Signing],
@@ -116,7 +114,6 @@ describe('step-helpers', () => {
         status,
       });
 
-      // Both dest values present → swap copy; Signed gets 'Swapped'.
       it.each([
         [
           'waiting',
@@ -145,7 +142,6 @@ describe('step-helpers', () => {
         },
       );
 
-      // Partial dest values fall back to send copy; other kinds ignore dest.
       it.each([
         {
           name: 'falls back to send title when destAmount is missing',

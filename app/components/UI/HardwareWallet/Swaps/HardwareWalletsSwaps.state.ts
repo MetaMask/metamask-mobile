@@ -123,7 +123,6 @@ export type HardwareWalletsSwapsEvent =
   | { type: HardwareWalletsSwapsEventType.Retry }
   | { type: HardwareWalletsSwapsEventType.Cancel };
 
-/** Adds `quote.dest.walletAddress` (where the V1→V2 coercer puts the recipient); the installed `QuoteResponse` type omits it on `quote.dest`, so declare it optionally. */
 type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'> & {
   quote?: { dest?: { walletAddress?: string } };
 };
@@ -149,7 +148,6 @@ interface BuildStartPayloadOptions {
   isSwap: boolean;
 }
 
-// approval.to is the token contract for standard approvals; Permit2 encodes the spender in calldata
 const getApprovalSpender = (data?: string): string | undefined => {
   const { args } = parseStandardTokenTransactionData(data) ?? {};
   return args?.spender ?? args?._spender ?? args?.[0];

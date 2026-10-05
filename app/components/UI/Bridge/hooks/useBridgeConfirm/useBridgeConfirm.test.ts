@@ -6,7 +6,10 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
-import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsStepKind } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import {
+  HardwareWalletsSwapsStatus,
+  HardwareWalletsSwapsStepKind,
+} from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { RootState } from '../../../../../reducers';
@@ -326,12 +329,7 @@ describe('useBridgeConfirm', () => {
 
     it('shows NO recipient for same-chain swaps whose quote lacks an ultimate recipient (never the aggregator router)', async () => {
       jest.mocked(isHardwareAccount).mockReturnValue(true);
-      // Aggregator router the swap tx is addressed to (checksummed).
       const ROUTER = '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE';
-      // V2-shaped quote (src/dest objects carry the amounts; V2 drops the V1
-      // top-level srcChainId/destChainId, so quote internals cannot detect
-      // same-chain swaps). Cast contained to this fixture: EVM-shaped trade on
-      // the Solana mock's quote internals.
       const activeQuote = {
         ...mockQuoteWithMetadata,
         namespace: KnownCaipNamespace.Eip155,
@@ -353,7 +351,6 @@ describe('useBridgeConfirm', () => {
           gasLimit: 21000,
         } as const,
       };
-      // Same-chain signal lives on the selected TOKENS (proven source).
       const { result, store } = renderHook(
         {
           ...defaultParams,
@@ -375,14 +372,12 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
-      const steps = (store.getState() as RootState).bridge
-        .hardwareWalletsSwaps.steps;
+      const steps = (store.getState() as RootState).bridge.hardwareWalletsSwaps
+        .steps;
       const swapStep = steps.find(
         (candidate) =>
           candidate.kind === HardwareWalletsSwapsStepKind.Transaction,
       );
-      // No quote ultimate recipient → no recipient at all (so the aggregator
-      // router in trade.to can never leak into the step).
       expect(swapStep?.address).toBeUndefined();
     });
   });
