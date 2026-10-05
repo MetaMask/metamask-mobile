@@ -2,10 +2,7 @@ import React, { useLayoutEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { useAlerts } from '../../../context/alert-system-context';
-import {
-  ConfirmationInitializationProvider,
-  useConfirmationInitialization,
-} from '../../../context/confirmation-initialization-context';
+import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-first-frame-context';
 import useConfirmationAlerts from '../../../hooks/alerts/useConfirmationAlerts';
 import { Alert, NO_ALERTS, Severity } from '../../../types/alerts';
 import { ConfirmationAlerts } from './confirmation-alerts';
@@ -51,7 +48,6 @@ describe('ConfirmationAlerts', () => {
 
     fireEvent.changeText(getByTestId('amount'), '25');
     fireEvent.press(getByTestId('continue'));
-    fireEvent(getByTestId('shell'), 'layout');
     act(() => frames[0](16));
 
     expect(useConfirmationAlerts).not.toHaveBeenCalled();
@@ -77,7 +73,6 @@ describe('ConfirmationAlerts', () => {
     jest.mocked(useConfirmationAlerts).mockImplementation(useLiveAlerts);
     const { getByTestId } = render(createConfirmation());
 
-    fireEvent(getByTestId('shell'), 'layout');
     act(() => frames[0](16));
     act(() => frames[1](32));
     fireEvent.press(getByTestId('continue'));
@@ -93,7 +88,7 @@ describe('ConfirmationAlerts', () => {
     expect(mockConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('runs alerts immediately when initialization deferral is disabled', () => {
+  it('runs alerts immediately when first-frame deferral is disabled', () => {
     const { getByTestId } = render(createConfirmation({ enabled: false }));
 
     expect(useConfirmationAlerts).toHaveBeenCalled();
@@ -102,8 +97,7 @@ describe('ConfirmationAlerts', () => {
   });
 
   it('cancels the deferred alert mount when dismissed', () => {
-    const { getByTestId, unmount } = render(createConfirmation());
-    fireEvent(getByTestId('shell'), 'layout');
+    const { unmount } = render(createConfirmation());
     act(() => frames[0](16));
 
     unmount();
@@ -115,7 +109,6 @@ describe('ConfirmationAlerts', () => {
 
   it('resets readiness and alert results when the transaction changes', () => {
     const { getByTestId, rerender } = render(createConfirmation());
-    fireEvent(getByTestId('shell'), 'layout');
     act(() => frames[0](16));
     act(() => frames[1](32));
     jest.mocked(useConfirmationAlerts).mockClear();
@@ -126,7 +119,6 @@ describe('ConfirmationAlerts', () => {
     expect(getByTestId('continue')).toBeDisabled();
     expect(useConfirmationAlerts).not.toHaveBeenCalled();
 
-    fireEvent(getByTestId('shell'), 'layout');
     act(() => frames[2](48));
     act(() => frames[3](64));
 
@@ -141,24 +133,22 @@ function createConfirmation({
   transactionId = 'first',
 }: { enabled?: boolean; transactionId?: string } = {}) {
   return (
-    <ConfirmationInitializationProvider
+    <ConfirmationFirstFrameProvider
       enabled={enabled}
       transactionId={transactionId}
     >
       <ConfirmationAlerts>
         <ConfirmationConsumer />
       </ConfirmationAlerts>
-    </ConfirmationInitializationProvider>
+    </ConfirmationFirstFrameProvider>
   );
 }
 
 function ConfirmationConsumer() {
   const [amount, setAmount] = useState('');
   const { alertKey, hasBlockingAlerts } = useAlerts();
-  const initialization = useConfirmationInitialization();
-
   return (
-    <View onLayout={initialization?.onLayout} testID="shell">
+    <View testID="shell">
       <TextInput onChangeText={setAmount} testID="amount" value={amount} />
       <Text testID="alert-key">{alertKey}</Text>
       <Pressable

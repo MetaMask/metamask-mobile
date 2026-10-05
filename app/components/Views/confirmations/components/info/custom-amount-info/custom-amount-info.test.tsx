@@ -56,7 +56,7 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { ConfirmationInitializationProvider } from '../../../context/confirmation-initialization-context';
+import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-first-frame-context';
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
@@ -469,7 +469,7 @@ describe('CustomAmountInfo', () => {
     setControllerTransactions([]);
   });
 
-  describe('deferred initialization', () => {
+  describe('first-frame deferral', () => {
     let frames: FrameRequestCallback[];
 
     beforeEach(() => {
@@ -492,12 +492,9 @@ describe('CustomAmountInfo', () => {
       transactionId = 'transaction-1',
     ) {
       return (
-        <ConfirmationInitializationProvider
-          enabled
-          transactionId={transactionId}
-        >
+        <ConfirmationFirstFrameProvider enabled transactionId={transactionId}>
           {createCustomAmountInfo(props)}
-        </ConfirmationInitializationProvider>
+        </ConfirmationFirstFrameProvider>
       );
     }
 
@@ -512,7 +509,7 @@ describe('CustomAmountInfo', () => {
       });
     }
 
-    it('renders immediately without an initialization provider', () => {
+    it('renders immediately without a first-frame provider', () => {
       const { getByText, queryByTestId } = render();
 
       expect(
@@ -541,11 +538,11 @@ describe('CustomAmountInfo', () => {
       expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
       expect(useConfirmActionsMock).not.toHaveBeenCalled();
       expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledTimes(1);
+      expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
     });
 
     it('mounts the live amount and automatic selection only after the frame yield', () => {
-      const { getByTestId, getByText, queryByTestId } = renderDeferred();
-      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
+      const { getByText, queryByTestId } = renderDeferred();
 
       act(() => frames[0](16));
       expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
@@ -563,8 +560,7 @@ describe('CustomAmountInfo', () => {
     });
 
     it('does not start initialization after dismissal during the frame yield', () => {
-      const { getByTestId, unmount } = renderDeferred();
-      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
+      const { unmount } = renderDeferred();
       act(() => frames[0](16));
 
       unmount();
@@ -577,7 +573,6 @@ describe('CustomAmountInfo', () => {
 
     it('restarts with placeholders when a different transaction replaces a ready one', () => {
       const { getByTestId, rerender } = renderDeferred();
-      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
       act(() => frames[0](16));
       act(() => frames[1](32));
       useTransactionCustomAmountMock.mockClear();

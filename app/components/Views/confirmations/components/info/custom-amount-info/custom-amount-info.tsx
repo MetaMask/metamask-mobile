@@ -16,10 +16,7 @@ import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { MembershipInfo } from '../../../external/subscriptions/components/membership-info';
-import {
-  ConfirmationInitialization,
-  useConfirmationInitialization,
-} from '../../../context/confirmation-initialization-context';
+import { useConfirmationFirstFrame } from '../../../context/confirmation-first-frame-context';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
@@ -615,29 +612,17 @@ function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
   // Rejection must work while the deferred amount/selection hooks are absent.
   useClearConfirmationOnBackSwipe();
 
-  // Only present when the confirmation opts into deferred initialization.
-  const initialization = useConfirmationInitialization();
-
-  if (initialization) {
-    return <CustomAmountInitializedContent {...props} {...initialization} />;
-  }
-
-  return <CustomAmountInfoInternal {...props} />;
-}
-
-function CustomAmountInitializedContent({
-  isReady,
-  onLayout,
-  ...props
-}: CustomAmountInfoProps & ConfirmationInitialization) {
-  if (isReady) {
-    return <CustomAmountInfoInternal {...props} />;
-  }
+  // Only present when the confirmation opts into first-frame deferral.
+  const firstFrame = useConfirmationFirstFrame();
 
   // This is pending initialization, not disabled prefill. The live stage and
   // input hooks mount with their real settings, so no temporary keyboard/$0
   // state or early user input can be overwritten by delayed selection.
-  return <CustomAmountInitializationShell {...props} onLayout={onLayout} />;
+  if (firstFrame && !firstFrame.isFirstFrameComplete) {
+    return <CustomAmountInitializationShell {...props} />;
+  }
+
+  return <CustomAmountInfoInternal {...props} />;
 }
 
 function CustomAmountInitializationShell({
@@ -645,17 +630,12 @@ function CustomAmountInitializationShell({
   footerText,
   hideAccountSelector,
   hidePayTokenAmount,
-  onLayout,
   supportAccountSelection,
-}: CustomAmountInfoProps & { onLayout: () => void }) {
+}: CustomAmountInfoProps) {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View
-      onLayout={onLayout}
-      style={styles.container}
-      testID="custom-amount-initialization-shell"
-    >
+    <View style={styles.container} testID="custom-amount-initialization-shell">
       <View style={styles.inputContainer}>
         <CustomAmountSkeleton />
         {!hidePayTokenAmount && <BalanceProjectionSkeleton />}

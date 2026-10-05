@@ -21,7 +21,7 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { ConfirmationInitializationProvider } from '../../context/confirmation-initialization-context';
+import { ConfirmationFirstFrameProvider } from '../../context/confirmation-first-frame-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
@@ -153,7 +153,7 @@ const ConfirmWrapped = ({
 
   return (
     <ConfirmationContextProvider>
-      <ConfirmationInitializationProvider
+      <ConfirmationFirstFrameProvider
         enabled={hasTransactionType(transaction, [
           TransactionType.moneyAccountDeposit,
         ])}
@@ -183,7 +183,7 @@ const ConfirmWrapped = ({
             </QRHardwareContextProvider>
           </ConfirmationAlerts>
         </ConfirmationAssetPollingProvider>
-      </ConfirmationInitializationProvider>
+      </ConfirmationFirstFrameProvider>
     </ConfirmationContextProvider>
   );
 };
