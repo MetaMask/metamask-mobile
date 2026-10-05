@@ -1,6 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { Position, PriceUpdate } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -98,14 +98,16 @@ describe('PerpsFlipPositionConfirmSheet', () => {
       ),
     ).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      screen.getByTestId(PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON),
-    );
+    await act(async () => {
+      await fireEvent.press(
+        screen.getByTestId(
+          PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
+        ),
+      );
+    });
 
-    await waitFor(() =>
-      expect(Engine.context.PerpsController.flipPosition).toHaveBeenCalledWith(
-        expect.objectContaining({ symbol: 'ETH' }),
-      ),
+    expect(Engine.context.PerpsController.flipPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'ETH' }),
     );
   });
 });
