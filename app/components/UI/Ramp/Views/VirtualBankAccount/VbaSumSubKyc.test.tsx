@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
 import Engine from '../../../../../core/Engine';
@@ -150,6 +150,34 @@ describe('VbaSumSubKyc', () => {
     expect(
       getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON),
     ).toBeOnTheScreen();
+    expect(mockOnSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('hides back while SumSub is launching and ignores the result after leaving', async () => {
+    let resolveLaunch: (status: KycProviderFlowStatus) => void = () =>
+      undefined;
+    mockKycController.launchProviderFlow.mockReturnValue(
+      new Promise((resolve) => {
+        resolveLaunch = resolve;
+      }),
+    );
+
+    const { queryByTestId, unmount } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    await waitFor(() => {
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      queryByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    unmount();
+    await act(async () => {
+      resolveLaunch('submitted');
+    });
+
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 

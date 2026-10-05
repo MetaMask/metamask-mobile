@@ -51,7 +51,7 @@ const VbaSumSubKyc = ({
 }: VbaSumSubKycProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { needsMoreInfo, hasError, retry } = useLaunchSumSub(
+  const { isLaunching, needsMoreInfo, hasError, retry } = useLaunchSumSub(
     onSubmitted,
     initialNeedsMoreInfo,
   );
@@ -80,13 +80,15 @@ const VbaSumSubKyc = ({
       style={tw.style('flex-1 bg-default')}
       testID={VbaSumSubKycSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        backButtonProps={{
-          testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON,
-        }}
-        includesTopInset
-      />
+      {isLaunching ? null : (
+        <HeaderStandard
+          onBack={handleBack}
+          backButtonProps={{
+            testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON,
+          }}
+          includesTopInset
+        />
+      )}
       {needsMoreInfo ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
