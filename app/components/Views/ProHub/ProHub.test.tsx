@@ -331,7 +331,7 @@ describe('ProHub', () => {
       }
     });
 
-    it('shows a processing toast and then a failed to add funds toast', () => {
+    it('shows a processing toast and then the payment failure sheet', () => {
       jest.useFakeTimers();
       try {
         const { getByTestId } = renderProHub();
@@ -356,26 +356,23 @@ describe('ProHub', () => {
           jest.advanceTimersByTime(ADD_FUNDS_DEMO_DELAY_MS);
         });
 
-        expect(mockShowToast).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            iconName: IconName.Danger,
-            hasNoTimeout: true,
-            labelOptions: [
-              {
-                label: strings('pro_hub.add_funds_toast.failed_title'),
-                isBold: true,
-              },
-            ],
-            descriptionOptions: {
-              description: strings(
-                'pro_hub.add_funds_toast.failed_description',
-              ),
-            },
-            linkButtonOptions: expect.objectContaining({
-              label: strings('pro_hub.add_funds_toast.failed_action'),
-            }),
-          }),
+        expect(mockCloseToast).toHaveBeenCalled();
+        expect(
+          getByTestId(ProHubTestIds.PAYMENT_FAILURE_SHEET),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(ProHubTestIds.PAYMENT_FAILURE_TITLE),
+        ).toHaveTextContent(
+          strings('pro_hub.membership_alert.payment_failed.title'),
         );
+        expect(
+          getByTestId(ProHubTestIds.PAYMENT_FAILURE_DESCRIPTION),
+        ).toHaveTextContent(
+          strings('pro_hub.membership_alert.payment_failed.description'),
+        );
+        expect(
+          getByTestId(ProHubTestIds.PAYMENT_FAILURE_TRY_AGAIN),
+        ).toHaveTextContent(strings('pro_hub.add_funds_toast.failed_action'));
       } finally {
         jest.useRealTimers();
       }
@@ -394,11 +391,8 @@ describe('ProHub', () => {
           jest.advanceTimersByTime(ADD_FUNDS_DEMO_DELAY_MS);
         });
 
-        const failedToast = mockShowToast.mock.calls.at(-1)?.[0] as {
-          linkButtonOptions: { onPress: () => void };
-        };
         mockShowToast.mockClear();
-        failedToast.linkButtonOptions.onPress();
+        fireEvent.press(getByTestId(ProHubTestIds.PAYMENT_FAILURE_TRY_AGAIN));
 
         expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({

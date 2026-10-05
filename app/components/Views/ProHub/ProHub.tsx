@@ -52,6 +52,7 @@ import {
 } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
+import PaymentFailureSheet from './components/PaymentFailureSheet/PaymentFailureSheet';
 import ProDemoBannerSwitcher from './components/ProDemoBannerSwitcher';
 import { PRO_DEMO_MODE } from '../shared/pro/proDemo';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
@@ -115,6 +116,8 @@ const ProHub = () => {
   const [addFundsOutcome, setAddFundsOutcome] = useState<AddFundsDemoOutcome>(
     AddFundsDemoOutcome.Success,
   );
+  const [isPaymentFailureSheetVisible, setIsPaymentFailureSheetVisible] =
+    useState(false);
   const addFundsOutcomeRef = useRef(addFundsOutcome);
   addFundsOutcomeRef.current = addFundsOutcome;
   const [membershipBannerKind, setMembershipBannerKind] =
@@ -151,33 +154,8 @@ const ProHub = () => {
       };
 
       if (outcome === AddFundsDemoOutcome.Failed) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: ToastIconName.Info,
-          iconColor: colors.error.default,
-          backgroundColor: 'transparent',
-          hasNoTimeout: true,
-          labelOptions: [
-            {
-              label: strings('pro_hub.add_funds_toast.failed_title'),
-              isBold: true,
-            },
-          ],
-          descriptionOptions: {
-            description: strings('pro_hub.add_funds_toast.failed_description'),
-          },
-          linkButtonOptions: {
-            label: strings('pro_hub.add_funds_toast.failed_action'),
-            onPress: () => {
-              startAddFundsDemoRef.current();
-            },
-          },
-          closeButtonOptions: {
-            variant: ButtonIconVariant.Icon,
-            iconName: ToastIconName.Close,
-            onPress: closeToast,
-          },
-        });
+        closeToast();
+        setIsPaymentFailureSheetVisible(true);
         return;
       }
 
@@ -200,7 +178,7 @@ const ProHub = () => {
         },
       });
     },
-    [colors.error.default, colors.success.default, toastRef],
+    [colors.success.default, toastRef],
   );
 
   const startAddFundsDemo = useCallback(() => {
@@ -250,6 +228,15 @@ const ProHub = () => {
   startAddFundsDemoRef.current = startAddFundsDemo;
 
   const handleMembershipAlertAction = startAddFundsDemo;
+
+  const dismissPaymentFailureSheet = useCallback(() => {
+    setIsPaymentFailureSheetVisible(false);
+  }, []);
+
+  const retryAddFundsFromFailureSheet = useCallback(() => {
+    setIsPaymentFailureSheetVisible(false);
+    startAddFundsDemoRef.current();
+  }, []);
 
   return (
     <SafeAreaView
@@ -388,6 +375,11 @@ const ProHub = () => {
           </Text>
         </Box>
       </ScrollView>
+      <PaymentFailureSheet
+        isVisible={isPaymentFailureSheetVisible}
+        onTryAgain={retryAddFundsFromFailureSheet}
+        onDismiss={dismissPaymentFailureSheet}
+      />
     </SafeAreaView>
   );
 };

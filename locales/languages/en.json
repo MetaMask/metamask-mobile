@@ -12226,8 +12226,6 @@
       "adding_title": "Adding funds",
       "adding_description": "This may take a few minutes.",
       "added_title": "Funds added",
-      "failed_title": "Failed to add funds",
-      "failed_description": "Your transaction didn't go through",
       "failed_action": "Try again"
     },
     "earned": {
