@@ -3,6 +3,7 @@ import type {
   FetchOrderCommitParams,
   FetchOrderPreviewParams,
   FetchPortfolioPageParams,
+  FetchSearchParams,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -46,6 +47,11 @@ export interface PredictApiReadTransport {
     range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
   fetchOrderPreview(
     venueId: PredictVenueId,
     params: FetchOrderPreviewParams,
@@ -58,9 +64,10 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
 }
 
-type PredictApiReadQueryParams = FetchFeedParams & {
-  range?: PredictMarketHistoryRange;
-};
+type PredictApiReadQueryParams = FetchFeedParams &
+  Partial<FetchSearchParams> & {
+    range?: PredictMarketHistoryRange;
+  };
 
 export interface PredictApiReadClientOptions {
   baseUrl?: string;
@@ -177,6 +184,14 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       { range },
       options,
     );
+  }
+
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'search'], params, options);
   }
 
   fetchOrderPreview(
