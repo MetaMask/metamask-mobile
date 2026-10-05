@@ -1,6 +1,12 @@
 import { TextColor } from '@metamask/design-system-react-native';
+import { is } from '@metamask/superstruct';
+import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import type { CreatedLimitOrderTransaction } from '../../api/limitOrders/create/schema';
+import {
+  LimitOrderFeeSchema,
+  type CreatedLimitOrderTransaction,
+  type LimitOrderFee,
+} from '../../api/limitOrders/create/schema';
 import {
   LimitOrderState,
   type LimitOrder,
@@ -104,4 +110,41 @@ export function getLimitOrderActivityTransaction(
         Date.parse(b.timingData.createdAt) - Date.parse(a.timingData.createdAt),
     )[0]
   );
+}
+
+/**
+ * Picks the network fee a fill paid. A relayer submits the fill, so its gas is
+ * the `txFee` taken from the swap.
+ *
+ * @param transaction - The fill.
+ * @returns The fee, or `undefined` when the fill reports none.
+ */
+export function getLimitOrderActivityNetworkFee(
+  transaction: CreatedLimitOrderTransaction | undefined,
+): LimitOrderFee | undefined {
+  const fee = transaction?.feeData?.txFee;
+
+  return is(fee, LimitOrderFeeSchema) && new BigNumber(fee.amount).gt(0)
+    ? fee
+    : undefined;
+}
+
+/**
+ * Values a token amount in USD.
+ *
+ * @param amount - The amount, in minimal units.
+ * @param decimals - The token's decimals.
+ * @param tokenUsdRate - The USD value of one token.
+ * @returns The value, or `undefined` when there is no rate.
+ */
+export function getLimitOrderActivityUsdValue(
+  amount: string,
+  decimals: number,
+  tokenUsdRate: number | undefined,
+): number | undefined {
+  const value = new BigNumber(amount)
+    .shiftedBy(-decimals)
+    .multipliedBy(tokenUsdRate ?? NaN);
+
+  return value.isFinite() ? value.toNumber() : undefined;
 }
