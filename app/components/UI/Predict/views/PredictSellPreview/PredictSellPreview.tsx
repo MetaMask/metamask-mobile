@@ -506,7 +506,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         <PredictFeeBreakdownSheet
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyStatus={preview?.feePolicy?.status}
+          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
           sharePrice={currentPrice}
           contractCount={preview?.maxAmountSpent ?? 0}

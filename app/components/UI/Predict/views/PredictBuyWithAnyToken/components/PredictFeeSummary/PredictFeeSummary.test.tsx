@@ -172,7 +172,7 @@ describe('PredictFeeSummary', () => {
     render(
       <PredictFeeSummary
         {...baseProps}
-        feePolicyStatus="membership"
+        feePolicyDiscountType="membership"
         originalTotal={15}
       />,
     );

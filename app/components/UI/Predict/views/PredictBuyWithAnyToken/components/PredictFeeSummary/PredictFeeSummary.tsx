@@ -29,14 +29,14 @@ import RewardsAnimations, {
 } from '../../../../../Rewards/components/RewardPointsAnimation';
 import { usePredictRewards } from '../../../../hooks/usePredictRewards';
 import { formatPrice } from '../../../../utils/format';
-import type { PredictFeePolicyStatus } from '../../../../types';
+import type { PredictDiscountType } from '../../../../types';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
   originalTotal?: number;
-  feePolicyStatus?: PredictFeePolicyStatus;
+  feePolicyDiscountType?: PredictDiscountType;
   rewardsFeeAmountUsd?: number;
   rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
@@ -48,7 +48,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   handleFeesInfoPress,
   total,
   originalTotal,
-  feePolicyStatus,
+  feePolicyDiscountType,
   rewardsFeeAmountUsd,
   rewardsLoadingOverride = false,
 }) => {
@@ -121,7 +121,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
               />
             </Box>
             <Box twClassName="flex-row items-center gap-2">
-              {feePolicyStatus === 'membership' &&
+              {feePolicyDiscountType === 'membership' &&
                 originalTotal !== undefined && (
                   <Text
                     variant={TextVariant.BodyMd}

@@ -2,37 +2,22 @@ import type { SubscriptionBenefitsResponse } from '@metamask/subscription-contro
 import type { PredictFeePolicy } from '../types';
 
 /**
- * Creates the standard Predict fee policy.
- *
- * @param standardMetamaskFee - The configured MetaMask service fee.
- * @returns The standard fee policy.
- */
-export const getStandardPredictFeePolicy = (
-  standardMetamaskFee: number,
-): PredictFeePolicy => ({
-  status: 'standard',
-  effectiveMetamaskFee: standardMetamaskFee,
-});
-
-/**
  * Resolves the client-side Predict fee hint.
  *
  * This policy is deliberately fail-closed. The benefits response is a
  * preflight snapshot only; the backend remains responsible for validating and
  * consuming the allowance when the order is submitted.
  *
- * @param params - Live benefits response and standard fee inputs.
- * @returns The effective client-side fee policy.
+ * @param params - Live benefits response.
+ * @returns The membership fee policy when the benefit can be applied.
  */
 export function resolvePredictFeePolicy({
   benefits,
-  standardMetamaskFee,
 }: {
   benefits: SubscriptionBenefitsResponse;
-  standardMetamaskFee: number;
-}): PredictFeePolicy {
+}): PredictFeePolicy | undefined {
   if (benefits.eligible !== true) {
-    return getStandardPredictFeePolicy(standardMetamaskFee);
+    return undefined;
   }
 
   const predictBenefits = benefits.products.predict;
@@ -48,12 +33,11 @@ export function resolvePredictFeePolicy({
     predictBenefits.exhausted !== false ||
     !hasRemainingTransactions
   ) {
-    return getStandardPredictFeePolicy(standardMetamaskFee);
+    return undefined;
   }
 
   return {
-    status: 'membership',
-    effectiveMetamaskFee: 0,
+    discountType: 'membership',
     builderCode,
   };
 }

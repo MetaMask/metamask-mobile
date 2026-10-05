@@ -13,7 +13,7 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
-import type { PredictFeePolicyStatus } from '../../types';
+import type { PredictDiscountType } from '../../types';
 
 interface FeeRowProps {
   title: string;
@@ -43,7 +43,7 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
-  feePolicyStatus?: PredictFeePolicyStatus;
+  feePolicyDiscountType?: PredictDiscountType;
   originalTotal?: number;
   depositFee?: number;
   sharePrice: number;
@@ -63,7 +63,7 @@ const PredictFeeBreakdownSheet = forwardRef<
     {
       providerFee,
       metamaskFee,
-      feePolicyStatus,
+      feePolicyDiscountType,
       originalTotal,
       sharePrice,
       depositFee,
@@ -141,7 +141,7 @@ const PredictFeeBreakdownSheet = forwardRef<
             {strings('predict.fee_summary.total')}
           </Text>
           <Box twClassName="flex-row items-center gap-2">
-            {feePolicyStatus === 'membership' &&
+            {feePolicyDiscountType === 'membership' &&
               originalTotal !== undefined && (
                 <Text
                   color={TextColor.TextAlternative}

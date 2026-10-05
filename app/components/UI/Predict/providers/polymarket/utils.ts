@@ -2086,13 +2086,13 @@ const getEffectiveFeeCollection = ({
   feeCollection?: PredictFeeCollection;
   feePolicy?: PredictFeePolicy;
 }): PredictFeeCollection | undefined => {
-  if (!feeCollection || feePolicy?.status !== 'membership') {
+  if (feePolicy?.discountType !== 'membership') {
     return feeCollection;
   }
 
   return {
     ...feeCollection,
-    metamaskFee: feePolicy.effectiveMetamaskFee,
+    metamaskFee: 0,
   };
 };
 
@@ -2243,7 +2243,7 @@ const calculateFeesWithOriginal = async ({
     feeCollection: effectiveFeeCollection,
   });
 
-  if (feePolicy?.status === 'membership') {
+  if (feePolicy?.discountType === 'membership') {
     return calculateMembershipFees({
       feeCollection,
       effectiveFeeCollection,

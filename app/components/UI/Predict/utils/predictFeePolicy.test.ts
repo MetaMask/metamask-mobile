@@ -2,12 +2,7 @@ import type {
   PredictBenefitUsage,
   SubscriptionBenefitsResponse,
 } from '@metamask/subscription-controller';
-import {
-  getStandardPredictFeePolicy,
-  resolvePredictFeePolicy,
-} from './predictFeePolicy';
-
-const STANDARD_METAMASK_FEE = 0.02;
+import { resolvePredictFeePolicy } from './predictFeePolicy';
 
 const createBenefits = (
   predictOverrides: Partial<PredictBenefitUsage> = {},
@@ -40,33 +35,29 @@ describe('Predict fee policy', () => {
     expect(
       resolvePredictFeePolicy({
         benefits: createBenefits(),
-        standardMetamaskFee: STANDARD_METAMASK_FEE,
       }),
     ).toEqual({
-      status: 'membership',
-      effectiveMetamaskFee: 0,
+      discountType: 'membership',
       builderCode: 'predict-pro-builder',
     });
   });
 
-  it('uses membership status only when the benefit is not exhausted', () => {
+  it('uses membership discount only when the benefit is not exhausted', () => {
     const availablePolicy = resolvePredictFeePolicy({
       benefits: createBenefits({
         exhausted: false,
         remainingTxCount: 1,
       }),
-      standardMetamaskFee: STANDARD_METAMASK_FEE,
     });
     const exhaustedPolicy = resolvePredictFeePolicy({
       benefits: createBenefits({
         exhausted: true,
         remainingTxCount: 1,
       }),
-      standardMetamaskFee: STANDARD_METAMASK_FEE,
     });
 
-    expect(availablePolicy.status).toBe('membership');
-    expect(exhaustedPolicy.status).toBe('standard');
+    expect(availablePolicy?.discountType).toBe('membership');
+    expect(exhaustedPolicy).toBeUndefined();
   });
 
   it.each([
@@ -78,37 +69,22 @@ describe('Predict fee policy', () => {
     ],
     ['the builder code is missing', { builderCode: null }],
     ['the builder code is blank', { builderCode: '  ' }],
-  ])('uses the standard fee when %s', (_reason, overrides) => {
+  ])('does not resolve a policy when %s', (_reason, overrides) => {
     expect(
       resolvePredictFeePolicy({
         benefits: createBenefits(overrides),
-        standardMetamaskFee: STANDARD_METAMASK_FEE,
       }),
-    ).toMatchObject({
-      status: 'standard',
-      effectiveMetamaskFee: STANDARD_METAMASK_FEE,
-    });
+    ).toBeUndefined();
   });
 
-  it('uses the standard policy when the live benefits request fails', () => {
-    expect(getStandardPredictFeePolicy(STANDARD_METAMASK_FEE)).toEqual({
-      status: 'standard',
-      effectiveMetamaskFee: STANDARD_METAMASK_FEE,
-    });
-  });
-
-  it('uses the standard fee when the benefits response is ineligible', () => {
+  it('does not resolve a policy when the benefits response is ineligible', () => {
     expect(
       resolvePredictFeePolicy({
         benefits: {
           ...createBenefits(),
           eligible: false,
         },
-        standardMetamaskFee: STANDARD_METAMASK_FEE,
       }),
-    ).toMatchObject({
-      status: 'standard',
-      effectiveMetamaskFee: STANDARD_METAMASK_FEE,
-    });
+    ).toBeUndefined();
   });
 });

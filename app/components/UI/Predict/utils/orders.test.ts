@@ -203,8 +203,7 @@ describe('orders utils', () => {
         preview: {
           ...preview,
           feePolicy: {
-            status: 'membership',
-            effectiveMetamaskFee: 0,
+            discountType: 'membership',
             builderCode: 'predict-pro-builder',
           },
           originalFees: {
@@ -263,8 +262,7 @@ describe('orders utils', () => {
           ...preview,
           side: Side.SELL,
           feePolicy: {
-            status: 'membership',
-            effectiveMetamaskFee: 0,
+            discountType: 'membership',
             builderCode: 'predict-pro-builder',
           },
           originalFees: {
@@ -302,8 +300,7 @@ describe('orders utils', () => {
         getPredictBuyAllInCost({
           ...preview,
           feePolicy: {
-            status: 'membership',
-            effectiveMetamaskFee: 0,
+            discountType: 'membership',
             builderCode: 'predict-pro-builder',
           },
           fees: {
@@ -334,8 +331,7 @@ describe('orders utils', () => {
           ...preview,
           side: Side.SELL,
           feePolicy: {
-            status: 'membership',
-            effectiveMetamaskFee: 0,
+            discountType: 'membership',
             builderCode: 'predict-pro-builder',
           },
           fees: {

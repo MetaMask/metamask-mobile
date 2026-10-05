@@ -631,7 +631,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     const hasFees =
-      preview.feePolicy?.status !== 'membership' &&
+      !preview.feePolicy &&
       preview.fees !== undefined &&
       preview.fees.totalFee > 0;
 
@@ -711,10 +711,7 @@ export class PolymarketProvider implements PredictProvider {
       signerAddress: isDepositWallet
         ? tradingWalletAddress
         : getAddress(signer.address),
-      builderCode:
-        preview.feePolicy?.status === 'membership'
-          ? preview.feePolicy.builderCode
-          : undefined,
+      builderCode: preview.feePolicy?.builderCode,
       signatureType: isDepositWallet
         ? SignatureType.POLY_1271
         : SignatureType.POLY_GNOSIS_SAFE,
@@ -756,7 +753,7 @@ export class PolymarketProvider implements PredictProvider {
     let permit2FeeReady = false;
 
     if (
-      preview.feePolicy?.status !== 'membership' &&
+      preview.feePolicy?.discountType !== 'membership' &&
       shouldUsePermit2 &&
       preview.fees &&
       preview.fees.totalFee > 0

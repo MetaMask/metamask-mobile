@@ -3138,8 +3138,7 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          status: 'membership',
-          effectiveMetamaskFee: 0,
+          discountType: 'membership',
           builderCode: 'predict-pro-builder',
         },
         marketId: 'market-1',
@@ -3194,8 +3193,7 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        status: 'membership',
-        effectiveMetamaskFee: 0,
+        discountType: 'membership',
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3653,8 +3651,7 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        status: 'membership',
-        effectiveMetamaskFee: 0,
+        discountType: 'membership',
         builderCode: 'predict-pro-builder',
       },
     });

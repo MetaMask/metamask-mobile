@@ -1584,8 +1584,7 @@ describe('PolymarketProvider', () => {
       preview: {
         ...basePreview,
         feePolicy: {
-          status: 'membership',
-          effectiveMetamaskFee: 0,
+          discountType: 'membership',
           builderCode: membershipBuilderCode,
         },
       },
@@ -1855,8 +1854,7 @@ describe('PolymarketProvider', () => {
           permit2Enabled: true,
         },
         feePolicy: {
-          status: 'membership',
-          effectiveMetamaskFee: 0,
+          discountType: 'membership',
           builderCode:
             '0x4444444444444444444444444444444444444444444444444444444444444444',
         },

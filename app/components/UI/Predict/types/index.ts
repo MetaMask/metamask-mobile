@@ -749,12 +749,11 @@ export interface PredictFees {
   permit2Enabled?: boolean;
 }
 
-export type PredictFeePolicyStatus = 'standard' | 'membership';
+export type PredictDiscountType = 'standard' | 'membership';
 
 export interface PredictFeePolicy {
-  status: PredictFeePolicyStatus;
-  effectiveMetamaskFee: number;
-  builderCode?: string;
+  discountType: PredictDiscountType;
+  builderCode: string;
 }
 
 /**

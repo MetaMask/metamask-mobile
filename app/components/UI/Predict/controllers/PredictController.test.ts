@@ -9346,8 +9346,7 @@ describe('PredictController', () => {
           expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
             expect.objectContaining({
               feePolicy: {
-                status: 'membership',
-                effectiveMetamaskFee: 0,
+                discountType: 'membership',
                 builderCode: 'predict-pro-builder',
               },
             }),

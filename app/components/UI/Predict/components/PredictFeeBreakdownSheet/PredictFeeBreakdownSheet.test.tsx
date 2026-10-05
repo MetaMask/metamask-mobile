@@ -302,7 +302,7 @@ describe('PredictFeeBreakdownSheet', () => {
           <PredictFeeBreakdownSheet
             ref={ref}
             {...defaultProps}
-            feePolicyStatus="membership"
+            feePolicyDiscountType="membership"
             originalTotal={10.2}
           />
         );
