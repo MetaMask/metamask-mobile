@@ -1,8 +1,26 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+
+const flattenStyle = (
+  style: StyleProp<ViewStyle>,
+): Record<string, unknown>[] => {
+  if (!style) {
+    return [];
+  }
+
+  if (Array.isArray(style)) {
+    return style.flatMap((entry) => flattenStyle(entry));
+  }
+
+  if (typeof style === 'object') {
+    return [style as Record<string, unknown>];
+  }
+
+  return [];
+};
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -65,8 +83,8 @@ describe('PredictBuyActionButton', () => {
       expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
     });
 
-    it('displays ActivityIndicator', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
+    it('marks the button busy while placing a prediction', () => {
+      renderWithProvider(
         <PredictBuyActionButton
           isLoading
           onPress={mockOnPress}
@@ -77,7 +95,7 @@ describe('PredictBuyActionButton', () => {
         />,
       );
 
-      UNSAFE_getByType(ActivityIndicator);
+      expect(screen.getByRole('button')).toBeBusy();
     });
 
     it('renders button with disabled state', () => {
@@ -109,14 +127,14 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByRole('button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
+      expect(flattenStyle(button.props.style)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
       );
     });
   });
 
   describe('when isLoading is false', () => {
-    it('renders ButtonHero component', () => {
+    it('renders the place prediction button', () => {
       renderWithProvider(
         <PredictBuyActionButton
           isLoading={false}
@@ -193,8 +211,8 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByTestId('action-button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
+      expect(flattenStyle(button.props.style)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
       );
     });
 
@@ -212,8 +230,8 @@ describe('PredictBuyActionButton', () => {
       );
 
       const button = screen.getByTestId('action-button');
-      expect(button.props.style).not.toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
+      expect(flattenStyle(button.props.style)).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
       );
     });
 
