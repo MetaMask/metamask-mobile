@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux';
 import { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 import Engine from '../../../../core/Engine';
 import {
+  BUILDER_FEE_CONFIG,
   type Position,
   type FeeCalculationResult,
 } from '@metamask/perps-controller';
 import type { EstimatedPointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 
 /**
  * Note: This test file contains act() warnings from React Testing Library.
@@ -93,11 +93,7 @@ describe('usePerpsCloseAllCalculations', () => {
 
     // Setup default selector mocks
     let selectorCallCount = 0;
-    mockUseSelector.mockImplementation((selectorFn) => {
-      if (selectorFn === selectVipProgramEnabled) {
-        return true;
-      }
-
+    mockUseSelector.mockImplementation(() => {
       selectorCallCount++;
       if (selectorCallCount % 2 === 1) {
         return {
@@ -429,198 +425,144 @@ describe('usePerpsCloseAllCalculations', () => {
     });
   });
 
-  describe('Fee Discount', () => {
-    it('applies account-level fee discount to MetaMask fees', async () => {
-      // Arrange: 10% discount (1000 basis points)
-      mockGetPerpsDiscount.mockResolvedValue(1000);
+  describe('Resolved fee from calculateFees', () => {
+    // 0.5 BTC at 51000: 25500 notional. calculateFees already repriced the
+    // 10 bip builder fee with a 20% VIP discount (8 bips).
+    const resolvedFees = createMockFeeResult({
+      feeRate: 0.00125,
+      feeAmount: 31.875,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 11.475,
+      metamaskFeeRate: 0.0008,
+      metamaskFeeAmount: 20.4,
+      chargesMetamaskBuilderFee: true,
+    });
+    const positions = [createMockPosition({ symbol: 'BTC' })];
+    const priceData = { BTC: { price: '51000' } };
 
-      const positions = [createMockPosition({ symbol: 'BTC' })];
-      const priceData = { BTC: { price: '51000' } };
+    it('previews the rewards-discounted MetaMask fee without discounting it again', async () => {
+      mockGetPerpsDiscount.mockResolvedValue(2000);
+      mockCalculateFees.mockResolvedValue(resolvedFees);
 
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 275, // Base total fee (before discount)
-          metamaskFeeRate: 0.01, // 1% MetaMask fee rate
-          metamaskFeeAmount: 250, // Base MetaMask fee
-          protocolFeeRate: 0.001, // Protocol fee rate (not discounted)
-          protocolFeeAmount: 25, // Protocol fee (not discounted)
-        }),
-      );
-
-      // Act
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({ positions, priceData }),
       );
-
-      // Assert
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      // Discount applied: 250 * (1 - 1000/10000) = 250 * 0.9 = 225 (MetaMask fee)
-      // Total fee: 225 (discounted MetaMask) + 25 (protocol) = 250
-      expect(result.current.totalFees).toBeCloseTo(250, 1);
-      expect(result.current.avgFeeDiscountPercentage).toBe(10); // 1000 bips / 100 = 10%
-      expect(mockGetPerpsDiscount).toHaveBeenCalledTimes(1);
+      expect(result.current.totalFees).toBeCloseTo(31.875, 6);
+      expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.0008, 8);
+      expect(result.current.avgOriginalMetamaskFeeRate).toBeCloseTo(
+        BUILDER_FEE_CONFIG.MaxFeeDecimal,
+        8,
+      );
+      expect(result.current.avgFeeDiscountPercentage).toBe(20);
+      expect(mockGetPerpsDiscount).not.toHaveBeenCalled();
     });
 
-    it('applies discount to multiple positions', async () => {
-      // Arrange: 65% discount (6500 basis points)
-      mockGetPerpsDiscount.mockResolvedValue(6500);
+    it('estimates points from the previewed fee', async () => {
+      mockCalculateFees.mockResolvedValue(resolvedFees);
 
-      const positions = [
-        createMockPosition({ symbol: 'BTC' }),
-        createMockPosition({ symbol: 'ETH' }),
-      ];
-      const priceData = { BTC: { price: '51000' }, ETH: { price: '3000' } };
-
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 100,
-          metamaskFeeAmount: 50,
-          protocolFeeAmount: 50,
-        }),
-      );
-
-      // Act
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({ positions, priceData }),
       );
-
-      // Assert
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      // Each position: 50 * (1 - 6500/10000) = 50 * 0.35 = 17.5 (MetaMask fee)
-      // Per position total: 17.5 + 50 = 67.5
-      // Two positions: 67.5 * 2 = 135
-      expect(result.current.totalFees).toBeCloseTo(135, 1);
-      expect(result.current.avgFeeDiscountPercentage).toBe(65);
+      expect(mockEstimatePoints).toHaveBeenCalledWith(
+        expect.objectContaining({
+          activityContext: {
+            perpsContext: [
+              expect.objectContaining({
+                usdFeeValue: resolvedFees.feeAmount?.toString(),
+              }),
+            ],
+          },
+        }),
+      );
     });
 
-    it('does not apply a discount and allows retry when controller returns null (unhydrated)', async () => {
-      // Arrange: subscription state not hydrated yet
-      mockGetPerpsDiscount.mockResolvedValue(null);
+    it('derives the discount across positions from their resolved rates', async () => {
+      mockCalculateFees.mockResolvedValue(resolvedFees);
 
-      const positions = [createMockPosition({ symbol: 'BTC' })];
-      const priceData = { BTC: { price: '51000' } };
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({
+          positions: [
+            createMockPosition({ symbol: 'BTC' }),
+            createMockPosition({ symbol: 'ETH' }),
+          ],
+          priceData: { BTC: { price: '51000' }, ETH: { price: '51000' } },
+        }),
+      );
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+      expect(result.current.totalFees).toBeCloseTo(63.75, 6);
+      expect(result.current.avgFeeDiscountPercentage).toBe(20);
+    });
+
+    it('previews a full subscription waiver at the rate calculateFees returns', async () => {
       mockCalculateFees.mockResolvedValue(
         createMockFeeResult({
-          feeAmount: 275,
-          metamaskFeeRate: 0.01,
-          metamaskFeeAmount: 250,
-          protocolFeeRate: 0.001,
-          protocolFeeAmount: 25,
+          feeRate: 0.00045,
+          feeAmount: 11.475,
+          protocolFeeRate: 0.00045,
+          protocolFeeAmount: 11.475,
+          metamaskFeeRate: 0,
+          metamaskFeeAmount: 0,
+          chargesMetamaskBuilderFee: true,
         }),
       );
 
-      // Act
-      const { result, rerender } = renderHook(
-        ({ pos }: { pos: Position[] }) =>
-          usePerpsCloseAllCalculations({ positions: pos, priceData }),
-        { initialProps: { pos: positions } },
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({ positions, priceData }),
       );
-
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      // No discount applied; original rate matches base rate
+      expect(result.current.totalFees).toBeCloseTo(11.475, 6);
+      expect(result.current.avgMetamaskFeeRate).toBe(0);
+      expect(result.current.avgFeeDiscountPercentage).toBe(100);
+    });
+
+    it('reports no discount when calculateFees returns the default builder fee', async () => {
+      mockCalculateFees.mockResolvedValue(
+        createMockFeeResult({
+          feeRate: 0.00145,
+          feeAmount: 36.975,
+          protocolFeeRate: 0.00045,
+          protocolFeeAmount: 11.475,
+          metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+          metamaskFeeAmount: 25.5,
+          chargesMetamaskBuilderFee: true,
+        }),
+      );
+
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({ positions, priceData }),
+      );
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.totalFees).toBeCloseTo(36.975, 6);
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
-      expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.01, 4);
-      expect(result.current.totalFees).toBe(275);
-
-      // Hydration completes and a positions change retries the fetch
-      mockGetPerpsDiscount.mockResolvedValueOnce(6500);
-      rerender({ pos: [...positions] });
-
-      await waitFor(() =>
-        expect(result.current.avgFeeDiscountPercentage).toBe(65),
-      );
-      expect(mockGetPerpsDiscount).toHaveBeenCalledTimes(2);
     });
 
-    it('handles discount fetch errors gracefully', async () => {
-      // Arrange: Discount API fails
-      mockGetPerpsDiscount.mockRejectedValue(new Error('API error'));
-
-      const positions = [createMockPosition({ symbol: 'BTC' })];
-      const priceData = { BTC: { price: '51000' } };
-
+    it('reports no discount when the placement carries no builder fee', async () => {
       mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({ feeAmount: 275 }),
+        createMockFeeResult({
+          feeRate: 0.00045,
+          feeAmount: 11.475,
+          protocolFeeRate: 0.00045,
+          protocolFeeAmount: 11.475,
+          metamaskFeeRate: 0,
+          metamaskFeeAmount: 0,
+          chargesMetamaskBuilderFee: false,
+        }),
       );
 
-      // Act
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({ positions, priceData }),
       );
-
-      // Assert
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      // Should continue with no discount on error (undefined means 0% in this case)
-      expect(result.current.totalFees).toBe(275);
+      expect(result.current.avgOriginalMetamaskFeeRate).toBe(0);
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
-      expect(result.current.hasError).toBe(false); // Don't fail entire calculation
-    });
-
-    it('calculates original fee rate correctly with discount', async () => {
-      // Arrange: 50% discount (5000 basis points)
-      mockGetPerpsDiscount.mockResolvedValue(5000);
-
-      const positions = [createMockPosition({ symbol: 'BTC' })];
-      const priceData = { BTC: { price: '51000' } };
-
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 275,
-          metamaskFeeRate: 0.01, // Base rate
-          metamaskFeeAmount: 250,
-          protocolFeeRate: 0.001,
-          protocolFeeAmount: 25,
-        }),
-      );
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-      // Discounted rate: 0.01 * (1 - 5000/10000) = 0.01 * 0.5 = 0.005
-      expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.005, 4);
-
-      // Original rate: 0.005 / (1 - 5000/10000) = 0.005 / 0.5 = 0.01
-      expect(result.current.avgOriginalMetamaskFeeRate).toBeCloseTo(0.01, 4);
-    });
-
-    it('guards against 100% discount (division by zero)', async () => {
-      // Arrange: 100% discount (10000 basis points) - theoretical edge case
-      mockGetPerpsDiscount.mockResolvedValue(10000);
-
-      const positions = [createMockPosition({ symbol: 'BTC' })];
-      const priceData = { BTC: { price: '51000' } };
-
-      mockCalculateFees.mockResolvedValue(
-        createMockFeeResult({
-          feeAmount: 275,
-          metamaskFeeRate: 0.01,
-          metamaskFeeAmount: 250,
-        }),
-      );
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsCloseAllCalculations({ positions, priceData }),
-      );
-
-      // Assert
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-      // Should not crash with Infinity/NaN
-      expect(result.current.avgOriginalMetamaskFeeRate).toBeDefined();
-      expect(Number.isFinite(result.current.avgOriginalMetamaskFeeRate)).toBe(
-        true,
-      );
     });
   });
 

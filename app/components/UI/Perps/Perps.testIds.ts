@@ -340,6 +340,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSING_STATE: 'perps-close-all-positions-closing-state',
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
+  FEES_VALUE: 'perps-close-all-positions-fees-value',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
