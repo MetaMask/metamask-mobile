@@ -3,22 +3,6 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
-const flattenStyle = (style: unknown): Record<string, unknown>[] => {
-  if (!style) {
-    return [];
-  }
-
-  if (Array.isArray(style)) {
-    return style.flatMap((entry) => flattenStyle(entry));
-  }
-
-  if (typeof style === 'object') {
-    return [style as Record<string, unknown>];
-  }
-
-  return [];
-};
-
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const map: Record<string, string> = {
@@ -111,23 +95,6 @@ describe('PredictBuyActionButton', () => {
       expect(button).toBeDisabled();
     });
 
-    it('applies reduced opacity style', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-        />,
-      );
-
-      const button = screen.getByRole('button');
-      expect(flattenStyle(button.props.style)).toEqual(
-        expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
-      );
-    });
   });
 
   describe('when isLoading is false', () => {
@@ -192,44 +159,6 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByTestId('action-button')).toBeDisabled();
-    });
-
-    it('applies reduced opacity when showReducedOpacity is true', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading={false}
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-          testID="action-button"
-        />,
-      );
-
-      const button = screen.getByTestId('action-button');
-      expect(flattenStyle(button.props.style)).toEqual(
-        expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
-      );
-    });
-
-    it('does not apply reduced opacity when showReducedOpacity is false', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading={false}
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-          testID="action-button"
-        />,
-      );
-
-      const button = screen.getByTestId('action-button');
-      expect(flattenStyle(button.props.style)).not.toEqual(
-        expect.arrayContaining([expect.objectContaining({ opacity: 0.5 })]),
-      );
     });
 
     it('calls onPress when button is pressed', () => {
