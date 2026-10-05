@@ -4,15 +4,29 @@ import {
   passthroughEncryptor,
 } from './mfaRecoveryTestProviders';
 
+const APP_ACCESS_TOKEN = 'header.eyJzdWIiOiJwcm9maWxlLTEifQ.signature';
+const fetchMock = jest.fn();
+
+global.fetch = fetchMock as unknown as typeof fetch;
+
 describe('mfa recovery test providers', () => {
-  it('creates a request-bound auth token for the configured profile', async () => {
-    const provider = new StubAuthProvider(
-      'profile-1',
-      'auth-token',
-      () => 1_000,
-    );
+  beforeEach(() => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ token: 'minted-token' }),
+    });
+  });
+
+  it('derives the profile and creates a request-bound auth token', async () => {
+    const provider = new StubAuthProvider({
+      accessToken: APP_ACCESS_TOKEN,
+      apiKey: 'api-key',
+      now: () => 1_000,
+    });
     const token = await provider.authorizeRecoveryRequest({
-      requestHash: '0xrequest',
+      requestHash: '0x6869',
       requireTwoFactor: true,
       identifiers: [
         {
@@ -26,14 +40,73 @@ describe('mfa recovery test providers', () => {
 
     expect(token).toMatchObject({
       profileId: 'profile-1',
-      requestHash: '0xrequest',
+      requestHash: '0x6869',
       twoFactor: true,
       identifierOwnershipApproved: true,
       issuer: 'mfa-recovery-developer-test',
       expiresAt: 4_600,
-      signature: 'auth-token',
+      signature: 'minted-token',
     });
     expect(token.identifiersHash).toEqual(expect.any(String));
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': 'api-key',
+      },
+      body: expect.stringContaining('"user":"profile-1"'),
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(
+      expect.objectContaining({
+        user: 'profile-1',
+        ext: expect.objectContaining({
+          aal: 'aal2',
+          amr: ['totp', 'passkey'],
+          requestHash: 'aGk',
+        }),
+      }),
+    );
+  });
+
+  it('mints an access token using a custom API host', async () => {
+    const provider = new StubAuthProvider({
+      accessToken: APP_ACCESS_TOKEN,
+      apiKey: 'api-key',
+      apiHost: 'https://custom.example.com',
+    });
+
+    await expect(provider.getAccessToken()).resolves.toBe('minted-token');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://custom.example.com/token',
+      expect.objectContaining({
+        body: JSON.stringify({ user: 'profile-1' }),
+      }),
+    );
+  });
+
+  it('rejects an invalid bearer token', () => {
+    expect(
+      () =>
+        new StubAuthProvider({
+          accessToken: 'not-a-jwt',
+          apiKey: 'api-key',
+        }),
+    ).toThrow('Authentication bearer token');
+  });
+
+  it('rejects when the token API request fails', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+    });
+    const provider = new StubAuthProvider({
+      accessToken: APP_ACCESS_TOKEN,
+      apiKey: 'api-key',
+    });
+
+    await expect(provider.getAccessToken()).rejects.toThrow('HTTP 401');
   });
 
   it('signs a SIWE identifier proof with the primary account', async () => {

@@ -32,6 +32,7 @@ const DEFAULT_REGISTRATION_URL =
 const DEFAULT_CUBIST_ENVIRONMENT: Environment = 'gamma';
 const DEFAULT_SESSION_SCOPES: Scope[] = ['manage:*'];
 const RECOVERY_SECRET_LENGTH = 32;
+const MFA_RECOVERY_DEV_API_KEY = process.env.MFA_RECOVERY_DEV_API_KEY;
 
 export type MfaRecoveryTestStep =
   | 'signing_in'
@@ -256,8 +257,13 @@ async function createRecoveryContext(
   // the app uses) instead of a separate SIWE login.
   onStep('signing_in');
   const { AuthenticationController } = Engine.context;
-  const accessToken = await AuthenticationController.getBearerToken();
-  const profile = await AuthenticationController.getSessionProfile();
+  const bearerToken = await AuthenticationController.getBearerToken();
+  const authProvider = new StubAuthProvider({
+    accessToken: bearerToken,
+    apiKey: MFA_RECOVERY_DEV_API_KEY,
+    apiHost: 'https://mpc-service-non-enclave.dev-api.cx.metamask.io',
+  });
+  const accessToken = await authProvider.getAccessToken();
   const ensureUserStatus = await prepareSession?.(config, accessToken);
 
   onStep('creating_cubist_session');
@@ -277,7 +283,7 @@ async function createRecoveryContext(
   const siweIdentifier = createSiweIdentifier(address);
   const controller = new MfaRecoveryController({
     messenger: getControllerMessenger(),
-    authProvider: new StubAuthProvider(profile.profileId, accessToken),
+    authProvider,
     identifierAuthProvider: new SiweIdentifierAuthProvider(
       address,
       async ({ data, from }) =>

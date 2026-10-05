@@ -1,5 +1,4 @@
 const mockGetBearerToken = jest.fn();
-const mockGetSessionProfile = jest.fn();
 const mockProveOidcIdentity = jest.fn();
 const mockCreateOidcSession = jest.fn();
 const mockCreateClient = jest.fn();
@@ -24,6 +23,7 @@ const mockMfaRecoveryControllerConstructor = jest.fn(
 const mockCubistClient = { org: jest.fn() };
 const mockCubistEnvironment = { SignerApiRoot: 'https://cubist.test' };
 const CHECKSUMMED_ADDRESS = '0x68757d15a4d8d1421c17003512AFce15D3f3FaDa';
+const APP_ACCESS_TOKEN = 'header.eyJzdWIiOiJwcm9maWxlLTEifQ.signature';
 
 jest.doMock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -39,7 +39,6 @@ jest.doMock('../../../../../core/Engine', () => ({
       },
       AuthenticationController: {
         getBearerToken: mockGetBearerToken,
-        getSessionProfile: mockGetSessionProfile,
       },
     },
   },
@@ -90,15 +89,23 @@ describe('runMfaRecoveryCubistTest', () => {
     })) {
       process.env[name] = value;
     }
-    mockGetBearerToken.mockResolvedValue('auth-token');
-    mockGetSessionProfile.mockResolvedValue({ profileId: 'profile-1' });
+    mockGetBearerToken.mockResolvedValue(APP_ACCESS_TOKEN);
     mockProveOidcIdentity.mockResolvedValue({ proof: 'identity' });
     mockCreateOidcSession.mockResolvedValue({
       data: () => ({ token: 'session-token' }),
     });
     mockCreateClient.mockResolvedValue(mockCubistClient);
     mockEnsureUserResponse.json.mockResolvedValue({ status: 'created' });
-    mockFetch.mockResolvedValue(mockEnsureUserResponse);
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url === 'http://localhost:3000/token') {
+        return {
+          ok: true,
+          status: 201,
+          json: async () => ({ token: 'minted-token' }),
+        };
+      }
+      return mockEnsureUserResponse;
+    });
     mockSignPersonalMessage.mockResolvedValue('0xsignature');
     mockRegister.mockImplementation(
       async (recoverySecret: Uint8Array): Promise<void> => {
@@ -137,7 +144,10 @@ describe('runMfaRecoveryCubistTest', () => {
       'completed',
     ]);
     expect(mockProveOidcIdentity).not.toHaveBeenCalled();
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/token',
+      expect.objectContaining({ method: 'POST' }),
+    );
     expect(mockRegister).not.toHaveBeenCalled();
     expect(mockGetRecoverySecret).toHaveBeenCalledWith('identifier-session');
   });
@@ -164,22 +174,21 @@ describe('runMfaRecoveryCubistTest', () => {
       'completed',
     ]);
     expect(mockGetBearerToken).toHaveBeenCalledTimes(1);
-    expect(mockGetSessionProfile).toHaveBeenCalledTimes(1);
     expect(mockProveOidcIdentity).toHaveBeenCalledWith(
       mockCubistEnvironment,
       'org-1',
-      'auth-token',
+      'minted-token',
     );
     expect(mockFetch).toHaveBeenCalledWith(
       'https://recovery-registration.dev-api.test/v1/recovery/registration/ensure-user',
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          Authorization: 'Bearer auth-token',
+          Authorization: 'Bearer minted-token',
         }),
       }),
     );
-    const request = mockFetch.mock.calls[0][1] as RequestInit;
+    const request = mockFetch.mock.calls[1][1] as RequestInit;
     expect(JSON.parse(request.body as string)).toEqual({
       providerVerifierId: 'cubist',
       providerRegistrationPayload: { proof: 'identity' },
@@ -187,7 +196,7 @@ describe('runMfaRecoveryCubistTest', () => {
     expect(mockCreateOidcSession).toHaveBeenCalledWith(
       mockCubistEnvironment,
       'org-1',
-      'auth-token',
+      'minted-token',
       ['manage:*', 'sign:evm:*'],
     );
     expect(mockCubistEscrowProvider).toHaveBeenCalledWith({
