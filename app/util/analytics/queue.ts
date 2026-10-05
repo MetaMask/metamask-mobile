@@ -170,6 +170,23 @@ const executeQueuedOperation = async (
   }
 };
 
+const MARKETING_CONSENT_ACTIONS = new Set([
+  'optInToMarketing',
+  'optOutOfMarketing',
+  'resetMarketingConsentDecision',
+]);
+
+/**
+ * Marketing consent is a mutation the caller must observe. Tracking stays best-effort.
+ */
+const isMarketingConsentAction = (action: string): boolean =>
+  MARKETING_CONSENT_ACTIONS.has(action);
+
+interface OperationSettlement {
+  resolve: () => void;
+  reject: (error: unknown) => void;
+}
+
 /**
  * Pure function to check if queue can be processed
  */
@@ -191,6 +208,9 @@ export const createAnalyticsQueueManager = (
 ): QueueManager => {
   // State managed in closure (updated immutably via reducer)
   let state: QueueState = createInitialState();
+  // Settled independently of the batch promise so a consent rejection does not
+  // fail tracking operations queued in the same batch.
+  const operationSettlements = new Map<QueuedOperation, OperationSettlement>();
 
   /**
    * Update state using reducer (immutable update)
@@ -232,21 +252,31 @@ export const createAnalyticsQueueManager = (
       });
 
       // Each operation waits for the previous one so a marketing opt-in is
-      // applied before the events queued behind it. A failure is logged and
+      // applied before the events queued behind it. A consent rejection is
+      // returned to that operation's caller. Other failures are logged and
       // the rest of the batch still runs.
       await operations.reduce<Promise<void>>(async (previous, operation) => {
         await previous;
+        const settlement = operationSettlements.get(operation);
         try {
           await executeQueuedOperation(
             messengerInstance,
             operation.action,
             operation.args,
           );
+          settlement?.resolve();
         } catch (error) {
-          Logger.error(
-            new Error(String(error)),
-            `Analytics: Failed to process queued operation '${operation.action}' - continuing with next operation`,
-          );
+          if (isMarketingConsentAction(operation.action)) {
+            settlement?.reject(error);
+          } else {
+            Logger.error(
+              new Error(String(error)),
+              `Analytics: Failed to process queued operation '${operation.action}' - continuing with next operation`,
+            );
+            settlement?.resolve();
+          }
+        } finally {
+          operationSettlements.delete(operation);
         }
       }, Promise.resolve());
 
@@ -299,15 +329,25 @@ export const createAnalyticsQueueManager = (
     action: string,
     ...args: unknown[]
   ): Promise<void> => {
-    // Immutable state update
+    const operation: QueuedOperation = { action, args: [...args] };
+    const result = new Promise<void>((resolve, reject) => {
+      operationSettlements.set(operation, { resolve, reject });
+    });
     dispatch({
       type: 'ADD_OPERATION',
-      payload: { action, args: [...args] },
+      payload: operation,
     });
 
     if (state.messenger) {
-      // Messenger is ready, process immediately
-      return processQueue();
+      // The caller waits on this operation. The batch promise stays in state
+      // so a later waitForQueue still sees the whole batch.
+      processQueue().catch((error: unknown) => {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'Analytics: Failed to process queued operations',
+        );
+      });
+      return result;
     }
     // Messenger not ready, ensure it's ready first
     try {
@@ -317,7 +357,16 @@ export const createAnalyticsQueueManager = (
         new Error(String(error)),
         'Analytics: Failed to initialize messenger - operations will remain queued',
       );
+      operationSettlements.delete(operation);
+      return;
     }
+    if (operationSettlements.has(operation)) {
+      // Ready finished without a messenger. The operation stays queued, and
+      // this call has nothing further to wait on.
+      operationSettlements.delete(operation);
+      return;
+    }
+    return result;
   };
 
   /**
@@ -332,6 +381,7 @@ export const createAnalyticsQueueManager = (
    * Reset state (for testing)
    */
   const reset = (): void => {
+    operationSettlements.clear();
     dispatch({ type: 'RESET' });
   };
 

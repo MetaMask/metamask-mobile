@@ -242,6 +242,37 @@ describe('createAnalyticsQueueManager', () => {
       );
     });
 
+    it('rejects a marketing opt-out and still sends the next event', async () => {
+      const error = new Error('opt-out failed');
+      mockMessenger.call.mockImplementation((method: string) => {
+        if (method === 'AnalyticsController:optOutOfMarketing') {
+          throw error;
+        }
+      });
+
+      const event: AnalyticsTrackingEvent = {
+        name: 'event_after_opt_out',
+        properties: {},
+        sensitiveProperties: {},
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
+
+      const optOutPromise = queueManager.queueOperation('optOutOfMarketing');
+      const trackPromise = queueManager.queueOperation('trackEvent', event);
+
+      await expect(optOutPromise).rejects.toBe(error);
+      await expect(trackPromise).resolves.toBeUndefined();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        event,
+      );
+    });
+
     it('continues processing queue after error', async () => {
       const error = new Error('First call failed');
       let callCount = 0;

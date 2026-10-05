@@ -146,13 +146,9 @@ const queueMarketingConsent = async (
     | 'optOutOfMarketing'
     | 'resetMarketingConsentDecision',
 ): Promise<void> => {
-  try {
-    await queueManager.queueOperation(action);
-    // Match product opt-in: yield so controller state is visible to the next read.
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  } catch (error) {
-    Logger.log(`Analytics: Unhandled error in ${action}`, error);
-  }
+  await queueManager.queueOperation(action);
+  // Match product opt-in: yield so controller state is visible to the next read.
+  await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
 /**

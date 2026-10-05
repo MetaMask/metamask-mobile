@@ -259,6 +259,36 @@ describe('createPlatformAdapter', () => {
       expect(segmentMockClient.identify).toHaveBeenCalledWith(userId, traits);
     });
 
+    it('merges consent and eventsConfigVersion into Segment context', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const traits = { name: 'Ada' };
+      const incomingEvent = {
+        type: 'identify',
+        userId: 'user-1',
+        context: {
+          consent: { categoryPreferences: { product: false } },
+        },
+      } as unknown as SegmentEvent;
+
+      adapter.identify('user-1', traits, {
+        consent: {
+          categoryPreferences: { product: true, marketing: false },
+        },
+        eventsConfigVersion: '7',
+      });
+
+      const enrichment = jest.mocked(segmentMockClient.identify).mock
+        .calls[0][2];
+      expect(enrichment?.(incomingEvent).context).toEqual({
+        consent: {
+          categoryPreferences: { product: true, marketing: false },
+        },
+        eventsConfigVersion: '7',
+      });
+    });
+
     it('calls Segment client.identify with only userId when no traits', () => {
       const adapter = createPlatformAdapter();
       const { segmentMockClient } =
@@ -282,6 +312,35 @@ describe('createPlatformAdapter', () => {
       adapter.view(name, properties);
 
       expect(segmentMockClient.screen).toHaveBeenCalledWith(name, properties);
+    });
+
+    it('merges consent and eventsConfigVersion into Segment context', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const properties = { category: 'wallet' };
+      const incomingEvent = {
+        type: 'screen',
+        name: 'Home',
+        context: {
+          consent: { categoryPreferences: { product: false } },
+        },
+      } as unknown as SegmentEvent;
+
+      adapter.view('Home', properties, {
+        consent: {
+          categoryPreferences: { product: true, marketing: false },
+        },
+        eventsConfigVersion: '7',
+      });
+
+      const enrichment = jest.mocked(segmentMockClient.screen).mock.calls[0][2];
+      expect(enrichment?.(incomingEvent).context).toEqual({
+        consent: {
+          categoryPreferences: { product: true, marketing: false },
+        },
+        eventsConfigVersion: '7',
+      });
     });
 
     it('calls Segment client.screen with name without properties', () => {

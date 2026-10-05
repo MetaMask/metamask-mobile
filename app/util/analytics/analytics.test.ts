@@ -402,16 +402,11 @@ describe('analytics', () => {
       ).not.toHaveBeenCalledWith('optInToMarketing');
     });
 
-    it('logs error when a marketing queue operation rejects', async () => {
+    it('rejects when the marketing opt-out queue operation rejects', async () => {
       const error = new Error('Queue operation failed');
       mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
 
-      analytics.optInToMarketing();
-
-      await new Promise(process.nextTick);
-
-      expect(mockedLoggerLog).toHaveBeenCalledWith(
-        'Analytics: Unhandled error in optInToMarketing',
+      await expect(analytics.setDataCollectionForMarketing(false)).rejects.toBe(
         error,
       );
     });
