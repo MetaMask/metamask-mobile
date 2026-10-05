@@ -103,8 +103,8 @@ export interface PerpsProCompactInputProps {
   onFocus?: () => void;
   onBlur?: () => void;
   /**
-   * Fires on every field tap, including while already focused. Direct input
-   * taps fire on release so keyboard realignment cannot cancel Android focus.
+   * Fires when the field wrapper is tapped or an already-focused native input
+   * is re-tapped. Initial native focus is reported through onFocus instead.
    */
   onFieldPress?: () => void;
   containerRef?: React.Ref<View>;
@@ -151,6 +151,10 @@ const PerpsProCompactInput = React.forwardRef<
   ) => {
     const tw = useTailwind();
     const inputRef = useRef<TextInput>(null);
+    const isNativeFocusedRef = useRef(false);
+    const isDirectPressActiveRef = useRef(false);
+    const hasPendingFocusCallbackRef = useRef(false);
+    const wasNativeFocusedAtPressInRef = useRef(false);
     const [isFocused, setIsFocused] = useState(false);
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || value.length > 0;
@@ -199,10 +203,19 @@ const PerpsProCompactInput = React.forwardRef<
         } as const)
       : undefined;
     const handleFocus = () => {
+      isNativeFocusedRef.current = true;
       setIsFocused(true);
+      if (isDirectPressActiveRef.current) {
+        // Scale fields scroll on focus. Wait for release so that scroll cannot
+        // cancel Android's in-flight native focus handoff.
+        hasPendingFocusCallbackRef.current = true;
+        return;
+      }
       onFocus?.();
     };
     const handleBlur = () => {
+      isNativeFocusedRef.current = false;
+      hasPendingFocusCallbackRef.current = false;
       setIsFocused(false);
       onBlur?.();
     };
@@ -210,21 +223,35 @@ const PerpsProCompactInput = React.forwardRef<
       if (isInteractionBlocked) {
         return;
       }
+      isDirectPressActiveRef.current = true;
+      wasNativeFocusedAtPressInRef.current = isNativeFocusedRef.current;
       setIsFocused(true);
     };
-    // Runs after release: a realign scroll mid-tap cancels Android's focus.
+    // Initial focus realigns through onFocus. Only a re-tap needs this fallback;
+    // scrolling every initial press again can make adjacent Scale inputs fight.
     const handleFieldPressOut = () => {
+      isDirectPressActiveRef.current = false;
       if (isInteractionBlocked) {
+        hasPendingFocusCallbackRef.current = false;
         return;
       }
-      onFieldPress?.();
+      if (hasPendingFocusCallbackRef.current) {
+        hasPendingFocusCallbackRef.current = false;
+        onFocus?.();
+        return;
+      }
+      if (wasNativeFocusedAtPressInRef.current) {
+        onFieldPress?.();
+      }
     };
     const focusInput = () => {
       if (isInteractionBlocked) {
         return;
       }
       handleFieldPressIn();
-      handleFieldPressOut();
+      // Wrapper taps occur before native focus, so this is a harmless no-op for
+      // keyboard scroll hooks until onFocus performs the real alignment.
+      onFieldPress?.();
       setShouldFocusInput(true);
     };
 

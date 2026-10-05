@@ -139,16 +139,38 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('onFieldPress', () => {
-    it('reports a direct input tap after release', () => {
+    it('uses onFocus instead of reporting a second alignment for an initial direct input tap', () => {
+      const onFieldPress = jest.fn();
+      const onFocus = jest.fn();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          onFieldPress={onFieldPress}
+          onFocus={onFocus}
+        />,
+      );
+
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'pressIn');
+      fireEvent(input, 'focus');
+
+      expect(onFocus).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
+
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onFieldPress).not.toHaveBeenCalled();
+    });
+
+    it('reports a direct input re-tap after release', () => {
       const onFieldPress = jest.fn();
       render(
         <PerpsProCompactInput {...defaultProps} onFieldPress={onFieldPress} />,
       );
 
       const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'focus');
       fireEvent(input, 'pressIn');
-
-      expect(onFieldPress).not.toHaveBeenCalled();
 
       fireEvent(input, 'pressOut');
 
@@ -187,6 +209,7 @@ describe('PerpsProCompactInput', () => {
       );
 
       const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'focus');
       fireEvent(input, 'pressIn');
 
       expect(onFieldPress).not.toHaveBeenCalled();

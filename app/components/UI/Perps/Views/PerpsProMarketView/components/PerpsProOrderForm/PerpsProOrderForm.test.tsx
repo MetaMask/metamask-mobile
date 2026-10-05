@@ -427,6 +427,7 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'limit', onLimitPriceFieldPress });
 
       const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+      fireEvent(input, 'focus');
       fireEvent(input, 'pressIn');
 
       expect(onLimitPriceFieldPress).not.toHaveBeenCalled();
@@ -505,6 +506,31 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onEndPriceBlur).toHaveBeenCalledTimes(1);
       expect(scaleOrder.onTotalOrdersBlur).toHaveBeenCalledTimes(1);
       expect(scaleOrder.onSizeSkewBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('realigns a Scale field once on initial focus and again only on re-tap', () => {
+      const scaleKeyboardScroll = createScaleKeyboardScroll();
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+        scaleKeyboardScroll,
+      });
+      const input = screen.getByTestId(ids.SCALE_START_PRICE);
+
+      fireEvent(input, 'pressIn');
+      fireEvent(input, 'focus');
+
+      expect(scaleKeyboardScroll.startPrice.onFocus).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
+
+      expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
+      expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressIn');
+      fireEvent(input, 'pressOut');
+
+      expect(scaleKeyboardScroll.startPrice.realign).toHaveBeenCalledTimes(1);
     });
 
     it('renders blank default Scale prices and order count without zero placeholders', () => {
