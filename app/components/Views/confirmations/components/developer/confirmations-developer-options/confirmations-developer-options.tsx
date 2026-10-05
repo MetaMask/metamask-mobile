@@ -403,7 +403,9 @@ function ConfirmMembershipTrial() {
       description="Trigger a Confirm Membership bottom sheet with a free trial."
       buttonLabel="Confirm Membership (trial)"
       onPress={handleConfirmMembershipTrial}
-      testID={ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_TRIAL_BUTTON}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_TRIAL_BUTTON
+      }
     />
   );
 }
