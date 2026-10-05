@@ -482,20 +482,24 @@ describe('usePerpsCloseAllCalculations', () => {
 
     it('derives the discount across positions from their resolved rates', async () => {
       mockCalculateFees.mockResolvedValue(resolvedFees);
+      const twoPositions = [
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
+      ];
+      const twoPrices = { BTC: { price: '51000' }, ETH: { price: '51000' } };
 
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
-          positions: [
-            createMockPosition({ symbol: 'BTC' }),
-            createMockPosition({ symbol: 'ETH' }),
-          ],
-          priceData: { BTC: { price: '51000' }, ETH: { price: '51000' } },
+          positions: twoPositions,
+          priceData: twoPrices,
         }),
       );
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      await waitFor(() => expect(result.current.totalFees).toBeDefined());
 
       expect(result.current.totalFees).toBeCloseTo(63.75, 6);
       expect(result.current.avgFeeDiscountPercentage).toBe(20);
+      expect(mockCalculateFees).toHaveBeenCalledTimes(2);
+      expect(mockEstimatePoints).toHaveBeenCalledTimes(1);
     });
 
     it('previews a full subscription waiver at the rate calculateFees returns', async () => {
