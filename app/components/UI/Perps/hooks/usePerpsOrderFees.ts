@@ -595,16 +595,6 @@ export function usePerpsOrderFees({
         const { adjustedRate, discountPercentage } = await applyFeeDiscount(
           coreFeesResult.metamaskFeeRate,
         );
-        DevLogger.log(
-          `[TAT-4055] BUG_MARKER: hook re-discounts resolved metamaskFeeRate ${JSON.stringify(
-            {
-              metamaskFeeRate: coreFeesResult.metamaskFeeRate,
-              hookDiscountPercentage: discountPercentage,
-              previewRate: adjustedRate,
-              amount,
-            },
-          )}`,
-        );
 
         if (!isComponentMounted) return;
 
