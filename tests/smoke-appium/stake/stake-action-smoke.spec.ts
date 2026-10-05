@@ -23,6 +23,21 @@ import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 appiumTest.describe(SmokeStake('Stake from Actions'), () => {
   const AMOUNT_TO_STAKE = '1';
 
+  /**
+   * The MetaMask pooled staking vault on mainnet is a private Stakewise foxVault.
+   * Its deposit() function reverts for non-whitelisted addresses on the Anvil fork.
+   * We replace the contract bytecode with a minimal mock that returns 1e18 (1 ETH
+   * worth of shares) for any call, so gas estimation and the deposit transaction
+   * both succeed. We also pre-seed stakedBalance in fixture state so the
+   * "Staked Ethereum" row appears in the token list without waiting for a polling cycle.
+   */
+  const STAKING_CONTRACT =
+    '0x4fef9d741011476750a243ac70b9789a63dd47df' as `0x${string}`;
+  // PUSH8(1e18) PUSH1(0) MSTORE PUSH1(32) PUSH1(0) RETURN — returns uint256(1e18) for any call
+  const MOCK_STAKING_BYTECODE =
+    '0x670DE0B6B3A764000060005260206000F3' as `0x${string}`;
+  const STAKED_BALANCE_1_ETH = '0xDE0B6B3A7640000';
+
   appiumTest(
     'should be able to import stake test account with funds',
     async ({ driver: _driver, currentDeviceDetails }) => {
@@ -42,9 +57,15 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
                 '10',
                 DEFAULT_FIXTURE_ACCOUNT_CHECKSUM as `0x${string}`,
               );
+              // Replace the staking contract with a mock that always succeeds.
+              const { testClient } = node.getProvider();
+              await testClient.setCode({
+                address: STAKING_CONTRACT,
+                bytecode: MOCK_STAKING_BYTECODE,
+              });
             }
 
-            return new FixtureBuilder()
+            const fixture = new FixtureBuilder()
               .withPolygon()
               .withNetworkController({
                 chainId,
@@ -58,6 +79,25 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
                 { ...PREDEFINED_TOKENS.ETHEREUM.ETH, amount: '10' },
               ])
               .build();
+
+            // Pre-seed stakedBalance so the "Staked Ethereum" row is visible
+            // without waiting for AccountTrackerController to poll.
+            const atc =
+              fixture.state.engine.backgroundState.AccountTrackerController;
+            if (!atc.accountsByChainId) {
+              atc.accountsByChainId = {};
+            }
+            if (!atc.accountsByChainId[chainId]) {
+              atc.accountsByChainId[chainId] = {};
+            }
+            const accountEntry =
+              atc.accountsByChainId[chainId][DEFAULT_FIXTURE_ACCOUNT] ?? {};
+            atc.accountsByChainId[chainId][DEFAULT_FIXTURE_ACCOUNT] = {
+              ...accountEntry,
+              stakedBalance: STAKED_BALANCE_1_ETH,
+            };
+
+            return fixture;
           },
           localNodeOptions: [
             {
