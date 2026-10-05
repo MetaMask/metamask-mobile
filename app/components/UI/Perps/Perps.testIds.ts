@@ -1035,6 +1035,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   PAY_WITH_SKELETON: 'perps-trade-sheet-pay-with-skeleton',
   MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
   FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
+  FEE_TEXT: 'perps-trade-sheet-fee-text',
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
