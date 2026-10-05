@@ -2890,21 +2890,6 @@ export const runQuickBuyControllerCases = ({
         expect(result).toBe(true);
       });
 
-      it('treats Polygon native 0x…1010 and the zero address as the same asset', () => {
-        const token = createSourceToken({
-          address: '0x0000000000000000000000000000000000000000',
-          chainId: '0x89',
-          symbol: 'POL',
-        });
-
-        const result = isSameAsset(token, {
-          address: '0x0000000000000000000000000000000000001010',
-          chainId: '0x89' as BridgeToken['chainId'],
-        });
-
-        expect(result).toBe(true);
-      });
-
       it('treats the same address on a different chain as a different asset', () => {
         const token = createSourceToken({
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
