@@ -374,11 +374,13 @@ describe('RewardsMoneyDashboard', () => {
     expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);
   });
 
-  it('feeds the referrer hero the earned-by-others totals', () => {
-    const { getByText } = renderDashboard();
+  it('feeds the referrer hero the referrals total and hides trading commissions', () => {
+    const { getByText, queryByTestId } = renderDashboard();
 
     expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('$9.15')).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+    ).not.toBeOnTheScreen();
   });
 
   it('feeds the referee hero its own cashback as rebates', () => {
@@ -409,7 +411,7 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('-')).toHaveLength(2);
+    expect(getAllByText('-')).toHaveLength(1);
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(

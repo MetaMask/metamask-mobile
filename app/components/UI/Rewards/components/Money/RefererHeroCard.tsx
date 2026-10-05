@@ -37,6 +37,7 @@ import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import ShareCodeSheet from './ShareCodeSheet';
 import MoneyMetricCard from './MoneyMetricCard';
+import { SHOW_TRADING_COMMISSIONS } from './constants';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import { earnedByOthersLifetime } from '../../utils/earningsSummaryTotals';
 
@@ -211,19 +212,21 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           isLoading={isEarningsLoading}
           testID={REFERER_HERO_CARD_TEST_IDS.REFERRALS_TOTAL}
         />
-        <MoneyMetricCard
-          iconName={IconName.Copy}
-          label={localizedText.tradeCommissions}
-          amount={
-            unavailableAmount ??
-            formatMusdBaseUnits(
-              earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
-            )
-          }
-          caption={localizedText.recordedEarnings}
-          isLoading={isEarningsLoading}
-          testID={REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL}
-        />
+        {SHOW_TRADING_COMMISSIONS ? (
+          <MoneyMetricCard
+            iconName={IconName.Copy}
+            label={localizedText.tradeCommissions}
+            amount={
+              unavailableAmount ??
+              formatMusdBaseUnits(
+                earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
+              )
+            }
+            caption={localizedText.recordedEarnings}
+            isLoading={isEarningsLoading}
+            testID={REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL}
+          />
+        ) : null}
       </Box>
       {isShareOpen ? (
         <ShareCodeSheet

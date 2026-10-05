@@ -131,17 +131,22 @@ describe('RefereeHeroCard', () => {
       },
     );
 
-  it('renders the inviter, own cashback as rebates, and follow-trade as commission', () => {
-    const { getByTestId, getByText, queryByRole } = renderHero({
-      summary: SUMMARY,
-    });
+  it('renders the inviter and own cashback as rebates, and hides trading commissions', () => {
+    const { getByTestId, getByText, queryByRole, queryByTestId, queryByText } =
+      renderHero({
+        summary: SUMMARY,
+      });
 
     expect(getByText('INVITER')).toBeOnTheScreen();
     expect(
       getByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL),
     ).toBeOnTheScreen();
     expect(getByText('$7.65')).toBeOnTheScreen();
-    expect(getByText('$4.80')).toBeOnTheScreen();
+    expect(queryByText('Trading commissions')).not.toBeOnTheScreen();
+    expect(queryByText('$4.80')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
+    ).not.toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });
 
@@ -165,7 +170,7 @@ describe('RefereeHeroCard', () => {
   it('shows a dash on metric cards when the summary failed without cached data', () => {
     const { getAllByText, queryByText } = renderHero({ earningsError: true });
 
-    expect(getAllByText('-')).toHaveLength(2);
+    expect(getAllByText('-')).toHaveLength(1);
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
   });
 

@@ -33,6 +33,7 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import MoneyMetricCard from './MoneyMetricCard';
+import { SHOW_TRADING_COMMISSIONS } from './constants';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
@@ -166,19 +167,21 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
         </Box>
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-        <MoneyMetricCard
-          iconName={IconName.Copy}
-          label={localizedText.tradingCommissionsSection}
-          amount={
-            unavailableAmount ??
-            formatMusdBaseUnits(
-              earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
-            )
-          }
-          caption={localizedText.recordedEarnings}
-          isLoading={isEarningsLoading}
-          testID={REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL}
-        />
+        {SHOW_TRADING_COMMISSIONS ? (
+          <MoneyMetricCard
+            iconName={IconName.Copy}
+            label={localizedText.tradingCommissionsSection}
+            amount={
+              unavailableAmount ??
+              formatMusdBaseUnits(
+                earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
+              )
+            }
+            caption={localizedText.recordedEarnings}
+            isLoading={isEarningsLoading}
+            testID={REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL}
+          />
+        ) : null}
         <MoneyMetricCard
           iconName={IconName.Coin}
           label={localizedText.tradingRebates}
