@@ -5,6 +5,7 @@ import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+import { ExploreSearchScreenSelectorsIDs } from '../../Views/ExploreSearchScreen/ExploreSearchScreen.testIds';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -94,14 +95,18 @@ describe('ExploreSearchBar', () => {
           onCancel={jest.fn()}
           showPastePill
           onPastePress={mockOnPastePress}
-          clipboardButtonTestID="homepage-search-clipboard-button"
+          clipboardButtonTestID={
+            ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON
+          }
         />,
       );
 
-      expect(getByTestId('homepage-search-clipboard-button')).toBeOnTheScreen();
+      expect(
+        getByTestId(ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON),
+      ).toBeOnTheScreen();
     });
 
-    it('handles the clipboard icon press', () => {
+    it('calls onPastePress when the clipboard icon is pressed', () => {
       const mockOnPastePress = jest.fn();
 
       const { getByTestId } = render(
@@ -112,11 +117,15 @@ describe('ExploreSearchBar', () => {
           onCancel={jest.fn()}
           showPastePill
           onPastePress={mockOnPastePress}
-          clipboardButtonTestID="homepage-search-clipboard-button"
+          clipboardButtonTestID={
+            ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON
+          }
         />,
       );
 
-      fireEvent.press(getByTestId('homepage-search-clipboard-button'));
+      fireEvent.press(
+        getByTestId(ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON),
+      );
       expect(mockOnPastePress).toHaveBeenCalledTimes(1);
     });
 
