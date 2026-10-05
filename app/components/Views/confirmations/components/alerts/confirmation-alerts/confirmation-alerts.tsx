@@ -1,6 +1,6 @@
 import React, { memo, useLayoutEffect, useState } from 'react';
 import { AlertsContextProvider } from '../../../context/alert-system-context';
-import { useConfirmationInitialization } from '../../../context/confirmation-initialization-context';
+import { useConfirmationFirstFrame } from '../../../context/confirmation-first-frame-context';
 import useConfirmationAlerts from '../../../hooks/alerts/useConfirmationAlerts';
 import { Alert, NO_ALERTS } from '../../../types/alerts';
 
@@ -11,11 +11,13 @@ export function ConfirmationAlerts({
 }: {
   children: React.ReactNode;
 }) {
-  const initialization = useConfirmationInitialization();
+  const firstFrame = useConfirmationFirstFrame();
 
-  if (initialization) {
+  if (firstFrame) {
     return (
-      <DeferredConfirmationAlerts isReady={initialization.isReady}>
+      <DeferredConfirmationAlerts
+        isFirstFrameComplete={firstFrame.isFirstFrameComplete}
+      >
         {children}
       </DeferredConfirmationAlerts>
     );
@@ -38,10 +40,10 @@ function ImmediateConfirmationAlerts({
 
 function DeferredConfirmationAlerts({
   children,
-  isReady,
+  isFirstFrameComplete,
 }: {
   children: React.ReactNode;
-  isReady: boolean;
+  isFirstFrameComplete: boolean;
 }) {
   const [alerts, setAlerts] = useState<Alert[]>();
 
@@ -49,7 +51,9 @@ function DeferredConfirmationAlerts({
   // Only the hook owner is deferred; pending checks block confirmation.
   return (
     <>
-      {isReady && <ConfirmationAlertsUpdater onChange={setAlerts} />}
+      {isFirstFrameComplete && (
+        <ConfirmationAlertsUpdater onChange={setAlerts} />
+      )}
       <AlertsContextProvider
         alerts={alerts ?? NO_ALERTS}
         isPending={alerts === undefined}
