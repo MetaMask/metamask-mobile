@@ -6,12 +6,11 @@ import {
 } from '@metamask/transaction-controller';
 import {
   PaymentOverride,
-  TransactionPayQuote,
   TransactionPayRequiredToken,
   TransactionPayTotals,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
-import { Hex, Json } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -24,7 +23,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
-  useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -113,7 +111,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -130,7 +127,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
-    useTransactionPayQuotesMock.mockReturnValue([]);
     useTransactionPayingAccountMock.mockReturnValue(PAYER_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
@@ -617,18 +613,13 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('alerts when a sponsored deposit uses a non-7702 quote on the sponsored chain', () => {
+    it('alerts when a sponsored deposit has a source network fee the native balance cannot cover', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         chainId: PAY_TOKEN_MOCK.chainId,
         isGasFeeSponsored: true,
       } as unknown as TransactionMeta);
-      useTransactionPayQuotesMock.mockReturnValue([
-        {
-          original: { metamask: { is7702: false } },
-        } as unknown as TransactionPayQuote<Json>,
-      ]);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
@@ -644,7 +635,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
-    it('alerts when a sponsored deposit uses a non-7702 quote on another chain', () => {
+    it('alerts when a sponsored deposit paid from another chain has a source network fee', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
@@ -658,11 +649,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         },
         setPayToken: jest.fn(),
       });
-      useTransactionPayQuotesMock.mockReturnValue([
-        {
-          original: { metamask: { is7702: false } },
-        } as unknown as TransactionPayQuote<Json>,
-      ]);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
@@ -678,7 +664,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
-    it('does not alert when a sponsored deposit uses a 7702 quote on another chain', () => {
+    it('returns no alert when the quoted source network fee is zero', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
@@ -692,11 +678,18 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         },
         setPayToken: jest.fn(),
       });
-      useTransactionPayQuotesMock.mockReturnValue([
-        {
-          original: { metamask: { is7702: true } },
-        } as unknown as TransactionPayQuote<Json>,
-      ]);
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        fees: {
+          ...TOTALS_MOCK.fees,
+          sourceNetwork: {
+            max: {
+              raw: '0',
+              usd: '0',
+            },
+          },
+        },
+      });
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
