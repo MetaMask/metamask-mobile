@@ -58,11 +58,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-// Images are exported at 3x.
-const WALLET_EXISTS_IMAGE_WIDTH = 1061 / 3;
-const WALLET_EXISTS_IMAGE_HEIGHT = 926 / 3;
-const WALLET_NOT_FOUND_IMAGE_WIDTH = 1029 / 3;
-const WALLET_NOT_FOUND_IMAGE_HEIGHT = 906 / 3;
+// Images are exported at 3x and rendered at ~90% of their natural size.
+const IMAGE_SCALE = 0.9;
+const WALLET_EXISTS_IMAGE_WIDTH = (1061 / 3) * IMAGE_SCALE;
+const WALLET_EXISTS_IMAGE_HEIGHT = (926 / 3) * IMAGE_SCALE;
+const WALLET_NOT_FOUND_IMAGE_WIDTH = (1029 / 3) * IMAGE_SCALE;
+const WALLET_NOT_FOUND_IMAGE_HEIGHT = (906 / 3) * IMAGE_SCALE;
 
 const ACCOUNT_STATUS_PRIMARY_FLOW = {
   EXISTING_ACCOUNT_IMPORT: 'import',
