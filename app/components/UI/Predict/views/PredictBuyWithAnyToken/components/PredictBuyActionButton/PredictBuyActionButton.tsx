@@ -92,7 +92,7 @@ const PredictBuyActionButton = ({
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       isFullWidth
-      isDisabled={disabled || isLoading}
+      isDisabled={disabled}
       isLoading={isLoading}
       loadingText={`${strings('predict.order.placing_prediction')}...`}
       onPress={onPress}
