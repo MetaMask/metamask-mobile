@@ -298,13 +298,11 @@ describe('PerpsProOrderForm', () => {
       );
       expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '',
+        '0.00',
       );
       expect(
-        screen.getByRole('button', {
-          name: `${strings('perps.order.chase.max_distance')} (USD)`,
-        }),
-      ).toHaveProp('testID', `${ids.CHASE_MAX_DISTANCE_INPUT}-field`);
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      ).toHaveProp('accessible', false);
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
         'hitSlop',
         12,
@@ -336,7 +334,7 @@ describe('PerpsProOrderForm', () => {
       ).not.toBeOnTheScreen();
       expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '',
+        '0%',
       );
 
       fireEvent.press(
@@ -428,9 +426,12 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceFieldPress = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceFieldPress });
 
-      // `pressIn` rather than `focus`: re-tapping a focused input fires no
-      // focus event, which is the case this callback exists to cover.
-      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'pressIn');
+      const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+      fireEvent(input, 'pressIn');
+
+      expect(onLimitPriceFieldPress).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
 
       expect(onLimitPriceFieldPress).toHaveBeenCalledTimes(1);
     });
@@ -521,8 +522,8 @@ describe('PerpsProOrderForm', () => {
         expect(getMountedInput(inputTestID)).toHaveProp('value', '');
         expect(getMountedInput(inputTestID)).toHaveProp('placeholder', '');
         expect(screen.getByTestId(`${inputTestID}-field`)).toHaveProp(
-          'accessibilityRole',
-          'button',
+          'accessible',
+          false,
         );
       }
       expect(
@@ -1029,10 +1030,20 @@ describe('PerpsProOrderForm', () => {
         }),
       ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
       expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('isDisabled', true);
+      expect(
         screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
           includeHiddenElements: true,
         }),
       ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('isDisabled', true);
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();

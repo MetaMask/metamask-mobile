@@ -31,7 +31,10 @@ jest.mock('@metamask/design-system-react-native', () => {
           },
           [],
         );
-        return MockReact.createElement(TextInput, props);
+        return MockReact.createElement(TextInput, {
+          ...props,
+          editable: props.isDisabled === true ? false : props.editable,
+        });
       },
     ),
   };
@@ -129,15 +132,18 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('onFieldPress', () => {
-    it('reports a tap that the input consumes before any wrapper sees it', () => {
+    it('reports a direct input tap after release', () => {
       const onFieldPress = jest.fn();
       render(
         <PerpsProCompactInput {...defaultProps} onFieldPress={onFieldPress} />,
       );
 
-      // Re-tapping an already-focused input fires no focus event, so press-in on
-      // the input itself is the only signal available.
-      fireEvent(screen.getByTestId(defaultProps.testID), 'pressIn');
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'pressIn');
+
+      expect(onFieldPress).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
 
       expect(onFieldPress).toHaveBeenCalledTimes(1);
     });
@@ -162,7 +168,7 @@ describe('PerpsProCompactInput', () => {
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
     });
 
-    it('reports a tap that a visible inline input consumes', () => {
+    it('reports a visible inline input tap after release', () => {
       const onFieldPress = jest.fn();
       render(
         <PerpsProCompactInput
@@ -173,7 +179,12 @@ describe('PerpsProCompactInput', () => {
         />,
       );
 
-      fireEvent(screen.getByTestId(defaultProps.testID), 'pressIn');
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'pressIn');
+
+      expect(onFieldPress).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
 
       expect(onFieldPress).toHaveBeenCalledTimes(1);
     });
@@ -225,7 +236,7 @@ describe('PerpsProCompactInput', () => {
         });
         const inactiveLabelStyle = label.props.style;
 
-        expect(input).toHaveProp('placeholder', '');
+        expect(input).toHaveProp('placeholder', '0.00');
 
         fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
 
@@ -258,7 +269,7 @@ describe('PerpsProCompactInput', () => {
           screen.getByTestId(defaultProps.testID, {
             includeHiddenElements: true,
           }),
-        ).toHaveProp('placeholder', '');
+        ).toHaveProp('placeholder', '0');
       },
     );
 
@@ -301,36 +312,43 @@ describe('PerpsProCompactInput', () => {
     });
 
     it.each(floatingLabelVariants)(
-      'exposes an empty %s field as an activatable control instead of a static label',
+      'exposes an empty %s input as the sole labeled accessibility target',
       (variant) => {
         render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
-        const field = screen.getByRole('button', { name: defaultProps.label });
+        const field = screen.getByTestId(`${defaultProps.testID}-field`);
+        const input = screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        });
 
         expect(field).toHaveProp('testID', `${defaultProps.testID}-field`);
-        expect(
+        expect(field).toHaveProp('accessible', false);
+        expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
+        expect(input.props.accessibilityElementsHidden).toBeUndefined();
+      },
+    );
+
+    it.each(floatingLabelVariants)(
+      'reveals an empty %s field when the native input receives focus',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
+
+        const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const inactiveLabelStyle = label.props.style;
+
+        fireEvent(
           screen.getByTestId(defaultProps.testID, {
             includeHiddenElements: true,
           }),
-        ).toHaveProp('accessibilityElementsHidden', true);
-      },
-    );
-
-    it.each(floatingLabelVariants)(
-      'focuses the hidden %s input when assistive tech activates the label',
-      (variant) => {
-        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
-
-        fireEvent.press(
-          screen.getByRole('button', { name: defaultProps.label }),
+          'focus',
         );
 
-        expect(mockInputFocus).toHaveBeenCalledTimes(1);
+        expect(label.props.style).not.toEqual(inactiveLabelStyle);
       },
     );
 
     it.each(floatingLabelVariants)(
-      'hands accessibility to the input after the empty %s field activates',
+      'keeps accessibility ownership on the input after the empty %s field activates',
       (variant) => {
         render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
@@ -340,10 +358,10 @@ describe('PerpsProCompactInput', () => {
           'accessible',
           false,
         );
-        expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
-          'accessibilityElementsHidden',
-          false,
-        );
+        expect(
+          screen.getByTestId(defaultProps.testID).props
+            .accessibilityElementsHidden,
+        ).toBeUndefined();
         expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
           'accessibilityLabel',
           defaultProps.label,
@@ -473,9 +491,13 @@ describe('PerpsProCompactInput', () => {
   it('collapses the field without unmounting the native input when hidden', () => {
     render(<PerpsProCompactInput {...defaultProps} isHidden />);
 
-    expect(
-      screen.getByTestId(defaultProps.testID, { includeHiddenElements: true }),
-    ).toBeOnTheScreen();
+    const input = screen.getByTestId(defaultProps.testID, {
+      includeHiddenElements: true,
+    });
+
+    expect(input).toBeOnTheScreen();
+    expect(input).toHaveProp('isDisabled', true);
+    expect(input).toHaveProp('editable', false);
     expect(
       screen.getByTestId(`${defaultProps.testID}-container`, {
         includeHiddenElements: true,
@@ -486,6 +508,29 @@ describe('PerpsProCompactInput', () => {
         includeHiddenElements: true,
       }),
     ).toHaveProp('pointerEvents', 'none');
+  });
+
+  it('blocks field callbacks and imperative focus while hidden', () => {
+    const onFieldPress = jest.fn();
+    const ref = React.createRef<{ focus: () => void }>();
+    render(
+      <PerpsProCompactInput
+        {...defaultProps}
+        ref={ref}
+        isHidden
+        onFieldPress={onFieldPress}
+      />,
+    );
+    const input = screen.getByTestId(defaultProps.testID, {
+      includeHiddenElements: true,
+    });
+
+    fireEvent(input, 'pressIn');
+    fireEvent(input, 'pressOut');
+    ref.current?.focus();
+
+    expect(onFieldPress).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
   });
 
   it('blurs the native input when the field becomes hidden', () => {

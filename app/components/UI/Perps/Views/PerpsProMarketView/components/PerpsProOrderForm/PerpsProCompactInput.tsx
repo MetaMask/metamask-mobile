@@ -102,7 +102,10 @@ export interface PerpsProCompactInputProps {
   labelNumberOfLines?: number;
   onFocus?: () => void;
   onBlur?: () => void;
-  /** Fires on every field tap, including while already focused. Idempotent. */
+  /**
+   * Fires on every field tap, including while already focused. Direct input
+   * taps fire on release so keyboard realignment cannot cancel Android focus.
+   */
   onFieldPress?: () => void;
   containerRef?: React.Ref<View>;
   isDisabled?: boolean;
@@ -153,13 +156,14 @@ const PerpsProCompactInput = React.forwardRef<
     const isInlineActive = isFocused || value.length > 0;
     const usesFloatingLabel =
       variant === 'inline' || variant === 'inline-labeled';
+    const isInteractionBlocked = isDisabled || isHidden;
     useImperativeHandle(
       ref,
       () => ({
         focus: () => {
           // Same guard as a tap. A disabled input never focuses or blurs, so
           // setting isFocused here would leave the empty field expanded.
-          if (isDisabled) {
+          if (isInteractionBlocked) {
             return;
           }
           // Match a tap: expand the empty inline field, then focus it once it
@@ -168,7 +172,7 @@ const PerpsProCompactInput = React.forwardRef<
           setShouldFocusInput(true);
         },
       }),
-      [isDisabled],
+      [isInteractionBlocked],
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
@@ -203,20 +207,20 @@ const PerpsProCompactInput = React.forwardRef<
       onBlur?.();
     };
     const handleFieldPressIn = () => {
-      if (isDisabled) {
+      if (isInteractionBlocked) {
         return;
       }
       setIsFocused(true);
     };
     // Runs after release: a realign scroll mid-tap cancels Android's focus.
     const handleFieldPressOut = () => {
-      if (isDisabled) {
+      if (isInteractionBlocked) {
         return;
       }
       onFieldPress?.();
     };
     const focusInput = () => {
-      if (isDisabled) {
+      if (isInteractionBlocked) {
         return;
       }
       handleFieldPressIn();
@@ -233,7 +237,7 @@ const PerpsProCompactInput = React.forwardRef<
         onFocus={handleFocus}
         onBlur={handleBlur}
         // Hidden fields stay mounted; non-editable keeps Android focus search off them.
-        isDisabled={isDisabled || isHidden}
+        isDisabled={isInteractionBlocked}
         // A tap landing here is consumed by the input, so neither the inline
         // variant's wrapping pressable nor the stacked variant's label fires.
         onPressIn={handleFieldPressIn}
@@ -264,7 +268,7 @@ const PerpsProCompactInput = React.forwardRef<
           {/* Props stay fixed across focus; Android drops focus if they toggle. */}
           <Pressable
             onPress={focusInput}
-            disabled={isDisabled}
+            disabled={isInteractionBlocked}
             accessible={false}
             style={tw`h-full min-w-0 flex-1 justify-center`}
             testID={getPerpsProCompactFieldTestId(testID)}
@@ -306,7 +310,7 @@ const PerpsProCompactInput = React.forwardRef<
         <Box twClassName="flex-row items-center justify-between">
           {/* Tapping the label focuses the input and opens the keyboard, same
               as tapping the visually small input row itself. */}
-          <Pressable onPress={focusInput} disabled={isDisabled}>
+          <Pressable onPress={focusInput} disabled={isInteractionBlocked}>
             <Text
               variant={labelVariant}
               color={TextColor.TextAlternative}
