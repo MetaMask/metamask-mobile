@@ -30,7 +30,10 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
@@ -49,6 +52,8 @@ import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
+import { useWalletHeaderNativeHeader } from './components/WalletHeader/useWalletHeaderNativeHeader';
+import { NATIVE_HEADER_BAR_HEIGHT } from '../../hooks/useNativeHeader';
 import HomepageSearchReturnTransition from './components/HomepageSearchReturnTransition/HomepageSearchReturnTransition';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
@@ -589,27 +594,6 @@ const Wallet = ({
     };
   }, []);
 
-  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
-  // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
-      'scrollToTokenIndex',
-      ({ offset }: { index: number; offset: number }) => {
-        // Add offset for content above tokens (balance, carousel, etc.)
-        // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
-        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
-        scrollViewRef.current?.scrollTo({
-          y: CONTENT_OFFSET_ABOVE_TOKENS + offset,
-          animated: true,
-        });
-      },
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
   useEffect(() => {
     // do not prompt for social login flow
     if (
@@ -931,6 +915,47 @@ const Wallet = ({
     [isSearchHeaderEnabled, navigation],
   );
 
+  // iOS 26 only; elsewhere the JS `WalletHeader` renders the interim layout.
+  const isNativeHeader = useWalletHeaderNativeHeader({
+    displayName,
+    isMoneyAccountVisible,
+    handleActivityPress,
+    handleSearchPress,
+    handleHamburgerPress,
+    touchAreaSlop,
+    isEnabled:
+      isInterimHeader &&
+      !isSearchHeaderEnabled &&
+      Boolean(selectedInternalAccount),
+  });
+  const safeAreaInsets = useSafeAreaInsets();
+  // Content scrolls under the transparent bar, so sections behind it are not in view.
+  const nativeHeaderInset = isNativeHeader
+    ? safeAreaInsets.top + NATIVE_HEADER_BAR_HEIGHT
+    : 0;
+
+  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
+  // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      'scrollToTokenIndex',
+      ({ offset }: { index: number; offset: number }) => {
+        // Add offset for content above tokens (balance, carousel, etc.)
+        // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
+        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
+        scrollViewRef.current?.scrollTo({
+          // Content offsets include the bar's automatic inset, so land below it.
+          y: CONTENT_OFFSET_ABOVE_TOKENS + offset - nativeHeaderInset,
+          animated: true,
+        });
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [nativeHeaderInset]);
+
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -1019,8 +1044,8 @@ const Wallet = ({
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
-      viewportHeight,
-      containerScreenY,
+      viewportHeight: Math.max(0, viewportHeight - nativeHeaderInset),
+      containerScreenY: containerScreenY + nativeHeaderInset,
       entryPoint,
       visitId,
       notifySectionViewed,
@@ -1032,6 +1057,7 @@ const Wallet = ({
       subscribeToScroll,
       viewportHeight,
       containerScreenY,
+      nativeHeaderInset,
       entryPoint,
       visitId,
       notifySectionViewed,
@@ -1253,12 +1279,13 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ top: 'additive' }}
+          // The native bar owns the top inset; content scrolls under it.
+          edges={isNativeHeader ? [] : { top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
-              {isCompactHeader ? (
+              {isNativeHeader ? null : isCompactHeader ? (
                 <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
@@ -1323,6 +1350,9 @@ const Wallet = ({
                     isScrollEnabled
                     scrollViewProps={{
                       testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                      contentInsetAdjustmentBehavior: isNativeHeader
+                        ? 'automatic'
+                        : undefined,
                       contentContainerStyle: scrollViewContentStyle,
                       showsVerticalScrollIndicator: false,
                       onScroll: handleHomepageScroll,

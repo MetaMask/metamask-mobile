@@ -24,6 +24,10 @@ import PickerAccount from '../../../../../component-library/components/Pickers/P
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
 import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
+import { formatInterimAccountName } from './useWalletHeaderNativeHeader';
+import WalletHeaderInterimActions, {
+  WalletHeaderMenuButton,
+} from './WalletHeaderInterimActions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
@@ -42,7 +46,6 @@ interface TouchAreaSlop {
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
 const hiddenSearchBarStyle: ViewStyle = { opacity: 0 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
-const INTERIM_ACCOUNT_NAME_MAX_CHARS = 12;
 // The glass capsule supplies the height and fill, so the picker drops its own.
 const glassAccountPickerStyle: ViewStyle = {
   backgroundColor: 'transparent',
@@ -115,39 +118,16 @@ const WalletHeader = ({
     [],
   );
 
-  const hamburgerButton = (
-    <BadgeWrapper
-      // BadgeWrapper defaults to `self-start`, which top-aligns it in a row.
-      twClassName="self-center"
-      position={BadgeWrapperPosition.TopRight}
-      positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-      badge={
-        hasAccountsMenuAttention ? (
-          <BadgeStatus
-            status={BadgeStatusStatus.Attention}
-            testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
-          />
-        ) : null
-      }
-    >
-      <ButtonIcon
-        iconProps={{ color: MMDSIconColor.IconDefault }}
-        onPress={handleHamburgerPress}
-        iconName={MMDSIconName.Menu}
-        size={ButtonIconSize.Md}
-        testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
-        hitSlop={touchAreaSlop}
-      />
-    </BadgeWrapper>
-  );
-
   const menuButton = (
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       twClassName="h-12"
     >
-      {hamburgerButton}
+      <WalletHeaderMenuButton
+        handleHamburgerPress={handleHamburgerPress}
+        touchAreaSlop={touchAreaSlop}
+      />
     </Box>
   );
 
@@ -173,12 +153,9 @@ const WalletHeader = ({
     );
   }, [navigation]);
 
-  // Array.from splits by code point so an emoji is never cut in half.
-  const accountNameChars = Array.from(displayName);
-  const pickerAccountName =
-    isInterimLayout && accountNameChars.length > INTERIM_ACCOUNT_NAME_MAX_CHARS
-      ? `${accountNameChars.slice(0, INTERIM_ACCOUNT_NAME_MAX_CHARS).join('')}...`
-      : displayName;
+  const pickerAccountName = isInterimLayout
+    ? formatInterimAccountName(displayName)
+    : displayName;
 
   const accountPicker = (
     <View style={accountPickerContainerStyle}>
@@ -194,28 +171,13 @@ const WalletHeader = ({
 
   if (isInterimLayout && !useSearchHeaderLayout) {
     const interimActions = (
-      <>
-        {isMoneyAccountVisible && (
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.IconDefault }}
-            onPress={handleActivityPress}
-            iconName={MMDSIconName.Clock}
-            size={ButtonIconSize.Md}
-            testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
-            hitSlop={touchAreaSlop}
-          />
-        )}
-        <ButtonIcon
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={() => handleSearchPress()}
-          iconName={MMDSIconName.Search}
-          size={ButtonIconSize.Md}
-          testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-          accessibilityLabel={strings('wallet.search_accessibility_label')}
-          hitSlop={touchAreaSlop}
-        />
-        {hamburgerButton}
-      </>
+      <WalletHeaderInterimActions
+        isMoneyAccountVisible={isMoneyAccountVisible}
+        handleActivityPress={handleActivityPress}
+        handleSearchPress={handleSearchPress}
+        handleHamburgerPress={handleHamburgerPress}
+        touchAreaSlop={touchAreaSlop}
+      />
     );
 
     if (!isGlassEnabled) {
@@ -246,7 +208,7 @@ const WalletHeader = ({
             glassEffectStyle="regular"
             colorScheme={glassColorScheme}
             isInteractive
-            style={tw.style(glassCapsuleClass, 'gap-2 px-2')}
+            style={tw.style(glassCapsuleClass, 'px-2')}
             testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS}
           >
             {interimActions}

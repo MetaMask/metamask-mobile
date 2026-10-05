@@ -140,6 +140,14 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   }),
 }));
 
+const mockUseWalletHeaderNativeHeader = jest.fn(() => false);
+jest.mock('./components/WalletHeader/useWalletHeaderNativeHeader', () => ({
+  ...jest.requireActual(
+    './components/WalletHeader/useWalletHeaderNativeHeader',
+  ),
+  useWalletHeaderNativeHeader: () => mockUseWalletHeaderNativeHeader(),
+}));
+
 let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
 let mockBalanceBreakdownVariantName = 'unresolved';
@@ -1955,6 +1963,7 @@ describe('MoneyBalanceCard slot', () => {
 describe('Header and Nav Bar refresh AB test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseWalletHeaderNativeHeader.mockReturnValue(false);
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
     mockHeaderNavBarVariantName = 'control';
@@ -1970,6 +1979,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
     mockSearchPasteTreatment = false;
+    mockUseWalletHeaderNativeHeader.mockReturnValue(false);
   });
 
   it('leaves the control header untouched', () => {
@@ -2064,6 +2074,20 @@ describe('Header and Nav Bar refresh AB test', () => {
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }
+  });
+
+  it('hands the header to the native bar on iOS 26 when the interim flag is on', () => {
+    mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+        .contentInsetAdjustmentBehavior,
+    ).toBe('automatic');
   });
 
   const renderWithNavigationProp = () => {
