@@ -19,6 +19,7 @@ import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import { markMocked } from '../mockMarker';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import { isCopyTradeable } from '../utils/copyTrade';
@@ -31,10 +32,15 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
+  onAuthorPress?: (post: SocialV1FeedPost) => void;
 }
 
-const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
+const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
+  post,
+  onAuthorPress,
+}) => {
   const tw = useTailwind();
+  const { showMockedFields } = useSocialFeedSurface();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const optionsTarget = useMemo(
@@ -80,6 +86,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
     [pickEmotion],
   );
 
+  const handleIdentityPress = useCallback(() => {
+    onAuthorPress?.(post);
+  }, [onAuthorPress, post]);
+
   // Only a position that is still open can be copied, so only those can have
   // been. Zero copies say nothing worth the row space.
   const copyCount = isCopyTradeable(post.item) ? mockCopyCount(post.id) : 0;
@@ -100,6 +110,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         timestampMs={post.timestampMs}
         recyclingKey={post.id}
         onMorePress={openOptions}
+        onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
         twClassName="mb-2"
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
@@ -108,6 +119,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
+          identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
         }}
       />
 
@@ -178,7 +190,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
 
         {/* Inert on purpose: the count is context for the reactions next to it,
             not a way into a list of who copied. */}
-        {copyCount > 0 ? (
+        {showMockedFields && copyCount > 0 ? (
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}

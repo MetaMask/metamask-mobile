@@ -9,6 +9,7 @@ import {
   mockOpenPerpsFeedItem,
 } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
@@ -71,13 +72,31 @@ const basePost = (
   ...overrides,
 });
 
-const renderShell = (post: SocialV1FeedPost) => {
+const renderShell = (
+  post: SocialV1FeedPost,
+  options?: {
+    onAuthorPress?: (post: SocialV1FeedPost) => void;
+    /** `null` renders with no surface provider, so invented values stay hidden. */
+    showMockedFields?: boolean | null;
+  },
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  const showMockedFields =
+    options && 'showMockedFields' in options ? options.showMockedFields : true;
+  const shell = (
+    <SocialFeedPostShell post={post} onAuthorPress={options?.onAuthorPress} />
+  );
   return renderWithProvider(
     <QueryClientProvider client={queryClient}>
-      <SocialFeedPostShell post={post} />
+      {showMockedFields === null ? (
+        shell
+      ) : (
+        <SocialFeedSurfaceProvider showMockedFields={showMockedFields}>
+          {shell}
+        </SocialFeedSurfaceProvider>
+      )}
     </QueryClientProvider>,
   );
 };
@@ -270,6 +289,12 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('3 copies*');
     });
 
+    it('hides the invented copy count when the surface has not opted in', () => {
+      renderShell(basePost(), { showMockedFields: null });
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+    });
+
     it('says copy in the singular for a single copy', () => {
       mockedCopyCount.mockReturnValue(1);
 
@@ -335,6 +360,33 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`)
         .props.imageUrl,
     ).toBe('https://cdn.test/alice.png');
+  });
+
+  describe('author identity press', () => {
+    it('calls onAuthorPress when the identity is pressed', () => {
+      const onAuthorPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onAuthorPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onAuthorPress).toHaveBeenCalledTimes(1);
+      expect(onAuthorPress).toHaveBeenCalledWith(post);
+    });
+
+    it('does not wrap the identity in a pressable when onAuthorPress is omitted', () => {
+      renderShell(basePost());
+
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      ).toBeNull();
+    });
   });
 
   it('opens the report reason sheet from the post options', () => {
