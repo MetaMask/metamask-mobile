@@ -151,6 +151,7 @@ describe('WaysToEarnTab', () => {
           referral_code: 'SOPHIE',
           earning_start: null,
           earning_end: null,
+          cashback_earning_end: null,
         },
       }),
     });
