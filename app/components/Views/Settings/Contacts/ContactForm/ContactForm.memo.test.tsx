@@ -66,12 +66,6 @@ describe('ContactForm memo', () => {
           engine: {
             backgroundState: {
               ...backgroundState,
-              NetworkController: {
-                providerConfig: { type: 'mainnet', chainId: '1' },
-                networkConfigurations: {
-                  '0x1': { name: 'Ethereum Mainnet' },
-                },
-              },
               AddressBookController: { addressBook: {} },
             },
           },
