@@ -49,8 +49,13 @@ const PROFILE_ID = 'profile-a';
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
+  balance: 'Balance',
+  mUSD: 'mUSD',
   claim: 'Claim',
+  paused: 'Paused',
   claimed: 'Claimed',
+  claimsPausedTitle: 'Claims paused',
+  claimsPausedDescription: 'You cannot claim rewards right now.',
   last7Days: 'Last 7 days',
   recordedEarningsLabel: 'Recorded earnings',
   breakdown: 'Breakdown',
@@ -315,6 +320,70 @@ describe('EarningsTab', () => {
       },
     });
 
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
+  });
+
+  it('shows Balance and Paused for a referee whose claims are held', () => {
+    const { getByTestId, getByText, queryByTestId } = renderTab('REFEREE', {
+      summary: { ...SUMMARY, claimable: '0', held: '100000000', claimed: '0' },
+    });
+
+    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: 'Claims paused',
+        description: 'You cannot claim rewards right now.',
+      },
+    );
+  });
+
+  it('keeps Claim ahead of a positive hold', () => {
+    const { getByTestId, queryByTestId } = renderTab('REFEREE', {
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        held: '100000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+  });
+
+  it('does not show Paused for a referrer with a positive hold', () => {
+    const { queryByTestId } = renderTab('REFERRER', {
+      summary: { ...SUMMARY, claimable: '0', held: '100000000', claimed: '50' },
+    });
+
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();

@@ -170,7 +170,14 @@ export type ReferralLocalizedTextKey =
   | 'termsTitle'
   | 'termsDescription'
   | 'termsLearnMore'
-  | 'termsUrl';
+  | 'termsUrl'
+  | 'balance'
+  | 'mUSD'
+  | 'paused'
+  | 'claimsPausedTitle'
+  | 'claimsPausedDescription'
+  | 'rewardPausedTitle'
+  | 'rewardPausedDescription';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {

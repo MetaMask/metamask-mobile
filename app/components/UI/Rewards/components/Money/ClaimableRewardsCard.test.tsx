@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ClaimableRewardsCard, {
@@ -8,7 +9,10 @@ import ClaimableRewardsCard, {
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
+  balance: 'Balance',
+  mUSD: 'mUSD',
   claim: 'Claim',
+  paused: 'Paused',
   claimed: 'Claimed',
   last7Days: 'Last 7 days',
   recordedEarningsLabel: 'Recorded earnings',
@@ -39,6 +43,12 @@ describe('claimButtonState', () => {
     expect(claimButtonState(undefined, '50')).toBe('claimed');
     expect(claimButtonState('0', '0')).toBe('hidden');
     expect(claimButtonState(undefined, undefined)).toBe('hidden');
+  });
+
+  it('shows Paused for a positive hold only when nothing is claimable', () => {
+    expect(claimButtonState('0', '0', false, '100000000')).toBe('paused');
+    expect(claimButtonState('1000000', '0', true, '100000000')).toBe('claim');
+    expect(claimButtonState('0', '50', false, '0')).toBe('claimed');
   });
 });
 
@@ -86,5 +96,36 @@ describe('ClaimableRewardsCard', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
+  });
+
+  it('shows the held balance and a Paused button when claims are held', () => {
+    const onPaused = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="0"
+        claimed="0"
+        held="100000000"
+        claimableAmount="$0.00"
+        heldAmount="$100.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onPaused={onPaused}
+      />,
+    );
+
+    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON));
+    expect(onPaused).toHaveBeenCalledTimes(1);
   });
 });
