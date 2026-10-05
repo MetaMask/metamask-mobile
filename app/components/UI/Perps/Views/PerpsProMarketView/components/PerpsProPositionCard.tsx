@@ -59,10 +59,8 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-interface KeyValueItemProps {
+interface KeyValueItemBaseProps {
   label: string;
-  value?: string;
-  valueNode?: React.ReactNode;
   valueColor?: TextColor;
   labelAccessory?: React.ReactNode;
   isHidden?: boolean;
@@ -70,10 +68,23 @@ interface KeyValueItemProps {
   isValuePressDisabled?: boolean;
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
-  showEditIcon?: boolean;
   /** Test ID for the value row, so agentic recipes can read the rendered value. */
   valueTestID?: string;
 }
+
+type KeyValueItemProps = KeyValueItemBaseProps &
+  (
+    | {
+        value: string;
+        valueNode?: never;
+        showEditIcon?: boolean;
+      }
+    | {
+        value?: never;
+        valueNode: React.ReactNode;
+        showEditIcon?: never;
+      }
+  );
 
 const KeyValueItem = ({
   label,
@@ -89,21 +100,24 @@ const KeyValueItem = ({
   showEditIcon = false,
   valueTestID,
 }: KeyValueItemProps) => {
-  const valueContent = valueNode ?? (
-    <>
-      <SensitiveText
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        color={isHidden ? TextColor.TextDefault : valueColor}
-        isHidden={isHidden}
-        length={SensitiveTextLength.Short}
-        twClassName="shrink"
-      >
-        {value}
-      </SensitiveText>
-      {showEditIcon ? <Icon name={IconName.Edit} size={IconSize.Sm} /> : null}
-    </>
-  );
+  const valueContent =
+    valueNode !== undefined ? (
+      valueNode
+    ) : (
+      <>
+        <SensitiveText
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={isHidden ? TextColor.TextDefault : valueColor}
+          isHidden={isHidden}
+          length={SensitiveTextLength.Short}
+          twClassName="shrink"
+        >
+          {value}
+        </SensitiveText>
+        {showEditIcon ? <Icon name={IconName.Edit} size={IconSize.Sm} /> : null}
+      </>
+    );
 
   return (
     <Box>
@@ -365,9 +379,17 @@ const PerpsProPositionCard = ({
                     privacyMode={privacyMode}
                     textVariant={TextVariant.BodyXs}
                     iconSize={IconSize.Xs}
+                    priceTestID={
+                      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE
+                    }
+                    distanceTestID={
+                      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE
+                    }
+                    iconTestID={
+                      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND
+                    }
                   />
                 }
-                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
               />
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">

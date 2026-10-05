@@ -16,9 +16,8 @@ import {
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
-import { calculateLiquidationDistance } from '../../utils/liquidationDistance';
 import {
+  formatLiquidationDistance,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -34,21 +33,12 @@ const PerpsLiquidationPriceValue = ({
   iconSize = IconSize.Sm,
   priceTestID,
   distanceTestID,
+  iconTestID,
 }: PerpsLiquidationPriceValueProps) => {
-  const liquidationPriceNumber =
-    liquidationPrice == null
-      ? null
-      : Number.parseFloat(String(liquidationPrice));
-  const hasLiquidationDistance =
-    currentPrice !== undefined &&
-    Number.isFinite(currentPrice) &&
-    currentPrice > 0 &&
-    liquidationPriceNumber !== null &&
-    Number.isFinite(liquidationPriceNumber) &&
-    liquidationPriceNumber > 0;
-  const liquidationDistance = hasLiquidationDistance
-    ? calculateLiquidationDistance(currentPrice, liquidationPriceNumber)
-    : null;
+  const liquidationDistance = formatLiquidationDistance(
+    currentPrice,
+    liquidationPrice,
+  );
   const priceDisplay =
     liquidationPrice !== undefined && liquidationPrice !== null
       ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
@@ -74,7 +64,7 @@ const PerpsLiquidationPriceValue = ({
       >
         {priceDisplay}
       </SensitiveText>
-      {liquidationDistance !== null && !privacyMode ? (
+      {liquidationDistance !== undefined && !privacyMode ? (
         <>
           <Text
             variant={textVariant}
@@ -82,12 +72,13 @@ const PerpsLiquidationPriceValue = ({
             testID={distanceTestID}
           >
             {' '}
-            {liquidationDistance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%
+            {liquidationDistance}
           </Text>
           <Icon
             name={isLong ? IconName.TrendDown : IconName.TrendUp}
             size={iconSize}
             color={IconColor.IconAlternative}
+            testID={iconTestID}
           />
         </>
       ) : null}

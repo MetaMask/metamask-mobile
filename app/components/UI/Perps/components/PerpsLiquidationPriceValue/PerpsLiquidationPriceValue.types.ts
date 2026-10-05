@@ -13,4 +13,5 @@ export interface PerpsLiquidationPriceValueProps {
   iconSize?: IconSize;
   priceTestID?: string;
   distanceTestID?: string;
+  iconTestID?: string;
 }
