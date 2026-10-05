@@ -1,12 +1,9 @@
 import React from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
-const flattenStyle = (
-  style: StyleProp<ViewStyle>,
-): Record<string, unknown>[] => {
+const flattenStyle = (style: unknown): Record<string, unknown>[] => {
   if (!style) {
     return [];
   }
