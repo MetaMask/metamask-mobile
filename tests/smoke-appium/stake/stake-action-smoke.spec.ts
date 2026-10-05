@@ -5,7 +5,9 @@ import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder.js';
+import { PREDEFINED_TOKENS } from '../../framework/fixtures/mmpay-token-holdings-registry.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import TokensFullView from '../../page-objects/wallet/HomeSections.js';
 import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
@@ -28,12 +30,19 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
 
       await withFixtures(
         {
-          fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          fixture: async ({ localNodes }: { localNodes?: LocalNode[] }) => {
             const node = localNodes?.[0] as unknown as AnvilManager;
             const rpcPort =
               node instanceof AnvilManager
                 ? (node.getPort() ?? AnvilPort())
                 : undefined;
+
+            if (node instanceof AnvilManager) {
+              await node.setAccountBalance(
+                '10',
+                DEFAULT_FIXTURE_ACCOUNT_CHECKSUM as `0x${string}`,
+              );
+            }
 
             return new FixtureBuilder()
               .withPolygon()
@@ -45,6 +54,9 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
                 ticker: 'ETH',
               })
               .withNetworkEnabledMap({ eip155: { [chainId]: true } })
+              .withTokenHoldings([
+                { ...PREDEFINED_TOKENS.ETHEREUM.ETH, amount: '10' },
+              ])
               .build();
           },
           localNodeOptions: [
