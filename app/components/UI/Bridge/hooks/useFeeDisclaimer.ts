@@ -71,7 +71,7 @@ export const useFeeDisclaimer = ({
   }, [discountType, hasDiscountType]);
 
   const isSubscriptionDiscount = discountType === DiscountType.SUBSCRIPTION;
-  const showDiscountedFee = Boolean(isDiscounted) || isSubscriptionDiscount;
+  const showDiscountedFee = Boolean(isDiscounted);
 
   const infoText = useMemo(() => {
     if (showDiscountedFee) {

@@ -100,7 +100,11 @@ export const BridgeMarketViewFooter = ({
           >
             {discountBadge ? (
               isRewardsTierBadge ? (
-                <RewardsVipBadge />
+                <RewardsVipBadge
+                  hasProEntitlement={
+                    discountBadge.type === DiscountType.SUBSCRIPTION
+                  }
+                />
               ) : (
                 <RewardsDiscountBadge label={discountBadge.label} />
               )

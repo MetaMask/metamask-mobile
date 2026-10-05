@@ -5,10 +5,6 @@ import foxIcon from '../../../../../images/fox.png';
 import { strings } from '../../../../../../locales/i18n';
 import { useVipTier } from '../../hooks/useVipTier';
 import { RewardsDiscountBadge } from '../RewardsDiscountBadge';
-import {
-  MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
-} from '../../../../../hooks/useMoneyAccountPlusAccess';
 import { colors } from '../../../../../styles/common';
 
 const FOX_ICON_SIZE = 14;
@@ -27,9 +23,18 @@ const styles = StyleSheet.create({
   },
 });
 
-const RewardsVipBadge: React.FC = () => {
+interface RewardsVipBadgeProps {
+  /**
+   * True when the parent says this feature's waiver is a Plus entitlement.
+   * Omitted means the Member badge stays hidden.
+   */
+  hasProEntitlement?: boolean;
+}
+
+const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
+  hasProEntitlement = false,
+}) => {
   const vipTier = useVipTier();
-  const moneyAccountPlusAccess = useMoneyAccountPlusAccess();
 
   if (vipTier) {
     return (
@@ -43,7 +48,7 @@ const RewardsVipBadge: React.FC = () => {
     );
   }
 
-  if (moneyAccountPlusAccess === MoneyAccountPlusAccess.Subscriber) {
+  if (hasProEntitlement) {
     return (
       <RewardsDiscountBadge
         testID="rewards-member-badge"
