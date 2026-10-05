@@ -1091,11 +1091,9 @@ describe('buildStartPayload', () => {
   // moves the V1 top-level destWalletAddress there). The argument is cast to
   // the input type because the fixture omits the rest of the V2 quote shape.
   type QuoteInput = Parameters<typeof buildStartPayload>[0];
-  const quoteFixture = (
-    overrides: {
-      dest?: { walletAddress?: string };
-    },
-  ) => ({ ...overrides });
+  const quoteFixture = (overrides: { dest?: { walletAddress?: string } }) => ({
+    ...overrides,
+  });
 
   const buildApproveCalldata = (spender: string): Hex =>
     new Interface([
@@ -1124,42 +1122,36 @@ describe('buildStartPayload', () => {
     );
   });
 
-  it('decodes the spender from standard ERC-20 approve calldata (approval.to is the token contract, not the spender)', () => {
-    const result = buildStartPayload(
-      {
-        approval: {
-          ...evmTx(TOKEN_CONTRACT),
-          data: buildApproveCalldata(SPENDER),
-        },
-        trade: evmTx(RECIPIENT),
+  // Approve calldata decoding: spender/token come from the decoded calldata,
+  // never from the tx recipient (approval.to is the token contract for
+  // standard approvals, the Permit2 contract for Permit2).
+  it.each([
+    {
+      name: 'standard ERC-20 approve (approval.to is the token contract, not the spender)',
+      approval: {
+        ...evmTx(TOKEN_CONTRACT),
+        data: buildApproveCalldata(SPENDER),
       },
+    },
+    {
+      name: 'Permit2 approve (tx recipient is the Permit2 contract)',
+      approval: {
+        ...evmTx(PERMIT2_CONTRACT),
+        data: buildPermit2ApproveCalldata(TOKEN_CONTRACT, SPENDER),
+      },
+    },
+  ])('decodes spender and token addresses from $name', ({ approval }) => {
+    const result = buildStartPayload(
+      { approval, trade: evmTx(RECIPIENT) },
       { isSwap: false },
     ) as StartEvent;
 
     expect(result.type).toBe(HardwareWalletsSwapsEventType.Start);
     expect(result.payload.totalSteps).toBe(2);
     expect(result.payload.spenderAddress).toBe(SPENDER);
-    expect(result.payload.spenderAddress).not.toBe(TOKEN_CONTRACT);
-    // Standard approvals carry the token contract as tx recipient.
+    expect(result.payload.spenderAddress).not.toBe(approval.to);
     expect(result.payload.approvalTokenAddress).toBe(TOKEN_CONTRACT);
     expect(result.payload.recipientAddress).toBe(RECIPIENT);
-  });
-
-  it('decodes the token address from Permit2 approve calldata (tx recipient is the Permit2 contract)', () => {
-    const result = buildStartPayload(
-      {
-        approval: {
-          ...evmTx(PERMIT2_CONTRACT),
-          data: buildPermit2ApproveCalldata(TOKEN_CONTRACT, SPENDER),
-        },
-        trade: evmTx(RECIPIENT),
-      },
-      { isSwap: false },
-    ) as StartEvent;
-
-    expect(result.payload.spenderAddress).toBe(SPENDER);
-    expect(result.payload.approvalTokenAddress).toBe(TOKEN_CONTRACT);
-    expect(result.payload.approvalTokenAddress).not.toBe(PERMIT2_CONTRACT);
   });
 
   it('yields no spender and falls back to approval.to for the token address when calldata is undecodable', () => {
@@ -1177,53 +1169,44 @@ describe('buildStartPayload', () => {
   });
 
   describe('recipient sourcing (same-chain swap vs bridge)', () => {
-    it('uses the quote ultimate recipient for same-chain swaps (not the aggregator router)', () => {
+    it.each([
+      {
+        name: 'uses the quote ultimate recipient for same-chain swaps (never the aggregator router)',
+        quote: quoteFixture({ dest: { walletAddress: RECIPIENT } }),
+        trade: evmTx(ROUTER),
+        isSwap: true,
+        expected: RECIPIENT,
+      },
+      {
+        name: 'yields no recipient for same-chain swaps without a quote ultimate recipient (never the router)',
+        quote: quoteFixture({}),
+        trade: evmTx(ROUTER),
+        isSwap: true,
+        expected: undefined,
+      },
+      {
+        name: 'keeps trade.to as the recipient for cross-chain bridges (extension parity)',
+        quote: quoteFixture({}),
+        trade: evmTx(RECIPIENT),
+        isSwap: false,
+        expected: RECIPIENT,
+      },
+      {
+        name: 'uses the quote ultimate recipient for non-EVM same-chain quotes without an EVM trade shape',
+        quote: quoteFixture({ dest: { walletAddress: RECIPIENT } }),
+        trade: undefined,
+        isSwap: true,
+        expected: RECIPIENT,
+      },
+    ])('$name', ({ quote, trade, isSwap, expected }) => {
       const result = buildStartPayload(
-        {
-          quote: quoteFixture({ dest: { walletAddress: RECIPIENT } }),
-          trade: evmTx(ROUTER),
-        } as unknown as QuoteInput,
-        { isSwap: true },
+        { quote, ...(trade ? { trade } : {}) } as unknown as QuoteInput,
+        { isSwap },
       ) as StartEvent;
 
-      expect(result.payload.recipientAddress).toBe(RECIPIENT);
-      expect(result.payload.recipientAddress).not.toBe(ROUTER);
-    });
-
-    it('yields no recipient for same-chain swaps without a quote ultimate recipient (never the router)', () => {
-      const result = buildStartPayload(
-        {
-          quote: quoteFixture({}),
-          trade: evmTx(ROUTER),
-        } as unknown as QuoteInput,
-        { isSwap: true },
-      ) as StartEvent;
-
-      expect(result.payload.recipientAddress).toBeUndefined();
-    });
-
-    it('keeps trade.to as the recipient for cross-chain bridges (extension parity)', () => {
-      const result = buildStartPayload(
-        {
-          quote: quoteFixture({}),
-          trade: evmTx(RECIPIENT),
-        } as unknown as QuoteInput,
-        { isSwap: false },
-      ) as StartEvent;
-
-      expect(result.payload.recipientAddress).toBe(RECIPIENT);
-    });
-
-    it('uses the quote ultimate recipient for non-EVM same-chain quotes without an EVM trade shape', () => {
-      // Solana same-chain swap; the quote carries no EVM approval/trade.
-      const result = buildStartPayload(
-        {
-          quote: quoteFixture({ dest: { walletAddress: RECIPIENT } }),
-        } as unknown as QuoteInput,
-        { isSwap: true },
-      ) as StartEvent;
-
-      expect(result.payload.recipientAddress).toBe(RECIPIENT);
+      // Only the quote ultimate recipient — never the aggregator router
+      // (trade.to), which is entailed by each row's expected value.
+      expect(result.payload.recipientAddress).toBe(expected);
     });
   });
 });

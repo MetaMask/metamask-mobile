@@ -106,6 +106,8 @@ class AppDelegate: ExpoAppDelegate {
       configuration.push.automation.requestAuthorizationAtLaunch = false
       configuration.push.automation.registerDeviceToken = false
       configuration.forwardUniversalLinks = true
+      // Explicit: native default is 10s. Backgrounding longer than this starts a new session.
+      configuration.sessionTimeout = 120
       // swiftlint:disable:next force_cast
       let braze = BrazeHelperInit(configuration) as! Braze
       braze.delegate = self
@@ -319,7 +321,8 @@ extension AppDelegate: BrazeDelegate {
       host.contains("test-app.link") ||
       host.contains("link.metamask.io") ||
       host.contains("link.metamask.com") ||
-      host.contains("link-test.metamask.io")
+      host.contains("link-test.metamask.io") ||
+      host.contains("link-test.metamask.com")
   }
 
   private func isWebURL(_ url: URL) -> Bool {

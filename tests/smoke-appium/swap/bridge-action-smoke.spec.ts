@@ -24,6 +24,7 @@ function buildEthMainnetFixture({ localNodes }: { localNodes?: LocalNode[] }) {
 
   return new FixtureBuilder()
     .withMetaMetricsOptIn()
+    .withDisabledSmartTransactions()
     .withNetworkController({
       chainId: '0x1',
       rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
@@ -44,7 +45,10 @@ const ANVIL_MAINNET_LOCAL_NODE_OPTIONS = [
 ];
 
 appiumTest.describe(SmokeSwap('Bridge functionality'), () => {
-  appiumTest.describe.configure({ timeout: 180000 });
+  // Login + quote + Activity confirm routinely approaches ~150s on Android CI;
+  // keep headroom above the observed passing retry (~154s) without the old
+  // Settings reset detour.
+  appiumTest.describe.configure({ timeout: 240000 });
 
   appiumTest(
     'should bridge ETH (Mainnet) to ETH (Base Network)',

@@ -21,12 +21,10 @@ import type { SwapsBannersProps } from './SwapsBanners.types';
  */
 export const SwapsBanners = ({
   children,
-  latestSourceAtomicBalance,
   location,
   onAdjustSourceAmount,
 }: SwapsBannersProps) => (
   <SwapsBannersProvider
-    latestSourceAtomicBalance={latestSourceAtomicBalance}
     location={location}
     onAdjustSourceAmount={onAdjustSourceAmount}
   >

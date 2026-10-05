@@ -32,6 +32,7 @@ import {
 import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
+import LockManagerService from '../../core/LockManagerService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
 import { setCompletedOnboarding } from '../../actions/onboarding';
@@ -57,8 +58,10 @@ const mockGetUtmAttributesFromDeeplinkUrl = jest.mocked(
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockGetCurrentRoute = jest.fn();
 
 jest.mock('../../core/NavigationService', () => ({
+  getCurrentRoute: () => mockGetCurrentRoute(),
   navigation: {
     navigate: (screen: string, params?: unknown) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
@@ -182,6 +185,7 @@ jest.mock('../../core/LockManagerService', () => ({
   default: {
     startListening: jest.fn(),
     stopListening: jest.fn(),
+    isAutoLockPending: jest.fn(() => false),
   },
 }));
 
@@ -390,6 +394,33 @@ describe('appStateListenerTask', () => {
       ],
     });
     expect(Authentication.unlockWallet).not.toHaveBeenCalled();
+  });
+
+  describe('when the app is already active', () => {
+    const originalCurrentState = AppState.currentState;
+
+    afterEach(() => {
+      Object.defineProperty(AppState, 'currentState', {
+        value: originalCurrentState,
+        configurable: true,
+        writable: true,
+      });
+    });
+
+    it('calls unlockWallet without waiting for another app state change', async () => {
+      // A lock applied after the resume leaves no `active` event to wait for,
+      // which would otherwise strand the user on the lock screen.
+      Object.defineProperty(AppState, 'currentState', {
+        value: 'active',
+        configurable: true,
+        writable: true,
+      });
+
+      await expectSaga(appStateListenerTask).silentRun(50);
+
+      expect(Authentication.unlockWallet).toHaveBeenCalled();
+      expect(AppState.addEventListener).not.toHaveBeenCalled();
+    });
   });
 
   it('does not call unlockWallet when app is in background', async () => {
@@ -689,6 +720,8 @@ describe('handleDeeplinkSaga', () => {
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
+    mockGetCurrentRoute.mockReturnValue(undefined);
+    (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(false);
   });
 
   describe('without deeplink', () => {
@@ -823,6 +856,54 @@ describe('handleDeeplinkSaga', () => {
           ).toHaveBeenCalled();
           expect(WC2Manager.init).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
+        });
+
+        it.each([Routes.ONBOARDING.LOGIN, Routes.LOCK_SCREEN])(
+          'leaves a pending deeplink in place when onboarding completes on %s',
+          async (routeName) => {
+            AppStateEventProcessor.pendingDeeplink =
+              'https://link.metamask.io/swap';
+            Engine.context.KeyringController.isUnlocked = jest
+              .fn()
+              .mockReturnValue(true);
+            mockGetCurrentRoute.mockReturnValue({ name: routeName });
+
+            await expectSaga(handleDeeplinkSaga)
+              .withState({
+                user: { existingUser: true },
+              })
+              .dispatch(setCompletedOnboarding(true))
+              .silentRun();
+
+            expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+            expect(
+              AppStateEventProcessor.clearPendingDeeplink,
+            ).not.toHaveBeenCalled();
+          },
+        );
+
+        it('leaves a pending deeplink in place while auto-lock is still pending', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/privacy';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(
+            true,
+          );
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: { existingUser: true },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is true in Redux state', () => {

@@ -233,64 +233,53 @@ const renderScreen = (
 
 const DEST_AMOUNT = '95.5';
 const DEST_TOKEN_SYMBOL = 'ETH';
+const SOURCE_TOKEN: BridgeToken = {
+  address: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+  symbol: SOURCE_TOKEN_SYMBOL,
+  decimals: 6,
+  chainId: '0x1',
+};
+const DEST_TOKEN: BridgeToken = {
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: DEST_TOKEN_SYMBOL,
+  decimals: 18,
+  chainId: '0x1',
+};
+
+// Parametrized store for the swap-title tests; overrides select the store
+// shape (same-chain swap, cross-chain bridge, or locked-quote).
+type BridgeStoreOverrides = Partial<
+  Record<'sourceAmount' | 'destAmount', string | undefined> &
+    Record<'sourceToken' | 'destToken', BridgeToken>
+>;
+
+const renderWithDestToken = (
+  hw: Partial<HardwareWalletsSwapsState>,
+  overrides: BridgeStoreOverrides = {},
+) =>
+  renderWithProvider(<HardwareWalletsSwaps />, {
+    state: {
+      bridge: {
+        sourceAmount: SOURCE_AMOUNT,
+        sourceToken: SOURCE_TOKEN,
+        destAmount: DEST_AMOUNT,
+        destToken: DEST_TOKEN,
+        ...overrides,
+        hardwareWalletsSwaps: {
+          ...defaultBridgeState,
+          ...hw,
+        },
+      },
+    },
+  });
 
 // Same-chain swap store: dest token on the SAME chainId as the source token.
-const renderSwapScreen = (
-  hardwareWalletsSwaps: Partial<HardwareWalletsSwapsState>,
-) =>
-  renderWithProvider(<HardwareWalletsSwaps />, {
-    state: {
-      bridge: {
-        sourceAmount: SOURCE_AMOUNT,
-        sourceToken: {
-          address: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
-          symbol: SOURCE_TOKEN_SYMBOL,
-          decimals: 6,
-          chainId: '0x1',
-        },
-        destAmount: DEST_AMOUNT,
-        destToken: {
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: DEST_TOKEN_SYMBOL,
-          decimals: 18,
-          chainId: '0x1',
-        },
-        hardwareWalletsSwaps: {
-          ...defaultBridgeState,
-          ...hardwareWalletsSwaps,
-        },
-      },
-    },
-  });
+const renderSwapScreen = (hw: Partial<HardwareWalletsSwapsState>) =>
+  renderWithDestToken(hw);
 
 // Cross-chain bridge store: dest token on a DIFFERENT chainId than the source.
-const renderCrossChainScreen = (
-  hardwareWalletsSwaps: Partial<HardwareWalletsSwapsState>,
-) =>
-  renderWithProvider(<HardwareWalletsSwaps />, {
-    state: {
-      bridge: {
-        sourceAmount: SOURCE_AMOUNT,
-        sourceToken: {
-          address: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
-          symbol: SOURCE_TOKEN_SYMBOL,
-          decimals: 6,
-          chainId: '0x1',
-        },
-        destAmount: DEST_AMOUNT,
-        destToken: {
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: DEST_TOKEN_SYMBOL,
-          decimals: 18,
-          chainId: '0x89',
-        },
-        hardwareWalletsSwaps: {
-          ...defaultBridgeState,
-          ...hardwareWalletsSwaps,
-        },
-      },
-    },
-  });
+const renderCrossChainScreen = (hw: Partial<HardwareWalletsSwapsState>) =>
+  renderWithDestToken(hw, { destToken: { ...DEST_TOKEN, chainId: '0x89' } });
 
 const MOCK_SUBMISSION_PARAMS = {
   quoteResponse: { quote: { srcChainId: 1 } } as any,
@@ -329,22 +318,12 @@ function mockRouteSubmissionParamsWithLockedDest() {
 
 // Production store shape: destToken IS set, but state.destAmount is never
 // populated (only PostTradeBottomSheet resets it to undefined).
-const renderLockedQuoteScreen = (
-  hardwareWalletsSwaps: Partial<HardwareWalletsSwapsState>,
-) =>
-  renderWithProvider(<HardwareWalletsSwaps />, {
-    state: {
-      bridge: {
-        sourceAmount: LOCKED_SOURCE_AMOUNT,
-        sourceToken: LOCKED_SOURCE_TOKEN,
-        destAmount: undefined,
-        destToken: LOCKED_DEST_TOKEN,
-        hardwareWalletsSwaps: {
-          ...defaultBridgeState,
-          ...hardwareWalletsSwaps,
-        },
-      },
-    },
+const renderLockedQuoteScreen = (hw: Partial<HardwareWalletsSwapsState>) =>
+  renderWithDestToken(hw, {
+    sourceAmount: LOCKED_SOURCE_AMOUNT,
+    sourceToken: LOCKED_SOURCE_TOKEN,
+    destAmount: undefined,
+    destToken: LOCKED_DEST_TOKEN,
   });
 
 function mockRouteSubmissionParams(
@@ -838,12 +817,8 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       // Descriptions render shortened addresses with extension copy.
-      expect(
-        getByText('Spender: 0x3c44C...C6cDc'),
-      ).toBeDefined();
-      expect(
-        getByText('To: 0x70997...c79C8'),
-      ).toBeDefined();
+      expect(getByText('Spender: 0x3c44C...C6cDc')).toBeDefined();
+      expect(getByText('To: 0x70997...c79C8')).toBeDefined();
     });
 
     it('hides description when no address is provided', () => {
@@ -1229,7 +1204,7 @@ describe('HardwareWalletsSwaps', () => {
       mockApprovalRequestValue = MOCK_APPROVAL_REQUEST;
     });
 
-    it('renders the sendbundle steps [FeeTransfer, Transaction] with paying-network-fee copy', () => {
+    it('renders the sendbundle steps [Transaction, FeeTransfer] with paying-network-fee copy', () => {
       setSendRouteParams({ withGasToken: true, withApproval: true });
 
       const { getByText } = renderSendScreen({

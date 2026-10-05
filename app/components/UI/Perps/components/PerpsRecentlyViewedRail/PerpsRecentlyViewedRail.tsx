@@ -3,6 +3,7 @@ import { ScrollView } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
   SectionHeader,
   TextColor,
   TextVariant,
@@ -123,8 +124,9 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
         title={strings('perps.recently_viewed')}
         twClassName="pt-1"
         titleProps={{
-          variant: TextVariant.BodySm,
+          variant: TextVariant.BodyMd,
           color: TextColor.TextAlternative,
+          fontWeight: FontWeight.Medium,
         }}
       />
 

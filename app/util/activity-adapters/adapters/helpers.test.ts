@@ -3,7 +3,11 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { getLocalActivityFees, getLocalTransactionStatus } from './helpers';
+import {
+  getLocalActivityFees,
+  getLocalTransactionStatus,
+  isSpendingCapUnlimited,
+} from './helpers';
 
 type LocalTransactionStatusInput = Parameters<
   typeof getLocalTransactionStatus

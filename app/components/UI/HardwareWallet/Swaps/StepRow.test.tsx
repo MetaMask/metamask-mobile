@@ -27,18 +27,13 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'bridge.hardware_wallet_progress.sent_token') {
       return `Sent ${params?.amount ?? ''} ${params?.symbol ?? ''}`;
     }
-    if (key === 'bridge.hardware_wallet_progress.swap_amount') {
-      return `Swap ${params?.amount ?? ''} ${
-        params?.symbol ?? ''
-      } for ${params?.destAmount ?? ''} ${params?.destSymbol ?? ''}`;
-    }
-    if (key === 'bridge.hardware_wallet_progress.swapping_amount') {
-      return `Swapping ${params?.amount ?? ''} ${
-        params?.symbol ?? ''
-      } for ${params?.destAmount ?? ''} ${params?.destSymbol ?? ''}`;
-    }
-    if (key === 'bridge.hardware_wallet_progress.swapped_amount') {
-      return `Swapped ${params?.amount ?? ''} ${
+    const swapTitlePrefixes: Record<string, string> = {
+      'bridge.hardware_wallet_progress.swap_amount': 'Swap',
+      'bridge.hardware_wallet_progress.swapping_amount': 'Swapping',
+      'bridge.hardware_wallet_progress.swapped_amount': 'Swapped',
+    };
+    if (swapTitlePrefixes[key]) {
+      return `${swapTitlePrefixes[key]} ${params?.amount ?? ''} ${
         params?.symbol ?? ''
       } for ${params?.destAmount ?? ''} ${params?.destSymbol ?? ''}`;
     }

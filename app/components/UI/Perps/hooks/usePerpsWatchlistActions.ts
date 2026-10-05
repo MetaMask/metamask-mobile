@@ -10,6 +10,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import usePerpsToasts from './usePerpsToasts';
+import { flushEngineState } from '../utils/flushEngineState';
 import { WATCHLIST_LIMIT } from '../utils/marketUtils';
 
 interface UsePerpsWatchlistActionsResult {
@@ -54,8 +55,8 @@ export const usePerpsWatchlistActions = (
 
         // Not awaited: the controller applies its local update synchronously
         // and only then persists to AUS. Awaiting the network write delayed the
-        // toast and its haptic by the round-trip. Failures surface through the
-        // rejection handler below, matching useEnableMarketingConsent.
+        // toast and its haptic by the round-trip. The controller handles AUS
+        // failures by reverting its optimistic update before resolving.
         const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
@@ -72,7 +73,10 @@ export const usePerpsWatchlistActions = (
           showToast(PerpsToastOptions.watchlist.added(symbol));
         }
 
-        await persisted;
+        flushEngineState();
+        await persisted.finally(() => {
+          flushEngineState();
+        });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
           tags: {
@@ -113,7 +117,10 @@ export const usePerpsWatchlistActions = (
           showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
 
-        await persisted;
+        flushEngineState();
+        await persisted.finally(() => {
+          flushEngineState();
+        });
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
           tags: {
@@ -127,8 +134,6 @@ export const usePerpsWatchlistActions = (
           },
         });
 
-        // The removed toast has already shown against optimistic state, so it
-        // has to be corrected once the controller reverts the star.
         showToast(PerpsToastOptions.watchlist.removeError);
       }
     },

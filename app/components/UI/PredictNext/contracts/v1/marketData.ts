@@ -23,6 +23,7 @@ import type {
   PredictFeed,
   PredictMarket,
   PredictMarketHistory,
+  PredictSearchResults,
   PredictVenueStatus,
 } from '../../types';
 
@@ -230,10 +231,17 @@ const feedSchema = object({
   nextCursor: optional(string()),
 });
 
+const searchResultsSchema = object({
+  venueId,
+  events: array(eventSchema),
+});
+
 const venueStatusSchema = object({
   venueId,
   status: venueStatus,
   checkedAt: timestamp,
+  // Backend-owned venue metadata; absent when the venue has no agreement.
+  termsUrl: optional(httpsUrl),
 });
 
 const marketHistoryPointSchema = refine(
@@ -296,6 +304,11 @@ export const parsePredictEvent = (value: unknown): PredictEvent =>
 
 export const parsePredictFeed = (value: unknown): PredictFeed =>
   parse(value, feedSchema) as unknown as PredictFeed;
+
+export const parsePredictSearchResults = (
+  value: unknown,
+): PredictSearchResults =>
+  parse(value, searchResultsSchema) as unknown as PredictSearchResults;
 
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;

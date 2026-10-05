@@ -111,110 +111,83 @@ describe('step-helpers', () => {
         destAmount: '5.2',
         destTokenSymbol: 'DAI',
       };
-
-      it('returns swap title for waiting transaction step with dest data', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Waiting,
-            },
-            swapOptions,
-          ),
-        ).toBe('Swap 5 USDC for 5.2 DAI');
+      const txStep = (status: HardwareWalletsSwapsStepStatus) => ({
+        kind: HardwareWalletsSwapsStepKind.Transaction,
+        status,
       });
 
-      it('returns swapping title for signing transaction step with dest data', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Signing,
-            },
-            swapOptions,
-          ),
-        ).toBe('Swapping 5 USDC for 5.2 DAI');
-      });
+      // Both dest values present → swap copy; Signed gets 'Swapped'.
+      it.each([
+        [
+          'waiting',
+          HardwareWalletsSwapsStepStatus.Waiting,
+          'Swap 5 USDC for 5.2 DAI',
+        ],
+        [
+          'signing',
+          HardwareWalletsSwapsStepStatus.Signing,
+          'Swapping 5 USDC for 5.2 DAI',
+        ],
+        [
+          'rejected',
+          HardwareWalletsSwapsStepStatus.Rejected,
+          'Swapping 5 USDC for 5.2 DAI',
+        ],
+        [
+          'signed',
+          HardwareWalletsSwapsStepStatus.Signed,
+          'Swapped 5 USDC for 5.2 DAI',
+        ],
+      ] as const)(
+        'returns the %s swap title for a transaction step with dest data',
+        (_statusName, status, expected) => {
+          expect(getStepTitle(txStep(status), swapOptions)).toBe(expected);
+        },
+      );
 
-      it('returns swapping title for rejected transaction step with dest data', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Rejected,
-            },
-            swapOptions,
-          ),
-        ).toBe('Swapping 5 USDC for 5.2 DAI');
-      });
-
-      it('returns swapped title for signed transaction step with dest data', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Signed,
-            },
-            swapOptions,
-          ),
-        ).toBe('Swapped 5 USDC for 5.2 DAI');
-      });
-
-      it('falls back to send title when destAmount is missing', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Waiting,
-            },
-            { amount: '5', tokenSymbol: 'USDC', destTokenSymbol: 'DAI' },
-          ),
-        ).toBe('Send 5 USDC');
-      });
-
-      it('falls back to sent title when destTokenSymbol is missing', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Signed,
-            },
-            { amount: '5', tokenSymbol: 'USDC', destAmount: '5.2' },
-          ),
-        ).toBe('Sent 5 USDC');
-      });
-
-      it('ignores dest options for approval steps (still approve copy)', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.Approval,
-              status: HardwareWalletsSwapsStepStatus.Signed,
-            },
-            swapOptions,
-          ),
-        ).toBe('Approved 5 USDC');
-      });
-
-      it('ignores dest options for fee transfer steps (still fee copy)', () => {
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.FeeTransfer,
-              status: HardwareWalletsSwapsStepStatus.Waiting,
-            },
-            swapOptions,
-          ),
-        ).toBe('Paying network fee with USDC');
-        expect(
-          getStepTitle(
-            {
-              kind: HardwareWalletsSwapsStepKind.FeeTransfer,
-              status: HardwareWalletsSwapsStepStatus.Signed,
-            },
-            swapOptions,
-          ),
-        ).toBe('Network fee paid with USDC');
+      // Partial dest values fall back to send copy; other kinds ignore dest.
+      it.each([
+        {
+          name: 'falls back to send title when destAmount is missing',
+          step: txStep(HardwareWalletsSwapsStepStatus.Waiting),
+          opts: { amount: '5', tokenSymbol: 'USDC', destTokenSymbol: 'DAI' },
+          expected: 'Send 5 USDC',
+        },
+        {
+          name: 'falls back to sent title when destTokenSymbol is missing',
+          step: txStep(HardwareWalletsSwapsStepStatus.Signed),
+          opts: { amount: '5', tokenSymbol: 'USDC', destAmount: '5.2' },
+          expected: 'Sent 5 USDC',
+        },
+        {
+          name: 'ignores dest options for approval steps (still approve copy)',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.Approval,
+            status: HardwareWalletsSwapsStepStatus.Signed,
+          },
+          opts: swapOptions,
+          expected: 'Approved 5 USDC',
+        },
+        {
+          name: 'ignores dest options for fee transfer steps (still paying-fee copy)',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Waiting,
+          },
+          opts: swapOptions,
+          expected: 'Paying network fee with USDC',
+        },
+        {
+          name: 'ignores dest options for fee transfer steps (still paid-fee copy)',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Signed,
+          },
+          opts: swapOptions,
+          expected: 'Network fee paid with USDC',
+        },
+      ])('$name', ({ step, opts, expected }) => {
+        expect(getStepTitle(step, opts)).toBe(expected);
       });
     });
 

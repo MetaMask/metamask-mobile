@@ -30,6 +30,11 @@ inputs:
     required: false
     default: '3.2.9'
   xcode-version:
+    # The default must stay in sync with the Xcode installed on the `ios-e2e`
+    # runner image (used by Appium smoke and api-specs): those jobs build
+    # WebDriverAgent against the image's simulator runtime, and a newer Xcode
+    # SDK than the runtime breaks the WDA launch. Jobs on the tahoe-slim build
+    # image that need Xcode 26.6 (Expo SDK 57) must pass it explicitly.
     description: 'Xcode version to select (e.g., 26.3). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
     required: false
     default: '26.3'
@@ -155,7 +160,7 @@ runs:
       # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
       # are baked into the metamask-android-build image.
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: 5
         max_attempts: 3
@@ -331,7 +336,7 @@ runs:
 
     - name: Corepack
       id: corepack
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
@@ -362,7 +367,7 @@ runs:
 
     - name: Install JavaScript dependencies with retry
       id: yarn-install
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
@@ -466,7 +471,7 @@ runs:
 
     - name: Install CocoaPods via bundler
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
         max_attempts: 3
@@ -483,6 +488,8 @@ runs:
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
+          # Homebrew 6+ refuses third-party taps unless they are explicitly trusted.
+          brew trust --formula wix/brew/applesimutils
           brew install applesimutils
         else
           echo "applesimutils is already installed, skipping..."

@@ -21,6 +21,7 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
 import { buildStartPayload } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import { isSameChainSwap } from '../../../HardwareWallet/Swaps/flowStrategy';
 import {
   type PostTradeBottomSheetParams,
   PostTradeStatus,
@@ -59,12 +60,8 @@ export const useBridgeConfirm = ({
       dispatch(setIsSubmittingTx(true));
       try {
         dispatch(resetHardwareWalletsSwaps());
-        // Same-chain detection uses the selected TOKENS (the proven signal —
-        // V2 quotes dropped the V1 top-level quote.srcChainId/destChainId).
-        // Byte-identical expression to flowStrategy's isSwap.
-        const isSwap =
-          sourceToken?.chainId !== undefined &&
-          sourceToken?.chainId === destToken?.chainId;
+        // Same-chain detection uses the selected tokens (V2 quotes dropped V1 chainIds).
+        const isSwap = isSameChainSwap(sourceToken, destToken);
         dispatch(
           updateHardwareWalletsSwaps(
             buildStartPayload(activeQuote, { isSwap }),

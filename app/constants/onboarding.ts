@@ -74,6 +74,19 @@ export function getSocialAccountType(
   return existingUser ? mapping.existing : mapping.new;
 }
 
+/**
+ * Social rehydration of an account that already had a wallet. Distinct from
+ * {@link AccountType.Imported}, which is SRP import and still enrolled by
+ * onboarding completion.
+ */
+export function isImportedSocialAccountType(
+  accountType: AccountType | undefined,
+): boolean {
+  return Object.values(socialAccountTypeMap).some(
+    ({ existing }) => existing === accountType,
+  );
+}
+
 export enum ONBOARDING_SUCCESS_FLOW {
   BACKED_UP_SRP = 'backedUpSRP',
   NO_BACKED_UP_SRP = 'noBackedUpSRP',

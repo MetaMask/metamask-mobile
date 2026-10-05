@@ -296,10 +296,6 @@ jest.mock('../hooks/useMoneyAccountSweepstakesSeries', () => ({
   useMoneyAccountSweepstakesSeries: jest.fn(),
 }));
 
-jest.mock('../hooks/useMoneyAccountSweepstakesParticipation', () => ({
-  useMoneyAccountSweepstakesParticipation: jest.fn(),
-}));
-
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
@@ -307,7 +303,6 @@ import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
-import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import {
   CampaignType,
@@ -346,10 +341,6 @@ const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
 const mockUseMoneyAccountSweepstakesSeries =
   useMoneyAccountSweepstakesSeries as jest.MockedFunction<
     typeof useMoneyAccountSweepstakesSeries
-  >;
-const mockUseMoneyAccountSweepstakesParticipation =
-  useMoneyAccountSweepstakesParticipation as jest.MockedFunction<
-    typeof useMoneyAccountSweepstakesParticipation
   >;
 const emptyMoneyAccountSeries: MoneyAccountSweepstakesSeries = {
   campaigns: [],
@@ -494,12 +485,6 @@ describe('RewardsDashboard', () => {
     mockUseMoneyAccountSweepstakesSeries.mockReturnValue(
       emptyMoneyAccountSeries,
     );
-    mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-      optedInAny: false,
-      optedInByCampaignId: {},
-      isLoading: false,
-      refetch: jest.fn(),
-    });
 
     // Setup default modal hook behavior - return false for all modal types by default
     mockHasShownModal.mockReturnValue(false);
@@ -1320,32 +1305,8 @@ describe('RewardsDashboard', () => {
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
     });
 
-    it('routes campaign=money to tour when active, not opted in, and tour exists', () => {
+    it('routes campaign=money to details when series is active, even if a tour exists', () => {
       mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-        optedInAny: false,
-        optedInByCampaignId: { 'week-2': false },
-        isLoading: false,
-        refetch: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
-        params: { campaignId: 'week-2' },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('routes campaign=money to details when already opted in', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-        optedInAny: true,
-        optedInByCampaignId: { 'week-2': true },
-        isLoading: false,
-        refetch: jest.fn(),
-      });
 
       renderWithPendingDeeplink({ campaign: 'money' });
 
@@ -1353,22 +1314,13 @@ describe('RewardsDashboard', () => {
         screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
         params: { campaignId: 'week-2' },
       });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.REWARDS_FLOW,
+        expect.objectContaining({
+          screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        }),
+      );
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('waits for participation statuses before handling active campaign=money', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-        optedInAny: false,
-        optedInByCampaignId: {},
-        isLoading: true,
-        refetch: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
     });
   });
 

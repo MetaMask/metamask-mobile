@@ -6,12 +6,18 @@ import {
 } from './useTrendingRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import-x/no-namespace
-import * as assetsControllers from '@metamask/assets-controllers';
+import {
+  getTrendingTokens,
+  type TrendingAsset,
+} from '@metamask/assets-controllers';
 import { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { ImageSourcePropType } from 'react-native';
 import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
+
+jest.mock('@metamask/assets-controllers', () => ({
+  getTrendingTokens: jest.fn(),
+}));
 
 // Mock the TRENDING_NETWORKS_LIST constant
 jest.mock('../../utils/trendingNetworksList', () => {
@@ -52,11 +58,8 @@ describe('useTrendingRequest', () => {
   });
 
   it('returns trending tokens results when fetch succeeds', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
-    const mockResults: assetsControllers.TrendingAsset[] = [
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+    const mockResults: TrendingAsset[] = [
       {
         assetId: 'eip155:1/erc20:0x123',
         symbol: 'TOKEN1',
@@ -96,10 +99,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('sets isLoading to true during fetch', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     let resolvePromise: ((value: unknown[]) => void) | undefined;
     const pendingPromise = new Promise<unknown[]>((resolve) => {
       resolvePromise = resolve;
@@ -131,10 +131,7 @@ describe('useTrendingRequest', () => {
   });
 
   it('sets error state when fetch fails', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockError = new Error('Failed to fetch trending tokens');
     spyGetTrendingTokens.mockRejectedValue(mockError);
 
@@ -155,12 +152,9 @@ describe('useTrendingRequest', () => {
   });
 
   it('allows manual retry after error using fetch function', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
     const mockError = new Error('Failed to fetch trending tokens');
-    const mockResults: assetsControllers.TrendingAsset[] = [
+    const mockResults: TrendingAsset[] = [
       {
         assetId: 'eip155:1/erc20:0x123',
         symbol: 'TOKEN1',
@@ -206,11 +200,8 @@ describe('useTrendingRequest', () => {
   ])(
     'uses default popular networks when chainIds is $description',
     async ({ options }) => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
-      const mockResults: assetsControllers.TrendingAsset[] = [
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+      const mockResults: TrendingAsset[] = [
         {
           assetId: 'eip155:1/erc20:0x123',
           symbol: 'TOKEN1',
@@ -246,11 +237,8 @@ describe('useTrendingRequest', () => {
   );
 
   it('uses provided chainIds when available instead of default networks', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
-    const mockResults: assetsControllers.TrendingAsset[] = [];
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+    const mockResults: TrendingAsset[] = [];
     spyGetTrendingTokens.mockResolvedValue(mockResults as never);
 
     const customChainIds: `${string}:${string}`[] = [
@@ -277,11 +265,8 @@ describe('useTrendingRequest', () => {
   });
 
   it('handles stale results when multiple requests are triggered', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
-    const mockResults1: assetsControllers.TrendingAsset[] = [
+    const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+    const mockResults1: TrendingAsset[] = [
       {
         assetId: 'eip155:1/erc20:0x123',
         symbol: 'TOKEN1',
@@ -292,7 +277,7 @@ describe('useTrendingRequest', () => {
         marketCap: 1,
       },
     ];
-    const mockResults2: assetsControllers.TrendingAsset[] = [
+    const mockResults2: TrendingAsset[] = [
       {
         assetId: 'eip155:1/erc20:0x456',
         symbol: 'TOKEN2',
@@ -348,11 +333,8 @@ describe('useTrendingRequest', () => {
     });
 
     it('polls at 5 minute intervals, silently updates results, and cleans up on unmount', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
-      const initialResults: assetsControllers.TrendingAsset[] = [
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+      const initialResults: TrendingAsset[] = [
         {
           assetId: 'eip155:1/erc20:0x123',
           symbol: 'TOKEN1',
@@ -363,7 +345,7 @@ describe('useTrendingRequest', () => {
           marketCap: 1,
         },
       ];
-      const updatedResults: assetsControllers.TrendingAsset[] = [
+      const updatedResults: TrendingAsset[] = [
         {
           assetId: 'eip155:1/erc20:0x456',
           symbol: 'TOKEN2',
@@ -423,10 +405,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('does not start polling when initial load fails', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       const mockError = new Error('Failed to fetch trending tokens');
       spyGetTrendingTokens.mockRejectedValue(mockError);
 
@@ -598,10 +577,7 @@ describe('useTrendingRequest', () => {
 
   describe('per-network threshold integration', () => {
     it('uses per-network liquidity and volume threshold when single chainId provided - Ethereum', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       renderHookWithProvider(() =>
@@ -625,10 +601,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('uses per-network liquidity and volume threshold when single chainId provided - SEI', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       renderHookWithProvider(() =>
@@ -652,10 +625,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('uses per-network liquidity and volume threshold when single chainId provided - Monad', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       renderHookWithProvider(() =>
@@ -679,10 +649,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('uses multi-chain baseline when multiple chains provided', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       const chainIds: CaipChainId[] = [
@@ -712,10 +679,7 @@ describe('useTrendingRequest', () => {
     });
 
     it('allows overriding per-network thresholds with provided values', async () => {
-      const spyGetTrendingTokens = jest.spyOn(
-        assetsControllers,
-        'getTrendingTokens',
-      );
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);
 
       const customMinLiquidity = 999999;

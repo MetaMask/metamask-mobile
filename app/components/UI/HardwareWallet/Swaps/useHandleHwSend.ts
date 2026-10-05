@@ -16,10 +16,16 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
-import { getTransactionDataRecipient } from '../../../Views/confirmations/utils/transaction';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { useSelectedGasFeeToken } from '../../../Views/confirmations/hooks/gas/useGasFeeToken';
 import { useTokenAmount } from '../../../Views/confirmations/hooks/useTokenAmount';
 import { useTokenAsset } from '../../../Views/confirmations/hooks/useTokenAsset';
+
+// txParams.to is the token contract for token transfers; decode the real recipient from calldata
+const getTransactionDataRecipient = (data?: string): string | undefined => {
+  const { args } = parseStandardTokenTransactionData(data) ?? {};
+  return args?._to || args?.to;
+};
 
 /**
  * Handles HW-send confirmation by routing to the HW signing-progress screen.

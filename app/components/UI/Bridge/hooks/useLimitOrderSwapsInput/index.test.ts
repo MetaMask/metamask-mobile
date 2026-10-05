@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { FeatureId } from '@metamask/bridge-controller';
 import { useLimitOrderSwapInputs } from '.';
 import {
   selectDestToken,
@@ -36,6 +35,10 @@ jest.mock('../useIsNetworkEnabled', () => ({
   useIsNetworkEnabled: () => true,
 }));
 
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
 const mockSyncFiatAmountToTokenAmount = jest.fn();
 const mockResetToTokenMode = jest.fn();
 jest.mock('../useSourceAmountInput', () => ({
@@ -66,7 +69,11 @@ jest.mock('../useSwitchTokens', () => ({
 }));
 
 import { useSelector } from 'react-redux';
+import { useBridgeSession } from '../useBridgeSession';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
+
 const mockUseSelector = useSelector as jest.Mock;
+const mockUseBridgeSession = jest.mocked(useBridgeSession);
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [
   'eip155:1',
@@ -104,9 +111,20 @@ const renderLimitOrderSwapInputsHook = (
     return undefined;
   });
 
-  return renderHook(() =>
-    useLimitOrderSwapInputs({ latestSourceBalance: undefined }),
-  );
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: undefined,
+    quoteParams: {
+      srcToken: selectorState.sourceToken,
+      destToken: selectorState.destToken,
+      srcAmount: selectorState.sourceAmount,
+    },
+  });
+
+  return renderHook(() => useLimitOrderSwapInputs());
 };
 
 describe('useLimitOrderSwapInputs', () => {
@@ -336,7 +354,6 @@ describe('useLimitOrderSwapInputs', () => {
           type: TokenSelectorType.Source,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
-          featureId: FeatureId.LIMIT_ORDER,
         }),
       );
     });
@@ -359,7 +376,6 @@ describe('useLimitOrderSwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: ['eip155:1'],
           excludeRwaTokens: true,
-          featureId: FeatureId.LIMIT_ORDER,
         }),
       );
     });
@@ -382,7 +398,6 @@ describe('useLimitOrderSwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: ['eip155:56'],
           excludeRwaTokens: true,
-          featureId: FeatureId.LIMIT_ORDER,
         }),
       );
     });
@@ -405,7 +420,6 @@ describe('useLimitOrderSwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: [],
           excludeRwaTokens: true,
-          featureId: FeatureId.LIMIT_ORDER,
         }),
       );
     });

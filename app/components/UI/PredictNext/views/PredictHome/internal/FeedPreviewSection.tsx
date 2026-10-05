@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, type LayoutChangeEvent } from 'react-native';
 import {
   Box,
   Button,
@@ -12,7 +12,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { PredictEventCard } from '../../../events/cards';
 import type { FeedScreenId } from '../../../navigation/feedScreens';
-import type { PredictEvent } from '../../../types';
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+} from '../../../types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 
 interface FeedPreviewSectionProps {
@@ -23,7 +27,14 @@ interface FeedPreviewSectionProps {
   isError: boolean;
   onOpen: () => void;
   onOpenEvent: (event: PredictEvent) => void;
+  onOrder?: (
+    event: PredictEvent,
+    market: PredictMarket,
+    outcome: PredictOutcome,
+  ) => void;
   onRetry: () => void;
+  /** Reports the section's frame within the scroll content. */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 export const FeedPreviewSection = ({
@@ -34,7 +45,9 @@ export const FeedPreviewSection = ({
   isError,
   onOpen,
   onOpenEvent,
+  onOrder,
   onRetry,
+  onLayout,
 }: FeedPreviewSectionProps) => {
   const renderEvent = (event: PredictEvent) => {
     const handlePress = () => onOpenEvent(event);
@@ -44,12 +57,17 @@ export const FeedPreviewSection = ({
         event={event}
         variant="featured"
         onPress={handlePress}
+        onOrder={onOrder}
       />
     );
   };
 
   return (
-    <Box testID={PredictHomeTestIds.section(feedScreenId)} twClassName="gap-3">
+    <Box
+      testID={PredictHomeTestIds.section(feedScreenId)}
+      twClassName="gap-3"
+      onLayout={onLayout}
+    >
       <Pressable
         testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
         accessibilityRole="button"

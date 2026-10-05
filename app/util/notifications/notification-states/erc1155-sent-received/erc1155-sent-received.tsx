@@ -1,5 +1,4 @@
 import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
-import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
@@ -17,7 +16,6 @@ import {
   getNotificationBadge,
 } from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
-import { formatAddress } from '../../../address';
 
 type ERC1155Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC1155_RECEIVED | TRIGGER_TYPES.ERC1155_SENT
@@ -27,26 +25,6 @@ const isERC1155Notification = isOfTypeNodeGuard([
   TRIGGER_TYPES.ERC1155_SENT,
 ]);
 
-const isSent = (n: ERC1155Notification) =>
-  n.type === TRIGGER_TYPES.ERC1155_SENT;
-
-const title = (n: ERC1155Notification) => {
-  const address = formatAddress(
-    isSent(n) ? n.payload.data.to : n.payload.data.from,
-    'short',
-  );
-  return strings(`notifications.menu_item_title.${n.type}`, {
-    address,
-  });
-};
-
-const modalTitle = (n: ERC1155Notification) =>
-  isSent(n)
-    ? strings('notifications.modal.title_sent', { symbol: 'NFT' })
-    : strings('notifications.modal.title_received', {
-        symbol: 'NFT',
-      });
-
 const state: NotificationState<ERC1155Notification> = {
   guardFn: [
     isERC1155Notification,
@@ -54,7 +32,7 @@ const state: NotificationState<ERC1155Notification> = {
       !!getNetworkDetailsFromNotifPayload(notification.payload.network),
   ],
   createMenuItem: (notification) => ({
-    title: title(notification),
+    title: notification.template?.title ?? '',
 
     description: {
       start: notification.payload.data.nft?.collection.name || '',
@@ -90,7 +68,7 @@ const state: NotificationState<ERC1155Notification> = {
         ]
       : [];
     return {
-      title: modalTitle(notification),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       header: {
         type: ModalHeaderType.NFT_IMAGE,

@@ -37,9 +37,9 @@ interface StepRowProps {
   amount?: string;
   /** Token symbol shown in the step title. */
   tokenSymbol?: string;
-  /** Destination token amount; both dest values switch the transaction step to swap copy. */
+  /** Destination amount for swap copy (both dest values required). */
   destAmount?: string;
-  /** Destination token symbol; both dest values switch the transaction step to swap copy. */
+  /** Destination symbol for swap copy (both dest values required). */
   destTokenSymbol?: string;
   /** Whether the active wallet signs via QR code scanning. */
   isQrWallet?: boolean;

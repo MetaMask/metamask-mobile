@@ -104,9 +104,9 @@ const isConfiguredCtaAsset = (
  * `hasBalance` directly instead of scanning every held asset via
  * useAccountTokens.
  *
- * The Balance CTA applies the same deposit-eligibility checks as
- * `useMoneyDepositTokens` (MM Pay deposit blocklist, minimum fiat balance),
- * just evaluated for this one asset instead of the user's full token list.
+ * Asset Overview CTAs apply the MM Pay deposit blocklist. The Balance CTA
+ * additionally checks balance and minimum fiat balance, evaluated for this one
+ * asset instead of the user's full token list.
  */
 export const useMoneyAssetOverviewCtaVisibility = (
   asset: TokenI,
@@ -130,21 +130,26 @@ export const useMoneyAssetOverviewCtaVisibility = (
   const isBaseEligible =
     isGeoEligible && isMoneyAccountReady && isAllowlistedEvmToken;
 
+  const isDepositBlocked = isTokenBlocked(
+    { address: asset.address, chainId: asset.chainId },
+    depositBlockedConfig,
+  );
+
   const isDepositEligibleForBalance =
     hasBalance &&
     Number.isFinite(balanceFiatUsd) &&
     (balanceFiatUsd as number) >= minDepositBalanceUsd &&
-    !isTokenBlocked(
-      { address: asset.address, chainId: asset.chainId },
-      depositBlockedConfig,
-    );
+    !isDepositBlocked;
 
   return {
     isBalanceCtaEligible:
       isAssetOverviewBalanceCtaEnabled &&
       isBaseEligible &&
       isDepositEligibleForBalance,
-    isFooterCtaEligible: isAssetOverviewFooterCtaEnabled && isBaseEligible,
+    isFooterCtaEligible:
+      isAssetOverviewFooterCtaEnabled &&
+      isBaseEligible &&
+      isDepositEligibleForBalance,
   };
 };
 

@@ -60,11 +60,11 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
     );
   }, [data?.account?.shippingAddress, cardholderName]);
 
-  const { initiateProvisioning, isProvisioning, canAddToWallet } =
+  const { initiateProvisioning, isProvisioning, isLoading, canAddToWallet } =
     usePushProvisioning({
       cardDetails: cardDetailsForProvisioning,
       userAddress: userAddressForProvisioning,
-      provisioningEligible: data?.account?.provisioningEligible ?? false,
+      provisioningEligible: data?.walletProvisioning?.eligible ?? false,
       onSuccess: () => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -97,5 +97,10 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
       },
     });
 
-  return { initiateProvisioning, isProvisioning, canAddToWallet };
+  return {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading,
+    canAddToWallet,
+  };
 }

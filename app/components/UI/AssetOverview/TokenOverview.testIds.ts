@@ -14,6 +14,8 @@ export const TokenOverviewSelectorsIDs = {
   UNSTAKING_BANNER: 'unstaking-banner',
   PERPS_POSITION_CARD: 'perps-position-card-touchable',
   PERPS_DISCOVERY_BANNER: 'perps-discovery-banner',
+  ORDERS_SECTION: 'token-details-orders-section',
+  ORDERS_HEADER: 'token-details-orders-header',
   LONG_BUTTON: 'token-long-button',
   SHORT_BUTTON: 'token-short-button',
   MORE_BUTTON: 'token-more-button',

@@ -212,6 +212,33 @@ describe('PerpsFillTag', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it('does not render Liquidation pill when HyperLiquid omits liquidatedUser', () => {
+    const transaction = createMockTransaction(FillType.Liquidation, {
+      fill: {
+        shortTitle: 'Closed long',
+        amount: '-$100',
+        amountNumber: -100,
+        isPositive: false,
+        size: '1.5',
+        entryPrice: '$2000',
+        points: '-100',
+        pnl: '-$100',
+        fee: '$1',
+        action: 'close',
+        feeToken: 'USDC',
+        fillType: FillType.Liquidation,
+        liquidation: {
+          markPx: '1800',
+          method: 'backstop',
+        },
+      },
+    });
+
+    const { toJSON } = render(<PerpsFillTag transaction={transaction} />);
+
+    expect(toJSON()).toBeNull();
+  });
+
   it('does not render Liquidation pill when both liquidatedUser and selectedAccount address are undefined', () => {
     // This tests the edge case where undefined === undefined would incorrectly return true
     mockUseSelector.mockImplementation(

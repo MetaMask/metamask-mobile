@@ -46,6 +46,8 @@ import PerpsSelectOrderTypeView from './PerpsSelectOrderTypeView/PerpsSelectOrde
 const TIMEOUT_MS = 3000;
 
 describe('Order Lifecycle & Funds Flow', () => {
+  const originalEnvironment = process.env.METAMASK_ENVIRONMENT;
+  const originalLighterOverride = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
   let ORDER_TYPE_TITLE: string;
   let ORDER_TYPE_MARKET: string;
   let ORDER_TYPE_LIMIT: string;
@@ -62,6 +64,21 @@ describe('Order Lifecycle & Funds Flow', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+    process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+  });
+
+  afterEach(() => {
+    if (originalEnvironment === undefined) {
+      delete process.env.METAMASK_ENVIRONMENT;
+    } else {
+      process.env.METAMASK_ENVIRONMENT = originalEnvironment;
+    }
+    if (originalLighterOverride === undefined) {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    } else {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = originalLighterOverride;
+    }
   });
 
   it('trader closes position, reviews order book, checks order details, views PnL, withdraws, and opens provider selection', async () => {
@@ -300,15 +317,20 @@ describe('Order Lifecycle & Funds Flow', () => {
     await act(async () => {
       cleanup();
     });
+    // Extra margin over the $500 requirement so there is something to remove
+    const positionWithRemovableMargin = {
+      ...defaultPositionForViews,
+      marginUsed: '700',
+    };
     renderPerpsView(
       PerpsAdjustMarginView as unknown as React.ComponentType,
       Routes.PERPS.ADJUST_MARGIN,
       {
         initialParams: {
-          position: defaultPositionForViews,
+          position: positionWithRemovableMargin,
           mode: 'remove',
         },
-        streamOverrides: { positions: [defaultPositionForViews] },
+        streamOverrides: { positions: [positionWithRemovableMargin] },
       },
     );
     const removeMarginElements = await screen.findAllByText(

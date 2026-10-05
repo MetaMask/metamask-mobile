@@ -1,5 +1,6 @@
 import { isEvmTxData, type QuoteResponse } from '@metamask/bridge-controller';
 import { parseApprovalTransactionData } from '../../../Views/confirmations/utils/approvals';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { Flow } from './flowStrategy';
 
 /**
@@ -122,13 +123,7 @@ export type HardwareWalletsSwapsEvent =
   | { type: HardwareWalletsSwapsEventType.Retry }
   | { type: HardwareWalletsSwapsEventType.Cancel };
 
-/**
- * The V2 quote's ultimate recipient lives at `quote.dest.walletAddress`
- * (the V1→V2 coercer moves the V1 top-level `destWalletAddress` there, and
- * `QuoteSchemaV2` declares `dest.walletAddress?: string`). The installed
- * `QuoteResponse` type omits it on `quote.dest`, so the optional declaration
- * keeps the intersection compatible with the packaged type.
- */
+/** Adds `quote.dest.walletAddress` (where the V1→V2 coercer puts the recipient); the installed `QuoteResponse` type omits it on `quote.dest`, so declare it optionally. */
 type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'> & {
   quote?: { dest?: { walletAddress?: string } };
 };
@@ -149,40 +144,25 @@ export type StuckProgressResolution =
   | { readonly action: 'navigate' }
   | { readonly action: 'dispatch'; readonly event: HardwareWalletsSwapsEvent };
 
-/**
- * Caller-computed same-chain signal for {@link buildStartPayload}.
- */
+/** Caller-computed same-chain signal: V2 quotes dropped the V1 top-level `quote.srcChainId`/`destChainId`, so the caller derives it from the selected tokens. */
 interface BuildStartPayloadOptions {
-  /**
-   * True when the selected source and dest tokens share a chainId (same-chain
-   * SWAP). Computed by the caller from the selected tokens because V2 quotes
-   * dropped the V1 top-level `quote.srcChainId`/`quote.destChainId` fields.
-   */
   isSwap: boolean;
 }
 
+// approval.to is the token contract for standard approvals; Permit2 encodes the spender in calldata
+const getApprovalSpender = (data?: string): string | undefined => {
+  const { args } = parseStandardTokenTransactionData(data) ?? {};
+  return args?.spender ?? args?._spender ?? args?.[0];
+};
+
 /**
- * Builds the `Start` event that initializes the swap signing flow from an
- * active bridge/swap quote.
+ * Builds the `Start` event from the active quote. Spender + approval token
+ * address are decoded from the approval calldata (`approval.to` is the token
+ * contract, never the spender; undecodable calldata yields no spender line).
+ * Recipient: for a same-chain swap ONLY `quote.dest.walletAddress` — never
+ * the aggregator router (`trade.to`); bridges keep `trade.to` (extension parity).
  *
- * Determines the step count from whether an approval is required: two steps
- * (approval + trade) when `approval` is present, otherwise one (trade only).
- * The spender is decoded from the approval calldata (`approval.to` is the
- * token contract for standard ERC-20 approvals, never the spender), guarded
- * by the bridge controller's `isEvmTxData` so non-EVM quote shapes are safely
- * skipped. The approval's token address is decoded for Permit2 approvals
- * (token encoded in calldata), falling back to `approval.to` for standard
- * approvals. Undecodable approval calldata yields an undefined spender, so
- * the step renders no spender line.
- *
- * The transaction-step recipient depends on the flow: for a same-chain SWAP
- * (`options.isSwap`, caller-computed from the selected tokens) it is ONLY the
- * quote's ultimate recipient (`quote.dest.walletAddress` in the V2 shape) —
- * when the quote omits it, no recipient is shown at all; never the aggregator
- * router (`trade.to`). Bridges keep `trade.to` (extension parity).
- *
- * @param activeQuote - The selected quote, containing optional `approval`
- * and `trade` transaction data.
+ * @param activeQuote - The selected quote, containing optional `approval` and `trade` transaction data.
  * @param options - Caller-computed same-chain signal.
  * @returns A `Start` event for {@link hardwareWalletsSwapsReducer}.
  */
@@ -193,13 +173,18 @@ export function buildStartPayload(
   const { approval, trade, quote } = activeQuote;
   const evmApprovalTo =
     approval && isEvmTxData(approval) ? approval.to : undefined;
-  const parsedApproval =
+  const approvalData =
     approval && isEvmTxData(approval) && approval.data
-      ? parseApprovalTransactionData(approval.data)
+      ? approval.data
       : undefined;
-  // Same-chain SWAP: ONLY the quote's ultimate recipient (`dest.walletAddress`)
-  // — no recipient at all when the quote omits it, never the aggregator
-  // router. Bridges fall back to the EVM trade recipient.
+  const parsedApproval = approvalData
+    ? parseApprovalTransactionData(approvalData)
+    : undefined;
+  // Same guard as parsedApproval: an undecodable approval yields no spender.
+  const approvalSpender =
+    approvalData && parsedApproval
+      ? getApprovalSpender(approvalData)
+      : undefined;
   const recipientAddress = isSwap
     ? quote?.dest?.walletAddress
     : trade && isEvmTxData(trade)
@@ -209,7 +194,7 @@ export function buildStartPayload(
     type: HardwareWalletsSwapsEventType.Start,
     payload: {
       totalSteps: approval ? 2 : 1,
-      spenderAddress: parsedApproval?.spender,
+      spenderAddress: approvalSpender,
       approvalTokenAddress: parsedApproval?.tokenAddress ?? evmApprovalTo,
       recipientAddress,
     },

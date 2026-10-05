@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, SectionList } from 'react-native';
+import { SectionList } from 'react-native';
+import { Spinner } from '@metamask/design-system-react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import {
   CardTransactionStatus,
@@ -136,7 +137,7 @@ describe('CardTransactionHistory', () => {
       <CardTransactionHistory />,
     );
 
-    expect(UNSAFE_getAllByType(ActivityIndicator)).toHaveLength(1);
+    expect(UNSAFE_getAllByType(Spinner)).toHaveLength(1);
     expect(queryByTestId('card-transaction-history-retry')).toBeNull();
   });
 
@@ -192,7 +193,7 @@ describe('CardTransactionHistory', () => {
       <CardTransactionHistory />,
     );
 
-    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+    expect(UNSAFE_getByType(Spinner)).toBeTruthy();
     expect(queryByText('card.transactions.load_error_more')).toBeNull();
     expect(
       queryByTestId('card-transaction-history-load-more-retry'),

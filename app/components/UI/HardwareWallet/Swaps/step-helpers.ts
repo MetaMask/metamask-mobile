@@ -50,9 +50,9 @@ interface StepTitleOptions {
   amount?: string;
   /** Token symbol displayed in the step title. */
   tokenSymbol?: string;
-  /** Destination token amount; both dest values turn the transaction step into swap copy. */
+  /** Destination amount for swap copy (both dest values required). */
   destAmount?: string;
-  /** Destination token symbol; both dest values turn the transaction step into swap copy. */
+  /** Destination symbol for swap copy (both dest values required). */
   destTokenSymbol?: string;
 }
 
@@ -60,11 +60,9 @@ interface StepTitleOptions {
  * Returns the localized title for a hardware wallet swap progress step.
  *
  * Title text varies by step kind (approval vs transaction) and status
- * (waiting, signing, signed, or rejected). Transaction steps additionally
- * show same-chain swap copy ("Swap X FROM for Y TO") when destination
- * amount and symbol are both provided; otherwise send copy is used
- * (extension parity: missing dest data → send labels). Approval and
- * fee-transfer steps ignore the destination options.
+ * (waiting, signing, signed, or rejected). Transaction steps show same-chain
+ * swap copy when both dest values are present, else send copy (extension
+ * parity). Other step kinds ignore the destination options.
  *
  * @param step - The swap step to render.
  * @param options - Optional amount/token symbol and swap destination values.
@@ -84,8 +82,7 @@ export function getStepTitle(
         symbol,
       });
     }
-    // Extension parity: 'Approve' for pending, active, AND rejected approval
-    // steps — only Complete gets 'Approved' (no 'Approving' variant exists).
+    // Extension parity: 'Approve' for pending/active/rejected; 'Approved' only when signed.
     return strings('bridge.hardware_wallet_progress.approve_token', {
       amount,
       symbol,
@@ -106,8 +103,7 @@ export function getStepTitle(
     );
   }
 
-  // Same-chain swap copy for the Transaction step: only when BOTH dest values
-  // are present; otherwise fall back to send copy (extension parity).
+  // Swap copy only when BOTH dest values are present; else send copy (extension parity).
   if (options?.destAmount && options?.destTokenSymbol) {
     const swapParams = {
       amount,
@@ -116,13 +112,19 @@ export function getStepTitle(
       destSymbol: options.destTokenSymbol,
     };
     if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
-      return strings('bridge.hardware_wallet_progress.swapped_amount', swapParams);
+      return strings(
+        'bridge.hardware_wallet_progress.swapped_amount',
+        swapParams,
+      );
     }
     if (
       step.status === HardwareWalletsSwapsStepStatus.Signing ||
       step.status === HardwareWalletsSwapsStepStatus.Rejected
     ) {
-      return strings('bridge.hardware_wallet_progress.swapping_amount', swapParams);
+      return strings(
+        'bridge.hardware_wallet_progress.swapping_amount',
+        swapParams,
+      );
     }
     return strings('bridge.hardware_wallet_progress.swap_amount', swapParams);
   }
@@ -149,12 +151,9 @@ export function getStepTitle(
 }
 
 /**
- * Returns the localized secondary description lines for a swap progress step.
- *
- * Rejected steps show a single generic rejection message (replacing any
- * details). Approval steps show the approved token contract and the spender
- * address, each on its own line when available. Transaction steps show the
- * recipient address. All addresses are shortened for display.
+ * Returns the localized secondary description lines for a swap progress step:
+ * rejection message, approval token/spender addresses (one per line, shortened
+ * for display), or the transaction recipient.
  *
  * @param step - The swap step to render.
  * @returns Localized description lines; empty when no description applies.

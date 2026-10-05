@@ -203,7 +203,7 @@ describe('useHandleHwSend', () => {
     );
   });
 
-  it('token transfer: decodes the real recipient from ERC-20 transfer calldata into the payload (txParams.to is the token contract, not the recipient)', () => {
+  it('token transfer: decodes the real recipient from ERC-20 transfer calldata into the payload and displayContext (txParams.to is the token contract, not the recipient)', () => {
     const tokenContract = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
     const decodedRecipient = '0x2222222222222222222222222222222222222222';
     const transferData = new Interface([
@@ -227,6 +227,8 @@ describe('useHandleHwSend', () => {
     });
 
     expect(handled).toBe(true);
+    // The decoded recipient (not the token contract) is used both for the
+    // Start payload and as displayContext.recipient for navigation.
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         payload: expect.objectContaining({
@@ -234,32 +236,6 @@ describe('useHandleHwSend', () => {
         }),
       }),
     );
-  });
-
-  it('token transfer: decoded recipient (not the token contract) is used as displayContext.recipient', () => {
-    const tokenContract = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
-    const decodedRecipient = '0x2222222222222222222222222222222222222222';
-    const transferData = new Interface([
-      'function transfer(address to, uint256 amount)',
-    ]).encodeFunctionData('transfer', [decodedRecipient, 500]) as `0x${string}`;
-    const { result } = renderHook(() => useHandleHwSend());
-
-    let handled: boolean = false;
-    act(() => {
-      handled = applyHwSend(
-        result.current,
-        buildMetadata({
-          type: TransactionType.tokenMethodTransfer,
-          txParams: {
-            from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-            to: tokenContract,
-            data: transferData,
-          },
-        }),
-      );
-    });
-
-    expect(handled).toBe(true);
     const [, navParams] = mockNavigate.mock.calls[0] as [
       string,
       { displayContext: { recipient?: string } },

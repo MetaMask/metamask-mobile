@@ -226,7 +226,6 @@ function buildSeedPrefs(
       pushNotificationsEnabled: false,
       watchlistMarkets: {
         hyperliquid: { testnet: [], mainnet: [] },
-        myx: { testnet: [], mainnet: [] },
       },
     },
     agenticCli: {
@@ -381,7 +380,6 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
           pushNotificationsEnabled: false,
           watchlistMarkets: {
             hyperliquid: { testnet: [], mainnet: ['SOL'] },
-            myx: { testnet: [], mainnet: [] },
           },
         },
       });

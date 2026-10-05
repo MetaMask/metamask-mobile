@@ -176,6 +176,41 @@ describe('PerpsLeverageBottomSheet', () => {
       ).toHaveTextContent('Set');
     });
 
+    it('keeps the close button and hides the inline explainer as a standalone sheet', () => {
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // The MMDS header renders one ButtonIcon per action; standalone it is
+      // the close button only.
+      const headerButtons = screen.getAllByTestId('button-icon');
+      expect(headerButtons).toHaveLength(1);
+      fireEvent.press(headerButtons[0]);
+      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows only a back button and the inline explainer as a nested Trade sheet screen', () => {
+      const onBack = jest.fn();
+
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          presentation="screen"
+          onBack={onBack}
+        />,
+      );
+
+      const headerButtons = screen.getAllByTestId('button-icon');
+      expect(headerButtons).toHaveLength(1);
+      fireEvent.press(headerButtons[0]);
+      expect(onBack).toHaveBeenCalledTimes(1);
+      expect(defaultProps.onClose).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('perps.order.leverage_modal.description');
+    });
+
     it('returns null when hidden', () => {
       const { toJSON } = render(
         <PerpsLeverageBottomSheet {...defaultProps} isVisible={false} />,

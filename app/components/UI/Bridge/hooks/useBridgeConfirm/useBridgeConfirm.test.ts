@@ -328,11 +328,10 @@ describe('useBridgeConfirm', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(true);
       // Aggregator router the swap tx is addressed to (checksummed).
       const ROUTER = '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE';
-      // V2-shaped quote: src/dest objects carry the amounts; V2 drops the V1
-      // top-level quote.srcChainId/destChainId (the V1→V2 coercer removes
-      // them), so quote internals cannot detect same-chain swaps. The cast is
-      // contained to this fixture: it swaps the Solana mock's namespace/trade
-      // for an EVM-shaped trade while reusing the mock's quote internals.
+      // V2-shaped quote (src/dest objects carry the amounts; V2 drops the V1
+      // top-level srcChainId/destChainId, so quote internals cannot detect
+      // same-chain swaps). Cast contained to this fixture: EVM-shaped trade on
+      // the Solana mock's quote internals.
       const activeQuote = {
         ...mockQuoteWithMetadata,
         namespace: KnownCaipNamespace.Eip155,
@@ -382,10 +381,9 @@ describe('useBridgeConfirm', () => {
         (candidate) =>
           candidate.kind === HardwareWalletsSwapsStepKind.Transaction,
       );
-      // No quote ultimate recipient → no recipient shown at all; the
-      // aggregator router (trade.to) must never leak into the step.
+      // No quote ultimate recipient → no recipient at all (so the aggregator
+      // router in trade.to can never leak into the step).
       expect(swapStep?.address).toBeUndefined();
-      expect(swapStep?.address).not.toBe(ROUTER);
     });
   });
 

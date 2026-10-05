@@ -224,11 +224,17 @@ export const runQuoteRequestCases = ({
       }
     });
 
-    it('starts the quote trace before the debounce delay', async () => {
+    it('starts the quote trace after the debounce delay', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
       act(() => {
         result.current();
+      });
+
+      expect(mockTrace).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(debounceMs);
       });
 
       const started = mockTrace.mock.calls[0][0];
@@ -247,32 +253,23 @@ export const runQuoteRequestCases = ({
         startTime: Date.now(),
       });
 
-      await act(async () => {
-        jest.advanceTimersByTime(debounceMs);
-      });
-
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
     });
 
-    it('cancels the quote fetch trace when cancel is called', () => {
+    it('does not start the quote trace when canceled before the debounce delay', () => {
       const { result } = renderUseBridgeQuoteRequest();
 
       act(() => {
         result.current();
       });
 
-      const startedTraceId = mockTrace.mock.calls[0][0].id as string;
-
       act(() => {
         result.current.cancel?.();
+        jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapQuoteFetch,
-        id: startedTraceId,
-        timestamp: Date.now(),
-        data: { result: 'cancelled' },
-      });
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('preserves a no-quote result when an unused hook instance unmounts', async () => {
@@ -385,6 +382,7 @@ export const runQuoteRequestCases = ({
 
       act(() => {
         refreshQuotes();
+        jest.advanceTimersByTime(debounceMs);
       });
 
       expect(mockTrace).toHaveBeenCalledWith({
@@ -885,19 +883,12 @@ export const runQuoteRequestCases = ({
       const { result } = renderUseBridgeQuoteRequest();
 
       await act(async () => {
-        // Make multiple rapid calls
+        // Make multiple rapid calls before the debounce delay
         result.current();
-        const firstTraceId = mockTrace.mock.calls[0][0].id as string;
         result.current();
         result.current();
 
-        // Advance timer by less than debounce time
-        expect(mockEndTrace).toHaveBeenCalledWith({
-          name: TraceName.SwapQuoteFetch,
-          id: firstTraceId,
-          timestamp: Date.now(),
-          data: { result: 'cancelled' },
-        });
+        expect(mockTrace).not.toHaveBeenCalled();
         jest.advanceTimersByTime(debounceMs - 100);
 
         // Should not have been called yet
@@ -908,6 +899,7 @@ export const runQuoteRequestCases = ({
 
         // Should have been called exactly once
         expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        expect(mockTrace).toHaveBeenCalledTimes(1);
       });
     });
 

@@ -12,21 +12,21 @@ import {
   formatSocialQueryErrorMessage,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
-import { formatTradeDayLabel } from '../../utils/formatters';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
-import { mapFeedItem } from '../utils/mapFeedItem';
+import { formatTradeDayLabel } from '../../../../UI/SocialFeed/utils/formatters';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
+import { mapFeedItem } from '../../../../UI/SocialFeed/utils/mapFeedItem';
 import type {
   FeedAudience,
   FeedItem,
-  FeedSection,
-  FeedTypeFilter,
-} from '../types';
+  TraderFeedRow,
+} from '../../../../UI/SocialFeed/types';
+import type { FeedSection, FeedTypeFilter } from '../types';
 import {
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
-  toFeedScope,
 } from './traderFeedQueries';
+import { toFeedScope } from '../../../../UI/SocialFeed/data/socialFeedSource';
 
 export interface UseTraderFeedOptions {
   /**
@@ -48,6 +48,8 @@ export interface UseTraderFeedResult {
   sections: FeedSection[];
   /** Flat list of items (ungrouped), newest first. */
   items: FeedItem[];
+  /** `items`, each paired with its raw API row. Same order and filtering. */
+  rows: TraderFeedRow[];
   /** True when the unfiltered loaded page set has at least one item. */
   hasLoadedItems: boolean;
   /** True during the initial fetch (never for a disabled or background query). */
@@ -71,11 +73,11 @@ export interface UseTraderFeedResult {
   dataUpdatedAt: number | undefined;
 }
 
-const EMPTY_ITEMS: FeedItem[] = [];
+const EMPTY_ROWS: TraderFeedRow[] = [];
 
 /** Newest event first. Stable for equal timestamps (preserves API order). */
-const byTimestampDesc = (a: FeedItem, b: FeedItem): number =>
-  b.timestamp - a.timestamp;
+const byTimestampDesc = (a: TraderFeedRow, b: TraderFeedRow): number =>
+  b.item.timestamp - a.item.timestamp;
 
 /** Maps the UI type filter to the `FeedItem.type` discriminant. */
 const matchesTypeFilter = (
@@ -145,9 +147,9 @@ export const useTraderFeed = (
 
   const pages = query.data?.pages ?? undefined;
 
-  const loadedItems = useMemo(() => {
+  const loadedRows = useMemo(() => {
     if (!pages || pages.length === 0) {
-      return EMPTY_ITEMS;
+      return EMPTY_ROWS;
     }
     // The feed splices notable positions in out of chronological order, while
     // the `olderThan` cursor is only the last item's timestamp — so a later
@@ -155,19 +157,24 @@ export const useTraderFeed = (
     // loaded set to keep one header per day.
     return pages
       .flatMap((page) => page.items ?? [])
-      .map(mapFeedItem)
-      .filter((item): item is FeedItem => item !== null)
+      .map((core) => {
+        const item = mapFeedItem(core);
+        return item ? { item, core } : null;
+      })
+      .filter((row): row is TraderFeedRow => row !== null)
       .sort(byTimestampDesc);
   }, [pages]);
 
-  const hasLoadedItems = loadedItems.length > 0;
+  const hasLoadedItems = loadedRows.length > 0;
 
-  const items = useMemo(() => {
+  const rows = useMemo(() => {
     if (typeFilter === 'all') {
-      return loadedItems;
+      return loadedRows;
     }
-    return loadedItems.filter((item) => matchesTypeFilter(item, typeFilter));
-  }, [loadedItems, typeFilter]);
+    return loadedRows.filter((row) => matchesTypeFilter(row.item, typeFilter));
+  }, [loadedRows, typeFilter]);
+
+  const items = useMemo(() => rows.map((row) => row.item), [rows]);
 
   const sections = useMemo(() => groupByDay(items), [items]);
 
@@ -207,6 +214,7 @@ export const useTraderFeed = (
   return {
     sections,
     items,
+    rows,
     hasLoadedItems,
     // `isInitialLoading` (not `isLoading`) so a disabled query never reports
     // loading and a background refetch doesn't flash the skeleton.
