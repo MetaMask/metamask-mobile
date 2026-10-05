@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import {
   PerpsMode,
@@ -415,6 +416,7 @@ describe('usePerpsNavigation', () => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          animationDuration: AnimationDuration.Promptly,
           replaceOnSelect: true,
         }),
       );
