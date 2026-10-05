@@ -9111,17 +9111,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-api@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@metamask/account-api@npm:2.1.0"
-  dependencies:
-    "@metamask/keyring-api": "npm:^24.1.0"
-    "@metamask/keyring-utils": "npm:^5.0.0"
-    uuid: "npm:^9.0.1"
-  checksum: 10/9d29ce444a0e828b38a63f099aa577f74d48d0cc6f1f6ff29d25656657947b94526cd6947c052744e0ca493e813df12369040cb70038aebcb0a2d27b97816d55
-  languageName: node
-  linkType: hard
-
 "@metamask/account-tree-controller@npm:^11.0.0":
   version: 11.0.0
   resolution: "@metamask/account-tree-controller@npm:11.0.0"
