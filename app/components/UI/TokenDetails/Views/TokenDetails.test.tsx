@@ -441,14 +441,6 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
 }));
 
-const mockMarketInsightsDisclaimer = jest.fn(
-  (_props: { onClose?: () => void }) => null,
-);
-jest.mock('../../MarketInsights', () => ({
-  MarketInsightsDisclaimerBottomSheet: (props: { onClose?: () => void }) =>
-    mockMarketInsightsDisclaimer(props),
-}));
-
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
@@ -1422,32 +1414,6 @@ describe('TokenDetails', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ exit_action: 'cta_clicked' }),
       );
-    });
-  });
-
-  describe('market insights disclaimer', () => {
-    it('does not render the disclaimer bottom sheet before it is requested', () => {
-      render(<TokenDetails />);
-
-      expect(mockMarketInsightsDisclaimer).not.toHaveBeenCalled();
-    });
-
-    it('renders the disclaimer bottom sheet when the disclaimer is pressed and hides it on close', () => {
-      render(<TokenDetails />);
-
-      act(() => {
-        mockLatestOnMarketInsightsDisclaimerPress?.();
-      });
-      expect(mockMarketInsightsDisclaimer).toHaveBeenCalled();
-
-      const { onClose } = (mockMarketInsightsDisclaimer.mock.calls.at(
-        -1,
-      )?.[0] ?? {}) as { onClose?: () => void };
-      act(() => {
-        onClose?.();
-      });
-
-      expect(onClose).toBeDefined();
     });
   });
 

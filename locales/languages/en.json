@@ -5828,6 +5828,11 @@
       }
     }
   },
+  "token_details_overview": {
+    "performance": {
+      "title": "Performance"
+    }
+  },
   "token_details_v1": {
     "security_pill": {
       "screened": "Screened",
@@ -5844,6 +5849,7 @@
       "website": "Open website",
       "x": "Open on X",
       "telegram": "Open on Telegram",
+      "search_on_x": "Search on X",
       "copy_address": "Copy contract address {{address}}"
     },
     "tabs": {

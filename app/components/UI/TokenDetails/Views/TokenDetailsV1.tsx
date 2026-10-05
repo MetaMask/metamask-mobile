@@ -13,6 +13,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { Theme } from '@metamask/design-tokens';
@@ -20,6 +21,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -47,12 +50,17 @@ import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStar
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
-import TokenDetailsV1Overview from '../components/TokenDetailsV1Overview';
-import TokenDetailsV1TabBar from '../components/TokenDetailsV1TabBar';
+import OverviewTab from '../components/tabs/OverviewTab';
+import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
+import TokenDetailsV1TabBar, {
+  HIDDEN_TAB_PAGE_STYLE,
+  useTokenDetailsV1Tabs,
+} from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
-import type {
-  TokenDetailsRouteParams,
-  TokenDetailsV1TabKey,
+import {
+  TOKEN_DETAILS_V1_TABS,
+  type TokenDetailsRouteParams,
+  type TokenDetailsV1TabKey,
 } from '../constants/constants';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
@@ -60,15 +68,19 @@ import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
+export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
 export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
   'token-details-v1-scroll-view';
 export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
   'token-details-v1-tab-panel';
+export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
+  'token-details-v1-tab-content';
 
 /**
  * Direct-child index of the tab bar inside the body ScrollView — registered in
  * `stickyHeaderIndices` so the tab bar docks below the nav header when the
- * security/social row, price hero, chart and tab content scroll under it.
+ * price hero (with the security/social row), chart, action tiles and tab
+ * content scroll under it.
  */
 export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
 
@@ -79,6 +91,12 @@ export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
  */
 const MOCK_SECURITY_VERDICT: SecurityVerdict = 'screened';
 const MOCK_SECURITY_FLAG_COUNT = 1;
+
+/**
+ * TODO(ASSETS-4016): replace with the token's real age once the API platform
+ * exposes it. Change locally to preview other labels ("5h", "3w", …).
+ */
+const MOCK_TOKEN_AGE_LABEL = '3d';
 
 interface ShareTokenBottomSheetControllerRef {
   open: () => void;
@@ -142,6 +160,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
   });
 };
+
+export { resolveSwipeTargetTab } from '../components/TokenDetailsV1TabBar';
 
 interface TokenDetailsV1Props {
   token: TokenDetailsRouteParams;
@@ -238,7 +258,28 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
-  const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>('overview');
+  const { activeTab, activateTab, mountedTabs, swipeGesture } =
+    useTokenDetailsV1Tabs();
+
+  const renderTabPage = useCallback(
+    (tab: TokenDetailsV1TabKey) => {
+      if (!mountedTabs.has(tab)) {
+        return null;
+      }
+      if (tab === 'overview') {
+        return (
+          <OverviewTab
+            token={token}
+            assetId={caip19AssetId}
+            currentCurrency={currentCurrency}
+            securityData={securityData}
+          />
+        );
+      }
+      return <TokenDetailsV1TabPlaceholder tab={tab} />;
+    },
+    [mountedTabs, token, caip19AssetId, currentCurrency, securityData],
+  );
 
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
@@ -302,6 +343,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
             isPriceAlertsSupported ? handlePriceAlertPress : undefined
           }
           description={headerDescription}
+          titleEndAccessory={
+            <Tag
+              severity={TagSeverity.Neutral}
+              twClassName="self-center shrink-0"
+              testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
+              accessibilityLabel={`Token age ${MOCK_TOKEN_AGE_LABEL}`}
+            >
+              {MOCK_TOKEN_AGE_LABEL}
+            </Tag>
+          }
         />
 
         {/* The tab bar is a direct ScrollView child registered in
@@ -318,20 +369,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
               scrollEnabled={!isChartBeingTouched}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
             >
-              {/* Security verdict pill, official links and the
-                  contract-address copy chip sit right below the nav header
-                  and scroll with the page content. The pill opens the
-                  Security tab, whose full content ships with ASSETS-4022. */}
-              <Box twClassName="px-4 pt-2">
-                <SecuritySocialSection
-                  securityVerdict={MOCK_SECURITY_VERDICT}
-                  securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
-                  externalLinks={securityData?.metadata?.externalLinks}
-                  contractAddress={token.isNative ? null : token.address}
-                  onSecurityPress={() => setActiveTab('security')}
-                />
-              </Box>
-
               <Price
                 asset={token}
                 prices={prices}
@@ -344,22 +381,50 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
                 currentCurrency={currentCurrency}
                 isLoading={isPriceLoading}
                 hasInsufficientCoverage={hasInsufficientCoverage}
+              >
+                <Box twClassName="px-4">
+                  <SecuritySocialSection
+                    securityVerdict={MOCK_SECURITY_VERDICT}
+                    securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
+                    externalLinks={securityData?.metadata?.externalLinks}
+                    contractAddress={token.isNative ? null : token.address}
+                    onSecurityPress={() => activateTab('security')}
+                  />
+                </Box>
+              </Price>
+
+              <TokenDetailsActionsSection
+                token={token}
+                networkName={networkConfigurationByChainId?.name}
+                severity={securityData?.resultType}
               />
 
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
-                onTabPress={setActiveTab}
+                onTabPress={activateTab}
               />
 
-              {activeTab === 'overview' ? (
-                <TokenDetailsV1Overview
-                  token={token}
-                  assetId={caip19AssetId}
-                  currentCurrency={currentCurrency}
-                />
-              ) : (
-                <TokenDetailsV1TabPlaceholder tab={activeTab} />
-              )}
+              <GestureDetector gesture={swipeGesture}>
+                <View
+                  collapsable={false}
+                  testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
+                >
+                  {TOKEN_DETAILS_V1_TABS.map((tab) => {
+                    const isActive = tab === activeTab;
+                    return (
+                      <View
+                        key={tab}
+                        collapsable={false}
+                        style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
+                        pointerEvents={isActive ? 'auto' : 'none'}
+                        testID={`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-${tab}`}
+                      >
+                        {renderTabPage(tab)}
+                      </View>
+                    );
+                  })}
+                </View>
+              </GestureDetector>
             </ScrollView>
           )}
         </PriceChartContext.Consumer>

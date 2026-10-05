@@ -1,17 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  TouchableOpacity,
-  View,
-  Modal,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { TouchableOpacity, View, StyleSheet, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -29,41 +17,19 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
-import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
-import { useComplianceGate } from '../../Compliance';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
-import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
-import { TokenDetailsActions } from './TokenDetailsActions';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
+import TokenDetailsActionsSection from './sections/TokenDetailsActionsSection';
+import TokenDetailsMarketInsightsSection from './sections/TokenDetailsMarketInsightsSection';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import {
-  MarketInsightsEntryCard,
-  MarketInsightsEntryCardSkeleton,
-  useMarketInsights,
-  useMarketInsightsEntryTrace,
-  getMarketInsightsTraceId,
-  getMarketInsightsTraceTags,
-  selectMarketInsightsEnabled,
-} from '../../MarketInsights';
-import { isCaipAssetType } from '@metamask/utils';
-import {
-  formatAddressToAssetId,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import {
@@ -94,9 +60,6 @@ import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButt
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken, BridgeViewMode } from '../../Bridge/types';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import type { RecurringOrder } from '../../Bridge/api/recurringOrders.types';
 import { TokenDetailsOrdersSection } from './TokenDetailsOrdersSection';
 import { getMostRecentOrderType } from '../utils/getMostRecentOrderType';
@@ -186,8 +149,6 @@ export interface AssetOverviewContentProps {
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  onMarketInsightsDisclaimerPress?: () => void;
-
   // Security & Trust
   /** Resolved security data owned by the parent (TokenDetails). */
   securityData?: TokenSecurityData | null;
@@ -248,7 +209,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   inLockPeriodBalance,
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
-  onMarketInsightsDisclaimerPress,
   securityData,
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
@@ -264,7 +224,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradable } = useRWAToken();
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
@@ -293,74 +252,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
 
-  useEffect(() => {
-    onPerpsMarketResolved?.({ hasPerpsMarket, isLoading: isPerpsLoading });
-  }, [hasPerpsMarket, isPerpsLoading, onPerpsMarketResolved]);
-
-  const isEligible = useSelector(selectPerpsEligibility);
-  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
-    useState(false);
-  const { track } = usePerpsEventTracking();
-
-  // Compliance gate
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
-
-  const closeEligibilityModal = useCallback(() => {
-    setIsEligibilityModalVisible(false);
-    resetNavigationLockRef.current?.();
-  }, []);
-
-  const handleLongPress = useCallback(
-    () =>
-      gate(async () => {
-        if (!isEligible) {
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-          });
-          setIsEligibilityModalVisible(true);
-          return;
-        }
-        onExitAction?.();
-        handlePerpsAction?.('long');
-      }).finally(() => {
-        // Release the TokenDetailsActions nav lock whenever gate() settles
-        // without navigating (compliance block modal or geo-block tooltip).
-        // Safe no-op if handlePerpsAction navigated since the focus/state
-        // listeners also clear the lock.
-        resetNavigationLockRef.current?.();
-      }),
-    [gate, isEligible, track, handlePerpsAction, onExitAction],
-  );
-
-  const handleShortPress = useCallback(
-    () =>
-      gate(async () => {
-        if (!isEligible) {
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-          });
-          setIsEligibilityModalVisible(true);
-          return;
-        }
-        onExitAction?.();
-        handlePerpsAction?.('short');
-      }).finally(() => {
-        resetNavigationLockRef.current?.();
-      }),
-    [gate, isEligible, track, handlePerpsAction, onExitAction],
-  );
-
-  const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
-
-  const isButtonsLoading = isBuyableLoading || isPerpsLoading;
-
   // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
     usePerpsPositionForAsset(hasPerpsMarket ? token.symbol : null);
@@ -373,137 +264,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isTokenTrustworthy &&
     !isPerpsPositionLoading;
 
-  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
-
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
-
-  const marketInsightsCaip19Id = useMemo(() => {
-    if (!isMarketInsightsEnabled) {
-      return null;
-    }
-
-    try {
-      if (isCaipAssetType(token.address)) {
-        return token.address;
-      }
-
-      if (!token.chainId) {
-        return null;
-      }
-
-      return formatAddressToAssetId(token.address, token.chainId) ?? null;
-    } catch {
-      return null;
-    }
-  }, [isMarketInsightsEnabled, token.address, token.chainId]);
-  const {
-    report: marketInsightsReport,
-    timeAgo: marketInsightsTimeAgo,
-    isLoading: isMarketInsightsLoading,
-    error: marketInsightsError,
-    cacheState: marketInsightsCacheState,
-  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled, {
-    source: 'token_details',
-    stage: 'entry_card',
-    assetType: 'token',
-  });
-  const marketInsightsEntryTraceId = useMarketInsightsEntryTrace({
-    assetIdentifier: marketInsightsCaip19Id,
-    assetType: 'token',
-    cacheState: marketInsightsCacheState,
-    enabled: isMarketInsightsEnabled,
-    error: marketInsightsError,
-    isLoading: isMarketInsightsLoading,
-    report: marketInsightsReport,
-    source: 'token_details',
-  });
-
-  useEffect(() => {
-    const severity = securityData?.resultType;
-    if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved?.({ isDisplayed: false, severity });
-      return;
-    }
-    if (isMarketInsightsLoading) {
-      return;
-    }
-    onMarketInsightsDisplayResolved?.({
-      isDisplayed: Boolean(marketInsightsReport),
-      severity,
-    });
-  }, [
-    onMarketInsightsDisplayResolved,
-    isMarketInsightsEnabled,
-    isMarketInsightsLoading,
-    marketInsightsReport,
-    marketInsightsCaip19Id,
-    securityData?.resultType,
-  ]);
 
   const goToBrowserUrl = (url: string) => {
     navigateWithDetails(navigation, createWebviewNavDetails({ url }));
   };
-
-  const handleMarketInsightsPress = useCallback(() => {
-    if (marketInsightsCaip19Id) {
-      const traceId = getMarketInsightsTraceId(
-        marketInsightsCaip19Id,
-        'token_details',
-        'full_view',
-      );
-      trace({
-        name: TraceName.MarketInsightsViewLoad,
-        op: TraceOperation.MarketInsightsLoad,
-        id: traceId,
-        tags: getMarketInsightsTraceTags(
-          {
-            source: 'token_details',
-            stage: 'full_view',
-            assetType: 'token',
-          },
-          'warm',
-        ),
-      });
-      const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
-        .addProperties({
-          caip19: marketInsightsCaip19Id,
-          source: 'token_details',
-          ...(marketInsightsReport && {
-            asset_symbol: marketInsightsReport.asset,
-            digest_id: marketInsightsReport.digestId,
-          }),
-        })
-        .build();
-      trackEvent(event);
-    }
-
-    // Compute actual percentage from available price data (always defined)
-    const percentChange =
-      comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0;
-
-    navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
-      assetSymbol: token.symbol,
-      // Handler only fires from the market-insights entry card, which renders
-      // when the id is present; cast preserves the existing runtime value.
-      assetIdentifier: marketInsightsCaip19Id as string,
-      tokenImageUrl: token.image || token.logo,
-      pricePercentChange: percentChange,
-      token,
-      source: 'token_details',
-      useAmbientColor,
-    });
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    token,
-    marketInsightsCaip19Id,
-    marketInsightsReport,
-    useAmbientColor,
-    priceDiff,
-    comparePrice,
-  ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
     if (marketData) {
@@ -572,11 +338,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
     });
   };
-
-  const shouldShowMarketInsights =
-    isMarketInsightsEnabled &&
-    Boolean(marketInsightsCaip19Id) &&
-    (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
   const tokenDisplaySymbol = token.symbol || token.name;
   const securityBadgeDescription = (() => {
@@ -660,40 +421,34 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           )}
-          <TokenDetailsActions
-            hasPerpsMarket={hasPerpsMarket}
-            hasBalance={hasBalanceValue}
-            isBuyable={isBuyable}
-            isNativeCurrency={token.isETH || token.isNative || false}
+          <TokenDetailsActionsSection
             token={token}
+            severity={securityData?.resultType}
             onBuy={onBuy}
-            onLong={handlePerpsAction ? handleLongPress : undefined}
-            onShort={handlePerpsAction ? handleShortPress : undefined}
             onSend={onSend}
             onReceive={onReceive}
-            isLoading={isButtonsLoading}
-            resetNavigationLockRef={resetNavigationLockRef}
+            hasBalance={hasBalanceValue}
+            perpsMarket={{
+              hasPerpsMarket,
+              isLoading: isPerpsLoading,
+              handlePerpsAction,
+            }}
+            onPerpsMarketResolved={onPerpsMarketResolved}
             onActionTapped={trackActionTapped}
+            resetNavigationLockRef={resetNavigationLockRef}
+            onExitAction={onExitAction}
           />
           <MoneyEarnBanner asset={token} />
-          {shouldShowMarketInsights ? (
-            <View style={styles.marketInsightsWrapper}>
-              {marketInsightsReport ? (
-                <MarketInsightsEntryCard
-                  report={marketInsightsReport}
-                  timeAgo={marketInsightsTimeAgo}
-                  onPress={handleMarketInsightsPress}
-                  onDisclaimerPress={onMarketInsightsDisclaimerPress}
-                  caip19Id={marketInsightsCaip19Id ?? undefined}
-                  traceId={marketInsightsEntryTraceId}
-                  source="token_details"
-                  testID="market-insights-entry-card"
-                />
-              ) : (
-                <MarketInsightsEntryCardSkeleton />
-              )}
-            </View>
-          ) : null}
+          <TokenDetailsMarketInsightsSection
+            token={token}
+            securityData={securityData ?? null}
+            onDisplayResolved={onMarketInsightsDisplayResolved}
+            useAmbientColor={useAmbientColor}
+            pricePercentChange={
+              comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
+            }
+            containerStyle={styles.marketInsightsWrapper}
+          />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && <TronEnergyBandwidthDetail />
@@ -780,25 +535,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 />
               </View>
             )}
-          {isEligibilityModalVisible && (
-            <View>
-              <Modal
-                visible
-                transparent
-                animationType="none"
-                statusBarTranslucent
-              >
-                <ModalSafeAreaProvider>
-                  <PerpsBottomSheetTooltip
-                    isVisible
-                    onClose={closeEligibilityModal}
-                    contentKey="geo_block"
-                    testID="token-details-geo-block-tooltip"
-                  />
-                </ModalSafeAreaProvider>
-              </Modal>
-            </View>
-          )}
         </View>
       )}
     </Box>

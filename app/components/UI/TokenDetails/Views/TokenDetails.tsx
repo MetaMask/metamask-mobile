@@ -42,7 +42,6 @@ import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -224,8 +223,6 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
-    useState(false);
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { variant: quickBuyEntrypointVariant } = useABTest(
     SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -528,10 +525,6 @@ const TokenDetails: React.FC<{
     trackActionTapped(TokenDetailsAction.CopyTokenAddress);
   }, [trackActionTapped]);
 
-  const handleMarketInsightsDisclaimerPress = useCallback(() => {
-    setIsInsightsDisclaimerVisible(true);
-  }, []);
-
   const starButton = useMemo(
     () => (
       <WatchlistStarButton
@@ -615,7 +608,6 @@ const TokenDetails: React.FC<{
         onSend={handleSend}
         onReceive={onReceive}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={handleMarketInsightsDisclaimerPress}
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
@@ -714,11 +706,6 @@ const TokenDetails: React.FC<{
         onOpenQuickBuy={openQuickBuy}
       />
 
-      {isInsightsDisclaimerVisible && (
-        <MarketInsightsDisclaimerBottomSheet
-          onClose={() => setIsInsightsDisclaimerVisible(false)}
-        />
-      )}
       {shareUrl && (
         <ShareTokenBottomSheetController
           ref={shareSheetRef}

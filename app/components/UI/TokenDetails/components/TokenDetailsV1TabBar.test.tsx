@@ -1,14 +1,15 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-hooks';
 import type { TabItem } from '../../../../component-library/components-temp/Tabs';
 import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
   TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
+  resolveSwipeTargetTab,
+  useTokenDetailsV1Tabs,
 } from './TokenDetailsV1TabBar';
 
 jest.mock('../../../../component-library/components-temp/Tabs', () => ({
-  // The design-system TabsBar has its own coverage; a light stand-in keeps
-  // this test focused on the wrapper's tab set, active tab and press mapping.
   __esModule: true,
   TabsBar: ({
     tabs,
@@ -35,8 +36,6 @@ jest.mock('../../../../component-library/components-temp/Tabs', () => ({
             </Text>
           </Pressable>
         ))}
-        {/* Simulates the design-system bar calling back with an index that
-            does not map to a known tab. */}
         <Pressable testID="tab-bar-out-of-range" onPress={() => onTabPress(99)}>
           <Text>out-of-range</Text>
         </Pressable>
@@ -62,8 +61,12 @@ describe('TokenDetailsV1TabBar', () => {
       getAllByText(/^(active|inactive):(overview|security|feed)$/).map(
         (node) => node.props.children,
       ),
-    ).toEqual(['active:overview', 'inactive:security', 'inactive:feed']);
-    expect(TOKEN_DETAILS_V1_TABS).toEqual(['overview', 'security', 'feed']);
+    ).toStrictEqual(['active:overview', 'inactive:security', 'inactive:feed']);
+    expect(TOKEN_DETAILS_V1_TABS).toStrictEqual([
+      'overview',
+      'security',
+      'feed',
+    ]);
   });
 
   it('marks only the active tab as active', () => {
@@ -91,5 +94,58 @@ describe('TokenDetailsV1TabBar', () => {
     fireEvent.press(getByTestId('tab-bar-out-of-range'));
 
     expect(onTabPress).not.toHaveBeenCalled();
+  });
+});
+
+describe('useTokenDetailsV1Tabs', () => {
+  it('initialises with overview as the active tab and only mounted tab', () => {
+    const { result } = renderHook(() => useTokenDetailsV1Tabs());
+
+    expect(result.current.activeTab).toBe('overview');
+    expect(result.current.mountedTabs.has('overview')).toBe(true);
+    expect(result.current.mountedTabs.has('security')).toBe(false);
+    expect(result.current.mountedTabs.has('feed')).toBe(false);
+    expect(result.current.swipeGesture).toBeDefined();
+  });
+
+  it('activates and lazily mounts new tabs', () => {
+    const { result } = renderHook(() => useTokenDetailsV1Tabs());
+
+    act(() => {
+      result.current.activateTab('security');
+    });
+
+    expect(result.current.activeTab).toBe('security');
+    expect(result.current.mountedTabs.has('overview')).toBe(true);
+    expect(result.current.mountedTabs.has('security')).toBe(true);
+
+    act(() => {
+      result.current.activateTab('security');
+    });
+
+    expect(result.current.activeTab).toBe('security');
+  });
+});
+
+describe('resolveSwipeTargetTab', () => {
+  it('swipes to the neighbouring tab when translation exceeds threshold', () => {
+    expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
+    expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
+    expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
+  });
+
+  it('swipes to the neighbouring tab on a fast fling even with small travel', () => {
+    expect(resolveSwipeTargetTab('overview', -10, -600)).toBe('security');
+  });
+
+  it('ignores indecisive gestures below the translation and velocity thresholds', () => {
+    expect(resolveSwipeTargetTab('overview', 30, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
+  });
+
+  it('refuses to swipe past the edges of the tab list', () => {
+    expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
   });
 });

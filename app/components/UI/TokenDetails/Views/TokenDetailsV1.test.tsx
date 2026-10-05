@@ -1,11 +1,14 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 
 import {
   TokenDetailsV1,
   TOKEN_DETAILS_V1_TEST_ID,
+  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
   TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
+  TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID,
   TOKEN_DETAILS_TAB_BAR_STICKY_INDEX,
+  resolveSwipeTargetTab,
 } from './TokenDetailsV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import {
@@ -84,18 +87,25 @@ jest.mock(
 );
 
 // Price hero + chart are integration-tested separately (Price / AdvancedChart).
+// The mock renders `children` like the real component so the security &
+// social row passed into the price-hero slot stays in the tree.
 jest.mock('../../AssetOverview/Price/Price', () => {
   const { View } = jest.requireActual('react-native');
+  // `Price` is a compound component (`Price.Header` / `Price.Chart`) — stub
+  // the parts so the view test can render the compound composition.
+  const MockPrice = ({ children }: { children?: React.ReactNode }) => (
+    <View testID="mock-price">{children}</View>
+  );
+  MockPrice.Header = () => null;
+  MockPrice.Chart = () => null;
   return {
     __esModule: true,
-    default: () => <View testID="mock-price" />,
+    default: MockPrice,
   };
 });
 
-// Overview tab content is unit-tested in TokenDetailsV1Overview.test.tsx.
-// Capture the props so this view still asserts the wiring into it.
 const mockOverviewProps: Record<string, unknown>[] = [];
-jest.mock('../components/TokenDetailsV1Overview', () => {
+jest.mock('../components/tabs/OverviewTab', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -109,9 +119,11 @@ jest.mock('../components/TokenDetailsV1Overview', () => {
 // Tab bar stand-in: expose each tab as a pressable that reports the tab key,
 // so this view test can cover tab switching end to end.
 jest.mock('../components/TokenDetailsV1TabBar', () => {
+  const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
   const tabs = ['overview', 'security', 'feed'];
   return {
+    ...actual,
     __esModule: true,
     default: ({
       activeTab,
@@ -147,12 +159,14 @@ jest.mock('../components/TokenDetailsInlineHeader', () => {
     TokenDetailsInlineHeader: ({
       token,
       description,
+      titleEndAccessory,
       onBackPress,
       onPriceAlertPress,
       onSharePress,
     }: React.ComponentProps<typeof TokenDetailsInlineHeader>) => (
       <>
         <MockText>{token.symbol}</MockText>
+        {titleEndAccessory}
         {description}
         <MockPressable testID="mock-back" onPress={onBackPress} />
         {onPriceAlertPress && (
@@ -166,6 +180,15 @@ jest.mock('../components/TokenDetailsInlineHeader', () => {
         )}
       </>
     ),
+  };
+});
+
+// Actions row is covered by TokenDetailsActionsSection.test.tsx.
+jest.mock('../components/sections/TokenDetailsActionsSection', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-v1-actions" />,
   };
 });
 
@@ -213,6 +236,15 @@ describe('TokenDetailsV1', () => {
     expect(getByText('PEPE')).toBeTruthy();
   });
 
+  it('renders the age chip in the header with the mocked token age', () => {
+    const { getByTestId, getByText } = render(
+      <TokenDetailsV1 token={baseToken} />,
+    );
+
+    expect(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeOnTheScreen();
+    expect(getByText('3d')).toBeOnTheScreen();
+  });
+
   it('renders the price hero, tab bar and Overview panel by default', () => {
     const { getByTestId, getByText } = render(
       <TokenDetailsV1 token={baseToken} />,
@@ -229,7 +261,7 @@ describe('TokenDetailsV1', () => {
   it('wires the Overview panel with the token, asset id and currency', () => {
     render(<TokenDetailsV1 token={baseToken} />);
 
-    expect(mockOverviewProps[0]).toEqual(
+    expect(mockOverviewProps[0]).toStrictEqual(
       expect.objectContaining({
         token: baseToken,
         assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
@@ -241,19 +273,85 @@ describe('TokenDetailsV1', () => {
   it('docks the tab bar as a sticky ScrollView child', () => {
     const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
-    // Child 0 = security/social row, child 1 = price hero, child 2 = tab bar
-    // (sticky), child 3 = tab panel.
+    // Child 0 = price hero (title + security/social row + chart), child 1 =
+    // action tiles, child 2 = tab bar (sticky), child 3 = tab content stack.
     expect(
       getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
         .stickyHeaderIndices,
-    ).toEqual([TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]);
+    ).toStrictEqual([TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]);
   });
 
-  it('renders the security & social row with the mocked security verdict', () => {
+  it('renders a stacked tab content container where only the active page is laid out', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    // The active page flows at its natural height…
+    const overviewPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
+    );
+    expect(overviewPage).toBeOnTheScreen();
+    expect(overviewPage.props.style).toBeUndefined();
+    expect(overviewPage.props.pointerEvents).toBe('auto');
+
+    // …while inactive pages are display:none — out of layout entirely, so
+    // no page stretches to a tallest sibling and hits stay on the active one.
+    // (Hidden elements need opt-in to be queryable.)
+    const securityPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-security`,
+      { includeHiddenElements: true },
+    );
+    expect(securityPage.props.style).toStrictEqual({ display: 'none' });
+    expect(securityPage.props.pointerEvents).toBe('none');
+  });
+
+  it('re-stacks pages when the active tab changes so tabs keep their own heights', () => {
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+
+    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+    // The previously active page drops out of layout entirely… (hidden
+    // elements need opt-in to be queryable)
+    expect(
+      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`, {
+        includeHiddenElements: true,
+      }).props.style,
+    ).toStrictEqual({ display: 'none' });
+    // …and the newly active page becomes the only page contributing height.
+    expect(
+      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-security`).props
+        .style,
+    ).toBeUndefined();
+    expect(
+      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
+        includeHiddenElements: true,
+      }).props.style,
+    ).toStrictEqual({ display: 'none' });
+  });
+
+  it('mounts tab pages lazily on first activation and keeps them mounted', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1 token={baseToken} />,
+    );
+
+    // Only the default tab is mounted initially.
+    expect(getByTestId('mock-overview')).toBeTruthy();
+    expect(queryByTestId('token-details-v1-tab-panel-security')).toBeNull();
+
+    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+    expect(getByTestId('token-details-v1-tab-panel-security')).toBeTruthy();
+  });
+
+  it('renders the security & social row inside the price hero slot, with the mocked security verdict', () => {
     const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
 
     expect(
       getByTestId(SecuritySocialSectionSelectors.SECTION),
+    ).toBeOnTheScreen();
+    // The pills belong just below the price header and above the chart,
+    // so they must render inside the price hero slot (Price children).
+    const priceHero = within(getByTestId('mock-price'));
+    expect(
+      priceHero.getByTestId(SecuritySocialSectionSelectors.SECTION),
     ).toBeOnTheScreen();
     // Asserted by test ID, not label, so previewing a different verdict via
     // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
@@ -286,7 +384,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('opens the Security tab when the security pill is pressed', () => {
-    const { getByTestId, queryByTestId } = render(
+    const { getByTestId, getByText } = render(
       <TokenDetailsV1 token={baseToken} />,
     );
 
@@ -295,7 +393,7 @@ describe('TokenDetailsV1', () => {
     expect(
       getByTestId('token-details-v1-tab-panel-security'),
     ).toBeOnTheScreen();
-    expect(queryByTestId('mock-overview')).toBeNull();
+    expect(getByText('security:true')).toBeOnTheScreen();
   });
 
   it('offers the contract address for copying', () => {
@@ -318,24 +416,55 @@ describe('TokenDetailsV1', () => {
   });
 
   it('switches tab panels and back to the Overview tab', () => {
-    const { getByTestId, queryByTestId } = render(
+    const { getByTestId, getByText } = render(
       <TokenDetailsV1 token={baseToken} />,
     );
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
 
-    expect(queryByTestId('mock-overview')).toBeNull();
+    expect(getByText('security:true')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-panel-security')).toBeTruthy();
 
     fireEvent.press(getByTestId('token-details-v1-tab-overview'));
 
+    expect(getByText('overview:true')).toBeTruthy();
     expect(getByTestId('mock-overview')).toBeTruthy();
-    expect(queryByTestId('token-details-v1-tab-panel-security')).toBeNull();
 
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
+    expect(getByText('feed:true')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
-    expect(queryByTestId('mock-overview')).toBeNull();
+  });
+
+  it('activates the swiped-to tab when a pan settles as a decisive swipe', () => {
+    // The pan gesture itself is design-system wiring (TabsList pattern —
+    // see its test); the decision logic is covered directly below.
+    expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
+  });
+
+  describe('resolveSwipeTargetTab', () => {
+    it('targets the next tab on a left swipe', () => {
+      expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
+    });
+
+    it('targets the previous tab on a right swipe', () => {
+      expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
+      expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
+    });
+
+    it('lets a fast fling switch tabs even with a short travel', () => {
+      expect(resolveSwipeTargetTab('overview', -10, -600)).toBe('security');
+    });
+
+    it('ignores pans that are too small and swipes past the end tabs', () => {
+      // Too small to be decisive, even with moderate velocity.
+      expect(resolveSwipeTargetTab('overview', 30, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
+      // No neighbouring tab in the swipe direction.
+      expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+    });
   });
 
   it('navigates back when the header back button is pressed', () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
@@ -58,6 +59,9 @@ const mockToken: TokenDetailsRouteParams = {
   ticker: 'ETH',
   isETH: true,
 } as unknown as TokenDetailsRouteParams;
+
+/** Caller-provided title accessory, as the meme page passes its age chip. */
+const ageChipOverride = <Text testID="age-chip">3d</Text>;
 
 const createMockSecurityData = (
   resultType: TokenSecurityData['resultType'],
@@ -146,6 +150,49 @@ describe('TokenDetailsInlineHeader', () => {
           chainId: '0x1',
         }),
       });
+    });
+  });
+
+  describe('titleEndAccessory override', () => {
+    it('renders the provided accessory in place of the default badges', () => {
+      const { getByTestId, queryByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        titleEndAccessory: ageChipOverride,
+      });
+
+      expect(getByTestId('age-chip')).toBeOnTheScreen();
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+    });
+
+    it('suppresses the stock badge when an override is provided', () => {
+      mockIsStockToken.mockReturnValue(true);
+      const { queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'Apple Inc',
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+        titleEndAccessory: ageChipOverride,
+      });
+
+      expect(queryByTestId('stock-badge')).toBeNull();
+    });
+
+    it('renders the default badges when no override is provided', () => {
+      mockIsStockToken.mockReturnValue(true);
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        token: {
+          ...mockToken,
+          name: 'Apple Inc',
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+      });
+
+      expect(getByTestId('security-badge-verified')).toBeOnTheScreen();
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
     });
   });
 
