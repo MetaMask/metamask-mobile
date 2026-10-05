@@ -87,6 +87,10 @@ interface MultichainTransactionsViewProps {
    */
   emptyMessage?: string;
   /**
+   * Hide the "no transactions" empty state (e.g. when the list is intentionally empty)
+   */
+  hideEmptyState?: boolean;
+  /**
    * Show disclaimer footer
    */
   showDisclaimer?: boolean;
@@ -138,6 +142,7 @@ const MultichainTransactionsView = ({
   chainId,
   enableRefresh = false,
   emptyMessage,
+  hideEmptyState = false,
   showDisclaimer = false,
   onScroll,
   location,
@@ -477,7 +482,7 @@ const MultichainTransactionsView = ({
                 )
               }
               ListHeaderComponent={header}
-              ListEmptyComponent={renderEmptyList}
+              ListEmptyComponent={hideEmptyState ? undefined : renderEmptyList}
               ListFooterComponent={footer}
               style={baseStyles.flexGrow}
               contentContainerStyle={style.listContentContainer}

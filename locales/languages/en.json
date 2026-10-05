@@ -5633,6 +5633,11 @@
     "earn": "Earn",
     "orders": "Orders",
     "convert_to_musd": "Convert to mUSD",
+    "tabs": {
+      "overview": "Overview",
+      "feed": "Feed",
+      "coming_soon": "Coming soon"
+    },
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",

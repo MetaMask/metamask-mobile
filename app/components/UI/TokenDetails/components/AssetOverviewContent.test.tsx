@@ -989,4 +989,71 @@ describe('AssetOverviewContent', () => {
       },
     );
   });
+
+  describe('token details tabs slots', () => {
+    const TAB_BAR_TEST_ID = 'mock-token-details-tab-bar';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('renders the tab bar and keeps the overview sections by default', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          tabBar={<MockView testID={TAB_BAR_TEST_ID} />}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId(TAB_BAR_TEST_ID)).toBeOnTheScreen();
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+    });
+
+    it('hides the overview sections but keeps the hero and tab bar when showOverviewSections is false', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          tabBar={<MockView testID={TAB_BAR_TEST_ID} />}
+          showOverviewSections={false}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId(TAB_BAR_TEST_ID)).toBeOnTheScreen();
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+    });
+
+    it('reports the hero layout so the parent can compute the sticky offset', () => {
+      const onHeroLayout = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          tabBar={<MockView testID={TAB_BAR_TEST_ID} />}
+          onHeroLayout={onHeroLayout}
+        />,
+        { state: createState(true) },
+      );
+      const layoutEvent = {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 420 } },
+      };
+
+      fireEvent(
+        getByTestId(TokenOverviewSelectorsIDs.HERO),
+        'layout',
+        layoutEvent,
+      );
+
+      expect(onHeroLayout).toHaveBeenCalledWith(layoutEvent);
+    });
+  });
 });

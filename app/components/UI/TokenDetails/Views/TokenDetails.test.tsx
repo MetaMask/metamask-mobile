@@ -24,6 +24,8 @@ import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissi
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenDetailsTabsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTabs';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -217,6 +219,23 @@ let mockAutoResolvePerps = true;
 let mockLatestPerpsResolver:
   | ((result: { hasPerpsMarket: boolean; isLoading: boolean }) => void)
   | undefined;
+let mockTabsEnabled = false;
+let mockFeedPosts: { id: string }[] = [{ id: 'feed-post-1' }];
+
+jest.mock('../../SocialFeed/data/useSocialFeed', () => ({
+  useSocialFeed: () => ({ posts: mockFeedPosts }),
+}));
+let mockLatestOnHeroLayout: ((event: unknown) => void) | undefined;
+let mockLatestTransactionsProp: unknown[] | undefined;
+let mockLatestOnScrollThroughContent: ((offsetY: number) => void) | undefined;
+let mockLatestMultichainProps:
+  | {
+      header?: React.ReactNode;
+      transactions?: unknown[];
+      hideEmptyState?: boolean;
+      showDisclaimer?: boolean;
+    }
+  | undefined;
 
 const triggerMarketInsightsResolved = (params: {
   isDisplayed: boolean;
@@ -236,6 +255,18 @@ const triggerPerpsResolved = (result: {
   });
 };
 
+jest.mock('../components/TokenDetailsFeed', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactLib.createElement(View, {
+        testID: 'token-details-feed',
+      }),
+  };
+});
+
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
@@ -247,6 +278,9 @@ jest.mock('../components/AssetOverviewContent', () => {
     onMarketInsightsDisclaimerPress,
     token,
     useAmbientColor,
+    tabBar,
+    showOverviewSections = true,
+    onHeroLayout,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
@@ -262,7 +296,12 @@ jest.mock('../components/AssetOverviewContent', () => {
     onMarketInsightsDisclaimerPress?: () => void;
     token?: { address?: string; chainId?: string; symbol?: string };
     useAmbientColor?: boolean;
+    tabBar?: React.ReactNode;
+    showOverviewSections?: boolean;
+    onHeroLayout?: (event: unknown) => void;
   }) => {
+    const { View: MockView } = jest.requireActual('react-native');
+    mockLatestOnHeroLayout = onHeroLayout;
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     // Capture the latest handlers in a deps-less effect (runs every render, no
     // state updates → no loop). This avoids depending on the unstable inline
@@ -296,7 +335,14 @@ jest.mock('../components/AssetOverviewContent', () => {
       insightsTokenKey,
     ]);
 
-    return null;
+    return (
+      <>
+        {tabBar}
+        {showOverviewSections ? (
+          <MockView testID="mock-overview-sections" />
+        ) : null}
+      </>
+    );
   };
 
   return {
@@ -307,19 +353,42 @@ jest.mock('../components/AssetOverviewContent', () => {
 
 jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   __esModule: true,
-  default: () => null,
+  default: () => {
+    const { View: MockView } = jest.requireActual('react-native');
+    return <MockView testID="mock-activity-header" />;
+  },
 }));
 
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
+  default: ({
+    header,
+    transactions,
+    onScrollThroughContent,
+  }: {
+    header?: React.ReactNode;
+    transactions?: unknown[];
+    onScrollThroughContent?: (offsetY: number) => void;
+  }) => {
+    mockLatestTransactionsProp = transactions;
+    mockLatestOnScrollThroughContent = onScrollThroughContent;
+    return header ?? null;
+  },
 }));
 
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
   () => ({
     __esModule: true,
-    default: () => null,
+    default: (props: {
+      header?: React.ReactNode;
+      transactions?: unknown[];
+      hideEmptyState?: boolean;
+      showDisclaimer?: boolean;
+    }) => {
+      mockLatestMultichainProps = props;
+      return props.header ?? null;
+    },
   }),
 );
 
@@ -482,6 +551,12 @@ describe('TokenDetails', () => {
     mockLatestOnBuy = undefined;
     mockLatestOnSend = undefined;
     mockLatestOnMarketInsightsDisclaimerPress = undefined;
+    mockTabsEnabled = false;
+    mockFeedPosts = [{ id: 'feed-post-1' }];
+    mockLatestOnHeroLayout = undefined;
+    mockLatestTransactionsProp = undefined;
+    mockLatestOnScrollThroughContent = undefined;
+    mockLatestMultichainProps = undefined;
     mockUseTokenPrice.mockReturnValue(defaultUseTokenPriceReturn);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -529,6 +604,8 @@ describe('TokenDetails', () => {
         return '0x1234567890123456789012345678901234567890';
       if (selector === selectBridgeRecurringBuyFeatureFlags)
         return { enabled: true, enabledChainIds: ['eip155:1'] };
+      if (selector === selectTokenDetailsTabsEnabled) return mockTabsEnabled;
+      if (selector === selectSocialLeaderboardEnabled) return true;
       return undefined;
     });
   });
@@ -1454,6 +1531,138 @@ describe('TokenDetails', () => {
       const { UNSAFE_queryAllByType } = render(<TokenDetails />);
 
       expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
+    });
+  });
+
+  describe('token details tabs', () => {
+    const heroLayoutEvent = {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 400 } },
+    };
+    const mockTransactions = [{ id: 'tx-1' }];
+
+    beforeEach(() => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactions: mockTransactions,
+      });
+    });
+
+    it('does not render the tab bar when the feature flag is off', () => {
+      mockTabsEnabled = false;
+
+      const { queryByTestId, getByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId(TokenOverviewSelectorsIDs.TABS_BAR)).toBeNull();
+      expect(getByTestId('mock-overview-sections')).toBeOnTheScreen();
+      expect(getByTestId('mock-activity-header')).toBeOnTheScreen();
+      expect(mockLatestOnScrollThroughContent).toBeUndefined();
+    });
+
+    it('hides the tab bar when the token feed has no trades', () => {
+      mockTabsEnabled = true;
+      mockFeedPosts = [];
+
+      const { queryByTestId, getByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId(TokenOverviewSelectorsIDs.TABS_BAR)).toBeNull();
+      expect(queryByTestId(TokenOverviewSelectorsIDs.TAB_FEED)).toBeNull();
+      expect(getByTestId('mock-overview-sections')).toBeOnTheScreen();
+    });
+
+    it('renders the tab bar with the Overview content when the flag is on', () => {
+      mockTabsEnabled = true;
+
+      const { getByTestId, queryByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId(TokenOverviewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+      expect(getByTestId('mock-overview-sections')).toBeOnTheScreen();
+      expect(getByTestId('mock-activity-header')).toBeOnTheScreen();
+      expect(queryByTestId(TokenOverviewSelectorsIDs.FEED)).toBeNull();
+      expect(mockLatestTransactionsProp).toEqual(mockTransactions);
+    });
+
+    it('replaces the overview content and empties the activity list on the Feed tab', () => {
+      mockTabsEnabled = true;
+      const { getByTestId, queryByTestId } = render(<TokenDetails />);
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.TAB_FEED));
+
+      expect(queryByTestId('mock-overview-sections')).toBeNull();
+      expect(queryByTestId('mock-activity-header')).toBeNull();
+      expect(getByTestId(TokenOverviewSelectorsIDs.FEED)).toBeOnTheScreen();
+      expect(mockLatestTransactionsProp).toEqual([]);
+    });
+
+    it('restores the overview content when switching back to the Overview tab', () => {
+      mockTabsEnabled = true;
+      const { getByTestId } = render(<TokenDetails />);
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.TAB_FEED));
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.TAB_OVERVIEW));
+
+      expect(getByTestId('mock-overview-sections')).toBeOnTheScreen();
+    });
+
+    it('pins the tab bar once the list scrolls past the hero and releases it on the way back', () => {
+      mockTabsEnabled = true;
+      const { queryByTestId } = render(<TokenDetails />);
+      act(() => {
+        mockLatestOnHeroLayout?.(heroLayoutEvent);
+      });
+
+      act(() => {
+        mockLatestOnScrollThroughContent?.(399);
+      });
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.TABS_BAR_STICKY),
+      ).toBeNull();
+
+      act(() => {
+        mockLatestOnScrollThroughContent?.(400);
+      });
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.TABS_BAR_STICKY),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        mockLatestOnScrollThroughContent?.(120);
+      });
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.TABS_BAR_STICKY),
+      ).toBeNull();
+    });
+
+    it('does not pin the tab bar before the hero has been measured', () => {
+      mockTabsEnabled = true;
+      const { queryByTestId } = render(<TokenDetails />);
+
+      act(() => {
+        mockLatestOnScrollThroughContent?.(5000);
+      });
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.TABS_BAR_STICKY),
+      ).toBeNull();
+    });
+
+    it('hides the multichain empty state and disclaimer on non-overview tabs', () => {
+      mockTabsEnabled = true;
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactions: mockTransactions,
+        isNonEvmAsset: true,
+      });
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(mockLatestMultichainProps?.transactions).toEqual(mockTransactions);
+      expect(mockLatestMultichainProps?.showDisclaimer).toBe(true);
+      expect(mockLatestMultichainProps?.hideEmptyState).toBe(false);
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.TAB_FEED));
+
+      expect(mockLatestMultichainProps?.transactions).toEqual([]);
+      expect(mockLatestMultichainProps?.showDisclaimer).toBe(false);
+      expect(mockLatestMultichainProps?.hideEmptyState).toBe(true);
     });
   });
 

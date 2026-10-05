@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  LayoutChangeEvent,
   TouchableOpacity,
   View,
   Modal,
@@ -106,6 +107,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
+    hero: {
+      paddingTop: 2,
+    } as ViewStyle,
     warningWrapper: {
       paddingHorizontal: 16,
       marginBottom: 20,
@@ -210,6 +214,23 @@ export interface AssetOverviewContentProps {
     isLoading: boolean;
   }) => void;
   recurringOrder?: RecurringOrder;
+
+  // Token details tabs
+  /**
+   * Rendered between the action buttons (Buy/Long/Short/…) and the overview
+   * sections. Used by TokenDetails to inject the Overview/Feed tab bar.
+   */
+  tabBar?: React.ReactNode;
+  /**
+   * When false, everything below the action buttons (and `tabBar`) is hidden.
+   * Defaults to true so the legacy (no tabs) layout is unchanged.
+   */
+  showOverviewSections?: boolean;
+  /**
+   * Reports the layout of the hero block (everything above `tabBar`) so the
+   * parent can compute the scroll offset at which the tab bar becomes sticky.
+   */
+  onHeroLayout?: (event: LayoutChangeEvent) => void;
 }
 
 /**
@@ -258,6 +279,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isPricePositive,
   onPerpsMarketResolved,
   recurringOrder,
+  tabBar,
+  showOverviewSections = true,
+  onHeroLayout,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -594,192 +618,208 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       : strings('security_trust.suspicious_token_description_no_symbol');
   })();
 
+  // The 2px top padding lives on the hero (and the warning fallback) rather
+  // than on the container so `onHeroLayout` height is the exact content
+  // offset of `tabBar` — TokenDetails uses it as the sticky threshold.
   return (
-    <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <Box testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
-        renderWarning()
+        <Box twClassName="pt-[2px]">{renderWarning()}</Box>
       ) : (
         <View>
-          {securityData &&
-            (securityData.resultType === 'Malicious' ||
-              securityData.resultType === 'Warning' ||
-              securityData.resultType === 'Spam') && (
-              <SecurityBanner
-                securityConfig={securityConfig}
-                backgroundClass={
-                  securityData.resultType === 'Malicious'
-                    ? 'bg-error-muted'
-                    : 'bg-warning-muted'
-                }
-                titleFontWeight={
-                  securityData.resultType === 'Malicious'
-                    ? FontWeight.Bold
-                    : FontWeight.Medium
-                }
-                testID={
-                  securityData.resultType === 'Malicious'
-                    ? 'security-banner-malicious'
-                    : 'security-banner-warning'
-                }
-                title={
-                  securityData.resultType === 'Malicious'
-                    ? strings('security_trust.malicious_token_title')
-                    : undefined
-                }
-                description={securityBadgeDescription}
-                className="mx-4 mb-3 gap-4"
-                onPress={handleSecurityBadgePress}
-              />
-            )}
-
-          {isAssetInactive ? (
-            <AssetActivateCard token={token} chainName="Stellar" />
-          ) : null}
-
-          <Price
-            asset={token}
-            prices={prices}
-            timePeriod={timePeriod}
-            chartNavigationButtons={chartNavigationButtons}
-            setTimePeriod={setTimePeriod}
-            priceDiff={priceDiff}
-            currentCurrency={currentCurrency}
-            currentPrice={currentPrice}
-            comparePrice={comparePrice}
-            isLoading={isLoading}
-            hasInsufficientCoverage={hasInsufficientCoverage}
-            onPriceDirectionChange={onPriceDirectionChange}
-            useAmbientColor={useAmbientColor}
-          />
-          {!isTokenTradable(token as BridgeToken) && (
-            <View style={styles.marketClosedActionButtonContainer}>
-              <MarketClosedActionButton
-                iconName={ComponentLibraryIconName.Info}
-                label={strings('asset_overview.market_closed')}
-                onPress={handleMarketClosedButtonPress}
-              />
-            </View>
-          )}
-          <TokenDetailsActions
-            hasPerpsMarket={hasPerpsMarket}
-            hasBalance={hasBalanceValue}
-            isBuyable={isBuyable}
-            isNativeCurrency={token.isETH || token.isNative || false}
-            token={token}
-            onBuy={onBuy}
-            onLong={handlePerpsAction ? handleLongPress : undefined}
-            onShort={handlePerpsAction ? handleShortPress : undefined}
-            onSend={onSend}
-            onReceive={onReceive}
-            isLoading={isButtonsLoading}
-            resetNavigationLockRef={resetNavigationLockRef}
-            onActionTapped={trackActionTapped}
-          />
-          <MoneyEarnBanner asset={token} />
-          {shouldShowMarketInsights ? (
-            <View style={styles.marketInsightsWrapper}>
-              {marketInsightsReport ? (
-                <MarketInsightsEntryCard
-                  report={marketInsightsReport}
-                  timeAgo={marketInsightsTimeAgo}
-                  onPress={handleMarketInsightsPress}
-                  onDisclaimerPress={onMarketInsightsDisclaimerPress}
-                  caip19Id={marketInsightsCaip19Id ?? undefined}
-                  traceId={marketInsightsEntryTraceId}
-                  source="token_details"
-                  testID="market-insights-entry-card"
+          <View
+            style={styles.hero}
+            onLayout={onHeroLayout}
+            testID={TokenOverviewSelectorsIDs.HERO}
+          >
+            {securityData &&
+              (securityData.resultType === 'Malicious' ||
+                securityData.resultType === 'Warning' ||
+                securityData.resultType === 'Spam') && (
+                <SecurityBanner
+                  securityConfig={securityConfig}
+                  backgroundClass={
+                    securityData.resultType === 'Malicious'
+                      ? 'bg-error-muted'
+                      : 'bg-warning-muted'
+                  }
+                  titleFontWeight={
+                    securityData.resultType === 'Malicious'
+                      ? FontWeight.Bold
+                      : FontWeight.Medium
+                  }
+                  testID={
+                    securityData.resultType === 'Malicious'
+                      ? 'security-banner-malicious'
+                      : 'security-banner-warning'
+                  }
+                  title={
+                    securityData.resultType === 'Malicious'
+                      ? strings('security_trust.malicious_token_title')
+                      : undefined
+                  }
+                  description={securityBadgeDescription}
+                  className="mx-4 mb-3 gap-4"
+                  onPress={handleSecurityBadgePress}
                 />
-              ) : (
-                <MarketInsightsEntryCardSkeleton />
               )}
-            </View>
-          ) : null}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && <TronEnergyBandwidthDetail />
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {balance != null && spendableBalanceData.hasSpendableBalance && (
-            <SpendableBalanceSection
-              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
-              spendableBalance={spendableBalanceData.spendableBalance}
-              totalBalance={String(balance)}
-              symbol={token.symbol}
-              fiatValue={mainBalance}
-            />
-          )}
-          {balance != null && !spendableBalanceData.hasSpendableBalance && (
-            <>
-              <Balance
-                asset={token}
-                balanceCta={balanceCta}
-                balanceDescription={balanceDescription}
-                mainBalance={mainBalance}
-                priceChangeOverride={balancePriceChangeOverride}
-                priceChangeOverrideColor={balancePriceChangeOverrideColor}
-                secondaryBalance={secondaryBalance}
-              />
-              <EarnBalance asset={token} />
-            </>
-          )}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && (
-              <TronAssetOverviewSection
-                token={tronNativeToken}
-                stakedTrxAsset={stakedTrxAsset}
-                inLockPeriodBalance={inLockPeriodBalance}
-                readyForWithdrawalBalance={readyForWithdrawalBalance}
-              />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {showPerpsSection && perpsPosition && (
-            <View style={styles.perpsPositionCardContainer}>
-              <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
-                {strings('asset_overview.perps_position')}
-              </Text>
-              <PerpsCard
-                position={perpsPosition}
-                onPress={handlePerpsDiscoveryPress}
-                testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
-              />
-            </View>
-          )}
-          {showPerpsSection && !perpsPosition && marketData && (
-            <PerpsDiscoveryBanner
-              symbol={marketData.symbol}
-              maxLeverage={marketData.maxLeverage}
-              onPress={handlePerpsDiscoveryPress}
-              testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
-            />
-          )}
-          {recurringOrder ? (
-            <TokenDetailsOrdersSection
-              latestRecurringOrder={recurringOrder}
-              onOrdersHeaderPress={handleOrdersHeaderPress}
-              onRecurringOrderPress={handleRecurringOrderPress}
-            />
-          ) : null}
-          <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails
+
+            {isAssetInactive ? (
+              <AssetActivateCard token={token} chainName="Stellar" />
+            ) : null}
+
+            <Price
               asset={token}
-              onCopyAddress={() =>
-                trackActionTapped(TokenDetailsAction.CopyTokenAddress)
-              }
+              prices={prices}
+              timePeriod={timePeriod}
+              chartNavigationButtons={chartNavigationButtons}
+              setTimePeriod={setTimePeriod}
+              priceDiff={priceDiff}
+              currentCurrency={currentCurrency}
+              currentPrice={currentPrice}
+              comparePrice={comparePrice}
+              isLoading={isLoading}
+              hasInsufficientCoverage={hasInsufficientCoverage}
+              onPriceDirectionChange={onPriceDirectionChange}
+              useAmbientColor={useAmbientColor}
             />
-          </View>
-          {!hasSecurityDataError &&
-            (isSecurityDataLoading || securityData?.resultType) && (
-              <View style={styles.securityTrustWrapper}>
-                <SecurityTrustEntryCard
-                  securityData={securityData ?? null}
-                  isLoading={isSecurityDataLoading}
-                  token={token as TokenDetailsRouteParams}
-                  useAmbientColor={useAmbientColor}
+            {!isTokenTradable(token as BridgeToken) && (
+              <View style={styles.marketClosedActionButtonContainer}>
+                <MarketClosedActionButton
+                  iconName={ComponentLibraryIconName.Info}
+                  label={strings('asset_overview.market_closed')}
+                  onPress={handleMarketClosedButtonPress}
                 />
               </View>
             )}
+            <TokenDetailsActions
+              hasPerpsMarket={hasPerpsMarket}
+              hasBalance={hasBalanceValue}
+              isBuyable={isBuyable}
+              isNativeCurrency={token.isETH || token.isNative || false}
+              token={token}
+              onBuy={onBuy}
+              onLong={handlePerpsAction ? handleLongPress : undefined}
+              onShort={handlePerpsAction ? handleShortPress : undefined}
+              onSend={onSend}
+              onReceive={onReceive}
+              isLoading={isButtonsLoading}
+              resetNavigationLockRef={resetNavigationLockRef}
+              onActionTapped={trackActionTapped}
+            />
+          </View>
+          {tabBar}
+          {showOverviewSections && (
+            <>
+              <MoneyEarnBanner asset={token} />
+              {shouldShowMarketInsights ? (
+                <View style={styles.marketInsightsWrapper}>
+                  {marketInsightsReport ? (
+                    <MarketInsightsEntryCard
+                      report={marketInsightsReport}
+                      timeAgo={marketInsightsTimeAgo}
+                      onPress={handleMarketInsightsPress}
+                      onDisclaimerPress={onMarketInsightsDisclaimerPress}
+                      caip19Id={marketInsightsCaip19Id ?? undefined}
+                      traceId={marketInsightsEntryTraceId}
+                      source="token_details"
+                      testID="market-insights-entry-card"
+                    />
+                  ) : (
+                    <MarketInsightsEntryCardSkeleton />
+                  )}
+                </View>
+              ) : null}
+              {
+                ///: BEGIN:ONLY_INCLUDE_IF(tron)
+                tronNativeToken && <TronEnergyBandwidthDetail />
+                ///: END:ONLY_INCLUDE_IF
+              }
+              {balance != null && spendableBalanceData.hasSpendableBalance && (
+                <SpendableBalanceSection
+                  minimumReserveBalance={
+                    spendableBalanceData.minimumReserveBalance
+                  }
+                  spendableBalance={spendableBalanceData.spendableBalance}
+                  totalBalance={String(balance)}
+                  symbol={token.symbol}
+                  fiatValue={mainBalance}
+                />
+              )}
+              {balance != null && !spendableBalanceData.hasSpendableBalance && (
+                <>
+                  <Balance
+                    asset={token}
+                    balanceCta={balanceCta}
+                    balanceDescription={balanceDescription}
+                    mainBalance={mainBalance}
+                    priceChangeOverride={balancePriceChangeOverride}
+                    priceChangeOverrideColor={balancePriceChangeOverrideColor}
+                    secondaryBalance={secondaryBalance}
+                  />
+                  <EarnBalance asset={token} />
+                </>
+              )}
+              {
+                ///: BEGIN:ONLY_INCLUDE_IF(tron)
+                tronNativeToken && (
+                  <TronAssetOverviewSection
+                    token={tronNativeToken}
+                    stakedTrxAsset={stakedTrxAsset}
+                    inLockPeriodBalance={inLockPeriodBalance}
+                    readyForWithdrawalBalance={readyForWithdrawalBalance}
+                  />
+                )
+                ///: END:ONLY_INCLUDE_IF
+              }
+              {showPerpsSection && perpsPosition && (
+                <View style={styles.perpsPositionCardContainer}>
+                  <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
+                    {strings('asset_overview.perps_position')}
+                  </Text>
+                  <PerpsCard
+                    position={perpsPosition}
+                    onPress={handlePerpsDiscoveryPress}
+                    testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+                  />
+                </View>
+              )}
+              {showPerpsSection && !perpsPosition && marketData && (
+                <PerpsDiscoveryBanner
+                  symbol={marketData.symbol}
+                  maxLeverage={marketData.maxLeverage}
+                  onPress={handlePerpsDiscoveryPress}
+                  testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+                />
+              )}
+              {recurringOrder ? (
+                <TokenDetailsOrdersSection
+                  latestRecurringOrder={recurringOrder}
+                  onOrdersHeaderPress={handleOrdersHeaderPress}
+                  onRecurringOrderPress={handleRecurringOrderPress}
+                />
+              ) : null}
+              <View style={styles.tokenDetailsWrapper}>
+                <TokenDetails
+                  asset={token}
+                  onCopyAddress={() =>
+                    trackActionTapped(TokenDetailsAction.CopyTokenAddress)
+                  }
+                />
+              </View>
+              {!hasSecurityDataError &&
+                (isSecurityDataLoading || securityData?.resultType) && (
+                  <View style={styles.securityTrustWrapper}>
+                    <SecurityTrustEntryCard
+                      securityData={securityData ?? null}
+                      isLoading={isSecurityDataLoading}
+                      token={token as TokenDetailsRouteParams}
+                      useAmbientColor={useAmbientColor}
+                    />
+                  </View>
+                )}
+            </>
+          )}
           {isEligibilityModalVisible && (
             <View>
               <Modal

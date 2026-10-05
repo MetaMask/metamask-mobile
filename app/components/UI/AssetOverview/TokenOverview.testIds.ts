@@ -23,6 +23,13 @@ export const TokenOverviewSelectorsIDs = {
   TODAYS_CHANGE: 'token-todays-change',
   PRICE_CHART_DOT_END: 'price-chart-end-dot',
   PRICE_CHART_CONTAINER: 'advanced-chart-touch-container',
+  HERO: 'token-details-hero',
+  TABS_BAR: 'token-details-tabs-bar',
+  TABS_BAR_STICKY: 'token-details-tabs-bar-sticky',
+  TAB_OVERVIEW: 'token-details-tab-overview',
+  TAB_FEED: 'token-details-tab-feed',
+  FEED: 'token-details-feed',
+  FEED_POST: 'token-details-feed-post',
 };
 
 export const TokenOverviewSelectorsText = {

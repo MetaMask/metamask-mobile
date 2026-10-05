@@ -25,7 +25,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -59,6 +66,10 @@ import {
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
 } from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
+import TokenDetailsTabBar, {
+  TokenDetailsTab,
+} from '../components/TokenDetailsTabBar';
+import TokenDetailsFeed from '../components/TokenDetailsFeed';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
@@ -87,6 +98,17 @@ import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOvervi
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectTokenDetailsTabsEnabled,
+  TOKEN_DETAILS_TABS_MOCK_ENABLED,
+} from '../../../../selectors/featureFlagController/tokenDetailsTabs';
+import { useSocialFeed } from '../../SocialFeed/data/useSocialFeed';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_EXPOSURE_METADATA,
+  SOCIAL_V1_VARIANTS,
+} from '../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
@@ -98,6 +120,18 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    listContainer: {
+      flex: 1,
+    },
+    stickyTabBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1,
+      elevation: 1,
+      backgroundColor: colors.background.default,
     },
   });
 };
@@ -589,6 +623,79 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  // Token details tabs (Overview / Feed). The tab bar scrolls
+  // with the header; once it reaches the top of the list a pinned copy takes
+  // over so it stays fixed while the content keeps scrolling underneath.
+  // ASSETS-4021 ships the Feed tab with Social V1. The mock constant forces
+  // the shell on until that flag is the only gate.
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_EXPOSURE_METADATA,
+  );
+  const areTabsEnabled =
+    useSelector(selectTokenDetailsTabsEnabled) &&
+    (TOKEN_DETAILS_TABS_MOCK_ENABLED || socialV1Variant.useSocialV1);
+  const isSocialFeedEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const tokenFeedSource = useMemo(
+    () =>
+      areTabsEnabled && isSocialFeedEnabled && caip19AssetId
+        ? { kind: 'token' as const, assetId: caip19AssetId }
+        : null,
+    [areTabsEnabled, caip19AssetId, isSocialFeedEnabled],
+  );
+  const { posts: feedPosts } = useSocialFeed(tokenFeedSource);
+  // An empty feed has nothing to open, so the Feed tab stays off the bar.
+  const showFeedTab = feedPosts.length > 0;
+  const [activeTab, setActiveTab] = useState<TokenDetailsTab>(
+    TokenDetailsTab.Overview,
+  );
+  const [isTabBarStuck, setIsTabBarStuck] = useState(false);
+  const isTabBarStuckRef = useRef(false);
+  const tabBarOffsetRef = useRef<number | null>(null);
+  const showTokenDetailsTabs = areTabsEnabled && showFeedTab;
+  const isOverviewTab =
+    !showTokenDetailsTabs || activeTab === TokenDetailsTab.Overview;
+
+  useEffect(() => {
+    if (!showFeedTab && activeTab === TokenDetailsTab.Feed) {
+      setActiveTab(TokenDetailsTab.Overview);
+    }
+  }, [activeTab, showFeedTab]);
+
+  const handleHeroLayout = useCallback((event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    tabBarOffsetRef.current = y + height;
+  }, []);
+
+  const updateTabBarStuck = useCallback((offsetY: number) => {
+    const threshold = tabBarOffsetRef.current;
+    if (threshold === null) {
+      return;
+    }
+    const nextIsStuck = offsetY >= threshold;
+    if (nextIsStuck !== isTabBarStuckRef.current) {
+      isTabBarStuckRef.current = nextIsStuck;
+      setIsTabBarStuck(nextIsStuck);
+    }
+  }, []);
+
+  const handleListScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      updateTabBarStuck(event.nativeEvent.contentOffset.y);
+    },
+    [updateTabBarStuck],
+  );
+
+  const renderTabBar = (testID?: string) =>
+    showTokenDetailsTabs ? (
+      <TokenDetailsTabBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        testID={testID}
+      />
+    ) : undefined;
+
   const renderHeader = () => (
     <>
       <AssetOverviewContent
@@ -635,13 +742,16 @@ const TokenDetails: React.FC<{
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
         recurringOrder={latestOpenRecurringOrder}
+        tabBar={renderTabBar()}
+        showOverviewSections={isOverviewTab}
+        onHeroLayout={showTokenDetailsTabs ? handleHeroLayout : undefined}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
         ///: END:ONLY_INCLUDE_IF
       />
-      {(txLoading || hasTransactions) && (
+      {isOverviewTab && (txLoading || hasTransactions) && (
         <ActivityHeader
           asset={{
             ...token,
@@ -649,8 +759,15 @@ const TokenDetails: React.FC<{
           }}
         />
       )}
+      {!isOverviewTab && <TokenDetailsFeed assetId={caip19AssetId} />}
     </>
   );
+
+  // Non-overview tabs own their own content, so the activity list is emptied.
+  const listTransactions = isOverviewTab ? transactions : [];
+  const listSubmittedTxs = isOverviewTab ? submittedTxs : [];
+  const listConfirmedTxs = isOverviewTab ? confirmedTxs : [];
+  const listBridgeArrivalTxs = isOverviewTab ? bridgeArrivalTxs : [];
 
   return (
     <View style={styles.wrapper}>
@@ -670,38 +787,50 @@ const TokenDetails: React.FC<{
         onCopyAddress={handleCopyAddress}
       />
 
-      {txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          bridgeArrivalTransactions={bridgeArrivalTxs}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
-        />
-      ) : (
-        <Transactions
-          header={renderHeader()}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
-        />
-      )}
+      <View style={styles.listContainer}>
+        {txIsNonEvmAsset ? (
+          <MultichainTransactionsView
+            header={renderHeader()}
+            transactions={listTransactions}
+            navigation={navigation}
+            selectedAddress={selectedAddress}
+            chainId={token.chainId as SupportedCaipChainId}
+            bridgeArrivalTransactions={listBridgeArrivalTxs}
+            enableRefresh
+            showDisclaimer={isOverviewTab}
+            hideEmptyState={!isOverviewTab}
+            onScroll={showTokenDetailsTabs ? handleListScroll : undefined}
+            location={TransactionDetailLocation.AssetDetails}
+          />
+        ) : (
+          <Transactions
+            header={renderHeader()}
+            assetSymbol={token.symbol}
+            navigation={navigation}
+            transactions={listTransactions}
+            submittedTransactions={listSubmittedTxs}
+            confirmedTransactions={listConfirmedTxs}
+            selectedAddress={selectedAddress}
+            conversionRate={conversionRate}
+            currentCurrency={txCurrentCurrency}
+            networkType={token.chainId}
+            loading={!transactionsUpdated}
+            headerHeight={280}
+            tokenChainId={token.chainId}
+            skipScrollOnClick
+            hideEmptyState
+            onScrollThroughContent={
+              showTokenDetailsTabs ? updateTabBarStuck : undefined
+            }
+            location={TransactionDetailLocation.AssetDetails}
+          />
+        )}
+        {showTokenDetailsTabs && isTabBarStuck && (
+          <View style={styles.stickyTabBar} pointerEvents="box-none">
+            {renderTabBar(TokenOverviewSelectorsIDs.TABS_BAR_STICKY)}
+          </View>
+        )}
+      </View>
       <TokenDetailsStickyFooter
         token={token}
         securityData={securityData}
