@@ -1,5 +1,5 @@
 import { DAY, HOUR, MINUTE } from '../../../../constants/time';
-import { tradeTimestampToMs } from '../utils/tradeTimestamp';
+import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 
 /**
  * Compact hold-time label matching the composer/feed prototype (`2d 2h`, `21h`).

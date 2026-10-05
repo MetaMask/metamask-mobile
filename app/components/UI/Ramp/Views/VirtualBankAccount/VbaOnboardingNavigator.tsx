@@ -9,6 +9,7 @@ import {
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
+import VbaDetails from './VbaDetails';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
@@ -43,6 +44,7 @@ const VbaOnboardingNavigator = () => (
       name={VbaOnboardingRoutes.ERROR}
       component={VbaErrorAdapter}
     />
+    <Stack.Screen name={VbaOnboardingRoutes.DETAILS} component={VbaDetails} />
   </Stack.Navigator>
 );
 

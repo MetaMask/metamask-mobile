@@ -224,12 +224,38 @@ describe('verifySignature', () => {
         expect(result).toBe(VALID);
       });
 
+      it('verifies a link-test.metamask.com URL against the link-test.metamask.io signing origin', async () => {
+        const url = new URL(
+          `https://link-test.metamask.com/perps?campaign=mobile&sig=${signature}`,
+        );
+        verifyAgainstCanonicalUrl(
+          'https://link-test.metamask.io/perps?campaign=mobile',
+        );
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+      });
+
       it('keeps link.metamask.io signature verification unchanged', async () => {
         const url = new URL(
           `https://link.metamask.io/perps?campaign=mobile&sig=${signature}`,
         );
         verifyAgainstCanonicalUrl(
           'https://link.metamask.io/perps?campaign=mobile',
+        );
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(VALID);
+      });
+
+      it('keeps link-test.metamask.io signature verification unchanged', async () => {
+        const url = new URL(
+          `https://link-test.metamask.io/perps?campaign=mobile&sig=${signature}`,
+        );
+        verifyAgainstCanonicalUrl(
+          'https://link-test.metamask.io/perps?campaign=mobile',
         );
 
         const result = await verifyDeeplinkSignature(url);
@@ -245,6 +271,22 @@ describe('verifySignature', () => {
           );
           verifyAgainstCanonicalUrl(
             'https://link.metamask.io/perps?campaign=mobile',
+          );
+
+          const result = await verifyDeeplinkSignature(url);
+
+          expect(result).toBe(INVALID);
+        },
+      );
+
+      it.each(['link-test.metamask.com', 'link-test.metamask.io'])(
+        'rejects a %s URL whose path differs from the signed path',
+        async (hostname) => {
+          const url = new URL(
+            `https://${hostname}/altered?campaign=mobile&sig=${signature}`,
+          );
+          verifyAgainstCanonicalUrl(
+            'https://link-test.metamask.io/perps?campaign=mobile',
           );
 
           const result = await verifyDeeplinkSignature(url);
@@ -275,6 +317,19 @@ describe('verifySignature', () => {
         );
         verifyAgainstCanonicalUrl(
           'https://link.metamask.io/perps?campaign=mobile',
+        );
+
+        const result = await verifyDeeplinkSignature(url);
+
+        expect(result).toBe(INVALID);
+      });
+
+      it('does not normalize a hostname with link-test.metamask.com as a prefix', async () => {
+        const url = new URL(
+          `https://link-test.metamask.com.evil.tld/perps?campaign=mobile&sig=${signature}`,
+        );
+        verifyAgainstCanonicalUrl(
+          'https://link-test.metamask.io/perps?campaign=mobile',
         );
 
         const result = await verifyDeeplinkSignature(url);

@@ -1,10 +1,11 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Keyboard, Pressable, Text } from 'react-native';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
   PerpsProInputKeyboardAccessory,
+  type PerpsProCompactInputRef,
 } from './PerpsProCompactInput';
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
@@ -70,6 +71,61 @@ describe('PerpsProCompactInput', () => {
     render(<PerpsProCompactInput {...defaultProps} />);
 
     expect(mockInputFocus).not.toHaveBeenCalled();
+  });
+
+  describe('keyboard arrow focus', () => {
+    it('leaves an empty inline field unfocused until an arrow moves to it', () => {
+      render(
+        <PerpsProCompactInput {...defaultProps} variant="inline-labeled" />,
+      );
+
+      expect(screen.queryByTestId(defaultProps.testID)).not.toBeOnTheScreen();
+    });
+
+    it('focuses an empty inline field from the keyboard arrow', () => {
+      const ref = React.createRef<PerpsProCompactInputRef>();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          ref={ref}
+          variant="inline-labeled"
+        />,
+      );
+
+      act(() => {
+        ref.current?.focus();
+      });
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockInputFocus).toHaveBeenCalledWith(
+        expect.objectContaining({
+          twClassName: 'flex-1 border-0 bg-transparent p-0',
+        }),
+      );
+      expect(screen.getByTestId(defaultProps.testID)).toBeOnTheScreen();
+    });
+
+    it('does not expand a disabled field when an arrow moves to it', () => {
+      const ref = React.createRef<PerpsProCompactInputRef>();
+      const onFieldPress = jest.fn();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          ref={ref}
+          variant="inline-labeled"
+          isDisabled
+          onFieldPress={onFieldPress}
+        />,
+      );
+
+      act(() => {
+        ref.current?.focus();
+      });
+
+      expect(mockInputFocus).not.toHaveBeenCalled();
+      expect(onFieldPress).not.toHaveBeenCalled();
+      expect(screen.queryByTestId(defaultProps.testID)).not.toBeOnTheScreen();
+    });
   });
 
   describe('onFieldPress', () => {

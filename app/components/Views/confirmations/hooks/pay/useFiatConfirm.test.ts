@@ -145,6 +145,31 @@ describe('useFiatConfirm', () => {
       expect(startHeadlessBuyMock).not.toHaveBeenCalled();
     });
 
+    it('clears the preparing spinner when startHeadlessBuy throws before a session exists', () => {
+      startHeadlessBuyMock.mockImplementation(() => {
+        throw new Error(
+          'Token with asset ID "eip155:143/erc20:0xabc" not found',
+        );
+      });
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:143/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(
+        expect.stringContaining('not found'),
+      );
+    });
+
     it('calls startHeadlessBuy with correct params when all data present', () => {
       const mockQuote = { id: 'quote-1', provider: 'test' };
 
