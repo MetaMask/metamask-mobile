@@ -61,6 +61,7 @@ import type {
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import SocialFeed from '../../SocialFeed/components/SocialFeed';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
@@ -95,9 +96,8 @@ const ShareTokenBottomSheetController = forwardRef<
 ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
 
 /**
- * Lightweight placeholder panel for the Security / Feed tabs. Their content
- * ships with follow-up stories (ASSETS-4022 / ASSETS-4021) — the tab bar is
- * rendered "as is" so navigation and layout stay final.
+ * Lightweight placeholder panel for tabs whose content is still a follow-up.
+ * The tab bar itself stays as built for Overview / Security / Feed.
  */
 const TokenDetailsV1TabPlaceholder = ({
   tab,
@@ -356,6 +356,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
                   token={token}
                   assetId={caip19AssetId}
                   currentCurrency={currentCurrency}
+                />
+              ) : activeTab === 'feed' && caip19AssetId ? (
+                <SocialFeed
+                  source={{ kind: 'token', assetId: caip19AssetId }}
+                  location="token_details"
                 />
               ) : (
                 <TokenDetailsV1TabPlaceholder tab={activeTab} />

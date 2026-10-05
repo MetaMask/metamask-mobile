@@ -100,6 +100,17 @@ jest.mock('../components/TokenDetailsV1Overview', () => {
 
 // Tab bar stand-in: expose each tab as a pressable that reports the tab key,
 // so this view test can cover tab switching end to end.
+jest.mock('../../SocialFeed/components/SocialFeed', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: ({ location }: { location: string }) =>
+      createElement(Text, { testID: 'token-details-v1-social-feed' }, location),
+  };
+});
+
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const { View, Pressable, Text } = jest.requireActual('react-native');
   const tabs = ['overview', 'security', 'feed'];
@@ -244,7 +255,7 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
-    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(getByTestId('token-details-v1-social-feed')).toBeTruthy();
     expect(queryByTestId('mock-overview')).toBeNull();
   });
 
