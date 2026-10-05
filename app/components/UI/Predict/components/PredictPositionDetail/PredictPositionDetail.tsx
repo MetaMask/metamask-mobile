@@ -151,7 +151,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     <Box twClassName="w-full p-4 mb-4 gap-3 bg-background-muted rounded-xl justify-between">
       <Box twClassName="flex-row items-start gap-4">
         {Boolean(icon) && (
-          <AvatarPredict uri={icon} twClassName="self-start mt-1" />
+          <AvatarPredict uri={icon} />
         )}
         <Box twClassName="flex-1">
           <Text

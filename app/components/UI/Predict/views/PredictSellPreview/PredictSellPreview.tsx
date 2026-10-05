@@ -398,7 +398,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           )}
           {!isSheetMode && (
             <Box twClassName="flex-row items-center gap-4">
-              <AvatarPredict uri={icon} twClassName="self-start mt-1" />
+              <AvatarPredict uri={icon} />
               <Box twClassName="flex-col gap-1 flex-1">
                 <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
                 <Text

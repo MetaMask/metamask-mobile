@@ -72,7 +72,7 @@ const PredictPositionRowBase = ({
       testID={`predict-position-row-${position.id}`}
       style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
-      <AvatarPredict uri={position.icon} twClassName="mt-1" />
+      <AvatarPredict uri={position.icon} />
       <Box style={tw.style('flex-1')} gap={0}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {title}
