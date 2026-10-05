@@ -33,7 +33,10 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
  * - `verifyOrEnroll`: makes sure `methods` are set up, then, when
  * `verifyWith` is set, resolves with a verification token proven with one of
  * them. Rejects with `flow_cancelled` when the user backs out, or with the
- * code of an error the kit has already shown.
+ * code of an error the kit has already shown. This is the only way features
+ * get a token: `AuthenticationController.getVerificationToken` is low-level
+ * (it knows nothing of `verifyWith`, and returns `null` instead of showing
+ * the screens), and lint rejects it outside this folder.
  * - `enroll`: sets up one method, for example from settings. No intro, no
  * verification after.
  * - `credentials`: the profile's methods, as last fetched from the server.

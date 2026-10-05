@@ -14,8 +14,9 @@ import type {
 } from './types';
 
 /**
- * Methods the kit supports, cheapest to verify first. Setup order, picker
- * order and the "confirm it's you" default all follow it.
+ * Methods the kit supports, cheapest to verify first. Picker order, the
+ * "confirm it's you" default and setup order (after the `verifyWith` methods
+ * move last) all follow it.
  */
 const METHOD_COST_RANKING: readonly MfaMethod[] = ['passkey', 'email_otp'];
 
@@ -108,6 +109,26 @@ const getActiveMethods = (statuses: MethodStatuses) =>
   METHOD_COST_RANKING.filter((method) => statuses[method].isActive);
 
 /**
+ * Orders the setups so the `verifyWith` methods come last: each enrollment
+ * replaces the session with one proven by the method just enrolled, so the
+ * last setup is what the final proof can reuse.
+ *
+ * @param missing - The methods to set up.
+ * @param verifyWith - The methods the final proof accepts.
+ * @returns The setup order.
+ */
+const orderSetups = (
+  missing: MfaMethod[],
+  verifyWith: MfaMethod[],
+): MfaMethod[] => {
+  const byCost = sortByCost(missing);
+  return [
+    ...byCost.filter((method) => !verifyWith.includes(method)),
+    ...byCost.filter((method) => verifyWith.includes(method)),
+  ];
+};
+
+/**
  * Tracks what the plan assumes as it walks forward: which methods are active
  * and which session exists after each step.
  */
@@ -178,8 +199,9 @@ export const planVerifyOrEnroll = (
   }
 
   const statuses = getMethodStatuses(context.credentials, context.platform);
-  const missing = sortByCost(
+  const missing = orderSetups(
     request.methods.filter((method) => !statuses[method].isActive),
+    verifyWith,
   );
   if (missing.some((method) => !statuses[method].canEnroll)) {
     return fail('passkey_unsupported');
@@ -202,6 +224,10 @@ export const planVerifyOrEnroll = (
       prefillEmail: statuses[method].pendingEmail,
     });
     simulation.active.add(method);
+    // The enrollment opens a session proven with this method; if the token
+    // exchange fails, the next re-plan sees the real session.
+    simulation.session = { obtainedAt: context.now, amr: [method] };
+    simulation.canAddFactor = true;
   }
 
   if (verifyWith.length > 0) {

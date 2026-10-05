@@ -116,19 +116,18 @@ describe('getMethodStatuses', () => {
 });
 
 describe('planVerifyOrEnroll', () => {
-  it('sets up a passkey, confirms with it, then sets up email for a profile with nothing', () => {
+  it('sets up email then the passkey for a profile with nothing, so the passkey setup is the proof', () => {
     expect(planVerifyOrEnroll(KALSHI, buildContext())).toStrictEqual({
       ok: true,
       steps: [
-        { kind: 'intro', missing: ['passkey', 'email_otp'] },
-        { kind: 'setup', method: 'passkey', prefillEmail: undefined },
-        { kind: 'confirm', options: ['passkey'] },
+        { kind: 'intro', missing: ['email_otp', 'passkey'] },
         { kind: 'setup', method: 'email_otp', prefillEmail: undefined },
+        { kind: 'setup', method: 'passkey', prefillEmail: undefined },
       ],
     });
   });
 
-  it('confirms with the provider email before the first passkey, then verifies with the passkey', () => {
+  it('confirms with the provider email before the first passkey, whose setup is the proof', () => {
     expect(
       planVerifyOrEnroll(
         KALSHI,
@@ -140,6 +139,34 @@ describe('planVerifyOrEnroll', () => {
         { kind: 'intro', missing: ['passkey'] },
         { kind: 'confirm', options: ['email_otp'] },
         { kind: 'setup', method: 'passkey', prefillEmail: undefined },
+      ],
+    });
+  });
+
+  it('keeps the cost order among the verifyWith methods', () => {
+    expect(
+      planVerifyOrEnroll(
+        { ...KALSHI, verifyWith: ['email_otp', 'passkey'] },
+        buildContext(),
+      ),
+    ).toStrictEqual({
+      ok: true,
+      steps: [
+        { kind: 'intro', missing: ['passkey', 'email_otp'] },
+        { kind: 'setup', method: 'passkey', prefillEmail: undefined },
+        { kind: 'setup', method: 'email_otp', prefillEmail: undefined },
+      ],
+    });
+  });
+
+  it('verifies with the passkey again after adding email, whose setup replaced the session', () => {
+    const context = buildContext({ credentials: [passkey], introShown: true });
+
+    expect(planVerifyOrEnroll(KALSHI, context)).toStrictEqual({
+      ok: true,
+      steps: [
+        { kind: 'confirm', options: ['passkey'] },
+        { kind: 'setup', method: 'email_otp', prefillEmail: undefined },
         { kind: 'verify', options: ['passkey'] },
       ],
     });
@@ -233,17 +260,16 @@ describe('planVerifyOrEnroll', () => {
   });
 
   it('does not repeat the intro once it was shown', () => {
-    const context = buildContext({ credentials: [passkey], introShown: true });
-
-    expect(planVerifyOrEnroll(KALSHI, context)).toStrictEqual({
+    expect(
+      planVerifyOrEnroll(
+        { methods: ['email_otp'] },
+        buildContext({ introShown: true }),
+      ),
+    ).toStrictEqual({
       ok: true,
-      steps: [
-        { kind: 'confirm', options: ['passkey'] },
-        { kind: 'setup', method: 'email_otp', prefillEmail: undefined },
-      ],
+      steps: [{ kind: 'setup', method: 'email_otp', prefillEmail: undefined }],
     });
   });
-
   it('treats a pending email as missing and prefills its address', () => {
     expect(
       planVerifyOrEnroll(
@@ -365,7 +391,7 @@ describe('planVerifyOrEnroll', () => {
     });
   });
 
-  it('plans an email-only flow on the extension', () => {
+  it('plans an email-only flow on the extension, whose setup is the proof', () => {
     expect(
       planVerifyOrEnroll(
         { methods: ['email_otp'], verifyWith: 'email_otp' },
@@ -376,7 +402,6 @@ describe('planVerifyOrEnroll', () => {
       steps: [
         { kind: 'intro', missing: ['email_otp'] },
         { kind: 'setup', method: 'email_otp', prefillEmail: undefined },
-        { kind: 'verify', options: ['email_otp'] },
       ],
     });
   });

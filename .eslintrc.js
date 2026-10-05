@@ -811,6 +811,20 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['app/**/*.{js,jsx,ts,tsx}'],
+      excludedFiles: ['app/util/identity/mfa/**'],
+      rules: {
+        'no-restricted-properties': [
+          'error',
+          {
+            property: 'getVerificationToken',
+            message:
+              'Get verification tokens from useMfa().verifyOrEnroll: it reuses a live session and shows the MFA screens when there is none.',
+          },
+        ],
+      },
+    },
   ],
 
   globals: {
