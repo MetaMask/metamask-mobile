@@ -112,7 +112,9 @@ describe('BalanceProjection', () => {
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
 
-    expect(getByTestId('balance-projection-apy-pitch-button')).toBeOnTheScreen();
+    expect(
+      getByTestId('balance-projection-apy-pitch-button'),
+    ).toBeOnTheScreen();
     expect(
       getByTestId('balance-projection-apy-pitch-underline'),
     ).toBeOnTheScreen();
