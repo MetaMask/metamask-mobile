@@ -354,7 +354,7 @@ function ConfirmMembership() {
         Logger.log('Developer Options: Confirm membership approved');
       })
       .catch((error) => {
-        Logger.error(
+        Logger.log(
           error as Error,
           'Developer Options: Confirm membership rejected',
         );
@@ -390,7 +390,7 @@ function ConfirmMembershipTrial() {
         Logger.log('Developer Options: Confirm membership (trial) approved');
       })
       .catch((error) => {
-        Logger.error(
+        Logger.log(
           error as Error,
           'Developer Options: Confirm membership (trial) rejected',
         );

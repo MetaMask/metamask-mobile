@@ -24,10 +24,6 @@ import { moneyFormatUsd } from '../../../../UI/Money/utils/moneyFormatFiat';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { ConfirmMembershipApprovalTestIds } from '../../ConfirmMembershipApproval.testIds';
 
-const styles = StyleSheet.create({
-  moneyIcon: { width: 20, height: 20 },
-});
-
 export interface ConfirmMembershipContentProps {
   monthlyAmount: string;
   totalAmount: string;
@@ -107,6 +103,10 @@ function AmountSection({ monthlyAmount }: { monthlyAmount: string }) {
     </Box>
   );
 }
+
+const styles = StyleSheet.create({
+  moneyIcon: { width: 20, height: 20 },
+});
 
 function MoneyAccountFromRow() {
   const { totalFiatFormatted } = useMoneyAccountBalance();
