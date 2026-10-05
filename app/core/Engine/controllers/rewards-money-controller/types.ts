@@ -68,8 +68,16 @@ export type ReferralCodeView = {
 export type ReferredByView = {
   referral_code: string | null;
   earning_start: string | null;
-  /** Drives "your bonus window ends in N days". */
+  /**
+   * End of the window in which the referrer earns revenue share on this user's
+   * trades. The referrer's term, not this user's bonus.
+   */
   earning_end: string | null;
+  /**
+   * End of this user's own cashback window, snapshotted at registration from
+   * the program's cashback term. Drives "your bonus window ends in N days".
+   */
+  cashback_earning_end: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
