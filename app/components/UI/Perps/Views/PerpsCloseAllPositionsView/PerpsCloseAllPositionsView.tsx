@@ -45,7 +45,6 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -315,12 +314,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
 
   // Show empty state if no positions
   if (!positions || positions.length === 0) {
-    DevLogger.log(
-      '[TAT-4057] BUG_MARKER: close-all sheet empty state, isClosing:',
-      isClosing,
-      'text:',
-      strings('perps.position.no_positions'),
-    );
     return (
       <BottomSheet
         ref={sheetRef}
