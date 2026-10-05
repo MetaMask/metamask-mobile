@@ -4,6 +4,7 @@ import {
   PRO_SUBSCRIPTION_FLOW_AB_TEST_EXPOSURE_OPTIONS,
   PRO_SUBSCRIPTION_FLOW_VARIANTS,
 } from '../components/Views/ProSubscription/abTestConfig';
+import { PRO_DEMO_MODE } from '../components/Views/shared/pro/proDemo';
 
 /**
  * Returns whether the MetaMask Pro subscription flow should be shown,
@@ -31,7 +32,9 @@ export function useProSubscriptionEnabled() {
     PRO_SUBSCRIPTION_FLOW_AB_TEST_EXPOSURE_OPTIONS,
   );
 
-  const devOverride = process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED === 'true';
+  // DEMO ONLY: PRO_DEMO_MODE forces the flow on regardless of LaunchDarkly.
+  const devOverride =
+    PRO_DEMO_MODE || process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED === 'true';
 
   return {
     isProSubscriptionEnabled: devOverride || variant.isProSubscriptionEnabled,

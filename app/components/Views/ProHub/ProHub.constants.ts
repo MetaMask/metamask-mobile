@@ -119,6 +119,29 @@ export const MEMBERSHIP_BANNER_STATES: Record<
 export const MOCK_MEMBERSHIP_BANNER_KIND =
   MembershipBannerKind.ActiveLowBalance;
 
+/**
+ * Demo pause between the "Adding funds" toast and the success or failure toast.
+ * The real add-funds request is not wired up yet.
+ */
+export const ADD_FUNDS_DEMO_DELAY_MS = 2000;
+
+export const AddFundsDemoOutcome = {
+  Success: 'success',
+  Failed: 'failed',
+} as const;
+
+export type AddFundsDemoOutcome =
+  (typeof AddFundsDemoOutcome)[keyof typeof AddFundsDemoOutcome];
+
+/** Banner states whose action starts the demo add-funds toast sequence. */
+export const ADD_FUNDS_BANNER_KINDS: ReadonlySet<MembershipBannerKind> =
+  new Set([
+    MembershipBannerKind.ActiveLowBalance,
+    MembershipBannerKind.ActiveRenewalFailed,
+    MembershipBannerKind.Overdue,
+    MembershipBannerKind.Deactivated,
+  ]);
+
 export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [
   {
     id: 'transaction_protection',
