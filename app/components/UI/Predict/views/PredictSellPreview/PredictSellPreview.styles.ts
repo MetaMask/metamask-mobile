@@ -58,7 +58,7 @@ const styleSheet = (params: { theme: Theme }) => {
     positionIcon: {
       width: 40,
       height: 40,
-      borderRadius: 4,
+      borderRadius: 100,
     },
     cashOutButtonContainer: {
       justifyContent: 'center',
