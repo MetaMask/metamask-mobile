@@ -109,9 +109,7 @@ describe('ConfirmMembershipApproval', () => {
     mockApprovalRequest(createApprovalRequest());
 
     const { getByTestId } = renderComponent();
-    fireEvent.press(
-      getByTestId(ConfirmMembershipApprovalTestIds.CLOSE_BUTTON),
-    );
+    fireEvent.press(getByTestId(ConfirmMembershipApprovalTestIds.CLOSE_BUTTON));
 
     expect(mockOnReject).toHaveBeenCalledTimes(1);
     expect(mockOnConfirm).not.toHaveBeenCalled();

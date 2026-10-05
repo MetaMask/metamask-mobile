@@ -102,9 +102,12 @@ describe('ConfirmMembershipContent', () => {
 
     expect(
       getByTestId(ConfirmMembershipApprovalTestIds.FROM_ROW),
-    ).toHaveTextContent(strings('confirm.pay_with_bottom_sheet.money_account'), {
-      exact: false,
-    });
+    ).toHaveTextContent(
+      strings('confirm.pay_with_bottom_sheet.money_account'),
+      {
+        exact: false,
+      },
+    );
     expect(queryByText('$1,000.00', { exact: false })).not.toBeOnTheScreen();
   });
 
@@ -164,9 +167,7 @@ describe('ConfirmMembershipContent', () => {
   it('calls onClose when the header close button is pressed', () => {
     const { getByTestId } = renderComponent();
 
-    fireEvent.press(
-      getByTestId(ConfirmMembershipApprovalTestIds.CLOSE_BUTTON),
-    );
+    fireEvent.press(getByTestId(ConfirmMembershipApprovalTestIds.CLOSE_BUTTON));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
