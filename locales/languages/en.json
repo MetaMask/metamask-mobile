@@ -9315,7 +9315,8 @@
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
       "projected_balance": "Projected {{projectedYears}}-year balance:",
-      "earn_up_to_apy": "Earn {{percentage}}% APY"
+      "earn_up_to_apy": "Earn {{percentage}}% APY",
+      "earn_up_to_apy_prefix": "Earn"
     },
     "unlimited": "Unlimited",
     "all": "All",
