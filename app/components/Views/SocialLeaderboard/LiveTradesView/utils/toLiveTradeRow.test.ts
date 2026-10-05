@@ -2,7 +2,7 @@ import type { Trade } from '@metamask/social-controllers';
 import {
   mockPerpFeedItem,
   mockSpotFeedItem,
-} from '../../FeedView/mocks/coreFeed.mock';
+} from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { toLiveTradeRow } from './toLiveTradeRow';
 
 describe('toLiveTradeRow', () => {

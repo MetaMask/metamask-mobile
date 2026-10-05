@@ -44,6 +44,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('./analytics', () => ({
+  getSearchQueryLength: jest.requireActual('./analytics').getSearchQueryLength,
   trackExploreSearchEvent: jest.fn(),
 }));
 
@@ -203,6 +204,7 @@ describe('SearchFeedRow', () => {
           tab_name: 'all',
           item_clicked: itemClicked,
           position: 2,
+          query_length: 1,
         }),
       );
     },
@@ -271,6 +273,38 @@ describe('SearchFeedRow', () => {
     );
     const payload = mockTrackExploreSearchEvent.mock.calls[0][0];
     expect(payload).not.toHaveProperty('section_name');
+  });
+
+  it('sends the trimmed query length at tap time on result_clicked', () => {
+    const token = { assetId: 'asset-1' } as TrendingAsset;
+    const { getByTestId, rerender } = render(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="et"
+        tabName="all"
+      />,
+    );
+
+    rerender(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="  eth  "
+        tabName="all"
+      />,
+    );
+    fireEvent.press(getByTestId('search-feed-tap'));
+
+    expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interaction_type: 'result_clicked',
+        search_query: '  eth  ',
+        query_length: 3,
+      }),
+    );
   });
 
   it.each([
@@ -439,6 +473,7 @@ describe('Predict market properties on result_clicked', () => {
       item_clicked: 'pred-9',
       position: 1,
       result_count: 4,
+      query_length: 6,
       market_id: 'pred-9',
       market_slug: 'lakers-vs-celtics',
       market_tags: ['nba', 'playoffs'],
@@ -688,6 +723,7 @@ describe('token identity analytics', () => {
         item_clicked: assetId,
         position: 3,
         result_count: 10,
+        query_length: 1,
         token_name: name,
         token_symbol: symbol,
       });
