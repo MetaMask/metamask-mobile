@@ -126,7 +126,6 @@ const SocialFeed: React.FC<SocialFeedProps> = ({ source, location, title }) => {
 
   const showSkeleton = isLoading && posts.length === 0;
   const showEmpty = !isLoading && !error && posts.length === 0;
-  const showError = Boolean(error) && posts.length === 0;
 
   return (
     <SocialFeedSurfaceProvider location={location}>
@@ -141,7 +140,7 @@ const SocialFeed: React.FC<SocialFeedProps> = ({ source, location, title }) => {
           />
         ) : null}
         {showEmpty ? <SocialFeedEmpty /> : null}
-        {showError ? <SocialFeedError onRetry={() => refresh()} /> : null}
+        {error ? <SocialFeedError onRetry={() => refresh()} /> : null}
         {isFetchingNextPage ? (
           <Box
             alignItems={BoxAlignItems.Center}

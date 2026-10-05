@@ -78,6 +78,21 @@ describe('HotTokensCarousel', () => {
     expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
   });
 
+  it('keeps a selected perp chip on the rail after it leaves the ranking', () => {
+    const token = mockHotToken({ id: 'hot-btc', symbol: 'BTC' });
+    arrange([token]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel selectedTokenId={token.id} />,
+    );
+
+    arrange([]);
+    rerender(<HotTokensCarousel selectedTokenId={token.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')),
+    ).toBeOnTheScreen();
+  });
+
   it('keeps a selected contract chip on the rail after it leaves the ranking', () => {
     const token = mockHotToken({
       id: 'hot-pump',

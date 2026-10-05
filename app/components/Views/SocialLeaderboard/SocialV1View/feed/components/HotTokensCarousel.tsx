@@ -163,20 +163,19 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
   );
-  // The rail is ranked from the unfiltered feed. Remember the selected
-  // contract chip so a refetch that drops that asset does not cancel its feed.
-  const heldContractTokenRef = useRef<SocialV1HotToken | null>(null);
+  // The rail is ranked from the unfiltered feed. Remember the selected chip,
+  // including a perp with no contract, so a refetch that drops that asset
+  // still leaves a chip the user can tap to clear the filter.
+  const heldTokenRef = useRef<SocialV1HotToken | null>(null);
   if (!selectedTokenId) {
-    heldContractTokenRef.current = null;
-  } else if (rankedToken?.chain && rankedToken.contractAddress) {
-    heldContractTokenRef.current = rankedToken;
-  } else if (heldContractTokenRef.current?.id !== selectedTokenId) {
-    heldContractTokenRef.current = null;
+    heldTokenRef.current = null;
+  } else if (rankedToken) {
+    heldTokenRef.current = rankedToken;
   }
   const selectedToken =
     rankedToken ??
-    (heldContractTokenRef.current?.id === selectedTokenId
-      ? heldContractTokenRef.current
+    (heldTokenRef.current?.id === selectedTokenId
+      ? heldTokenRef.current
       : null);
   // The selected chip leads the rail. Frequency decides the order until a
   // filter is on, and then the asset being filtered on has to be the one the

@@ -135,6 +135,26 @@ describe('SocialFeed', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
+  it('offers a retry when a later page fails and posts are already showing', () => {
+    const refresh = jest.fn(async () => undefined);
+    mockUseSocialFeed.mockReturnValue(
+      feedState({
+        posts: [post('one')],
+        error: 'next page down',
+        hasNextPage: false,
+        refresh,
+      }),
+    );
+
+    renderWithProvider(
+      <SocialFeed source={source} location="perps_market_details" />,
+    );
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
+
+    expect(screen.getByTestId('post-one')).toBeOnTheScreen();
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
   it('shows a spinner while the next page loads', () => {
     mockUseSocialFeed.mockReturnValue(
       feedState({
