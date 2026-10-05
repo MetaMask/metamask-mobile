@@ -75,7 +75,7 @@ function mergeAnalyticsContext(
     const controllerPreferences = context.consent?.categoryPreferences;
     const categoryPreferences = controllerPreferences
       ? {
-          ...(existingConsent?.categoryPreferences ?? {}),
+          ...existingConsent?.categoryPreferences,
           ...booleanCategoryPreferences(controllerPreferences),
         }
       : existingConsent?.categoryPreferences;
@@ -153,11 +153,13 @@ export const createPlatformAdapter = (
     ): void {
       const enrichment = mergeAnalyticsContext(context);
       if (properties && enrichment) {
-        client.track(eventName, properties, enrichment);
+        // Segment returns a promise. The adapter contract is void, so the
+        // result is explicitly ignored.
+        void client.track(eventName, properties, enrichment);
       } else if (properties) {
         client.track(eventName, properties);
       } else if (enrichment) {
-        client.track(eventName, undefined, enrichment);
+        void client.track(eventName, undefined, enrichment);
       } else {
         client.track(eventName);
       }
@@ -170,11 +172,11 @@ export const createPlatformAdapter = (
     ): void {
       const enrichment = mergeAnalyticsContext(context);
       if (traits !== undefined && enrichment) {
-        client.identify(userId, traits, enrichment);
+        void client.identify(userId, traits, enrichment);
       } else if (traits !== undefined) {
         client.identify(userId, traits);
       } else if (enrichment) {
-        client.identify(userId, undefined, enrichment);
+        void client.identify(userId, undefined, enrichment);
       } else {
         client.identify(userId);
       }
@@ -187,11 +189,11 @@ export const createPlatformAdapter = (
     ): void {
       const enrichment = mergeAnalyticsContext(context);
       if (properties !== undefined && enrichment) {
-        client.screen(name, properties, enrichment);
+        void client.screen(name, properties, enrichment);
       } else if (properties !== undefined) {
         client.screen(name, properties);
       } else if (enrichment) {
-        client.screen(name, undefined, enrichment);
+        void client.screen(name, undefined, enrichment);
       } else {
         client.screen(name);
       }

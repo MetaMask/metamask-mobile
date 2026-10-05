@@ -118,11 +118,11 @@ const queueReducer = (state: QueueState, action: QueueAction): QueueState => {
 /**
  * Pure function to execute a queued operation
  */
-const executeQueuedOperation = (
+const executeQueuedOperation = async (
   messengerInstance: RootExtendedMessenger,
   action: string,
   args: readonly unknown[],
-): void => {
+): Promise<void> => {
   switch (action) {
     case 'trackEvent': {
       const [event] = args as [AnalyticsTrackingEvent];
@@ -150,13 +150,15 @@ const executeQueuedOperation = (
       messengerInstance.call('AnalyticsController:optOut');
       break;
     case 'optInToMarketing':
-      messengerInstance.call('AnalyticsController:optInToMarketing');
+      // optInToMarketing returns a promise. Await it so the queue waits for
+      // consent before the next operation and the rejection is caught below.
+      await messengerInstance.call('AnalyticsController:optInToMarketing');
       break;
     case 'optOutOfMarketing':
-      messengerInstance.call('AnalyticsController:optOutOfMarketing');
+      await messengerInstance.call('AnalyticsController:optOutOfMarketing');
       break;
     case 'resetMarketingConsentDecision':
-      messengerInstance.call(
+      await messengerInstance.call(
         'AnalyticsController:resetMarketingConsentDecision',
       );
       break;
@@ -232,7 +234,7 @@ export const createAnalyticsQueueManager = (
       // Process operations (side effects isolated)
       for (const operation of operations) {
         try {
-          executeQueuedOperation(
+          await executeQueuedOperation(
             messengerInstance,
             operation.action,
             operation.args,
