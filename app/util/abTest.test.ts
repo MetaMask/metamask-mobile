@@ -30,6 +30,19 @@ describe('resolveABTestAssignment', () => {
     });
   });
 
+  it('forces Social V1 to treatment even when the stored flag is control', () => {
+    expect(
+      resolveABTestAssignment(
+        { socialAiTSA1122AbtestSocialBundleV1: 'control' },
+        'socialAiTSA1122AbtestSocialBundleV1',
+        validVariants,
+      ),
+    ).toEqual({
+      variantName: 'treatment',
+      isActive: true,
+    });
+  });
+
   it('falls back to control when the flag is missing', () => {
     expect(resolveABTestAssignment({}, flagKey, validVariants)).toEqual({
       variantName: 'control',

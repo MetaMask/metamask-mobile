@@ -5,6 +5,13 @@ interface ABTestResolution {
 
 const DEFAULT_VARIANT = 'control';
 
+/**
+ * TEMPORARY: `socialAiTSA1122AbtestSocialBundleV1` always resolves to
+ * treatment, so Social V1 (`useSocialV1`) is on regardless of the stored value.
+ */
+const FORCE_SOCIAL_V1_TREATMENT = true;
+const SOCIAL_V1_AB_KEY = 'socialAiTSA1122AbtestSocialBundleV1';
+
 const getFlagVariantName = (flagValue: unknown): string | undefined => {
   if (typeof flagValue === 'string') {
     return flagValue;
@@ -43,6 +50,14 @@ export const resolveABTestAssignment = (
   validVariants: readonly string[],
   thresholdGroups?: Record<string, string> | null,
 ): ABTestResolution => {
+  if (
+    FORCE_SOCIAL_V1_TREATMENT &&
+    flagKey === SOCIAL_V1_AB_KEY &&
+    validVariants.includes('treatment')
+  ) {
+    return { variantName: 'treatment', isActive: true };
+  }
+
   const variantName =
     getFlagVariantName(featureFlags?.[flagKey]) ?? thresholdGroups?.[flagKey];
   const isActive = Boolean(variantName && validVariants.includes(variantName));

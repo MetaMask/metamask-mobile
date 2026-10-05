@@ -1773,7 +1773,7 @@ describe('MainNavigator', () => {
     expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
   });
 
-  it('omits Social V1 screens for the control variant', () => {
+  it('includes Social V1 screens even when the stored variant is control', () => {
     const stateWithSocialV1Control = {
       ...initialRootState,
       engine: {
@@ -1809,21 +1809,19 @@ describe('MainNavigator', () => {
       )
       .map((child) => child.props.name);
 
-    expect(screenNames).not.toContain(Routes.SOCIAL.V1);
-    expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
-    expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
-    expect(screenNames).not.toContain(Routes.SOCIAL.V1_PROFILE);
-    expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
-    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
-    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
-    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
-    expect(screenNames).not.toContain(
+    expect(screenNames).toContain(Routes.SOCIAL.V1);
+    expect(screenNames).toContain(Routes.SOCIAL.POST_COMPOSER);
+    expect(screenNames).toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).toContain(Routes.SOCIAL.V1_PROFILE);
+    expect(screenNames).toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
+    expect(screenNames).toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
+    expect(screenNames).toContain(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(screenNames).toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
+    expect(screenNames).toContain(
       Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
     );
-    expect(screenNames).not.toContain(
-      Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
-    );
-    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(screenNames).toContain(Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT);
+    expect(screenNames).toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 
@@ -1973,14 +1971,14 @@ describe('MainNavigator', () => {
     );
 
     it.each(['searchFocused', 'tradeFocused'])(
-      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      'mounts Social V1 as the Social tab in %s even when TSA-1122 is stored as control',
       (arm) => {
         const state = stateForArm(arm, 'control');
         const container = renderWithProvider(<MainNavigator />, { state });
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV0View');
+        expect(componentName).toBe('SocialV1View');
       },
     );
   });
