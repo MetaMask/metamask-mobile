@@ -507,10 +507,11 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
+    await screen.findByText('Sell USDC');
     fireEvent.press(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
-    const pickerHeader = screen.getByTestId(
+    const pickerHeader = await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PAY_WITH_HEADER,
     );
     expect(within(pickerHeader).getByText('Receive')).toBeOnTheScreen();
