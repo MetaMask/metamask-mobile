@@ -3,27 +3,30 @@ import type {
   Trade,
 } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
+import type { PositionTokenAvatarData } from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import {
   getPerpPositionDirection,
   getPerpTradeDirection,
   isPerpPosition,
-} from '../../utils/perp';
+} from '../../../../UI/SocialFeed/utils/perp';
 import {
   formatTokenAmount,
   formatTradeUnitPrice,
   formatUnsignedFullUsdNoDecimals,
-} from '../../utils/formatters';
-import { isEntryAction, type TradeAction } from '../../utils/tradeAction';
-import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
+} from '../../../../UI/SocialFeed/utils/formatters';
+import {
+  isEntryAction,
+  type TradeAction,
+} from '../../../../UI/SocialFeed/utils/tradeAction';
+import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 import {
   asFeedCardItem,
   toWholePercent,
-} from '../../SocialV1View/feed/utils/feedCardStats';
+} from '../../../../UI/SocialFeed/utils/feedCardStats';
 import type {
   SocialV1PerpDirection,
   SocialV1SpotSide,
-} from '../../SocialV1View/feed/types';
+} from '../../../../UI/SocialFeed/types';
 import type { LiveTradeRowModel } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>

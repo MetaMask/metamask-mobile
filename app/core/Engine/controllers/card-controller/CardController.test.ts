@@ -255,6 +255,7 @@ const mockCardHomeData: CardHomeData = {
   availableFundingAssets: [],
   card: mockCard,
   account: null,
+  walletProvisioning: null,
   alerts: [],
   actions: [],
   delegationSettings: null,
@@ -3119,7 +3120,7 @@ describe('CardController — getCapabilities', () => {
     supportsFundingLimits: true,
     fundingChains: ['eip155:59144'] as `${string}:${string}`[],
     supportsFreeze: true,
-    supportsPushProvisioning: true,
+    pushProvisioning: { applePay: true, googlePay: true },
     onboarding: {
       type: 'steps' as const,
       steps: [],
@@ -4287,12 +4288,13 @@ describe('CardController — data pass-throughs', () => {
       });
       const { controller } = buildAuthenticatedController(provider);
 
-      const result = await controller.createApplePayProvisioningRequest({
-        leafCertificate: 'leaf',
-        intermediateCertificate: 'inter',
+      const params = {
         nonce: 'n',
         nonceSignature: 'ns',
-      });
+        certificates: ['leaf', 'inter'],
+      };
+      const result = await controller.createApplePayProvisioningRequest(params);
+      expect(mockCreate).toHaveBeenCalledWith(params, expect.anything());
       expect(result.encryptedPassData).toBe('enc');
     });
 
@@ -4304,10 +4306,9 @@ describe('CardController — data pass-throughs', () => {
 
       await expect(
         controller.createApplePayProvisioningRequest({
-          leafCertificate: 'l',
-          intermediateCertificate: 'i',
           nonce: 'n',
           nonceSignature: 'ns',
+          certificates: ['l', 'i'],
         }),
       ).rejects.toThrow('Apple Pay provisioning not supported');
     });
@@ -5710,6 +5711,7 @@ describe('CardController — data pass-throughs', () => {
         availableFundingAssets: [mockAsset],
         card: null,
         account: null,
+        walletProvisioning: null,
         alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
@@ -5737,6 +5739,7 @@ describe('CardController — data pass-throughs', () => {
         availableFundingAssets: [mockAsset],
         card: null,
         account: null,
+        walletProvisioning: null,
         alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
