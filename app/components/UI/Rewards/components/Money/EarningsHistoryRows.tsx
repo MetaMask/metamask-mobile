@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -9,10 +11,14 @@ import {
   FontWeight,
   IconColor,
   IconName,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   EarningOriginType,
   LedgerEarningEntryDto,
@@ -30,6 +36,8 @@ import {
 
 export const EARNINGS_HISTORY_TEST_IDS = {
   ROW: 'earnings-history-row',
+  PAUSED_ROW: 'earnings-history-paused-row',
+  PAUSED_TAG: 'earnings-history-paused-tag',
 } as const;
 
 function earningTitle(
@@ -93,24 +101,36 @@ export const EarningsHistoryRow: React.FC<{
   item: EarningsHistoryListItem;
   localizedText: ReferralLocalizedText;
 }> = ({ item, localizedText }) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const pending = isPendingClaimRow(item);
   const isClaim = pending || item.type === 'claim';
+  const underReview =
+    !pending &&
+    item.type === 'earning' &&
+    item.blocking_reason === 'UNDER_REVIEW';
   const title = isClaim
     ? localizedText.historyClaimed
     : earningTitle(item.earning_origin_type, localizedText);
   const credited = isClaim ? null : earningAmount(item);
   const amount = isClaim ? claimDebit(item.net_amount) : credited?.label;
-  const amountColor = isClaim
-    ? TextColor.TextAlternative
-    : (credited?.color ?? TextColor.SuccessDefault);
+  const amountColor =
+    underReview || isClaim
+      ? TextColor.TextAlternative
+      : (credited?.color ?? TextColor.SuccessDefault);
   const subtitle = pending
     ? localizedText.historyClaimPending
     : formatRewardsRelativeTime(new Date(item.ledger_timestamp));
   const iconName = isClaim
     ? IconName.Arrow2UpRight
     : earningIcon(item.earning_origin_type);
+  const openRewardsPaused = useCallback(() => {
+    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+      title: localizedText.rewardPausedTitle,
+      description: localizedText.rewardPausedDescription,
+    });
+  }, [localizedText, navigation]);
 
-  return (
+  const row = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -124,16 +144,57 @@ export const EarningsHistoryRow: React.FC<{
         iconProps={{ color: IconColor.IconDefault }}
       />
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {title}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="shrink"
+          >
+            {title}
+          </Text>
+          {underReview ? (
+            <Tag
+              severity={TagSeverity.Neutral}
+              testID={EARNINGS_HISTORY_TEST_IDS.PAUSED_TAG}
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {localizedText.paused}
+              </Text>
+            </Tag>
+          ) : null}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={amountColor}
+            twClassName="ml-auto"
+          >
+            {amount ?? '—'}
+          </Text>
+        </Box>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {subtitle}
         </Text>
       </Box>
-      <Text variant={TextVariant.BodyMd} color={amountColor}>
-        {amount ?? '—'}
-      </Text>
     </Box>
+  );
+
+  if (!underReview) {
+    return row;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={openRewardsPaused}
+      testID={EARNINGS_HISTORY_TEST_IDS.PAUSED_ROW}
+    >
+      {row}
+    </Pressable>
   );
 };

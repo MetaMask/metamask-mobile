@@ -511,7 +511,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               claimed={
                 persona === 'referee' ? summary.data?.claimed : undefined
               }
+              held={persona === 'referee' ? summary.data?.held : undefined}
               claimableAmount={musdAmount(summary.data?.claimable)}
+              heldAmount={
+                persona === 'referee'
+                  ? musdAmount(summary.data?.held)
+                  : undefined
+              }
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}
@@ -529,6 +535,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                     }
                   : undefined
               }
+              onPaused={() => {
+                navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+                  title: localizedText.claimsPausedTitle,
+                  description: localizedText.claimsPausedDescription,
+                });
+              }}
             />
           ) : null}
         </Box>
