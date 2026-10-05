@@ -105,10 +105,10 @@ Mostly file moves; no behaviour change. The move is its own commit so it can be 
 
 ### PR 3 — Surface context: mocked fields and analytics location
 
-- [ ] `SocialFeedSurfaceProvider` with `{ location, showMockedFields }`, mounted by `<SocialFeed>` and by the Social V1 pages.
-- [ ] `showMockedFields: false` → `toSocialV1FeedItem` leaves mark price and auto-close `undefined`; the shell drops the verified badge, `*` marker and copy count; `PositionCardStats` drops rows whose value is missing instead of rendering an em dash.
-- [ ] `showMockedFields: true` on Social V1 (current behaviour).
-- [ ] `location` added as a property on feed events (reactions, options menu, copy trade, "See all", feed viewed). Values: `social_trending`, `social_following`, `my_profile`, `trader_profile`, `token_details`, `perps_market_details`, `social_feed_screen`.
+- [x] `SocialFeedSurfaceProvider` with `{ location, showMockedFields }`. Defaults to hidden mocked fields and no location. An inner provider overrides only the fields it sets. Mounted by Trending, Following, Live trades, My profile and the post composer. `<SocialFeed>` mounts it in PR 4.
+- [x] `showMockedFields: false` hides invented values at render time, using the item's `mockedFields`: the mark price is omitted and auto-close keeps its row as an em dash. The verified badge, its `*` and the copy count are always invented, so they hide too. A real value (one not listed in `mockedFields`) still renders. The win-rate percent is real API data; only an `isMocked` marker is gated.
+- [x] `showMockedFields: true` on the Social V1 screens above. Copy trade stays visible everywhere, and missing stats keep their em dash everywhere.
+- [ ] `location` is plumbed through (`social_trending`, `social_following`, `social_live_trades`, `my_profile`, `social_post_composer`, `trader_profile`, `token_details`, `perps_market_details`, `social_feed_screen`) but not sent yet. Feed cards fire no events today; tracking waits on a product event spec.
 
 ### PR 4 — `<SocialFeed>` drop-in and "See all" screen
 
