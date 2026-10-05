@@ -118,6 +118,17 @@ const activityListRowItemTestId = (index: number): string =>
   `transaction-item-${index}`;
 const activityListRowTitleTestId = (hash: string): string =>
   `activity-title-${hash}`;
+
+const waitForActivityListLoaded = async (
+  queryByTestId: (testId: string) => unknown | null,
+) => {
+  await waitFor(
+    () => {
+      expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+    },
+    { timeout: 10000 },
+  );
+};
 const activityListRowSubtitleTestId = (hash: string): string =>
   `activity-subtitle-${hash}`;
 const activityListRowPrimaryAmountTestId = (hash: string): string =>
@@ -370,6 +381,8 @@ describeForPlatforms('ActivityScreen', () => {
       const { getByTestId, findByTestId, queryByTestId } =
         renderActivityScreenView({ state });
 
+      await waitForActivityListLoaded(queryByTestId);
+
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
@@ -419,6 +432,8 @@ describeForPlatforms('ActivityScreen', () => {
   it('removes the network chip and shows the Perps sub-filter when Perps is selected', async () => {
     const { getByTestId, queryByTestId, findByTestId } =
       renderActivityScreenView();
+
+    await waitForActivityListLoaded(queryByTestId);
 
     // Network chip is present by default (type filter is Transactions); the
     // Perps sub-filter chip is not.
