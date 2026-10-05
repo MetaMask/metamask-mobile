@@ -5479,7 +5479,7 @@
   },
   "support_consent_preference": {
     "title": "Remember my support preference",
-    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. You won’t be asked for consent each time you contact support. Sharing this information will help us better solve your problem.",
+    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. Sharing this information will help us better solve your problem.",
     "currently_sharing": "your current decision is to share your User ID.",
     "currently_not_sharing": "your current decision is to not share your User ID."
   },
