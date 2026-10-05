@@ -4,7 +4,10 @@ import {
   mockRelayQuoteWith,
   mockRelayStatusSuccess,
 } from './relay-mocks.js';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.js';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map.js';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder.js';
 import {
   POLYMARKET_USDC_BALANCE_MOCKS,
@@ -268,28 +271,7 @@ async function mockSentinelNetworks(mockServer: Mockttp) {
     },
   };
 
-  const handler = () => ({
-    statusCode: 200,
-    json: withPolygonRelay,
-  });
-
-  // Direct URL match (non-proxied requests).
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  // Proxied variant — the fetch shim routes all requests through /proxy?url=...
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
+  await mockTxSentinelNetworks(mockServer, withPolygonRelay, 1001);
 }
 
 /**

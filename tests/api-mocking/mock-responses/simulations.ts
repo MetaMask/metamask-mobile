@@ -1,4 +1,6 @@
+import type { Mockttp } from 'mockttp';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { setupMockRequest } from '../helpers/mockHelpers';
 
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
@@ -126,3 +128,36 @@ export const SIMULATION_ENABLED_NETWORKS_MOCK = {
     },
   },
 };
+
+/**
+ * TX Sentinel `/network` response for the local network, matching
+ * {@link SIMULATION_ENABLED_NETWORKS_MOCK}.
+ */
+export const SIMULATION_ENABLED_NETWORK_MOCK = {
+  urlEndpoint:
+    /^https:\/\/tx-sentinel-(localhost|127\.0\.0\.1)\.api\.cx\.metamask\.io\/network$/,
+  responseCode: 200,
+  response: SIMULATION_ENABLED_NETWORKS_MOCK.response[1337],
+};
+
+/**
+ * Mocks TX Sentinel `/networks` and the local `/network` endpoint so
+ * simulations are enabled and relay is disabled for the local network.
+ *
+ * @param mockServer - The mock server.
+ */
+export async function setupSimulationEnabledNetworksMocks(
+  mockServer: Mockttp,
+): Promise<void> {
+  for (const mock of [
+    SIMULATION_ENABLED_NETWORKS_MOCK,
+    SIMULATION_ENABLED_NETWORK_MOCK,
+  ]) {
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: mock.urlEndpoint,
+      response: mock.response,
+      responseCode: mock.responseCode,
+    });
+  }
+}

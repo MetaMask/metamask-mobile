@@ -1,446 +1,180 @@
+import {
+  SentinelChainNotSupportedError,
+  type SentinelNetwork,
+} from '@metamask/sentinel-api-service';
 import { Hex } from '@metamask/utils';
 import {
-  getSentinelNetworkFlags,
-  buildUrl,
-  SentinelNetwork,
+  SentinelApiMessenger,
   getSendBundleSupportedChains,
-  isSendBundleSupported,
-  clearSentinelNetworkCache,
-  setSentinelApiAuth,
-  getSentinelApiHeadersAsync,
+  getSentinelNetworkFlags,
   getSentinelSigners,
+  isSendBundleSupported,
+  setSentinelApiMessenger,
 } from './sentinel-api';
 
-const fetchMock = jest.fn();
+const CHAIN_ID_MAINNET: Hex = '0x1';
+const CHAIN_ID_POLYGON: Hex = '0x89';
 
-beforeAll(() => {
-  global.fetch = fetchMock as unknown as typeof fetch;
-});
-
-const NETWORK_ETHEREUM_MOCK = 'ethereum-mainnet';
-
-const COMMON_ETH: SentinelNetwork['nativeCurrency'] = {
-  name: 'ETH',
-  symbol: 'ETH',
-  decimals: 18,
-};
-const COMMON_MATIC: SentinelNetwork['nativeCurrency'] = {
-  name: 'MATIC',
-  symbol: 'MATIC',
-  decimals: 18,
-};
-
-const MAINNET_BASE = {
-  name: 'Mainnet',
-  group: 'ethereum',
+const MAINNET_NETWORK_MOCK: SentinelNetwork = {
   chainID: 1,
-  nativeCurrency: COMMON_ETH,
-  network: NETWORK_ETHEREUM_MOCK,
-  explorer: 'https://etherscan.io',
   confirmations: true,
-  smartTransactions: true,
+  network: 'ethereum-mainnet',
   relayTransactions: true,
-  hidden: false,
   sendBundle: true,
-} as const;
-
-const POLYGON_BASE = {
-  name: 'Polygon',
-  group: 'polygon',
-  chainID: 137,
-  nativeCurrency: COMMON_MATIC,
-  network: 'polygon-mainnet',
-  explorer: 'https://polygonscan.com',
-  confirmations: true,
-  smartTransactions: false,
-  relayTransactions: false,
-  hidden: false,
-  sendBundle: false,
-} as const;
-
-const MOCK_NETWORKS: Record<string, SentinelNetwork> = {
-  '1': { ...MAINNET_BASE },
-  '137': { ...POLYGON_BASE },
+  smartTransactions: true,
 };
 
-describe('sentinel-api', () => {
+const POLYGON_NETWORK_MOCK: SentinelNetwork = {
+  chainID: 137,
+  confirmations: true,
+  network: 'polygon-mainnet',
+  relayTransactions: false,
+  sendBundle: false,
+  smartTransactions: false,
+};
+
+const SIGNERS_MOCK: Hex[] = [
+  '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E',
+  '0xB42F812A44c22cc6b861478900401ee759EbEAD6',
+];
+
+describe('Sentinel API', () => {
+  const getNetworkMock = jest.fn();
+  const getNetworksMock = jest.fn();
+
   beforeEach(() => {
-    jest.clearAllMocks();
-    clearSentinelNetworkCache();
-    setSentinelApiAuth(undefined);
-  });
+    jest.resetAllMocks();
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
+    setSentinelApiMessenger({
+      call: (action: string, ...args: unknown[]) => {
+        if (action === 'SentinelApiService:getNetwork') {
+          return getNetworkMock(...args);
+        }
 
-  describe('setSentinelApiAuth and getSentinelApiHeadersAsync', () => {
-    it('returns empty headers when no auth setter is configured', async () => {
-      const headers = await getSentinelApiHeadersAsync();
-      expect(headers).toEqual({});
-    });
+        return getNetworksMock(...args);
+      },
+    } as SentinelApiMessenger);
 
-    it('includes Authorization when getter returns a token', async () => {
-      setSentinelApiAuth(async () => 'test-token');
-      const headers = await getSentinelApiHeadersAsync();
-      expect(headers).toMatchObject({ Authorization: 'Bearer test-token' });
-    });
-
-    it('adds Bearer prefix when getter returns raw token', async () => {
-      setSentinelApiAuth(async () => 'raw-token');
-      const headers = await getSentinelApiHeadersAsync();
-      expect((headers as Record<string, string>).Authorization).toBe(
-        'Bearer raw-token',
-      );
-    });
-
-    it('omits Authorization when getter returns undefined', async () => {
-      setSentinelApiAuth(async () => undefined);
-      const headers = await getSentinelApiHeadersAsync();
-      expect(headers).toEqual({});
-      expect((headers as Record<string, string>).Authorization).toBeUndefined();
-    });
-
-    it('omits Authorization when getter throws', async () => {
-      setSentinelApiAuth(async () => {
-        throw new Error('token error');
-      });
-      const headers = await getSentinelApiHeadersAsync();
-      expect(headers).toEqual({});
-      expect((headers as Record<string, string>).Authorization).toBeUndefined();
+    getNetworkMock.mockResolvedValue(MAINNET_NETWORK_MOCK);
+    getNetworksMock.mockResolvedValue({
+      '1': MAINNET_NETWORK_MOCK,
+      '137': POLYGON_NETWORK_MOCK,
     });
   });
 
-  describe('buildUrl', () => {
-    it('builds the correct sentinel API URL for a subdomain', () => {
-      expect(buildUrl('my-chain')).toBe(
-        'https://tx-sentinel-my-chain.api.cx.metamask.io/',
-      );
-      expect(buildUrl(NETWORK_ETHEREUM_MOCK)).toBe(
-        'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/',
-      );
-    });
+  afterAll(() => {
+    setSentinelApiMessenger(undefined);
   });
 
   describe('getSentinelNetworkFlags', () => {
-    const mainnetHex: Hex = '0x1';
-    const polygonHex: Hex = '0x89';
+    it('returns network from service', async () => {
+      const result = await getSentinelNetworkFlags(CHAIN_ID_MAINNET);
 
-    it('returns network data for provided chainId (Mainnet)', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      const result = await getSentinelNetworkFlags(mainnetHex);
-      expect(result).toStrictEqual(MAINNET_BASE);
+      expect(getNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MAINNET);
+      expect(result).toStrictEqual(MAINNET_NETWORK_MOCK);
     });
 
-    it('returns network data for another registered chainId (Polygon)', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
+    it('returns undefined if chain not supported', async () => {
+      getNetworkMock.mockRejectedValueOnce(
+        new SentinelChainNotSupportedError('0xFAFA'),
+      );
 
-      const result = await getSentinelNetworkFlags(polygonHex);
-      expect(result).toStrictEqual(POLYGON_BASE);
+      expect(await getSentinelNetworkFlags('0xFAFA')).toBeUndefined();
     });
 
-    it('returns undefined for chainId not in network data', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
+    it('prefixes errors if service throws', async () => {
+      getNetworkMock.mockRejectedValueOnce(new Error('API connection error'));
 
-      const result = await getSentinelNetworkFlags('0xFAFA' as Hex);
-      expect(result).toBeUndefined();
-    });
-
-    it('prefixes errors if getNetworkData throws', async () => {
-      fetchMock.mockRejectedValueOnce(new Error('API connection error'));
-      await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
+      await expect(getSentinelNetworkFlags(CHAIN_ID_MAINNET)).rejects.toThrow(
         'Sentinel: API connection error',
+      );
+    });
+
+    it('throws if messenger not set', async () => {
+      setSentinelApiMessenger(undefined);
+
+      await expect(getSentinelNetworkFlags(CHAIN_ID_MAINNET)).rejects.toThrow(
+        'Sentinel: Messenger not initialized',
       );
     });
   });
 
   describe('getSentinelSigners', () => {
-    const SIGNERS_MOCK: Hex[] = [
-      '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E',
-      '0xB42F812A44c22cc6b861478900401ee759EbEAD6',
-    ];
-
     it('returns the cubist signers for the chain', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => ({
-          ...MOCK_NETWORKS,
-          '1': { ...MAINNET_BASE, cubistSigners: SIGNERS_MOCK },
-        }),
-        ok: true,
-      } as Response);
+      getNetworkMock.mockResolvedValueOnce({
+        ...MAINNET_NETWORK_MOCK,
+        cubistSigners: SIGNERS_MOCK,
+      });
 
-      expect(await getSentinelSigners('0x1')).toStrictEqual(SIGNERS_MOCK);
+      expect(await getSentinelSigners(CHAIN_ID_MAINNET)).toStrictEqual(
+        SIGNERS_MOCK,
+      );
     });
 
     it('returns an empty array if cubist signers are missing', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      expect(await getSentinelSigners('0x1')).toStrictEqual([]);
+      expect(await getSentinelSigners(CHAIN_ID_MAINNET)).toStrictEqual([]);
     });
 
     it('returns an empty array if cubist signers is not an array', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => ({
-          ...MOCK_NETWORKS,
-          '1': { ...MAINNET_BASE, cubistSigners: 'invalid' },
-        }),
-        ok: true,
-      } as Response);
+      getNetworkMock.mockResolvedValueOnce({
+        ...MAINNET_NETWORK_MOCK,
+        cubistSigners: 'invalid',
+      });
 
-      expect(await getSentinelSigners('0x1')).toStrictEqual([]);
+      expect(await getSentinelSigners(CHAIN_ID_MAINNET)).toStrictEqual([]);
     });
 
     it('returns an empty array if the chain is not supported', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      expect(await getSentinelSigners('0xFAFA' as Hex)).toStrictEqual([]);
-    });
-  });
-
-  describe('getSendBundleSupportedChains', () => {
-    const chainIds: Hex[] = ['0x1', '0x89', '0xFAFA'];
-
-    it('returns a map of chain IDs to sendBundle support status', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      const result = await getSendBundleSupportedChains(chainIds);
-      expect(result).toEqual({
-        '0x1': true,
-        '0x89': false,
-        '0xFAFA': false,
-      });
-    });
-
-    it('returns false for unsupported chains', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      const result = await getSendBundleSupportedChains(['0xFAFA']);
-      expect(result).toEqual({ '0xFAFA': false });
-    });
-  });
-
-  describe('caching behavior', () => {
-    it('caches network data and reuses it for subsequent calls', async () => {
-      fetchMock.mockResolvedValue({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      await getSentinelNetworkFlags('0x1' as Hex);
-      await getSentinelNetworkFlags('0x89' as Hex);
-      await isSendBundleSupported('0x1' as Hex);
-
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('fetches fresh data after cache is cleared', async () => {
-      fetchMock.mockResolvedValue({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      await getSentinelNetworkFlags('0x1' as Hex);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-
-      clearSentinelNetworkCache();
-
-      await getSentinelNetworkFlags('0x1' as Hex);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('deduplicates concurrent requests into a single fetch', async () => {
-      fetchMock.mockResolvedValue({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      const results = await Promise.all([
-        getSentinelNetworkFlags('0x1' as Hex),
-        getSentinelNetworkFlags('0x89' as Hex),
-        isSendBundleSupported('0x1' as Hex),
-        getSendBundleSupportedChains(['0x1', '0x89']),
-        getSentinelNetworkFlags('0x1' as Hex),
-      ]);
-
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(results[0]).toStrictEqual(MAINNET_BASE);
-      expect(results[1]).toStrictEqual(POLYGON_BASE);
-      expect(results[2]).toBe(true);
-      expect(results[3]).toEqual({ '0x1': true, '0x89': false });
-    });
-
-    it('fetches fresh data after cache TTL expires', async () => {
-      // Spy is restored via jest.restoreAllMocks() in afterEach
-      let mockTime = 1000;
-      jest.spyOn(Date, 'now').mockImplementation(() => mockTime);
-
-      fetchMock.mockResolvedValue({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      // First call - populates cache
-      await getSentinelNetworkFlags('0x1' as Hex);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-
-      // Call within TTL - uses cache
-      mockTime = 1000 + 299_999; // Just under 5 minutes
-      await getSentinelNetworkFlags('0x1' as Hex);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-
-      // Call after TTL expires - fetches fresh
-      mockTime = 1000 + 300_001; // Just over 5 minutes
-      await getSentinelNetworkFlags('0x1' as Hex);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not cache HTTP error responses and allows retry', async () => {
-      // First call returns HTTP error
-      fetchMock.mockResolvedValueOnce({
-        ok: false,
-        status: 503,
-        text: async () => 'Service Unavailable',
-      } as Response);
-
-      // Second call succeeds
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-
-      // First call throws error
-      await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
-        'Sentinel: Failed to fetch network flags: 503',
+      getNetworkMock.mockRejectedValueOnce(
+        new SentinelChainNotSupportedError('0xfafa'),
       );
 
-      // Second call retries and succeeds (error was not cached)
-      const result = await getSentinelNetworkFlags('0x1' as Hex);
-
-      expect(result).toStrictEqual(MAINNET_BASE);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('propagates HTTP error to all concurrent callers without caching', async () => {
-      fetchMock.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        text: async () => 'Internal Server Error',
-      } as Response);
-
-      // All concurrent calls receive the same error
-      const results = await Promise.allSettled([
-        getSentinelNetworkFlags('0x1' as Hex),
-        getSentinelNetworkFlags('0x89' as Hex),
-        isSendBundleSupported('0x1' as Hex),
-      ]);
-
-      expect(results[0]).toEqual({
-        status: 'rejected',
-        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
-      });
-      expect(results[1]).toEqual({
-        status: 'rejected',
-        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
-      });
-      expect(results[2]).toEqual({
-        status: 'rejected',
-        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
-      });
-
-      // Only one fetch was made (concurrent deduplication worked)
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(await getSentinelSigners('0xfafa')).toStrictEqual([]);
     });
   });
 
   describe('isSendBundleSupported', () => {
-    const mainnetHex: Hex = '0x1';
-    const polygonHex: Hex = '0x89';
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('returns true if network supports sendBundle', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-      const result = await isSendBundleSupported(mainnetHex);
-      expect(result).toBe(true);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(await isSendBundleSupported(CHAIN_ID_MAINNET)).toBe(true);
     });
 
     it('returns false if sendBundle is false', async () => {
-      const networksWithFalse = {
-        ...MOCK_NETWORKS,
-        '1': { ...MAINNET_BASE, sendBundle: false },
-      };
-      fetchMock.mockResolvedValueOnce({
-        json: async () => networksWithFalse,
-        ok: true,
-      } as Response);
-      const result = await isSendBundleSupported(mainnetHex);
-      expect(result).toBe(false);
+      getNetworkMock.mockResolvedValueOnce(POLYGON_NETWORK_MOCK);
+
+      expect(await isSendBundleSupported(CHAIN_ID_POLYGON)).toBe(false);
     });
 
-    it('returns false if network is undefined', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => ({}),
-        ok: true,
-      } as Response);
-      const result = await isSendBundleSupported('0xFAFA' as Hex);
-      expect(result).toBe(false);
-    });
-
-    it('returns false if sendBundle is missing', async () => {
-      const networksMissing = { ...MOCK_NETWORKS, '1': { ...MAINNET_BASE } };
-      delete (networksMissing['1'] as unknown as { sendBundle?: boolean })
-        .sendBundle;
-      fetchMock.mockResolvedValueOnce({
-        json: async () => networksMissing,
-        ok: true,
-      } as Response);
-      const result = await isSendBundleSupported(mainnetHex);
-      expect(result).toBe(false);
-    });
-
-    it('returns false for another network where sendBundle is false', async () => {
-      fetchMock.mockResolvedValueOnce({
-        json: async () => MOCK_NETWORKS,
-        ok: true,
-      } as Response);
-      const result = await isSendBundleSupported(polygonHex);
-      expect(result).toBe(false);
-    });
-
-    it('throws if the fetch fails', async () => {
-      const mockError = 'API mock error';
-      fetchMock.mockRejectedValueOnce(new Error(mockError));
-      await expect(isSendBundleSupported(mainnetHex)).rejects.toThrow(
-        mockError,
+    it('returns false if chain not supported', async () => {
+      getNetworkMock.mockRejectedValueOnce(
+        new SentinelChainNotSupportedError('0xFAFA'),
       );
+
+      expect(await isSendBundleSupported('0xFAFA')).toBe(false);
+    });
+  });
+
+  describe('getSendBundleSupportedChains', () => {
+    it('returns a map of chain IDs to sendBundle support status', async () => {
+      const result = await getSendBundleSupportedChains([
+        CHAIN_ID_MAINNET,
+        CHAIN_ID_POLYGON,
+        '0xFAFA',
+      ]);
+
+      expect(getNetworksMock).toHaveBeenCalledTimes(1);
+      expect(result).toStrictEqual({
+        [CHAIN_ID_MAINNET]: true,
+        [CHAIN_ID_POLYGON]: false,
+        '0xFAFA': false,
+      });
+    });
+
+    it('prefixes errors if service throws', async () => {
+      getNetworksMock.mockRejectedValueOnce(new Error('API connection error'));
+
+      await expect(
+        getSendBundleSupportedChains([CHAIN_ID_MAINNET]),
+      ).rejects.toThrow('Sentinel: API connection error');
     });
   });
 });

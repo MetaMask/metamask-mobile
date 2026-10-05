@@ -57,7 +57,10 @@ import {
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response.ts';
 import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock.ts';
 import { POLYMARKET_GEOBLOCK_ELIGIBLE } from '../defaults/polymarket-apis.ts';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map.ts';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -1523,7 +1526,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
 const POLYGON_RELAY_TX_E2E_UUID = 'predict-e2e-withdraw-relay-uuid';
 
 /**
- * Overrides TX Sentinel `/networks` so Polygon (137) advertises transaction relay.
+ * Overrides TX Sentinel `/networks` and `/network` so Polygon (137) advertises transaction relay.
  * Required for Delegation7702PublishHook: default mocks set relayTransactions=false for 137,
  * so submitRelayTransaction cannot run and predict withdraw confirmation fails.
  *
@@ -1543,13 +1546,11 @@ export const POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS = async (
     },
   };
 
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(PRIORITY.HOMEPAGE_POSITIONS_OVERRIDE)
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: withPolygonRelay,
-    }));
+  await mockTxSentinelNetworks(
+    mockServer,
+    withPolygonRelay,
+    PRIORITY.HOMEPAGE_POSITIONS_OVERRIDE,
+  );
 };
 
 /**
