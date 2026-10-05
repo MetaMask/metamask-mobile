@@ -238,18 +238,19 @@ describeForPlatforms('Contacts component views', () => {
     );
     const onDeleteCallback = jest.fn();
 
-    const { findByTestId, getByTestId } = renderContactForm({
-      stateOptions: {
-        addressBook: syncedContactAddressBook,
-      },
-      routeParams: {
-        mode: 'edit',
-        address: SYNCED_CONTACT.address,
-        name: SYNCED_CONTACT.name,
-        chainId: SYNCED_CONTACT.chainId,
-        onDelete: onDeleteCallback,
-      },
-    });
+    const { findByTestId, getByTestId, getByText, queryByTestId } =
+      renderContactForm({
+        stateOptions: {
+          addressBook: syncedContactAddressBook,
+        },
+        routeParams: {
+          mode: 'edit',
+          address: SYNCED_CONTACT.address,
+          name: SYNCED_CONTACT.name,
+          chainId: SYNCED_CONTACT.chainId,
+          onDelete: onDeleteCallback,
+        },
+      });
 
     // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
     fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
@@ -259,20 +260,27 @@ describeForPlatforms('Contacts component views', () => {
     );
     expect(deleteButton).toBeOnTheScreen();
 
+    // The sheet mounts only after Delete. Mounting it with the form opens it
+    // immediately, because the design-system sheet animates in on mount.
+    expect(
+      queryByTestId(AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET),
+    ).toBeNull();
+
     fireEvent.press(deleteButton);
 
-    // Delete opens a confirmation action sheet before calling the controller.
+    // Delete opens a confirmation bottom sheet before calling the controller.
     await waitFor(() => {
       expect(
-        getByTestId(
-          AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
+        getByTestId(AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `${strings('address_book.delete_contact')}: ${SYNCED_CONTACT.name}`,
         ),
       ).toBeOnTheScreen();
     });
     fireEvent.press(
-      getByTestId(
-        AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
-      ),
+      getByTestId(AddContactViewSelectorsIDs.DELETE_CONFIRM_BUTTON),
     );
 
     await waitFor(() => {
