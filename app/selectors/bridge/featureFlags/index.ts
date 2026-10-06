@@ -11,6 +11,7 @@ interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
 interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
+  baseUrl: string;
 }
 
 interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
@@ -54,7 +55,7 @@ export const selectBridgeLimitOrderFeatureFlags =
  * Provides both whether the "Recurring" tab should be shown and which chains
  * its token selectors are restricted to.
  *
- * @returns `{ enabled, enabledChainIds }` for the Recurring Buy feature.
+ * @returns `{ enabled, enabledChainIds, baseUrl }` for the Recurring Buy feature.
  */
 export const selectBridgeRecurringBuyFeatureFlags =
   createBridgeSwapFeatureFlagsSelector<RawBridgeRecurringBuyFeatureFlagValue>(
@@ -85,6 +86,17 @@ export const selectBridgeLimitOrderTabEnabledFlag = createSelector(
  */
 export const selectBridgeLimitOrderBaseUrl = createSelector(
   selectBridgeLimitOrderFeatureFlags,
+  (flags): string | undefined => flags?.baseUrl,
+);
+
+/**
+ * Selector for the base URL of the recurring orders API.
+ *
+ * @returns string - the `baseUrl` of the Recurring Buy feature flag, or
+ * undefined if the flag is missing.
+ */
+export const selectBridgeRecurringBuyBaseUrl = createSelector(
+  selectBridgeRecurringBuyFeatureFlags,
   (flags): string | undefined => flags?.baseUrl,
 );
 
