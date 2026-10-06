@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView, type LayoutChangeEvent } from 'react-native';
 import { fireEvent, render, within } from '@testing-library/react-native';
 
 import {
@@ -10,7 +11,10 @@ import {
   TOKEN_DETAILS_TAB_BAR_STICKY_INDEX,
   resolveSwipeTargetTab,
 } from './TokenDetailsV1';
-import type { TokenDetailsRouteParams } from '../constants/constants';
+import {
+  TokenDetailsVariant,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
 import {
   LIVE_PRICE_HEADER_TEST_ID,
   LIVE_PRICE_SCROLL_THRESHOLD_PX,
@@ -21,6 +25,11 @@ import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.t
 import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
+import {
+  StatBarSelectors,
+  StatExplainerSheetSelectors,
+} from '../components/V1/StatBar/StatBar.testIds';
+import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -131,11 +140,13 @@ jest.mock('../components/TokenDetailsV1TabBar', () => {
     default: ({
       activeTab,
       onTabPress,
+      onLayout,
     }: {
       activeTab: string;
       onTabPress: (tab: string) => void;
+      onLayout?: (event: LayoutChangeEvent) => void;
     }) => (
-      <View testID="mock-tab-bar">
+      <View testID="mock-tab-bar" onLayout={onLayout}>
         {tabs.map((tab) => (
           <Pressable
             key={tab}
@@ -232,7 +243,10 @@ describe('TokenDetailsV1', () => {
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
     const { getByTestId, getByText } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeTruthy();
@@ -241,7 +255,10 @@ describe('TokenDetailsV1', () => {
 
   it('renders the age chip in the header with the mocked token age', () => {
     const { getByTestId, getByText } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     expect(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeOnTheScreen();
@@ -250,7 +267,10 @@ describe('TokenDetailsV1', () => {
 
   it('renders the price hero, tab bar and Overview panel by default', () => {
     const { getByTestId, getByText } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     expect(getByTestId('mock-price')).toBeTruthy();
@@ -262,7 +282,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('wires the Overview panel with the token, asset id and currency', () => {
-    render(<TokenDetailsV1 token={baseToken} />);
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(mockOverviewProps[0]).toStrictEqual(
       expect.objectContaining({
@@ -274,10 +299,16 @@ describe('TokenDetailsV1', () => {
   });
 
   it('docks the tab bar as a sticky ScrollView child', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     // Child 0 = price hero (title + security/social row + chart), child 1 =
-    // action tiles, child 2 = tab bar (sticky), child 3 = tab content stack.
+    // stat bar, child 2 = action tiles, child 3 = tab bar (sticky), child 4 =
+    // tab content stack.
     expect(
       getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
         .stickyHeaderIndices,
@@ -285,7 +316,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders a stacked tab content container where only the active page is laid out', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     // The active page flows at its natural height…
     const overviewPage = getByTestId(
@@ -307,7 +343,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('re-stacks pages when the active tab changes so tabs keep their own heights', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
 
@@ -332,7 +373,10 @@ describe('TokenDetailsV1', () => {
 
   it('mounts tab pages lazily on first activation and keeps them mounted', () => {
     const { getByTestId, queryByTestId } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     // Only the default tab is mounted initially.
@@ -345,7 +389,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders the security & social row inside the price hero slot, with the mocked security verdict', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(
       getByTestId(SecuritySocialSectionSelectors.SECTION),
@@ -366,6 +415,7 @@ describe('TokenDetailsV1', () => {
     const { getByTestId } = render(
       <TokenDetailsV1
         token={{ ...baseToken, securityData: securityDataWithLinks }}
+        variant={TokenDetailsVariant.Memecoin}
       />,
     );
 
@@ -381,14 +431,22 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders no social links for a token without security data', () => {
-    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(queryByTestId(SecuritySocialSectionSelectors.LINK_X)).toBeNull();
   });
 
   it('opens the Security tab when the security pill is pressed', () => {
     const { getByTestId, getByText } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     fireEvent.press(getByTestId(SecurityPillSelectors.VERDICT));
@@ -404,7 +462,12 @@ describe('TokenDetailsV1', () => {
   // content, so these two tests are what keep it out here.
   describe('security explainer sheet', () => {
     const openSecurityTab = () => {
-      const utils = render(<TokenDetailsV1 token={baseToken} />);
+      const utils = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
       fireEvent.press(utils.getByTestId('token-details-v1-tab-security'));
       return utils;
     };
@@ -451,7 +514,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('offers the contract address for copying', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(
       getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
@@ -461,7 +529,10 @@ describe('TokenDetailsV1', () => {
   // A native token's `address` is a placeholder, not something worth copying.
   it('hides the copy chip for a native token', () => {
     const { queryByTestId } = render(
-      <TokenDetailsV1 token={{ ...baseToken, isNative: true }} />,
+      <TokenDetailsV1
+        token={{ ...baseToken, isNative: true }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     expect(
@@ -471,7 +542,10 @@ describe('TokenDetailsV1', () => {
 
   it('switches tab panels and back to the Overview tab', () => {
     const { getByTestId, getByText } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
@@ -488,6 +562,67 @@ describe('TokenDetailsV1', () => {
 
     expect(getByText('feed:true')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+  });
+
+  it('anchors the scroll position to the docked tab bar when switching tabs from a scrolled-down state', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+    const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
+
+    // Simulate tab bar layout at offset Y = 400
+    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+      nativeEvent: { layout: { y: 400 } },
+    });
+
+    // Simulate scrolling down to 800 (past the tab bar at 400)
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 800 } },
+    });
+
+    // Switch to security tab
+    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+    // Should scrollTo the docked tab bar offset (400) without animation to prevent UI jumping
+    expect(scrollToSpy).toHaveBeenCalledWith({
+      y: 400,
+      animated: false,
+    });
+
+    scrollToSpy.mockRestore();
+  });
+
+  it('preserves scroll position when switching tabs before scrolling past the tab bar', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+    const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
+
+    // Simulate tab bar layout at offset Y = 400
+    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+      nativeEvent: { layout: { y: 400 } },
+    });
+
+    // Simulate scrolling to 200 (before tab bar at 400)
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 200 } },
+    });
+
+    // Switch to security tab
+    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+    // Should NOT call scrollTo
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    scrollToSpy.mockRestore();
   });
 
   it('activates the swiped-to tab when a pan settles as a decisive swipe', () => {
@@ -522,7 +657,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     fireEvent.press(getByTestId('mock-back'));
 
@@ -530,7 +670,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('navigates to manage price alerts when the bell is pressed', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     fireEvent.press(getByTestId('mock-price-alert'));
 
@@ -546,14 +691,22 @@ describe('TokenDetailsV1', () => {
   it('hides the price alert action when the chain is not supported', () => {
     mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
 
-    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(queryByTestId('mock-price-alert')).toBeNull();
   });
 
   it('tracks the share event and opens the share sheet', () => {
     const { getByTestId, queryByTestId } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
     expect(queryByTestId('share-token-bottom-sheet')).toBeNull();
 
@@ -564,14 +717,22 @@ describe('TokenDetailsV1', () => {
   });
 
   it('keeps the contract address until the page is scrolled', () => {
-    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
   });
 
   it('replaces the contract address with the live price after scrolling', () => {
     const { getByTestId, queryByTestId } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
@@ -593,7 +754,10 @@ describe('TokenDetailsV1', () => {
     mockCurrentPrice = 0;
 
     const { getByTestId, queryByTestId } = render(
-      <TokenDetailsV1 token={baseToken} />,
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
@@ -603,5 +767,64 @@ describe('TokenDetailsV1', () => {
     });
 
     expect(queryByTestId(LIVE_PRICE_HEADER_TEST_ID)).toBeNull();
+  });
+
+  it('renders the stat bar for the variant it is given', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(getByTestId(StatBarSelectors.BAR)).toBeOnTheScreen();
+    expect(
+      getByTestId(StatBarSelectors.cell(TokenStatKey.MarketCap)),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render a stat explainer until a label is tapped', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+  });
+
+  it('opens the explainer for the stat whose label was tapped', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Holders)));
+
+    // Asserts the copy, not just that a sheet opened: the press has to carry
+    // which stat it was through to the sheet.
+    expect(getByTestId(StatExplainerSheetSelectors.TITLE)).toHaveTextContent(
+      'Holders',
+    );
+    expect(
+      getByTestId(StatExplainerSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent('Number of unique addresses holding this token.');
+  });
+
+  it('dismisses the explainer when the button is pressed', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Tax)));
+    fireEvent.press(getByTestId(StatExplainerSheetSelectors.GOT_IT_BUTTON));
+
+    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
   });
 });

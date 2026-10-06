@@ -52,23 +52,29 @@ import SecuritySocialSection from '../components/V1/SecuritySocialSection/Securi
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
+import StatBar from '../components/V1/StatBar/StatBar';
+import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
+import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
+  useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsRouteParams,
+  type TokenDetailsVariant,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
 import {
   MOCK_SECURITY_FACTS_EVM,
   MOCK_SECURITY_FACTS_SOLANA,
@@ -88,10 +94,10 @@ export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
 /**
  * Direct-child index of the tab bar inside the body ScrollView — registered in
  * `stickyHeaderIndices` so the tab bar docks below the nav header when the
- * price hero (with the security/social row), chart, action tiles and tab
- * content scroll under it.
+ * price hero (with the security/social row), chart, stat bar, action tiles and
+ * tab content scroll under it.
  */
-export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
+export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 3;
 
 /**
  * TODO(ASSETS-4016): replace with the token's real age once the API platform
@@ -166,9 +172,14 @@ export { resolveSwipeTargetTab } from '../components/TokenDetailsV1TabBar';
 
 interface TokenDetailsV1Props {
   token: TokenDetailsRouteParams;
+  /** Asset category this page renders for, which decides the stat bar's stats. */
+  variant: TokenDetailsVariant;
 }
 
-export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
+export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
+  token,
+  variant,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -220,6 +231,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
     prefetchedData: token.securityData,
   });
 
+  const statBarStats = useTokenStatBarStats();
+
+  /** Which stat's explainer is open, or `null` for none. */
+  const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
+
+  const handleStatPress = useCallback((statKey: TokenStatKey) => {
+    setExplainedStat(statKey);
+  }, []);
+
+  const handleExplainerClose = useCallback(() => {
+    setExplainedStat(null);
+  }, []);
+
   const isNativeToken = Boolean(token.isETH || token.isNative);
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
@@ -259,8 +283,27 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      onScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [onScrollOffset],
+  );
+
+  const {
+    scrollViewRef,
+    handleScroll: onScrollViewScroll,
+    handleTabBarLayout,
+    handleScrollViewLayout,
+    tabContentContainerStyle,
+    clampScrollToTabBar,
+  } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
+
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
-    useTokenDetailsV1Tabs();
+    useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
 
   /**
    * Security row whose definition is open, held here rather than inside
@@ -313,16 +356,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
   const handleSecurityExplainerClose = useCallback(
     () => setExplainedSecurityRow(null),
     [],
-  );
-
-  const { description: headerDescription, onScrollOffset } =
-    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
-    },
-    [onScrollOffset],
   );
 
   const currentPriceUsd = useMemo(() => {
@@ -395,10 +428,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <ScrollView
+              ref={scrollViewRef}
               style={styles.scroll}
               contentContainerStyle={styles.scrollContent}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
-              onScroll={handleScroll}
+              onScroll={onScrollViewScroll}
+              onLayout={handleScrollViewLayout}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
@@ -425,6 +460,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
                     onSecurityPress={() => activateTab('security')}
                   />
                 </Box>
+                <Box twClassName="py-4">
+                  <StatBar
+                    variant={variant}
+                    stats={statBarStats}
+                    onStatPress={handleStatPress}
+                  />
+                </Box>
               </Price>
 
               <TokenDetailsActionsSection
@@ -436,11 +478,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
                 onTabPress={activateTab}
+                onLayout={handleTabBarLayout}
               />
 
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
+                  style={tabContentContainerStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
                   {TOKEN_DETAILS_V1_TABS.map((tab) => {
@@ -487,6 +531,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
             currentCurrency={currentCurrency ?? 'usd'}
             securityData={securityData}
             networkName={networkConfigurationByChainId?.name}
+          />
+        )}
+
+        {explainedStat && (
+          <StatExplainerSheet
+            statKey={explainedStat}
+            onClose={handleExplainerClose}
           />
         )}
       </View>
