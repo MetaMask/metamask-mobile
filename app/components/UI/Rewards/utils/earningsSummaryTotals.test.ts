@@ -1,5 +1,8 @@
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
+  creditedBaseUnits,
+  creditedEarnedByOthersLifetime,
+  creditedSelfEarnedLifetime,
   earnedByOthersLifetime,
   selfEarnedLifetime,
 } from './earningsSummaryTotals';
@@ -57,6 +60,35 @@ describe('earningsSummaryTotals', () => {
 
   it('returns null for a family the branch does not carry', () => {
     expect(earnedByOthersLifetime(SUMMARY, 'SOCIAL_FOLLOW_TRADE')).toBeNull();
+  });
+
+  it('removes voided base units from a family lifetime', () => {
+    const summary = {
+      ...SUMMARY,
+      self_earned: {
+        ...SUMMARY.self_earned,
+        by_claim_family: {
+          REFERRAL_TRADE_FEE_CASHBACK: {
+            ...emptyBranch,
+            lifetime: '7650000',
+            voided: '1000000',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    expect(
+      creditedSelfEarnedLifetime(summary, 'REFERRAL_TRADE_FEE_CASHBACK'),
+    ).toBe('6650000');
+    expect(creditedEarnedByOthersLifetime(SUMMARY, 'REFERRAL_REV_SHARE')).toBe(
+      '41750000',
+    );
+  });
+
+  it('floors a void larger than the amount at zero', () => {
+    expect(creditedBaseUnits('1000000', '2500000')).toBe('0');
+    expect(creditedBaseUnits('1000000', '0')).toBe('1000000');
+    expect(creditedBaseUnits(null, '1')).toBeNull();
   });
 
   it('returns null when there is no summary', () => {
