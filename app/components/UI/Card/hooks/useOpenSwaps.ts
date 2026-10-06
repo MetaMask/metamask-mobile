@@ -78,7 +78,10 @@ export const useOpenSwaps = ({
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps(sourceToken, destToken);
+        goToSwaps({
+          sourceTokenOverride: sourceToken,
+          destTokenOverride: destToken,
+        });
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties(

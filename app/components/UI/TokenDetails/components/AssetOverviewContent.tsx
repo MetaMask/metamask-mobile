@@ -322,14 +322,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
     onExitAction?.();
 
-    goToSwaps(
-      undefined,
-      undefined,
-      undefined,
-      true,
-      undefined,
-      mostRecentOrderType,
-    );
+    goToSwaps({ scrollToTopOnNav: true, initialTab: mostRecentOrderType });
   }, [mostRecentOrderType, onExitAction, goToSwaps]);
 
   const renderWarning = () => (

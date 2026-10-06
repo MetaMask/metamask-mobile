@@ -372,13 +372,7 @@ function TradeWalletActions() {
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
-      goToSwapsBase(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        ActionLocation.NAVBAR,
-      );
+      goToSwapsBase({ swapButtonClickLocationOverride: ActionLocation.NAVBAR });
     };
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);

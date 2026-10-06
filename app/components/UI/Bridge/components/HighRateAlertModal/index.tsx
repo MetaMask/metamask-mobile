@@ -38,7 +38,10 @@ export function HighRateAlertModal() {
 
   const handleSwapInstead = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      goToSwaps(sourceToken, destToken);
+      goToSwaps({
+        sourceTokenOverride: sourceToken,
+        destTokenOverride: destToken,
+      });
     });
   }, [destToken, goToSwaps, sourceToken]);
 

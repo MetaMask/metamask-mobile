@@ -352,7 +352,10 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
           })
           .build(),
       );
-      goToSwaps(openPositionSourceToken, destToken);
+      goToSwaps({
+        sourceTokenOverride: openPositionSourceToken,
+        destTokenOverride: destToken,
+      });
     },
     [
       mode,
@@ -521,7 +524,10 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
                     })
                     .build(),
                 );
-                goToSwaps(openPositionSourceToken, afterHoursPendingToken);
+                goToSwaps({
+                  sourceTokenOverride: openPositionSourceToken,
+                  destTokenOverride: afterHoursPendingToken,
+                });
               }
               setAfterHoursPendingToken(null);
             }}

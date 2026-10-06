@@ -205,7 +205,9 @@ export function RecurringSwapAgainButton({
   const handleSwapAgain = useCallback(() => {
     setSelectedTab(BridgeTabKey.Market);
     setRenderedTab(BridgeTabKey.Market);
-    goToSwaps(undefined, undefined, undefined, true);
+    goToSwaps({
+      scrollToTopOnNav: true,
+    });
   }, [setRenderedTab, setSelectedTab, goToSwaps]);
 
   return (
