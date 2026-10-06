@@ -15,6 +15,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { StyleSheet, View } from 'react-native';
@@ -185,12 +186,18 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
           testID={ContactsViewSelectorIDs.EMPTY_STATE}
         >
           <Icon name={IconName.Bookmark} size={IconSize.Xl} />
-          <Text variant={TextVariant.HeadingSm}>
-            {strings('address_book.no_contacts')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
-            {strings('address_book.no_contacts_desc')}
-          </Text>
+          <Box twClassName="items-center gap-2">
+            <Text variant={TextVariant.HeadingSm}>
+              {strings('address_book.no_contacts')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('address_book.no_contacts_desc')}
+            </Text>
+          </Box>
         </Box>
       )}
       <View style={styles.addContact}>
