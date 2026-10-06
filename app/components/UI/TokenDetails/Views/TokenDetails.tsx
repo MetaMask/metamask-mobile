@@ -931,10 +931,8 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const token = route.params as TokenDetailsRouteParams;
   const variant = useTokenDetailsVariant(token);
 
-  // `variant` is only a discriminator today. It becomes a prop on TokenDetailsV1
-  // once a section's copy or layout actually varies by asset category.
   return variant ? (
-    <TokenDetailsV1 token={token} />
+    <TokenDetailsV1 token={token} variant={variant} />
   ) : (
     <TokenDetailsLegacy token={token} />
   );
