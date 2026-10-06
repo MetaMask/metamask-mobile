@@ -8,6 +8,7 @@ import {
   formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
+  humanBalanceToUsd,
   getRequiredBalance,
   getTokenAddress,
   getTokenTransferData,
@@ -1107,6 +1108,24 @@ describe('Transaction Pay Utils', () => {
 
     it('returns the input unchanged when it is not a parseable number', () => {
       expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
+    });
+  });
+
+  describe('humanBalanceToUsd', () => {
+    it('multiplies the human balance by the USD rate', () => {
+      expect(humanBalanceToUsd('10', 1.5)).toBe('15');
+    });
+
+    it('returns 0 when the USD rate is missing', () => {
+      expect(humanBalanceToUsd('10', undefined)).toBe('0');
+    });
+
+    it('returns 0 when the balance is missing', () => {
+      expect(humanBalanceToUsd(undefined, 1.5)).toBe('0');
+    });
+
+    it('returns 0 when the balance is not a number', () => {
+      expect(humanBalanceToUsd('abc', 1.5)).toBe('0');
     });
   });
 });

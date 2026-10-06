@@ -375,6 +375,31 @@ export function getTotalPayFeesUsd(
 }
 
 /**
+ * Converts a human token balance into USD.
+ *
+ * `fiat.balance` on confirmation assets stays in the user's preferred
+ * currency. Pay-with rows that label the amount with `$` must use this
+ * instead, so a non-USD wallet does not show that amount under a dollar sign.
+ * Returns `'0'` when the balance or USD rate is missing.
+ */
+export function humanBalanceToUsd(
+  humanBalance: string | undefined,
+  usdRate: number | undefined,
+): string {
+  if (humanBalance === undefined || usdRate === undefined) {
+    return '0';
+  }
+
+  const balance = new BigNumber(humanBalance);
+
+  if (!balance.isFinite()) {
+    return '0';
+  }
+
+  return balance.multipliedBy(usdRate).toString(10);
+}
+
+/**
  * Truncates a fiat amount to two decimals for rendering and for the keypad
  * buffer, since the stored amount carries full precision so that Max spends
  * the entire balance.

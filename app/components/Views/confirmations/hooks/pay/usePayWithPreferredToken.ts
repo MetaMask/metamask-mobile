@@ -7,8 +7,14 @@ import {
 } from './useAutomaticTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
+import {
+  humanBalanceToUsd,
+  isMatchingPayToken,
+} from '../../utils/transaction-pay';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
+import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
+
+const ZERO_ADDRESS = '0x0' as Hex;
 
 export interface PayWithPreferredToken {
   address: Hex;
@@ -35,6 +41,11 @@ export function usePayWithPreferredToken({
   const { payToken } = useTransactionPayToken();
   const { availableTokens, hasTokens } = useTransactionPayAvailableTokens();
   const { balanceUsd: liveBalanceUsd } = usePayTokenAccountBalance();
+  const usdRate = useTokenFiatRate(
+    (automaticToken?.address ?? ZERO_ADDRESS) as Hex,
+    (automaticToken?.chainId ?? ZERO_ADDRESS) as Hex,
+    'usd',
+  );
 
   const preferredTokenCandidate = useMemo(() => {
     if (!automaticToken) {
@@ -62,11 +73,11 @@ export function usePayWithPreferredToken({
 
     return {
       address: availableToken.address as Hex,
-      balanceUsd: `${availableToken.fiat?.balance ?? 0}`,
+      balanceUsd: humanBalanceToUsd(availableToken.balance, usdRate),
       chainId: availableToken.chainId as Hex,
       symbol: availableToken.symbol,
     };
-  }, [automaticToken, availableTokens, liveBalanceUsd, payToken]);
+  }, [automaticToken, availableTokens, liveBalanceUsd, payToken, usdRate]);
 
   return useMemo(
     () => ({

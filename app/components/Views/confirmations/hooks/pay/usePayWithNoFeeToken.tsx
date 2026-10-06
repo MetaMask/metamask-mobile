@@ -15,11 +15,15 @@ import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChain
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { humanBalanceToUsd } from '../../utils/transaction-pay';
+import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { AssetType } from '../../types/token';
 import { NoFeeTag } from '../../components/UI/no-fee-tag';
 import { TokenTagRenderer } from '../../components/UI/token';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+
+const ZERO_ADDRESS = '0x0' as Hex;
 
 export interface NoFeeTokenResult {
   address: Hex;
@@ -111,7 +115,7 @@ export function usePayWithNoFeeToken({
     [matchesNoFee],
   );
 
-  const noFeeToken = useMemo(() => {
+  const noFeeMatch = useMemo(() => {
     const eligible = availableTokens.filter(
       (token: AssetType) =>
         !token.disabled && matchesNoFee(token.address, token.chainId),
@@ -121,7 +125,7 @@ export function usePayWithNoFeeToken({
       (a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0),
     );
 
-    const match = sorted.find((token) => {
+    return sorted.find((token) => {
       if (!excludeToken) return true;
 
       return !(
@@ -129,16 +133,24 @@ export function usePayWithNoFeeToken({
         token.chainId?.toLowerCase() === excludeToken.chainId.toLowerCase()
       );
     });
+  }, [availableTokens, excludeToken, matchesNoFee]);
 
-    if (!match?.chainId) return undefined;
+  const usdRate = useTokenFiatRate(
+    (noFeeMatch?.address ?? ZERO_ADDRESS) as Hex,
+    (noFeeMatch?.chainId ?? ZERO_ADDRESS) as Hex,
+    'usd',
+  );
+
+  const noFeeToken = useMemo(() => {
+    if (!noFeeMatch?.chainId) return undefined;
 
     return {
-      address: match.address as Hex,
-      balanceUsd: `${match.fiat?.balance ?? 0}`,
-      chainId: match.chainId as Hex,
-      symbol: match.symbol,
+      address: noFeeMatch.address as Hex,
+      balanceUsd: humanBalanceToUsd(noFeeMatch.balance, usdRate),
+      chainId: noFeeMatch.chainId as Hex,
+      symbol: noFeeMatch.symbol,
     };
-  }, [availableTokens, excludeToken, matchesNoFee]);
+  }, [noFeeMatch, usdRate]);
 
   const renderNoFeeTag: TokenTagRenderer = useCallback(
     (token: AssetType) => {
