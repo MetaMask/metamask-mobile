@@ -5,7 +5,7 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from './analytics';
-import { chainNameToId } from '../../Views/SocialLeaderboard/utils/chainMapping';
+import { chainNameToId } from '../SocialFeed/utils/chainMapping';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {

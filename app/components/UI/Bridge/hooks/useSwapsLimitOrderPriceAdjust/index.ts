@@ -248,8 +248,6 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
     marketFiat: quotedFiatRate,
-    executionType,
-    threshold: 0,
   });
   const isTriggerPriceNearMarket =
     hasUserEditedLimitPrice &&
