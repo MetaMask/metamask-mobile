@@ -1978,7 +1978,7 @@ describe('BridgeTokenSelector', () => {
       expect(getByTestId('token-USDC')).toBeTruthy();
     });
 
-    it('keeps Arc native USDC in watchlist tokens', async () => {
+    it('keeps Arc native USDC and filters its ERC20 duplicate from watchlist tokens', async () => {
       mockIsWatchlistEnabled = true;
       mockBridgeFeatureFlags.chainRanking = [
         ...(mockBridgeFeatureFlags.chainRanking ?? []),
@@ -1991,6 +1991,17 @@ describe('BridgeTokenSelector', () => {
             name: 'USDC',
             symbol: 'USDC',
             decimals: 18,
+            balance: '1',
+            balanceFiat: 1,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+          {
+            assetId:
+              'eip155:5042/erc20:0x3600000000000000000000000000000000000000',
+            name: 'USDC',
+            symbol: 'USDC',
+            decimals: 6,
             balance: '1',
             balanceFiat: 1,
             fiatCurrency: 'usd',
@@ -2010,12 +2021,14 @@ describe('BridgeTokenSelector', () => {
         isLoading: false,
       });
 
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      const { getAllByTestId, getByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
 
       fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
 
       await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
-      expect(getByTestId('token-USDC')).toBeTruthy();
+      expect(getAllByTestId('token-USDC')).toHaveLength(1);
     });
 
     it('keeps full watchlist list for queries below minimum length', async () => {

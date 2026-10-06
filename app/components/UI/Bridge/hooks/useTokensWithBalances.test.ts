@@ -245,9 +245,16 @@ describe('useTokensWithBalances', () => {
       name: 'USDC',
       decimals: 18,
     });
+    const arcErc20Usdc = createMockPopularToken({
+      assetId:
+        'eip155:5042/erc20:0x3600000000000000000000000000000000000000' as CaipAssetType,
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 6,
+    });
 
     const { result } = renderHook(() =>
-      useTokensWithBalances([arcNativeToken], {}),
+      useTokensWithBalances([arcNativeToken, arcErc20Usdc], {}),
     );
 
     expect(result.current).toHaveLength(1);

@@ -3,6 +3,7 @@ import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 import { convertAPITokensToBridgeTokens } from '../utils/tokenUtils';
 import { mergeBridgeTokensWithBalances } from '../utils/mergeBridgeTokensWithBalances';
+import { isArcUsdcErc20AssetId } from '../../../../enablement/assets/arc';
 
 /**
  * Merges API tokens with balance data from the selector
@@ -17,5 +18,8 @@ export const useTokensWithBalances = (
   useMemo(() => {
     const convertedTokens = convertAPITokensToBridgeTokens(apiTokens);
 
-    return mergeBridgeTokensWithBalances(convertedTokens, balancesByAssetId);
+    return mergeBridgeTokensWithBalances(
+      convertedTokens,
+      balancesByAssetId,
+    ).filter((token) => !isArcUsdcErc20AssetId(token.assetId));
   }, [apiTokens, balancesByAssetId]);

@@ -2,7 +2,9 @@ import { type AssetsControllerState } from '@metamask/assets-controller';
 import {
   ARC_HEX_CHAIN_ID,
   ARC_USDC_ERC20_ADDRESS,
+  ARC_USDC_ERC20_ASSET_ID,
   augmentArcExcludedAssets,
+  isArcUsdcErc20AssetId,
   isArcUsdcForBridge,
 } from './arc';
 import type { BridgeToken } from '../../components/UI/Bridge/types';
@@ -69,6 +71,20 @@ describe('isArcUsdcForBridge', () => {
     };
 
     const result = isArcUsdcForBridge(token);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('isArcUsdcErc20AssetId', () => {
+  it('returns true for the Arc ERC20 USDC asset id case-insensitively', () => {
+    const result = isArcUsdcErc20AssetId(ARC_USDC_ERC20_ASSET_ID.toUpperCase());
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for Arc native USDC', () => {
+    const result = isArcUsdcErc20AssetId('eip155:5042/slip44:5042');
 
     expect(result).toBe(false);
   });

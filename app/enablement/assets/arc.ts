@@ -8,6 +8,8 @@ export const ARC_HEX_CHAIN_ID: Hex = '0x13b2';
 export const ARC_CAIP_CHAIN_ID = 'eip155:5042';
 export const ARC_USDC_ERC20_ADDRESS =
   '0x3600000000000000000000000000000000000000';
+export const ARC_USDC_ERC20_ASSET_ID =
+  `${ARC_CAIP_CHAIN_ID}/erc20:${ARC_USDC_ERC20_ADDRESS}`.toLowerCase();
 
 /**
  * CAIP-19 ERC-20 asset ids that duplicate native gas tokens. Stripped on the
@@ -16,7 +18,7 @@ export const ARC_USDC_ERC20_ADDRESS =
  * and is included here until enablement is split further.
  */
 const EXCLUDED_UNIFIED_BALANCE_ASSET_IDS = new Set([
-  `${ARC_CAIP_CHAIN_ID}/erc20:${ARC_USDC_ERC20_ADDRESS.toLowerCase()}`,
+  ARC_USDC_ERC20_ASSET_ID,
   `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS.toLowerCase()}`,
 ]);
 
@@ -46,6 +48,18 @@ export function augmentArcExcludedAssets(
       ),
     ),
   };
+}
+
+/**
+ * Checks whether an asset id is the Arc ERC-20 representation of native USDC.
+ * This representation is tracked by the assets controller but hidden from
+ * token lists to avoid displaying the shared balance twice.
+ *
+ * @param assetId - CAIP-19 asset id to inspect.
+ * @returns Whether the asset is Arc ERC-20 USDC.
+ */
+export function isArcUsdcErc20AssetId(assetId?: string) {
+  return assetId?.toLowerCase() === ARC_USDC_ERC20_ASSET_ID;
 }
 
 /**
