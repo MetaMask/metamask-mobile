@@ -1,6 +1,8 @@
 import React from 'react';
-import { Image, Linking, StyleSheet } from 'react-native';
+import { Image, Linking, StyleSheet, View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
+import { useStyles } from '../../../../../component-library/hooks';
+import customAmountStyleSheet from '../../../../Views/confirmations/components/transactions/custom-amount/custom-amount.styles';
 import {
   BottomSheetHeader,
   Box,
@@ -17,7 +19,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import MoneyIcon from '../../../../../images/money.png';
-import { CustomAmount } from '../../../../Views/confirmations/components/transactions/custom-amount';
 import InfoRow from '../../../../Views/confirmations/components/UI/info-row';
 import { InfoRowVariant } from '../../../../Views/confirmations/components/UI/info-row/info-row';
 import { moneyFormatUsd } from '../../../../UI/Money/utils/moneyFormatFiat';
@@ -86,13 +87,23 @@ function Header({ onClose }: { onClose: () => void }) {
 }
 
 function AmountSection({ monthlyAmount }: { monthlyAmount: string }) {
+  const formattedAmount = moneyFormatUsd(new BigNumber(monthlyAmount || '0'));
+  const { styles: amountStyles } = useStyles(customAmountStyleSheet, {
+    amountLength: formattedAmount.length,
+    hasAlert: false,
+    disabled: false,
+  });
+
   return (
     <Box twClassName="items-center gap-1 pt-10 pb-12">
-      <CustomAmount
-        amountFiat={monthlyAmount}
-        currency="usd"
-        showCursor={false}
-      />
+      <View style={amountStyles.container}>
+        <Text
+          testID={ConfirmMembershipApprovalTestIds.AMOUNT}
+          style={amountStyles.input}
+        >
+          {formattedAmount}
+        </Text>
+      </View>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}

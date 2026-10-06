@@ -71,10 +71,12 @@ describe('ConfirmMembershipContent', () => {
     expect(getByText(strings('confirm_membership.title'))).toBeOnTheScreen();
   });
 
-  it('renders the monthly amount', () => {
-    const { getByText } = renderComponent({ monthlyAmount: '9.99' });
+  it('renders the monthly amount with the same USD formatting as the total and disclaimer', () => {
+    const { getByTestId } = renderComponent({ monthlyAmount: '9.99' });
 
-    expect(getByText('9.99')).toBeOnTheScreen();
+    expect(
+      getByTestId(ConfirmMembershipApprovalTestIds.AMOUNT),
+    ).toHaveTextContent('$9.99');
   });
 
   it('renders the plan name', () => {
@@ -88,6 +90,7 @@ describe('ConfirmMembershipContent', () => {
   it('renders the money account balance in the From row', () => {
     const { getByTestId } = renderComponent();
 
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalled();
     expect(
       getByTestId(ConfirmMembershipApprovalTestIds.FROM_ROW),
     ).toHaveTextContent('$1,000.00', { exact: false });

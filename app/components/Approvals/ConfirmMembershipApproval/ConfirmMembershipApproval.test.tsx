@@ -78,6 +78,7 @@ describe('ConfirmMembershipApproval', () => {
 
     const { getByTestId } = renderComponent();
 
+    expect(useApprovalRequest).toHaveBeenCalled();
     expect(
       getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
