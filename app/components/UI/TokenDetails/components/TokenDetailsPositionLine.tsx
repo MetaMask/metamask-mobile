@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
-  computeUnrealizedPnl,
   convertUsdToFiat,
   formatFiat,
   useTraderPosition,
@@ -18,11 +22,7 @@ import {
   useUsdToFiatRate,
   type TraderPosition,
 } from '../../SocialFeed/TraderPositionPnl';
-import {
-  EM_DASH,
-  formatHoldDuration,
-  formatPercent,
-} from '../../SocialFeed/utils/formatters';
+import { EM_DASH, formatHoldDuration } from '../../SocialFeed/utils/formatters';
 import { tradeTimestampToMs } from '../../SocialFeed/utils/tradeTimestamp';
 
 export const TOKEN_DETAILS_POSITION_LINE_TEST_ID =
@@ -66,8 +66,9 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => (
 );
 
 /**
- * Position line above the sticky footer buttons.
- * Value always. PnL only when the endpoint has a spot position.
+ * Sticky position block above the footer buttons.
+ * "Your position" is always shown. Unrealised PnL is the second row when a
+ * spot position exists.
  */
 const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
   positionId,
@@ -87,21 +88,16 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
       ? EM_DASH
       : formatFiat(value.amount, value.currency).replace(/^\+/, '');
 
-  const unrealized = position == null ? null : computeUnrealizedPnl(position);
-  const totalUsd =
-    position == null || unrealized?.usd == null
-      ? null
-      : position.realizedPnl + unrealized.usd;
-  const total =
-    totalUsd == null ? null : convertUsdToFiat(totalUsd, currency, rate);
-  const totalPercent =
-    totalUsd == null || position == null || position.boughtUsd <= 0
-      ? null
-      : (totalUsd / position.boughtUsd) * 100;
-
-  const showPnl = pnl.hasPosition && total != null;
-  const pnlColor =
-    (totalUsd ?? 0) > 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+  const showPnl = pnl.hasPosition && pnl.valueFormatted != null;
+  const pnlColor = pnl.valueFormatted?.startsWith('-')
+    ? TextColor.ErrorDefault
+    : pnl.isProfit
+      ? TextColor.SuccessDefault
+      : TextColor.TextDefault;
+  const unrealisedLabel =
+    pnl.percentFormatted == null
+      ? pnl.valueFormatted
+      : `${pnl.valueFormatted} (${pnl.percentFormatted})`;
 
   const averageCostUsd =
     position != null && position.positionAmount > 0
@@ -118,7 +114,7 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
   const held = position == null ? null : holdTimeMs(position, Date.now());
 
   return (
-    <Box twClassName="mb-3">
+    <Box twClassName="mb-3 gap-1">
       <Pressable
         testID={TOKEN_DETAILS_POSITION_LINE_TEST_ID}
         accessibilityRole="button"
@@ -130,21 +126,46 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('asset_overview.position_pnl.value')}
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('asset_overview.position_pnl.your_position')}
           </Text>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {valueLabel}
-          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              {valueLabel}
+            </Text>
+            {showPnl && (
+              <Icon
+                name={expanded ? IconName.ArrowUp : IconName.ArrowDown}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            )}
+          </Box>
         </Box>
-        {showPnl && total != null && (
-          <Text variant={TextVariant.BodySm} color={pnlColor}>
-            {`${strings('asset_overview.position_pnl.pnl')} ${formatFiat(total.amount, total.currency)}${
-              totalPercent == null ? '' : ` (${formatPercent(totalPercent)})`
-            }`}
-          </Text>
+        {showPnl && unrealisedLabel != null && (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="mt-1"
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('asset_overview.position_pnl.unrealised')}
+            </Text>
+            <Text variant={TextVariant.BodySm} color={pnlColor}>
+              {unrealisedLabel}
+            </Text>
+          </Box>
         )}
         {pnl.isLoading && (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>

@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import TokenDetailsPositionLine from './TokenDetailsPositionLine';
 import {
-  computeUnrealizedPnl,
   convertUsdToFiat,
   useTraderPosition,
   useUnrealizedPnl,
@@ -14,7 +13,6 @@ jest.mock('../../SocialFeed/TraderPositionPnl', () => ({
   useUnrealizedPnl: jest.fn(),
   useTraderPosition: jest.fn(),
   useUsdToFiatRate: jest.fn(),
-  computeUnrealizedPnl: jest.fn(),
   convertUsdToFiat: jest.fn(),
   formatFiat: jest.fn((amount: number) =>
     amount < 0 ? `-$${Math.abs(amount).toFixed(2)}` : `+$${amount.toFixed(2)}`,
@@ -29,9 +27,6 @@ const mockUseTraderPosition = useTraderPosition as jest.MockedFunction<
 >;
 const mockUseUsdToFiatRate = useUsdToFiatRate as jest.MockedFunction<
   typeof useUsdToFiatRate
->;
-const mockComputeUnrealizedPnl = computeUnrealizedPnl as jest.MockedFunction<
-  typeof computeUnrealizedPnl
 >;
 
 const position = {
@@ -89,13 +84,12 @@ describe('TokenDetailsPositionLine', () => {
       <TokenDetailsPositionLine balanceFiatUsd={50} />,
     );
 
-    expect(getByText('Value')).toBeTruthy();
+    expect(getByText('Your position')).toBeTruthy();
     expect(getByText('$50.00')).toBeTruthy();
-    expect(queryByText(/PnL/)).toBeNull();
+    expect(queryByText('Unrealised PNL')).toBeNull();
   });
 
-  it('shows total PnL and expands realized and unrealized rows', () => {
-    mockComputeUnrealizedPnl.mockReturnValue({ usd: 50, percent: 50 });
+  it('shows unrealised PnL and expands the position details', () => {
     mockUseTraderPosition.mockReturnValue({
       position,
       isLoading: false,
@@ -117,7 +111,8 @@ describe('TokenDetailsPositionLine', () => {
       <TokenDetailsPositionLine positionId="pos-1" balanceFiatUsd={50} />,
     );
 
-    expect(getByText(/PnL/)).toBeTruthy();
+    expect(getByText('Unrealised PNL')).toBeTruthy();
+    expect(getByText('+$50.00 (+50.00%)')).toBeTruthy();
 
     fireEvent.press(getByTestId('token-details-position-line'));
 

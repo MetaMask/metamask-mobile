@@ -5668,8 +5668,8 @@
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
     "position_pnl": {
-      "value": "Value",
-      "pnl": "PnL",
+      "your_position": "Your position",
+      "unrealised": "Unrealised PNL",
       "average_cost": "Average cost",
       "realized": "Realized",
       "unrealized": "Unrealized",
