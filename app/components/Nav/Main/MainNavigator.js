@@ -1024,7 +1024,7 @@ const MainNavigator = () => {
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
         <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.ROOT}
+          name={Routes.SOCIAL_PROFILE.DRAWER}
           component={ProfileDrawer}
           options={slideFromLeftNativeOptions}
         />

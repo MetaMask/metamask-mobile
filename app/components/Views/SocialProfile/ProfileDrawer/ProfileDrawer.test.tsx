@@ -97,8 +97,7 @@ describe('ProfileDrawer', () => {
 
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON));
 
-    // `useQRScanner` supplies the scan handler that routes results to
-    // private-key import, seed refusal, or the deeplink parser.
+    // The handler comes from `useQRScanner`.
     expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
       onScanSuccess: expect.any(Function),
     });
@@ -153,8 +152,7 @@ describe('ProfileDrawer', () => {
 
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.SETTINGS_ROW));
 
-    // SettingsFlow's initial route is the accounts menu, so the nested screen
-    // has to be named explicitly.
+    // SettingsFlow opens on the accounts menu, so the nested screen is named.
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.ROOT,
     });

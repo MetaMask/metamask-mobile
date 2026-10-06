@@ -10,20 +10,15 @@ import {
 } from '@metamask/design-system-react-native';
 
 interface ProfileDrawerMenuRowProps {
-  /** Leading icon for the row. */
   iconName: IconName;
-  /** Row label, e.g. "Notifications". */
   label: string;
-  /** When greater than zero, renders a count badge before the chevron. */
+  /** Renders a count badge before the chevron when greater than zero. */
   badgeCount?: number;
   onPress: () => void;
   testID?: string;
 }
 
-/**
- * A single tappable row in the Side profile menu: leading icon, label, an
- * optional count badge, and a trailing chevron.
- */
+/** A tappable drawer row: leading icon, label, optional badge, chevron. */
 const ProfileDrawerMenuRow = ({
   iconName,
   label,

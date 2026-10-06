@@ -36,9 +36,8 @@ const ProfileDrawer = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { openQRScanner } = useQRScanner();
 
-  // The list is populated even while notifications are switched off, so the
-  // badge is gated on the feature flag and the user's own setting — matching
-  // AccountsMenu. Resolves to 0 (no badge) in every other case.
+  // The list stays populated while notifications are off, so gate the badge on
+  // the feature flag and the user's setting, as AccountsMenu does.
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -59,8 +58,7 @@ const ProfileDrawer = () => {
   }, [navigation]);
 
   const handleSettings = useCallback(() => {
-    // SettingsFlow opens on the accounts menu, so target the settings list
-    // explicitly rather than relying on the flow's initial route.
+    // SettingsFlow opens on the accounts menu, so name the nested screen.
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.ROOT,
     });
@@ -73,11 +71,9 @@ const ProfileDrawer = () => {
     });
   }, [navigation]);
 
-  // TODO: wire the create-profile header and the remaining rows to their
-  // destinations once those screens exist.
-  const handlePress = useCallback(() => {
-    // Intentional no-op.
-  }, []);
+  // TODO: wire the create-profile header, Subscriptions and Help and support
+  // once those screens exist.
+  const handlePress = useCallback(() => undefined, []);
 
   const menuItems: {
     iconName: IconName;
@@ -125,8 +121,8 @@ const ProfileDrawer = () => {
     >
       <HeaderBase
         includesTopInset
-        // HeaderBase has no horizontal padding of its own, which would leave the
-        // filled buttons flush against the screen edge.
+        // HeaderBase has no horizontal padding, so the buttons would sit flush
+        // against the screen edge.
         twClassName="px-4"
         testID={ProfileDrawerSelectorsIDs.HEADER}
         startButtonIconProps={{

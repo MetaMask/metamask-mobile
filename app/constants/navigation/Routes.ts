@@ -556,7 +556,7 @@ const Routes = {
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
   SOCIAL_PROFILE: {
-    ROOT: 'SocialProfile',
+    DRAWER: 'ProfileDrawer',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
