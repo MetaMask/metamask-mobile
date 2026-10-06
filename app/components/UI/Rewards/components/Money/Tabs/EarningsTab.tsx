@@ -461,7 +461,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const last7 = useLast7DaysEarnings(profileId);
   const historyList = useEarningsHistory(profileId);
   const inFlight = useInFlightClaims(profileId);
-  const { claim, isClaiming } = useClaimEarnings(profileId, {
+  const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
     persona,
     onOpened: () => {
       inFlight.refresh().catch(() => undefined);
@@ -523,7 +523,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
               canClaim={claimEnabled}
-              isClaiming={isClaiming}
+              isClaiming={isClaiming || isClaimWaiting}
               onClaim={
                 summary.data
                   ? () => {
