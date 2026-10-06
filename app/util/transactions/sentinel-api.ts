@@ -92,6 +92,7 @@ export interface SentinelNetwork {
   confirmations: boolean;
   smartTransactions: boolean;
   relayTransactions: boolean;
+  simulationIncludeFees?: boolean;
   hidden: boolean;
   sendBundle: boolean;
 }

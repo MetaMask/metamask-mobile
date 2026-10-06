@@ -2,8 +2,14 @@ import { useSelector } from 'react-redux';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
-import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  formatChainIdToHex,
+  isNativeAddress,
+  isNonEvmChainId,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
+import { useIsNativeGasIncludedSupported } from '../useIsNativeGasIncludedSupported';
 
 export const useShouldRenderMaxOption = (
   token?: BridgeToken,
@@ -16,6 +22,11 @@ export const useShouldRenderMaxOption = (
   const tokenAddress = useTokenAddress(token);
   const isNativeAsset = isNativeAddress(tokenAddress);
   const isZeroDisplayBalance = new BigNumber(displayBalance || 0).eq(0);
+  const nativeEvmChainId =
+    token?.chainId && isNativeAsset && !isNonEvmChainId(token.chainId)
+      ? formatChainIdToHex(token.chainId)
+      : undefined;
+  const nativeGasIncluded = useIsNativeGasIncludedSupported(nativeEvmChainId);
 
   // Do not render on zero balance or undefined token
   if (isZeroDisplayBalance || !token) {
@@ -31,5 +42,5 @@ export const useShouldRenderMaxOption = (
     return false;
   }
 
-  return gasIncluded || gasIncluded7702;
+  return gasIncluded || gasIncluded7702 || nativeGasIncluded;
 };

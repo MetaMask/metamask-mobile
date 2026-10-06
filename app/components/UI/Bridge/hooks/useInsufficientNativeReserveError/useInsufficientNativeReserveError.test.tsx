@@ -234,7 +234,7 @@ describe('useInsufficientNativeReserveError', () => {
     expect(result.current).toStrictEqual(undefined);
   });
 
-  it('returns a reserve error for Arc native USDC when the source amount leaves less than the reserve', () => {
+  it('returns no reserve error for the full Arc native USDC balance while the fixed reserve is disabled', () => {
     mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
     const { result } = renderHookWithWrapper(() =>
       useInsufficientNativeReserveError({
@@ -245,10 +245,7 @@ describe('useInsufficientNativeReserveError', () => {
       }),
     );
 
-    expect(result.current).toStrictEqual({
-      maxSwappableNativeBalance: '9.95',
-      minimumNativeBalanceToBeKeptInAccount: '0.05',
-    });
+    expect(result.current).toBeUndefined();
   });
 
   it('returns no reserve error for Arc native USDC when the source amount keeps the reserve', () => {
@@ -265,7 +262,7 @@ describe('useInsufficientNativeReserveError', () => {
     expect(result.current).toStrictEqual(undefined);
   });
 
-  it('keeps reserve handling for legacy Arc ERC20 USDC', () => {
+  it('returns no reserve error for legacy Arc ERC20 USDC while the fixed reserve is disabled', () => {
     mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
 
     const { result } = renderHookWithWrapper(() =>
@@ -277,10 +274,7 @@ describe('useInsufficientNativeReserveError', () => {
       }),
     );
 
-    expect(result.current).toStrictEqual({
-      maxSwappableNativeBalance: '9.95',
-      minimumNativeBalanceToBeKeptInAccount: '0.05',
-    });
+    expect(result.current).toBeUndefined();
   });
 
   it('returns a insufficientNativeReserveError when BTC amount goes beyond reserve', () => {
