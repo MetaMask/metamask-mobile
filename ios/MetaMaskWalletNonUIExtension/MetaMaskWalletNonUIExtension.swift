@@ -8,7 +8,7 @@ private let log = Logger(subsystem: "io.metamask.MetaMask", category: "WalletExt
 class MetaMaskWalletNonUIExtension: PKIssuerProvisioningExtensionHandler {
     override func status(completion: @escaping (PKIssuerProvisioningExtensionStatus) -> Void) {
         let status = PKIssuerProvisioningExtensionStatus()
-        let snapshot = SnapshotStore.read(defaults: appGroupDefaults())
+        let snapshot = readSnapshot()
         let installed = InstalledPasses.load()
         let phone = snapshot.map {
             ProvisioningLogic.cardsAvailable(cards: $0.cards, installed: installed.phone)
@@ -57,8 +57,13 @@ class MetaMaskWalletNonUIExtension: PKIssuerProvisioningExtensionHandler {
     }
 }
 
-private func appGroupDefaults() -> UserDefaults {
-    UserDefaults(suiteName: AppGroupLocator.identifier) ?? .standard
+private func provisioningDirectory() -> URL? {
+    AppGroupLocator.containerURL()
+}
+
+private func readSnapshot() -> ProvisioningSnapshot? {
+    guard let directory = provisioningDirectory() else { return nil }
+    return SnapshotStore.read(directory: directory, defaults: UserDefaults(suiteName: AppGroupLocator.identifier))
 }
 
 enum InstalledPasses {
@@ -81,14 +86,19 @@ enum InstalledPasses {
 
 enum WalletExtensionPasses {
     static func entries(remote: Bool) async -> [PKIssuerProvisioningExtensionPassEntry] {
-        guard var snapshot = SnapshotStore.read(defaults: appGroupDefaults()) else { return [] }
+        let deadline = Date().addingTimeInterval(18)
+        guard let directory = provisioningDirectory() else { return [] }
+        guard var snapshot = SnapshotStore.read(
+            directory: directory,
+            defaults: UserDefaults(suiteName: AppGroupLocator.identifier)
+        ) else { return [] }
         guard await FlagsClient.isEnabled(snapshot: snapshot) else { return [] }
-        if let tokens = await SessionRefresh.usableTokens(snapshot: snapshot),
+        if let tokens = await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline),
            let base = URL(string: snapshot.apiBaseUrl) {
             let live = try? await liveCards(snapshot: snapshot, tokens: tokens, base: base)
             if let live, !live.isEmpty {
                 snapshot.cards = live
-                try? SnapshotStore.write(snapshot, defaults: appGroupDefaults())
+                try? SnapshotStore.write(snapshot, directory: directory)
             }
         }
         let installed = InstalledPasses.load()
@@ -114,10 +124,11 @@ enum WalletExtensionPasses {
         nonce: Data,
         nonceSignature: Data
     ) async -> PKAddPaymentPassRequest? {
-        guard let snapshot = SnapshotStore.read(defaults: appGroupDefaults()) else { return nil }
+        let deadline = Date().addingTimeInterval(18)
+        guard let snapshot = readSnapshot() else { return nil }
         guard await FlagsClient.isEnabled(snapshot: snapshot) else { return nil }
-        guard let card = snapshot.cards.first(where: { $0.entryId == identifier }) else { return nil }
-        guard let tokens = await SessionRefresh.usableTokens(snapshot: snapshot) else { return nil }
+        guard let card = ProvisioningLogic.card(matching: identifier, in: snapshot.cards) else { return nil }
+        guard let tokens = await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) else { return nil }
         guard let base = URL(string: snapshot.apiBaseUrl) else { return nil }
         let http = ProviderHTTP()
         do {

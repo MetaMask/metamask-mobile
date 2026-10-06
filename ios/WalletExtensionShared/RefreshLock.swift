@@ -5,15 +5,15 @@ enum RefreshLockError: Error {
     case unavailable
 }
 
-final class AppGroupRefreshLock {
+public final class AppGroupRefreshLock {
     private let fileURL: URL
     private var fd: Int32 = -1
 
-    init(directory: URL) {
+    public init(directory: URL) {
         self.fileURL = directory.appendingPathComponent("card-refresh.lock")
     }
 
-    func acquire(timeout: TimeInterval) -> Bool {
+    public func acquire(timeout: TimeInterval) -> Bool {
         if fd >= 0 { return true }
         let path = fileURL.path
         let opened = open(path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
@@ -38,7 +38,7 @@ final class AppGroupRefreshLock {
         }
     }
 
-    func release() {
+    public func release() {
         guard fd >= 0 else { return }
         var lock = flock()
         lock.l_type = Int16(F_UNLCK)

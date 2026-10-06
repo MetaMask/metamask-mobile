@@ -30,6 +30,11 @@
 	</array>
 	<key>com.apple.developer.payment-pass-provisioning</key>
 	<true/>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<string>$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER).card</string>
+	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.io.metamask.MetaMask</string>

@@ -71,6 +71,7 @@ final class AuthorizationModel: ObservableObject {
     @Published var statusMessage = ""
     private var loginSession: BaanxLoginSession?
     private var snapshot: ProvisioningSnapshot?
+    private var attempts = 0
 
     var biometricTitle: String {
         let context = LAContext()
@@ -95,11 +96,26 @@ final class AuthorizationModel: ObservableObject {
     }
 
     func submitCredentials() {
-        guard let snapshot, let clientKey = snapshot.baanxClientKey, let base = URL(string: snapshot.apiBaseUrl) else {
+        guard attempts < 5 else {
+            clearSecrets()
             phase = .error
             return
         }
+        attempts += 1
+        guard
+            let snapshot,
+            let clientKey = snapshot.baanxClientKey,
+            let base = URL(string: snapshot.apiBaseUrl),
+            ProviderHosts.isAllowed(base)
+        else {
+            clearSecrets()
+            phase = .error
+            return
+        }
+        let submittedEmail = email
+        let submittedPassword = password
         let otp = phase == .baanxCode ? code : nil
+        clearSecrets()
         phase = .checking
         Task {
             do {
@@ -115,8 +131,8 @@ final class AuthorizationModel: ObservableObject {
                 }
                 let done = try await BaanxLoginClient.submit(
                     session: &session,
-                    email: email,
-                    password: password,
+                    email: submittedEmail,
+                    password: submittedPassword,
                     otpCode: otp,
                     baseURL: base,
                     clientKey: clientKey,
@@ -131,12 +147,31 @@ final class AuthorizationModel: ObservableObject {
                     return
                 }
                 let tokens = try await BaanxLoginClient.exchange(session: session, baseURL: base, clientKey: clientKey, http: ProviderHTTP(timeout: 15))
-                try CardTokenKeychain.save(providerId: "baanx", tokens: tokens, password: ContainingAppFoxCode.read())
+                guard let password = ContainingAppFoxCode.read() else {
+                    await MainActor.run { phase = .error }
+                    return
+                }
+                guard let directory = AppGroupLocator.containerURL() else {
+                    await MainActor.run { phase = .error }
+                    return
+                }
+                let refreshLock = AppGroupRefreshLock(directory: directory)
+                guard refreshLock.acquire(timeout: 4) else {
+                    await MainActor.run { phase = .error }
+                    return
+                }
+                defer { refreshLock.release() }
+                try CardTokenKeychain.save(providerId: "baanx", tokens: tokens, password: password)
                 await MainActor.run { finishAuthorized() }
             } catch {
                 await MainActor.run { phase = .error }
             }
         }
+    }
+
+    func clearSecrets() {
+        password = ""
+        code = ""
     }
 
     private func authenticateAndRefresh() async {
@@ -156,7 +191,15 @@ final class AuthorizationModel: ObservableObject {
             await MainActor.run { phase = .verificationFailed }
             return
         }
-        guard let snapshot = SnapshotStore.read(defaults: UserDefaults(suiteName: AppGroupLocator.identifier) ?? .standard) else {
+        guard let directory = AppGroupLocator.containerURL() else {
+            await MainActor.run { phase = .unavailable }
+            return
+        }
+        let deadline = Date().addingTimeInterval(18)
+        guard let snapshot = SnapshotStore.read(
+            directory: directory,
+            defaults: UserDefaults(suiteName: AppGroupLocator.identifier)
+        ) else {
             await MainActor.run { phase = .unavailable }
             return
         }
@@ -165,7 +208,7 @@ final class AuthorizationModel: ObservableObject {
             await MainActor.run { phase = .unavailable }
             return
         }
-        if await SessionRefresh.usableTokens(snapshot: snapshot) != nil {
+        if await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) != nil {
             await MainActor.run { finishAuthorized() }
             return
         }
@@ -175,6 +218,7 @@ final class AuthorizationModel: ObservableObject {
     }
 
     private func finishAuthorized() {
+        clearSecrets()
         phase = .checking
         NotificationCenter.default.post(name: .walletExtensionAuthorized, object: nil)
     }
@@ -221,7 +265,7 @@ struct AuthorizationView: View {
                 .font(WalletFont.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(WalletColor.text)
-            primaryButton("Close") { onFinish(.canceled) }
+            primaryButton("Close") { cancel() }
         case .baanxCredentials:
             Text("Sign in to MetaMask Card")
                 .font(WalletFont.title)
@@ -230,33 +274,33 @@ struct AuthorizationView: View {
             SecureField("Password", text: $model.password)
                 .textFieldStyle(.roundedBorder)
             primaryButton("Continue") { model.submitCredentials() }
-            secondaryButton("Close") { onFinish(.canceled) }
+            secondaryButton("Close") { cancel() }
         case .baanxCode:
             Text("Enter the code we sent you")
                 .font(WalletFont.title)
                 .foregroundStyle(WalletColor.text)
             field("Code", text: $model.code)
             primaryButton("Continue") { model.submitCredentials() }
-            secondaryButton("Close") { onFinish(.canceled) }
+            secondaryButton("Close") { cancel() }
         case .unavailable:
             Text("There's no card available to add right now.")
                 .font(WalletFont.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(WalletColor.text)
-            primaryButton("Close") { onFinish(.canceled) }
+            primaryButton("Close") { cancel() }
         case .error:
             Text("Something went wrong.")
                 .font(WalletFont.body)
                 .foregroundStyle(WalletColor.error)
             primaryButton("Try again") { model.retry() }
-            secondaryButton("Close") { onFinish(.canceled) }
+            secondaryButton("Close") { cancel() }
         case .verificationFailed:
             Text("Verification failed or was canceled.")
                 .font(WalletFont.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(WalletColor.text)
             primaryButton("Try again") { model.retry() }
-            secondaryButton("Close") { onFinish(.canceled) }
+            secondaryButton("Close") { cancel() }
         }
     }
 
@@ -268,6 +312,11 @@ struct AuthorizationView: View {
                 Image(uiImage: image).resizable().frame(width: 72, height: 72)
             }
         }
+    }
+
+    private func cancel() {
+        model.clearSecrets()
+        onFinish(.canceled)
     }
 
     private func field(_ title: String, text: Binding<String>) -> some View {

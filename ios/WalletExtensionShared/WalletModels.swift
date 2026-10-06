@@ -25,11 +25,9 @@ struct SnapshotCard: Codable, Equatable {
     var cardId: String
     var lastFour: String
     var cardholderName: String
-    var network: String
     var primaryAccountIdentifier: String?
     var title: String
     var localizedDescription: String
-    var artKey: String
 }
 
 struct FlagsEndpoint: Codable, Equatable {
@@ -100,8 +98,27 @@ enum CardTokenKeychainLayout {
     static let appGroupSuffix = "io.metamask.MetaMask"
     static let teamPrefix = "48XVW22RCG"
 
-    static func accessGroup(teamPrefix: String = CardTokenKeychainLayout.teamPrefix) -> String {
-        "\(teamPrefix).\(appGroupSuffix)"
+    static func accessGroup() -> String {
+        cardAccessGroup()
+    }
+
+    static func cardAccessGroup(prefix: String? = nil) -> String {
+        normalized(prefix) + "io.metamask.MetaMask.card"
+    }
+
+    static func defaultAccessGroup(prefix: String? = nil, bundleIdentifier: String? = nil) -> String {
+        let identifier = bundleIdentifier ?? Bundle.main.bundleIdentifier ?? appGroupSuffix
+        return normalized(prefix) + identifier
+    }
+
+    private static func normalized(_ prefix: String?) -> String {
+        let value = prefix
+            ?? (Bundle.main.object(forInfoDictionaryKey: "AppIdentifierPrefix") as? String)
+            ?? "\(teamPrefix)."
+        if value.isEmpty {
+            return "\(teamPrefix)."
+        }
+        return value.hasSuffix(".") ? value : value + "."
     }
 
     static func service(providerId: String) -> String {

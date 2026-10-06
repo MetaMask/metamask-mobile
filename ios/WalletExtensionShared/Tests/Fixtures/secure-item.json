@@ -1,0 +1,5 @@
+{
+  "password": "fixture-fox-code",
+  "plaintext": "{\"password\":\"{\\\"accessToken\\\":\\\"test\\\",\\\"accessTokenExpiresAt\\\":1,\\\"location\\\":\\\"us\\\"}\"}",
+  "payload": "{\"cipher\":\"KOzM2+tHmR3EhaCjbV6wLe4KGCIHP499m2bDqao6QTa8T1FTpMRZHkhr8+VG46mj2cBTvWwvg/vj2XvFk35a/3yVH84CcmHGbNpcu/OslCT7MKB4oWYTLWKB7X67ZOTk\",\"iv\":\"c8f3cc223a43ce3a95828e2126fbf000\",\"salt\":\"ZKlini1tgpXB9vMQbFO/jA==\",\"keyMetadata\":{\"algorithm\":\"PBKDF2\",\"params\":{\"iterations\":5000}},\"lib\":\"original\"}"
+}

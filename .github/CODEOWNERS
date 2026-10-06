@@ -87,6 +87,11 @@ app/core/redux/slices/card/                                @MetaMask/card
 app/core/Engine/controllers/card-controller                @MetaMask/card
 app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
 app/selectors/cardController.ts                            @MetaMask/card
+ios/WalletExtensionShared/                                 @MetaMask/card
+ios/MetaMaskWalletNonUIExtension/                          @MetaMask/card
+ios/MetaMaskWalletUIExtension/                             @MetaMask/card
+ios/CardWalletExtensionStore.swift                         @MetaMask/card
+ios/CardWalletExtensionStore.m                             @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                              @MetaMask/confirmations

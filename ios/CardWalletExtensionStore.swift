@@ -8,6 +8,13 @@ class CardWalletExtensionStore: NSObject {
         false
     }
 
+    @objc func constantsToExport() -> [AnyHashable: Any] {
+        [
+            "cardKeychainAccessGroup": CardTokenKeychainLayout.cardAccessGroup(),
+            "defaultKeychainAccessGroup": CardTokenKeychainLayout.defaultAccessGroup(),
+        ]
+    }
+
     @objc func writeSnapshot(
         _ json: String,
         resolver: @escaping RCTPromiseResolveBlock,
@@ -18,12 +25,16 @@ class CardWalletExtensionStore: NSObject {
             return
         }
         do {
-            let snapshot = try JSONDecoder().decode(ProvisioningSnapshot.self, from: data)
-            guard let defaults = UserDefaults(suiteName: AppGroupLocator.identifier) else {
+            let decoded = try JSONDecoder().decode(ProvisioningSnapshot.self, from: data)
+            guard let snapshot = decoded.validated() else {
+                rejecter("invalid_snapshot", "Snapshot could not be stored", nil)
+                return
+            }
+            guard let directory = AppGroupLocator.containerURL() else {
                 rejecter("app_group", "App Group defaults are unavailable", nil)
                 return
             }
-            try SnapshotStore.write(snapshot, defaults: defaults)
+            try SnapshotStore.write(snapshot, directory: directory)
             resolver(nil)
         } catch {
             rejecter("invalid_snapshot", "Snapshot could not be stored", error)
@@ -34,11 +45,14 @@ class CardWalletExtensionStore: NSObject {
         _ resolver: @escaping RCTPromiseResolveBlock,
         rejecter: @escaping RCTPromiseRejectBlock
     ) {
-        guard let defaults = UserDefaults(suiteName: AppGroupLocator.identifier) else {
+        guard let directory = AppGroupLocator.containerURL() else {
             resolver(nil)
             return
         }
-        SnapshotStore.clear(defaults: defaults)
+        SnapshotStore.clear(
+            directory: directory,
+            defaults: UserDefaults(suiteName: AppGroupLocator.identifier)
+        )
         resolver(nil)
     }
 
@@ -48,7 +62,7 @@ class CardWalletExtensionStore: NSObject {
         rejecter: @escaping RCTPromiseRejectBlock
     ) {
         guard let directory = AppGroupLocator.containerURL() else {
-            resolver(true)
+            resolver(false)
             return
         }
         let lock = AppGroupRefreshLock(directory: directory)

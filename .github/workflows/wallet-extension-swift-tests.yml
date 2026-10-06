@@ -1,0 +1,50 @@
+name: Wallet extension Swift tests
+
+on:
+  pull_request:
+    paths:
+      - 'ios/WalletExtensionShared/**'
+      - 'ios/MetaMaskWalletNonUIExtension/**'
+      - 'ios/MetaMaskWalletUIExtension/**'
+      - 'ios/CardWalletExtensionStore.swift'
+      - 'ios/CardWalletExtensionStore.m'
+      - 'ios/Podfile'
+      - '.github/workflows/wallet-extension-swift-tests.yml'
+  push:
+    branches:
+      - main
+      - 'release/*'
+    paths:
+      - 'ios/WalletExtensionShared/**'
+      - 'ios/MetaMaskWalletNonUIExtension/**'
+      - 'ios/MetaMaskWalletUIExtension/**'
+      - 'ios/CardWalletExtensionStore.swift'
+      - 'ios/CardWalletExtensionStore.m'
+      - 'ios/Podfile'
+      - '.github/workflows/wallet-extension-swift-tests.yml'
+
+jobs:
+  swift-test:
+    name: Swift tests
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Reject extension pods and interpolated logs
+        run: |
+          if grep -E "target 'MetaMaskWallet" ios/Podfile; then
+            echo "Wallet extensions must not be CocoaPods targets"
+            exit 1
+          fi
+          if grep -REn --include='*.swift' '\.(debug|info|notice|warning|error|fault|critical|log)\([^)]*\\\(' \
+            ios/WalletExtensionShared \
+            ios/MetaMaskWalletNonUIExtension \
+            ios/MetaMaskWalletUIExtension \
+            ios/CardWalletExtensionStore.swift; then
+            echo "Logger calls must not interpolate values"
+            exit 1
+          fi
+
+      - name: Run Swift tests
+        run: swift test --package-path ios/WalletExtensionShared

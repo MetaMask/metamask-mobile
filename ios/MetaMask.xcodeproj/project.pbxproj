@@ -256,12 +256,42 @@
 			);
 			target = 1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */;
 		};
+		WEXT0001306C5001007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.build,
+				Package.swift,
+				Tests,
+				lock-holder,
+			);
+			target = 13B07F861A680F5B00A75B9A /* MetaMask */;
+		};
+		WEXT0002306C5001007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.build,
+				Package.swift,
+				Tests,
+				lock-holder,
+			);
+			target = 1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */;
+		};
+		WEXT0003306C5001007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.build,
+				Package.swift,
+				Tests,
+				lock-holder,
+			);
+			target = 1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1590C36B306C3FDC007E71BA /* MetaMaskWalletUIExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1590C37A306C3FDC007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MetaMaskWalletUIExtension; sourceTree = "<group>"; };
 		1590C383306C4019007E71BA /* MetaMaskWalletNonUIExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1590C38E306C4019007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MetaMaskWalletNonUIExtension; sourceTree = "<group>"; };
-		A1B2C3D4306C5001007E71BA /* WalletExtensionShared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (); explicitFileTypes = {}; explicitFolders = (); path = WalletExtensionShared; sourceTree = "<group>"; };
+		A1B2C3D4306C5001007E71BA /* WalletExtensionShared */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (WEXT0001306C5001007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, WEXT0002306C5001007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, WEXT0003306C5001007E71BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = WalletExtensionShared; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */

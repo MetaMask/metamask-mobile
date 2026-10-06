@@ -4,7 +4,7 @@
 <dict>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)io.metamask.MetaMask</string>
+		<string>$(AppIdentifierPrefix)io.metamask.MetaMask.card</string>
 	</array>
 	<key>com.apple.developer.pass-type-identifiers</key>
 	<array/>

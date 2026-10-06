@@ -30,6 +30,10 @@ enum ProvisioningLogic {
         return tokens.sessionIdentity == expected
     }
 
+    static func card(matching identifier: String, in cards: [SnapshotCard]) -> SnapshotCard? {
+        cards.first { $0.entryId == identifier }
+    }
+
     static func flagEnabled(
         payload: Any?,
         fallback: Bool,
@@ -69,14 +73,19 @@ enum AppGroupLocator {
 }
 
 enum ContainingAppFoxCode {
-    static func read(bundle: Bundle = .main) -> String {
+    static let containingAppIdentifier = "io.metamask.MetaMask"
+
+    static func read(bundle: Bundle = .main) -> String? {
         let container = bundle.bundleURL
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-        if let app = Bundle(url: container) {
-            return FoxCodeReader.value(in: app.infoDictionary)
+        guard
+            let app = Bundle(url: container),
+            app.bundleIdentifier == containingAppIdentifier
+        else {
+            return nil
         }
-        return FoxCodeReader.value(in: bundle.infoDictionary)
+        return FoxCodeReader.value(in: app.infoDictionary)
     }
 }
 

@@ -1,0 +1,5 @@
+{
+  "password" : "fixture-fox-code",
+  "payload" : "{\"salt\":\"CgFG4GyA\\\/gomyt9Gxp4Xew==\",\"lib\":\"original\",\"keyMetadata\":{\"params\":{\"iterations\":5000},\"algorithm\":\"PBKDF2\"},\"iv\":\"34659203878b23a49a53a738442d842e\",\"cipher\":\"xTRBmeG7MTpkAMIyKJCbphovapqkC9p5krluVqjoN3b+GTrzB3UkFzfIf2IMvHj4cpL82+wWMCIcbIOdv47rDCaigGhNumkNoHVL6aQHpzt576pM+4fdZ0n9tdEw12R+cOpIxBwaMub+EcMxSfrSd10D3Y9S2cszZqmS8kpgqyFsMmJ2VEZNYJmetyV1Vq5Hq3zVC5arhsy2LgEYyJwlsg==\"}",
+  "plaintext" : "{\"password\":\"{\\\"accessToken\\\":\\\"from-swift\\\",\\\"accessTokenExpiresAt\\\":1,\\\"location\\\":\\\"us\\\",\\\"providerUserId\\\":\\\"user-1\\\",\\\"refreshToken\\\":\\\"refresh\\\"}\"}"
+}

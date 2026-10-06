@@ -1,3 +1,4 @@
+import { NativeModules } from 'react-native';
 import { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { CardController, defaultCardControllerState } from './CardController';
@@ -39,6 +40,13 @@ import type { ImmersveProviderConfig } from './services/immersve-config';
 import Logger from '../../../../util/Logger';
 
 jest.mock('./CardTokenStore');
+
+beforeEach(() => {
+  NativeModules.CardWalletExtensionStore = {
+    acquireRefreshLock: jest.fn().mockResolvedValue(true),
+    releaseRefreshLock: jest.fn().mockResolvedValue(undefined),
+  };
+});
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
 // Only the sink is mocked, so the real `AnalyticsEventBuilder` still runs.

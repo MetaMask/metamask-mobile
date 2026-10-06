@@ -8,9 +8,14 @@ enum SessionRefresh {
         snapshot: ProvisioningSnapshot,
         store: CardTokenStoring = KeychainCardTokenStore(),
         http: ProviderHTTP = ProviderHTTP(),
-        password: String = ContainingAppFoxCode.read(),
-        lockDirectory: URL? = AppGroupLocator.containerURL()
+        password: String? = ContainingAppFoxCode.read(),
+        lockDirectory: URL? = AppGroupLocator.containerURL(),
+        deadline: Date = Date().addingTimeInterval(18)
     ) async -> CardTokenSet? {
+        guard let password else {
+            sessionLog.error("Card session unreadable")
+            return nil
+        }
         guard var tokens = try? store.load(providerId: snapshot.providerId, password: password) else {
             sessionLog.error("Card session unreadable")
             return nil
@@ -21,7 +26,8 @@ enum SessionRefresh {
         guard ProvisioningLogic.shouldRefreshAccessToken(tokens) else { return tokens }
         guard let directory = lockDirectory else { return nil }
         let lock = AppGroupRefreshLock(directory: directory)
-        guard lock.acquire(timeout: 10) else {
+        let lockWait = min(4, deadline.timeIntervalSinceNow)
+        guard lockWait > 0, lock.acquire(timeout: lockWait) else {
             sessionLog.error("Refresh lock timed out")
             return nil
         }
@@ -35,7 +41,8 @@ enum SessionRefresh {
             return nil
         }
         tokens = current
-        guard let base = URL(string: snapshot.apiBaseUrl) else { return nil }
+        guard let base = URL(string: snapshot.apiBaseUrl), ProviderHosts.isAllowed(base) else { return nil }
+        guard deadline.timeIntervalSinceNow >= http.timeout else { return nil }
         do {
             let refreshed = try await refresh(snapshot: snapshot, tokens: tokens, base: base, http: http)
             try store.save(providerId: snapshot.providerId, tokens: refreshed, password: password)

@@ -3,11 +3,9 @@ export interface CardWalletExtensionSnapshotCard {
   cardId: string;
   lastFour: string;
   cardholderName: string;
-  network: 'MASTERCARD';
   primaryAccountIdentifier?: string;
   title: string;
   localizedDescription: string;
-  artKey: string;
 }
 
 export interface CardWalletExtensionSnapshot {
@@ -119,11 +117,9 @@ export function decideCardWalletExtensionSnapshot(
           cardId: card.id,
           lastFour,
           cardholderName,
-          network: 'MASTERCARD',
           primaryAccountIdentifier,
           title: 'MetaMask Card',
           localizedDescription: `MetaMask Card ending in ${lastFour}`,
-          artKey: 'metamask-card',
         },
       ],
     },

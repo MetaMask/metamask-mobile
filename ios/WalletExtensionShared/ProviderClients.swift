@@ -9,7 +9,7 @@ struct ProvisioningPayload: Equatable {
     var ephemeralPublicKey: String
 }
 
-enum ProviderClientError: Error {
+enum ProviderClientError: Error, Equatable {
     case http(Int)
     case invalidResponse
     case timeout
@@ -120,7 +120,9 @@ enum BaanxClient {
         clientKey: String,
         http: ProviderHTTP
     ) async throws -> ProvisioningPayload {
-        guard certificates.count >= 2 else { throw ProviderClientError.invalidResponse }
+        guard certificates.count >= 2, !nonce.isEmpty, !nonceSignature.isEmpty else {
+            throw ProviderClientError.invalidResponse
+        }
         let body: [String: String] = [
             "leafCertificate": certificates[0].hexEncodedString(),
             "intermediateCertificate": certificates[1].hexEncodedString(),
@@ -232,6 +234,9 @@ enum ImmersveClient {
         baseURL: URL,
         http: ProviderHTTP
     ) async throws -> ProvisioningPayload {
+        guard certificates.count >= 2, !nonce.isEmpty, !nonceSignature.isEmpty else {
+            throw ProviderClientError.invalidResponse
+        }
         let chain = Data(certificates.flatMap { [UInt8]($0) }).base64EncodedString()
         let body: [String: String] = [
             "certChain": chain,
@@ -255,9 +260,9 @@ enum ImmersveClient {
 enum FlagsClient {
     static func isEnabled(
         snapshot: ProvisioningSnapshot,
-        http: ProviderHTTP = ProviderHTTP()
+        http: ProviderHTTP = ProviderHTTP(timeout: 3)
     ) async -> Bool {
-        guard let url = URL(string: snapshot.flagsEndpoint.url) else {
+        guard let url = flagsURL(from: snapshot.flagsEndpoint.url) else {
             return snapshot.flagEnabled
         }
         do {
@@ -271,6 +276,15 @@ enum FlagsClient {
         } catch {
             return snapshot.flagEnabled
         }
+    }
+
+    private static func flagsURL(from snapshotURL: String) -> URL? {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = ProviderHosts.flagsHost
+        components.path = "/v1/flags"
+        components.queryItems = URLComponents(string: snapshotURL)?.queryItems
+        return components.url
     }
 }
 
@@ -286,11 +300,9 @@ func makeSnapshotCard(
         cardId: cardId,
         lastFour: lastFour,
         cardholderName: name,
-        network: "MASTERCARD",
         primaryAccountIdentifier: providerIsBaanx ? nil : identifier,
         title: "MetaMask Card",
-        localizedDescription: "MetaMask Card ending in \(lastFour)",
-        artKey: "metamask-card"
+        localizedDescription: "MetaMask Card ending in \(lastFour)"
     )
 }
 

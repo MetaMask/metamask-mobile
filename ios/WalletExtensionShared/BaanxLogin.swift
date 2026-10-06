@@ -10,13 +10,24 @@ struct BaanxLoginSession {
     var loginAccessToken: String?
 }
 
+enum PKCERandom {
+    static var bytes: (Int) throws -> [UInt8] = { count in
+        var buffer = [UInt8](repeating: 0, count: count)
+        let status = SecRandomCopyBytes(kSecRandomDefault, count, &buffer)
+        guard status == errSecSuccess else {
+            throw ProviderClientError.invalidResponse
+        }
+        return buffer
+    }
+}
+
 enum BaanxLoginClient {
     static let redirectURI = "https://example.com"
 
     static func start(baseURL: URL, clientKey: String, http: ProviderHTTP) async throws -> BaanxLoginSession {
-        let verifier = randomPKCE(length: 64)
+        let verifier = try randomURLSafe(count: 32)
         let challenge = codeChallenge(verifier)
-        let state = randomPKCE(length: 32)
+        let state = try randomURLSafe(count: 16)
         var components = URLComponents(url: joined(baseURL, "v1/auth/oauth/authorize/initiate"), resolvingAgainstBaseURL: false)
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: clientKey),
@@ -152,11 +163,11 @@ enum BaanxLoginClient {
         )
     }
 
-    private static func randomPKCE(length: Int) -> String {
-        let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
-        var bytes = [UInt8](repeating: 0, count: length)
-        _ = SecRandomCopyBytes(kSecRandomDefault, length, &bytes)
-        return String(bytes.map { alphabet[Int($0) % alphabet.count] })
+    static func randomURLSafe(count: Int) throws -> String {
+        Data(try PKCERandom.bytes(count)).base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 
     private static func codeChallenge(_ verifier: String) -> String {

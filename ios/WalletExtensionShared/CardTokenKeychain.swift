@@ -68,6 +68,9 @@ enum CardTokenKeychain {
             throw CardTokenStoreError.encodingFailed
         }
         let previous = try readPayload(providerId: providerId, accessGroup: accessGroup)
+        guard allowsWrite(existingCiphertext: previous, password: password) else {
+            throw CardTokenStoreError.verifyFailed
+        }
         let payload = try Encryptor().encrypt(plaintext: wrapped, password: password)
         let verified = try Encryptor().decrypt(payloadJSON: payload, password: password)
         guard SecureItemCodec.decodeTokens(plaintext: verified)?.accessToken == tokens.accessToken else {
@@ -85,6 +88,17 @@ enum CardTokenKeychain {
             }
             throw error
         }
+    }
+
+    static func allowsWrite(existingCiphertext: String?, password: String) -> Bool {
+        guard let existingCiphertext else { return true }
+        guard
+            let plain = try? Encryptor().decrypt(payloadJSON: existingCiphertext, password: password),
+            SecureItemCodec.decodeTokens(plaintext: plain) != nil
+        else {
+            return false
+        }
+        return true
     }
 
     private static func query(providerId: String, accessGroup: String) -> [String: Any] {

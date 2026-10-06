@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 export interface CardRefreshLock {
   acquire: (timeoutMs: number) => Promise<boolean>;
@@ -24,7 +24,7 @@ export function createNativeCardRefreshLock(): CardRefreshLock {
   return {
     async acquire(timeoutMs: number) {
       const acquire = nativeModule()?.acquireRefreshLock;
-      if (!acquire) return true;
+      if (!acquire) return Platform.OS !== 'ios';
       return acquire(timeoutMs);
     },
     async release() {
