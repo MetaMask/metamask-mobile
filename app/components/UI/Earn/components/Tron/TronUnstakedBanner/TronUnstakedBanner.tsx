@@ -2,11 +2,9 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../../component-library/components/Banners/Banner';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Text,
   Button,
   ButtonVariant,
@@ -36,10 +34,9 @@ const TronUnstakedBanner = ({ amount, chainId }: TronUnstakedBannerProps) => {
   }, [errors]);
 
   return (
-    <Banner
+    <BannerAlert
       title={strings('stake.tron.unstaked_banner.title', { amount })}
       severity={BannerAlertSeverity.Success}
-      variant={BannerVariant.Alert}
       description={
         <>
           <Text
