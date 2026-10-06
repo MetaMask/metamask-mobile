@@ -2516,7 +2516,8 @@
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance",
-      "exceeds_available": "Amount exceeds available margin"
+      "exceeds_available": "Amount exceeds available margin",
+      "no_removable_margin": "No margin can be removed right now. This position needs its current margin to stay open."
     },
     "tpsl": {
       "title": "Auto close",
@@ -2753,7 +2754,9 @@
       "margin": {
         "add_success": "Added ${{amount}} margin to {{asset}} position",
         "remove_success": "Removed ${{amount}} margin from {{asset}} position",
-        "adjustment_failed": "Margin adjustment failed"
+        "adjustment_failed": "Margin adjustment failed",
+        "remove_amount_changed_title": "Removable margin changed",
+        "remove_amount_changed": "Your position moved. You can now remove up to ${{amount}}. Check the amount and try again."
       }
     },
     "markets": {
@@ -3407,6 +3410,13 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "search": {
+      "placeholder": "Search markets",
+      "idle": "Search by team, topic, or market question.",
+      "empty": "No markets found for \"{{query}}\".",
+      "error": "Search couldn’t complete.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "title": "Portfolio",
       "positions": "Positions",
@@ -5678,6 +5688,7 @@
       "all": "All"
     },
     "chart_time_period_navigation": {
+      "1h": "1H",
       "1d": "1D",
       "7d": "7D",
       "1w": "1W",
@@ -8364,7 +8375,7 @@
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon."
+      "maintenance_message": "{{experienceName}} is down for maintenance and will be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
