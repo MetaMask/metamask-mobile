@@ -917,6 +917,30 @@ describe('SignUp Component', () => {
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 
+    // Unit fallback: SignUp has no *.view.test.tsx; this file already renders
+    // the screen with mocked hooks/selectors. Locks the shared description key.
+    it('uses the provider-agnostic sign-up description for Immersve countries', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByTestId, queryByText } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('onboarding-step-description')).toHaveTextContent(
+        'card.card_onboarding.sign_up.description',
+      );
+      expect(
+        queryByText('card.card_onboarding.sign_up.description_immersve'),
+      ).not.toBeOnTheScreen();
+    });
+
     const enableImmersve = () => {
       const { selectCardImmersveEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',

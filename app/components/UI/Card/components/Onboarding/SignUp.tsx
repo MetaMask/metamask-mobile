@@ -945,11 +945,7 @@ const SignUp = () => {
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.sign_up.title')}
-      description={strings(
-        isImmersveCountry
-          ? 'card.card_onboarding.sign_up.description_immersve'
-          : 'card.card_onboarding.sign_up.description',
-      )}
+      description={strings('card.card_onboarding.sign_up.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
       headerMode="back"
