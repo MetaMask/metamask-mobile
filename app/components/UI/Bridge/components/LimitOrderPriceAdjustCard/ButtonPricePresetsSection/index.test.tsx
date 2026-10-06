@@ -1,9 +1,11 @@
 import React from 'react';
+import { TextInput } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { LimitOrderExecutionType } from '../../../constants/limitOrders';
 import { ButtonPricePresetsSection } from './index';
+import type { ButtonPricePresetsSectionRef } from './types';
 import {
   getLimitOrderPercentPresetTestId,
   LimitOrderPriceAdjustPresetsSelectorsIDs,
@@ -125,6 +127,62 @@ describe('ButtonPricePresetsSection', () => {
     );
 
     expect(onCustomInputPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('focuses the custom input as soon as custom mode becomes active', () => {
+    const focusSpy = jest.spyOn(TextInput.prototype, 'focus');
+    const { rerender, getByTestId } = renderPresetsSection();
+
+    expect(focusSpy).not.toHaveBeenCalled();
+
+    rerender(<ButtonPricePresetsSection {...defaultProps} isCustomActive />);
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+    ).toBeOnTheScreen();
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+
+    focusSpy.mockRestore();
+  });
+
+  describe('measureInWindow', () => {
+    it('measures the custom input when custom mode is active', () => {
+      const measureSpy = jest
+        .spyOn(TextInput.prototype, 'measureInWindow')
+        .mockImplementation((callback) => callback(10, 200, 80, 32));
+      const ref = React.createRef<ButtonPricePresetsSectionRef>();
+      const callback = jest.fn();
+      renderWithProvider(
+        <ButtonPricePresetsSection
+          {...defaultProps}
+          ref={ref}
+          isCustomActive
+        />,
+      );
+
+      ref.current?.measureInWindow(callback);
+
+      expect(measureSpy).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(10, 200, 80, 32);
+
+      measureSpy.mockRestore();
+    });
+
+    it('does nothing while custom mode is inactive', () => {
+      const measureSpy = jest.spyOn(TextInput.prototype, 'measureInWindow');
+      const ref = React.createRef<ButtonPricePresetsSectionRef>();
+      const callback = jest.fn();
+      renderWithProvider(
+        <ButtonPricePresetsSection {...defaultProps} ref={ref} />,
+      );
+
+      ref.current?.measureInWindow(callback);
+
+      expect(measureSpy).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
+
+      measureSpy.mockRestore();
+    });
   });
 
   it.each([

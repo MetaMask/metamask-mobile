@@ -5,6 +5,7 @@ import type { SwapsKeypadRef } from '../../components/SwapsKeypad/types';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import type { useSourceAmountInput } from '../useSourceAmountInput';
 import type { BridgeToken } from '../../types';
+import { LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH } from '../../constants/limitOrders';
 import { LIMIT_ORDER_FIAT_PRICE_DECIMALS } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 
 export enum LimitOrderKeypadField {
@@ -65,7 +66,7 @@ export const useSwapsLimitOrderKeypad = ({
   } = useSourceAmountCursor({
     sourceAmount: customPercent,
     sourceTokenDecimals: CUSTOM_PERCENT_DECIMALS,
-    maxInputLength: MAX_INPUT_LENGTH,
+    maxInputLength: LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH,
     onSourceAmountChange: onCustomPercentChange,
   });
 
