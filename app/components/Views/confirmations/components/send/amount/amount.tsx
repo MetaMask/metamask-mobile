@@ -75,6 +75,9 @@ export const Amount = () => {
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
+  const displaySuffix = fiatMode
+    ? (fiatCurrencySymbol ?? '')
+    : assetDisplaySymbol;
   const defaultValue = fiatMode ? '0.00' : '0';
   const displayAmount = useMemo(
     () => formatAmountWithCommas(amount.length ? amount : defaultValue),
@@ -82,7 +85,7 @@ export const Amount = () => {
   );
   const inputFontSize = getFontSizeForInputLength(
     displayAmount.length +
-      assetDisplaySymbol.length +
+      displaySuffix.length +
       INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
   const { styles } = useStyles(styleSheet, { inputFontSize });
@@ -209,10 +212,15 @@ export const Amount = () => {
           <View style={styles.inputWrapper}>
             <AnimatedAmountDisplay
               amountTestID="send_amount"
+              accessibilityLabel={
+                displaySuffix
+                  ? `${displayAmount} ${displaySuffix}`
+                  : displayAmount
+              }
               color={textColor}
               cursor={{ animated: true }}
               style={styles.inputText}
-              suffix={fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
+              suffix={displaySuffix}
               suffixColor={
                 amountError ? TextColor.ErrorDefault : TextColor.TextMuted
               }

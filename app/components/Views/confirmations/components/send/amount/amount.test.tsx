@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
@@ -176,6 +177,35 @@ describe('Amount', () => {
   it('renders correctly', () => {
     const { getByTestId } = renderComponent();
     expect(getByTestId('send_amount')).toBeTruthy();
+  });
+
+  it('uses the rendered suffix for font sizing and accessibility', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: ETHEREUM_ADDRESS,
+        isNative: true,
+        symbol: 'LONGTOKEN',
+        decimals: 18,
+      },
+      updateValue: mockUpdateValue,
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByRole, getByTestId, getByText } = renderComponent();
+
+    expect(getByRole('text', { name: '0 LONGTOKEN' })).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(getByText('LONGTOKEN').props.style),
+    ).toMatchObject({
+      fontSize: getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2),
+    });
+
+    fireEvent.press(getByTestId('fiat_toggle'));
+
+    expect(getByRole('text', { name: '0.00 USD' })).toBeOnTheScreen();
+    expect(StyleSheet.flatten(getByText('USD').props.style)).toMatchObject({
+      fontSize: getFontSizeForInputLength(4 + 'USD'.length + 2),
+    });
   });
 
   it('display default value of amount as placeholder', () => {

@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useMemo, useRef } from 'react';
 import {
   StyleSheet,
-  Text,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
@@ -15,10 +14,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import {
   FontWeight,
+  Text as DesignSystemText,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { splitNumericString } from './splitNumericString';
 
@@ -28,6 +27,7 @@ const GLYPH_ENTER_TRANSITION = ZoomIn.duration(120).easing(GLYPH_EASING);
 const GLYPH_EXIT_TRANSITION = ZoomOut.duration(90).easing(GLYPH_EASING);
 const GLYPH_LAYOUT_TRANSITION =
   LinearTransition.duration(160).easing(GLYPH_EASING);
+const AnimatedText = Animated.createAnimatedComponent(DesignSystemText);
 
 /**
  * Props for text that animates numeric glyph changes without numeric
@@ -56,29 +56,6 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
 });
-
-const FONT_WEIGHT_SUFFIX: Record<FontWeight, string> = {
-  [FontWeight.Regular]: 'regular',
-  [FontWeight.Medium]: 'medium',
-  [FontWeight.Bold]: 'bold',
-};
-
-const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
-  [TextVariant.DisplayLg]: FontWeight.Bold,
-  [TextVariant.DisplayMd]: FontWeight.Bold,
-  [TextVariant.HeadingLg]: FontWeight.Bold,
-  [TextVariant.HeadingMd]: FontWeight.Bold,
-  [TextVariant.HeadingSm]: FontWeight.Bold,
-  [TextVariant.BodyLg]: FontWeight.Medium,
-  [TextVariant.BodyMd]: FontWeight.Regular,
-  [TextVariant.BodySm]: FontWeight.Regular,
-  [TextVariant.BodyXs]: FontWeight.Regular,
-  [TextVariant.PageHeading]: FontWeight.Bold,
-  [TextVariant.SectionHeading]: FontWeight.Bold,
-  [TextVariant.ButtonLabelMd]: FontWeight.Medium,
-  [TextVariant.ButtonLabelLg]: FontWeight.Medium,
-  [TextVariant.AmountDisplayLg]: FontWeight.Bold,
-};
 
 export interface NumericGlyph {
   character: string;
@@ -126,23 +103,9 @@ const AnimatedNumericText = ({
   style,
   testID,
 }: AnimatedNumericTextProps) => {
-  const tw = useTailwind();
   const hasRendered = useRef(false);
   // Some existing Jest suites provide partial Reanimated mocks.
   const reduceMotion = useReducedMotion();
-  const textStyle = useMemo(() => {
-    const weight = fontWeight ?? VARIANT_FONT_WEIGHT[variant];
-
-    return StyleSheet.flatten([
-      tw.style(
-        `text-${variant}`,
-        `font-default-${FONT_WEIGHT_SUFFIX[weight]}`,
-        color,
-      ),
-      styles.text,
-      style,
-    ]) as TextStyle;
-  }, [color, fontWeight, style, tw, variant]);
   const motionEnabled = animated && !reduceMotion;
   const { prefix, numeric, suffix } = useMemo(
     () => splitNumericString(value),
@@ -156,7 +119,15 @@ const AnimatedNumericText = ({
   }, []);
 
   const renderStaticText = (content: string) => (
-    <Text style={textStyle}>{content}</Text>
+    <DesignSystemText
+      accessible={false}
+      color={color}
+      fontWeight={fontWeight}
+      style={[styles.text, style]}
+      variant={variant}
+    >
+      {content}
+    </DesignSystemText>
   );
 
   return (
@@ -174,15 +145,19 @@ const AnimatedNumericText = ({
         <>
           {prefix ? renderStaticText(prefix) : null}
           {numericGlyphs.map(({ character, key }) => (
-            <Animated.Text
+            <AnimatedText
+              accessible={false}
+              color={color}
               entering={animateGlyphs ? GLYPH_ENTER_TRANSITION : undefined}
               exiting={animateGlyphs ? GLYPH_EXIT_TRANSITION : undefined}
+              fontWeight={fontWeight}
               key={key}
               layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}
-              style={textStyle}
+              style={[styles.text, style]}
+              variant={variant}
             >
               {character}
-            </Animated.Text>
+            </AnimatedText>
           ))}
           {suffix ? renderStaticText(suffix) : null}
         </>
