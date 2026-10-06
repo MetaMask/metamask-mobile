@@ -11,6 +11,7 @@ import {
   PredictFeedBannerConfig,
   PredictFeedCarouselConfig,
   PredictHotTabFlag,
+  PredictPolymarketMigrationFlag,
 } from '../../types/flags';
 import {
   DEFAULT_HOT_TAB_FLAG,
@@ -316,4 +317,28 @@ export const selectPredictBottomSheetEnabledFlag = createSelector(
         remoteFeatureFlags?.predictBottomSheet,
       ),
     ) ?? false,
+);
+
+/**
+ * Selector for Polymarket Protocol V2 market visibility.
+ *
+ * Uses version-gated feature flag `predictPolymarketMigration`.
+ * Returns true only when the payload gate passes and `protocolV2` is true.
+ * A missing or invalid payload returns false.
+ *
+ * @returns {boolean} True when Gamma `v2` markets can be shown
+ */
+export const selectPredictProtocolV2EnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const flag = unwrapRemoteFeatureFlag<PredictPolymarketMigrationFlag>(
+      remoteFeatureFlags?.predictPolymarketMigration,
+    );
+
+    if (!validatedVersionGatedFeatureFlag(flag)) {
+      return false;
+    }
+
+    return flag?.protocolV2 === true;
+  },
 );

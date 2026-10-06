@@ -13,6 +13,7 @@ import {
   selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
+  selectPredictProtocolV2EnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
   selectPredictHomeCategoriesConfig,
   selectPredictSportsFeedConfig,
@@ -1503,6 +1504,97 @@ describe('Predict Feature Flag Selectors', () => {
       };
 
       const result = selectPredictBottomSheetEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictProtocolV2EnabledFlag', () => {
+    const buildState = (predictPolymarketMigration: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              predictPolymarketMigration,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns true when the gate passes and protocolV2 is true', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const result = selectPredictProtocolV2EnabledFlag(
+        buildState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          protocolV2: true,
+        }),
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag is missing', () => {
+      const result = selectPredictProtocolV2EnabledFlag(mockedEmptyFlagsState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the app version is below the minimum', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const result = selectPredictProtocolV2EnabledFlag(
+        buildState({
+          enabled: true,
+          minimumVersion: '99.0.0',
+          protocolV2: true,
+        }),
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when enabled is false', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const result = selectPredictProtocolV2EnabledFlag(
+        buildState({
+          enabled: false,
+          minimumVersion: '1.0.0',
+          protocolV2: true,
+        }),
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when protocolV2 is false', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const result = selectPredictProtocolV2EnabledFlag(
+        buildState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          protocolV2: false,
+        }),
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when protocolV2 is not a boolean', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const result = selectPredictProtocolV2EnabledFlag(
+        buildState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          protocolV2: 'true',
+        }),
+      );
 
       expect(result).toBe(false);
     });

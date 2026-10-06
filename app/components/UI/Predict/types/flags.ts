@@ -187,3 +187,14 @@ export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
 export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
 }
+
+/**
+ * Remote flag for the Polymarket Protocol V2 migration.
+ *
+ * `enabled` and `minimumVersion` gate the payload.
+ * `protocolV2` shows Gamma `v2` markets.
+ */
+export interface PredictPolymarketMigrationFlag
+  extends VersionGatedFeatureFlag {
+  protocolV2: boolean;
+}
