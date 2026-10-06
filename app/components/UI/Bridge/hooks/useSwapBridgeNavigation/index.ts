@@ -31,6 +31,7 @@ import {
   setDestToken,
   setIsDestTokenManuallySet,
   setAbTestContext,
+  resetBridgeState,
 } from '../../../../../core/redux/slices/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Engine from '../../../../../core/Engine';
@@ -373,6 +374,8 @@ export const useSwapBridgeNavigation = ({
         prefetchPopularTokens();
       }
 
+      dispatch(resetBridgeState());
+
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
       navigation.navigate(
@@ -448,6 +451,7 @@ export const useSwapBridgeNavigation = ({
       transactionActiveAbTests,
       isBasicFunctionalityEnabled,
       prefetchPopularTokens,
+      resetBridgeState,
     ],
   );
   const { networkModal } = useAddNetwork();
