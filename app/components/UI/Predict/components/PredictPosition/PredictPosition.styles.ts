@@ -22,15 +22,6 @@ const styleSheet = () =>
       alignItems: 'flex-start',
       flex: 1,
     },
-    positionImageContainer: {
-      paddingTop: 4,
-    },
-    positionImage: {
-      width: 40,
-      height: 40,
-      borderRadius: 100,
-      alignSelf: 'flex-start',
-    },
     positionPnl: {
       flexDirection: 'column',
       justifyContent: 'flex-end',

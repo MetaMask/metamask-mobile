@@ -42,12 +42,6 @@ const styleSheet = () =>
       flex: 1,
       marginRight: 80, // Reserve space for PnL text
     },
-    positionImage: {
-      width: 40,
-      height: 40,
-      borderRadius: 100,
-      alignSelf: 'center',
-    },
     positionPnl: {
       flexDirection: 'column',
       justifyContent: 'flex-end',

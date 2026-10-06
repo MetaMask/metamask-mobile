@@ -1,6 +1,5 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -22,6 +21,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import AvatarPredict from '../AvatarPredict';
 
 dayjs.extend(relativeTime);
 
@@ -70,9 +70,10 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImage}>
-        <Image source={{ uri: icon }} style={styles.positionImage} />
-      </View>
+      <AvatarPredict
+        src={icon ? { uri: icon } : undefined}
+        twClassName="self-center"
+      />
       <View style={styles.positionDetails}>
         <Text
           variant={TextVariant.BodyMd}

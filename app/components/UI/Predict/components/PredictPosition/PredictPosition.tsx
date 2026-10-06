@@ -1,6 +1,5 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import SensitiveText, {
@@ -27,6 +26,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import AvatarPredict from '../AvatarPredict';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -59,9 +59,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImageContainer}>
-        <Image source={{ uri: icon }} style={styles.positionImage} />
-      </View>
+      <AvatarPredict
+        src={icon ? { uri: icon } : undefined}
+        twClassName="mt-1"
+      />
       <View style={styles.positionDetails}>
         <Text
           variant={TextVariant.BodyMd}
