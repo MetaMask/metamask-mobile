@@ -654,6 +654,50 @@ describe('formatUtils', () => {
     it('uses 0 decimals for prices above $10k', () => {
       expect(getUniversalPriceFractionDigits(123456)).toBe(0);
     });
+
+    it('returns 0 for zero and non-finite prices', () => {
+      expect(getUniversalPriceFractionDigits(0)).toBe(0);
+      expect(getUniversalPriceFractionDigits(Number.NaN)).toBe(0);
+      expect(getUniversalPriceFractionDigits(Number.POSITIVE_INFINITY)).toBe(0);
+    });
+
+    it('returns 2 when no universal price range matches', () => {
+      const originalRanges = [...PRICE_RANGES_UNIVERSAL];
+      PRICE_RANGES_UNIVERSAL.splice(0, PRICE_RANGES_UNIVERSAL.length, {
+        condition: () => false,
+        minimumDecimals: 0,
+        maximumDecimals: 4,
+      });
+
+      try {
+        expect(getUniversalPriceFractionDigits(12.34)).toBe(2);
+      } finally {
+        PRICE_RANGES_UNIVERSAL.splice(
+          0,
+          PRICE_RANGES_UNIVERSAL.length,
+          ...originalRanges,
+        );
+      }
+    });
+
+    it('uses maximum decimals when the matching range has no significant digits', () => {
+      const originalRanges = [...PRICE_RANGES_UNIVERSAL];
+      PRICE_RANGES_UNIVERSAL.splice(0, PRICE_RANGES_UNIVERSAL.length, {
+        condition: () => true,
+        minimumDecimals: 0,
+        maximumDecimals: 4,
+      });
+
+      try {
+        expect(getUniversalPriceFractionDigits(12.34)).toBe(4);
+      } finally {
+        PRICE_RANGES_UNIVERSAL.splice(
+          0,
+          PRICE_RANGES_UNIVERSAL.length,
+          ...originalRanges,
+        );
+      }
+    });
   });
 
   describe('formatPnl', () => {
