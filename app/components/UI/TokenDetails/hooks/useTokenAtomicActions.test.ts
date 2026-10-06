@@ -1034,7 +1034,7 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TrendingExplore',
+      location: 'Trending Explore',
       skipLocationUpdate: false,
       sourcePage: 'MainView',
       transactionActiveAbTests: undefined,
@@ -1053,7 +1053,7 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TrendingExplore',
+      location: 'Trending Explore',
       skipLocationUpdate: false,
       sourcePage: 'MainView',
       transactionActiveAbTests: undefined,

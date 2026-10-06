@@ -10,7 +10,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { merge } from 'lodash';
-import { SwapBridgeNavigationLocation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const initialState = {
   engine: {
@@ -509,7 +509,7 @@ describe('SmartTransactionStatus', () => {
           fireEvent.press(primaryButton);
           expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
             sourcePage: 'ActivityDetails',
-            location: SwapBridgeNavigationLocation.TransactionDetails,
+            location: MetaMetricsSwapsEventSource.TransactionDetails,
           });
           expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
           expect(mockGoToSwaps).toHaveBeenCalledWith();
@@ -680,7 +680,7 @@ describe('SmartTransactionStatus', () => {
           fireEvent.press(primaryButton);
           expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
             sourcePage: 'ActivityDetails',
-            location: SwapBridgeNavigationLocation.TransactionDetails,
+            location: MetaMetricsSwapsEventSource.TransactionDetails,
           });
           expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
           expect(mockGoToSwaps).toHaveBeenCalledWith();

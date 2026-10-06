@@ -39,10 +39,7 @@ import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
 import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
-import {
-  useSwapBridgeNavigation,
-  SwapBridgeNavigationLocation,
-} from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../Bridge/types';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import {
@@ -62,6 +59,7 @@ import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesContr
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 // USDY (Ondo USD Yield) on Ethereum mainnet — preferred source token for
 // open_position mode when the active account group holds a balance.
@@ -289,7 +287,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   });
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.Rewards,
+    location: MetaMetricsSwapsEventSource.Rewards,
     sourcePage: 'OndoCampaignRwaSelector',
     sourceToken: srcBridgeToken,
   });

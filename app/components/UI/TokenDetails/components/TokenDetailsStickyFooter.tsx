@@ -53,6 +53,7 @@ import TraderPositionPnlDetails from '../TraderPositionPnl/TraderPositionPnlDeta
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
+import type { SwapBridgePageLoadTraceRoute } from '../../Bridge/utils/swapBridgePageLoadTrace';
 
 const styles = StyleSheet.create({
   footer: {
@@ -146,7 +147,7 @@ interface TokenStickyFooterProps {
   /** Opens the Quick Buy sheet in the given mode; used by the non-control layouts. */
   onOpenQuickBuy?: (mode: QuickBuyTradeMode) => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
-  sourcePage?: string;
+  sourcePage?: SwapBridgePageLoadTraceRoute['sourcePage'];
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
   /** Enables the updated button treatment used by the feature-flagged V1 page. */

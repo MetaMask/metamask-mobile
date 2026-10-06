@@ -73,10 +73,8 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 import { useNativeCurrencySymbol } from '../../../../Views/confirmations/hooks/useNativeCurrencySymbol';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -375,7 +373,7 @@ export const BridgeTransactionDetails = (
     sourcePage: 'BridgeTransactionDetails',
     sourceToken,
     destToken: destinationToken,
-    location: SwapBridgeNavigationLocation.TransactionDetails,
+    location: MetaMetricsSwapsEventSource.TransactionDetails,
   });
   const handleBridgeAgain = () => {
     goToSwaps(undefined, undefined, undefined, true);
