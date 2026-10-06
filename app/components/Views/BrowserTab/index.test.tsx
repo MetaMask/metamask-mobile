@@ -290,12 +290,16 @@ describe('BrowserTab', () => {
 
       fireEvent.press(screen.getByTestId('browser-tab-close-button'));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: {
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.CARD.ROOT,
+        {
           screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+          },
         },
-      });
+        { pop: true },
+      );
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.TRENDING_VIEW,
         expect.anything(),

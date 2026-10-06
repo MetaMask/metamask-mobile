@@ -1579,12 +1579,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromBenefit) {
         navigation.goBack();
       } else if (fromCard) {
-        navigation.navigate(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-          params: {
+        navigation.navigate(
+          Routes.CARD.ROOT,
+          {
             screen: Routes.CARD.HOME,
+            params: {
+              screen: Routes.CARD.HOME,
+            },
           },
-        });
+          { pop: true },
+        );
       } else if (fromWhatsHappening) {
         // WhatsHappeningDetailView is in the stack navigator so goBack() works correctly.
         navigation.goBack();

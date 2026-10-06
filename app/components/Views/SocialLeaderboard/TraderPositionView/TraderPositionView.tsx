@@ -101,8 +101,11 @@ import {
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { chainNameToId } from '../utils/chainMapping';
-import { getPerpPositionDirection, isPerpPosition } from '../utils/perp';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  getPerpPositionDirection,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import PerpsTradeButton from './components/PerpsTradeButton';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import type { Trade } from '@metamask/social-controllers';
