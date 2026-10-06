@@ -156,9 +156,11 @@ const MusdRescueSendSheet = () => {
       ref={sheetRef}
       goBack={handleGoBack}
       testID={MusdRescueSendSheetTestIds.CONTAINER}
-      keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: MusdRescueSendSheetTestIds.CLOSE_BUTTON }}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.musd_rescue_send.title')}
         </Text>

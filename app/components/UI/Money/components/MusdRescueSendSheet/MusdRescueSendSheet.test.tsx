@@ -33,7 +33,6 @@ const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
 const mockInitiateRescueSend = jest.fn().mockResolvedValue(undefined);
 const mockGoBack = jest.fn();
-const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 
 const mockUseMoneyAccountBalance = useMoneyAccountBalance as jest.Mock;
 const mockUseMoneyAccountMusdRescueSend =
@@ -49,68 +48,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
-
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        testID,
-        goBack,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-        goBack?: () => void;
-      },
-      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: mockOnCloseBottomSheet,
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return ReactActual.createElement(
-        View,
-        { testID },
-        ReactActual.createElement(
-          Pressable,
-          {
-            testID: 'bottom-sheet-go-back',
-            onPress: goBack,
-          },
-          ReactActual.createElement(RNText, {}, 'go-back'),
-        ),
-        children,
-      );
-    },
-  );
-
-  const MockBottomSheetHeader = ({
-    children,
-    onClose,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-  }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'bottom-sheet-header' },
-      ReactActual.createElement(
-        Pressable,
-        { testID: 'bottom-sheet-close-button', onPress: onClose },
-        ReactActual.createElement(RNText, {}, 'close'),
-      ),
-      children,
-    );
-
-  return {
-    ...actual,
-    BottomSheet: MockBottomSheet,
-    BottomSheetHeader: MockBottomSheetHeader,
-  };
-});
+// Uses the real design-system `BottomSheet`/`BottomSheetHeader` via the global
+// testSetup mock, so the sheet's real close and goBack wiring is exercised.
 
 const VALID_ADDRESS = '0x1234567890123456789012345678901234567891';
 
@@ -384,28 +323,24 @@ describe('MusdRescueSendSheet', () => {
   });
 
   describe('sheet chrome', () => {
-    it('renders inside a dismissable bottom sheet', () => {
+    it('renders the sheet container and header close control', () => {
       const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
       expect(
         getByTestId(MusdRescueSendSheetTestIds.CONTAINER),
       ).toBeOnTheScreen();
-      expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(MusdRescueSendSheetTestIds.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
-    it('closes the sheet when the close control is pressed', () => {
+    it('dismisses the sheet when the close control is pressed', () => {
       const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
-      fireEvent.press(getByTestId('bottom-sheet-close-button'));
+      fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.CLOSE_BUTTON));
 
-      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    });
-
-    it('navigates back when the sheet goBack handler is invoked', () => {
-      const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
-
-      fireEvent.press(getByTestId('bottom-sheet-go-back'));
-
+      // The header close control is wired through the sheet ref's
+      // onCloseBottomSheet, which dismisses the modal.
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });

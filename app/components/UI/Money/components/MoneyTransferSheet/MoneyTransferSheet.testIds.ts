@@ -9,6 +9,7 @@ export const MoneyTransferSheetTestIds = {
 
 export const MusdRescueSendSheetTestIds = {
   CONTAINER: 'musd-rescue-send-sheet-container',
+  CLOSE_BUTTON: 'musd-rescue-send-close-button',
   RECIPIENT_INPUT: 'musd-rescue-send-recipient-input',
   AMOUNT_INPUT: 'musd-rescue-send-amount-input',
   MAX_BUTTON: 'musd-rescue-send-max-button',
