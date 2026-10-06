@@ -106,7 +106,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
       expect(
-        within(getByTestId(TRIGGER_CONDITION)).getByText('$2200.5'),
+        within(getByTestId(TRIGGER_CONDITION)).getByText('$2,200.50'),
       ).toBeOnTheScreen();
     },
   );
@@ -122,9 +122,51 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
 
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
-    const triggerRow = getByTestId(TRIGGER_CONDITION);
-    expect(within(triggerRow).getByText('$2160')).toBeOnTheScreen();
-    expect(within(triggerRow).queryByText('€2000')).not.toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION)).getByText('€2000'),
+    ).toBeOnTheScreen();
+    expect(getByTestId(USD_PRICE_NOTICE)).toHaveTextContent(
+      strings('bridge.limit.usd_price_notice', {
+        rate: '0.926',
+        currency: 'EUR',
+      }),
+    );
+  });
+
+  // Without a rate the converted price would be a guess, while the USD price
+  // is exactly the one the order was placed at.
+  it('shows a USD trigger price as is when no rate converts it to the display currency', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderOpenLimitOrderDetailsModal({
+        order: MOCK_USD_PRICE_ORDER,
+        deterministicFiat: true,
+        overrides: withEurDisplayCurrency({ usdPrice: undefined }),
+      });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(
+      within(getByTestId(TRIGGER_CONDITION)).getByText('$2,160.00'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
+  });
+
+  // A ratio trigger is priced in the destination token, so no exchange rate
+  // takes part in placing the order.
+  it('does not show the USD price notice for a ratio trigger', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderOpenLimitOrderDetailsModal({
+        order: MOCK_LIMIT_OPEN_ORDER,
+        deterministicFiat: true,
+        overrides: withEurDisplayCurrency({ usdPrice: 2160 }),
+      });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(
+      within(getByTestId(TRIGGER_CONDITION)).getByText(TRIGGER_PRICE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
   });
 
   // The orders response carries no market price, so the sheet cannot say how
