@@ -4803,6 +4803,16 @@
     "activity": "Activity"
   },
   "app_settings": {
+    "profile_drawer": {
+      "close": "Close",
+      "scan": "Scan QR code",
+      "create_profile": "Create profile",
+      "notifications": "Notifications",
+      "activity": "Activity",
+      "subscriptions": "Subscriptions",
+      "settings": "Settings",
+      "help_and_support": "Help and support"
+    },
     "enabling_notifications": "Enabling notifications...",
     "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",

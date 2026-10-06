@@ -1,0 +1,194 @@
+import React, { useCallback } from 'react';
+import { Pressable, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
+  Box,
+  BoxAlignItems,
+  ButtonIconVariant,
+  FontWeight,
+  HeaderBase,
+  IconName,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
+import { strings } from '../../../../../locales/i18n';
+import {
+  getMetamaskNotificationsUnreadCount,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../../selectors/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import { useQRScanner } from '../../../hooks/useQRScanner';
+import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
+import ProfileDrawerMenuRow from './ProfileDrawerMenuRow';
+
+const ProfileDrawer = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { openQRScanner } = useQRScanner();
+
+  // The list is populated even while notifications are switched off, so the
+  // badge is gated on the feature flag and the user's own setting — matching
+  // AccountsMenu. Resolves to 0 (no badge) in every other case.
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const unreadNotificationCount = useSelector(
+    getMetamaskNotificationsUnreadCount,
+  );
+  const notificationBadgeCount =
+    isNotificationsFeatureEnabled() && isNotificationEnabled
+      ? unreadNotificationCount
+      : 0;
+
+  const handleClose = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleNotifications = useCallback(() => {
+    navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+  }, [navigation]);
+
+  const handleSettings = useCallback(() => {
+    // SettingsFlow opens on the accounts menu, so target the settings list
+    // explicitly rather than relying on the flow's initial route.
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.ROOT,
+    });
+  }, [navigation]);
+
+  const handleActivity = useCallback(() => {
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.ProfileDrawer },
+    });
+  }, [navigation]);
+
+  // TODO: wire the create-profile header and the remaining rows to their
+  // destinations once those screens exist.
+  const handlePress = useCallback(() => {
+    // Intentional no-op.
+  }, []);
+
+  const menuItems: {
+    iconName: IconName;
+    label: string;
+    badgeCount?: number;
+    onPress?: () => void;
+    testID: string;
+  }[] = [
+    {
+      iconName: IconName.Notification,
+      label: strings('app_settings.profile_drawer.notifications'),
+      badgeCount: notificationBadgeCount,
+      onPress: handleNotifications,
+      testID: ProfileDrawerSelectorsIDs.NOTIFICATIONS_ROW,
+    },
+    {
+      iconName: IconName.Clock,
+      label: strings('app_settings.profile_drawer.activity'),
+      onPress: handleActivity,
+      testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
+    },
+    {
+      iconName: IconName.Sparkle,
+      label: strings('app_settings.profile_drawer.subscriptions'),
+      testID: ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
+    },
+    {
+      iconName: IconName.Setting,
+      label: strings('app_settings.profile_drawer.settings'),
+      onPress: handleSettings,
+      testID: ProfileDrawerSelectorsIDs.SETTINGS_ROW,
+    },
+    {
+      iconName: IconName.Question,
+      label: strings('app_settings.profile_drawer.help_and_support'),
+      testID: ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
+    },
+  ];
+
+  return (
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+      testID={ProfileDrawerSelectorsIDs.SAFE_AREA}
+    >
+      <HeaderBase
+        includesTopInset
+        // HeaderBase has no horizontal padding of its own, which would leave the
+        // filled buttons flush against the screen edge.
+        twClassName="px-4"
+        testID={ProfileDrawerSelectorsIDs.HEADER}
+        startButtonIconProps={{
+          iconName: IconName.Close,
+          variant: ButtonIconVariant.Filled,
+          onPress: handleClose,
+          accessibilityLabel: strings('app_settings.profile_drawer.close'),
+          testID: ProfileDrawerSelectorsIDs.CLOSE_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.QrCode,
+            variant: ButtonIconVariant.Filled,
+            onPress: openQRScanner,
+            accessibilityLabel: strings('app_settings.profile_drawer.scan'),
+            testID: ProfileDrawerSelectorsIDs.SCAN_BUTTON,
+          },
+        ]}
+      />
+      <ScrollView
+        contentContainerStyle={tw.style('pb-8')}
+        testID={ProfileDrawerSelectorsIDs.CONTENT}
+      >
+        <Pressable
+          onPress={handlePress}
+          accessibilityRole="button"
+          accessibilityLabel={strings(
+            'app_settings.profile_drawer.create_profile',
+          )}
+          testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
+          style={({ pressed }) =>
+            tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
+          }
+        >
+          <Box alignItems={BoxAlignItems.Center} gap={3}>
+            <AvatarIcon
+              iconName={IconName.UserCircleAdd}
+              size={AvatarIconSize.Xl}
+              severity={AvatarIconSeverity.Neutral}
+              testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
+            />
+            <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
+              {strings('app_settings.profile_drawer.create_profile')}
+            </Text>
+          </Box>
+        </Pressable>
+
+        <Box>
+          {menuItems.map(({ iconName, label, badgeCount, onPress, testID }) => (
+            <ProfileDrawerMenuRow
+              key={testID}
+              iconName={iconName}
+              label={label}
+              badgeCount={badgeCount}
+              onPress={onPress ?? handlePress}
+              testID={testID}
+            />
+          ))}
+        </Box>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default ProfileDrawer;

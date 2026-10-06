@@ -51,6 +51,15 @@ export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
   animation: 'ios_from_right',
 };
 
+/**
+ * Pushes the new screen in from the left on both platforms. `animationMatchesGesture`
+ * makes the iOS swipe-to-dismiss follow the same direction (swipe from the right edge).
+ */
+export const slideFromLeftNativeOptions: NativeStackNavigationOptions = {
+  animation: 'slide_from_left',
+  animationMatchesGesture: true,
+};
+
 export const fadeNativeOptions: NativeStackNavigationOptions = {
   animation: 'fade',
   gestureEnabled: false,
