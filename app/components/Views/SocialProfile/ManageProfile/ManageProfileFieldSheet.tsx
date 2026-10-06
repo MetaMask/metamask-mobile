@@ -12,7 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
-import { EditProfileSelectorsIDs } from './EditProfile.testIds';
+import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import ProfileToggleCard from './ProfileToggleCard';
 
 /** Which form control the sheet renders for the field being edited. */
@@ -28,8 +28,8 @@ export type ProfileFieldControl =
 /** A text control carries a string, the switch carries a boolean. */
 export type ProfileFieldValue = string | boolean;
 
-interface EditProfileFieldSheetProps {
-  /** Sheet heading, e.g. "Display name". */
+interface ManageProfileFieldSheetProps {
+  /** Sheet heading. */
   title: string;
   /** Label shown above (or beside, for the switch) the control. */
   label: string;
@@ -44,8 +44,8 @@ interface EditProfileFieldSheetProps {
   /** Switch only: copy rendered below the card. */
   helperText?: string;
   /**
-   * Switch only: commit each toggle straight away and drop the Save button,
-   * matching helper copy that promises changes apply immediately.
+   * Switch only: commit each toggle immediately and drop the Save button, to
+   * match helper copy promising changes apply immediately.
    */
   appliesImmediately?: boolean;
   /**
@@ -58,13 +58,11 @@ interface EditProfileFieldSheetProps {
 }
 
 /**
- * Bottom sheet holding a single-field form for one profile attribute.
- *
- * Text edits are kept in a local draft so dismissing the sheet discards them;
- * only Save lifts the value to the caller. A switch marked
+ * Bottom sheet holding a single-field form. Text edits live in a local draft,
+ * so dismissing discards and only Save lifts the value out; a switch marked
  * `appliesImmediately` commits on every toggle instead.
  */
-const EditProfileFieldSheet = ({
+const ManageProfileFieldSheet = ({
   title,
   label,
   control,
@@ -76,7 +74,7 @@ const EditProfileFieldSheet = ({
   appliesImmediately = false,
   onSave,
   onClose,
-}: EditProfileFieldSheetProps) => {
+}: ManageProfileFieldSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [draft, setDraft] = useState<ProfileFieldValue>(initialValue);
 
@@ -107,12 +105,12 @@ const EditProfileFieldSheet = ({
     <BottomSheet
       ref={sheetRef}
       goBack={onClose}
-      testID={EditProfileSelectorsIDs.FIELD_SHEET}
+      testID={ManageProfileSelectorsIDs.FIELD_SHEET}
     >
       <BottomSheetHeader
         onClose={handleDismiss}
         closeButtonProps={{
-          testID: EditProfileSelectorsIDs.FIELD_SHEET_CLOSE,
+          testID: ManageProfileSelectorsIDs.FIELD_SHEET_CLOSE,
         }}
       >
         {title}
@@ -136,7 +134,7 @@ const EditProfileFieldSheet = ({
               placeholder={placeholder}
               maxLength={maxLength}
               autoFocus
-              testID={EditProfileSelectorsIDs.FIELD_SHEET_INPUT}
+              testID={ManageProfileSelectorsIDs.FIELD_SHEET_INPUT}
             />
           ) : (
             <TextField
@@ -144,10 +142,10 @@ const EditProfileFieldSheet = ({
               onChangeText={setDraft}
               placeholder={placeholder}
               autoFocus
-              // TextField puts its own `testID` on the root Box, so target the
-              // inner input directly to match TextArea's behaviour.
+              // TextField puts `testID` on the root Box, so target the inner
+              // input to match TextArea.
               inputProps={{
-                testID: EditProfileSelectorsIDs.FIELD_SHEET_INPUT,
+                testID: ManageProfileSelectorsIDs.FIELD_SHEET_INPUT,
                 maxLength,
               }}
             />
@@ -159,9 +157,9 @@ const EditProfileFieldSheet = ({
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
           primaryButtonProps={{
-            children: strings('app_settings.edit_profile.save'),
+            children: strings('app_settings.manage_profile.save'),
             onPress: handleSave,
-            testID: EditProfileSelectorsIDs.FIELD_SHEET_SAVE,
+            testID: ManageProfileSelectorsIDs.FIELD_SHEET_SAVE,
           }}
         />
       )}
@@ -169,4 +167,4 @@ const EditProfileFieldSheet = ({
   );
 };
 
-export default EditProfileFieldSheet;
+export default ManageProfileFieldSheet;

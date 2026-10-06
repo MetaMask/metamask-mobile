@@ -126,7 +126,7 @@ describe('ProfileDrawer', () => {
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE));
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_PROFILE.EDIT_PROFILE,
+      Routes.SOCIAL_PROFILE.MANAGE_PROFILE,
     );
   });
 
