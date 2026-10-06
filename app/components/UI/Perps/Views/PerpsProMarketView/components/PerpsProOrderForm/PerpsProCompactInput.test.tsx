@@ -626,4 +626,42 @@ describe('PerpsProCompactInput', () => {
 
     expect(mockInputBlur).toHaveBeenCalledTimes(1);
   });
+
+  it('focuses from the wrapper after hiding without a native blur event', () => {
+    const onFieldPress = jest.fn();
+    const onFocus = jest.fn();
+    const { rerender } = render(
+      <PerpsProCompactInput
+        {...defaultProps}
+        onFieldPress={onFieldPress}
+        onFocus={onFocus}
+      />,
+    );
+    const input = screen.getByTestId(defaultProps.testID);
+    fireEvent(input, 'focus');
+    onFocus.mockClear();
+
+    rerender(
+      <PerpsProCompactInput
+        {...defaultProps}
+        isHidden
+        onFieldPress={onFieldPress}
+        onFocus={onFocus}
+      />,
+    );
+    rerender(
+      <PerpsProCompactInput
+        {...defaultProps}
+        onFieldPress={onFieldPress}
+        onFocus={onFocus}
+      />,
+    );
+    fireEvent.press(screen.getByText(defaultProps.label));
+
+    expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    expect(onFieldPress).not.toHaveBeenCalled();
+
+    fireEvent(screen.getByTestId(defaultProps.testID), 'focus');
+    expect(onFocus).toHaveBeenCalledTimes(1);
+  });
 });

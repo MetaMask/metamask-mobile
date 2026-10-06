@@ -183,7 +183,8 @@ const PerpsProCompactInput = React.forwardRef<
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
 
     useEffect(() => {
-      if (isHidden) {
+      if (isInteractionBlocked) {
+        isNativeFocusedRef.current = false;
         directPressPhaseRef.current = 'idle';
         setShouldFocusInput(false);
         setIsFocused(false);
@@ -194,7 +195,7 @@ const PerpsProCompactInput = React.forwardRef<
         setShouldFocusInput(false);
         inputRef.current?.focus();
       }
-    }, [isHidden, shouldFocusInput]);
+    }, [isInteractionBlocked, shouldFocusInput]);
 
     const hiddenProps = isHidden
       ? ({
