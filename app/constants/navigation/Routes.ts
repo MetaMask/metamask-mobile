@@ -557,6 +557,7 @@ const Routes = {
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
+    EDIT_PROFILE: 'EditProfile',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {

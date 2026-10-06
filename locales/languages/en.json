@@ -4803,6 +4803,30 @@
     "activity": "Activity"
   },
   "app_settings": {
+    "edit_profile": {
+      "header": "Manage profile",
+      "about": "About",
+      "privacy": "Privacy",
+      "display_name": "Display name",
+      "handle": "Handle",
+      "bio": "Bio",
+      "socials": "Socials",
+      "trading_activity": "Trading activity",
+      "linked_social_account": "Linked social account",
+      "save": "Save",
+      "on": "On",
+      "off": "Off",
+      "not_set": "Not set",
+      "no_linked_account": "None",
+      "avatar_accessibility_label": "Your profile picture",
+      "display_name_placeholder": "Enter a display name",
+      "bio_placeholder": "Tell people about yourself",
+      "show_trading_activity": "Show trading activity",
+      "trading_activity_public": "Public and available to copy",
+      "trading_activity_private": "Private and unavailable to copy",
+      "trading_activity_info": "More information about trading activity",
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+    },
     "profile_drawer": {
       "close": "Close",
       "scan": "Scan QR code",
