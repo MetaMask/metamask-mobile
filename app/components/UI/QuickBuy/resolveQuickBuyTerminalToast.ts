@@ -38,13 +38,17 @@ function resolveFromBridgeStatus(
   if (status === StatusTypes.COMPLETE) {
     return {
       outcome: 'complete',
-      transactionHash: historyItem?.reportedSubmittedTxHash,
+      transactionHash:
+        historyItem?.reportedSubmittedTxHash ??
+        historyItem?.status?.srcChain?.txHash,
     };
   }
   if (status === StatusTypes.FAILED) {
     return {
       outcome: 'failed',
-      transactionHash: historyItem?.reportedSubmittedTxHash,
+      transactionHash:
+        historyItem?.reportedSubmittedTxHash ??
+        historyItem?.status?.srcChain?.txHash,
     };
   }
   return undefined;

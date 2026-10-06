@@ -315,6 +315,36 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(getPostSwapShareSession()?.transactionHash).toBe('0xbridge-hash');
   });
 
+  it('falls back to the source-chain hash in bridge status', () => {
+    beginPostSwapShareSession({
+      target: {
+        tokenAddress: '0xpepe',
+        tokenSymbol: 'PEPE',
+        tokenName: 'Pepe',
+        chain: 'eip155:1',
+      },
+      tradeMode: 'buy',
+      preview: {
+        tokenSymbol: 'PEPE',
+        tokenAddress: '0xpepe',
+        chain: 'ethereum',
+        side: 'buy',
+      },
+    });
+    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    mockGetHistoryItem.mockReturnValue({
+      ...historyItemWithStatus(StatusTypes.COMPLETE),
+      status: {
+        status: StatusTypes.COMPLETE,
+        srcChain: { chainId: 1, txHash: '0xsource-hash' },
+      },
+    });
+
+    resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+    expect(getPostSwapShareSession()?.transactionHash).toBe('0xsource-hash');
+  });
+
   it('shows the normal terminal toast when the share session was dismissed', () => {
     trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
     mockGetHistoryItem.mockReturnValue(
