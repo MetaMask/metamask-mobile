@@ -8,6 +8,12 @@ import type { TraderPosition, TraderPositionTrade } from './types';
  * `SocialService:fetchOpenPositions` lists a wallet's open positions and does
  * not filter by token, so the id for wallet + token is still unresolved.
  * Do not match a list row on `tokenAddress` until that is confirmed.
+ *
+ * Draft for @social-ai-team (ASSETS-4073). Not sent.
+ * Spot: is unrealized currentValueUSD minus costBasis? Verified payload has realized plus unrealized equal to pnlValueUsd.
+ * Cost basis: does costBasis always cover the full remaining positionAmount? Position bd632f1d has positionAmount 90.0037 but costBasis equals only the last buy (87999.999999).
+ * Perps (out of V1): what is the formula for leveraged positions and shorts (costBasisWithLeverage, sign, percent base)?
+ * Coverage: does the endpoint return positions for every MetaMask wallet, or only wallets the social indexer tracks?
  */
 
 /** Non-2xx response from the position endpoint. `status` is 401, 404, or other. */
