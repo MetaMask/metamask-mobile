@@ -6,12 +6,16 @@ import ReduxService from '../../../../core/redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
+import Logger from '../../../../util/Logger';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
+import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import useRampsController from '../hooks/useRampsController';
 import {
   closeSession,
   createSession,
+  failSession,
   getActiveSessionId,
+  toHeadlessBuyError,
 } from './sessionRegistry';
 import type {
   HeadlessBuyCallbacks,
@@ -118,7 +122,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     (
       params: HeadlessBuyParams,
       callbacks: HeadlessBuyCallbacks,
-    ): StartHeadlessBuyResult => {
+    ): StartHeadlessBuyResult | undefined => {
       // Seed the controller — mirrors what BuildQuote does before calling
       // continueWithQuote. Screens in the native auth loop (OtpCode,
       // useTransakRouting) read selectedToken.chainId, selectedPaymentMethod
@@ -154,40 +158,77 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         closeSession(previousId, { reason: 'consumer_cancelled' });
       }
 
-      setSelectedToken(params.assetId);
-      const matchedProvider =
-        providers.find((p) => p.id === params.quote.providerInfo?.id) ?? null;
-      setSelectedProvider(matchedProvider);
-      const targetPaymentMethodId =
-        params.paymentMethodId ?? params.quote.quote.paymentMethod;
-      const matchedPaymentMethod =
-        (paymentMethods ?? []).find((pm) => pm.id === targetPaymentMethodId) ??
-        null;
-      setSelectedPaymentMethod(matchedPaymentMethod);
+      // Catalog ids from topTokens may be checksummed while the caller (for
+      // example TransactionPayController) sends lowercase. Select the
+      // catalog's own id so RampsController's exact match succeeds.
+      const catalogAssetId = resolveRampControllerAssetId(
+        params.assetId,
+        tokens?.allTokens ?? [],
+      );
 
-      const session = createSession(params, callbacks);
+      // Synchronous start failures report through `onError` and return
+      // undefined. Callers should still defend their own UI (e.g. MM Pay
+      // spinner), but they should not need a try/catch for the common case
+      // of a missing catalog token.
+      let sessionId: string | undefined;
+      try {
+        setSelectedToken(catalogAssetId);
+        const matchedProvider =
+          providers.find((p) => p.id === params.quote.providerInfo?.id) ?? null;
+        setSelectedProvider(matchedProvider);
+        const targetPaymentMethodId =
+          params.paymentMethodId ?? params.quote.quote.paymentMethod;
+        const matchedPaymentMethod =
+          (paymentMethods ?? []).find(
+            (pm) => pm.id === targetPaymentMethodId,
+          ) ?? null;
+        setSelectedPaymentMethod(matchedPaymentMethod);
 
-      navigation.navigate(Routes.RAMP.HEADLESS_ENTRY, {
-        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-        params: {
-          screen: Routes.RAMP.HEADLESS_HOST,
+        const session = createSession(params, callbacks);
+        sessionId = session.id;
+
+        navigation.navigate(Routes.RAMP.HEADLESS_ENTRY, {
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
           params: {
-            headlessSessionId: session.id,
+            screen: Routes.RAMP.HEADLESS_HOST,
+            params: {
+              headlessSessionId: session.id,
+            },
           },
-        },
-      });
+        });
 
-      return {
-        sessionId: session.id,
-        cancel: () => {
-          closeSession(session.id, { reason: 'consumer_cancelled' });
-        },
-      };
+        return {
+          sessionId: session.id,
+          cancel: () => {
+            closeSession(session.id, { reason: 'consumer_cancelled' });
+          },
+        };
+      } catch (error) {
+        if (sessionId) {
+          // Session was created but navigate (or a later step) failed —
+          // tear it down through the same terminal path async errors use.
+          failSession(sessionId, error);
+        } else {
+          const headlessError = toHeadlessBuyError(error);
+          try {
+            callbacks.onError(headlessError);
+          } catch (callbackError) {
+            Logger.error(
+              callbackError instanceof Error
+                ? callbackError
+                : new Error(String(callbackError)),
+              'useHeadlessBuy: onError callback threw',
+            );
+          }
+        }
+        return undefined;
+      }
     },
     [
       navigation,
       providers,
       paymentMethods,
+      tokens,
       setSelectedToken,
       setSelectedProvider,
       setSelectedPaymentMethod,

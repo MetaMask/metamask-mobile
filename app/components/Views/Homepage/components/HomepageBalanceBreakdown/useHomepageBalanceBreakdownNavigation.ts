@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { usePerpsNavigationHandlers } from '../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers';
 import type { SliceKey } from '../../BalanceBreakdown/types';
@@ -32,6 +34,9 @@ export function useHomepageBalanceBreakdownNavigation({
   const navigation = useNavigation();
   const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
   const { navigateToMoneyHome } = useMoneyNavigation();
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
   const { navigateToPerpsHome } = usePerpsNavigationHandlers({
     transactionActiveAbTests,
   });
@@ -58,7 +63,13 @@ export function useHomepageBalanceBreakdownNavigation({
 
       switch (key) {
         case 'money':
-          navigateToMoneyHome({ analyticsContext });
+          if (isMoneyAccountGeoEligible) {
+            navigateToMoneyHome({ analyticsContext });
+          } else {
+            navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+              screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+            });
+          }
           break;
         case 'tokens':
           navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, {
@@ -90,6 +101,7 @@ export function useHomepageBalanceBreakdownNavigation({
       createEventBuilder,
       entryPoint,
       appSessionId,
+      isMoneyAccountGeoEligible,
       navigateToPerpsHome,
       navigateToMoneyHome,
       navigation,

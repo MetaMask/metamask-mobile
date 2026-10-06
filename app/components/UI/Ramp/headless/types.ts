@@ -73,7 +73,7 @@ export interface HeadlessBuyResult {
   startHeadlessBuy: (
     params: HeadlessBuyParams,
     callbacks: HeadlessBuyCallbacks,
-  ) => StartHeadlessBuyResult;
+  ) => StartHeadlessBuyResult | undefined;
 
   // Aggregate state
   isLoading: boolean;
@@ -216,8 +216,10 @@ export interface HeadlessSession {
 }
 
 /**
- * Returned by {@link HeadlessBuyResult.startHeadlessBuy} so the consumer can
- * track the session id and trigger a programmatic cancel.
+ * Returned by {@link HeadlessBuyResult.startHeadlessBuy} on a successful
+ * start so the consumer can track the session id and trigger a programmatic
+ * cancel. Synchronous start failures return `undefined` after calling
+ * `onError` (they do not throw).
  */
 export interface StartHeadlessBuyResult {
   sessionId: string;

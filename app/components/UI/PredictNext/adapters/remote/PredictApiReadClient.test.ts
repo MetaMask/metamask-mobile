@@ -206,6 +206,17 @@ describe('PredictApiReadClient', () => {
     );
   });
 
+  it('requests search with the encoded query and limit', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+
+    await client.searchEvents(venueId, { q: 'chiefs bills', limit: 20 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/search?q=chiefs+bills&limit=20',
+      expect.any(Object),
+    );
+  });
+
   it('forwards an AbortSignal for Market history', async () => {
     fetchMock.mockResolvedValue(createResponse());
     const signal = new AbortController().signal;

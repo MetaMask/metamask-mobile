@@ -519,8 +519,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
-  CHART_SERVICE_INTERRUPTION_BANNER:
-    'perps-pro-market-chart-service-interruption-banner',
+  SERVICE_INTERRUPTION_BANNER: 'perps-pro-market-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
   STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
   STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',
@@ -1209,6 +1208,7 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-available-value',
   LIQUIDATION_PRICE_VALUE: 'perps-adjust-margin-liquidation-price-value',
   LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-no-removable-margin',
 } as const;
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
@@ -1233,6 +1233,7 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
   LIQUIDATION_DISTANCE_INFO:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-bottom-sheet-no-removable-margin',
 } as const;
 
 // ========================================

@@ -17,6 +17,7 @@ import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
 import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -38,6 +39,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 }));
 let mockPrivacyMode = false;
 let mockIsWalletHomeOnboardingActive = false;
+let mockIsMoneyAccountGeoEligible = true;
 const mockAccountGroupBalance = jest.fn();
 const originalLocale = I18n.locale;
 
@@ -167,8 +169,12 @@ describe('HomepageBalanceBreakdown', () => {
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
+    mockIsMoneyAccountGeoEligible = true;
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectPrivacyMode) return mockPrivacyMode;
+      if (selector === selectIsMoneyAccountGeoEligible) {
+        return mockIsMoneyAccountGeoEligible;
+      }
       if (selector === selectEvmChainId) return '0x1';
       if (selector === selectAccountGroupBalanceForEmptyState) {
         return { totalBalanceInUserCurrency: 0 };
@@ -640,6 +646,18 @@ describe('HomepageBalanceBreakdown', () => {
       { section_name: 'defi', position: 4 },
     ]);
     expect(mockTrackEvent).toHaveBeenCalledTimes(5);
+  });
+
+  it('opens the Money geo-block sheet from the Money row when geo-ineligible', () => {
+    mockIsMoneyAccountGeoEligible = false;
+    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
   });
 
   it('renders skeletons while loading and em dashes for failed rows', () => {
