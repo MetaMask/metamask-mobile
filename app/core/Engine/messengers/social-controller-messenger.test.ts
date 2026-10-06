@@ -28,6 +28,7 @@ describe('getSocialControllerMessenger', () => {
           'SocialService:follow',
           'SocialService:unfollow',
           'SocialService:fetchFollowing',
+          'SocialService:fetchMyFollowers',
         ]),
       }),
     );

@@ -11,6 +11,9 @@ export const FollowConnectionsViewSelectorsIDs = {
   FOLLOWING_ERROR: 'follow-connections-view-following-error',
   FOLLOWING_RETRY: 'follow-connections-view-following-retry',
   FOLLOWING_EMPTY: 'follow-connections-view-following-empty',
+  FOLLOWERS_LOADING: 'follow-connections-view-followers-loading',
+  FOLLOWERS_ERROR: 'follow-connections-view-followers-error',
+  FOLLOWERS_RETRY: 'follow-connections-view-followers-retry',
   FOLLOWERS_EMPTY: 'follow-connections-view-followers-empty',
 } as const;
 

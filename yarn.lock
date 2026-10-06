@@ -9866,6 +9866,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/core-backend@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "@metamask/core-backend@npm:12.0.1"
+  dependencies:
+    "@metamask/account-tree-controller": "npm:^11.0.1"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/keyring-controller": "npm:^28.1.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/utils": "npm:^12.0.0"
+    "@tanstack/query-core": "npm:^5.103.2"
+    async-mutex: "npm:^0.5.0"
+    cockatiel: "npm:^3.2.1"
+    uuid: "npm:^11.1.1"
+  checksum: 10/2c4477ea4c863760a238a70aa4f1ea92e7b3064e2c9116b53f849b961d1d8512beb26751c2af983f6a80fa35ca9d34db01bf207d24d1c9ffc0fcca7eb31a5963
+  languageName: node
+  linkType: hard
+
 "@metamask/delegation-controller@npm:^3.0.2":
   version: 3.0.2
   resolution: "@metamask/delegation-controller@npm:3.0.2"
@@ -12115,17 +12134,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "@metamask/social-controllers@npm:3.4.0"
+"@metamask/social-controllers@npm:@metamask-previews/social-controllers@3.6.0-preview-136f5f1":
+  version: 3.6.0-preview-136f5f1
+  resolution: "@metamask-previews/social-controllers@npm:3.6.0-preview-136f5f1"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/base-data-service": "npm:^2.0.0"
+    "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/core-backend": "npm:^12.0.1"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/fc4e93a7c5f041868fdb3a097fda58f4d2b3caa6139d0bfc241d1e364491ec5701973f505f53cc2aa2424bff287032fc223a540e9ecf43bd15a2eff273d215bc
+  checksum: 10/068abf47a0373b8686498d2d77fd1cdfe60ec03110259e916587908df64ec223bafef28a9df461b7d14820025a76e35b2d7ff9be491ba8cbcb8c3f736508d119
   languageName: node
   linkType: hard
 

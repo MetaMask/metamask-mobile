@@ -47,14 +47,20 @@ const FollowConnectionsView: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(
     initialTab === 'following' ? 1 : 0,
   );
-  const { followers } = useFollowers();
+  const {
+    followers,
+    count: followerCount,
+    isLoading: isFollowersLoading,
+    error: followersError,
+    refresh: refreshFollowers,
+  } = useFollowers();
   const {
     traders: following,
     isLoading: isFollowingLoading,
     error: followingError,
     refresh: refreshFollowing,
   } = useFollowedTraders();
-  const { toggleFollow } = useFollowToggleMany();
+  const { isFollowing, toggleFollow } = useFollowToggleMany();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -65,7 +71,7 @@ const FollowConnectionsView: React.FC = () => {
       {
         key: 'followers',
         label: strings('social_leaderboard.my_profile.followers_tab', {
-          count: followers.length,
+          count: followerCount,
         }),
         content: null,
         testID: FollowConnectionsViewSelectorsIDs.FOLLOWERS_TAB,
@@ -79,7 +85,7 @@ const FollowConnectionsView: React.FC = () => {
         testID: FollowConnectionsViewSelectorsIDs.FOLLOWING_TAB,
       },
     ],
-    [followers.length, following.length],
+    [followerCount, following.length],
   );
 
   const handleTabPress = useCallback((index: number) => {
@@ -96,6 +102,30 @@ const FollowConnectionsView: React.FC = () => {
       });
     },
     [navigation],
+  );
+
+  const handleFollowerRowPress = useCallback(
+    (follower: FollowerConnection) => {
+      navigateToSocialV1Profile(navigation, {
+        traderId: follower.id,
+        traderName: follower.username,
+        traderAddress: follower.address,
+        traderAvatarUri: follower.avatarUri,
+      });
+    },
+    [navigation],
+  );
+
+  const handleFollowerFollowPress = useCallback(
+    (follower: FollowerConnection) => {
+      toggleFollow(follower.id, {
+        source: 'trader_profile',
+        traderAddress: follower.address,
+        traderUsername: follower.username,
+        traderAvatarUri: follower.avatarUri,
+      }).catch(() => undefined);
+    },
+    [toggleFollow],
   );
 
   const handleUnfollow = useCallback(
@@ -131,14 +161,15 @@ const FollowConnectionsView: React.FC = () => {
       <ConnectionRow
         id={item.id}
         username={item.username}
-        subtitle={`@${item.handle}`}
+        subtitle={formatAddress(item.address, 'short')}
         address={item.address}
         avatarUri={item.avatarUri}
-        isFollowing={false}
-        onFollowPress={() => undefined}
+        isFollowing={isFollowing(item.id)}
+        onFollowPress={() => handleFollowerFollowPress(item)}
+        onRowPress={() => handleFollowerRowPress(item)}
       />
     ),
-    [],
+    [handleFollowerFollowPress, handleFollowerRowPress, isFollowing],
   );
 
   const followingContent = (() => {
@@ -202,20 +233,58 @@ const FollowConnectionsView: React.FC = () => {
     );
   })();
 
-  const followersContent =
-    followers.length === 0 ? (
-      <Box
-        twClassName="flex-1"
-        alignItems={BoxAlignItems.Center}
-        paddingTop={12}
-        paddingHorizontal={4}
-        testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_EMPTY}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.my_profile.empty_followers')}
-        </Text>
-      </Box>
-    ) : (
+  const followersContent = (() => {
+    if (isFollowersLoading && followers.length === 0) {
+      return (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          paddingTop={12}
+          testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_LOADING}
+        >
+          <Spinner />
+        </Box>
+      );
+    }
+    if (followersError && followers.length === 0) {
+      return (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          paddingHorizontal={4}
+          paddingTop={12}
+          gap={4}
+          testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_ERROR}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {followersError}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={refreshFollowers}
+            testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_RETRY}
+          >
+            {strings('social_leaderboard.my_profile.retry')}
+          </Button>
+        </Box>
+      );
+    }
+    if (followers.length === 0) {
+      return (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          paddingTop={12}
+          paddingHorizontal={4}
+          testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_EMPTY}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.my_profile.empty_followers')}
+          </Text>
+        </Box>
+      );
+    }
+    return (
       <FlatList
         data={followers}
         keyExtractor={(item) => item.id}
@@ -223,6 +292,7 @@ const FollowConnectionsView: React.FC = () => {
         testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_LIST}
       />
     );
+  })();
 
   return (
     <SafeAreaView

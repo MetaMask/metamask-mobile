@@ -49,6 +49,7 @@ export interface UseFollowToggleManyResult {
 }
 
 const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
+const MY_FOLLOWERS_QUERY_KEY = ['SocialService:fetchMyFollowers'] as const;
 
 type OptimisticFollowListener = () => void;
 
@@ -136,9 +137,14 @@ const invalidateFollowingQuery = async (): Promise<void> => {
   const { default: ReactQueryService } = await import(
     '../../core/ReactQueryService'
   );
-  await ReactQueryService.queryClient.invalidateQueries({
-    queryKey: FOLLOWING_QUERY_KEY,
-  });
+  await Promise.all([
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: FOLLOWING_QUERY_KEY,
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
+      queryKey: MY_FOLLOWERS_QUERY_KEY,
+    }),
+  ]);
 };
 
 /**

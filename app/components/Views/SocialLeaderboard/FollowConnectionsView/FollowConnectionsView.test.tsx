@@ -9,13 +9,16 @@ import {
   getConnectionFollowButtonTestId,
   getConnectionRowTestId,
 } from './FollowConnectionsView.testIds';
-import { PLACEHOLDER_FOLLOWERS } from './hooks/placeholderFollowers';
+import type { UseFollowersResult } from './hooks/useFollowers';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+const mockIsFollowing = jest.fn((id: string) => id === 'trader-1');
 const mockRefreshFollowing = jest.fn().mockResolvedValue(undefined);
+const mockRefreshFollowers = jest.fn().mockResolvedValue(undefined);
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
+const mockUseFollowers = jest.fn<UseFollowersResult, []>();
 let mockInitialTab: 'followers' | 'following' = 'followers';
 
 jest.mock('@react-navigation/native', () => ({
@@ -31,9 +34,13 @@ jest.mock('../NotificationPreferences/hooks', () => ({
   useFollowedTraders: () => mockUseFollowedTraders(),
 }));
 
+jest.mock('./hooks', () => ({
+  useFollowers: () => mockUseFollowers(),
+}));
+
 jest.mock('../../../hooks/useFollowToggle', () => ({
   useFollowToggleMany: () => ({
-    isFollowing: () => true,
+    isFollowing: (id: string) => mockIsFollowing(id),
     toggleFollow: mockToggleFollow,
   }),
 }));
@@ -67,49 +74,97 @@ const followingTraders: UseFollowedTradersResult['traders'] = [
   },
 ];
 
+const liveFollowers: UseFollowersResult['followers'] = [
+  {
+    id: 'follower-1',
+    username: 'Moon Rabbit',
+    handle: '0x3333...3333',
+    address: '0x3333333333333333333333333333333333333333',
+    avatarUri: 'https://example.com/moon.png',
+  },
+];
+
 describe('FollowConnectionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInitialTab = 'followers';
+    mockIsFollowing.mockImplementation((id: string) => id === 'trader-1');
     mockUseFollowedTraders.mockReturnValue({
       traders: followingTraders,
       isLoading: false,
       error: null,
       refresh: mockRefreshFollowing,
     });
+    mockUseFollowers.mockReturnValue({
+      followers: liveFollowers,
+      count: 12,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshFollowers,
+    });
   });
 
-  it('renders mocked followers on the followers tab', () => {
+  it('renders live followers on the followers tab', () => {
     renderWithProvider(<FollowConnectionsView />);
 
     expect(
       screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWERS_LIST),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getConnectionRowTestId(PLACEHOLDER_FOLLOWERS[0].id)),
+      screen.getByTestId(getConnectionRowTestId('follower-1')),
     ).toBeOnTheScreen();
   });
 
-  it('does not navigate when a mocked follower row is pressed', () => {
+  it('navigates to trader profile from a follower row', () => {
     renderWithProvider(<FollowConnectionsView />);
 
-    fireEvent.press(
-      screen.getByTestId(getConnectionRowTestId(PLACEHOLDER_FOLLOWERS[0].id)),
-    );
+    fireEvent.press(screen.getByTestId(getConnectionRowTestId('follower-1')));
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'follower-1',
+        traderName: 'Moon Rabbit',
+        traderAddress: '0x3333333333333333333333333333333333333333',
+        traderAvatarUri: 'https://example.com/moon.png',
+      },
+      {},
+    );
   });
 
-  it('does not follow when a mocked follower Follow button is pressed', () => {
+  it('follows from a follower row button', () => {
     renderWithProvider(<FollowConnectionsView />);
 
     fireEvent.press(
-      screen.getByTestId(
-        getConnectionFollowButtonTestId(PLACEHOLDER_FOLLOWERS[0].id),
-      ),
+      screen.getByTestId(getConnectionFollowButtonTestId('follower-1')),
     );
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'follower-1',
+      expect.objectContaining({
+        source: 'trader_profile',
+        traderAddress: '0x3333333333333333333333333333333333333333',
+        traderUsername: 'Moon Rabbit',
+      }),
+    );
+  });
+
+  it('retries followers fetch after an error', () => {
+    mockUseFollowers.mockReturnValue({
+      followers: [],
+      count: 0,
+      isLoading: false,
+      error: 'Followers unavailable',
+      refresh: mockRefreshFollowers,
+    });
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    fireEvent.press(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWERS_RETRY),
+    );
+
+    expect(mockRefreshFollowers).toHaveBeenCalledTimes(1);
   });
 
   it('renders live following traders on the following tab', () => {
