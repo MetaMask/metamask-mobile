@@ -156,8 +156,9 @@ const VbaDetails = () => {
     }
     setAutorampStatus(status);
 
-    const neoBank = (Engine.context as { NeoBankService?: DepositNeoBank })
-      .NeoBankService;
+    const neoBank = (
+      Engine.context as unknown as { NeoBankService?: DepositNeoBank }
+    ).NeoBankService;
     if (!neoBank) {
       return;
     }

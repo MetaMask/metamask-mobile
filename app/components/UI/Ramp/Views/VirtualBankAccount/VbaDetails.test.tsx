@@ -46,7 +46,13 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const approvedAutoramp = {
+type TestAutoramp = {
+  id: string;
+  walletAddress: string;
+  status: string;
+};
+
+const approvedAutoramp: TestAutoramp = {
   id: 'ar-1',
   walletAddress: '0xabc',
   status: 'Approved',
@@ -56,6 +62,12 @@ const pixInstructions = {
   brCode: '00020126',
   instruction: 'Pay with PIX',
   pixKey: 'pix@example.com',
+};
+
+const setAutoramps = (autoramps: TestAutoramp[]) => {
+  (
+    Engine.context.RampsController.state as { autoramps: TestAutoramp[] }
+  ).autoramps = autoramps;
 };
 
 describe('pickLatestTransaction', () => {
@@ -84,7 +96,7 @@ describe('VbaDetails', () => {
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
-    Engine.context.RampsController.state.autoramps = [{ ...approvedAutoramp }];
+    setAutoramps([{ ...approvedAutoramp }]);
   });
 
   it('renders the details screen', async () => {
@@ -163,9 +175,7 @@ describe('VbaDetails', () => {
   });
 
   it('refreshes a non-Approved autoramp before loading PIX', async () => {
-    Engine.context.RampsController.state.autoramps = [
-      { id: 'ar-1', walletAddress: '0xabc', status: 'Pending' },
-    ];
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
       walletAddress: '0xabc',
@@ -184,9 +194,7 @@ describe('VbaDetails', () => {
   });
 
   it('shows a load error when refreshing the autoramp fails', async () => {
-    Engine.context.RampsController.state.autoramps = [
-      { id: 'ar-1', walletAddress: '0xabc', status: 'Pending' },
-    ];
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockRejectedValue(new Error('refresh failed'));
 
     const { getByText } = renderWithProvider(<VbaDetails />);
@@ -199,7 +207,7 @@ describe('VbaDetails', () => {
   });
 
   it('waits for PIX when no usable autoramp exists', async () => {
-    Engine.context.RampsController.state.autoramps = [];
+    setAutoramps([]);
 
     const { getByText } = renderWithProvider(<VbaDetails />);
 
