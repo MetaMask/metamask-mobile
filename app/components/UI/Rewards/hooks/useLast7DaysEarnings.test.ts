@@ -25,6 +25,7 @@ const mockSummary = {
   pending: '0',
   claimed: '0',
   forfeited: '0',
+  pairing_pending: false,
   minimum_musd_base_units: '1000000',
   self_earned: {
     lifetime: '0',
