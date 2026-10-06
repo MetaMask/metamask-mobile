@@ -495,7 +495,7 @@ describe('RewardsMoneyDataService', () => {
       expect(url).not.toContain('cursor=');
     });
 
-    it('sends cursor without origin types on ledger page 2', async () => {
+    it('resends origin types alongside the cursor', async () => {
       mockFetch.mockResolvedValue(
         okJson({
           results: [],
@@ -510,7 +510,7 @@ describe('RewardsMoneyDataService', () => {
       const [url] = mockFetch.mock.calls[0];
       expect(url).toContain('cursor=cursor-1');
       expect(url).toContain('include_claims=true');
-      expect(url).not.toContain('earning_origin_type');
+      expect(url).toContain('earning_origin_type=SWAPS_FEE_CASHBACK');
     });
 
     it('can request accrual-only ledger pages', async () => {
@@ -591,8 +591,7 @@ describe('RewardsMoneyDataService', () => {
     });
 
     // The commissions cursor stamps the filter and the server 400s when the
-    // request omits it — the opposite of the ledger, which reads it from the
-    // cursor alone.
+    // request omits it.
     it('resends the mechanism filter alongside the cursor', async () => {
       mockFetch.mockResolvedValue(
         okJson({ results: [], mechanisms: {}, has_more: false, cursor: null }),
