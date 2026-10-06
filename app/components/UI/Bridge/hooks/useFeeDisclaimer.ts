@@ -93,20 +93,23 @@ export const useFeeDisclaimer = ({
     });
   }, [showDiscountedFee, hasFee, activeQuote, feePercentage]);
 
+  const discountedFeeCopy = showDiscountedFee
+    ? {
+        infoSuffix: isSubscriptionDiscount
+          ? strings('bridge.no_fees_with_orange')
+          : strings('bridge.fee_percentage_meta_mask', { feePercentage }),
+        baseFeePercentage: strings('bridge.fee_percentage', {
+          feePercentage: baseFeePercentage,
+        }),
+      }
+    : {
+        infoSuffix: undefined,
+        baseFeePercentage: undefined,
+      };
+
   return {
     discountBadge,
     infoText,
-    infoSuffix: isSubscriptionDiscount
-      ? strings('bridge.no_fees_with_orange')
-      : isDiscounted
-        ? strings('bridge.fee_percentage_meta_mask', {
-            feePercentage,
-          })
-        : undefined,
-    baseFeePercentage: showDiscountedFee
-      ? strings('bridge.fee_percentage', {
-          feePercentage: baseFeePercentage,
-        })
-      : undefined,
+    ...discountedFeeCopy,
   };
 };
