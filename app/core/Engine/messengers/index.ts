@@ -47,6 +47,7 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getGachaControllerMessenger } from './gacha-controller-messenger';
 import {
   getPredictMarketDataServiceMessenger,
   getPredictMarketDataServiceInitMessenger,
@@ -370,6 +371,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,
+    getInitMessenger: noop,
+  },
+  GachaController: {
+    getMessenger: getGachaControllerMessenger,
     getInitMessenger: noop,
   },
   PredictMarketDataService: {

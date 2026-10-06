@@ -299,6 +299,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AssetsController',
     'engine.backgroundState.BridgeController',
     'engine.backgroundState.BridgeStatusController',
+    'engine.backgroundState.GachaController',
     'engine.backgroundState.ConnectivityController',
     'engine.backgroundState.DeFiPositionsController',
     'engine.backgroundState.DeFiPositionsControllerV2',

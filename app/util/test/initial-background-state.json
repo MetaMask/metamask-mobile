@@ -948,6 +948,7 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
+  "GachaController": {},
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",

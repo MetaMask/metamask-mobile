@@ -165,6 +165,7 @@ import {
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { GachaScreenStack, selectGachaEnabledFlag } from '../../UI/Gacha';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
@@ -891,6 +892,8 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
+  // Get feature flag state for conditional Gacha registration
+  const isGachaEnabled = useSelector(selectGachaEnabledFlag);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1248,6 +1251,13 @@ const MainNavigator = () => {
             options={transparentModalStackOptions}
           />
         </>
+      )}
+      {isGachaEnabled && (
+        <NativeStack.Screen
+          name={Routes.GACHA.ROOT}
+          component={GachaScreenStack}
+          options={slideFromRightNativeOptions}
+        />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <NativeStack.Screen

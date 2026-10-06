@@ -94,6 +94,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectGachaEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -118,6 +119,11 @@ jest.mock('../../UI/Predict', () => {
       mockSelectPredictEnabledFlag(state),
   };
 });
+
+jest.mock('../../UI/Gacha', () => ({
+  GachaScreenStack: () => 'GachaScreenStack',
+  selectGachaEnabledFlag: (state: unknown) => mockSelectGachaEnabledFlag(state),
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -1089,6 +1095,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectGachaEnabledFlag.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1188,6 +1195,32 @@ describe('MainNavigator', () => {
       );
 
       expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes the Gacha route when its feature flag is enabled', () => {
+      mockSelectGachaEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const gachaScreen = getScreenProps(container).find(
+        (screen) => screen?.name === Routes.GACHA.ROOT,
+      );
+      expect(gachaScreen).toBeDefined();
+    });
+
+    it('excludes the Gacha route when its feature flag is disabled', () => {
+      mockSelectGachaEnabledFlag.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const gachaScreen = getScreenProps(container).find(
+        (screen) => screen?.name === Routes.GACHA.ROOT,
+      );
+      expect(gachaScreen).toBeUndefined();
     });
 
     it('includes Market Insights view when feature flag is enabled', () => {

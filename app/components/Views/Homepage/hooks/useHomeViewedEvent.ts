@@ -15,6 +15,7 @@ export const HomeSectionNames = {
   TOP_TRADERS: 'top_traders',
   WATCHLIST: 'watchlist',
   EARN: 'earn',
+  GACHA: 'gacha',
 } as const;
 
 export type HomeSectionName =
