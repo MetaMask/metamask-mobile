@@ -15,6 +15,11 @@ import {
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
+import {
+  beginPostSwapShareSession,
+  clearPostSwapShareSession,
+  getPostSwapShareSession,
+} from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
@@ -86,6 +91,7 @@ describe('resolveQuickBuyTerminalToast', () => {
     jest.clearAllMocks();
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
     clearSettledQuickBuyTrades();
+    clearPostSwapShareSession();
     Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
       {};
   });
@@ -249,5 +255,36 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(result).toBe(false);
     expect(showToast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
+  });
+
+  it('updates the post-swap share session instead of showing a toast', () => {
+    beginPostSwapShareSession({
+      target: {
+        tokenAddress: '0xpepe',
+        tokenSymbol: 'PEPE',
+        tokenName: 'Pepe',
+        chain: 'eip155:1',
+      },
+      tradeMode: 'buy',
+      preview: {
+        tokenSymbol: 'PEPE',
+        tokenAddress: '0xpepe',
+        chain: 'ethereum',
+        side: 'buy',
+      },
+    });
+    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    mockGetHistoryItem.mockReturnValue(
+      historyItemWithStatus(StatusTypes.COMPLETE),
+    );
+    const showToast = jest.fn();
+
+    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+    expect(result).toBe(true);
+    expect(showToast).not.toHaveBeenCalled();
+    expect(buildQuickBuyToastOptions).not.toHaveBeenCalled();
+    expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    expect(getPostSwapShareSession()?.status).toBe('complete');
   });
 });

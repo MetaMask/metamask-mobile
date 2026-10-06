@@ -21,8 +21,10 @@ import {
 } from '../abTestConfig';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
+  type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
+import { usePostSwapShareReopen } from '../../PostSwapShareBottomSheet';
 import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
@@ -164,6 +166,20 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     setIsQuickBuyVisible(false);
   }, []);
 
+  const handlePostSwapReopen = useCallback(
+    (reopenTarget: QuickBuyTarget) => {
+      if (
+        target &&
+        target.tokenAddress === reopenTarget.tokenAddress &&
+        target.chain === reopenTarget.chain
+      ) {
+        setIsQuickBuyVisible(true);
+      }
+    },
+    [target],
+  );
+  usePostSwapShareReopen(handlePostSwapReopen);
+
   return (
     <>
       <Box twClassName="px-4 py-3">
@@ -188,6 +204,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         source={source}
         originalEntryPoint={originalEntryPoint}
         isTraderPositionClosed={isTraderPositionClosed}
+        postSwapShare
       />
     </>
   );

@@ -5,6 +5,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
@@ -1022,7 +1023,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
-  SocialPostComposerView: undefined;
+  SocialPostComposerView: SocialPostComposerViewParams | undefined;
   SocialProfileOnboardingView: undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;

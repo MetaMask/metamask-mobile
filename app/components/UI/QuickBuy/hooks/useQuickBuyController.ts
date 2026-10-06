@@ -48,6 +48,11 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
+import {
+  beginPostSwapShareSession,
+  patchPostSwapShareSession,
+} from '../../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
@@ -264,6 +269,7 @@ export function useQuickBuyController(
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
   initialTradeMode: QuickBuyTradeMode = 'buy',
+  postSwapShare = false,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -1556,14 +1562,33 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    // Close the sheet and surface the pending toast immediately — the swap can
-    // take minutes to settle (cross-chain), so the user gets instant feedback
-    // on the trigger screen while submission happens in the background. The
-    // complete/failed toast later fires from the app-root registration.
-    onClose();
-    toastRef?.current?.showToast(
-      buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
-    );
+    if (postSwapShare) {
+      const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+      const pairLabel =
+        sourceToken?.symbol && destToken?.symbol
+          ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+          : undefined;
+      beginPostSwapShareSession({
+        target,
+        tradeMode,
+        pairLabel,
+        tradeInFlightChain,
+        preview: {
+          tokenSymbol: target.tokenSymbol,
+          tokenAddress: target.tokenAddress,
+          chain: tradeInFlightChain ?? target.chain,
+          side: tradeMode,
+          costLabel: tradeToastInfo.fiatAmountLabel,
+          entryPriceLabel: formattedRate,
+        },
+      });
+      onClose();
+    } else {
+      onClose();
+      toastRef?.current?.showToast(
+        buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
+      );
+    }
     // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
     // success/error feedback is deferred to the terminal complete/failed
     // states once the swap settles.
@@ -1604,7 +1629,11 @@ export function useQuickBuyController(
         trackQuickBuyTrade(txMetaId, {
           ...tradeToastInfo,
           txSignature: txHash,
+          postSwapShare,
         });
+        if (postSwapShare && txHash) {
+          patchPostSwapShareSession({ transactionHash: txHash });
+        }
         // The swap may already have settled by the time submitTx resolves, in
         // which case the terminal stateChange events fired before this id was
         // tracked and the app-root handler ignored them. Reconcile against the
@@ -1642,9 +1671,13 @@ export function useQuickBuyController(
       );
       // submitTx threw before publish (e.g. user rejection), so no bridge
       // history item will ever exist — surface the failure immediately.
-      toastRef?.current?.showToast(
-        buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
-      );
+      if (postSwapShare) {
+        patchPostSwapShareSession({ status: 'failed' });
+      } else {
+        toastRef?.current?.showToast(
+          buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
+        );
+      }
       await playErrorNotification();
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -1687,11 +1720,14 @@ export function useQuickBuyController(
     caip19,
     tradeMode,
     destToken?.symbol,
-    target.tokenSymbol,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
     submitStartedAtRef,
+    postSwapShare,
+    sourceTokenAmount,
+    estimatedReceiveAmount,
+    target,
   ]);
 
   // Preformatted headline value in the user's display currency (correct symbol

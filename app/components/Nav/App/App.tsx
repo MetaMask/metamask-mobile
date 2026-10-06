@@ -58,6 +58,7 @@ import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
+import { PostSwapShareBottomSheet } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
@@ -1542,6 +1543,7 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
+        <PostSwapShareBottomSheet />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

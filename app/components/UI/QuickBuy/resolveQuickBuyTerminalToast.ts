@@ -7,6 +7,7 @@ import {
   playSuccessNotification,
 } from '../../../util/haptics';
 import type { Theme } from '../../../util/theme/models';
+import { patchPostSwapShareSession } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
@@ -83,14 +84,18 @@ function emitTerminalToast(
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  showToast(
-    buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
-      trade,
-      theme,
-    }),
-  );
-  // Terminal feedback pairs with the toast: success buzz on settlement, error
-  // buzz on failure — fires even if the user navigated away.
+  if (trade.postSwapShare) {
+    patchPostSwapShareSession({
+      status: isComplete ? 'complete' : 'failed',
+    });
+  } else {
+    showToast(
+      buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+        trade,
+        theme,
+      }),
+    );
+  }
   if (isComplete) {
     playSuccessNotification();
   } else {

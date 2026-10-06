@@ -79,6 +79,10 @@ jest.mock('../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations', () => ({
   useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../Views/SocialLeaderboard/PostSwapShareBottomSheet', () => ({
+  PostSwapShareBottomSheet: () => null,
+}));
+
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
   <MockView testID="mock-ramps-service-disruption-modal" />

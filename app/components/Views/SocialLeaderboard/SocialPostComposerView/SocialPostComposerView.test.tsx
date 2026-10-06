@@ -47,6 +47,7 @@ jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+let mockRouteParams: unknown;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockCreateSwapComment = jest.fn();
 const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
@@ -83,6 +84,7 @@ jest.mock('@react-navigation/native', () => {
       isFocused: jest.fn(() => true),
       addListener: jest.fn(() => jest.fn()),
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -171,6 +173,7 @@ jest.mock('../../../../core/ReactQueryService', () => ({
 describe('SocialPostComposerView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
     jest.useFakeTimers();
     resetSocialV1ComposedFeedStore();
     mockCreateSwapComment.mockResolvedValue({
@@ -455,5 +458,56 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
+  });
+
+  it('posts tradeInFlight without a position picker or trending overlay', async () => {
+    mockRouteParams = {
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+        costLabel: '$329.47',
+      },
+    };
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: '',
+        tradeInFlight: {
+          transactionHash: '0xabc',
+          chain: 'base',
+          tokenAddress: '0xpump',
+        },
+        source: 'metamask-mobile',
+      });
+    });
+
+    expect(getSocialV1PendingPost()).toBeNull();
+    expect(getSocialV1ComposedPosts()).toHaveLength(0);
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

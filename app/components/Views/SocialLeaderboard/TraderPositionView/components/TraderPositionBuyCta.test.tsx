@@ -294,6 +294,7 @@ describe('TraderPositionBuyCta', () => {
         source: 'profile_position',
         originalEntryPoint: 'leaderboard',
         isTraderPositionClosed: true,
+        postSwapShare: true,
       }),
     );
   });
