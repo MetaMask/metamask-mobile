@@ -23,6 +23,12 @@ import BankDetailRow from '../../components/BankDetailRow/BankDetailRow';
 
 const POLL_INTERVAL_MS = 10_000;
 
+const TERMINAL_TRANSACTION_STATUSES = new Set([
+  'Completed',
+  'Failed',
+  'Cancelled',
+]);
+
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   DONE_BUTTON: 'vba-details-done-button',
@@ -46,6 +52,7 @@ interface AutorampTransactionSummary {
   id: string;
   status: string;
   sourceAmount?: string;
+  createdAt?: string;
 }
 
 interface DepositNeoBank {
@@ -73,6 +80,41 @@ const findUsableAutoramp = (
       autoramp.status !== 'Rejected' &&
       autoramp.status !== 'Cancelled',
   );
+};
+
+/**
+ * Prefer the newest transaction by `createdAt`. Without timestamps, prefer an
+ * in-flight deposit over a terminal one so an older Completed/Failed row cannot
+ * hide a newer payment.
+ */
+export const pickLatestTransaction = (
+  transactions: AutorampTransactionSummary[],
+): AutorampTransactionSummary | undefined => {
+  if (transactions.length === 0) {
+    return undefined;
+  }
+
+  const dated = transactions.filter(
+    (transaction) =>
+      typeof transaction.createdAt === 'string' &&
+      !Number.isNaN(Date.parse(transaction.createdAt)),
+  );
+  if (dated.length > 0) {
+    return [...dated].sort(
+      (left, right) =>
+        Date.parse(right.createdAt as string) -
+        Date.parse(left.createdAt as string),
+    )[0];
+  }
+
+  const inFlight = transactions.find(
+    (transaction) => !TERMINAL_TRANSACTION_STATUSES.has(transaction.status),
+  );
+  if (inFlight) {
+    return inFlight;
+  }
+
+  return transactions[transactions.length - 1];
 };
 
 /**
@@ -114,21 +156,37 @@ const VbaDetails = () => {
     }
     setAutorampStatus(status);
 
-    const neoBank = (
-      Engine.context as { NeoBankService?: DepositNeoBank }
-    ).NeoBankService;
-    if (
-      !neoBank?.getPixDepositInstructions ||
-      !neoBank.listAutorampTransactions
-    ) {
+    const neoBank = (Engine.context as { NeoBankService?: DepositNeoBank })
+      .NeoBankService;
+    if (!neoBank) {
       return;
     }
-    const [pix, transactions] = await Promise.all([
-      neoBank.getPixDepositInstructions(autoramp.id),
-      neoBank.listAutorampTransactions(autoramp.id),
-    ]);
-    setInstructions(pix);
-    setTransactionStatus(transactions[0]?.status ?? null);
+
+    // Fetch PIX and transactions independently so a flaky transaction poll
+    // cannot skip (or clear) the BR code the user needs to pay.
+    if (neoBank.getPixDepositInstructions) {
+      try {
+        const pix = await neoBank.getPixDepositInstructions(autoramp.id);
+        if (pix) {
+          setInstructions(pix);
+        }
+      } catch {
+        // Keep any previously shown PIX instructions.
+      }
+    }
+
+    if (neoBank.listAutorampTransactions) {
+      try {
+        const transactions = await neoBank.listAutorampTransactions(
+          autoramp.id,
+        );
+        setTransactionStatus(
+          pickLatestTransaction(transactions)?.status ?? null,
+        );
+      } catch {
+        // Keep any previously shown transaction status.
+      }
+    }
   }, [walletAddress]);
 
   useEffect(() => {

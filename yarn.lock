@@ -11518,7 +11518,7 @@ __metadata:
 
 "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A26.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-26.1.0-brlmusd.patch":
   version: 26.1.0
-  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A26.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-26.1.0-brlmusd.patch::version=26.1.0&hash=40450b"
+  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A26.1.0#~/.yarn/patches/@metamask-ramps-controller-npm-26.1.0-brlmusd.patch::version=26.1.0&hash=8de7a9"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -11527,7 +11527,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/992cb1363153a35978bd832dd823e544352341a230648c819fd1fc6b1af8f9d58221fa13d557c8eecfd8a6ad139f546df366af5284f77dd32d5093679cd63575
+  checksum: 10/56f54f9165783d704258b4fae83493894a750de3f349a8d8c831e5d3b55728a1ea5e9fd96af4d21e4e58bb660734336652861fefe547a70a308396ae38e732cb
   languageName: node
   linkType: hard
 

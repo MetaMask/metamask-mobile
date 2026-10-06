@@ -11,7 +11,7 @@ diff --git a/dist/NeoBankService.js b/dist/NeoBankService.js
          status: response.status,
          depositRailsSummary,
      };
-@@ -255,10 +256,75 @@
+@@ -255,10 +256,79 @@
       */
      async getAutoramps() {
          const response = await this.#getJson('autoramps');
@@ -78,12 +78,16 @@ diff --git a/dist/NeoBankService.js b/dist/NeoBankService.js
 +            const destinationAmount = transaction.destination_amount && typeof transaction.destination_amount.amount === 'string'
 +                ? transaction.destination_amount.amount
 +                : undefined;
++            const createdAt = typeof transaction.created_at === 'string' && transaction.created_at
++                ? transaction.created_at
++                : undefined;
 +            return {
 +                id: transaction.id,
 +                autorampId: typeof transaction.autoramp_id === 'string' ? transaction.autoramp_id : autorampId,
 +                status: transaction.status,
 +                sourceAmount,
 +                destinationAmount,
++                createdAt,
 +            };
 +        });
      }
