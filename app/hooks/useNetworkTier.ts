@@ -26,5 +26,6 @@ function readCellularGeneration(
     return null;
   }
 
-  return details.cellularGeneration;
+  const { cellularGeneration } = details;
+  return typeof cellularGeneration === 'string' ? cellularGeneration : null;
 }
