@@ -151,6 +151,27 @@ describe('RefereeHeroCard', () => {
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });
 
+  it('leaves voided cashback out of the rebates total', () => {
+    const { getByText, queryByText } = renderHero({
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...emptyBranch,
+              lifetime: '7650000',
+              voided: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByText('$6.65')).toBeOnTheScreen();
+    expect(queryByText('$7.65')).not.toBeOnTheScreen();
+  });
+
   it('renders without totals when the summary has not landed', () => {
     const { getByTestId, queryByText } = renderHero();
 
