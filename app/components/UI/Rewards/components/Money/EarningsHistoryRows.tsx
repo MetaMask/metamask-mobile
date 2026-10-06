@@ -15,9 +15,11 @@ import {
 } from '@metamask/design-system-react-native';
 import type {
   EarningOriginType,
+  LedgerEarningEntryDto,
   LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import { creditedBaseUnits } from '../../utils/earningsSummaryTotals';
 import {
   formatMusdBaseUnits,
   formatRewardsRelativeTime,
@@ -67,6 +69,23 @@ function claimDebit(netAmount: string): string | null {
   return formatMusdBaseUnits(units, { maximumFractionDigits: 2 });
 }
 
+function earningAmount(item: LedgerEarningEntryDto): {
+  label: string;
+  color: TextColor;
+} {
+  const credited = creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
+  const fullyVoided = credited === '0' && item.voided_musd_amount !== '0';
+
+  return {
+    label:
+      formatMusdBaseUnits(credited, {
+        signed: true,
+        maximumFractionDigits: 2,
+      }) ?? '—',
+    color: fullyVoided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+  };
+}
+
 export const EarningsHistoryRow: React.FC<{
   item: LedgerEntryDto;
   localizedText: ReferralLocalizedText;
@@ -76,11 +95,11 @@ export const EarningsHistoryRow: React.FC<{
     ? localizedText.historyClaimed
     : earningTitle(item.earning_origin_type, localizedText);
   const amount = isClaim
-    ? claimDebit(item.net_amount)
-    : formatMusdBaseUnits(item.musd_amount, {
-        signed: true,
-        maximumFractionDigits: 2,
-      });
+    ? {
+        label: claimDebit(item.net_amount) ?? '—',
+        color: TextColor.TextAlternative,
+      }
+    : earningAmount(item);
 
   return (
     <Box
@@ -107,11 +126,8 @@ export const EarningsHistoryRow: React.FC<{
           {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
         </Text>
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={isClaim ? TextColor.TextAlternative : TextColor.SuccessDefault}
-      >
-        {amount ?? '—'}
+      <Text variant={TextVariant.BodyMd} color={amount.color}>
+        {amount.label}
       </Text>
     </Box>
   );

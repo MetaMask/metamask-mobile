@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import type {
   LedgerClaimEntryDto,
   LedgerEarningEntryDto,
@@ -14,11 +15,20 @@ const LOCALIZED_TEXT = {
   historyClaimed: 'Claimed',
 } as unknown as ReferralLocalizedText;
 
+const amountColor = (
+  getAllByType: (
+    type: typeof Text,
+  ) => { props: { children?: unknown; color?: TextColor } }[],
+  label: string,
+) =>
+  getAllByType(Text).find((node) => node.props.children === label)?.props.color;
+
 const earning: LedgerEarningEntryDto = {
   type: 'earning',
   id: 'earn-1',
   earning_origin_type: 'SOCIAL_FOLLOW_TRADE',
   musd_amount: '2500000',
+  voided_musd_amount: '0',
   fee_amount_usd: '1',
   entry_count: 1,
   transaction_hash: null,
@@ -44,12 +54,45 @@ const claim: LedgerClaimEntryDto = {
 
 describe('EarningsHistoryRow', () => {
   it('shows an earning as a signed credit', () => {
-    const { getByText } = renderWithProvider(
+    const { getByText, UNSAFE_getAllByType } = renderWithProvider(
       <EarningsHistoryRow item={earning} localizedText={LOCALIZED_TEXT} />,
     );
 
     expect(getByText('Commission')).toBeOnTheScreen();
     expect(getByText('+$2.50')).toBeOnTheScreen();
+    expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
+      TextColor.SuccessDefault,
+    );
+  });
+
+  it('shows the remaining earning in green when only part is voided', () => {
+    const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, voided_musd_amount: '1000000' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('+$1.50')).toBeOnTheScreen();
+    expect(amountColor(UNSAFE_getAllByType, '+$1.50')).toBe(
+      TextColor.SuccessDefault,
+    );
+    expect(queryByText('+$2.50')).toBeNull();
+  });
+
+  it('does not show a fully voided earning as a green credit', () => {
+    const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, voided_musd_amount: '2500000' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('$0.00')).toBeOnTheScreen();
+    expect(amountColor(UNSAFE_getAllByType, '$0.00')).toBe(
+      TextColor.TextAlternative,
+    );
+    expect(queryByText('+$2.50')).toBeNull();
   });
 
   it('shows a settled claim as a debit', () => {
