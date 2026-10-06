@@ -32,11 +32,13 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
+  onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
+  onCopyTrade,
   onAuthorPress,
 }) => {
   const tw = useTailwind();
@@ -133,7 +135,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} />
+      <PositionCardBody item={post.item} onCopyTrade={onCopyTrade} />
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">

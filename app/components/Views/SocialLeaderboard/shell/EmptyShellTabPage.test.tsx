@@ -22,14 +22,34 @@ import { FeedSortFilterSelectorsIDs } from '../components/Filters';
 import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import EmptyShellTabPage from './EmptyShellTabPage';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
+  const { Pressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { item: { id: string } } }) => (
-      <View testID={`social-v1-feed-card-${post.item.id}`} />
+    default: ({
+      post,
+      onCopyTrade,
+    }: {
+      post: { item: SocialV1FeedItem };
+      onCopyTrade?: (item: SocialV1FeedItem) => void;
+    }) => (
+      <View>
+        <Pressable
+          testID={`social-v1-feed-card-${post.item.id}`}
+          onPress={() => onCopyTrade?.(post.item)}
+        />
+      </View>
     ),
   };
 });
@@ -126,13 +146,19 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => ({ profile: null }),
+}));
+
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
     jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
+    mockNavigate.mockClear();
     resetSocialV1ComposedFeedStore();
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     resetSocialV1ComposedFeedStore();
   });
 
@@ -194,46 +220,91 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the posting banner then prepends the composed post on Trending', () => {
-    jest.useFakeTimers();
+  it('does not request QuickBuy for an open perps feed item', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[0];
+    const onQuickBuy = jest.fn();
+
     renderWithProvider(
       <EmptyShellTabPage
-        tab="trending"
+        tab="following"
         isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+        onQuickBuy={onQuickBuy}
       />,
     );
 
-    act(() => {
-      submitSocialV1ComposedPost({
-        id: 'composed-1',
-        authorHandle: 'giga-whale',
-        timestampMs: Date.now(),
-        reactions: [],
-        item: mockOpenPerpsFeedItem({
-          id: 'composed-item',
-          comment: 'this is alpha',
-        }),
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    expect(onQuickBuy).not.toHaveBeenCalled();
+  });
+
+  it('requests a QuickBuy target for an open spot feed item', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[1];
+    const onQuickBuy = jest.fn();
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+        onQuickBuy={onQuickBuy}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    expect(onQuickBuy).toHaveBeenCalledWith({
+      tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+      tokenSymbol: 'PUMP',
+      tokenName: 'PUMP',
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
+  });
+
+  it('shows the posting banner then prepends the composed post on Trending', () => {
+    jest.useFakeTimers();
+    try {
+      renderWithProvider(
+        <EmptyShellTabPage
+          tab="trending"
+          isActive
+          containerTestID="trending-page-content"
+          scrollTestID="trending-page-scroll"
+        />,
+      );
+
+      act(() => {
+        submitSocialV1ComposedPost({
+          id: 'composed-1',
+          authorHandle: 'giga-whale',
+          timestampMs: Date.now(),
+          reactions: [],
+          item: mockOpenPerpsFeedItem({
+            id: 'composed-item',
+            comment: 'this is alpha',
+          }),
+        });
       });
-    });
 
-    expect(
-      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
 
-    act(() => {
-      jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
-    });
+      act(() => {
+        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+      });
 
-    expect(
-      screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeNull();
-    expect(
-      screen.getByTestId('social-v1-feed-card-composed-item'),
-    ).toBeOnTheScreen();
-
-    jest.useRealTimers();
+      expect(
+        screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId('social-v1-feed-card-composed-item'),
+      ).toBeOnTheScreen();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('inserts the Popular traders carousel after the first three Trending posts', () => {

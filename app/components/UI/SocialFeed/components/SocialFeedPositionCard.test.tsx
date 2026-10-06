@@ -1,6 +1,6 @@
 import React from 'react';
 import { lightTheme } from '@metamask/design-tokens';
-import { screen, within } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -127,6 +127,33 @@ describe('SocialFeedPositionCard', () => {
     expect(statValue(item.id, 'entry')).toBe('$107,675');
     expect(statValue(item.id, 'autoClose')).toBe('TP $101,214 / SL $110,905');
     expect(statValue(item.id, 'cost')).toBe('$212,000.00');
+  });
+
+  it('forwards the open spot item when Copy trade is pressed', () => {
+    const item = mockOpenSpotFeedItem();
+    const onCopyTrade = jest.fn();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={onCopyTrade} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    );
+
+    expect(onCopyTrade).toHaveBeenCalledWith(item);
+  });
+
+  it('omits copy trade for open perps when a feed handler is wired', () => {
+    const item = mockOpenPerpsFeedItem();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={jest.fn()} />,
+    );
+
+    expect(
+      screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    ).toBeNull();
   });
 
   // One line, two figures: the title carries the leverage it qualifies, and the

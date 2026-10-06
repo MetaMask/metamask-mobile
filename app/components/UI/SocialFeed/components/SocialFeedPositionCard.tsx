@@ -3,7 +3,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedItem } from '../types';
 import { mockedFieldLabel } from '../utils/mockedFieldLabel';
-import { isCopyTradeable } from '../utils/copyTrade';
+import { shouldShowCopyTradeCta } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
@@ -27,6 +27,7 @@ export interface SocialFeedPositionCardProps {
 
 export interface PositionCardBodyProps {
   item: SocialV1FeedItem;
+  onCopyTrade?: (item: SocialV1FeedItem) => void;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -76,7 +77,10 @@ const closedStats = (item: {
  * A closed card also takes the tone of its realized P&L, so a win and a loss
  * are distinguishable while scrolling past at speed.
  */
-export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
+export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
+  item,
+  onCopyTrade,
+}) => {
   const { showMockedFields } = useSocialFeedSurface();
   const autoCloseLabel = mockedFieldLabel(
     item.variant === 'perpsOpen' ? item.autoCloseLabel : undefined,
@@ -135,7 +139,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
             costRow,
           ];
 
-    const showCopyTrade = isCopyTradeable(item);
+    const showCopyTrade = shouldShowCopyTradeCta(item, Boolean(onCopyTrade));
 
     return (
       <PositionCardShell>
@@ -158,6 +162,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({ item }) => {
         {showCopyTrade ? (
           <CopyTradeButton
             testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
+            onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
           />
         ) : null}
       </PositionCardShell>
