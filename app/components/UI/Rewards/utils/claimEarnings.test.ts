@@ -105,20 +105,21 @@ function summary(options: {
     claimable: options.claimable,
     pending: '0',
     claimed: '0',
-    forfeited: '0',
+    voided: '0',
     minimum_musd_base_units: ONE_DOLLAR,
+    pairing_pending: false,
     self_earned: {
       lifetime: '0',
       pending: '0',
       claimed: '0',
-      forfeited: '0',
+      voided: '0',
       by_claim_family: {
         REFERRAL_TRADE_FEE_CASHBACK: {
           lifetime: '0',
           claimable: options.cashback,
           pending: '0',
           claimed: '0',
-          forfeited: '0',
+          voided: '0',
           by_address: [],
         },
       },
@@ -127,14 +128,14 @@ function summary(options: {
       lifetime: '0',
       pending: '0',
       claimed: '0',
-      forfeited: '0',
+      voided: '0',
       by_claim_family: {
         REFERRAL_REV_SHARE: {
           lifetime: '0',
           claimable: options.revShare,
           pending: '0',
           claimed: '0',
-          forfeited: '0',
+          voided: '0',
         },
       },
     },
@@ -806,9 +807,11 @@ describe('mergeInFlightClaims', () => {
     chain_id: null,
     ledger_timestamp: '2026-09-01T00:00:00.000Z',
     claim_status: 'unclaimed',
-    claim_expires_at: null,
+    voided_musd_amount: '0',
+    claimable_at: '2026-09-02T00:00:00.000Z',
     swaps_source: null,
     perps_source: null,
+    predict_source: null,
   };
 
   const settled: LedgerClaimEntryDto = {
@@ -821,6 +824,7 @@ describe('mergeInFlightClaims', () => {
     status: 'SETTLED',
     ledger_timestamp: '2026-09-02T00:00:00.000Z',
     settled_at: '2026-09-02T00:00:00.000Z',
+    payout_method: 'VOUCHER',
   };
 
   function claim(overrides: Partial<ClaimDto>): ClaimDto {
@@ -905,6 +909,7 @@ describe('isPendingClaimRow', () => {
         status: 'SETTLED',
         ledger_timestamp: '2026-09-02T00:00:00.000Z',
         settled_at: '2026-09-02T00:00:00.000Z',
+        payout_method: 'VOUCHER',
       }),
     ).toBe(false);
   });

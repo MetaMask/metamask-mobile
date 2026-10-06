@@ -155,20 +155,21 @@ function summary(claimable: string): EarningsSummaryDto {
     claimable,
     pending: '0',
     claimed: '0',
-    forfeited: '0',
+    voided: '0',
     minimum_musd_base_units: ONE_DOLLAR,
+    pairing_pending: false,
     self_earned: {
       lifetime: '0',
       pending: '0',
       claimed: '0',
-      forfeited: '0',
+      voided: '0',
       by_claim_family: {
         REFERRAL_TRADE_FEE_CASHBACK: {
           lifetime: '0',
           claimable,
           pending: '0',
           claimed: '0',
-          forfeited: '0',
+          voided: '0',
           by_address: [],
         },
       },
@@ -177,7 +178,7 @@ function summary(claimable: string): EarningsSummaryDto {
       lifetime: '0',
       pending: '0',
       claimed: '0',
-      forfeited: '0',
+      voided: '0',
       by_claim_family: {},
     },
   };

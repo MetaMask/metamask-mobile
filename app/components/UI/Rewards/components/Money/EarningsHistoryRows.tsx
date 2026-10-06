@@ -112,7 +112,14 @@ export const EarningsHistoryRow: React.FC<{
     ? localizedText.historyClaimed
     : earningTitle(item.earning_origin_type, localizedText);
   const credited = isClaim ? null : earningAmount(item);
-  const amount = isClaim ? claimDebit(item.net_amount) : credited?.label;
+  let amount: string | null;
+  if (isPendingClaimRow(item)) {
+    amount = claimDebit(item.net_amount);
+  } else if (item.type === 'claim') {
+    amount = claimDebit(item.net_amount);
+  } else {
+    amount = credited?.label ?? null;
+  }
   const amountColor =
     underReview || isClaim
       ? TextColor.TextAlternative
