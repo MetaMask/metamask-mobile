@@ -3,7 +3,6 @@ import { getSwapDestToken } from './getSwapDestToken';
 
 const ARC_CHAIN_ID = NETWORK_CHAIN_ID.ARC; // '0x13b2'
 const ARC_EURC_ADDRESS = '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1';
-const ARC_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
 const MAINNET_CHAIN_ID = NETWORK_CHAIN_ID.MAINNET; // '0x1'
 const MAINNET_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const UNKNOWN_CHAIN_ID = '0xdeadbeef';
@@ -34,21 +33,10 @@ describe('getSwapDestToken', () => {
   });
 
   describe('with sourceAddress — returns per-source override only', () => {
-    it('returns the USDC override for EURC on Arc', () => {
+    it('returns undefined for EURC on Arc when no client override is configured', () => {
       const result = getSwapDestToken(ARC_CHAIN_ID, ARC_EURC_ADDRESS);
 
-      expect(result).toBeDefined();
-      expect(result?.address).toBe(ARC_USDC_ADDRESS);
-      expect(result?.symbol).toBe('USDC');
-    });
-
-    it('matches the source address case-insensitively', () => {
-      const result = getSwapDestToken(
-        ARC_CHAIN_ID,
-        ARC_EURC_ADDRESS.toLowerCase(),
-      );
-
-      expect(result?.address).toBe(ARC_USDC_ADDRESS);
+      expect(result).toBeUndefined();
     });
 
     // Regression: before the fix, this returned the Mainnet chain default (mUSD)

@@ -16,7 +16,7 @@ import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
-import { isArcTokenUSDC } from '../../../../../enablement/assets/arc';
+import { isArcUsdcForBridge } from '../../../../../enablement/assets/arc';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
 type ActiveQuote = QuoteResponse | null | undefined;
@@ -44,7 +44,7 @@ const getMinimumReserveBalanceForTokenChainAndAddress = ({
   tokenAddress: string;
   token: BridgeToken;
 }): string => {
-  if (isArcTokenUSDC(token)) {
+  if (isArcUsdcForBridge(token)) {
     return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainId] ?? '0';
   }
 
@@ -126,7 +126,7 @@ export const useInsufficientNativeReserveError = ({
       isGasFeesSponsoredNetworkEnabled(chainIdHex),
   );
 
-  const isArcUSDCReserveToken = isArcTokenUSDC(token);
+  const isArcUSDCReserveToken = isArcUsdcForBridge(token);
   const minimumNativeBalanceToBeKeptInAccount =
     isNetworkGasSponsored || isBitcoinReserveChain || isArcUSDCReserveToken
       ? getMinimumReserveBalanceForTokenChainAndAddress({

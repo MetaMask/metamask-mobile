@@ -43,7 +43,6 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  assetIdsMatch,
   FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
@@ -84,10 +83,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
-import {
-  ARC_NATIVE_ASSET_ID,
-  ARC_NATIVE_ASSET_ID_LEGACY,
-} from '../../../../hooks/useArcDefaultTokens';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -610,10 +605,8 @@ export const BridgeTokenSelectorContent: React.FC<
       )
       .filter(
         (token) =>
-          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
-          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY) &&
-          (!balanceOnly ||
-            (token.balance !== undefined && parseFloat(token.balance) > 0)),
+          !balanceOnly ||
+          (token.balance !== undefined && parseFloat(token.balance) > 0),
       );
 
     return filterWatchlistBridgeTokens(

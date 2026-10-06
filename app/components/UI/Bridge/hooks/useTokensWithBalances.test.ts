@@ -8,10 +8,6 @@ import {
   createMockBalanceData,
 } from '../testUtils/fixtures';
 import { BalancesByAssetId } from './useBalancesByAssetId';
-import {
-  ARC_NATIVE_ASSET_ID,
-  ARC_USDC_ASSET_ID,
-} from '../../../hooks/useArcDefaultTokens';
 
 describe('useTokensWithBalances', () => {
   beforeEach(() => {
@@ -242,29 +238,24 @@ describe('useTokensWithBalances', () => {
     });
   });
 
-  describe('Arc native token filtering', () => {
-    it('keeps other Arc tokens while filtering out the native duplicate', () => {
-      const arcNativeToken = createMockPopularToken({
-        assetId: ARC_NATIVE_ASSET_ID,
-        symbol: 'USDC',
-        name: 'USDC',
-      });
-      const arcErc20Usdc = createMockPopularToken({
-        assetId: ARC_USDC_ASSET_ID,
-        symbol: 'USDC',
-        name: 'USDC',
-      });
+  it('keeps Arc native USDC returned by the Bridge API', () => {
+    const arcNativeToken = createMockPopularToken({
+      assetId: 'eip155:5042/slip44:5042' as CaipAssetType,
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 18,
+    });
 
-      const { result } = renderHook(() =>
-        useTokensWithBalances([arcNativeToken, arcErc20Usdc], {}),
-      );
+    const { result } = renderHook(() =>
+      useTokensWithBalances([arcNativeToken], {}),
+    );
 
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0]).toMatchObject({
-        symbol: 'USDC',
-        chainId: '0x13b2',
-        address: '0x3600000000000000000000000000000000000000',
-      });
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      symbol: 'USDC',
+      chainId: '0x13b2',
+      address: constants.AddressZero,
+      decimals: 18,
     });
   });
 });
