@@ -26,7 +26,26 @@ Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network
 
 `null` means unknown — do not treat it as offline or low-end. `'NONE'` means we know there is no usable internet (`type === 'none'` or `isInternetReachable === false`). `vpn` / `bluetooth` / `wimax` / `other` / cellular with no generation are `null`.
 
-Keep the two values separate. Do not fold them into one “worst of RAM and network” flag — a short 3G blip would make a high-RAM phone look constrained.
+**Note:** Keep the two values separate. Do not fold them into one “worst of RAM and network” flag — a short 3G blip would make a high-RAM phone look constrained.
+
+## UX matrix (agents: check this)
+
+Applies to **any screen you touch** (new or existing) that uses animation (including Rive), lists, polling, prefetch, realtime, heavy images, or blur. Do not migrate unrelated screens in the same change.
+
+1. Read `getHardwareTier()` and `useNetworkTier()`.
+2. Use the cell below. `null` hardware → network column only. `null` network → never treat as LOW or `'NONE'` (use the product default / MID-safe path).
+3. Tell the human the cell and the levers you will change on **this** screen.
+
+| Hardware \\ Network | `NONE`                                    | `SLOW_CELLULAR`                        | `FAST_CELLULAR` / `WIFI`                            | `null` network                            |
+| ------------------- | ----------------------------------------- | -------------------------------------- | --------------------------------------------------- | ----------------------------------------- |
+| **LOW**             | Local UI only: no fetch, no Rive, no blur | Less animation, rare poll, no prefetch | Light animation, short list, no extra work on mount | MID-safe / product default — never as LOW |
+| **MID**             | Same as LOW × `NONE`                      | Debounce, fewer previews               | Product default                                     | Product default                           |
+| **HIGH**            | Same as LOW × `NONE`                      | Still save radio (images, prefetch)    | Full experience                                     | Product default                           |
+| **`null` hardware** | Network only (`NONE` row)                 | Network only                           | Product default                                     | Product default                           |
+
+Levers: Rive vs static fallback, FlashList window / `getItemType`, poll interval, prefetch, image quality, blur/shadows.
+
+`HIGH` + `WIFI` / `FAST_CELLULAR` = ship the designed experience. `LOW` + `NONE` = local only. Do not “cut everything” because a screen feels slow.
 
 ## Thresholds (`thresholds.ts`)
 
@@ -52,6 +71,6 @@ Do not check hardware tier on the iOS simulator — it can report the Mac’s RA
 
 ## Out of scope (this module)
 
-- Battery, disk, CPU cores / frequency
-- Segment / `APP_OPENED` properties (`hardware_tier`, `total_memory_gb`) — post-MVP
-- Migrating `AnimatedFox` and `useDeviceOrientation` off their local `≤ 2 GB` checks
+- Battery
+- Disk
+- CPU
