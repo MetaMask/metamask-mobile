@@ -1,9 +1,11 @@
 import { expectSaga } from 'redux-saga-test-plan';
+import { select } from 'redux-saga/effects';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../actions/security';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import { analytics } from '../../util/analytics/analytics';
 import Logger from '../../util/Logger';
+import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
 import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
@@ -40,16 +42,18 @@ describe('marketingAttribution sagas', () => {
         .silentRun(50);
     });
 
-    it('restores marketing opt-in and keeps attribution when the controller opt-out fails', async () => {
+    it('restores the switch without a controller opt-in when marketing delivery is still on', async () => {
       const error = new Error('controller opt-out failed');
       jest
         .mocked(analytics.setDataCollectionForMarketing)
         .mockRejectedValueOnce(error);
 
       await expectSaga(watchMarketingAttributionOnConsentChange)
+        .provide([[select(selectAnalyticsOptedInToMarketing), true]])
         .dispatch(setDataCollectionForMarketing(false))
         .call([analytics, analytics.setDataCollectionForMarketing], false)
-        .put(setDataCollectionForMarketing(true))
+        .put(setDataCollectionForMarketing(true, { skipControllerSync: true }))
+        .not.call([analytics, analytics.setDataCollectionForMarketing], true)
         .not.put(clearAttribution())
         .silentRun(50);
 
@@ -57,6 +61,23 @@ describe('marketingAttribution sagas', () => {
         error,
         'Failed to copy marketing preference into AnalyticsController',
       );
+    });
+
+    it('keeps a failed opt-out from granting consent when the controller is not opted in', async () => {
+      jest
+        .mocked(analytics.setDataCollectionForMarketing)
+        .mockRejectedValueOnce(new Error('controller opt-out failed'));
+
+      await expectSaga(watchMarketingAttributionOnConsentChange)
+        .provide([[select(selectAnalyticsOptedInToMarketing), false]])
+        .dispatch(setDataCollectionForMarketing(false))
+        .call([analytics, analytics.setDataCollectionForMarketing], false)
+        .not.put(
+          setDataCollectionForMarketing(true, { skipControllerSync: true }),
+        )
+        .not.call([analytics, analytics.setDataCollectionForMarketing], true)
+        .not.put(clearAttribution())
+        .silentRun(50);
     });
   });
 
