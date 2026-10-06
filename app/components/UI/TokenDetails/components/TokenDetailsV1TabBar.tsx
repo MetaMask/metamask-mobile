@@ -1,5 +1,12 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
-import type { ViewStyle } from 'react-native';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  ScrollView,
+  useWindowDimensions,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ViewStyle,
+} from 'react-native';
 import { Gesture, type PanGesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Box } from '@metamask/design-system-react-native';
@@ -50,25 +57,54 @@ export interface UseTokenDetailsV1TabsResult {
   swipeGesture: PanGesture;
 }
 
+export interface UseTokenDetailsV1TabsOptions {
+  initialTab?: TokenDetailsV1TabKey;
+  onTabChange?: (
+    targetTab: TokenDetailsV1TabKey,
+    currentTab: TokenDetailsV1TabKey,
+  ) => void;
+  onTabWillChange?: (
+    targetTab: TokenDetailsV1TabKey,
+    currentTab: TokenDetailsV1TabKey,
+  ) => void;
+}
+
 export const useTokenDetailsV1Tabs = (
-  initialTab: TokenDetailsV1TabKey = TOKEN_DETAILS_V1_TABS[0],
+  initialTabOrOptions?: TokenDetailsV1TabKey | UseTokenDetailsV1TabsOptions,
 ): UseTokenDetailsV1TabsResult => {
+  const options =
+    typeof initialTabOrOptions === 'object' && initialTabOrOptions !== null
+      ? initialTabOrOptions
+      : undefined;
+  const initialTab =
+    typeof initialTabOrOptions === 'string'
+      ? initialTabOrOptions
+      : (options?.initialTab ?? TOKEN_DETAILS_V1_TABS[0]);
+  const onTabChange = options?.onTabChange ?? options?.onTabWillChange;
+
   const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>(initialTab);
   const [mountedTabs, setMountedTabs] = useState<Set<TokenDetailsV1TabKey>>(
     () => new Set([initialTab]),
   );
 
-  const activateTab = useCallback((tab: TokenDetailsV1TabKey) => {
-    setActiveTab(tab);
-    setMountedTabs((prev) => {
-      if (prev.has(tab)) {
-        return prev;
+  const activateTab = useCallback(
+    (tab: TokenDetailsV1TabKey) => {
+      if (tab === activeTab) {
+        return;
       }
-      const next = new Set(prev);
-      next.add(tab);
-      return next;
-    });
-  }, []);
+      onTabChange?.(tab, activeTab);
+      setActiveTab(tab);
+      setMountedTabs((prev) => {
+        if (prev.has(tab)) {
+          return prev;
+        }
+        const next = new Set(prev);
+        next.add(tab);
+        return next;
+      });
+    },
+    [activeTab, onTabChange],
+  );
 
   const handleSwipeEnd = useCallback(
     (translationX: number, velocityX: number) => {
@@ -108,9 +144,83 @@ export const useTokenDetailsV1Tabs = (
   };
 };
 
+export interface UseTokenDetailsV1ScrollStabilizationOptions {
+  scrollViewRef?: React.RefObject<ScrollView | null>;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}
+
+export interface UseTokenDetailsV1ScrollStabilizationResult {
+  scrollViewRef: React.RefObject<ScrollView | null>;
+  handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  handleTabBarLayout: (event: LayoutChangeEvent) => void;
+  handleScrollViewLayout: (event: LayoutChangeEvent) => void;
+  tabContentContainerStyle: ViewStyle;
+  clampScrollToTabBar: () => void;
+}
+
+export const useTokenDetailsV1ScrollStabilization = (
+  options?: UseTokenDetailsV1ScrollStabilizationOptions,
+): UseTokenDetailsV1ScrollStabilizationResult => {
+  const defaultScrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = options?.scrollViewRef ?? defaultScrollViewRef;
+  const currentScrollYRef = useRef(0);
+  const tabBarOffsetYRef = useRef<number | null>(null);
+
+  const { height: windowHeight } = useWindowDimensions();
+  const [scrollViewHeight, setScrollViewHeight] = useState(0);
+
+  const minTabContentHeight = useMemo(
+    () => Math.max(scrollViewHeight, windowHeight),
+    [scrollViewHeight, windowHeight],
+  );
+
+  const tabContentContainerStyle = useMemo<ViewStyle>(
+    () => ({ minHeight: minTabContentHeight }),
+    [minTabContentHeight],
+  );
+
+  const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
+    tabBarOffsetYRef.current = event.nativeEvent.layout.y;
+  }, []);
+
+  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
+    setScrollViewHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  const onScroll = options?.onScroll;
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      currentScrollYRef.current = event.nativeEvent.contentOffset.y;
+      onScroll?.(event);
+    },
+    [onScroll],
+  );
+
+  const clampScrollToTabBar = useCallback(() => {
+    const tabBarOffsetY = tabBarOffsetYRef.current;
+    if (tabBarOffsetY !== null && currentScrollYRef.current > tabBarOffsetY) {
+      scrollViewRef.current?.scrollTo({
+        y: tabBarOffsetY,
+        animated: false,
+      });
+      currentScrollYRef.current = tabBarOffsetY;
+    }
+  }, [scrollViewRef]);
+
+  return {
+    scrollViewRef,
+    handleScroll,
+    handleTabBarLayout,
+    handleScrollViewLayout,
+    tabContentContainerStyle,
+    clampScrollToTabBar,
+  };
+};
+
 export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 const getTabLabel = (tab: TokenDetailsV1TabKey): string =>
@@ -120,7 +230,7 @@ const getTabTestID = (tab: TokenDetailsV1TabKey): string =>
   `token-details-v1-tab-${tab}`;
 
 const TokenDetailsV1TabBar = memo(
-  ({ activeTab, onTabPress }: TokenDetailsV1TabBarProps) => {
+  ({ activeTab, onTabPress, onLayout }: TokenDetailsV1TabBarProps) => {
     const tabs = useMemo<TabItem[]>(
       () =>
         TOKEN_DETAILS_V1_TABS.map((tab) => ({
@@ -148,6 +258,7 @@ const TokenDetailsV1TabBar = memo(
       <Box
         twClassName="bg-default pt-3"
         testID={TOKEN_DETAILS_V1_TAB_BAR_TEST_ID}
+        onLayout={onLayout}
       >
         <TabsBar
           tabs={tabs}

@@ -54,6 +54,7 @@ import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
+  useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
@@ -258,8 +259,27 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      onScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [onScrollOffset],
+  );
+
+  const {
+    scrollViewRef,
+    handleScroll: onScrollViewScroll,
+    handleTabBarLayout,
+    handleScrollViewLayout,
+    tabContentContainerStyle,
+    clampScrollToTabBar,
+  } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
+
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
-    useTokenDetailsV1Tabs();
+    useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -279,16 +299,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
     [mountedTabs, token, caip19AssetId, currentCurrency, securityData],
-  );
-
-  const { description: headerDescription, onScrollOffset } =
-    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
-    },
-    [onScrollOffset],
   );
 
   const currentPriceUsd = useMemo(() => {
@@ -361,10 +371,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <ScrollView
+              ref={scrollViewRef}
               style={styles.scroll}
               contentContainerStyle={styles.scrollContent}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
-              onScroll={handleScroll}
+              onScroll={onScrollViewScroll}
+              onLayout={handleScrollViewLayout}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
@@ -402,11 +414,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
                 onTabPress={activateTab}
+                onLayout={handleTabBarLayout}
               />
 
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
+                  style={tabContentContainerStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
                   {TOKEN_DETAILS_V1_TABS.map((tab) => {

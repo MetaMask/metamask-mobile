@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView, type LayoutChangeEvent } from 'react-native';
 import { fireEvent, render, within } from '@testing-library/react-native';
 
 import {
@@ -128,11 +129,13 @@ jest.mock('../components/TokenDetailsV1TabBar', () => {
     default: ({
       activeTab,
       onTabPress,
+      onLayout,
     }: {
       activeTab: string;
       onTabPress: (tab: string) => void;
+      onLayout?: (event: LayoutChangeEvent) => void;
     }) => (
-      <View testID="mock-tab-bar">
+      <View testID="mock-tab-bar" onLayout={onLayout}>
         {tabs.map((tab) => (
           <Pressable
             key={tab}
@@ -434,6 +437,57 @@ describe('TokenDetailsV1', () => {
 
     expect(getByText('feed:true')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+  });
+
+  it('anchors the scroll position to the docked tab bar when switching tabs from a scrolled-down state', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
+
+    // Simulate tab bar layout at offset Y = 400
+    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+      nativeEvent: { layout: { y: 400 } },
+    });
+
+    // Simulate scrolling down to 800 (past the tab bar at 400)
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 800 } },
+    });
+
+    // Switch to security tab
+    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+    // Should scrollTo the docked tab bar offset (400) without animation to prevent UI jumping
+    expect(scrollToSpy).toHaveBeenCalledWith({
+      y: 400,
+      animated: false,
+    });
+
+    scrollToSpy.mockRestore();
+  });
+
+  it('preserves scroll position when switching tabs before scrolling past the tab bar', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
+
+    // Simulate tab bar layout at offset Y = 400
+    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+      nativeEvent: { layout: { y: 400 } },
+    });
+
+    // Simulate scrolling to 200 (before tab bar at 400)
+    fireEvent.scroll(scrollView, {
+      nativeEvent: { contentOffset: { y: 200 } },
+    });
+
+    // Switch to security tab
+    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+    // Should NOT call scrollTo
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    scrollToSpy.mockRestore();
   });
 
   it('activates the swiped-to tab when a pan settles as a decisive swipe', () => {

@@ -1,4 +1,10 @@
 import React from 'react';
+import type {
+  ScrollView,
+  LayoutChangeEvent,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { act, renderHook } from '@testing-library/react-hooks';
 import type { TabItem } from '../../../../component-library/components-temp/Tabs';
@@ -6,6 +12,7 @@ import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
   TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
   resolveSwipeTargetTab,
+  useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from './TokenDetailsV1TabBar';
 
@@ -87,13 +94,26 @@ describe('TokenDetailsV1TabBar', () => {
     expect(onTabPress).toHaveBeenCalledWith('security');
   });
 
-  it('ignores presses for unknown tab indices', () => {
-    const onTabPress = jest.fn();
-    const { getByTestId } = renderTabBar('overview', onTabPress);
+  it('forwards onLayout to the tab bar container', () => {
+    const onLayout = jest.fn();
+    const { getByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={jest.fn()}
+        onLayout={onLayout}
+      />,
+    );
 
-    fireEvent.press(getByTestId('tab-bar-out-of-range'));
+    fireEvent(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID), 'layout', {
+      nativeEvent: { layout: { y: 350 } },
+    });
 
-    expect(onTabPress).not.toHaveBeenCalled();
+    expect(onLayout).toHaveBeenCalledTimes(1);
+    expect(onLayout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: { layout: { y: 350 } },
+      }),
+    );
   });
 });
 
@@ -124,6 +144,113 @@ describe('useTokenDetailsV1Tabs', () => {
     });
 
     expect(result.current.activeTab).toBe('security');
+  });
+
+  it('notifies onTabChange when switching to a different tab', () => {
+    const onTabChange = jest.fn();
+    const { result } = renderHook(() =>
+      useTokenDetailsV1Tabs({ initialTab: 'overview', onTabChange }),
+    );
+
+    act(() => {
+      result.current.activateTab('security');
+    });
+
+    expect(onTabChange).toHaveBeenCalledTimes(1);
+    expect(onTabChange).toHaveBeenCalledWith('security', 'overview');
+
+    // Activating the already active tab does not trigger onTabChange
+    act(() => {
+      result.current.activateTab('security');
+    });
+
+    expect(onTabChange).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('useTokenDetailsV1ScrollStabilization', () => {
+  it('clamps scroll position to the tab bar offset when clampScrollToTabBar is called while scrolled down', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.handleTabBarLayout({
+        nativeEvent: { layout: { y: 400, x: 0, width: 375, height: 48 } },
+      } as LayoutChangeEvent);
+      result.current.handleScroll({
+        nativeEvent: { contentOffset: { y: 800, x: 0 } },
+      } as NativeSyntheticEvent<NativeScrollEvent>);
+      result.current.clampScrollToTabBar();
+    });
+
+    expect(scrollToMock).toHaveBeenCalledWith({
+      y: 400,
+      animated: false,
+    });
+  });
+
+  it('does not clamp scroll position when clampScrollToTabBar is called before scrolling past the tab bar', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.handleTabBarLayout({
+        nativeEvent: { layout: { y: 400, x: 0, width: 375, height: 48 } },
+      } as LayoutChangeEvent);
+      result.current.handleScroll({
+        nativeEvent: { contentOffset: { y: 200, x: 0 } },
+      } as NativeSyntheticEvent<NativeScrollEvent>);
+      result.current.clampScrollToTabBar();
+    });
+
+    expect(scrollToMock).not.toHaveBeenCalled();
+  });
+
+  it('forwards scroll events to the onScroll option', () => {
+    const onScroll = jest.fn();
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({ onScroll }),
+    );
+
+    const scrollEvent = {
+      nativeEvent: { contentOffset: { y: 150, x: 0 } },
+    } as NativeSyntheticEvent<NativeScrollEvent>;
+
+    act(() => {
+      result.current.handleScroll(scrollEvent);
+    });
+
+    expect(onScroll).toHaveBeenCalledWith(scrollEvent);
+  });
+
+  it('updates tab content minHeight based on the scroll view layout height', () => {
+    const { result } = renderHook(() => useTokenDetailsV1ScrollStabilization());
+
+    act(() => {
+      result.current.handleScrollViewLayout({
+        nativeEvent: { layout: { height: 900, y: 0, x: 0, width: 375 } },
+      } as LayoutChangeEvent);
+    });
+
+    expect(
+      result.current.tabContentContainerStyle.minHeight,
+    ).toBeGreaterThanOrEqual(900);
   });
 });
 
