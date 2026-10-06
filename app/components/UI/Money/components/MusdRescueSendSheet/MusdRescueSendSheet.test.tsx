@@ -1,4 +1,5 @@
 import React from 'react';
+import { TextInput } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -32,6 +33,7 @@ const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
 const mockInitiateRescueSend = jest.fn().mockResolvedValue(undefined);
 const mockGoBack = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 
 const mockUseMoneyAccountBalance = useMoneyAccountBalance as jest.Mock;
 const mockUseMoneyAccountMusdRescueSend =
@@ -49,7 +51,65 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return actual;
+  const ReactActual = jest.requireActual('react');
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        testID,
+        goBack,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+        goBack?: () => void;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(
+          Pressable,
+          {
+            testID: 'bottom-sheet-go-back',
+            onPress: goBack,
+          },
+          ReactActual.createElement(RNText, {}, 'go-back'),
+        ),
+        children,
+      );
+    },
+  );
+
+  const MockBottomSheetHeader = ({
+    children,
+    onClose,
+  }: {
+    children: React.ReactNode;
+    onClose?: () => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'bottom-sheet-header' },
+      ReactActual.createElement(
+        Pressable,
+        { testID: 'bottom-sheet-close-button', onPress: onClose },
+        ReactActual.createElement(RNText, {}, 'close'),
+      ),
+      children,
+    );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+    BottomSheetHeader: MockBottomSheetHeader,
+  };
 });
 
 const VALID_ADDRESS = '0x1234567890123456789012345678901234567891';
@@ -303,5 +363,50 @@ describe('MusdRescueSendSheet', () => {
         redirect_target: 'money_transfer',
       }),
     );
+  });
+
+  it('renders the localized Max label instead of a hard-coded string', () => {
+    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+    expect(
+      getByTestId(MusdRescueSendSheetTestIds.MAX_BUTTON),
+    ).toHaveTextContent(strings('money.musd_rescue_send.max'));
+  });
+
+  it('uses a decimal keypad on the amount field', () => {
+    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+    const amountInput = getByTestId(
+      MusdRescueSendSheetTestIds.AMOUNT_INPUT,
+    ).findByType(TextInput);
+
+    expect(amountInput.props.keyboardType).toBe('decimal-pad');
+  });
+
+  describe('sheet chrome', () => {
+    it('renders inside a dismissable bottom sheet', () => {
+      const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+      expect(
+        getByTestId(MusdRescueSendSheetTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+    });
+
+    it('closes the sheet when the close control is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+      fireEvent.press(getByTestId('bottom-sheet-close-button'));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates back when the sheet goBack handler is invoked', () => {
+      const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+      fireEvent.press(getByTestId('bottom-sheet-go-back'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -8736,6 +8736,7 @@
       "recipient_label": "Recipient address",
       "recipient_placeholder": "Enter address (0x...)",
       "amount_label": "Amount",
+      "max": "Max",
       "send": "Send",
       "error_invalid_recipient": "Enter a valid address",
       "error_invalid_amount": "Enter an amount greater than zero",

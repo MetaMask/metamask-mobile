@@ -20,11 +20,25 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
+import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { calcTokenValue } from '../../../../util/transactions';
 
 const LOG_TAG = '[Money Account mUSD Rescue Send]';
 
 const ERC20_TRANSFER_ABI = ['function transfer(address to, uint256 amount)'];
+
+/**
+ * True when the rescue send's full-screen confirmation is the focused route.
+ * Used to back out of the confirmation if transaction setup fails after it was
+ * already opened.
+ */
+function isMoneyConfirmationActive(): boolean {
+  return (
+    NavigationService.navigation.getCurrentRoute()?.name ===
+    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+  );
+}
 
 /** Names the safety gate that rejected a rescue send initiation. */
 export type MusdRescueSendBlockReason =
@@ -190,6 +204,15 @@ export function useMoneyAccountMusdRescueSend() {
       } catch (error) {
         const errorObj =
           error instanceof Error ? error : new Error(String(error));
+        // The confirmation was opened before the batch was created, so back out
+        // of it on failure — otherwise the user is stranded on an empty
+        // confirmation loader while the sheet error renders behind it.
+        if (
+          !isUserRejectedError(error, errorObj.message) &&
+          isMoneyConfirmationActive()
+        ) {
+          navigation.goBack();
+        }
         Logger.error(errorObj, `${LOG_TAG} Rescue send initiation failed`);
         throw errorObj;
       }

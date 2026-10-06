@@ -1,19 +1,22 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ethers } from 'ethers';
 import { useNavigation } from '@react-navigation/native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
   Button,
+  ButtonBaseSize,
   ButtonVariant,
   TextField,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
 import { BigNumber } from 'bignumber.js';
 import { doENSLookup } from '../../../../../util/ENSUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -27,11 +30,10 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MusdRescueSendSheetTestIds } from '../MoneyTransferSheet/MoneyTransferSheet.testIds';
-import styleSheet from './MusdRescueSendSheet.styles';
 
 const MusdRescueSendSheet = () => {
+  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const { styles } = useStyles(styleSheet, {});
   const { liquidMusd, isBalanceLoading, isBalanceFetchError } =
     useMoneyAccountBalance();
   const { initiateRescueSend } = useMoneyAccountMusdRescueSend();
@@ -49,6 +51,14 @@ const MusdRescueSendSheet = () => {
   const isBalanceUnavailable = isBalanceLoading || isBalanceFetchError;
   const hasLiquidBalance = Boolean(liquidMusd?.gt(0));
   const maxAmount = liquidMusd?.toString() ?? '';
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const handleMax = useCallback(() => {
     if (maxAmount) {
@@ -142,70 +152,81 @@ const MusdRescueSendSheet = () => {
     isSubmitting || !recipient || !amount || isBalanceUnavailable;
 
   return (
-    <Box testID={MusdRescueSendSheetTestIds.CONTAINER} style={styles.container}>
-      <Text variant={TextVariant.HeadingSm}>
-        {strings('money.musd_rescue_send.title')}
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('money.musd_rescue_send.explainer')}
-      </Text>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={handleGoBack}
+      testID={MusdRescueSendSheetTestIds.CONTAINER}
+      keyboardAvoidingViewEnabled={false}
+    >
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingSm}>
+          {strings('money.musd_rescue_send.title')}
+        </Text>
+      </BottomSheetHeader>
+      <Box twClassName="p-4 gap-4">
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('money.musd_rescue_send.explainer')}
+        </Text>
 
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        testID={MusdRescueSendSheetTestIds.LIQUID_BALANCE}
-      >
-        {isBalanceUnavailable
-          ? strings('money.musd_rescue_send.error_balance_unavailable')
-          : `${strings('money.musd_rescue_send.available_label')}: ${liquidMusd?.toString() ?? '0'} ${MUSD_CURRENCY}`}
-      </Text>
-
-      <TextField
-        testID={MusdRescueSendSheetTestIds.RECIPIENT_INPUT}
-        value={recipient}
-        onChangeText={setRecipient}
-        placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
-        isDisabled={isSubmitting}
-      />
-
-      <TextField
-        testID={MusdRescueSendSheetTestIds.AMOUNT_INPUT}
-        value={amount}
-        onChangeText={setAmount}
-        placeholder={strings('money.musd_rescue_send.amount_label')}
-        isDisabled={isSubmitting || !hasLiquidBalance}
-        startAccessory={
-          <Button
-            variant={ButtonVariant.Primary}
-            onPress={handleMax}
-            testID={MusdRescueSendSheetTestIds.MAX_BUTTON}
-            isDisabled={!hasLiquidBalance}
-          >
-            Max
-          </Button>
-        }
-      />
-
-      {errorMessage ? (
         <Text
           variant={TextVariant.BodySm}
-          color={TextColor.ErrorDefault}
-          testID={MusdRescueSendSheetTestIds.ERROR_MESSAGE}
+          color={TextColor.TextAlternative}
+          testID={MusdRescueSendSheetTestIds.LIQUID_BALANCE}
         >
-          {errorMessage}
+          {isBalanceUnavailable
+            ? strings('money.musd_rescue_send.error_balance_unavailable')
+            : `${strings('money.musd_rescue_send.available_label')}: ${liquidMusd?.toString() ?? '0'} ${MUSD_CURRENCY}`}
         </Text>
-      ) : null}
 
-      <Button
-        variant={ButtonVariant.Primary}
-        onPress={handleSend}
-        isDisabled={isSendDisabled}
-        isLoading={isSubmitting}
-        testID={MusdRescueSendSheetTestIds.SEND_BUTTON}
-      >
-        {strings('money.musd_rescue_send.send')}
-      </Button>
-    </Box>
+        <TextField
+          testID={MusdRescueSendSheetTestIds.RECIPIENT_INPUT}
+          value={recipient}
+          onChangeText={setRecipient}
+          placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
+          isDisabled={isSubmitting}
+        />
+
+        <TextField
+          testID={MusdRescueSendSheetTestIds.AMOUNT_INPUT}
+          value={amount}
+          onChangeText={setAmount}
+          placeholder={strings('money.musd_rescue_send.amount_label')}
+          isDisabled={isSubmitting || !hasLiquidBalance}
+          inputProps={{ keyboardType: 'decimal-pad' }}
+          endAccessory={
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonBaseSize.Sm}
+              onPress={handleMax}
+              testID={MusdRescueSendSheetTestIds.MAX_BUTTON}
+              isDisabled={!hasLiquidBalance}
+            >
+              {strings('money.musd_rescue_send.max')}
+            </Button>
+          }
+        />
+
+        {errorMessage ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            testID={MusdRescueSendSheetTestIds.ERROR_MESSAGE}
+          >
+            {errorMessage}
+          </Text>
+        ) : null}
+
+        <Button
+          variant={ButtonVariant.Primary}
+          onPress={handleSend}
+          isDisabled={isSendDisabled}
+          isLoading={isSubmitting}
+          testID={MusdRescueSendSheetTestIds.SEND_BUTTON}
+        >
+          {strings('money.musd_rescue_send.send')}
+        </Button>
+      </Box>
+    </BottomSheet>
   );
 };
 

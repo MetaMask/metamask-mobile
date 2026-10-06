@@ -12,6 +12,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { useNavigation } from '@react-navigation/native';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 
 jest.mock('react-redux');
 jest.mock('../../../../util/transaction-controller', () => ({
@@ -51,6 +52,16 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      getCurrentRoute: jest.fn(),
+      goBack: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
   MUSD_TOKEN: {
@@ -75,6 +86,11 @@ const mockRefreshMoneyAccountBalanceFresh = jest.mocked(
   refreshMoneyAccountBalanceFresh,
 );
 const mockNavigateToConfirmation = jest.fn();
+const mockGoBack = jest.fn();
+const mockGetCurrentRoute = NavigationService.navigation
+  .getCurrentRoute as jest.MockedFunction<
+  typeof NavigationService.navigation.getCurrentRoute
+>;
 
 const MOCK_MONEY_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B' as Hex;
 const MOCK_RECIPIENT = '0x1234567890123456789012345678901234567891' as Hex;
@@ -126,7 +142,9 @@ beforeEach(() => {
   } as never);
   jest.mocked(useNavigation).mockReturnValue({
     navigate: mockNavigateToConfirmation,
+    goBack: mockGoBack,
   } as never);
+  mockGetCurrentRoute.mockReturnValue(undefined);
   setupSelectors();
 });
 
@@ -368,5 +386,43 @@ describe('useMoneyAccountMusdRescueSend', () => {
         amount: '1',
       }),
     ).rejects.toBe(failure);
+  });
+
+  it('dismisses the confirmation when initiation fails with it open', async () => {
+    mockAddTransactionBatch.mockRejectedValueOnce(new Error('batch failed'));
+    mockGetCurrentRoute.mockReturnValue({
+      key: 'confirmation',
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(
+      result.current.initiateRescueSend({
+        recipient: MOCK_RECIPIENT,
+        amount: '1',
+      }),
+    ).rejects.toThrow('batch failed');
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not dismiss a confirmation the user rejected', async () => {
+    mockAddTransactionBatch.mockRejectedValueOnce(
+      Object.assign(new Error('User rejected the request'), { code: 4001 }),
+    );
+    mockGetCurrentRoute.mockReturnValue({
+      key: 'confirmation',
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(
+      result.current.initiateRescueSend({
+        recipient: MOCK_RECIPIENT,
+        amount: '1',
+      }),
+    ).rejects.toThrow('User rejected the request');
+
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

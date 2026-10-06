@@ -93,9 +93,14 @@ const MoneyTransferSheet = () => {
       } else if (action === 'rescueSend') {
         // The rescue sheet is a modal route, not an initiator callback: close
         // this sheet and push the rescue sheet in the same tick so the
-        // transition matches the other rows' slide-over UX.
+        // transition matches the other rows' slide-over UX. Target the modal
+        // stack by its root route plus a `screen` param — closing this sheet
+        // pops `MoneyModals`, so the bare nested screen name would have no
+        // navigator left to resolve it.
         sheetRef.current?.onCloseBottomSheet(() => {
-          navigation.navigate(Routes.MONEY.MODALS.MUSD_RESCUE_SEND_SHEET);
+          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.MUSD_RESCUE_SEND_SHEET,
+          });
         });
         return;
       }
