@@ -42,15 +42,17 @@ const REBATE: LedgerEarningEntryDto = {
   id: 'e1',
   earning_origin_type: 'PERPS_FEE_CASHBACK',
   musd_amount: '1000000',
+  voided_musd_amount: '0',
   fee_amount_usd: '1',
   entry_count: 1,
   transaction_hash: null,
   chain_id: null,
   ledger_timestamp: '2026-09-01T12:00:00.000Z',
   claim_status: 'unclaimed',
-  claim_expires_at: null,
+  claimable_at: '2026-09-02T00:00:00.000Z',
   swaps_source: null,
   perps_source: { coin: 'BTC', trade_id: 't1', tx_hash: null },
+  predict_source: null,
 };
 
 const STATE = {
