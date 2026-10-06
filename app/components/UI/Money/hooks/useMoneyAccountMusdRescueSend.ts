@@ -1,12 +1,17 @@
 import { useCallback } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { ethers } from 'ethers';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { isMonadMainnetChainId } from '../../../../util/networks';
+import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
+import Routes from '../../../../constants/navigation/Routes';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -58,28 +63,23 @@ export function buildMusdRescueTransferData(
  * transaction confirmation/signing route.
  *
  * Safety gates (each throws with a `reason`):
- * - liquid balance must be available (`liquidMusdRaw` provided)
+ * - a fresh canonical liquid balance must be available
  * - amount must be positive and never exceed the liquid balance
  * - recipient must be a valid address
  */
 export function useMoneyAccountMusdRescueSend() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const navigation = useNavigation<AppNavigationProp>();
 
   const initiateRescueSend = useCallback(
     async ({
       recipient,
       amount,
-      liquidMusdRaw,
     }: {
       recipient: string;
       /** Human-readable mUSD amount (e.g. "10.5"). */
       amount: string;
-      /**
-       * Current canonical liquid mUSD balance in raw units (`musdBalance`).
-       * Required — the send is blocked while the balance is unavailable.
-       */
-      liquidMusdRaw: string | undefined;
     }): Promise<void> => {
       const moneyAccountAddress = primaryMoneyAccount?.address;
       if (!moneyAccountAddress) {
@@ -119,19 +119,17 @@ export function useMoneyAccountMusdRescueSend() {
         });
       }
 
-      // Revalidate against the current canonical liquid balance at submission.
-      // CHOMP may vault the funds after the screen first rendered.
-      if (liquidMusdRaw === undefined) {
-        throw Object.assign(
-          new Error(`${LOG_TAG} Liquid mUSD balance unavailable`),
-          { reason: 'balance-unavailable' },
-        );
-      }
-      const balanceRaw = BigInt(liquidMusdRaw);
+      // Re-read the canonical balance from the API/RPC immediately before
+      // creating the confirmation transaction. This prevents a stale sheet
+      // value from being used if CHOMP processes the funds while the sheet is
+      // open. If the fresh read fails, no transaction is created.
+      const currentBalance =
+        await refreshMoneyAccountBalanceFresh(moneyAccountAddress);
+      const balanceRaw = BigInt(currentBalance.musdBalance);
       if (amountRaw > balanceRaw) {
         throw Object.assign(
           new Error(
-            `${LOG_TAG} Amount ${amountRaw} exceeds liquid mUSD balance ${balanceRaw}`,
+            `${LOG_TAG} Amount ${amountRaw} exceeds current liquid mUSD balance ${balanceRaw}`,
           ),
           { reason: 'amount-exceeds-balance' },
         );
@@ -148,11 +146,15 @@ export function useMoneyAccountMusdRescueSend() {
       }
 
       // Monad gas sponsorship matches the other Money flows' wiring — the
-      // sponsored flag is carried on the transaction meta for this exact
-      // transaction shape (single direct ERC-20 transfer).
+      // sponsored flag is carried on the transaction meta for this direct
+      // ERC-20 transfer shape.
       const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
-
       const transferData = buildMusdRescueTransferData(recipient, amountRaw);
+
+      navigation.navigate(Routes.MONEY.CONFIRMATIONS_ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: { loader: ConfirmationLoader.Transfer },
+      });
 
       try {
         await addTransactionBatch({
@@ -183,7 +185,7 @@ export function useMoneyAccountMusdRescueSend() {
         throw errorObj;
       }
     },
-    [primaryMoneyAccount, vaultConfig],
+    [navigation, primaryMoneyAccount, vaultConfig],
   );
 
   return { initiateRescueSend };

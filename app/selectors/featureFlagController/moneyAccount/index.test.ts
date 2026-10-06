@@ -16,6 +16,11 @@ import {
 } from './index';
 import { getVersion } from 'react-native-device-info';
 
+Object.defineProperty(globalThis, '__DEV__', {
+  value: true,
+  configurable: true,
+});
+
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('99.0.0'),
 }));

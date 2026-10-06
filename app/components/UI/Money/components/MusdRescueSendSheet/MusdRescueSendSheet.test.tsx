@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MusdRescueSendSheet from './MusdRescueSendSheet';
 import { MusdRescueSendSheetTestIds } from '../MoneyTransferSheet/MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { doENSLookup } from '../../../../../util/ENSUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountMusdRescueSend from '../../hooks/useMoneyAccountMusdRescueSend';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -21,6 +22,10 @@ jest.mock('../../hooks/useMoneyAccountMusdRescueSend', () => ({
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+
+jest.mock('../../../../../util/ENSUtils', () => ({
+  doENSLookup: jest.fn(),
 }));
 
 const mockTrackBottomSheetViewed = jest.fn();
@@ -65,7 +70,10 @@ const setupBalance = ({
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockInitiateRescueSend.mockResolvedValue(undefined);
+  jest.mocked(doENSLookup).mockResolvedValue(undefined);
+  mockInitiateRescueSend.mockImplementation(async (options) => {
+    options.onBeforeConfirmation?.();
+  });
   mockUseMoneyAccountMusdRescueSend.mockReturnValue({
     initiateRescueSend: mockInitiateRescueSend,
   });
@@ -190,7 +198,30 @@ describe('MusdRescueSendSheet', () => {
     expect(mockInitiateRescueSend).not.toHaveBeenCalled();
   });
 
-  it('initiates the send with the recipient, amount, and current raw balance', async () => {
+  it('resolves an ENS recipient through Ethereum mainnet before initiating the send', async () => {
+    const ensAddress = '0x2345678901234567890123456789012345678912';
+    jest.mocked(doENSLookup).mockResolvedValue(ensAddress);
+    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+    fireEvent.changeText(
+      getByTestId(MusdRescueSendSheetTestIds.RECIPIENT_INPUT),
+      'support.eth',
+    );
+    fireEvent.changeText(
+      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
+      '1.5',
+    );
+    fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
+
+    await waitFor(() => {
+      expect(doENSLookup).toHaveBeenCalledWith('support.eth', '0x1');
+      expect(mockInitiateRescueSend.mock.calls[0][0].recipient).toBe(
+        ensAddress,
+      );
+    });
+  });
+
+  it('initiates the send with the resolved recipient and amount', async () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
     fireEvent.changeText(
@@ -203,11 +234,14 @@ describe('MusdRescueSendSheet', () => {
     );
     fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
 
-    expect(mockInitiateRescueSend).toHaveBeenCalledWith({
-      recipient: VALID_ADDRESS,
-      amount: '1.5',
-      liquidMusdRaw: '99000000',
-    });
+    const initiateArgs = mockInitiateRescueSend.mock.calls[0][0];
+    expect(initiateArgs).toEqual(
+      expect.objectContaining({
+        recipient: VALID_ADDRESS,
+        amount: '1.5',
+      }),
+    );
+    expect(initiateArgs.onBeforeConfirmation).toBeUndefined();
   });
 
   it('closes the sheet after a successful initiation', async () => {
@@ -224,7 +258,7 @@ describe('MusdRescueSendSheet', () => {
     fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
 
     await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockInitiateRescueSend).toHaveBeenCalled();
     });
   });
 

@@ -1,25 +1,21 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useCallback, useState } from 'react';
+import { ethers } from 'ethers';
+import { useNavigation } from '@react-navigation/native';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonVariant,
-  IconName,
   TextField,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { ethers } from 'ethers';
-import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { BigNumber } from 'bignumber.js';
-import Logger from '../../../../../util/Logger';
+import { doENSLookup } from '../../../../../util/ENSUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountMusdRescueSend from '../../hooks/useMoneyAccountMusdRescueSend';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -36,11 +32,8 @@ import styleSheet from './MusdRescueSendSheet.styles';
 const MusdRescueSendSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
-
   const { liquidMusd, isBalanceLoading, isBalanceFetchError } =
     useMoneyAccountBalance();
-
   const { initiateRescueSend } = useMoneyAccountMusdRescueSend();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
@@ -53,22 +46,8 @@ const MusdRescueSendSheet = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  // Canonical liquid balance in raw units, passed to the hook for the
-  // submission-time revalidation against a current balance.
-  const liquidMusdRaw = useMemo(() => {
-    if (!liquidMusd) return undefined;
-    // The raw value lives on the canonical query; re-derive from the decimal
-    // BigNumber is lossy-free at 6 decimals for display purposes, but the
-    // authoritative raw string comes from the balance query. Read it from the
-    // hook result instead: liquidMusd is derived from musdBalance, so converting
-    // back is exact for values within 6 decimals.
-    return liquidMusd.shiftedBy(6).toFixed(0, BigNumber.ROUND_DOWN);
-  }, [liquidMusd]);
-
   const isBalanceUnavailable = isBalanceLoading || isBalanceFetchError;
-
   const hasLiquidBalance = Boolean(liquidMusd?.gt(0));
-
   const maxAmount = liquidMusd?.toString() ?? '';
 
   const handleMax = useCallback(() => {
@@ -80,18 +59,37 @@ const MusdRescueSendSheet = () => {
   const handleSend = useCallback(async () => {
     setErrorMessage(undefined);
 
+    let resolvedRecipient = recipient;
     if (!ethers.utils.isAddress(recipient)) {
-      setErrorMessage(
-        strings('money.musd_rescue_send.error_invalid_recipient'),
-      );
-      return;
+      if (!recipient.includes('.')) {
+        setErrorMessage(
+          strings('money.musd_rescue_send.error_invalid_recipient'),
+        );
+        return;
+      }
+
+      // The current ENS helper supports Ethereum mainnet only. Resolve .eth
+      // names there; the resulting address can still receive Monad mUSD.
+      try {
+        resolvedRecipient =
+          (await doENSLookup(recipient, CHAIN_IDS.MAINNET)) ?? '';
+      } catch {
+        resolvedRecipient = '';
+      }
+      if (!ethers.utils.isAddress(resolvedRecipient)) {
+        setErrorMessage(
+          strings('money.musd_rescue_send.error_invalid_recipient'),
+        );
+        return;
+      }
     }
+
     const amountValue = new BigNumber(amount);
     if (!amountValue.isFinite() || amountValue.lte(0)) {
       setErrorMessage(strings('money.musd_rescue_send.error_invalid_amount'));
       return;
     }
-    if (isBalanceUnavailable || liquidMusdRaw === undefined) {
+    if (isBalanceUnavailable) {
       setErrorMessage(
         strings('money.musd_rescue_send.error_balance_unavailable'),
       );
@@ -112,17 +110,10 @@ const MusdRescueSendSheet = () => {
     setIsSubmitting(true);
     try {
       await initiateRescueSend({
-        recipient,
+        recipient: resolvedRecipient,
         amount,
-        liquidMusdRaw,
       });
-      // Confirmation opened over this sheet; close it beneath.
-      navigation.goBack();
-    } catch (error) {
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        '[MusdRescueSendSheet] Send failed',
-      );
+    } catch {
       setErrorMessage(strings('money.musd_rescue_send.error_send_failed'));
     } finally {
       setIsSubmitting(false);
@@ -132,8 +123,6 @@ const MusdRescueSendSheet = () => {
     initiateRescueSend,
     isBalanceUnavailable,
     liquidMusd,
-    liquidMusdRaw,
-    navigation,
     recipient,
     trackSurfaceClicked,
   ]);

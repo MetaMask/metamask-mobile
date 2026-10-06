@@ -68,7 +68,11 @@ export const MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY =
  * safety gates.
  */
 export function isMusdRescueSendLocalOverrideEnabled(): boolean {
-  return process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED === 'true';
+  return (
+    typeof __DEV__ !== 'undefined' &&
+    __DEV__ &&
+    process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED === 'true'
+  );
 }
 
 export const selectMoneyAccountMusdRescueSendEnabled = createSelector(
