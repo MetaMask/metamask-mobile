@@ -152,7 +152,7 @@ const PostSwapShareBottomSheet: React.FC = () => {
           twClassName="rounded-xl bg-muted p-4"
           testID={PostSwapShareBottomSheetSelectorsIDs.SHARE_AND_EARN}
         >
-          <Text variant={TextVariant.BodyMdMedium}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('social_leaderboard.post_swap_share.share_and_earn_title')}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
