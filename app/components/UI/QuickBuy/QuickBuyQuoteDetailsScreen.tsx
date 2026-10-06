@@ -51,7 +51,6 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     metamaskFeePercent,
     quotesLastFetchedAt,
     quoteRefreshRateMs,
-    onClose,
     setActiveScreen,
   } = useQuickBuyContext();
 
@@ -84,7 +83,6 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
       <QuickBuySubScreenHeader
         title={strings('social_leaderboard.quick_buy.quote_details_title')}
         onBack={() => setActiveScreen('amount')}
-        onClose={onClose}
       />
 
       {isBlockingQuoteLoad ? (

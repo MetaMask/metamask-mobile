@@ -22,15 +22,7 @@ jest.mock('./components/QuickBuySubScreenHeader', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      title,
-      onBack,
-      onClose,
-    }: {
-      title: string;
-      onBack: () => void;
-      onClose: () => void;
-    }) =>
+    default: ({ title, onBack }: { title: string; onBack: () => void }) =>
       ReactMock.createElement(
         ReactMock.Fragment,
         null,
@@ -38,11 +30,6 @@ jest.mock('./components/QuickBuySubScreenHeader', () => {
         ReactMock.createElement(
           TouchableOpacity,
           { testID: 'mock-back-button', onPress: onBack },
-          null,
-        ),
-        ReactMock.createElement(
-          TouchableOpacity,
-          { testID: 'mock-close-button', onPress: onClose },
           null,
         ),
       ),
@@ -95,7 +82,6 @@ const buildContext = (overrides = {}) => ({
   isPriceImpactError: false,
   quotesLastFetchedAt: Date.now(),
   quoteRefreshRateMs: 30000,
-  onClose: jest.fn(),
   setActiveScreen: jest.fn(),
   ...overrides,
 });
@@ -165,16 +151,6 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     render(<QuickBuyQuoteDetailsScreen />);
     fireEvent.press(screen.getByTestId('mock-back-button'));
     expect(setActiveScreen).toHaveBeenCalledWith('amount');
-  });
-
-  it('calls onClose when close is pressed', () => {
-    const onClose = jest.fn();
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ onClose }),
-    );
-    render(<QuickBuyQuoteDetailsScreen />);
-    fireEvent.press(screen.getByTestId('mock-close-button'));
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('does not show a "Get new quote" button', () => {

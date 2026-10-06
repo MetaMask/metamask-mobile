@@ -5,6 +5,7 @@ import type { CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../Bridge/types';
 import type { RootState } from '../../../../reducers';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { filterOutRwaTokens } from '../../Bridge/utils/filterOutRwaTokens';
 import { selectSelectedSourceChainIds } from '../../../../core/redux/slices/bridge';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -99,7 +100,9 @@ export const usePayWithTokens = (): {
     };
 
     const result: BridgeToken[] = [];
-    for (const token of heldTokens) {
+    // RWA tokens (e.g. Ondo TSLAon) need intent-based submission and often get
+    // no quotes, so they are never offered as a Pay with token.
+    for (const token of filterOutRwaTokens(heldTokens)) {
       // Exclude tokens the user has hidden (TSA-649).
       if (
         isPayWithTokenHidden(token, {

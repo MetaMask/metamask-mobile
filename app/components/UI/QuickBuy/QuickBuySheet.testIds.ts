@@ -21,7 +21,6 @@ export const QuickBuySheetSelectorsIDs = {
   CLOSE_BUTTON: 'quick-buy-close-button',
   SETTINGS_BUTTON: 'quick-buy-settings-button',
   SUB_SCREEN_BACK: 'quick-buy-sub-screen-back-button',
-  SUB_SCREEN_CLOSE: 'quick-buy-sub-screen-close-button',
   PRICE_IMPACT_DESCRIPTION: 'price-impact-description',
   KEYPAD: 'quick-buy-keypad',
   KEYPAD_REVEAL: 'quick-buy-keypad-reveal',
