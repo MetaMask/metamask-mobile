@@ -1116,10 +1116,15 @@ describe('RewardsMoneyDataService', () => {
   });
 
   describe('initiateClaim', () => {
-    const textResponse = (status: number, body: unknown): Response =>
+    const textResponse = (
+      status: number,
+      body: unknown,
+      headers: Record<string, string> = {},
+    ): Response =>
       ({
         ok: status >= 200 && status < 300,
         status,
+        headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
         text: async () => JSON.stringify(body),
       }) as Response;
 
@@ -1170,6 +1175,26 @@ describe('RewardsMoneyDataService', () => {
           money_account_address: '0xmoney',
         }),
       ).rejects.toMatchObject({ reason: 'UNDER_REVIEW', status: 422 });
+    });
+
+    it('keeps Retry-After on a rate-limited refusal', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(
+          429,
+          { reason: 'RATE_LIMITED', message: 'Too many requests' },
+          { 'retry-after': '240' },
+        ),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({
+        status: 429,
+        reason: 'RATE_LIMITED',
+        retryAfterSeconds: 240,
+      });
     });
   });
 });

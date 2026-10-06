@@ -58,7 +58,17 @@ jest.mock('../../../../util/networks', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
   context: {
-    KeyringController: { signPersonalMessage: jest.fn() },
+    KeyringController: {
+      signPersonalMessage: jest.fn(),
+      state: {
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0x1111111111111111111111111111111111111111'],
+          },
+        ],
+      },
+    },
   },
 }));
 
@@ -92,7 +102,7 @@ jest.mock('../utils/claimEarnings', () => {
 
 const PROFILE_ID = 'profile-a';
 const MONEY_ACCOUNT = '0x2222222222222222222222222222222222222222';
-const EARNING_ADDRESS = 'eip155:143:0x1111111111111111111111111111111111111111';
+const EARNING_ADDRESS = 'eip155:0x1111111111111111111111111111111111111111';
 const ONE_DOLLAR = '1000000';
 const UNDER_DOLLAR = '999999';
 
@@ -413,6 +423,70 @@ describe('useClaimEarnings', () => {
     expect(onSubmitted).toHaveBeenCalledTimes(1);
   });
 
+  it('re-requests the claim for the EVM key on this phone', async () => {
+    const solanaAddress = 'solana:not-on-this-phone';
+    mockEngineCall.mockImplementation(
+      async (_action: string, _route: string, body: InitiateClaimBody) => {
+        if (body.proofs) {
+          return authorized();
+        }
+        const challenges = [
+          {
+            earning_address: EARNING_ADDRESS,
+            amount_musd_base_units: ONE_DOLLAR,
+            message: 'sign me',
+          },
+          {
+            earning_address: solanaAddress,
+            amount_musd_base_units: ONE_DOLLAR,
+            message: 'cannot sign',
+          },
+        ].filter(
+          (challenge) =>
+            !body.earning_addresses ||
+            body.earning_addresses.includes(challenge.earning_address),
+        );
+        return {
+          kind: 'proof_required',
+          body: {
+            reason: 'PROOF_REQUIRED',
+            claim_intent_id: body.earning_addresses
+              ? 'intent-narrow'
+              : 'intent-all',
+            expires_at: '2026-09-29T00:00:00.000Z',
+            challenges,
+          },
+        };
+      },
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockEngineCall).toHaveBeenNthCalledWith(
+      2,
+      'RewardsMoneyController:initiateClaim',
+      'referral-trade-fee-cashback',
+      {
+        money_account_address: MONEY_ACCOUNT,
+        earning_addresses: [EARNING_ADDRESS],
+      },
+    );
+    expect(mockSignPersonalMessage).toHaveBeenCalledTimes(1);
+    expect(mockEngineCall).toHaveBeenLastCalledWith(
+      'RewardsMoneyController:initiateClaim',
+      'referral-trade-fee-cashback',
+      {
+        money_account_address: MONEY_ACCOUNT,
+        earning_addresses: [EARNING_ADDRESS],
+        claim_intent_id: 'intent-narrow',
+        proofs: [{ earning_address: EARNING_ADDRESS, signature: '0xsig' }],
+      },
+    );
+  });
+
   it('shows the retry toast when signing the earning address fails', async () => {
     mockEngineCall.mockResolvedValue({
       kind: 'proof_required',
@@ -567,6 +641,38 @@ describe('useClaimEarnings', () => {
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureWaitToast,
     );
+  });
+
+  it('holds Claim until Retry-After elapses', async () => {
+    jest.useFakeTimers();
+    try {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyClaimRefusalError(429, 'CLAIM_COOLDOWN', 30),
+      );
+      const { result } = renderClaim();
+
+      await act(async () => {
+        await result.current.claim(summary(ONE_DOLLAR));
+      });
+
+      expect(mockErrorToast).toHaveBeenCalledWith(
+        localizedText.claimFailureWaitToast,
+      );
+      expect(result.current.isClaimWaiting).toBe(true);
+
+      mockEngineCall.mockClear();
+      await act(async () => {
+        await result.current.claim(summary(ONE_DOLLAR));
+      });
+      expect(mockEngineCall).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+      expect(result.current.isClaimWaiting).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('ignores a second press while a claim is in flight', async () => {

@@ -52,7 +52,18 @@ const TRANSACTION_CONFIRMED_EVENT =
 const TRANSACTION_FAILED_EVENT =
   'TransactionController:transactionFailed' as const;
 
-const WAIT_REASONS = new Set(['AWAITING_RELEASE', 'VELOCITY_LIMIT_EXCEEDED']);
+const WAIT_REASONS = new Set([
+  'AWAITING_RELEASE',
+  'VELOCITY_LIMIT_EXCEEDED',
+  'RATE_LIMITED',
+  'CLAIM_COOLDOWN',
+]);
+
+/**
+ * Nothing the user does on this press will pay. The generic sentence does
+ * not say "try again": a suspension, a hold, and a void are not a retry.
+ */
+const TERMINAL_REASONS = new Set(['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']);
 
 export type ClaimToastKey = Extract<
   ReferralLocalizedTextKey,
@@ -70,6 +81,8 @@ export interface ClaimRouteOutcome {
   /** A claim row exists, so History can show it while the voucher is open. */
   opened: boolean;
   reason?: string;
+  /** From `Retry-After`, so Claim stays disabled until the window reopens. */
+  retryAfterSeconds?: number;
 }
 
 export function meetsClaimMinimum(value: string | undefined): boolean {
@@ -107,15 +120,24 @@ export function canClaimEarnings(
   return variant === 'REFEREE' && claimRoutesForSummary(summary).length > 0;
 }
 
-/** CAIP-10 `eip155:<chain>:<address>` to the account the keyring can sign for. */
+/**
+ * Money's earning-address key is `namespace:address`, not a CAIP-10. The
+ * address is everything after the first colon, so `eip155:0xab…` is the
+ * account the keyring signs for. A chain reference that slipped in
+ * (`eip155:1:0xab…`) stays in the address half and is not signed.
+ */
 export function evmAddressFromEarningAddress(
   earningAddress: string,
 ): string | null {
-  const parts = earningAddress.split(':');
-  if (parts[0] !== 'eip155' || parts.length < 3) {
+  const colon = earningAddress.indexOf(':');
+  if (colon <= 0 || colon === earningAddress.length - 1) {
     return null;
   }
-  const address = parts.slice(2).join(':');
+  const namespace = earningAddress.slice(0, colon).toLowerCase();
+  if (namespace !== 'eip155') {
+    return null;
+  }
+  const address = earningAddress.slice(colon + 1);
   if (!address.startsWith('0x')) {
     return null;
   }
@@ -128,6 +150,9 @@ function toastKeyForReason(reason: string): ClaimToastKey {
   }
   if (reason === 'BELOW_MINIMUM') {
     return 'claimFailureMinimumToast';
+  }
+  if (TERMINAL_REASONS.has(reason)) {
+    return 'claimFailureToast';
   }
   if (WAIT_REASONS.has(reason)) {
     return 'claimFailureWaitToast';
@@ -165,6 +190,12 @@ export interface RunEarningsClaimDeps {
     route: ClaimRouteSlug,
     body: InitiateClaimBody,
   ) => Promise<InitiateClaimResult>;
+  /**
+   * Whether this handset can sign for the earning-address key. EVM software
+   * keys on this phone can. Solana, Tron, hardware accounts, and keys that
+   * live on another device cannot; snap signing for those can come later.
+   */
+  canSignEarningAddress: (earningAddress: string) => boolean;
   signMessage: (message: string, earningAddress: string) => Promise<string>;
   submitVoucher: (voucher: ClaimVoucherDto) => Promise<void>;
 }
@@ -180,29 +211,69 @@ async function claimOneRoute(
   });
 
   if (result.kind === 'proof_required') {
-    const proofs = [];
-    for (const challenge of result.body.challenges) {
-      const signature = await signMessage(
-        challenge.message,
-        challenge.earning_address,
-      );
-      proofs.push({
-        earning_address: challenge.earning_address,
-        signature,
-      });
-    }
-    result = await initiateClaim(route, {
-      money_account_address: moneyAccountAddress,
-      claim_intent_id: result.body.claim_intent_id,
-      proofs,
-    });
-    if (result.kind === 'proof_required') {
+    const signable = result.body.challenges.filter((challenge) =>
+      deps.canSignEarningAddress(challenge.earning_address),
+    );
+    // Proofs are all or nothing for one intent. An address this phone cannot
+    // sign has to be left off a new request, or the whole claim fails.
+    if (signable.length === 0) {
       return {
         route,
         submitted: false,
         opened: false,
-        reason: 'PROOF_INVALID',
+        reason: 'SIGN_FAILED',
       };
+    }
+
+    let earningAddresses: string[] | undefined;
+    if (signable.length < result.body.challenges.length) {
+      earningAddresses = signable.map((challenge) => challenge.earning_address);
+      result = await initiateClaim(route, {
+        money_account_address: moneyAccountAddress,
+        earning_addresses: earningAddresses,
+      });
+    }
+
+    if (
+      result.kind === 'proof_required' &&
+      result.body.challenges.some(
+        (challenge) => !deps.canSignEarningAddress(challenge.earning_address),
+      )
+    ) {
+      return {
+        route,
+        submitted: false,
+        opened: false,
+        reason: 'SIGN_FAILED',
+      };
+    }
+
+    if (result.kind === 'proof_required') {
+      const proofs = [];
+      for (const challenge of result.body.challenges) {
+        const signature = await signMessage(
+          challenge.message,
+          challenge.earning_address,
+        );
+        proofs.push({
+          earning_address: challenge.earning_address,
+          signature,
+        });
+      }
+      result = await initiateClaim(route, {
+        money_account_address: moneyAccountAddress,
+        ...(earningAddresses ? { earning_addresses: earningAddresses } : {}),
+        claim_intent_id: result.body.claim_intent_id,
+        proofs,
+      });
+      if (result.kind === 'proof_required') {
+        return {
+          route,
+          submitted: false,
+          opened: false,
+          reason: 'PROOF_INVALID',
+        };
+      }
     }
   }
 
@@ -558,7 +629,16 @@ export async function runEarningsClaim(
           : error instanceof Error && error.message === 'SIGN_FAILED'
             ? 'SIGN_FAILED'
             : 'UNKNOWN';
-      outcomes.push({ route, submitted: false, opened: false, reason });
+      outcomes.push({
+        route,
+        submitted: false,
+        opened: false,
+        reason,
+        retryAfterSeconds:
+          error instanceof RewardsMoneyClaimRefusalError
+            ? error.retryAfterSeconds
+            : undefined,
+      });
     }
   }
 

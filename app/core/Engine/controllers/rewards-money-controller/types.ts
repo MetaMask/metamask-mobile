@@ -47,7 +47,9 @@ export type ClaimBlockingReason =
   | 'SIGNER_UNAVAILABLE'
   | 'TAX_DETERMINATION_REQUIRED'
   | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
+  | 'MECHANISM_NOT_CLAIMABLE'
+  | 'VOIDED'
+  | 'UNDER_REVIEW';
 
 export type LedgerBlockingReason =
   | 'SUSPENDED'
@@ -466,6 +468,11 @@ export interface ClaimProofSubmissionDto {
 
 export interface InitiateClaimBody {
   money_account_address: string;
+  /**
+   * Earning-address keys this handset can sign. Omitting it asks for every
+   * address with eligible cashback. An empty array is refused.
+   */
+  earning_addresses?: string[];
   claim_intent_id?: string;
   proofs?: ClaimProofSubmissionDto[];
 }

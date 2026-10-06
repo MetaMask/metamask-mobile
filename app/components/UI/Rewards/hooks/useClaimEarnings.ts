@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
@@ -12,6 +12,11 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import { isMonadMainnetChainId } from '../../../../util/networks';
+import {
+  getKeyringByAddress,
+  isHardwareAccount,
+  isSnapAccount,
+} from '../../../../util/address';
 import type {
   ClaimVoucherDto,
   EarningsSummaryDto,
@@ -61,6 +66,8 @@ export function useClaimEarnings(
 ): {
   claim: (summary: EarningsSummaryDto) => Promise<void>;
   isClaiming: boolean;
+  /** True until a refusal's `Retry-After` elapses. Claim stays disabled. */
+  isClaimWaiting: boolean;
 } {
   const navigation = useNavigation<AppNavigationProp>();
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -72,13 +79,36 @@ export function useClaimEarnings(
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [claimWaitingUntil, setClaimWaitingUntil] = useState<number | null>(
+    null,
+  );
   const isClaimingRef = useRef(false);
+  const claimWaitingUntilRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (claimWaitingUntil === null) {
+      return undefined;
+    }
+    const delay = claimWaitingUntil - Date.now();
+    if (delay <= 0) {
+      claimWaitingUntilRef.current = null;
+      setClaimWaitingUntil(null);
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      claimWaitingUntilRef.current = null;
+      setClaimWaitingUntil(null);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [claimWaitingUntil]);
 
   const claim = useCallback(
     async (summary: EarningsSummaryDto) => {
+      const waitingUntil = claimWaitingUntilRef.current;
       if (
         !localizedText ||
         isClaimingRef.current ||
+        (waitingUntil !== null && waitingUntil > Date.now()) ||
         !canClaimEarnings(summary, variant)
       ) {
         return;
@@ -118,6 +148,13 @@ export function useClaimEarnings(
               route,
               body,
             ),
+          canSignEarningAddress: (earningAddress) => {
+            const from = evmAddressFromEarningAddress(earningAddress);
+            if (!from || !getKeyringByAddress(from)) {
+              return false;
+            }
+            return !isHardwareAccount(from) && !isSnapAccount(from);
+          },
           signMessage: async (message, earningAddress) => {
             const from = evmAddressFromEarningAddress(earningAddress);
             if (!from) {
@@ -166,6 +203,16 @@ export function useClaimEarnings(
         if (outcomes.some((outcome) => outcome.opened)) {
           onOpened?.();
         }
+        const retryAfterSeconds = outcomes.reduce(
+          (longest, outcome) =>
+            Math.max(longest, outcome.retryAfterSeconds ?? 0),
+          0,
+        );
+        if (retryAfterSeconds > 0) {
+          const until = Date.now() + retryAfterSeconds * 1000;
+          claimWaitingUntilRef.current = until;
+          setClaimWaitingUntil(until);
+        }
       } catch {
         fail('claimFailureToast');
       } finally {
@@ -188,5 +235,10 @@ export function useClaimEarnings(
     ],
   );
 
-  return { claim, isClaiming };
+  return {
+    claim,
+    isClaiming,
+    isClaimWaiting:
+      claimWaitingUntil !== null && claimWaitingUntil > Date.now(),
+  };
 }

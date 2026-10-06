@@ -127,11 +127,15 @@ export class RewardsMoneyClaimRefusalError extends Error {
 
   readonly reason: string;
 
-  constructor(status: number, reason: string) {
+  /** Seconds from a `Retry-After` header, when the refusal carried one. */
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(status: number, reason: string, retryAfterSeconds?: number) {
     super(reason);
     this.name = 'RewardsMoneyClaimRefusalError';
     this.status = status;
     this.reason = reason;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -267,9 +271,24 @@ export type RewardsMoneyDataServiceMessenger = Messenger<
 >;
 
 /**
- * Strips trailing slashes without a regex. `/\/+$/` backtracks super-linearly
- * on a long run of slashes; a scan from the end is linear.
+ * `Retry-After` is delta-seconds on the claim routes. An HTTP-date is accepted
+ * too, so a header in the other form still holds the button.
  */
+function retryAfterSeconds(header: string | null): number | undefined {
+  if (!header) {
+    return undefined;
+  }
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.max(1, Math.ceil(seconds));
+  }
+  const at = Date.parse(header);
+  if (Number.isNaN(at)) {
+    return undefined;
+  }
+  return Math.max(1, Math.ceil((at - Date.now()) / 1000));
+}
+
 function claimRefusalReason(bodyText: string): string {
   try {
     const parsed = JSON.parse(bodyText) as {
@@ -288,6 +307,10 @@ function claimRefusalReason(bodyText: string): string {
   return 'UNKNOWN';
 }
 
+/**
+ * Strips trailing slashes without a regex. `/\/+$/` backtracks super-linearly
+ * on a long run of slashes; a scan from the end is linear.
+ */
 function trimTrailingSlashes(url: string): string {
   let end = url.length;
   while (end > 0 && url[end - 1] === '/') {
@@ -789,6 +812,7 @@ export class RewardsMoneyDataService {
       throw new RewardsMoneyClaimRefusalError(
         response.status,
         claimRefusalReason(bodyText),
+        retryAfterSeconds(response.headers.get('retry-after')),
       );
     }
 
