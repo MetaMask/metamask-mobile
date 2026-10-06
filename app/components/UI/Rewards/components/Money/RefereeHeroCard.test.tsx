@@ -159,9 +159,11 @@ describe('RefereeHeroCard', () => {
           ...SUMMARY.self_earned,
           by_claim_family: {
             REFERRAL_TRADE_FEE_CASHBACK: {
-              ...emptyBranch,
               lifetime: '7650000',
               voided: '1000000',
+              pending: '0',
+              claimed: '0',
+              by_address: [],
             },
           },
         },
