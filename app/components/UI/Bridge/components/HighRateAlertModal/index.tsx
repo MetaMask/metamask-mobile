@@ -15,11 +15,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BridgeToken } from '../../types';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../hooks/useSwapBridgeNavigation';
 import { HighRateAlertModalSelectorsIDs } from './HighRateAlertModal.testIds';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 export interface HighRateAlertModalParams {
   sourceToken: BridgeToken;
@@ -31,7 +29,7 @@ export function HighRateAlertModal() {
   const { goBack } = useNavigation<AppNavigationProp>();
   const { sourceToken, destToken } = useParams<HighRateAlertModalParams>();
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'BatchSell',
   });
   const handleClose = useCallback(() => {

@@ -1,6 +1,6 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
+import { useSwapBridgeNavigation } from '.';
 import Engine from '../../../../../core/Engine';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
@@ -117,6 +117,7 @@ jest.mock('../../../../hooks/useCurrentNetworkInfo', () => ({
 import {
   getNativeAssetForChainId,
   isSolanaChainId,
+  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 
 jest.mock('@metamask/bridge-controller', () => ({
@@ -152,8 +153,8 @@ jest.mock('../useFetchPopularTokens', () => ({
 
 describe('useSwapBridgeNavigation', () => {
   const mockChainId = '0x1' as Hex;
-  const mockLocation = SwapBridgeNavigationLocation.MainView;
-  const mockSourcePage = 'test-source-page';
+  const mockLocation = MetaMetricsSwapsEventSource.MainView;
+  const mockSourcePage = 'MainView';
   const mockNativeAsset = {
     address: '0x0000000000000000000000000000000000000000',
     name: 'Ether',
@@ -1352,7 +1353,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.MainView,
+            location: MetaMetricsSwapsEventSource.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1379,7 +1380,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.MainView,
+            location: MetaMetricsSwapsEventSource.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1408,7 +1409,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1428,7 +1429,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.Rewards,
+            location: MetaMetricsSwapsEventSource.Rewards,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1448,7 +1449,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.MainView,
+            location: MetaMetricsSwapsEventSource.MainView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
@@ -1475,7 +1476,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockToken,
           }),
@@ -1499,7 +1500,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockSourceToken,
           }),
@@ -1517,7 +1518,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockSourceToken,
             skipLocationUpdate: true,
@@ -1536,7 +1537,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockSourceToken,
             skipLocationUpdate: true,
@@ -1574,7 +1575,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockSourceToken,
             transactionActiveAbTests: abTests,
@@ -1600,7 +1601,7 @@ describe('useSwapBridgeNavigation', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: SwapBridgeNavigationLocation.TokenView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
             sourceToken: mockSourceToken,
           }),
@@ -1626,7 +1627,7 @@ describe('useSwapBridgeNavigation', () => {
     const { result } = renderHookWithProvider(
       () =>
         useSwapBridgeNavigation({
-          location: SwapBridgeNavigationLocation.TokenView,
+          location: MetaMetricsSwapsEventSource.TokenView,
           sourcePage: mockSourcePage,
           sourceToken: mockSourceToken,
         }),

@@ -49,7 +49,10 @@ import {
   ARC_HEX_CHAIN_ID,
   ARC_USDC_BRIDGE_TOKEN,
 } from '../../../../../enablement/assets/arc';
-import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
+import {
+  startSwapBridgePageLoadTrace,
+  type SwapBridgePageLoadTraceRoute,
+} from '../../utils/swapBridgePageLoadTrace';
 import type { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 /**
@@ -74,7 +77,7 @@ export const isAssetFromTrending = (asset: unknown) =>
   asset.isFromTrending === true;
 
 export interface BridgeRouteParams {
-  sourcePage: string;
+  sourcePage: SwapBridgePageLoadTraceRoute['sourcePage'];
   bridgeViewMode: BridgeViewMode;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
@@ -91,52 +94,6 @@ export interface BridgeRouteParams {
   /** Correlates a fresh page-load trace started before navigation. */
   swapViewTraceId?: string;
 }
-
-/**
- * @deprecated Use MetaMetricsSwapsEventSource instead.
- */
-export enum SwapBridgeNavigationLocation {
-  MainView = MetaMetricsSwapsEventSource.MainView,
-  TokenView = MetaMetricsSwapsEventSource.TokenView,
-  Rewards = 'Rewards',
-  TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
-  FollowTradingTokenScreen = MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
-  FollowTradingFeedScreen = MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
-  TransactionDetails = MetaMetricsSwapsEventSource.TransactionDetails,
-}
-
-/**
- * Maps the mobile-specific SwapBridgeNavigationLocation to the core
- * MetaMetricsSwapsEventSource enum used by the bridge-controller/bridge-status-controller.
- *
- * @param location - The mobile navigation location
- * @param isFromTrending - Whether the user navigated from the trending flow
- * @returns The corresponding MetaMetricsSwapsEventSource value
- */
-export const toMetaMetricsSwapsEventSource = (
-  location: SwapBridgeNavigationLocation,
-  isFromTrending = false,
-): MetaMetricsSwapsEventSource => {
-  if (isFromTrending) {
-    return MetaMetricsSwapsEventSource.TrendingExplore;
-  }
-  switch (location) {
-    case SwapBridgeNavigationLocation.MainView:
-      return MetaMetricsSwapsEventSource.MainView;
-    case SwapBridgeNavigationLocation.TokenView:
-      return MetaMetricsSwapsEventSource.TokenView;
-    case SwapBridgeNavigationLocation.TrendingExplore:
-      return MetaMetricsSwapsEventSource.TrendingExplore;
-    case SwapBridgeNavigationLocation.FollowTradingTokenScreen:
-      return MetaMetricsSwapsEventSource.FollowTradingTokenScreen;
-    case SwapBridgeNavigationLocation.FollowTradingFeedScreen:
-      return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
-    case SwapBridgeNavigationLocation.TransactionDetails:
-      return MetaMetricsSwapsEventSource.TransactionDetails;
-    default:
-      return MetaMetricsSwapsEventSource.MainView;
-  }
-};
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
@@ -156,8 +113,14 @@ export const useSwapBridgeNavigation = ({
   swapButtonEventLocationOverride,
   skipActionButtonClickTracking = false,
 }: {
-  location: SwapBridgeNavigationLocation;
-  sourcePage: string;
+  /**
+   * Entry point of the navigation, used for MixPanel tracking.
+   */
+  location: MetaMetricsSwapsEventSource;
+  /**
+   * The source page of the navigation used for sentry performance tracking.
+   */
+  sourcePage: SwapBridgePageLoadTraceRoute['sourcePage'];
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   abTestContext?: Record<string, string>;
@@ -351,12 +314,8 @@ export const useSwapBridgeNavigation = ({
       // Skip when re-entering from a page within an existing bridge session
       // (e.g. Token Details opened from the bridge asset picker) to preserve
       // the original entry-point location.
-      const mappedLocation = toMetaMetricsSwapsEventSource(
-        location,
-        isFromTrending,
-      );
       if (!skipLocationUpdate) {
-        Engine.context.BridgeController.setLocation(mappedLocation);
+        Engine.context.BridgeController.setLocation(location);
       }
 
       const shouldAutoFocusSourceAmountInput = Boolean(
@@ -367,7 +326,7 @@ export const useSwapBridgeNavigation = ({
         sourceToken,
         sourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
-        location: mappedLocation,
+        location,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
         ...(shouldAutoFocusSourceAmountInput && {
           autoFocusSourceAmountInput: true,
@@ -403,7 +362,7 @@ export const useSwapBridgeNavigation = ({
 
       // Track Swap button click with new consolidated event
       if (!skipActionButtonClickTracking) {
-        const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
+        const isFromNavbar = location === MetaMetricsSwapsEventSource.MainView;
         const actionButtonProps = {
           action_name: ActionButtonType.SWAP,
           // Omit action_position for navbar to avoid confusion with main action buttons

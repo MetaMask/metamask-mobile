@@ -5,10 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../../../../core/redux/slices/bridge';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import {
   ActionButtonType,
   ActionLocation,
@@ -17,6 +14,7 @@ import {
 import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const SwapButton = ({
   actionPosition,
@@ -25,7 +23,7 @@ const SwapButton = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isSwapsEnabled = useSelector(selectIsSwapsEnabled);
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'MainView',
     skipActionButtonClickTracking: true,
   });

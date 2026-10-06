@@ -50,10 +50,8 @@ import { getRecurringOrderTokens } from '../../utils/recurringOrders';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 interface RecurringSwapStatusDisplay {
   status: Status;
@@ -201,7 +199,7 @@ export function RecurringSwapAgainButton({
     sourceToken,
     destToken: destinationToken,
     // TODO: Add a recurring source to MetaMetricsSwapsEventSource in @metamask/bridge-controller.
-    location: SwapBridgeNavigationLocation.TransactionDetails,
+    location: MetaMetricsSwapsEventSource.TransactionDetails,
   });
 
   const handleSwapAgain = useCallback(() => {

@@ -10,10 +10,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  useSwapBridgeNavigation,
-  SwapBridgeNavigationLocation,
-} from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import {
   TOP_TRADERS_BUY_ACTION_AB_KEY,
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
@@ -27,6 +24,7 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from '../../../../UI/QuickBuy/analytics';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 /**
  * `sourcePage` reported to the swaps view for attribution. Snake_case matches
@@ -101,7 +99,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const { destToken, isLoading } = useQuickBuySetup(target);
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.FollowTradingTokenScreen,
+    location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 

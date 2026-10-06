@@ -22,7 +22,7 @@ import * as TokenDetailsActionsModule from './TokenDetailsActions';
 import { MOCK_RECURRING_OPEN_ORDER } from '../../Bridge/api/recurringOrders.mock';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import { BridgeTabKey } from '../../Bridge/Views/BridgeView/BridgeView.constants';
-import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
@@ -693,7 +693,7 @@ describe('AssetOverviewContent', () => {
       expect(onExitAction).toHaveBeenCalledTimes(1);
       expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
         sourcePage: 'TokenDetails',
-        location: SwapBridgeNavigationLocation.TokenView,
+        location: MetaMetricsSwapsEventSource.TokenView,
       });
       expect(mockGoToSwaps).toHaveBeenCalledWith(
         undefined,
