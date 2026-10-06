@@ -364,7 +364,11 @@ describe('createMobileInfrastructure', () => {
       const error = new Error('boom');
 
       infra.logger.error(error, {
-        tags: { component: 'test_component' },
+        tags: {
+          operation: 'order_management',
+          action: 'place_order',
+          component: 'PerpsConnectionManager',
+        },
         context: {
           name: 'test_context',
           data: { foo: 'bar' },
@@ -377,7 +381,9 @@ describe('createMobileInfrastructure', () => {
         expect.objectContaining({
           tags: expect.objectContaining({
             feature: expect.any(String),
-            component: 'test_component',
+            operation: 'order_management',
+            action: 'place_order',
+            component: 'PerpsConnectionManager',
           }),
           context: {
             name: 'test_context',
