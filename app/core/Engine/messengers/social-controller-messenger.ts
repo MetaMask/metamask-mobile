@@ -33,7 +33,6 @@ export function getSocialControllerMessenger(
       'SocialService:follow',
       'SocialService:unfollow',
       'SocialService:fetchFollowing',
-      'SocialService:fetchMyFollowers',
       'SocialService:optOutOfLeaderboard',
       'SocialService:optInToLeaderboard',
     ],
