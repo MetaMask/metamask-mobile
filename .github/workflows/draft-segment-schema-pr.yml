@@ -2,14 +2,14 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
     # Product TypeScript only. New non-TS paths do not start this workflow.
+    # Negated globs replace paths-ignore: GitHub rejects both filters on one event.
     # Test globs stay because tests live under app/.
     paths:
       - 'app/**/*.ts'
       - 'app/**/*.tsx'
-    paths-ignore:
-      - '**/*.test.*'
-      - '**/*.spec.*'
-      - '**/__snapshots__/**'
+      - '!**/*.test.*'
+      - '!**/*.spec.*'
+      - '!**/__snapshots__/**'
   issue_comment:
     types: [created]
 jobs:
