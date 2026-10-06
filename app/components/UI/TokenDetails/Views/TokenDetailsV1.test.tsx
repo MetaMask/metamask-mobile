@@ -303,9 +303,9 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // Child 0 = price hero (title + security/social row + chart), child 1 =
-    // stat bar, child 2 = action tiles, child 3 = tab bar (sticky), child 4 =
-    // tab content stack.
+    // Child 0 = price hero (title, security/social row, chart, stat bar),
+    // child 1 = action tiles, child 2 = tab bar (sticky), child 3 = tab
+    // content stack.
     expect(
       getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
         .stickyHeaderIndices,

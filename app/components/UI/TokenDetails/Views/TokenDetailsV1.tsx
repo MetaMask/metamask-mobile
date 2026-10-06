@@ -88,7 +88,7 @@ export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
  * price hero (with the security/social row), chart, stat bar, action tiles and
  * tab content scroll under it.
  */
-export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 3;
+export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
 
 /**
  * TODO(ASSETS-4018): replace with the real verdict and flag count once
