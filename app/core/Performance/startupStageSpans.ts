@@ -98,7 +98,11 @@ const NATIVE_MARKS: readonly NativeStartupMark[] = [
   'runJsBundleEnd',
 ];
 
-type StartupPoint = StartupMark | NativeStartupMark | 'awaitingUser';
+type StartupPoint =
+  | StartupMark
+  | NativeStartupMark
+  | 'jsBundleLoadEnd'
+  | 'awaitingUser';
 
 interface StageDefinition {
   stage: StartupStage;
@@ -127,7 +131,7 @@ const STAGES: readonly StageDefinition[] = [
   {
     stage: 'js_bundle_load',
     start: 'runJsBundleStart',
-    end: 'runJsBundleEnd',
+    end: 'jsBundleLoadEnd',
     preJs: true,
   },
   {
@@ -393,7 +397,31 @@ const releasePayload = () => {
   emitPayload(payload);
 };
 
-const readNativeMarks = (): Partial<Record<NativeStartupMark, number>> => {
+interface ReactNativeStartupTiming {
+  executeJavaScriptBundleEntryPointStart?: number | null;
+}
+
+/** React Native's own record of the bundle start, on the `performance.now()` clock. */
+const readJsClockBundleStart = (): number | undefined => {
+  try {
+    const { rnStartupTiming } =
+      globalThis.performance as typeof globalThis.performance & {
+        rnStartupTiming?: ReactNativeStartupTiming;
+      };
+    const start = rnStartupTiming?.executeJavaScriptBundleEntryPointStart;
+    return typeof start === 'number' ? start : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+interface NativeMarks {
+  marks: Partial<Record<NativeStartupMark, number>>;
+  /** How far the marks were moved onto the `performance.now()` clock. */
+  clockOffset?: number;
+}
+
+const readNativeMarks = (): NativeMarks => {
   const marks: Partial<Record<NativeStartupMark, number>> = {};
   for (const name of NATIVE_MARKS) {
     const entry = performance.getEntriesByName(name).at(-1);
@@ -401,7 +429,22 @@ const readNativeMarks = (): Partial<Record<NativeStartupMark, number>> => {
       marks[name] = entry.startTime;
     }
   }
-  return marks;
+  // react-native-performance stamps these with a clock that keeps running
+  // while the device sleeps, and on iOS `performance.now()` pauses. Both
+  // record the bundle start, so the difference moves the marks onto
+  // `performance.now()`.
+  const bundleStart = readJsClockBundleStart();
+  if (marks.runJsBundleStart === undefined || bundleStart === undefined) {
+    return { marks };
+  }
+  const clockOffset = marks.runJsBundleStart - bundleStart;
+  for (const name of NATIVE_MARKS) {
+    const value = marks[name];
+    if (value !== undefined) {
+      marks[name] = value - clockOffset;
+    }
+  }
+  return { marks, clockOffset };
 };
 
 interface StartupReduxFacts {
@@ -537,7 +580,12 @@ const getAnchorSuspect = (
   if (values.includes(undefined)) {
     return 'missing_native_marks';
   }
-  const ordered = [...(values as number[]), firstJsPoint];
+  // JS runs while the bundle does, so its marks can come before
+  // runJsBundleEnd but never before runJsBundleStart.
+  if (firstJsPoint < (native.runJsBundleStart as number)) {
+    return 'native_marks_after_js';
+  }
+  const ordered = values as number[];
   if (ordered.some((value, index) => index > 0 && value < ordered[index - 1])) {
     return 'native_marks_out_of_order';
   }
@@ -575,12 +623,16 @@ const buildPayload = (
     endBoundBy = awaitingUserAt > splashGone ? 'awaiting_user' : 'splash';
   }
 
-  const native = kind === 'js_reload' ? {} : readNativeMarks();
+  const nativeMarks: NativeMarks =
+    kind === 'js_reload' ? { marks: {} } : readNativeMarks();
+  const { marks: native, clockOffset } = nativeMarks;
   const firstJsPoint = Math.min(current.startedAt, ...Object.values(marks));
   const anchorSuspect =
     kind === 'js_reload' ? undefined : getAnchorSuspect(native, firstJsPoint);
   const includePreJs =
-    kind !== 'js_reload' && anchorSuspect !== 'missing_native_marks';
+    kind !== 'js_reload' &&
+    anchorSuspect !== 'missing_native_marks' &&
+    anchorSuspect !== 'native_marks_after_js';
   const anchorAt =
     includePreJs && native.nativeLaunchStart !== undefined
       ? native.nativeLaunchStart
@@ -589,6 +641,12 @@ const buildPayload = (
   const points: Partial<Record<StartupPoint, number>> = {
     ...native,
     ...marks,
+    // The store can start while the bundle is still running. The rest of the
+    // bundle then runs inside store_initialization.
+    jsBundleLoadEnd:
+      native.runJsBundleEnd !== undefined && marks.storeInitStart !== undefined
+        ? Math.min(native.runJsBundleEnd, marks.storeInitStart)
+        : native.runJsBundleEnd,
     awaitingUser: awaitingUser?.at,
   };
   const firstRoute = current.routeChanges[0];
@@ -691,6 +749,18 @@ const buildPayload = (
     if (durationMs !== undefined) {
       data[`startup.stage.${stage}_ms`] = round(durationMs);
     }
+  }
+  if (
+    includePreJs &&
+    native.runJsBundleStart !== undefined &&
+    native.runJsBundleEnd !== undefined
+  ) {
+    data['startup.js_bundle_run_ms'] = round(
+      native.runJsBundleEnd - native.runJsBundleStart,
+    );
+  }
+  if (clockOffset !== undefined) {
+    data['startup.native_clock_offset_ms'] = round(clockOffset);
   }
   const milestones: Record<string, number | undefined> = {
     native_splash_hidden: marks.nativeSplashHidden,

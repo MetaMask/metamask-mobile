@@ -91,6 +91,25 @@ const NATIVE_MARKS = {
   runJsBundleEnd: 1_200,
 };
 
+/** The native marks on a clock that ran on for `aheadMs` while the device slept. */
+const getNativeMarksAhead = (aheadMs: number) =>
+  Object.fromEntries(
+    Object.entries(NATIVE_MARKS).map(([name, time]) => [name, time + aheadMs]),
+  );
+
+type PerformanceWithStartupTiming = typeof globalThis.performance & {
+  rnStartupTiming?: unknown;
+};
+
+/** What React Native reports as the bundle start on the `performance.now()` clock. */
+const setJsClockBundleStart = (
+  executeJavaScriptBundleEntryPointStart: number,
+) =>
+  Object.defineProperty(globalThis.performance, 'rnStartupTiming', {
+    configurable: true,
+    value: { executeJavaScriptBundleEntryPointStart },
+  });
+
 type TimedMark = readonly [StartupMark, number];
 
 /** A cold start up to the splash fade-out, in the order startup reaches each mark. */
@@ -286,6 +305,8 @@ describe('startupStageSpans', () => {
 
   afterEach(() => {
     resetStartupStageSpansForTesting();
+    delete (globalThis.performance as PerformanceWithStartupTiming)
+      .rnStartupTiming;
     jest.useRealTimers();
     jest.restoreAllMocks();
   });
@@ -323,6 +344,7 @@ describe('startupStageSpans', () => {
           'startup.stage.root_navigator_first_render_ms': 100,
           'startup.stage.splash_reveal_tax_ms': 350,
           'startup.stage.unlock_prompt_delay_ms': 0,
+          'startup.js_bundle_run_ms': 750,
           'startup.native_splash_hidden_ms': 1_800,
           'startup.services_ready_ms': 2_750,
           'startup.splash_gone_ms': 3_200,
@@ -792,6 +814,92 @@ describe('startupStageSpans', () => {
         }),
       );
       expect(getStages()[0]?.name).toBe(TraceName.StartupStoreInitialization);
+    });
+
+    it('moves native marks onto the performance.now() clock with the bundle start React Native reports', () => {
+      mockNativeMarks = getNativeMarksAhead(50_000);
+      setJsClockBundleStart(NATIVE_MARKS.runJsBundleStart);
+
+      runKeychainUnlock();
+
+      expect(getRoot()).toEqual(
+        expect.objectContaining({
+          startTime: OFFSET + 100,
+          data: expect.objectContaining({
+            'startup.duration_ms': 3_200,
+            'startup.unattributed_ms': 50,
+            'startup.native_clock_offset_ms': 50_000,
+            'startup.stage.native_launch_ms': 300,
+            'startup.stage.js_bundle_load_ms': 750,
+          }),
+        }),
+      );
+      expect(getRoot().tags).not.toHaveProperty('startup.anchor_suspect');
+      expect(getStage(TraceName.StartupJsBundleLoad)).toEqual(
+        expect.objectContaining({
+          startTime: OFFSET + 450,
+          endTime: OFFSET + 1_200,
+        }),
+      );
+    });
+
+    it('starts at the first JS mark when the bundle seems to start after it', () => {
+      mockNativeMarks = getNativeMarksAhead(50_000);
+
+      runLoginStartup();
+
+      expect(getRoot()).toEqual(
+        expect.objectContaining({
+          startTime: OFFSET + 1_250,
+          tags: expect.objectContaining({
+            'startup.anchor_suspect': 'native_marks_after_js',
+          }),
+          data: expect.objectContaining({ 'startup.duration_ms': 2_150 }),
+        }),
+      );
+      expect(getRoot().data).not.toHaveProperty('startup.js_bundle_run_ms');
+      expect(getStages()[0]?.name).toBe(TraceName.StartupStoreInitialization);
+    });
+
+    it('keeps the native marks as recorded when React Native cannot report the bundle start', () => {
+      Object.defineProperty(globalThis.performance, 'rnStartupTiming', {
+        configurable: true,
+        get: () => {
+          throw new Error('NativePerformance is unavailable');
+        },
+      });
+
+      runLoginStartup();
+
+      expect(getRoot().startTime).toBe(OFFSET + 100);
+      expect(getRoot().data).not.toHaveProperty(
+        'startup.native_clock_offset_ms',
+      );
+      expect(mockLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('ends the bundle stage where the store starts when the store starts first', () => {
+      mockNativeMarks = { ...NATIVE_MARKS, runJsBundleEnd: 1_400 };
+
+      runKeychainUnlock();
+
+      expect(getStage(TraceName.StartupJsBundleLoad)).toEqual(
+        expect.objectContaining({
+          startTime: OFFSET + 450,
+          endTime: OFFSET + 1_250,
+        }),
+      );
+      expect(getStage(TraceName.StartupPostBundleGap)).toBeUndefined();
+      expect(getRoot().tags).not.toHaveProperty('startup.anchor_suspect');
+      expect(getRoot().tags).not.toHaveProperty('startup.order_violations');
+      expect(getRoot().data).toEqual(
+        expect.objectContaining({
+          'startup.stage.js_bundle_load_ms': 800,
+          'startup.stage.post_bundle_gap_ms': 0,
+          'startup.js_bundle_run_ms': 950,
+          'startup.unattributed_ms': 50,
+        }),
+      );
     });
 
     it('flags native marks that are out of order and the stages they break', () => {
