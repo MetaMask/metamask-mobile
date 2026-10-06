@@ -1,0 +1,57 @@
+# Device capability
+
+Shared classification of how constrained the current device is. No Redux, no service, no saga, no cache.
+
+## Public API
+
+**Hardware** (sync, any JS context):
+
+```ts
+import { getHardwareTier } from '../../util/deviceCapability';
+
+const tier = getHardwareTier(); // 'LOW' | 'MID' | 'HIGH' | null
+```
+
+One `DeviceInfo.getTotalMemorySync()` read. Uncached. RAM is static for the process, so this is a function, not a hook. Any `Platform.OS` other than `ios` uses Android bands.
+
+**Network** (React only):
+
+```ts
+import { useNetworkTier } from '../../hooks/useNetworkTier';
+
+const tier = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null
+```
+
+Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network changes, so this is a hook, not `getNetworkTier()`.
+
+`null` means unknown — do not treat it as offline or low-end. `'NONE'` means we know there is no usable internet (`type === 'none'` or `isInternetReachable === false`). `vpn` / `bluetooth` / `wimax` / `other` / cellular with no generation are `null`.
+
+Keep the two values separate. Do not fold them into one “worst of RAM and network” flag — a short 3G blip would make a high-RAM phone look constrained.
+
+## Thresholds (`thresholds.ts`)
+
+| Platform     | LOW        | MID        | HIGH       |
+| ------------ | ---------- | ---------- | ---------- |
+| iOS / iPadOS | `<= 2 GiB` | `<= 4 GiB` | `> 4 GiB`  |
+| Android      | `< 3 GiB`  | `< 5 GiB`  | `>= 5 GiB` |
+
+Android bands are lower because `MemoryInfo.totalMem` reports below advertised size (a “4 GB” phone is often ~3.6–3.8 GiB). A 4 GB iPhone (including iPhone 13) is `MID`.
+
+Do not check hardware tier on the iOS simulator — it can report the Mac’s RAM.
+
+## Files
+
+| File                          | Role                          |
+| ----------------------------- | ----------------------------- |
+| `types.ts`                    | `HardwareTier`, `NetworkTier` |
+| `thresholds.ts`               | Per-platform RAM cutoffs      |
+| `computeHardwareTier.ts`      | Pure RAM → tier               |
+| `computeNetworkTier.ts`       | Pure NetInfo fields → tier    |
+| `index.ts`                    | `getHardwareTier()`           |
+| `app/hooks/useNetworkTier.ts` | Hook over `useNetInfo()`      |
+
+## Out of scope (this module)
+
+- Battery, disk, CPU cores / frequency
+- Segment / `APP_OPENED` properties (`hardware_tier`, `total_memory_gb`) — post-MVP
+- Migrating `AnimatedFox` and `useDeviceOrientation` off their local `≤ 2 GB` checks
