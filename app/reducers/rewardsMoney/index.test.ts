@@ -351,15 +351,17 @@ describe('rewardsMoneyReducer', () => {
           id: 'earn-1',
           earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
           musd_amount: '1000000',
+          voided_musd_amount: '0',
           fee_amount_usd: '1',
           entry_count: 1,
           transaction_hash: null,
           chain_id: null,
           ledger_timestamp: '2026-09-01T00:00:00.000Z',
           claim_status: 'unclaimed',
-          claim_expires_at: null,
+          claimable_at: '2026-09-02T00:00:00.000Z',
           swaps_source: null,
           perps_source: null,
+          predict_source: null,
         },
         {
           type: 'claim' as const,
@@ -371,6 +373,7 @@ describe('rewardsMoneyReducer', () => {
           status: 'SETTLED',
           ledger_timestamp: '2026-09-02T00:00:00.000Z',
           settled_at: '2026-09-02T00:00:00.000Z',
+          payout_method: 'VOUCHER',
         },
       ];
 

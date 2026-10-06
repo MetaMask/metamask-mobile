@@ -35,9 +35,10 @@ const earning: LedgerEarningEntryDto = {
   chain_id: null,
   ledger_timestamp: '2026-09-01T00:00:00.000Z',
   claim_status: 'unclaimed',
-  claim_expires_at: null,
+  claimable_at: '2026-09-02T00:00:00.000Z',
   swaps_source: null,
   perps_source: null,
+  predict_source: null,
 };
 
 const claim: LedgerClaimEntryDto = {
@@ -50,6 +51,7 @@ const claim: LedgerClaimEntryDto = {
   status: 'SETTLED',
   ledger_timestamp: '2026-09-02T00:00:00.000Z',
   settled_at: '2026-09-02T00:00:00.000Z',
+  payout_method: 'VOUCHER',
 };
 
 describe('EarningsHistoryRow', () => {

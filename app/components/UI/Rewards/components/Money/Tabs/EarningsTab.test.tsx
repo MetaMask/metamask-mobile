@@ -105,15 +105,17 @@ const earning: LedgerEntryDto = {
   id: 'earn-1',
   earning_origin_type: 'REFERRAL_REV_SHARE',
   musd_amount: '1000000',
+  voided_musd_amount: '0',
   fee_amount_usd: '1',
   entry_count: 1,
   transaction_hash: null,
   chain_id: null,
   ledger_timestamp: '2026-09-01T00:00:00.000Z',
   claim_status: 'unclaimed',
-  claim_expires_at: null,
+  claimable_at: '2026-09-02T00:00:00.000Z',
   swaps_source: null,
   perps_source: null,
+  predict_source: null,
 };
 
 const claim: LedgerEntryDto = {
@@ -126,6 +128,7 @@ const claim: LedgerEntryDto = {
   status: 'SETTLED',
   ledger_timestamp: '2026-09-02T00:00:00.000Z',
   settled_at: null,
+  payout_method: 'VOUCHER',
 };
 
 const emptyList = {
