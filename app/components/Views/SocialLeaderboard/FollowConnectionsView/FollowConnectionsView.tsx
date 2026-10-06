@@ -2,7 +2,9 @@ import {
   Box,
   BoxAlignItems,
   Button,
+  ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   Spinner,
   Text,
@@ -195,12 +197,19 @@ const FollowConnectionsView: React.FC = () => {
           gap={4}
           testID={FollowConnectionsViewSelectorsIDs.FOLLOWING_ERROR}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {followingError}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.load_error')}
           </Text>
           <Button
             variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
             onPress={refreshFollowing}
+            twClassName="self-center"
             testID={FollowConnectionsViewSelectorsIDs.FOLLOWING_RETRY}
           >
             {strings('social_leaderboard.my_profile.retry')}
@@ -256,12 +265,19 @@ const FollowConnectionsView: React.FC = () => {
           gap={4}
           testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_ERROR}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {followersError}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.load_error')}
           </Text>
           <Button
             variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
             onPress={refreshFollowers}
+            twClassName="self-center"
             testID={FollowConnectionsViewSelectorsIDs.FOLLOWERS_RETRY}
           >
             {strings('social_leaderboard.my_profile.retry')}
