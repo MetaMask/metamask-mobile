@@ -147,19 +147,6 @@ describe('buildPostCancellationResetState', () => {
     ]);
   });
 
-  it('returns directly to the origin after immediate cancellation', () => {
-    const state = createStackState([
-      'Money',
-      Routes.PRO_HUB.ROOT,
-      Routes.PRO_HUB.CANCEL_MEMBERSHIP,
-    ]);
-
-    const nextState = buildPostCancellationResetState(state, false);
-
-    expect(nextState.index).toBe(0);
-    expect(nextState.routes).toEqual([{ key: 'Money-0', name: 'Money' }]);
-  });
-
   it('drops the Join Pro benefits modal so back from Pro Hub does not open it', () => {
     const state = createStackState([
       'Home',

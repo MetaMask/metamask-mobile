@@ -92,22 +92,20 @@ const PRO_FLOW_ROUTE_NAMES = new Set<string>([
 ]);
 
 /**
- * Builds the stack shown after the user taps Done on cancel-membership success.
+ * Builds the stack shown after a membership is cancelled successfully.
  *
- * Every Pro / Join Pro screen is removed. Pro Hub is restored only when the
- * period-end cancellation preserves access; immediate cancellation returns
- * directly to the screen that started the flow.
+ * Every Pro / Join Pro screen is removed and Pro Hub is placed on top of the
+ * screen that started the flow.
  *
  * Preserved routes keep nested `state` and `params`. HomeNav is a tab
  * navigator; dropping its nested state would remount it on the initial Wallet
  * tab instead of the Money (or other) tab that started the flow.
  *
  * If every route is a Pro / Join Pro screen, HomeNav is inserted as the safe
- * origin (and as the destination for immediate cancellation).
+ * origin.
  */
 export const buildPostCancellationResetState = (
   state: NavigationState,
-  shouldReturnToProHub = true,
 ): PartialState<NavigationState> => {
   const preservedRoutes = state.routes
     .filter((route) => !PRO_FLOW_ROUTE_NAMES.has(route.name))
@@ -130,15 +128,13 @@ export const buildPostCancellationResetState = (
       ? preservedRoutes
       : [{ name: Routes.ONBOARDING.HOME_NAV }];
 
-  const routes = shouldReturnToProHub
-    ? [
-        ...originRoutes,
-        {
-          name: Routes.PRO_HUB.ROOT,
-          params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
-        },
-      ]
-    : originRoutes;
+  const routes = [
+    ...originRoutes,
+    {
+      name: Routes.PRO_HUB.ROOT,
+      params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
+    },
+  ];
 
   return {
     index: routes.length - 1,

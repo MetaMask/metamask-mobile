@@ -11,11 +11,6 @@ export const CancelMembershipTestIds = {
   // ── Stay step ────────────────────────────────────────────────────────────
   STAY_QUESTION: 'cancel-membership-stay-question',
   STAY_QUESTION_INPUT: 'cancel-membership-stay-question-input',
-  // ── Success step ─────────────────────────────────────────────────────────
-  SUCCESS_CHECK_ICON_BOX: 'cancel-membership-success-check-icon-box',
-  SUCCESS_TITLE: 'cancel-membership-success-title',
-  SUCCESS_DESCRIPTION: 'cancel-membership-success-description',
-  SUCCESS_DONE_BUTTON: 'cancel-membership-success-done-button',
 } as const;
 
 /**

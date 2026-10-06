@@ -12,20 +12,17 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
   buildPostCancellationResetState,
   CANCELLATION_TIMINGS,
   getCancellationTiming,
   toCancellationReason,
-  type CancellationTiming,
 } from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelStayStep from './components/CancelStayStep';
-import CancelSuccessStep from './components/CancelSuccessStep';
 
-type CancelStep = 'reason' | 'stay' | 'success';
+type CancelStep = 'reason' | 'stay';
 
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -35,10 +32,6 @@ const CancelMembership = () => {
   const [stayFeedback, setStayFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [cancelledSubscription, setCancelledSubscription] = useState<{
-    timing: CancellationTiming;
-    endDate: string;
-  } | null>(null);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
@@ -57,6 +50,16 @@ const CancelMembership = () => {
     isNavigatingRef.current = true;
     navigation.goBack();
   }, [isSubmitting, navigation]);
+
+  const navigateToProHub = useCallback(() => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    // Reset instead of navigate so the stale cancel and membership screens are
+    // removed and Pro Hub sits directly above the origin screen.
+    navigation.dispatch((state) =>
+      CommonActions.reset(buildPostCancellationResetState(state)),
+    );
+  }, [navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
     if (isSubmitting) return;
@@ -87,13 +90,7 @@ const CancelMembership = () => {
         ...(cancellationReason ? { cancellationReason } : {}),
       });
 
-      setCancelledSubscription({
-        timing,
-        endDate:
-          formatSubscriptionPeriodEnd(subscription.currentPeriodEnd) ??
-          subscription.currentPeriodEnd,
-      });
-      setStep('success');
+      navigateToProHub();
     } catch (error) {
       Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
         tags: {
@@ -105,7 +102,7 @@ const CancelMembership = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, selectedReasonId]);
+  }, [isSubmitting, selectedReasonId, navigateToProHub]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
@@ -116,26 +113,9 @@ const CancelMembership = () => {
     setStayFeedback(value);
   }, []);
 
-  const handleDone = useCallback(() => {
-    if (isNavigatingRef.current) return;
-    isNavigatingRef.current = true;
-    // Reset instead of navigate so the stale cancel and membership screens are
-    // removed. Period-end cancellation keeps Pro Hub above the origin screen;
-    // immediate cancellation returns directly to the origin.
-    navigation.dispatch((state) =>
-      CommonActions.reset(
-        buildPostCancellationResetState(
-          state,
-          cancelledSubscription?.timing === CANCELLATION_TIMINGS.PERIOD_END,
-        ),
-      ),
-    );
-  }, [cancelledSubscription?.timing, navigation]);
-
-  // Leaving is blocked while the cancel request is in flight (it would still
-  // cancel the membership but skip the success step) and once the membership
-  // is cancelled (the Membership screen below is now stale).
-  const isLeaveBlocked = isSubmitting || step === 'success';
+  // Leaving is blocked while the cancel request is in flight: it would still
+  // cancel the membership but skip the redirect to Pro Hub.
+  const isLeaveBlocked = isSubmitting;
 
   // On the stay step, leaving via back gesture / hardware back should return
   // to the reason step instead of popping the whole screen.
@@ -156,17 +136,15 @@ const CancelMembership = () => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (isNavigatingRef.current) return;
       e.preventDefault();
-      if (step === 'success') {
-        handleDone();
-      } else if (step === 'stay' && !isSubmitting) {
+      if (step === 'stay' && !isSubmitting) {
         setStep('reason');
       }
     });
     return () => unsubscribe();
-  }, [shouldInterceptLeave, step, isSubmitting, navigation, handleDone]);
+  }, [shouldInterceptLeave, step, isSubmitting, navigation]);
 
-  // Android hardware back button: swallow it while submitting, return to the
-  // reason step from the stay step, and redirect to handleDone on success.
+  // Android hardware back button: swallow it while submitting and return to
+  // the reason step from the stay step.
   useEffect(() => {
     if (!shouldInterceptLeave) {
       return undefined;
@@ -174,16 +152,14 @@ const CancelMembership = () => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        if (step === 'success') {
-          handleDone();
-        } else if (step === 'stay' && !isSubmitting) {
+        if (step === 'stay' && !isSubmitting) {
           setStep('reason');
         }
         return true;
       },
     );
     return () => subscription.remove();
-  }, [shouldInterceptLeave, step, isSubmitting, handleDone]);
+  }, [shouldInterceptLeave, step, isSubmitting]);
 
   return (
     <SafeAreaView
@@ -211,13 +187,6 @@ const CancelMembership = () => {
           onCancelConfirm={handleCancelConfirm}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
-        />
-      )}
-      {step === 'success' && cancelledSubscription && (
-        <CancelSuccessStep
-          onDone={handleDone}
-          timing={cancelledSubscription.timing}
-          cancellationEndDate={cancelledSubscription.endDate}
         />
       )}
     </SafeAreaView>
