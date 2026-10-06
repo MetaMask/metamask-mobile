@@ -225,9 +225,13 @@ export type SummaryTotalsDto = {
   claimable?: string;
   held?: string;
   blocked?: string;
+  /**
+   * Base units voided and not paid. Absent when the caller opted out of
+   * claimability, like `claimable`, `held`, and `blocked`.
+   */
+  voided?: string;
   pending: string;
   claimed: string;
-  forfeited: string;
   blocking_reason?: ClaimBlockingReason | null;
 };
 
@@ -238,9 +242,10 @@ export type AddressTotalsDto = {
   claimable?: string;
   held?: string;
   blocked?: string;
+  /** Absent when the caller opted out of claimability. */
+  voided?: string;
   pending: string;
   claimed: string;
-  forfeited: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -263,12 +268,19 @@ export type EarningsSummaryDto = {
   claimable?: string;
   held?: string;
   blocked?: string;
+  /** Absent when the caller opted out of claimability. */
+  voided?: string;
   pending: string;
   claimed: string;
-  forfeited: string;
   minimum_musd_base_units: string;
   self_earned: BranchViewDto<SelfEarnedFamilyTotalsDto>;
   earned_by_others: BranchViewDto<EarnedByOthersFamilyTotalsDto>;
+  /**
+   * True while part of this profile's money is still keyed on a profile merged
+   * into it and has not moved yet. The figures then cover only what has
+   * arrived. Always present.
+   */
+  pairing_pending: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -288,21 +300,36 @@ export type LedgerPerpsSourceView = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type LedgerPredictSourceView = {
+  condition_id: string;
+  token_id: string;
+  side: string;
+  tx_hash: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LedgerEarningEntryDto = {
   type: 'earning';
   id: string;
   earning_origin_type: EarningOriginType;
   musd_amount: string;
+  /** The part of `musd_amount` that is voided. `"0"` when nothing is. */
+  voided_musd_amount: string;
   fee_amount_usd: string;
   entry_count: number;
   transaction_hash: string | null;
   chain_id: string | null;
   ledger_timestamp: string;
   claim_status: string;
-  claim_expires_at: string | null;
+  /**
+   * When this entry stops being pending. Never null: a cashback entry carries
+   * the end of its claim delay, and a day entry carries its UTC day's close.
+   */
+  claimable_at: string;
   blocking_reason?: LedgerBlockingReason | null;
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
+  predict_source: LedgerPredictSourceView | null;
 };
 
 /**
@@ -320,6 +347,8 @@ export type LedgerClaimEntryDto = {
   status: string;
   ledger_timestamp: string;
   settled_at: string | null;
+  /** `VOUCHER` for an in-app claim; `MANUAL` for a recorded payout. */
+  payout_method: string;
 };
 
 /** Discriminated ledger row; branch on `type`. */
@@ -360,6 +389,8 @@ export type ClaimDto = {
   released_at: string | null;
   status: string;
   route: string;
+  /** `VOUCHER` for an in-app claim; `MANUAL` for a recorded payout. */
+  payout_method: string;
   created_at: string;
   updated_at: string;
   earnings?: ClaimEarningDto[];

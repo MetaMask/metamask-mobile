@@ -46,11 +46,13 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
     if (body.includes(SELF_REFERRAL_BODY_SNIPPET)) {
       return strings('rewards.error_messages.cannot_use_own_referral_code');
     }
-    if (
-      body.includes(REFERRER_REFUSAL_BODY_SNIPPET) ||
-      body.includes(ACTIVE_TRADER_BODY_SNIPPET)
-    ) {
+    if (body.includes(REFERRER_REFUSAL_BODY_SNIPPET)) {
       return strings('rewards.error_messages.referrer_cannot_be_referred');
+    }
+    if (body.includes(ACTIVE_TRADER_BODY_SNIPPET)) {
+      return strings(
+        'rewards.error_messages.active_trader_cannot_be_referred',
+      );
     }
   }
   return strings('rewards.error_messages.something_went_wrong');

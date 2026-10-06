@@ -150,7 +150,7 @@ const emptyBranch = {
   lifetime: '0',
   pending: '0',
   claimed: '0',
-  forfeited: '0',
+  voided: '0',
   by_claim_family: {},
 };
 
@@ -159,7 +159,8 @@ const EARNINGS_SUMMARY = {
   window: null,
   pending: '0',
   claimed: '0',
-  forfeited: '0',
+  voided: '0',
+  pairing_pending: false,
   minimum_musd_base_units: '1000000',
   self_earned: {
     ...emptyBranch,
