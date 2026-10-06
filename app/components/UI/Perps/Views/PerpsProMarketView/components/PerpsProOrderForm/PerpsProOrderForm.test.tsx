@@ -508,7 +508,7 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewBlur).toHaveBeenCalledTimes(1);
     });
 
-    it('realigns a Scale field once on initial focus and again only on re-tap', () => {
+    it('realigns a Scale field on wrapper focus and a later wrapper re-tap', () => {
       const scaleKeyboardScroll = createScaleKeyboardScroll();
       renderForm({
         orderType: 'scale',
@@ -516,20 +516,20 @@ describe('PerpsProOrderForm', () => {
         scaleKeyboardScroll,
       });
       const input = screen.getByTestId(ids.SCALE_START_PRICE);
+      const field = screen.getByTestId(`${ids.SCALE_START_PRICE}-field`);
 
-      fireEvent(input, 'pressIn');
-      fireEvent(input, 'focus');
+      fireEvent.press(field);
 
       expect(scaleKeyboardScroll.startPrice.onFocus).not.toHaveBeenCalled();
+      expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
 
-      fireEvent(input, 'pressOut');
-
+      fireEvent(input, 'focus');
       expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
       expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
 
-      fireEvent(input, 'pressIn');
-      fireEvent(input, 'pressOut');
+      fireEvent.press(field);
 
+      expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
       expect(scaleKeyboardScroll.startPrice.realign).toHaveBeenCalledTimes(1);
     });
 

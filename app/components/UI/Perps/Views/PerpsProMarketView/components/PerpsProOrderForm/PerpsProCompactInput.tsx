@@ -121,6 +121,8 @@ export interface PerpsProCompactInputRef {
   focus: () => void;
 }
 
+type DirectPressPhase = 'idle' | 'initial-press' | 'initial-focused' | 'retap';
+
 const PerpsProCompactInput = React.forwardRef<
   PerpsProCompactInputRef,
   PerpsProCompactInputProps
@@ -152,9 +154,7 @@ const PerpsProCompactInput = React.forwardRef<
     const tw = useTailwind();
     const inputRef = useRef<TextInput>(null);
     const isNativeFocusedRef = useRef(false);
-    const isDirectPressActiveRef = useRef(false);
-    const hasPendingFocusCallbackRef = useRef(false);
-    const wasNativeFocusedAtPressInRef = useRef(false);
+    const directPressPhaseRef = useRef<DirectPressPhase>('idle');
     const [isFocused, setIsFocused] = useState(false);
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || value.length > 0;
@@ -170,6 +170,7 @@ const PerpsProCompactInput = React.forwardRef<
           if (isInteractionBlocked) {
             return;
           }
+          directPressPhaseRef.current = 'idle';
           // Match a tap: expand the empty inline field, then focus it once it
           // has a real frame. Focusing the collapsed input dismisses iOS.
           setIsFocused(true);
@@ -183,6 +184,7 @@ const PerpsProCompactInput = React.forwardRef<
 
     useEffect(() => {
       if (isHidden) {
+        directPressPhaseRef.current = 'idle';
         setShouldFocusInput(false);
         setIsFocused(false);
         inputRef.current?.blur();
@@ -205,17 +207,17 @@ const PerpsProCompactInput = React.forwardRef<
     const handleFocus = () => {
       isNativeFocusedRef.current = true;
       setIsFocused(true);
-      if (isDirectPressActiveRef.current) {
+      if (directPressPhaseRef.current === 'initial-press') {
         // Scale fields scroll on focus. Wait for release so that scroll cannot
         // cancel Android's in-flight native focus handoff.
-        hasPendingFocusCallbackRef.current = true;
+        directPressPhaseRef.current = 'initial-focused';
         return;
       }
       onFocus?.();
     };
     const handleBlur = () => {
       isNativeFocusedRef.current = false;
-      hasPendingFocusCallbackRef.current = false;
+      directPressPhaseRef.current = 'idle';
       setIsFocused(false);
       onBlur?.();
     };
@@ -223,24 +225,24 @@ const PerpsProCompactInput = React.forwardRef<
       if (isInteractionBlocked) {
         return;
       }
-      isDirectPressActiveRef.current = true;
-      wasNativeFocusedAtPressInRef.current = isNativeFocusedRef.current;
+      directPressPhaseRef.current = isNativeFocusedRef.current
+        ? 'retap'
+        : 'initial-press';
       setIsFocused(true);
     };
     // Initial focus realigns through onFocus. Only a re-tap needs this fallback;
     // scrolling every initial press again can make adjacent Scale inputs fight.
     const handleFieldPressOut = () => {
-      isDirectPressActiveRef.current = false;
+      const phase = directPressPhaseRef.current;
+      directPressPhaseRef.current = 'idle';
       if (isInteractionBlocked) {
-        hasPendingFocusCallbackRef.current = false;
         return;
       }
-      if (hasPendingFocusCallbackRef.current) {
-        hasPendingFocusCallbackRef.current = false;
+      if (phase === 'initial-focused') {
         onFocus?.();
         return;
       }
-      if (wasNativeFocusedAtPressInRef.current) {
+      if (phase === 'retap') {
         onFieldPress?.();
       }
     };
@@ -248,10 +250,14 @@ const PerpsProCompactInput = React.forwardRef<
       if (isInteractionBlocked) {
         return;
       }
-      handleFieldPressIn();
-      // Wrapper taps occur before native focus, so this is a harmless no-op for
-      // keyboard scroll hooks until onFocus performs the real alignment.
-      onFieldPress?.();
+      if (isNativeFocusedRef.current) {
+        onFieldPress?.();
+        return;
+      }
+      // Pressable.onPress runs after release, so native onFocus can realign
+      // immediately without arming the direct-input press delay.
+      directPressPhaseRef.current = 'idle';
+      setIsFocused(true);
       setShouldFocusInput(true);
     };
 

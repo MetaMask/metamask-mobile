@@ -177,15 +177,43 @@ describe('PerpsProCompactInput', () => {
       expect(onFieldPress).toHaveBeenCalledTimes(1);
     });
 
-    it('reports a label tap, which focuses the input indirectly', () => {
+    it('reports wrapper-driven native focus without treating it as a re-tap', () => {
       const onFieldPress = jest.fn();
+      const onFocus = jest.fn();
       render(
-        <PerpsProCompactInput {...defaultProps} onFieldPress={onFieldPress} />,
+        <PerpsProCompactInput
+          {...defaultProps}
+          onFieldPress={onFieldPress}
+          onFocus={onFocus}
+        />,
       );
 
       fireEvent.press(screen.getByText(defaultProps.label));
+      fireEvent(screen.getByTestId(defaultProps.testID), 'focus');
 
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onFieldPress).not.toHaveBeenCalled();
+    });
+
+    it('reports a wrapper re-tap without requesting native focus again', () => {
+      const onFieldPress = jest.fn();
+      const onFocus = jest.fn();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          onFieldPress={onFieldPress}
+          onFocus={onFocus}
+        />,
+      );
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'focus');
+      onFocus.mockClear();
+
+      fireEvent.press(screen.getByText(defaultProps.label));
+
+      expect(mockInputFocus).not.toHaveBeenCalled();
+      expect(onFocus).not.toHaveBeenCalled();
       expect(onFieldPress).toHaveBeenCalledTimes(1);
     });
 
@@ -217,6 +245,26 @@ describe('PerpsProCompactInput', () => {
       fireEvent(input, 'pressOut');
 
       expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears an interrupted direct press before imperative focus', () => {
+      const onFocus = jest.fn();
+      const ref = React.createRef<PerpsProCompactInputRef>();
+      render(
+        <PerpsProCompactInput {...defaultProps} ref={ref} onFocus={onFocus} />,
+      );
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'pressIn');
+      fireEvent(input, 'focus');
+
+      expect(onFocus).not.toHaveBeenCalled();
+
+      fireEvent(input, 'blur');
+      act(() => ref.current?.focus());
+      fireEvent(input, 'focus');
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(onFocus).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -325,20 +373,24 @@ describe('PerpsProCompactInput', () => {
 
     it('focuses from a tap anywhere in the row, not just the ~20px of text', () => {
       const onFieldPress = jest.fn();
+      const onFocus = jest.fn();
       render(
         <PerpsProCompactInput
           {...defaultProps}
           variant="inline"
           onFieldPress={onFieldPress}
+          onFocus={onFocus}
         />,
       );
 
       // Without this target, a tap in the row's dead space is unhandled and the
       // enclosing ScrollView dismisses the keyboard instead.
       fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+      fireEvent(screen.getByTestId(defaultProps.testID), 'focus');
 
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
-      expect(onFieldPress).toHaveBeenCalledTimes(1);
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onFieldPress).not.toHaveBeenCalled();
     });
 
     it.each(floatingLabelVariants)(
