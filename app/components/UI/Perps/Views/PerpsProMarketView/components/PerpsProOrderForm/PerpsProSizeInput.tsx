@@ -186,16 +186,17 @@ const PerpsProSizeInput = ({
   }, [isDisabled, isFocused, locale, onFocus]);
 
   const handleBlur = useCallback(() => {
+    const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
+    const canonicalValue = hasExternalValueUpdate
+      ? value
+      : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
+    setIsFocused(false);
+    selectionRef.current = undefined;
+    shouldIgnoreNextSelectionChangeRef.current = false;
+    setSelection(undefined);
+    setDisplayValue(formatPerpsInput(canonicalValue, locale));
+
     if (!isDisabled) {
-      const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
-      const canonicalValue = hasExternalValueUpdate
-        ? value
-        : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
-      setIsFocused(false);
-      selectionRef.current = undefined;
-      shouldIgnoreNextSelectionChangeRef.current = false;
-      setSelection(undefined);
-      setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
 
       if (!hasExternalValueUpdate && canonicalValue !== value) {

@@ -139,6 +139,30 @@ describe('PerpsProSizeInput', () => {
     expect(onChangeText).not.toHaveBeenCalled();
   });
 
+  it('resumes external value updates after blurring while disabled', () => {
+    const onBlur = jest.fn();
+    const { rerender } = renderInput({ value: '100', onBlur });
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+    fireEvent(input, 'focus');
+
+    rerender(
+      <PerpsProSizeInput
+        {...createProps({ value: '200', isDisabled: true, onBlur })}
+      />,
+    );
+    fireEvent(input, 'blur');
+
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '200');
+    expect(onBlur).not.toHaveBeenCalled();
+
+    rerender(
+      <PerpsProSizeInput
+        {...createProps({ value: '300', isDisabled: true, onBlur })}
+      />,
+    );
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '300');
+  });
+
   it('ignores stale native selection after live grouping inserts a separator', () => {
     const onChangeText = jest.fn();
     renderInput({ value: '100', onChangeText });

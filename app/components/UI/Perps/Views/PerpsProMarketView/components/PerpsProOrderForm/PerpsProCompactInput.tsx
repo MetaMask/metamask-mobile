@@ -239,9 +239,9 @@ const PerpsProCompactInput = React.forwardRef<
       : undefined;
     const handleFocus = () => {
       isNativeFocusedRef.current = true;
-      if (!isFocused) {
-        inputLocaleRef.current = locale;
-      }
+      // Native focus starts a new editing session. Capture the locale here
+      // even when imperative focus already expanded the inline field.
+      inputLocaleRef.current = locale;
       setIsFocused(true);
       if (directPressPhaseRef.current === 'initial-press') {
         // Scale fields scroll on focus. Wait for release so that scroll cannot

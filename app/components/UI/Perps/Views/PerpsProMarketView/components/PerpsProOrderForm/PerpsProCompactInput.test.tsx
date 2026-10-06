@@ -132,6 +132,29 @@ describe('PerpsProCompactInput', () => {
       ).toHaveStyle({ position: 'absolute', top: 0 });
     });
 
+    it('captures the current locale when an arrow focuses the field', () => {
+      const ref = React.createRef<PerpsProCompactInputRef>();
+      const onChangeText = jest.fn();
+      const props = {
+        ...defaultProps,
+        ref,
+        variant: 'inline-labeled' as const,
+        onChangeText,
+      };
+      const { rerender } = render(<PerpsProCompactInput {...props} />);
+      jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+      rerender(<PerpsProCompactInput {...props} />);
+
+      act(() => {
+        ref.current?.focus();
+      });
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'focus');
+      fireEvent.changeText(input, '1.200');
+
+      expect(onChangeText).toHaveBeenLastCalledWith('1200');
+    });
+
     it('does not expand a disabled field when an arrow moves to it', () => {
       const ref = React.createRef<PerpsProCompactInputRef>();
       const onFieldPress = jest.fn();
