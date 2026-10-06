@@ -20,6 +20,7 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import { creditedBaseUnits } from '../../utils/earningsSummaryTotals';
 import {
   formatMusdBaseUnits,
   formatRewardsRelativeDay,
@@ -99,35 +100,53 @@ function rebateIconName(item: LedgerEarningEntryDto): IconName {
   return IconName.SwapVertical;
 }
 
+function rebateAmount(item: LedgerEarningEntryDto): {
+  label: string;
+  color: TextColor;
+} {
+  const credited = creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
+  const fullyVoided = credited === '0' && item.voided_musd_amount !== '0';
+
+  return {
+    label:
+      formatMusdBaseUnits(credited, {
+        signed: true,
+        maximumFractionDigits: 2,
+      }) ?? '—',
+    color: fullyVoided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+  };
+}
+
 export const PerformanceRebateRow: React.FC<{
   item: LedgerEarningEntryDto;
   localizedText: ReferralLocalizedText;
-}> = ({ item, localizedText }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="gap-3"
-    testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${item.id}`}
-  >
-    <AvatarIcon
-      iconName={rebateIconName(item)}
-      size={AvatarIconSize.Md}
-      severity={AvatarIconSeverity.Neutral}
-      iconProps={{ color: IconColor.IconDefault }}
-    />
-    <Box twClassName="flex-1">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {rebateTitle(item, localizedText)}
-      </Text>
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
+}> = ({ item, localizedText }) => {
+  const amount = rebateAmount(item);
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-3"
+      testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${item.id}`}
+    >
+      <AvatarIcon
+        iconName={rebateIconName(item)}
+        size={AvatarIconSize.Md}
+        severity={AvatarIconSeverity.Neutral}
+        iconProps={{ color: IconColor.IconDefault }}
+      />
+      <Box twClassName="flex-1">
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {rebateTitle(item, localizedText)}
+        </Text>
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
+        </Text>
+      </Box>
+      <Text variant={TextVariant.BodyMd} color={amount.color}>
+        {amount.label}
       </Text>
     </Box>
-    <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-      {formatMusdBaseUnits(item.musd_amount, {
-        signed: true,
-        maximumFractionDigits: 2,
-      }) ?? '—'}
-    </Text>
-  </Box>
-);
+  );
+};

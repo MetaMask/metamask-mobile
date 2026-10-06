@@ -23,7 +23,7 @@ import MoneyMetricCard from './MoneyMetricCard';
 import { SHOW_TRADING_COMMISSIONS } from './constants';
 import { fillOfferEndsIn } from './fillOfferEndsIn';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
-import { earnedByOthersLifetime } from '../../utils/earningsSummaryTotals';
+import { creditedEarnedByOthersLifetime } from '../../utils/earningsSummaryTotals';
 
 export const REFERER_HERO_CARD_TEST_IDS = {
   CONTAINER: 'referer-hero-card',
@@ -151,7 +151,10 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           amount={
             unavailableAmount ??
             formatMusdBaseUnits(
-              earnedByOthersLifetime(earningsSummary, 'REFERRAL_REV_SHARE'),
+              creditedEarnedByOthersLifetime(
+                earningsSummary,
+                'REFERRAL_REV_SHARE',
+              ),
             )
           }
           caption={localizedText.recordedEarnings}
@@ -165,7 +168,10 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
             amount={
               unavailableAmount ??
               formatMusdBaseUnits(
-                earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
+                creditedEarnedByOthersLifetime(
+                  earningsSummary,
+                  'SOCIAL_FOLLOW_TRADE',
+                ),
               )
             }
             caption={localizedText.recordedEarnings}
