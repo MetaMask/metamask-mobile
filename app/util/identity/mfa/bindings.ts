@@ -18,8 +18,8 @@ export const mobileMfaControllerAdapter: MfaControllerAdapter = {
     Engine.context.AuthenticationController.completeCredentialVerification(
       request,
     ),
-  getVerificationToken: (request) =>
+  getVerificationToken: async (request) =>
     Engine.context.AuthenticationController.getVerificationToken(request),
-  clearVerificationSession: () =>
+  clearVerificationSession: async () =>
     Engine.context.AuthenticationController.clearVerificationSession(),
 };

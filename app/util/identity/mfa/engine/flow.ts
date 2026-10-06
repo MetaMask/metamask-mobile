@@ -242,7 +242,7 @@ export const createMfaFlow = ({
       finish(null);
       return;
     }
-    const token = controller.getVerificationToken();
+    const token = await controller.getVerificationToken();
     const plan = planNext(token);
     if (!plan.ok) {
       fail(plan.code);
@@ -309,10 +309,13 @@ export const createMfaFlow = ({
           return undefined;
         }
         recoveredStep = stepKey;
-        if (code === 'aal2_required' || code === 'verification_token_invalid') {
-          controller.clearVerificationSession();
-        }
         return async () => {
+          if (
+            code === 'aal2_required' ||
+            code === 'verification_token_invalid'
+          ) {
+            await controller.clearVerificationSession();
+          }
           credentials = await controller.refreshEnrolledCredentials();
           await advance();
         };

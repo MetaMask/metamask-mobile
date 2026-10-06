@@ -20,7 +20,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const controller = {
   refreshEnrolledCredentials: jest.fn(),
-  getVerificationToken: jest.fn(() => null),
+  getVerificationToken: jest.fn(async () => null),
   clearVerificationSession: jest.fn(),
 } as unknown as jest.Mocked<MfaControllerAdapter>;
 

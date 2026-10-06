@@ -98,8 +98,8 @@ const MfaQaPresets = () => {
     }
   };
 
-  const clearSession = () => {
-    mobileMfaControllerAdapter.clearVerificationSession();
+  const clearSession = async () => {
+    await mobileMfaControllerAdapter.clearVerificationSession();
     setResult('Verification session cleared');
   };
 

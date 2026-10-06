@@ -83,7 +83,9 @@ export interface PasskeyAdapter {
 }
 
 /**
- * Each client's way of calling the AuthenticationController.
+ * Each client's way of calling the AuthenticationController. Every call is
+ * asynchronous, because the extension reaches the controller through its
+ * background.
  */
 export interface MfaControllerAdapter {
   refreshEnrolledCredentials: () => Promise<EnrolledCredential[]>;
@@ -101,8 +103,8 @@ export interface MfaControllerAdapter {
   ) => Promise<VerificationToken>;
   getVerificationToken: (
     request?: GetVerificationTokenRequest,
-  ) => VerificationToken | null;
-  clearVerificationSession: () => void;
+  ) => Promise<VerificationToken | null>;
+  clearVerificationSession: () => Promise<void>;
 }
 
 export interface VerifyOrEnrollRequest {

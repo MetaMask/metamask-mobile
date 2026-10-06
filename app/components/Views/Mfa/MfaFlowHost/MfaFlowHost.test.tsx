@@ -59,8 +59,8 @@ const createController = (
       };
       return session;
     }),
-    getVerificationToken: jest.fn(() => session),
-    clearVerificationSession: jest.fn(() => {
+    getVerificationToken: jest.fn(async () => session),
+    clearVerificationSession: jest.fn(async () => {
       session = null;
     }),
   };

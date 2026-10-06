@@ -23,7 +23,7 @@ const buildOptions = (operation: string): MfaFlowOptions => {
       expiresAt: 0,
     })),
     completeCredentialVerification: jest.fn(),
-    getVerificationToken: jest.fn(() => null),
+    getVerificationToken: jest.fn(async () => null),
     clearVerificationSession: jest.fn(),
   };
   return {

@@ -69,11 +69,11 @@ describe('mobileMfaControllerAdapter', () => {
     );
   });
 
-  it('forwards getVerificationToken with its request', () => {
+  it('forwards getVerificationToken with its request', async () => {
     controller.getVerificationToken.mockReturnValue(null);
 
     expect(
-      mobileMfaControllerAdapter.getVerificationToken({
+      await mobileMfaControllerAdapter.getVerificationToken({
         maxSessionAgeMs: 1000,
       }),
     ).toBeNull();
@@ -82,8 +82,8 @@ describe('mobileMfaControllerAdapter', () => {
     });
   });
 
-  it('forwards clearVerificationSession', () => {
-    mobileMfaControllerAdapter.clearVerificationSession();
+  it('forwards clearVerificationSession', async () => {
+    await mobileMfaControllerAdapter.clearVerificationSession();
 
     expect(controller.clearVerificationSession).toHaveBeenCalled();
   });

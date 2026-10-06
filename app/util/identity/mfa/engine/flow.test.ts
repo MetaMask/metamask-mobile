@@ -89,8 +89,8 @@ const createFakeController = (initialCredentials: EnrolledCredential[]) => {
       session = buildToken(proof.type);
       return session;
     }),
-    getVerificationToken: jest.fn(() => session),
-    clearVerificationSession: jest.fn(() => {
+    getVerificationToken: jest.fn(async () => session),
+    clearVerificationSession: jest.fn(async () => {
       session = null;
     }),
   };

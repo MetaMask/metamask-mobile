@@ -11,7 +11,7 @@ const controller: MfaControllerAdapter = {
   completeCredentialEnrollment: jest.fn(),
   beginCredentialVerification: jest.fn(),
   completeCredentialVerification: jest.fn(),
-  getVerificationToken: jest.fn(() => null),
+  getVerificationToken: jest.fn(async () => null),
   clearVerificationSession: jest.fn(),
 };
 
