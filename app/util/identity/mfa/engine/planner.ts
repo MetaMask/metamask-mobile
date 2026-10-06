@@ -157,6 +157,11 @@ const startSimulation = (
  * Adds "confirm it's you" when the profile already has a method and no
  * session may add a factor. Returns an error code when no active method can
  * be verified on this platform.
+ *
+ * @param steps - The plan so far; the confirm step is appended to it.
+ * @param simulation - The state the plan assumes at this point; updated in place.
+ * @param context - The planning context.
+ * @returns `passkey_unsupported` when no active method works here, otherwise `undefined`.
  */
 const addConfirmIfNeeded = (
   steps: PlanStep[],
