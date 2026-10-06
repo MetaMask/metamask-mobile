@@ -260,6 +260,16 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers Money MFA default-off until LaunchDarkly rolls it out', () => {
+      expect(getRegistryEntry('isMoneyMfaEnabled')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.15.0',
+        },
+      });
+    });
+
     it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
         'cardImmersve',
