@@ -18,7 +18,6 @@ import { selectHasUnapprovedTransactions } from '../../../../../selectors/transa
 import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectMoneyAccountMusdRescueSendEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
@@ -51,20 +50,20 @@ const MoneyTransferSheet = () => {
   const isPerpsEligible = useSelector(selectPerpsEligibility);
   const { isEligible: isPredictEligible } = usePredictEligibility();
 
-  // mUSD rescue send (recovery-only): the row lights up only when the remote
-  // flag targets this account AND bare (unprocessed) mUSD is available. Any
-  // other state — flag off, zero, vmUSD-only, loading, error — keeps the
-  // disabled/Coming soon presentation.
-  const isRescueSendFlagEnabled = useSelector(
-    selectMoneyAccountMusdRescueSendEnabled,
-  );
-  const { liquidMusd, isBalanceLoading, isBalanceFetchError } =
-    useMoneyAccountBalance();
+  // External mUSD send is available only for a settled balance containing
+  // liquid mUSD and no vmUSD-backed balance. Loading/error/missing values and
+  // mixed or vmUSD-only balances keep the row disabled.
+  const {
+    liquidMusd,
+    withdrawableMusd,
+    isBalanceLoading,
+    isBalanceFetchError,
+  } = useMoneyAccountBalance();
   const isRescueSendAvailable =
-    isRescueSendFlagEnabled &&
     !isBalanceLoading &&
     !isBalanceFetchError &&
-    Boolean(liquidMusd?.gt(0));
+    Boolean(liquidMusd?.gt(0)) &&
+    Boolean(withdrawableMusd?.isZero());
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,

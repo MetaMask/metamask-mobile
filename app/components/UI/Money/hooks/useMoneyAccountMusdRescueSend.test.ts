@@ -122,6 +122,7 @@ beforeEach(() => {
   mockFindNetworkClientIdByChainId.mockReturnValue(MOCK_NETWORK_CLIENT_ID);
   mockRefreshMoneyAccountBalanceFresh.mockResolvedValue({
     musdBalance: LIQUID_BALANCE_RAW,
+    vmusdValueInMusd: '0',
   } as never);
   jest.mocked(useNavigation).mockReturnValue({
     navigate: mockNavigateToConfirmation,
@@ -239,9 +240,28 @@ describe('useMoneyAccountMusdRescueSend', () => {
     expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
   });
 
+  it('blocks when any vmUSD-backed balance is present in the fresh canonical response', async () => {
+    mockRefreshMoneyAccountBalanceFresh.mockResolvedValueOnce({
+      musdBalance: LIQUID_BALANCE_RAW,
+      vmusdValueInMusd: '1',
+    } as never);
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(
+      result.current.initiateRescueSend({
+        recipient: MOCK_RECIPIENT,
+        amount: '1',
+      }),
+    ).rejects.toMatchObject({ reason: 'vmusd-balance-present' });
+
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+  });
+
   it('revalidates against the latest canonical liquid balance', async () => {
     mockRefreshMoneyAccountBalanceFresh.mockResolvedValueOnce({
       musdBalance: '500000',
+      vmusdValueInMusd: '0',
     } as never);
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 

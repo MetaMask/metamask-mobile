@@ -8,7 +8,6 @@ import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectMoneyAccountMusdRescueSendEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
@@ -44,15 +43,12 @@ const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-// Default: rescue flag off, no liquid mUSD (row stays Coming soon).
-const mockRescueFlagEnabled =
-  selectMoneyAccountMusdRescueSendEnabled as unknown as jest.Mock;
-mockRescueFlagEnabled.mockReturnValue(false);
-
+// Default: liquid balance unavailable (row stays Coming soon).
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as unknown as jest.Mock;
 mockUseMoneyAccountBalance.mockReturnValue({
   liquidMusd: undefined,
+  withdrawableMusd: undefined,
   isBalanceLoading: false,
   isBalanceFetchError: false,
 });
@@ -66,16 +62,6 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/moneyAccount',
-    ),
-    selectMoneyAccountMusdRescueSendEnabled: jest.fn(),
-  }),
-);
 
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit',
@@ -142,11 +128,9 @@ describe('MoneyTransferSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
-    // Reset rescue mocks — clearAllMocks leaves jest.fn() mocks returning
-    // undefined, which would crash the sheet render.
-    mockRescueFlagEnabled.mockReturnValue(false);
     mockUseMoneyAccountBalance.mockReturnValue({
       liquidMusd: undefined,
+      withdrawableMusd: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: false,
     });
@@ -195,7 +179,7 @@ describe('MoneyTransferSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders "Coming soon" tags on the last two items when rescue is unavailable', () => {
+  it('renders "Coming soon" tags on the last two items when liquid mUSD is unavailable', () => {
     const { getAllByText } = renderWithProvider(<MoneyTransferSheet />);
 
     const comingSoonTags = getAllByText(
@@ -205,23 +189,26 @@ describe('MoneyTransferSheet', () => {
   });
 
   describe('mUSD rescue send row', () => {
-    const setupRescueAvailable = ({
+    const setupMoneyBalance = ({
       liquidMusd = '99' as string | undefined,
+      withdrawableMusd = '0' as string | undefined,
       isLoading = false,
       isError = false,
-      flagEnabled = true,
     } = {}) => {
-      mockRescueFlagEnabled.mockReturnValue(flagEnabled);
       mockUseMoneyAccountBalance.mockReturnValue({
         liquidMusd:
           liquidMusd === undefined ? undefined : new BigNumber(liquidMusd),
+        withdrawableMusd:
+          withdrawableMusd === undefined
+            ? undefined
+            : new BigNumber(withdrawableMusd),
         isBalanceLoading: isLoading,
         isBalanceFetchError: isError,
       });
     };
 
-    it('enables the row when the flag is on and liquid mUSD is positive', () => {
-      setupRescueAvailable();
+    it('enables the row when liquid mUSD is positive and vmUSD balance is zero', () => {
+      setupMoneyBalance();
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -230,8 +217,8 @@ describe('MoneyTransferSheet', () => {
       ).toBeEnabled();
     });
 
-    it('keeps the row disabled when the flag is off', () => {
-      setupRescueAvailable({ flagEnabled: false });
+    it('keeps the row disabled when liquid mUSD is zero', () => {
+      setupMoneyBalance({ liquidMusd: '0' });
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -241,7 +228,17 @@ describe('MoneyTransferSheet', () => {
     });
 
     it('keeps the row disabled for a vmUSD-only balance (liquid zero)', () => {
-      setupRescueAvailable({ liquidMusd: '0' });
+      setupMoneyBalance({ liquidMusd: '0', withdrawableMusd: '25' });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeDisabled();
+    });
+
+    it('keeps the row disabled when vmUSD-backed balance is nonzero', () => {
+      setupMoneyBalance({ liquidMusd: '99', withdrawableMusd: '0.01' });
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -251,7 +248,11 @@ describe('MoneyTransferSheet', () => {
     });
 
     it('keeps the row disabled while the balance is loading', () => {
-      setupRescueAvailable({ liquidMusd: undefined, isLoading: true });
+      setupMoneyBalance({
+        liquidMusd: undefined,
+        withdrawableMusd: undefined,
+        isLoading: true,
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -261,7 +262,11 @@ describe('MoneyTransferSheet', () => {
     });
 
     it('keeps the row disabled on a balance fetch error', () => {
-      setupRescueAvailable({ liquidMusd: undefined, isError: true });
+      setupMoneyBalance({
+        liquidMusd: undefined,
+        withdrawableMusd: undefined,
+        isError: true,
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -271,7 +276,7 @@ describe('MoneyTransferSheet', () => {
     });
 
     it('navigates to the rescue sheet when enabled and pressed', () => {
-      setupRescueAvailable();
+      setupMoneyBalance();
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -283,19 +288,8 @@ describe('MoneyTransferSheet', () => {
       );
     });
 
-    it('does nothing when disabled and pressed', () => {
-      setupRescueAvailable({ flagEnabled: false });
-
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
-
-      fireEvent.press(getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW));
-
-      expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
     it('tracks the send-external surface click when enabled and pressed', () => {
-      setupRescueAvailable();
+      setupMoneyBalance();
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 

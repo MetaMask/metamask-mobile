@@ -37,7 +37,7 @@ const MusdRescueSendSheet = () => {
   const { initiateRescueSend } = useMoneyAccountMusdRescueSend();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
-    bottom_sheet_name: BOTTOM_SHEET_NAMES.MUSD_RESCUE_SEND_SHEET,
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
   });
   useMountEffect(trackBottomSheetViewed);
 
@@ -103,7 +103,7 @@ const MusdRescueSendSheet = () => {
     }
 
     trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MUSD_RESCUE_SEND_SHEET,
+      component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL,
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
     });
 
@@ -113,8 +113,19 @@ const MusdRescueSendSheet = () => {
         recipient: resolvedRecipient,
         amount,
       });
-    } catch {
-      setErrorMessage(strings('money.musd_rescue_send.error_send_failed'));
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'reason' in error &&
+        error.reason === 'vmusd-balance-present'
+      ) {
+        setErrorMessage(
+          strings('money.musd_rescue_send.error_vmusd_balance_present'),
+        );
+      } else {
+        setErrorMessage(strings('money.musd_rescue_send.error_send_failed'));
+      }
     } finally {
       setIsSubmitting(false);
     }

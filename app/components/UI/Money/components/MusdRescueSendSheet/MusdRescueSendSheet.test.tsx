@@ -284,7 +284,7 @@ describe('MusdRescueSendSheet', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('tracks the rescue sheet surface click on send', async () => {
+  it('tracks the send surface with the existing Money transfer sheet component', async () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
     fireEvent.changeText(
@@ -299,7 +299,7 @@ describe('MusdRescueSendSheet', () => {
 
     expect(mockTrackSurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
-        component_name: 'musd_rescue_send_sheet',
+        component_name: 'money_transfer_money_sheet_send_external',
         redirect_target: 'money_transfer',
       }),
     );

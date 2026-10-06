@@ -34,6 +34,7 @@ export type MusdRescueSendBlockReason =
   | 'invalid-recipient'
   | 'invalid-amount'
   | 'balance-unavailable'
+  | 'vmusd-balance-present'
   | 'amount-exceeds-balance';
 
 /**
@@ -126,6 +127,14 @@ export function useMoneyAccountMusdRescueSend() {
       const currentBalance =
         await refreshMoneyAccountBalanceFresh(moneyAccountAddress);
       const balanceRaw = BigInt(currentBalance.musdBalance);
+      if (BigInt(currentBalance.vmusdValueInMusd) > 0n) {
+        throw Object.assign(
+          new Error(
+            `${LOG_TAG} Rescue send is unavailable while vmUSD-backed balance is present`,
+          ),
+          { reason: 'vmusd-balance-present' },
+        );
+      }
       if (amountRaw > balanceRaw) {
         throw Object.assign(
           new Error(

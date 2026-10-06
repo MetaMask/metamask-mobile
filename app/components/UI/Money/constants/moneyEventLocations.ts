@@ -33,7 +33,6 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
   MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
   MONEY_DEEPLINK_MODAL = 'money_deeplink_modal',
-  MUSD_RESCUE_SEND_SHEET = 'musd_rescue_send_sheet',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
@@ -95,7 +94,6 @@ export enum COMPONENT_NAMES {
   MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT = 'money_transfer_money_sheet_perps_account',
   MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT = 'money_transfer_money_sheet_predictions_account',
   MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL = 'money_transfer_money_sheet_send_external',
-  MUSD_RESCUE_SEND_SHEET = 'musd_rescue_send_sheet',
 
   // — More Sheet —
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',

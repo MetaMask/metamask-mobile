@@ -6,20 +6,12 @@ import {
   selectMoneyMovementBrazilNeobankEnabled,
   isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
-  selectMoneyAccountMusdRescueSendEnabled,
-  isMusdRescueSendLocalOverrideEnabled,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
-  MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
   MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
 import { getVersion } from 'react-native-device-info';
-
-Object.defineProperty(globalThis, '__DEV__', {
-  value: true,
-  configurable: true,
-});
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('99.0.0'),
@@ -318,91 +310,6 @@ describe('Money Account feature flag selectors', () => {
       );
 
       expect(result).toBe(false);
-    });
-  });
-
-  describe('selectMoneyAccountMusdRescueSendEnabled', () => {
-    const originalLocalOverride =
-      process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED;
-
-    afterEach(() => {
-      if (originalLocalOverride === undefined) {
-        delete process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED;
-      } else {
-        process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED =
-          originalLocalOverride;
-      }
-    });
-
-    it('uses the dedicated remote flag key', () => {
-      expect(MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY).toBe(
-        'moneyAccountMusdRescueSend',
-      );
-    });
-
-    it('returns true when enabled and the minimum version passes', () => {
-      const result = selectMoneyAccountMusdRescueSendEnabled.resultFunc({
-        [MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY]: {
-          enabled: true,
-          minimumVersion: '0.0.0',
-        },
-      });
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when the flag serves enabled: false', () => {
-      const result = selectMoneyAccountMusdRescueSendEnabled.resultFunc({
-        [MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY]: {
-          enabled: false,
-          minimumVersion: '0.0.0',
-        },
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when the minimum version requirement fails', () => {
-      const result = selectMoneyAccountMusdRescueSendEnabled.resultFunc({
-        [MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY]: {
-          enabled: true,
-          minimumVersion: '999.0.0',
-        },
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when the flag is absent or malformed', () => {
-      expect(selectMoneyAccountMusdRescueSendEnabled.resultFunc({})).toBe(
-        false,
-      );
-      expect(
-        selectMoneyAccountMusdRescueSendEnabled.resultFunc({
-          [MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY]: 'not-an-object',
-        }),
-      ).toBe(false);
-      expect(
-        selectMoneyAccountMusdRescueSendEnabled.resultFunc({
-          // Missing minimumVersion — no longer a valid version-gated shape.
-          [MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY]: { enabled: true },
-        }),
-      ).toBe(false);
-    });
-
-    it('forces enablement via the local support/debug override', () => {
-      process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED = 'true';
-
-      expect(selectMoneyAccountMusdRescueSendEnabled.resultFunc({})).toBe(true);
-    });
-
-    it('does not force enablement when the local override is off', () => {
-      process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED = 'false';
-
-      expect(selectMoneyAccountMusdRescueSendEnabled.resultFunc({})).toBe(
-        false,
-      );
-      expect(isMusdRescueSendLocalOverrideEnabled()).toBe(false);
     });
   });
 
