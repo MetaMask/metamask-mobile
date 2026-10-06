@@ -18,3 +18,9 @@ export const selectMultichainWallets = createDeepEqualSelector(
   (wallets) =>
     wallets.filter((wallet) => wallet.type === AccountWalletType.Entropy),
 );
+
+/** Account groups of the first entropy wallet, in tree order. Empty when none exists. */
+export const selectFirstEntropyWalletAccountGroups = createDeepEqualSelector(
+  [selectMultichainWallets],
+  (wallets) => Object.values(wallets[0]?.groups ?? {}),
+);

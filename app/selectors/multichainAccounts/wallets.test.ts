@@ -1,6 +1,11 @@
-import { selectMultichainWallets, selectWallets } from './wallets';
+import {
+  selectFirstEntropyWalletAccountGroups,
+  selectMultichainWallets,
+  selectWallets,
+} from './wallets';
 import { RootState } from '../../reducers';
 import {
+  AccountGroupObject,
   AccountTreeControllerState,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
@@ -251,5 +256,94 @@ describe('selectMultichainWallets', () => {
         groups: {},
       },
     ]);
+  });
+});
+
+describe('selectFirstEntropyWalletAccountGroups', () => {
+  const GROUP_A = 'entropy:wallet1/0' as const;
+  const GROUP_B = 'entropy:wallet1/1' as const;
+  const GROUP_C = 'entropy:wallet2/0' as const;
+
+  const buildGroup = (id: string, name: string) =>
+    ({
+      id,
+      type: AccountGroupType.SingleAccount,
+      accounts: ['account1' as const],
+      metadata: { name, pinned: false, hidden: false, lastSelected: 0 },
+    }) as unknown as AccountGroupObject;
+
+  const buildEntropyWallet = (
+    id: string,
+    name: string,
+    groups: Record<string, AccountGroupObject>,
+  ) =>
+    ({
+      id,
+      type: AccountWalletType.Entropy,
+      status: 'ready',
+      metadata: { name, entropy: { id: name } },
+      groups,
+    }) as unknown as AccountWalletObject;
+
+  it('returns the groups of the first entropy wallet only', () => {
+    const mockState = createMockState({
+      accountTree: {
+        wallets: {
+          [MULTICHAIN_WALLET_ID_1]: buildEntropyWallet(
+            MULTICHAIN_WALLET_ID_1,
+            'Wallet 1',
+            {
+              [GROUP_A]: buildGroup(GROUP_A, 'Account 1'),
+              [GROUP_B]: buildGroup(GROUP_B, 'Account 2'),
+            },
+          ),
+          [MULTICHAIN_WALLET_ID_2]: buildEntropyWallet(
+            MULTICHAIN_WALLET_ID_2,
+            'Wallet 2',
+            { [GROUP_C]: buildGroup(GROUP_C, 'Account 3') },
+          ),
+        },
+      },
+      selectedAccountGroup: '',
+    });
+
+    const result = selectFirstEntropyWalletAccountGroups(mockState);
+
+    expect(result.map((group) => group.id)).toEqual([GROUP_A, GROUP_B]);
+  });
+
+  it('skips non-entropy wallets when picking the first wallet', () => {
+    const mockState = createMockState({
+      accountTree: {
+        wallets: {
+          [WALLET_ID_1]: {
+            id: WALLET_ID_1,
+            type: AccountWalletType.Keyring,
+            status: 'ready',
+            metadata: {
+              name: 'Imported',
+              keyring: { type: mockKeyringTypes.HD_KEY_TREE },
+            },
+            groups: { [GROUP_C]: buildGroup(GROUP_C, 'Imported account') },
+          } as unknown as AccountWalletObject,
+          [MULTICHAIN_WALLET_ID_1]: buildEntropyWallet(
+            MULTICHAIN_WALLET_ID_1,
+            'Wallet 1',
+            { [GROUP_A]: buildGroup(GROUP_A, 'Account 1') },
+          ),
+        },
+      },
+      selectedAccountGroup: '',
+    });
+
+    const result = selectFirstEntropyWalletAccountGroups(mockState);
+
+    expect(result.map((group) => group.id)).toEqual([GROUP_A]);
+  });
+
+  it('returns an empty array when no entropy wallet exists', () => {
+    const mockState = createMockState({ accountTree: { wallets: {} } });
+
+    expect(selectFirstEntropyWalletAccountGroups(mockState)).toEqual([]);
   });
 });

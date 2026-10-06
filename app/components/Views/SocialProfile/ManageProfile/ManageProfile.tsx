@@ -103,6 +103,10 @@ const ManageProfile = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleOpenLinkedSocialAccount = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT);
+  }, [navigation]);
+
   const handleEditDisplayName = useCallback(
     () =>
       navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
@@ -246,6 +250,7 @@ const ManageProfile = () => {
                 />
               ) : undefined
             }
+            onPress={handleOpenLinkedSocialAccount}
             testID={ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW}
           />
         </Card>

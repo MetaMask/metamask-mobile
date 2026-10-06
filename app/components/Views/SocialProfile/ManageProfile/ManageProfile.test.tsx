@@ -216,10 +216,9 @@ describe('ManageProfile', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it.each([
-    [ManageProfileSelectorsIDs.HANDLE_ROW],
-    [ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW],
-  ])('renders the %s row as read-only', (testID) => {
+  it.each([[ManageProfileSelectorsIDs.HANDLE_ROW]])(
+    'renders the %s row as read-only',
+    (testID) => {
     const { getByTestId } = renderWithProvider(<ManageProfile />);
 
     expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
@@ -230,6 +229,7 @@ describe('ManageProfile', () => {
     [ManageProfileSelectorsIDs.BIO_ROW],
     [ManageProfileSelectorsIDs.X_ACCOUNT_ROW],
     [ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW],
+    [ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW],
   ])('keeps the %s row interactive', (testID) => {
     const { getByTestId } = renderWithProvider(<ManageProfile />);
 
@@ -307,6 +307,18 @@ describe('ManageProfile', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SOCIAL_PROFILE.X_ACCOUNT,
+      );
+    });
+
+    it('navigates to the linked social account picker', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT,
       );
     });
 

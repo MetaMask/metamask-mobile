@@ -560,6 +560,7 @@ const Routes = {
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
     X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
