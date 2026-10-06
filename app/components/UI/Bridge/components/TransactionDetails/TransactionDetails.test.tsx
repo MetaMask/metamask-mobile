@@ -239,12 +239,7 @@ describe('BridgeTransactionDetails', () => {
 
     fireEvent.press(getByTestId('activity-details-do-it-again-button'));
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({ scrollToTopOnNav: true });
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
