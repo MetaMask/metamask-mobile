@@ -17,6 +17,7 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
 import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
+import EditProfile from '../../Views/SocialProfile/EditProfile/EditProfile';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -1020,6 +1021,10 @@ const MainNavigator = () => {
           name={Routes.SOCIAL_PROFILE.DRAWER}
           component={ProfileDrawer}
           options={slideFromLeftNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.EDIT_PROFILE}
+          component={EditProfile}
         />
       </NativeStack.Group>
       <NativeStack.Screen

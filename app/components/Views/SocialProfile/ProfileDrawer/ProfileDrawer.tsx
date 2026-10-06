@@ -71,8 +71,11 @@ const ProfileDrawer = () => {
     });
   }, [navigation]);
 
-  // TODO: wire the create-profile header, Subscriptions and Help and support
-  // once those screens exist.
+  const handleCreateProfile = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.EDIT_PROFILE);
+  }, [navigation]);
+
+  // TODO: wire Subscriptions and Help and support once those screens exist.
   const handlePress = useCallback(() => undefined, []);
 
   const menuItems: {
@@ -147,7 +150,7 @@ const ProfileDrawer = () => {
         testID={ProfileDrawerSelectorsIDs.CONTENT}
       >
         <Pressable
-          onPress={handlePress}
+          onPress={handleCreateProfile}
           accessibilityRole="button"
           accessibilityLabel={strings(
             'app_settings.profile_drawer.create_profile',

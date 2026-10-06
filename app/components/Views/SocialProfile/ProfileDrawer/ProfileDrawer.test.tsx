@@ -120,13 +120,14 @@ describe('ProfileDrawer', () => {
     ).toBeOnTheScreen();
   });
 
-  it('leaves the not-yet-wired create profile header inert', () => {
+  it('navigates to edit profile when the create profile header is pressed', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE));
 
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_PROFILE.EDIT_PROFILE,
+    );
   });
 
   it('navigates to the notifications screen when the notifications row is pressed', () => {
