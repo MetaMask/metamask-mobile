@@ -12,6 +12,16 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../../../UI/Bridge/hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
@@ -63,7 +73,6 @@ jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
 
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
-  const mockGoToSwaps = jest.fn();
   const mockOnSend = jest.fn();
   const mockOnReceive = jest.fn();
 
@@ -71,7 +80,6 @@ describe('AssetDetailsActions', () => {
     displayBuyButton: true,
     displaySwapsButton: true,
     chainId: '0x1' as const,
-    goToSwaps: mockGoToSwaps,
     onSend: mockOnSend,
     onReceive: mockOnReceive,
   };
@@ -176,20 +184,21 @@ describe('AssetDetailsActions', () => {
     expect(mockEventBuilder.build).toHaveBeenCalled();
   });
 
-  it('calls goToSwaps when the swap button is pressed', () => {
-    // Given swaps are enabled
+  it('opens swaps from the token details entry point when the swap button is pressed', () => {
     jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
 
-    // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: createStateWithSigningCapability() },
     );
 
-    // When the button is pressed
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: MetaMetricsSwapsEventSource.TokenView,
+      sourcePage: 'TokenDetails',
+    });
+
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
 
-    // Then the goToSwaps callback should be called
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     expect(mockGoToSwaps).toHaveBeenCalledWith();
   });
