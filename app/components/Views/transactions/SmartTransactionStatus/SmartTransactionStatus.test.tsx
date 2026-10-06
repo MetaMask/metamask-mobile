@@ -508,7 +508,7 @@ describe('SmartTransactionStatus', () => {
           );
           fireEvent.press(primaryButton);
           expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-            sourcePage: 'SmartTransactionStatus',
+            sourcePage: 'ActivityDetails',
             location: SwapBridgeNavigationLocation.TransactionDetails,
           });
           expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
@@ -640,6 +640,9 @@ describe('SmartTransactionStatus', () => {
         });
       });
       describe('MM Swaps flow tx', () => {
+        beforeEach(() => {
+          jest.clearAllMocks();
+        });
         it('should navigate to Swaps page on press of primary button', () => {
           const { getByText } = renderWithProvider(
             <SmartTransactionStatus
@@ -676,7 +679,7 @@ describe('SmartTransactionStatus', () => {
           );
           fireEvent.press(primaryButton);
           expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-            sourcePage: 'SmartTransactionStatus',
+            sourcePage: 'ActivityDetails',
             location: SwapBridgeNavigationLocation.TransactionDetails,
           });
           expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
