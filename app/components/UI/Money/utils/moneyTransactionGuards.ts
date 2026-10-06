@@ -95,6 +95,11 @@ function isFromPrimaryMoneyAccount(transactionMeta: TransactionMeta): boolean {
  */
 export const isMusdRescueSendTx = (transactionMeta: TransactionMeta) => {
   const rescueTransferType = TransactionType.tokenMethodTransfer;
+  // Withdrawal batches can contain the same nested mUSD transfer; they are
+  // not rescue sends and must never take the rescue path.
+  if (isMoneyWithdrawTx(transactionMeta)) {
+    return false;
+  }
   const isMusdTransfer = (to: string | undefined) =>
     isMusdOnMoneyAccountChain(to, transactionMeta.chainId);
   const isTopLevelRescueTransfer =

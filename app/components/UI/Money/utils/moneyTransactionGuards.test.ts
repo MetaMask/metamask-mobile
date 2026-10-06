@@ -259,6 +259,39 @@ describe('isMusdRescueSendTx', () => {
     ).toBe(true);
   });
 
+  it('does not match a withdrawal batch whose nested transfer pays out mUSD', () => {
+    const withdrawalBatch = {
+      ...makeTx(TransactionType.batch, [
+        { type: TransactionType.tokenMethodTransfer },
+        { type: TransactionType.moneyAccountWithdraw },
+      ]),
+      chainId: CHAIN_IDS.MONAD,
+      txParams: {
+        from: MONEY_ACCOUNT_ADDRESS,
+        to: MONEY_ACCOUNT_ADDRESS,
+        data: '0x',
+        value: '0x0',
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.tokenMethodTransfer,
+          to: musdTokenAddress,
+          data: '0xa9059cbb',
+          value: '0x0',
+        },
+        {
+          type: TransactionType.moneyAccountWithdraw,
+          to: MONEY_ACCOUNT_ADDRESS,
+          data: '0x',
+          value: '0x0',
+        },
+      ],
+    } as unknown as TransactionMeta;
+
+    expect(isMoneyWithdrawTx(withdrawalBatch)).toBe(true);
+    expect(isMusdRescueSendTx(withdrawalBatch)).toBe(false);
+  });
+
   it('does not match a mUSD transfer from another account', () => {
     expect(
       isMusdRescueSendTx({
