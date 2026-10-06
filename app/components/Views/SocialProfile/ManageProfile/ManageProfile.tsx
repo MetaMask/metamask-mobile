@@ -24,30 +24,24 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import { EditProfileSelectorsIDs } from './EditProfile.testIds';
+import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import {
-  EMPTY_PROFILE,
+  BIO_VALUE_MAX_WIDTH,
   PROFILE_FIELD_MAX_LENGTH,
   type Profile,
-} from './EditProfile.constants';
+} from './ManageProfile.constants';
 import ProfileRow from './ProfileRow';
 import ProfileAvatar from './ProfileAvatar';
-import EditProfileFieldSheet, {
+import ManageProfileFieldSheet, {
   ProfileFieldControl,
   type ProfileFieldValue,
-} from './EditProfileFieldSheet';
+} from './ManageProfileFieldSheet';
 
 const SECTION_TITLE_PROPS = {
   variant: TextVariant.BodySm,
   fontWeight: FontWeight.Medium,
   color: TextColor.TextAlternative,
 };
-
-/**
- * Caps how far the bio spreads back toward its label, so it truncates and sits
- * to the right like the rest of the values rather than filling the row.
- */
-const BIO_VALUE_MAX_WIDTH = 120;
 
 /** The profile attributes that currently have an edit form. */
 const EditableField = {
@@ -60,15 +54,24 @@ type EditableField = (typeof EditableField)[keyof typeof EditableField];
 
 /** Unset fields read as a muted placeholder rather than an empty row. */
 const valueOrPlaceholder = (value: string) =>
-  value || strings('app_settings.edit_profile.not_set');
+  value || strings('app_settings.manage_profile.not_set');
 
-const EditProfile = () => {
+const ManageProfile = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
-  // TODO: replace with the real profile source once it exists. Edits live here
-  // so the rows reflect them, but nothing is persisted.
-  const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
+  // TODO: replace with the real profile source. Edits live here so the rows
+  // reflect them, but nothing is persisted.
+  const [profile, setProfile] = useState<Profile>({
+    image: undefined,
+    displayName: '',
+    handle: '',
+    bio: '',
+    socialHandle: '',
+    isTradingActivityVisible: false,
+    linkedSocialAccountName: '',
+    linkedSocialAccountAddress: '',
+  });
   const [editingField, setEditingField] = useState<EditableField | null>(null);
 
   const handleBack = useCallback(() => {
@@ -115,35 +118,35 @@ const EditProfile = () => {
     switch (editingField) {
       case EditableField.DisplayName:
         return {
-          title: strings('app_settings.edit_profile.display_name'),
-          label: strings('app_settings.edit_profile.display_name'),
+          title: strings('app_settings.manage_profile.display_name'),
+          label: strings('app_settings.manage_profile.display_name'),
           control: ProfileFieldControl.Text,
           initialValue: profile.displayName,
           placeholder: strings(
-            'app_settings.edit_profile.display_name_placeholder',
+            'app_settings.manage_profile.display_name_placeholder',
           ),
           maxLength: PROFILE_FIELD_MAX_LENGTH.displayName,
         };
       case EditableField.Bio:
         return {
-          title: strings('app_settings.edit_profile.bio'),
-          label: strings('app_settings.edit_profile.bio'),
+          title: strings('app_settings.manage_profile.bio'),
+          label: strings('app_settings.manage_profile.bio'),
           control: ProfileFieldControl.TextArea,
           initialValue: profile.bio,
-          placeholder: strings('app_settings.edit_profile.bio_placeholder'),
+          placeholder: strings('app_settings.manage_profile.bio_placeholder'),
         };
       case EditableField.TradingActivity:
         return {
-          title: strings('app_settings.edit_profile.trading_activity'),
-          label: strings('app_settings.edit_profile.show_trading_activity'),
+          title: strings('app_settings.manage_profile.trading_activity'),
+          label: strings('app_settings.manage_profile.show_trading_activity'),
           control: ProfileFieldControl.Switch,
           initialValue: profile.isTradingActivityVisible,
           describeValue: (isOn: boolean) =>
             isOn
-              ? strings('app_settings.edit_profile.trading_activity_public')
-              : strings('app_settings.edit_profile.trading_activity_private'),
+              ? strings('app_settings.manage_profile.trading_activity_public')
+              : strings('app_settings.manage_profile.trading_activity_private'),
           helperText: strings(
-            'app_settings.edit_profile.trading_activity_footnote',
+            'app_settings.manage_profile.trading_activity_footnote',
           ),
           appliesImmediately: true,
         };
@@ -156,20 +159,20 @@ const EditProfile = () => {
     <SafeAreaView
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
-      testID={EditProfileSelectorsIDs.SAFE_AREA}
+      testID={ManageProfileSelectorsIDs.SAFE_AREA}
     >
       <HeaderStandard
-        title={strings('app_settings.edit_profile.header')}
+        title={strings('app_settings.manage_profile.header')}
         onBack={handleBack}
         includesTopInset
-        testID={EditProfileSelectorsIDs.HEADER}
+        testID={ManageProfileSelectorsIDs.HEADER}
         backButtonProps={{
           testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
         }}
       />
       <ScrollView
         contentContainerStyle={tw.style('pb-8')}
-        testID={EditProfileSelectorsIDs.CONTENT}
+        testID={ManageProfileSelectorsIDs.CONTENT}
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="py-4">
           <ProfileAvatar
@@ -178,41 +181,41 @@ const EditProfile = () => {
             imageProps={{ contentFit: 'contain' }}
             accessibilityLabel={
               profile.displayName ||
-              strings('app_settings.edit_profile.avatar_accessibility_label')
+              strings('app_settings.manage_profile.avatar_accessibility_label')
             }
-            testID={EditProfileSelectorsIDs.AVATAR}
+            testID={ManageProfileSelectorsIDs.AVATAR}
           />
         </Box>
 
         <SectionHeader
-          title={strings('app_settings.edit_profile.about')}
+          title={strings('app_settings.manage_profile.about')}
           titleProps={SECTION_TITLE_PROPS}
-          testID={EditProfileSelectorsIDs.ABOUT_SECTION}
+          testID={ManageProfileSelectorsIDs.ABOUT_SECTION}
         />
         <Card twClassName="mx-4 overflow-hidden p-0">
           <ProfileRow
-            title={strings('app_settings.edit_profile.display_name')}
+            title={strings('app_settings.manage_profile.display_name')}
             value={valueOrPlaceholder(profile.displayName)}
             onPress={handleEditDisplayName}
-            testID={EditProfileSelectorsIDs.DISPLAY_NAME_ROW}
+            testID={ManageProfileSelectorsIDs.DISPLAY_NAME_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.edit_profile.handle')}
+            title={strings('app_settings.manage_profile.handle')}
             value={valueOrPlaceholder(profile.handle)}
-            testID={EditProfileSelectorsIDs.HANDLE_ROW}
+            testID={ManageProfileSelectorsIDs.HANDLE_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.edit_profile.bio')}
+            title={strings('app_settings.manage_profile.bio')}
             value={valueOrPlaceholder(profile.bio)}
             valueMaxWidth={BIO_VALUE_MAX_WIDTH}
             onPress={handleEditBio}
-            testID={EditProfileSelectorsIDs.BIO_ROW}
+            testID={ManageProfileSelectorsIDs.BIO_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.edit_profile.socials')}
+            title={strings('app_settings.manage_profile.socials')}
             value={valueOrPlaceholder(profile.socialHandle)}
             valueStartAccessory={
               profile.socialHandle ? (
@@ -223,22 +226,22 @@ const EditProfile = () => {
                 />
               ) : undefined
             }
-            testID={EditProfileSelectorsIDs.SOCIALS_ROW}
+            testID={ManageProfileSelectorsIDs.SOCIALS_ROW}
           />
         </Card>
 
         <SectionHeader
-          title={strings('app_settings.edit_profile.privacy')}
+          title={strings('app_settings.manage_profile.privacy')}
           titleProps={SECTION_TITLE_PROPS}
-          testID={EditProfileSelectorsIDs.PRIVACY_SECTION}
+          testID={ManageProfileSelectorsIDs.PRIVACY_SECTION}
         />
         <Card twClassName="mx-4 overflow-hidden p-0">
           <ProfileRow
-            title={strings('app_settings.edit_profile.trading_activity')}
+            title={strings('app_settings.manage_profile.trading_activity')}
             value={
               profile.isTradingActivityVisible
-                ? strings('app_settings.edit_profile.on')
-                : strings('app_settings.edit_profile.off')
+                ? strings('app_settings.manage_profile.on')
+                : strings('app_settings.manage_profile.off')
             }
             valueStartAccessory={
               <Icon
@@ -248,14 +251,14 @@ const EditProfile = () => {
               />
             }
             onPress={handleEditTradingActivity}
-            testID={EditProfileSelectorsIDs.TRADING_ACTIVITY_ROW}
+            testID={ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.edit_profile.linked_social_account')}
+            title={strings('app_settings.manage_profile.linked_social_account')}
             value={
               profile.linkedSocialAccountName ||
-              strings('app_settings.edit_profile.no_linked_account')
+              strings('app_settings.manage_profile.no_linked_account')
             }
             valueStartAccessory={
               profile.linkedSocialAccountAddress ? (
@@ -267,13 +270,13 @@ const EditProfile = () => {
               ) : undefined
             }
             onPress={handleOpenLinkedSocialAccount}
-            testID={EditProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW}
+            testID={ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW}
           />
         </Card>
       </ScrollView>
 
       {sheetProps ? (
-        <EditProfileFieldSheet
+        <ManageProfileFieldSheet
           {...sheetProps}
           onSave={handleSaveField}
           onClose={handleCloseSheet}
@@ -283,4 +286,4 @@ const EditProfile = () => {
   );
 };
 
-export default EditProfile;
+export default ManageProfile;

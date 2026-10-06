@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
-import { EditProfileSelectorsIDs } from './EditProfile.testIds';
+import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 
 interface ProfileToggleCardProps {
   /** Row label, e.g. "Show trading activity". */
@@ -29,12 +29,9 @@ interface ProfileToggleCardProps {
 }
 
 /**
- * A privacy toggle presented as a card: label with an info affordance, a
- * description of the current state, and the switch itself, with helper copy
- * underneath.
- *
- * Mirrors the layout of `SocialLeaderboard/ManageProfileView`'s trading
- * activity screen.
+ * A privacy toggle card: label with info affordance, a description of the
+ * current state, the switch, and helper copy underneath. Mirrors the layout of
+ * `SocialLeaderboard/ManageProfileView`'s trading activity screen.
  */
 const ProfileToggleCard = ({
   label,
@@ -64,23 +61,23 @@ const ProfileToggleCard = ({
             size={ButtonIconSize.Sm}
             onPress={() => undefined}
             accessibilityLabel={strings(
-              'app_settings.edit_profile.trading_activity_info',
+              'app_settings.manage_profile.trading_activity_info',
             )}
-            testID={EditProfileSelectorsIDs.TOGGLE_INFO_BUTTON}
+            testID={ManageProfileSelectorsIDs.TOGGLE_INFO_BUTTON}
           />
         </Box>
         <Switch
           isOn={isOn}
           onValueChange={onValueChange}
           accessibilityLabel={label}
-          testID={EditProfileSelectorsIDs.FIELD_SHEET_SWITCH}
+          testID={ManageProfileSelectorsIDs.FIELD_SHEET_SWITCH}
         />
       </Box>
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
         twClassName="mt-1"
-        testID={EditProfileSelectorsIDs.TOGGLE_DESCRIPTION}
+        testID={ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION}
       >
         {description}
       </Text>
@@ -89,7 +86,7 @@ const ProfileToggleCard = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        testID={EditProfileSelectorsIDs.TOGGLE_HELPER_TEXT}
+        testID={ManageProfileSelectorsIDs.TOGGLE_HELPER_TEXT}
       >
         {helperText}
       </Text>

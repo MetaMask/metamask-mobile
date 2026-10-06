@@ -72,7 +72,7 @@ const ProfileDrawer = () => {
   }, [navigation]);
 
   const handleCreateProfile = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_PROFILE.EDIT_PROFILE);
+    navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE);
   }, [navigation]);
 
   // TODO: wire Subscriptions and Help and support once those screens exist.

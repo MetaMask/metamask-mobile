@@ -14,19 +14,16 @@ import {
 export const DEFAULT_PROFILE_AVATAR_SIZE = 64;
 
 /**
- * Share of the avatar diameter the placeholder glyph fills.
- *
- * `IconSize` tops out at 32px, which leaves a visible gap inside a 64px
- * avatar, so the glyph is sized from the diameter instead. Just under 1 keeps
- * the stroke clear of the circle's clipping edge.
+ * Share of the avatar diameter the placeholder glyph fills. `IconSize` tops
+ * out at 32px, too small for a 64px avatar, so size from the diameter. Just
+ * under 1 keeps the stroke clear of the circle's clipping edge.
  */
 const PLACEHOLDER_GLYPH_RATIO = 0.9;
 
 interface ProfileAvatarProps {
   /**
-   * The image to display: a local asset import, a local SVG component, or
-   * `{ uri }` for a remote image. Omit when the profile has no picture yet —
-   * a neutral placeholder is rendered instead.
+   * A local asset import, a local SVG component, or `{ uri }`. Omit when the
+   * profile has no picture — a neutral placeholder renders instead.
    */
   src?: ImageOrSvgSrc;
   /** Diameter in pixels. Defaults to {@link DEFAULT_PROFILE_AVATAR_SIZE}. */
@@ -40,11 +37,9 @@ interface ProfileAvatarProps {
 }
 
 /**
- * A circular avatar holding a custom profile image.
- *
- * Unlike `AvatarAccount`, the art is supplied by the caller rather than
- * generated from an address. The image is clipped to a circle and, by default,
- * cropped to fill it. With no `src`, a neutral person glyph stands in.
+ * A circular avatar holding a caller-supplied image, rather than art generated
+ * from an address as `AvatarAccount` does. The image is clipped to a circle and
+ * cropped to fill it; with no `src`, a neutral person glyph stands in.
  */
 const ProfileAvatar = ({
   src,

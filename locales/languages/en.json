@@ -4803,7 +4803,7 @@
     "activity": "Activity"
   },
   "app_settings": {
-    "edit_profile": {
+    "manage_profile": {
       "header": "Manage profile",
       "about": "About",
       "privacy": "Privacy",
