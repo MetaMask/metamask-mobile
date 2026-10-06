@@ -55,7 +55,8 @@ export type LedgerBlockingReason =
   | 'SUSPENDED'
   | 'TAX_DETERMINATION_REQUIRED'
   | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
+  | 'MECHANISM_NOT_CLAIMABLE'
+  | 'UNDER_REVIEW';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
