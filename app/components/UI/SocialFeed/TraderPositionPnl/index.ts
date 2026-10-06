@@ -1,3 +1,4 @@
+export { computeUnrealizedPnl } from './unrealizedPnl';
 export {
   getTraderPosition,
   TraderPositionHttpError,
