@@ -12,6 +12,7 @@ import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
+import MusdRescueSendSheet from '../components/MusdRescueSendSheet';
 import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
@@ -121,6 +122,11 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET}
         component={MoneyTransferSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MUSD_RESCUE_SEND_SHEET}
+        component={MusdRescueSendSheet}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

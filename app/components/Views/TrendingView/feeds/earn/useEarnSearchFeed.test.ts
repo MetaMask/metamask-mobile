@@ -204,6 +204,7 @@ const mockMoneyBalance = ({
     withdrawableFiatFormatted: undefined,
     withdrawableFiatRaw: undefined,
     withdrawableMusd: undefined,
+    liquidMusd: undefined,
   };
 
   mockUseMoneyAccountBalance.mockReturnValue(balance);

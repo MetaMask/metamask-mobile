@@ -6,3 +6,13 @@ export const MoneyTransferSheetTestIds = {
   SEND_EXTERNAL_ROW: 'money-transfer-sheet-send-external',
   WITHDRAW_TO_BANK_ROW: 'money-transfer-sheet-withdraw-to-bank',
 } as const;
+
+export const MusdRescueSendSheetTestIds = {
+  CONTAINER: 'musd-rescue-send-sheet-container',
+  RECIPIENT_INPUT: 'musd-rescue-send-recipient-input',
+  AMOUNT_INPUT: 'musd-rescue-send-amount-input',
+  MAX_BUTTON: 'musd-rescue-send-max-button',
+  SEND_BUTTON: 'musd-rescue-send-send-button',
+  LIQUID_BALANCE: 'musd-rescue-send-liquid-balance',
+  ERROR_MESSAGE: 'musd-rescue-send-error-message',
+} as const;

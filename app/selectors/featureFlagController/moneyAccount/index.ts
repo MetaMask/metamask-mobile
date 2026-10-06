@@ -54,6 +54,35 @@ export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
 export const MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY =
   'moneyAccountDepositQuotePipeline' as const;
 
+/**
+ * Recovery-only remote flag for the Money Account mUSD rescue send. Cohort
+ * targeting (affected addresses) is owned by the remote flag service; the
+ * client only consumes the version-gated boolean.
+ */
+export const MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY =
+  'moneyAccountMusdRescueSend' as const;
+
+/**
+ * Local support/debug override for the mUSD rescue send. Dev/debug builds
+ * only — it widens who sees the rescue row, never the balance or signing
+ * safety gates.
+ */
+export function isMusdRescueSendLocalOverrideEnabled(): boolean {
+  return process.env.MM_MONEY_ACCOUNT_MUSD_RESCUE_SEND_ENABLED === 'true';
+}
+
+export const selectMoneyAccountMusdRescueSendEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const remoteFlag =
+      remoteFeatureFlags?.[MONEY_ACCOUNT_MUSD_RESCUE_SEND_FLAG_KEY];
+    return (
+      isMusdRescueSendLocalOverrideEnabled() ||
+      (validatedVersionGatedFeatureFlag(remoteFlag) ?? false)
+    );
+  },
+);
+
 export const selectMoneyAccountDepositQuotePipelineEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {

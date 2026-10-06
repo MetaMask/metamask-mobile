@@ -225,7 +225,32 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.withdrawableMusd?.toFixed(0)).toBe('2');
   });
 
-  it('returns undefined withdrawableMusd while loading', () => {
+  it('returns liquidMusd sourced only from musdBalance when loaded', () => {
+    // musdBalance '1000000' = 1 mUSD (6 decimals) — bare mUSD only, excluding
+    // the 2 mUSD of vmUSD-backed value and the 3 mUSD combined total.
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.liquidMusd?.toFixed(0)).toBe('1');
+  });
+
+  it('returns liquidMusd as a genuine zero when musdBalance is zero', () => {
+    setupDefaultQueries({
+      data: {
+        musdBalance: '0',
+        vmusdValueInMusd: '2000000',
+        totalBalance: '2000000',
+      },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.liquidMusd?.toFixed(0)).toBe('0');
+  });
+
+  it('returns undefined liquidMusd while loading', () => {
     setupDefaultQueries({
       data: undefined,
       isLoading: true,
@@ -235,7 +260,33 @@ describe('useMoneyAccountBalance', () => {
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
-    expect(result.current.withdrawableMusd).toBeUndefined();
+    expect(result.current.liquidMusd).toBeUndefined();
+  });
+
+  it('returns undefined liquidMusd on balance fetch error', () => {
+    setupDefaultQueries({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.liquidMusd).toBeUndefined();
+  });
+
+  it('returns undefined liquidMusd when no cached data exists', () => {
+    setupDefaultQueries({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.liquidMusd).toBeUndefined();
   });
 
   it('returns $0.00 in USD when the balance is zero', () => {

@@ -81,6 +81,7 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: MoneyAddMoneySheetParams | undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
+  MoneyMusdRescueSendSheet: undefined;
   MoneyApyInfoSheet: { apy?: number; variant?: 'default' | 'deposit' };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
@@ -107,6 +108,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
+    MoneyMusdRescueSendSheet: undefined;
     MoneyTransactionDetails: { transactionId: string };
     MoneyCardTransactionDetails:
       | {

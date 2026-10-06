@@ -8727,7 +8727,22 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
-      "withdraw_to_bank": "Bank account"
+      "withdraw_to_bank": "Bank account",
+      "send_external_unprocessed": "Unprocessed mUSD"
+    },
+    "musd_rescue_send": {
+      "title": "Send unprocessed mUSD",
+      "available_label": "Unprocessed mUSD available",
+      "explainer": "This mUSD has not been converted to vmUSD yet. You can send it directly to an external address.",
+      "recipient_label": "Recipient address",
+      "recipient_placeholder": "Enter address (0x...)",
+      "amount_label": "Amount",
+      "send": "Send",
+      "error_invalid_recipient": "Enter a valid address",
+      "error_invalid_amount": "Enter an amount greater than zero",
+      "error_insufficient_balance": "Amount exceeds available unprocessed mUSD",
+      "error_balance_unavailable": "Balance unavailable — try again shortly",
+      "error_send_failed": "Failed to start the send — try again"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",

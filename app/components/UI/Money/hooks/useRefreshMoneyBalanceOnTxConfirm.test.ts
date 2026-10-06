@@ -16,6 +16,7 @@ import { store } from '../../../../store';
 import { setLastLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
 import Logger from '../../../../util/Logger';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
+import { isMusdRescueSendTx } from '../utils/moneyTransactionGuards';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../store', () => ({
@@ -250,6 +251,71 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     } as unknown as TransactionMeta);
 
     expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
+  });
+
+  describe('musd rescue send', () => {
+    const MOCK_MONEY_ADDRESS_LOWER = MOCK_ADDRESS.toLowerCase();
+
+    const makeRescueTx = (): TransactionMeta =>
+      ({
+        ...baseTx,
+        type: TransactionType.tokenMethodTransfer,
+        status: TransactionStatus.confirmed,
+        chainId: CHAIN_IDS.MONAD,
+        txParams: {
+          from: MOCK_MONEY_ADDRESS_LOWER,
+          to: MUSD_TOKEN_ADDRESS,
+        },
+      }) as unknown as TransactionMeta;
+
+    it('refreshes the balance on a confirmed rescue send', async () => {
+      (store.getState as jest.Mock).mockReturnValue({
+        engine: {},
+      });
+      mockSelectPrimaryMoneyAccount.mockReturnValue({
+        address: MOCK_MONEY_ADDRESS_LOWER,
+      } as ReturnType<typeof selectPrimaryMoneyAccount>);
+      renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+      const handler = getConfirmedHandler();
+
+      handler(makeRescueTx());
+      await waitFor(() => {
+        expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledTimes(1);
+      });
+
+      (store.getState as jest.Mock).mockReturnValue({});
+    });
+
+    it('does not refresh for a tokenMethodTransfer from another address', () => {
+      (store.getState as jest.Mock).mockReturnValue({
+        engine: {},
+      });
+      mockSelectPrimaryMoneyAccount.mockReturnValue({
+        address: MOCK_MONEY_ADDRESS_LOWER,
+      } as ReturnType<typeof selectPrimaryMoneyAccount>);
+      renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+      const handler = getConfirmedHandler();
+
+      handler({
+        ...makeRescueTx(),
+        txParams: {
+          from: '0x0000000000000000000000000000000000000001',
+          to: MUSD_TOKEN_ADDRESS,
+        },
+      } as unknown as TransactionMeta);
+
+      expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
+      (store.getState as jest.Mock).mockReturnValue({});
+    });
+
+    it('does not refresh for an unrelated plain tokenMethodTransfer', () => {
+      renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+      const handler = getConfirmedHandler();
+
+      handler(makeTx(TransactionType.tokenMethodTransfer));
+
+      expect(mockRefreshMoneyAccountBalanceFresh).not.toHaveBeenCalled();
+    });
   });
 
   it('does not invalidate for non-confirmed status', () => {

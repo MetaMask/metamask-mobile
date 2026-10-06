@@ -12,10 +12,13 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectMoneyAccountMusdRescueSendEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
@@ -34,7 +37,7 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 
-type TransferAction = 'withdraw' | 'perps' | 'predict';
+type TransferAction = 'withdraw' | 'perps' | 'predict' | 'rescueSend';
 
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -47,6 +50,21 @@ const MoneyTransferSheet = () => {
     useMoneyPredictDeposit();
   const isPerpsEligible = useSelector(selectPerpsEligibility);
   const { isEligible: isPredictEligible } = usePredictEligibility();
+
+  // mUSD rescue send (recovery-only): the row lights up only when the remote
+  // flag targets this account AND bare (unprocessed) mUSD is available. Any
+  // other state — flag off, zero, vmUSD-only, loading, error — keeps the
+  // disabled/Coming soon presentation.
+  const isRescueSendFlagEnabled = useSelector(
+    selectMoneyAccountMusdRescueSendEnabled,
+  );
+  const { liquidMusd, isBalanceLoading, isBalanceFetchError } =
+    useMoneyAccountBalance();
+  const isRescueSendAvailable =
+    isRescueSendFlagEnabled &&
+    !isBalanceLoading &&
+    !isBalanceFetchError &&
+    Boolean(liquidMusd?.gt(0));
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
@@ -73,6 +91,14 @@ const MoneyTransferSheet = () => {
         initiate = initiatePerpsDeposit;
       } else if (action === 'predict') {
         initiate = initiatePredictDeposit;
+      } else if (action === 'rescueSend') {
+        // The rescue sheet is a modal route, not an initiator callback: close
+        // this sheet and push the rescue sheet in the same tick so the
+        // transition matches the other rows' slide-over UX.
+        sheetRef.current?.onCloseBottomSheet(() => {
+          navigation.navigate(Routes.MONEY.MODALS.MUSD_RESCUE_SEND_SHEET);
+        });
+        return;
       }
       sheetRef.current?.onCloseBottomSheet(() => {
         initiate().catch((error: Error) => {
@@ -83,7 +109,12 @@ const MoneyTransferSheet = () => {
         });
       });
     },
-    [initiateWithdrawal, initiatePerpsDeposit, initiatePredictDeposit],
+    [
+      initiateWithdrawal,
+      initiatePerpsDeposit,
+      initiatePredictDeposit,
+      navigation,
+    ],
   );
 
   // A leftover unapproved transaction would be picked up by the confirmation
@@ -144,6 +175,15 @@ const MoneyTransferSheet = () => {
     startAction('predict');
   }, [startAction, trackSurfaceClicked]);
 
+  const handleSendExternal = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+    });
+
+    startAction('rescueSend');
+  }, [startAction, trackSurfaceClicked]);
+
   const options: MoneySheetOption[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
@@ -177,8 +217,9 @@ const MoneyTransferSheet = () => {
       label: strings('money.transfer_sheet.send_external'),
       icon: IconName.Arrow2Up,
       testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
-      disabled: true,
-      comingSoon: true,
+      onPress: isRescueSendAvailable ? handleSendExternal : undefined,
+      disabled: !isRescueSendAvailable,
+      comingSoon: !isRescueSendAvailable,
     },
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
