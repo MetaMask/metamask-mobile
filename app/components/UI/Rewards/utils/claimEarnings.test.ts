@@ -25,6 +25,7 @@ import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
   claimRoutesForSummary,
+  evmAddressFromEarningAddress,
   claimToastKey,
   isClaimSubmittable,
   isPendingClaimRow,
@@ -230,17 +231,34 @@ describe('claimToastKey', () => {
     ).toBe('claimSuccessToast');
   });
 
-  it('keeps an operator hold on the generic failure toast', () => {
-    expect(
-      claimToastKey([
-        {
-          route: 'referral-trade-fee-cashback',
-          submitted: false,
-          opened: false,
-          reason: 'UNDER_REVIEW',
-        },
-      ]),
-    ).toBe('claimFailureToast');
+  it('keeps a suspension, a hold, and a void off the retry toast', () => {
+    for (const reason of ['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']) {
+      expect(
+        claimToastKey([
+          {
+            route: 'referral-trade-fee-cashback',
+            submitted: false,
+            opened: false,
+            reason,
+          },
+        ]),
+      ).toBe('claimFailureToast');
+    }
+  });
+
+  it('tells a rate limit and a lapse cooldown to wait', () => {
+    for (const reason of ['RATE_LIMITED', 'CLAIM_COOLDOWN']) {
+      expect(
+        claimToastKey([
+          {
+            route: 'referral-trade-fee-cashback',
+            submitted: false,
+            opened: false,
+            reason,
+          },
+        ]),
+      ).toBe('claimFailureWaitToast');
+    }
   });
 
   it('picks the actionable sentence when the routes disagree', () => {
@@ -287,6 +305,30 @@ describe('claimToastKey', () => {
   });
 });
 
+describe('evmAddressFromEarningAddress', () => {
+  it('reads the address after the first colon', () => {
+    expect(
+      evmAddressFromEarningAddress(
+        'eip155:0x1111111111111111111111111111111111111111',
+      ),
+    ).toBe('0x1111111111111111111111111111111111111111');
+  });
+
+  it('does not strip a chain reference that slipped into the key', () => {
+    expect(
+      evmAddressFromEarningAddress(
+        'eip155:1:0x1111111111111111111111111111111111111111',
+      ),
+    ).toBeNull();
+  });
+
+  it('returns null for a non-EVM namespace or a missing address', () => {
+    expect(evmAddressFromEarningAddress('bip122:bc1qabc')).toBeNull();
+    expect(evmAddressFromEarningAddress('eip155:')).toBeNull();
+    expect(evmAddressFromEarningAddress('not-caip')).toBeNull();
+  });
+});
+
 describe('runEarningsClaim', () => {
   it('signs a 428 and retries the same route with the proofs', async () => {
     const calls: unknown[] = [];
@@ -302,7 +344,7 @@ describe('runEarningsClaim', () => {
               expires_at: '2026-09-29T00:00:00.000Z',
               challenges: [
                 {
-                  earning_address: 'eip155:1:0xabc',
+                  earning_address: 'eip155:0xabc',
                   amount_musd_base_units: ONE_DOLLAR,
                   message: 'sign me',
                 },
@@ -320,15 +362,16 @@ describe('runEarningsClaim', () => {
       moneyAccountAddress: '0xmoney',
       routes: ['referral-trade-fee-cashback'],
       initiateClaim,
+      canSignEarningAddress: () => true,
       signMessage,
       submitVoucher,
     });
 
-    expect(signMessage).toHaveBeenCalledWith('sign me', 'eip155:1:0xabc');
+    expect(signMessage).toHaveBeenCalledWith('sign me', 'eip155:0xabc');
     expect(calls[1]).toEqual({
       money_account_address: '0xmoney',
       claim_intent_id: 'intent-1',
-      proofs: [{ earning_address: 'eip155:1:0xabc', signature: '0xsig' }],
+      proofs: [{ earning_address: 'eip155:0xabc', signature: '0xsig' }],
     });
     expect(submitVoucher).toHaveBeenCalledWith(voucher);
     expect(outcomes).toEqual([
@@ -340,6 +383,122 @@ describe('runEarningsClaim', () => {
     ]);
   });
 
+  it('re-requests only the addresses this device can sign', async () => {
+    const calls: unknown[] = [];
+    const initiateClaim = jest.fn(
+      async (_route, body): Promise<InitiateClaimResult> => {
+        calls.push(body);
+        if (body.proofs) {
+          return { kind: 'authorized', body: opened() };
+        }
+        if (body.earning_addresses) {
+          return {
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-narrow',
+              expires_at: '2026-09-29T00:00:00.000Z',
+              challenges: [
+                {
+                  earning_address: 'eip155:0xabc',
+                  amount_musd_base_units: ONE_DOLLAR,
+                  message: 'sign the evm one',
+                },
+              ],
+            },
+          };
+        }
+        return {
+          kind: 'proof_required',
+          body: {
+            reason: 'PROOF_REQUIRED',
+            claim_intent_id: 'intent-all',
+            expires_at: '2026-09-29T00:00:00.000Z',
+            challenges: [
+              {
+                earning_address: 'eip155:0xabc',
+                amount_musd_base_units: ONE_DOLLAR,
+                message: 'sign everything',
+              },
+              {
+                earning_address: 'solana:not-on-this-phone',
+                amount_musd_base_units: ONE_DOLLAR,
+                message: 'cannot sign',
+              },
+            ],
+          },
+        };
+      },
+    );
+    const signMessage = jest.fn().mockResolvedValue('0xsig');
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: (earningAddress) =>
+        earningAddress === 'eip155:0xabc',
+      signMessage,
+      submitVoucher: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(calls[0]).toEqual({ money_account_address: '0xmoney' });
+    expect(calls[1]).toEqual({
+      money_account_address: '0xmoney',
+      earning_addresses: ['eip155:0xabc'],
+    });
+    expect(signMessage).toHaveBeenCalledTimes(1);
+    expect(signMessage).toHaveBeenCalledWith(
+      'sign the evm one',
+      'eip155:0xabc',
+    );
+    expect(calls[2]).toEqual({
+      money_account_address: '0xmoney',
+      earning_addresses: ['eip155:0xabc'],
+      claim_intent_id: 'intent-narrow',
+      proofs: [{ earning_address: 'eip155:0xabc', signature: '0xsig' }],
+    });
+    expect(outcomes[0]).toMatchObject({ submitted: true, opened: true });
+  });
+
+  it('fails the claim when this device can sign none of the challenges', async () => {
+    const initiateClaim = jest.fn(
+      async (): Promise<InitiateClaimResult> => ({
+        kind: 'proof_required',
+        body: {
+          reason: 'PROOF_REQUIRED',
+          claim_intent_id: 'intent-all',
+          expires_at: '2026-09-29T00:00:00.000Z',
+          challenges: [
+            {
+              earning_address: 'solana:not-on-this-phone',
+              amount_musd_base_units: ONE_DOLLAR,
+              message: 'cannot sign',
+            },
+          ],
+        },
+      }),
+    );
+    const signMessage = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => false,
+      signMessage,
+      submitVoucher: jest.fn(),
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
+    expect(signMessage).not.toHaveBeenCalled();
+    expect(outcomes[0]).toMatchObject({
+      submitted: false,
+      opened: false,
+      reason: 'SIGN_FAILED',
+    });
+  });
+
   it('records a refusal without submitting', async () => {
     const outcomes = await runEarningsClaim({
       moneyAccountAddress: '0xmoney',
@@ -347,6 +506,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => {
         throw new RewardsMoneyClaimRefusalError(422, 'UNDER_REVIEW');
       },
+      canSignEarningAddress: () => true,
       signMessage: jest.fn(),
       submitVoucher: jest.fn(),
     });
@@ -355,8 +515,28 @@ describe('runEarningsClaim', () => {
       submitted: false,
       opened: false,
       reason: 'UNDER_REVIEW',
+      retryAfterSeconds: undefined,
     });
     expect(claimToastKey(outcomes)).toBe('claimFailureToast');
+  });
+
+  it('keeps Retry-After on a rate-limited refusal', async () => {
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim: async () => {
+        throw new RewardsMoneyClaimRefusalError(429, 'RATE_LIMITED', 240);
+      },
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      submitVoucher: jest.fn(),
+    });
+
+    expect(outcomes[0]).toMatchObject({
+      reason: 'RATE_LIMITED',
+      retryAfterSeconds: 240,
+    });
+    expect(claimToastKey(outcomes)).toBe('claimFailureWaitToast');
   });
 
   it('leaves an opened claim pending when the batch is not sent', async () => {
@@ -364,6 +544,7 @@ describe('runEarningsClaim', () => {
       moneyAccountAddress: '0xmoney',
       routes: ['referral-trade-fee-cashback'],
       initiateClaim: async () => ({ kind: 'authorized', body: opened() }),
+      canSignEarningAddress: () => true,
       signMessage: jest.fn(),
       submitVoucher: async () => {
         throw new Error('rejected');
