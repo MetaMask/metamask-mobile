@@ -45,6 +45,47 @@ describe('Remote Feature Flags Helper', () => {
       expect(websocketFlag).toEqual({ backendWebSocketConnection: true });
     });
 
+    it('pins 2026-10-06 production UI flags to pre-sync values', () => {
+      const result = createRemoteFeatureFlagsMock();
+      const response = result.response as Record<string, unknown>[];
+      const flagByName = (name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      const disabledVersionGate = {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      };
+      const disabledFlagNames = [
+        'mobileUxBftcOnsolidation',
+        'earnHomeSectionEnabled',
+        'earnExploreSectionEnabled',
+        'earnTradeMenuRowRedesignEnabled',
+        'earnMoneyAssetOverviewFooterCtaEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMoneyBalanceAnimationEnabled',
+        'brazeBannerHomeMinVersion',
+        'predictHomeRedesign',
+        'cardIntercomSupport',
+        'crossmintApplePayCheckout',
+      ];
+
+      for (const flagName of disabledFlagNames) {
+        expect(flagByName(flagName)).toEqual(disabledVersionGate);
+      }
+
+      expect(flagByName('stellarAccounts')).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.1',
+      });
+      expect(flagByName('nativeTabBarEnabled')).toBe(true);
+      expect(flagByName('cardUkMigration')).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+    });
+
     it('uses flask distribution when specified', () => {
       const result = createRemoteFeatureFlagsMock({}, 'flask');
 

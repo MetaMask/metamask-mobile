@@ -4520,8 +4520,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Not in the production client-config response yet. inProd stays false so
-  // the weekly registry sync does not treat this as removed from production.
   cardUkMigrationSignInRouting: {
     name: 'cardUkMigrationSignInRouting',
     type: FeatureFlagType.Remote,

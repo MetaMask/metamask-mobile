@@ -267,7 +267,6 @@ describe('Feature Flag Registry', () => {
         'cardImmersveConfig',
         'cardImmersveCountries',
         'cardIntercomSupport',
-        'immersveOnboardingEnabled',
         'moneyHeadlessAllProviders',
       ];
 
@@ -276,34 +275,29 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+    it('registers UK migration on for the prod window, with sign-in routing still off', () => {
       expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
-        enabled: false,
+        enabled: true,
         minimumVersion: '8.13.0',
-        startDate: '',
-        endDate: '',
+        startDate: '2026-09-28T00:00:00.000Z',
+        endDate: '2026-12-29T23:59:59.999Z',
       });
       expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.13.0',
+          minimumVersion: '0.0.0',
         },
       });
     });
 
-    it('keeps Immersve onboarding and Intercom support default-off', () => {
-      expect(
-        getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
-      });
+    it('drops removed Immersve onboarding and keeps Intercom support on at 8.13.0', () => {
+      expect(getRegistryEntry('immersveOnboardingEnabled')).toBeUndefined();
       expect(
         getRegistryEntry('cardIntercomSupport')?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
+        enabled: true,
+        minimumVersion: '8.13.0',
       });
     });
 
