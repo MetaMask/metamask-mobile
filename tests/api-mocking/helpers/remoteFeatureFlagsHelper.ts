@@ -110,10 +110,8 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     minimumVersion: '0.0.1',
   },
   nativeTabBarEnabled: true,
-  predictHomeRedesign: {
-    enabled: false,
-    minimumVersion: '0.0.0',
-  },
+  // predictHomeRedesign stays at the prod value. Predict smoke waits for
+  // predict-home-container, which only mounts when the redesign is enabled.
   cardUkMigration: {
     enabled: false,
     minimumVersion: '8.13.0',

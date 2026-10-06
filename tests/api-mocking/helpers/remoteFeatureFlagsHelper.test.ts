@@ -64,7 +64,6 @@ describe('Remote Feature Flags Helper', () => {
         'earnMoneyCardFlipAnimationEnabled',
         'earnMoneyBalanceAnimationEnabled',
         'brazeBannerHomeMinVersion',
-        'predictHomeRedesign',
         'cardIntercomSupport',
         'crossmintApplePayCheckout',
       ];
@@ -78,6 +77,10 @@ describe('Remote Feature Flags Helper', () => {
         minimumVersion: '0.0.1',
       });
       expect(flagByName('nativeTabBarEnabled')).toBe(true);
+      expect(flagByName('predictHomeRedesign')).toEqual({
+        enabled: true,
+        minimumVersion: '8.6.0',
+      });
       expect(flagByName('cardUkMigration')).toEqual({
         enabled: false,
         minimumVersion: '8.13.0',
