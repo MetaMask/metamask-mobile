@@ -46,11 +46,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-type TestAutoramp = {
+interface TestAutoramp {
   id: string;
   walletAddress: string;
   status: string;
-};
+}
 
 const approvedAutoramp: TestAutoramp = {
   id: 'ar-1',
