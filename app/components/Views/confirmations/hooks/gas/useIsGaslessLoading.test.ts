@@ -4,11 +4,15 @@ import { Hex } from '@metamask/utils';
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsGaslessLoading } from './useIsGaslessLoading';
+import { isMusdRescueSendTx } from '../../../../UI/Money/utils/moneyTransactionGuards';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 jest.mock('./useIsGaslessSupported');
+jest.mock('../../../../UI/Money/utils/moneyTransactionGuards', () => ({
+  isMusdRescueSendTx: jest.fn(),
+}));
 jest.mock('../useHasInsufficientBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../selectors/preferencesController');
@@ -21,6 +25,7 @@ const mockedUseTransactionMetadataRequest = jest.mocked(
 const mockSelectUseTransactionSimulations = jest.mocked(
   selectUseTransactionSimulations,
 );
+const mockIsMusdRescueSendTx = jest.mocked(isMusdRescueSendTx);
 
 async function runHook({
   simulationEnabled,
@@ -31,6 +36,8 @@ async function runHook({
   gasFeeTokens,
   excludeNativeTokenForFee,
   selectedGasFeeToken,
+  rescueSend = false,
+  transactionSponsored = true,
 }: {
   simulationEnabled: boolean;
   gaslessSupported: boolean;
@@ -40,7 +47,10 @@ async function runHook({
   gasFeeTokens?: GasFeeToken[];
   excludeNativeTokenForFee?: boolean;
   selectedGasFeeToken?: Hex;
+  rescueSend?: boolean;
+  transactionSponsored?: boolean;
 }) {
+  mockIsMusdRescueSendTx.mockReturnValue(rescueSend);
   mockedUseIsGaslessSupported.mockReturnValue({
     isSupported: gaslessSupported,
     isSmartTransaction,
@@ -54,6 +64,7 @@ async function runHook({
     gasFeeTokens,
     excludeNativeTokenForFee,
     selectedGasFeeToken,
+    isGasFeeSponsored: transactionSponsored,
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockSelectUseTransactionSimulations.mockReturnValue(simulationEnabled);
   const { result } = renderHookWithProvider(useIsGaslessLoading);
@@ -126,6 +137,32 @@ describe('useIsGaslessLoading', () => {
     });
 
     expect(result.isGaslessLoading).toBe(false);
+  });
+
+  it('allows empty fee tokens for a sponsored Money Account mUSD rescue send', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: true,
+      insufficientBalance: true,
+      gasFeeTokens: [],
+      rescueSend: true,
+      transactionSponsored: true,
+    });
+
+    expect(result.isGaslessLoading).toBe(false);
+  });
+
+  it('continues waiting for fee tokens for an unsponsored rescue send', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: true,
+      insufficientBalance: true,
+      gasFeeTokens: [],
+      rescueSend: true,
+      transactionSponsored: false,
+    });
+
+    expect(result.isGaslessLoading).toBe(true);
   });
 
   it('returns true if gas fee tokens is an empty array', async () => {

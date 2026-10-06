@@ -5,11 +5,15 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import {
+  MUSD_TOKEN_ADDRESS,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../Earn/constants/musd';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
   isMoneyWithdrawTx,
+  isMusdRescueSendTx,
   isSingleRowMusdMoneyWithdraw,
   isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyDeposit,
@@ -19,6 +23,15 @@ import {
   getMMPayChainIds,
   resolveMoneyDepositIntent,
 } from './moneyTransactionGuards';
+
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(() => ({
+    address: '0x644f0b46dc7f59ca1358f6b60c0fbbbc2b716610',
+  })),
+}));
+
+const MONEY_ACCOUNT_ADDRESS = '0x644f0b46dc7f59ca1358f6b60c0fbbbc2b716610';
+const RESCUE_RECIPIENT = '0x1c19e74f9C0643dE069A292317709dF460aF1575';
 
 const baseTx = {
   id: 'tx-1',
@@ -197,6 +210,80 @@ describe('isSingleRowMusdMoneyWithdraw', () => {
         metamaskPay: {
           tokenAddress: MUSD_TOKEN_ADDRESS,
           chainId: CHAIN_IDS.MONAD,
+        },
+      } as TransactionMeta),
+    ).toBe(false);
+  });
+});
+
+describe('isMusdRescueSendTx', () => {
+  const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MONAD];
+
+  it('matches a top-level mUSD transfer from the primary Money Account on Monad', () => {
+    expect(
+      isMusdRescueSendTx({
+        ...makeTx(TransactionType.tokenMethodTransfer),
+        chainId: CHAIN_IDS.MONAD,
+        txParams: {
+          from: MONEY_ACCOUNT_ADDRESS,
+          to: musdTokenAddress,
+          data: '0xa9059cbb',
+          value: '0x0',
+        },
+      } as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('matches the rescue transfer nested in the actual batch from the primary Money Account', () => {
+    expect(
+      isMusdRescueSendTx({
+        ...makeTx(TransactionType.batch, [
+          { type: TransactionType.tokenMethodTransfer },
+        ]),
+        chainId: CHAIN_IDS.MONAD,
+        txParams: {
+          from: MONEY_ACCOUNT_ADDRESS,
+          to: MONEY_ACCOUNT_ADDRESS,
+          data: '0x',
+          value: '0x0',
+        },
+        nestedTransactions: [
+          {
+            type: TransactionType.tokenMethodTransfer,
+            to: musdTokenAddress,
+            data: '0xa9059cbb',
+            value: '0x0',
+          },
+        ],
+      } as unknown as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('does not match a mUSD transfer from another account', () => {
+    expect(
+      isMusdRescueSendTx({
+        ...makeTx(TransactionType.tokenMethodTransfer),
+        chainId: CHAIN_IDS.MONAD,
+        txParams: {
+          from: RESCUE_RECIPIENT,
+          to: musdTokenAddress,
+          data: '0xa9059cbb',
+          value: '0x0',
+        },
+      } as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('does not match a different token transfer from the Money Account', () => {
+    expect(
+      isMusdRescueSendTx({
+        ...makeTx(TransactionType.tokenMethodTransfer),
+        chainId: CHAIN_IDS.MONAD,
+        txParams: {
+          from: MONEY_ACCOUNT_ADDRESS,
+          to: RESCUE_RECIPIENT,
+          data: '0xa9059cbb',
+          value: '0x0',
         },
       } as TransactionMeta),
     ).toBe(false);

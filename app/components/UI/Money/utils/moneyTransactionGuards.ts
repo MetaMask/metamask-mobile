@@ -93,13 +93,26 @@ function isFromPrimaryMoneyAccount(transactionMeta: TransactionMeta): boolean {
  * so ordinary unrelated `tokenMethodTransfer` transactions (including the
  * withdrawal batch's nested transfer) never trigger a Money balance refresh.
  */
-export const isMusdRescueSendTx = (transactionMeta: TransactionMeta) =>
-  transactionMeta.type === TransactionType.tokenMethodTransfer &&
-  isMusdOnMoneyAccountChain(
-    transactionMeta.txParams?.to,
-    transactionMeta.chainId,
-  ) &&
-  isFromPrimaryMoneyAccount(transactionMeta);
+export const isMusdRescueSendTx = (transactionMeta: TransactionMeta) => {
+  const rescueTransferType = TransactionType.tokenMethodTransfer;
+  const isMusdTransfer = (to: string | undefined) =>
+    isMusdOnMoneyAccountChain(to, transactionMeta.chainId);
+  const isTopLevelRescueTransfer =
+    transactionMeta.type === rescueTransferType &&
+    isMusdTransfer(transactionMeta.txParams?.to);
+  const isNestedRescueTransfer = Boolean(
+    transactionMeta.nestedTransactions?.some(
+      (nestedTransaction) =>
+        nestedTransaction.type === rescueTransferType &&
+        isMusdTransfer(nestedTransaction.to),
+    ),
+  );
+
+  return (
+    (isTopLevelRescueTransfer || isNestedRescueTransfer) &&
+    isFromPrimaryMoneyAccount(transactionMeta)
+  );
+};
 
 /**
  * Perps/Predict deposit parent types (money → service). When funded from the
