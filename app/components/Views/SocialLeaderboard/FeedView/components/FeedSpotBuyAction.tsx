@@ -169,7 +169,10 @@ const FeedSpotBuyAction = forwardRef<
     (destToken: BridgeToken) => {
       setSwapTarget(null);
       setIsQuickBuyVisible(false);
-      goToSwaps(undefined, destToken, undefined, true);
+      goToSwaps({
+        destTokenOverride: destToken,
+        scrollToTopOnNav: true,
+      });
     },
     [goToSwaps],
   );

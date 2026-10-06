@@ -515,10 +515,11 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('token-row-AAPL'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg).toBeDefined();
-      expect(srcArg?.symbol).toBe('USDY');
-      expect(destArg?.symbol).toBe('AAPL');
+      const [{ sourceTokenOverride, destTokenOverride }] =
+        mockGoToSwaps.mock.calls[0];
+      expect(sourceTokenOverride).toBeDefined();
+      expect(sourceTokenOverride?.symbol).toBe('USDY');
+      expect(destTokenOverride?.symbol).toBe('AAPL');
     });
 
     it('falls back to USDC on mainnet as the source token for mainnet assets', () => {
@@ -531,10 +532,11 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('token-row-AAPL'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg?.symbol).toBe('USDC');
-      expect(srcArg?.chainId).toBe('0x1');
-      expect(destArg?.symbol).toBe('AAPL');
+      const [{ sourceTokenOverride, destTokenOverride }] =
+        mockGoToSwaps.mock.calls[0];
+      expect(sourceTokenOverride?.symbol).toBe('USDC');
+      expect(sourceTokenOverride?.chainId).toBe('0x1');
+      expect(destTokenOverride?.symbol).toBe('AAPL');
     });
 
     it('passes USDT on BNB Chain as the source token for BNB Chain assets', () => {
@@ -547,10 +549,11 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('token-row-AAPL'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg?.symbol).toBe('USDT');
-      expect(srcArg?.chainId).toBe('0x38');
-      expect(destArg?.chainId).toBe('eip155:56');
+      const [{ sourceTokenOverride, destTokenOverride }] =
+        mockGoToSwaps.mock.calls[0];
+      expect(sourceTokenOverride?.symbol).toBe('USDT');
+      expect(sourceTokenOverride?.chainId).toBe('0x38');
+      expect(destTokenOverride?.chainId).toBe('eip155:56');
     });
 
     it('does not preset an open-position source in swap mode', () => {
@@ -570,8 +573,8 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('token-row-AAPL'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg).toBeUndefined();
+      const [{ sourceTokenOverride }] = mockGoToSwaps.mock.calls[0];
+      expect(sourceTokenOverride).toBeUndefined();
     });
   });
 
@@ -597,10 +600,12 @@ describe('OndoCampaignRwaSelectorView', () => {
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        expect.objectContaining({ symbol: 'USDC' }),
-        expect.objectContaining({ name: 'Apple (Ondo Tokenized)' }),
-      );
+      expect(mockGoToSwaps).toHaveBeenCalledWith({
+        sourceTokenOverride: expect.objectContaining({ symbol: 'USDC' }),
+        destTokenOverride: expect.objectContaining({
+          name: 'Apple (Ondo Tokenized)',
+        }),
+      });
     });
   });
 
@@ -700,10 +705,11 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('after-hours-sheet-confirm'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg?.symbol).toBe('USDT');
-      expect(srcArg?.chainId).toBe('0x38');
-      expect(destArg?.chainId).toBe('eip155:56');
+      const [{ sourceTokenOverride, destTokenOverride }] =
+        mockGoToSwaps.mock.calls[0];
+      expect(sourceTokenOverride?.symbol).toBe('USDT');
+      expect(sourceTokenOverride?.chainId).toBe('0x38');
+      expect(destTokenOverride?.chainId).toBe('eip155:56');
     });
 
     it('tracks button_clicked event when after hours confirm is pressed', () => {

@@ -172,12 +172,9 @@ describe('useActivityDetailsDoItAgain', () => {
       destToken: undefined,
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      scrollToTopOnNav: true,
+    });
   });
 
   it('hydrates a non-EVM (Solana) swap leg from held tokens even though the activity row has no decimals', () => {
@@ -235,12 +232,9 @@ describe('useActivityDetailsDoItAgain', () => {
       destToken: heldUsdc,
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      scrollToTopOnNav: true,
+    });
   });
 
   it('does nothing when the source token cannot be mapped to a bridge token', () => {

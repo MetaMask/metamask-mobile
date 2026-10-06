@@ -108,7 +108,11 @@ const useEarnAssetAcquisitionNavigation = () => {
   const navigateToEarnAssetAcquisitionRoute = useCallback(
     async (route: EarnAssetAcquisitionRoute): Promise<void> => {
       if (route.type === 'swap') {
-        goToSwaps(route.sourceToken, route.destinationToken, undefined, true);
+        goToSwaps({
+          sourceTokenOverride: route.sourceToken,
+          destTokenOverride: route.destinationToken,
+          scrollToTopOnNav: true,
+        });
         return;
       }
 

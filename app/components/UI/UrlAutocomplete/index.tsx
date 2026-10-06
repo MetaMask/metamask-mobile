@@ -375,7 +375,9 @@ const SearchContent: React.FC<SearchContentProps> = ({
           chainId: tokenResult.chainId,
         } satisfies BridgeToken;
 
-        goToSwapsHook(bridgeToken);
+        goToSwapsHook({
+          sourceTokenOverride: bridgeToken,
+        });
       } catch {
         // Silent catch - swap navigation failed
         return;
@@ -594,7 +596,9 @@ const UrlAutocomplete = forwardRef<
           chainId: tokenResult.chainId,
         } satisfies BridgeToken;
 
-        goToSwapsHook(bridgeToken);
+        goToSwapsHook({
+          sourceTokenOverride: bridgeToken,
+        });
       } catch {
         // Silent catch - swap navigation failed
         return;

@@ -339,12 +339,11 @@ describe('useEarnAssetAcquisitionNavigation', () => {
       });
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      sourceToken,
-      destinationToken,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      sourceTokenOverride: sourceToken,
+      destTokenOverride: destinationToken,
+      scrollToTopOnNav: true,
+    });
   });
 
   it('navigates buy routes through the Earn surface', async () => {

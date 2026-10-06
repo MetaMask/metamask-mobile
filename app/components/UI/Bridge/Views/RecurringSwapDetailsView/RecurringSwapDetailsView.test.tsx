@@ -115,12 +115,9 @@ describe('RecurringSwapAgainButton', () => {
       destToken: DESTINATION_TOKEN,
       location: MetaMetricsSwapsEventSource.TransactionDetails,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      scrollToTopOnNav: true,
+    });
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

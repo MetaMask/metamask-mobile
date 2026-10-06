@@ -61,6 +61,9 @@ describe('HighRateAlertModal', () => {
       getByTestId(HighRateAlertModalSelectorsIDs.SWAP_INSTEAD_BUTTON),
     );
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(sourceToken, destToken);
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      sourceTokenOverride: sourceToken,
+      destTokenOverride: destToken,
+    });
   });
 });

@@ -27,22 +27,16 @@ export function useWalletHomeOnboardingChecklistTradePress(): () => void {
     const pair = swapPairRef.current;
 
     if (pair) {
-      goToSwaps(
-        pair.sourceToken,
-        pair.destToken,
-        undefined,
-        undefined,
-        ActionLocation.ONBOARDING_CHECKLIST,
-      );
+      goToSwaps({
+        sourceTokenOverride: pair.sourceToken,
+        destTokenOverride: pair.destToken,
+        swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+      });
       return;
     }
 
-    goToSwaps(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
+    goToSwaps({
+      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+    });
   }, [goToSwaps]);
 }

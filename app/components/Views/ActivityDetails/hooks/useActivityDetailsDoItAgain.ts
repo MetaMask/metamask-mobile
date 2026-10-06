@@ -98,7 +98,9 @@ export function useActivityDetailsDoItAgain({
     // Clear any amount left in the Bridge slice from a prior session so "swap
     // again" opens with an empty amount. We intentionally don't prefill one,
     // and useInitialSourceToken only sets the amount when a truthy one is passed.
-    goToSwaps(undefined, undefined, undefined, true);
+    goToSwaps({
+      scrollToTopOnNav: true,
+    });
   }, [hydratedSourceToken, goToSwaps]);
 }
 

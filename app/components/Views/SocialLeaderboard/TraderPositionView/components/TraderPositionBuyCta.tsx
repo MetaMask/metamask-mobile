@@ -114,7 +114,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
       if (destToken) {
         // Clear any pending intent so the resolver effect can't also navigate.
         setIsSwapPending(false);
-        goToSwaps(undefined, destToken, undefined, true);
+        goToSwaps({ destTokenOverride: destToken, scrollToTopOnNav: true });
         return;
       }
       // Metadata still resolving — wait for it instead of falling back so a
@@ -149,7 +149,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     }
     if (destToken) {
       setIsSwapPending(false);
-      goToSwaps(undefined, destToken, undefined, true);
+      goToSwaps({ destTokenOverride: destToken, scrollToTopOnNav: true });
       return;
     }
     if (!isLoading) {

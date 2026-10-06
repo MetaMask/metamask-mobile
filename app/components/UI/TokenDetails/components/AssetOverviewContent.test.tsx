@@ -695,14 +695,10 @@ describe('AssetOverviewContent', () => {
         sourcePage: 'TokenDetails',
         location: MetaMetricsSwapsEventSource.TokenView,
       });
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        undefined,
-        undefined,
-        undefined,
-        true,
-        undefined,
-        BridgeTabKey.Recurring,
-      );
+      expect(mockGoToSwaps).toHaveBeenCalledWith({
+        scrollToTopOnNav: true,
+        initialTab: BridgeTabKey.Recurring,
+      });
     });
 
     it('exits the current action and opens recurring order details on row press', () => {

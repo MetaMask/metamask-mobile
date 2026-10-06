@@ -329,7 +329,9 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToSwaps(overrideToken);
+    result.current.goToSwaps({
+      sourceTokenOverride: overrideToken,
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'Bridge',
@@ -520,7 +522,9 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToSwaps(undefined, destOverride);
+    result.current.goToSwaps({
+      destTokenOverride: destOverride,
+    });
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(true);
     expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
@@ -556,7 +560,9 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToSwaps(undefined, destOverride);
+    result.current.goToSwaps({
+      destTokenOverride: destOverride,
+    });
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(true);
     expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
@@ -752,7 +758,9 @@ describe('useSwapBridgeNavigation', () => {
         { state: initialState },
       );
 
-      result.current.goToSwaps(undefined, overrideDestToken);
+      result.current.goToSwaps({
+        destTokenOverride: overrideDestToken,
+      });
 
       expect(mockSetDestToken).toHaveBeenCalledWith(overrideDestToken);
     });
@@ -815,7 +823,10 @@ describe('useSwapBridgeNavigation', () => {
         { state: initialState },
       );
 
-      result.current.goToSwaps(sourceOverride, destOverride);
+      result.current.goToSwaps({
+        sourceTokenOverride: sourceOverride,
+        destTokenOverride: destOverride,
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'Bridge',
@@ -853,7 +864,9 @@ describe('useSwapBridgeNavigation', () => {
         { state: initialState },
       );
 
-      result.current.goToSwaps(sourceOverride);
+      result.current.goToSwaps({
+        sourceTokenOverride: sourceOverride,
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(
         'Bridge',
@@ -1386,13 +1399,9 @@ describe('useSwapBridgeNavigation', () => {
         { state: initialState },
       );
 
-      result.current.goToSwaps(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        ActionLocation.ONBOARDING_CHECKLIST,
-      );
+      result.current.goToSwaps({
+        swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+      });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1634,7 +1643,9 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToSwaps(undefined, undefined, undefined, true);
+    result.current.goToSwaps({
+      scrollToTopOnNav: true,
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'Bridge',

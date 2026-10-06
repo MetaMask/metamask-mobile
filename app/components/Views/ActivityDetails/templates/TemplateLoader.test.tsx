@@ -25,6 +25,10 @@ jest.mock('../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({ goToSwaps: jest.fn() }),
+}));
+
 jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
 }));

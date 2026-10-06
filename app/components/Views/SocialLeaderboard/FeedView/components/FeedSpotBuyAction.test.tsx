@@ -108,12 +108,13 @@ describe('FeedSpotBuyAction', () => {
 
     act(() => ref.current?.open(target));
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      expect.objectContaining({ symbol: 'PEPE', chainId: '0x1' }),
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      destTokenOverride: expect.objectContaining({
+        symbol: 'PEPE',
+        chainId: '0x1',
+      }),
+      scrollToTopOnNav: true,
+    });
     expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
   });
 

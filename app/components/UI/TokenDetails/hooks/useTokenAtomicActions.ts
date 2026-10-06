@@ -217,7 +217,11 @@ export const useHandleOnSwap = ({
       : undefined;
 
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
+      goToSwaps({
+        sourceTokenOverride: currentTokenAsBridgeToken,
+        destTokenOverride,
+        scrollToTopOnNav: true,
+      });
       return;
     }
 
@@ -230,15 +234,18 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(
-        buySourceToken,
-        destTokenOverride ?? currentTokenAsBridgeToken,
-        undefined,
-        true,
-      );
+      goToSwaps({
+        sourceTokenOverride: buySourceToken,
+        destTokenOverride: destTokenOverride ?? currentTokenAsBridgeToken,
+        scrollToTopOnNav: true,
+      });
       return;
     }
-    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
+    goToSwaps({
+      sourceTokenOverride: currentTokenAsBridgeToken,
+      destTokenOverride,
+      scrollToTopOnNav: true,
+    });
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 

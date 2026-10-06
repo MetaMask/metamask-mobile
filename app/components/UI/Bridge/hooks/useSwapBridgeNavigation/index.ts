@@ -170,17 +170,34 @@ export const useSwapBridgeNavigation = ({
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
-    (
-      sourceTokenOverride?: BridgeToken,
-      destTokenOverride?: BridgeToken,
-      buttonLabel?: string,
-      scrollToTopOnNav?: boolean,
+    (overrides?: {
+      /**
+       * Use this token instead of the {@link useSwapBridgeNavigation} `sourceToken`.
+       */
+      sourceTokenOverride?: BridgeToken;
+      /**
+       * Use this token instead of the {@link useSwapBridgeNavigation} `destToken`.
+       */
+      destTokenOverride?: BridgeToken;
+      /**
+       * Use this label instead of the default "Swap" label.
+       */
+      buttonLabel?: string;
+      scrollToTopOnNav?: boolean;
       /** Per-call override for {@link MetaMetricsEvents.SWAP_BUTTON_CLICKED} `location`. */
       swapButtonClickLocationOverride?:
         | ActionLocation
-        | SwapBridgeNavigationLocation,
-      initialTab?: BridgeTabKey,
-    ) => {
+        | MetaMetricsSwapsEventSource;
+      initialTab?: BridgeTabKey;
+    }) => {
+      const {
+        sourceTokenOverride,
+        destTokenOverride,
+        buttonLabel,
+        scrollToTopOnNav,
+        swapButtonClickLocationOverride,
+        initialTab,
+      } = overrides ?? {};
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
       // Use destTokenOverride if provided, otherwise fall back to destTokenBase
