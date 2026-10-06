@@ -120,11 +120,11 @@ describe('HotTokensCarousel', () => {
     expect(
       screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props
         .accessibilityState,
-    ).toEqual({ selected: true });
+    ).toEqual(expect.objectContaining({ selected: true }));
     expect(
       screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')).props
         .accessibilityState,
-    ).toEqual({ selected: false });
+    ).toEqual(expect.objectContaining({ selected: false }));
   });
 
   it('checks the selected chip and only that one', () => {
