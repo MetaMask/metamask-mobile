@@ -333,6 +333,7 @@ export const useSwapBridgeNavigation = ({
         }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
         ...(initialTab && { initialTab }),
+        ...(destTokenToSet && { destToken: destTokenToSet }),
       });
 
       // Prefetch popular tokens
