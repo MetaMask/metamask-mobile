@@ -6,6 +6,7 @@ import { PostSwapShareBottomSheetSelectorsIDs } from './PostSwapShareBottomSheet
 import {
   beginPostSwapShareSession,
   clearPostSwapShareSession,
+  getPostSwapShareSession,
 } from './postSwapShareSession';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 
@@ -105,5 +106,76 @@ describe('PostSwapShareBottomSheet', () => {
         side: 'buy',
       },
     });
+  });
+
+  it('renders a failure state with a retry action', () => {
+    beginPostSwapShareSession({
+      target,
+      tradeMode: 'buy',
+      status: 'failed',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    });
+
+    renderWithProvider(<PostSwapShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent('social_leaderboard.post_swap_share.failed');
+    expect(
+      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    ).toHaveTextContent('social_leaderboard.post_swap_share.try_again');
+
+    fireEvent.press(
+      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(getPostSwapShareSession()?.reopenRequested).toBe(true);
+  });
+
+  it('disables Share when a completed session has no transaction hash', () => {
+    beginPostSwapShareSession({
+      target,
+      tradeMode: 'buy',
+      status: 'complete',
+      tradeInFlightChain: 'base',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    });
+
+    renderWithProvider(<PostSwapShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('clears the session when the close button is pressed', () => {
+    beginPostSwapShareSession({
+      target,
+      tradeMode: 'buy',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    });
+
+    renderWithProvider(<PostSwapShareBottomSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(getPostSwapShareSession()).toBeNull();
   });
 });

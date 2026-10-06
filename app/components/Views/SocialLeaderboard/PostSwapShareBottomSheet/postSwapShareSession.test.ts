@@ -91,4 +91,16 @@ describe('postSwapShareSession', () => {
 
     expect(consumePostSwapShareReopen()).toBeNull();
   });
+
+  it('ignores patches when no session exists', () => {
+    patchPostSwapShareSession({ status: 'complete' });
+
+    expect(getPostSwapShareSession()).toBeNull();
+  });
+
+  it('ignores reopen requests when no session exists', () => {
+    requestPostSwapShareReopen();
+
+    expect(getPostSwapShareSession()).toBeNull();
+  });
 });
