@@ -99,7 +99,6 @@ import {
   normalizeEnabledSportsMarketTypes,
   sortGameMarkets,
 } from './outcomeGrouping';
-
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 export { buildOutcomeGroups, sortGameMarkets } from './outcomeGrouping';
 
@@ -1035,12 +1034,35 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
+const PROTOCOL_V2_MARKET_VERSION = 'v2';
+
+function isProtocolV2Market(market?: PolymarketApiMarket): boolean {
+  return market?.version === PROTOCOL_V2_MARKET_VERSION;
+}
+
+function isVisiblePolymarketMarket(
+  market: PolymarketApiMarket,
+  protocolV2Enabled: boolean,
+): boolean {
+  if (market?.active === false) {
+    return false;
+  }
+
+  if (!protocolV2Enabled && isProtocolV2Market(market)) {
+    return false;
+  }
+
+  return true;
+}
+
 export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
   enabledSportsMarketTypes?: string[];
+  /** When false, Gamma markets with version `v2` are removed before parsing. */
+  protocolV2Enabled?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1078,11 +1100,14 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      const protocolV2Enabled = options.protocolV2Enabled === true;
       const markets = sortMarkets({
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter((market: PolymarketApiMarket) => market?.active !== false);
+      }).filter((market) =>
+        isVisiblePolymarketMarket(market, protocolV2Enabled),
+      );
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not

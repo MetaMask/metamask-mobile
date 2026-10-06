@@ -5308,7 +5308,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '',
-      protocolV2: false,
+      protocolV2MarketEnabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

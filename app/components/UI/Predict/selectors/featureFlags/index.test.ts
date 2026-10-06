@@ -1523,14 +1523,14 @@ describe('Predict Feature Flag Selectors', () => {
       },
     });
 
-    it('returns true when the gate passes and protocolV2 is true', () => {
+    it('returns true when the gate passes and protocolV2MarketEnabled is true', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
 
       const result = selectPredictProtocolV2EnabledFlag(
         buildState({
           enabled: true,
           minimumVersion: '1.0.0',
-          protocolV2: true,
+          protocolV2MarketEnabled: true,
         }),
       );
 
@@ -1550,7 +1550,7 @@ describe('Predict Feature Flag Selectors', () => {
         buildState({
           enabled: true,
           minimumVersion: '99.0.0',
-          protocolV2: true,
+          protocolV2MarketEnabled: true,
         }),
       );
 
@@ -1564,35 +1564,35 @@ describe('Predict Feature Flag Selectors', () => {
         buildState({
           enabled: false,
           minimumVersion: '1.0.0',
-          protocolV2: true,
+          protocolV2MarketEnabled: true,
         }),
       );
 
       expect(result).toBe(false);
     });
 
-    it('returns false when protocolV2 is false', () => {
+    it('returns false when protocolV2MarketEnabled is false', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
 
       const result = selectPredictProtocolV2EnabledFlag(
         buildState({
           enabled: true,
           minimumVersion: '1.0.0',
-          protocolV2: false,
+          protocolV2MarketEnabled: false,
         }),
       );
 
       expect(result).toBe(false);
     });
 
-    it('returns false when protocolV2 is not a boolean', () => {
+    it('returns false when protocolV2MarketEnabled is not a boolean', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
 
       const result = selectPredictProtocolV2EnabledFlag(
         buildState({
           enabled: true,
           minimumVersion: '1.0.0',
-          protocolV2: 'true',
+          protocolV2MarketEnabled: 'true',
         }),
       );
 

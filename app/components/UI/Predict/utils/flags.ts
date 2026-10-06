@@ -1,3 +1,6 @@
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { PredictPolymarketMigrationFlag } from '../types/flags';
+
 /**
  * Generic utility to unwrap a remote feature flag from either of two runtime shapes:
  *
@@ -37,4 +40,19 @@ export function unwrapRemoteFeatureFlag<T>(remoteFlag: unknown): T | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Returns true when the migration flag gate passes and `protocolV2MarketEnabled` is true.
+ * A missing or invalid payload returns false.
+ */
+export function isPredictProtocolV2MarketEnabled(remoteFlag: unknown): boolean {
+  const flag =
+    unwrapRemoteFeatureFlag<PredictPolymarketMigrationFlag>(remoteFlag);
+
+  if (!validatedVersionGatedFeatureFlag(flag)) {
+    return false;
+  }
+
+  return flag?.protocolV2MarketEnabled === true;
 }
