@@ -1475,21 +1475,8 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
-    "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
-      "allow_push_notifications": "Allow push notifications",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow"
-    },
-    "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
-      "allow_push_notifications": "Allow push notifications",
-      "trades_over_label": "Get notified of trades over:",
-      "save": "Save",
-      "title": "Top traders"
-    },
     "settings": {
-      "section_title": "Top Traders",
+      "section_title": "Top traders",
       "show_account_on_leaderboard": "Show account on leaderboard",
       "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
