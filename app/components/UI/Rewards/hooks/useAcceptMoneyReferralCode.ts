@@ -50,9 +50,7 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
       return strings('rewards.error_messages.referrer_cannot_be_referred');
     }
     if (body.includes(ACTIVE_TRADER_BODY_SNIPPET)) {
-      return strings(
-        'rewards.error_messages.active_trader_cannot_be_referred',
-      );
+      return strings('rewards.error_messages.active_trader_cannot_be_referred');
     }
   }
   return strings('rewards.error_messages.something_went_wrong');
