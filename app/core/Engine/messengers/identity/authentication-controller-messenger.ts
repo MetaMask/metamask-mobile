@@ -3,10 +3,15 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import type { AuthenticationControllerMessenger } from '@metamask/profile-sync-controller/auth';
+import type {
+  AuthenticationControllerGetBearerTokenAction,
+  AuthenticationControllerMessenger,
+} from '@metamask/profile-sync-controller/auth';
 import { RootMessenger } from '../../types';
 
 const name = 'AuthenticationController';
+
+export type { AuthenticationControllerGetBearerTokenAction };
 
 /**
  * Get a messenger for the authentication controller. This is scoped to the

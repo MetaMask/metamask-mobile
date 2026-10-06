@@ -604,6 +604,16 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
+import {
+  MpcSigningMfaController,
+  type MpcSigningMfaControllerActions,
+  type MpcSigningMfaControllerStateChangeEvent,
+  type MpcSigningMfaControllerState,
+} from './controllers/mpc-signing-mfa-controller';
+import {
+  MoneyAccountMpcService,
+  type MoneyAccountMpcServiceEnableMfaAction,
+ MoneyAccountControllerMigrateMoneyAccountAddressAction } from './services/money-account-mpc-service';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -736,6 +746,9 @@ export type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | MoneyAccountControllerActions
+  | MoneyAccountControllerMigrateMoneyAccountAddressAction
+  | MpcSigningMfaControllerActions
+  | MoneyAccountMpcServiceEnableMfaAction
   | MoneyAccountBalanceServiceActions
   | MoneyAccountApiDataServiceActions
   | GeolocationControllerActions
@@ -863,6 +876,7 @@ export type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | MoneyAccountControllerEvents
+  | MpcSigningMfaControllerStateChangeEvent
   | MoneyAccountBalanceServiceEvents
   | MoneyAccountApiDataServiceEvents
   | GeolocationControllerEvents
@@ -1066,7 +1080,9 @@ export type MessengerClients = {
   TransakService: TransakService;
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
+  MoneyAccountMpcService: MoneyAccountMpcService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
+  MpcSigningMfaController: MpcSigningMfaController;
 };
 
 /**
@@ -1140,6 +1156,7 @@ export type EngineState = {
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
   MoneyAccountController: MoneyAccountControllerState;
+  MpcSigningMfaController: MpcSigningMfaControllerState;
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
@@ -1225,6 +1242,8 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
+  | 'MoneyAccountMpcService'
+  | 'MpcSigningMfaController'
   | 'MoneyAccountBalanceService'
   | 'MoneyAccountApiDataService'
   | 'LoggingController'

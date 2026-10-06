@@ -196,6 +196,7 @@ import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
+import MpcSigningMfaConfirmation from '../../UI/MpcSigningMfaConfirmation/MpcSigningMfaConfirmation';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1532,6 +1533,7 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
+        <MpcSigningMfaConfirmation />
         <Toast ref={toastRef} />
         {/*
           ToasterOverlay mounts FullWindowOverlay only while a toast is active

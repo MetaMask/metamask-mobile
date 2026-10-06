@@ -193,7 +193,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         return false;
       },
     );
-
     return () => {
       subscription.remove();
     };

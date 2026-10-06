@@ -1,0 +1,14 @@
+diff --git a/dist/utils.js b/dist/utils.js
+--- a/dist/utils.js
++++ b/dist/utils.js
+@@ -43,7 +43,10 @@ export function keyringTypeToName(keyringType) {
+             // clients need it.
+             // FIXME: This should probably live in the `KeyringController` package instead.
+             return 'Money';
+         }
++        case 'MPC Keyring': {
++            return 'MPC';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }

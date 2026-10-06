@@ -8611,6 +8611,8 @@
       "transfer": "Send",
       "card": "Card"
     },
+    "enable_mfa": "Enable MFA",
+    "mfa_enabled": "MFA enabled",
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
     },
@@ -8904,6 +8906,12 @@
         "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
       }
     }
+  },
+  "mpc_signing_mfa": {
+    "title": "Confirm signing",
+    "description": "Confirm this signing request to continue with your Money Account.",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "stake": {
     "stake": "Stake",

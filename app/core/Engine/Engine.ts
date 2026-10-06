@@ -169,6 +169,8 @@ import { userStorageControllerInit } from './controllers/identity/user-storage-c
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
+import { mpcSigningMfaControllerInit } from './controllers/mpc-signing-mfa-controller-init';
+import { moneyAccountMpcServiceInit } from './services/money-account-mpc-service-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
@@ -339,6 +341,8 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
+        MpcSigningMfaController: mpcSigningMfaControllerInit,
+        MoneyAccountMpcService: moneyAccountMpcServiceInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
         GeolocationApiService: geolocationApiServiceInit,
@@ -691,6 +695,8 @@ export class Engine {
       BridgeStatusController: messengerClientsByName.BridgeStatusController,
       EarnController: earnController,
       MoneyAccountController: moneyAccountController,
+      MpcSigningMfaController: messengerClientsByName.MpcSigningMfaController,
+      MoneyAccountMpcService: messengerClientsByName.MoneyAccountMpcService,
       MoneyAccountBalanceService:
         messengerClientsByName.MoneyAccountBalanceService,
       MoneyAccountApiDataService:
@@ -1704,6 +1710,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
+      MpcSigningMfaController,
       MoneyAccountUpgradeController,
       QrSyncController,
     } = instance.context;
@@ -1790,6 +1797,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
+      MpcSigningMfaController: MpcSigningMfaController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
       QrSyncController: QrSyncController.state,
     };

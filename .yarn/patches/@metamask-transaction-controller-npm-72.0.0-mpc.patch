@@ -1,0 +1,9 @@
+diff --git a/dist/utils/eip7702.js b/dist/utils/eip7702.js
+--- a/dist/utils/eip7702.js
++++ b/dist/utils/eip7702.js
+@@ -32,4 +32,5 @@ const KEYRING_TYPES_SUPPORTING_7702 = [
+     'HD Key Tree',
+     'Simple Key Pair',
+     'Money Keyring',
++    'MPC Keyring',
+ ];

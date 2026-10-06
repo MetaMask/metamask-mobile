@@ -1,11 +1,9 @@
 import { MessengerClientInitFunction } from '../types';
-import {
-  MoneyAccountController,
-  MoneyAccountControllerMessenger,
-} from '@metamask/money-account-controller';
+import { MoneyAccountControllerMessenger } from '@metamask/money-account-controller';
 import { MoneyAccountControllerInitMessenger } from '../messengers/money-account-controller-messenger';
 import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 import Logger from '../../../util/Logger';
+import { MpcMoneyAccountController } from './mpc-money-account-controller';
 
 /**
  * Initialize the money account controller.
@@ -17,11 +15,11 @@ import Logger from '../../../util/Logger';
  * @returns The initialized controller.
  */
 export const moneyAccountControllerInit: MessengerClientInitFunction<
-  MoneyAccountController,
+  MpcMoneyAccountController,
   MoneyAccountControllerMessenger,
   MoneyAccountControllerInitMessenger
 > = ({ controllerMessenger, initMessenger, persistedState }) => {
-  const controller = new MoneyAccountController({
+  const controller = new MpcMoneyAccountController({
     messenger: controllerMessenger,
     state: persistedState.MoneyAccountController,
   });

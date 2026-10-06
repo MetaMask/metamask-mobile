@@ -1,0 +1,43 @@
+diff --git a/dist/chomp-api-service.cjs b/dist/chomp-api-service.cjs
+--- a/dist/chomp-api-service.cjs
++++ b/dist/chomp-api-service.cjs
+@@ -119,5 +119,5 @@ const ServiceDetailsProtocolStruct = (0, superstruct_1.type)({
+         tokenDecimals: (0, superstruct_1.number)(),
+     })),
+     adapterAddress: utils_1.StrictHexStruct,
+-    intentTypes: (0, superstruct_1.array)((0, superstruct_1.enums)(['cash-deposit', 'cash-withdrawal'])),
++    intentTypes: (0, superstruct_1.array)((0, superstruct_1.enums)(['cash-deposit', 'cash-withdrawal', 'cash-deposit-premium', 'cash-withdrawal-premium'])),
+ });
+diff --git a/dist/chomp-api-service.mjs b/dist/chomp-api-service.mjs
+--- a/dist/chomp-api-service.mjs
++++ b/dist/chomp-api-service.mjs
+@@ -116,5 +116,10 @@ const ServiceDetailsProtocolStruct = type({
+         tokenDecimals: number(),
+     })),
+     adapterAddress: StrictHexStruct,
+-    intentTypes: array(enums(['cash-deposit', 'cash-withdrawal'])),
++    intentTypes: array(enums([
++        'cash-deposit',
++        'cash-withdrawal',
++        'cash-deposit-premium',
++        'cash-withdrawal-premium',
++    ])),
+ });
+diff --git a/dist/types.d.cts b/dist/types.d.cts
+--- a/dist/types.d.cts
++++ b/dist/types.d.cts
+@@ -147,4 +147,4 @@ export type ServiceDetailsProtocol = {
+     supportedTokens: ServiceDetailsSupportedToken[];
+     adapterAddress: Hex;
+-    intentTypes: ('cash-deposit' | 'cash-withdrawal')[];
++    intentTypes: ('cash-deposit' | 'cash-withdrawal' | 'cash-deposit-premium' | 'cash-withdrawal-premium')[];
+ };
+diff --git a/dist/types.d.mts b/dist/types.d.mts
+--- a/dist/types.d.mts
++++ b/dist/types.d.mts
+@@ -147,4 +147,4 @@ export type ServiceDetailsProtocol = {
+     supportedTokens: ServiceDetailsSupportedToken[];
+     adapterAddress: Hex;
+-    intentTypes: ('cash-deposit' | 'cash-withdrawal')[];
++    intentTypes: ('cash-deposit' | 'cash-withdrawal' | 'cash-deposit-premium' | 'cash-withdrawal-premium')[];
+ };

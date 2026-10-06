@@ -21,6 +21,9 @@ import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  Text,
+  TextColor,
+  TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -115,10 +118,11 @@ import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
+import { useEnableMoneyAccountMfa } from '../../hooks/useEnableMoneyAccountMfa';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
+const ACTION_BUTTON_ROW_BUTTON_COUNT = 4;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -143,6 +147,12 @@ const MoneyHomeView = () => {
   // is enabled, so this view only needs the resolved chrome flags.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
+  const {
+    enableMfa,
+    error: enableMfaError,
+    isEnabled: isMfaEnabled,
+    isEnabling: isEnablingMfa,
+  } = useEnableMoneyAccountMfa();
 
   const {
     trackButtonClicked,
@@ -561,6 +571,21 @@ const MoneyHomeView = () => {
     activeProviderId,
     navigateToCardHome,
   ]);
+
+  const handleEnableMfa = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+      label_key: 'money.enable_mfa',
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      button_position: 4,
+      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+    });
+
+    enableMfa().catch((error: unknown) => {
+      Logger.error(error as Error, '[MoneyHomeView] Enable MFA failed');
+    });
+  }, [enableMfa, trackButtonClicked]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -1063,7 +1088,21 @@ const MoneyHomeView = () => {
             disabled: !hasSpendableBalance,
           }}
           card={{ onPress: handleActionButtonCardPress }}
+          mfa={{
+            onPress: handleEnableMfa,
+            disabled: isMfaEnabled || isEnablingMfa,
+            label: strings(
+              isMfaEnabled ? 'money.mfa_enabled' : 'money.enable_mfa',
+            ),
+          }}
         />
+        {enableMfaError ? (
+          <Box twClassName="px-4 pb-2">
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {enableMfaError}
+            </Text>
+          </Box>
+        ) : null}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

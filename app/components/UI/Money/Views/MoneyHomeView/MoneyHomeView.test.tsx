@@ -306,6 +306,17 @@ jest.mock('../../../../../hooks/usePlusAccess', () => ({
   useIsPlusSubscriber: () => mockUsePlusAccess().isPlusSubscriber,
 }));
 
+const mockEnableMfa = jest.fn();
+const mockUseEnableMoneyAccountMfa = jest.fn(() => ({
+  enableMfa: mockEnableMfa,
+  isEnabled: false,
+  isEnabling: false,
+  error: undefined,
+}));
+jest.mock('../../hooks/useEnableMoneyAccountMfa', () => ({
+  useEnableMoneyAccountMfa: () => mockUseEnableMoneyAccountMfa(),
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.createMockFromModule<
     typeof import('../../../../../selectors/preferencesController')
@@ -595,6 +606,8 @@ describe('MoneyHomeView', () => {
       isPlusSubscriber: false,
       isPlusAccessUnknown: false,
     });
+    mockEnableMfa.mockReset();
+    mockEnableMfa.mockResolvedValue(undefined);
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -730,6 +743,23 @@ describe('MoneyHomeView', () => {
     expect(
       getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('enables MFA from the action button row', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.MFA_BUTTON));
+    });
+
+    expect(mockEnableMfa).toHaveBeenCalledTimes(1);
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+        button_position: 4,
+        button_row_button_count: 4,
+      }),
+    );
   });
 
   it('renders the onboarding card', () => {
@@ -1432,7 +1462,7 @@ describe('MoneyHomeView', () => {
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
       button_position: 1,
-      button_row_button_count: 3,
+      button_row_button_count: 4,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -1552,7 +1582,7 @@ describe('MoneyHomeView', () => {
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
-      button_row_button_count: 3,
+      button_row_button_count: 4,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -1640,7 +1670,7 @@ describe('MoneyHomeView', () => {
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       redirect_target: SCREEN_NAMES.CARD_HOME,
       button_position: 3,
-      button_row_button_count: 3,
+      button_row_button_count: 4,
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

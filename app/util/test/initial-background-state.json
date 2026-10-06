@@ -1024,6 +1024,9 @@
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
+  "MpcSigningMfaController": {
+    "pendingMpcSigningMfaRequestId": null
+  },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
   }

@@ -3,4 +3,5 @@ export const MoneyActionButtonRowTestIds = {
   ADD_BUTTON: 'money-action-button-row-add',
   TRANSFER_BUTTON: 'money-action-button-row-transfer',
   CARD_BUTTON: 'money-action-button-row-card',
+  MFA_BUTTON: 'money-action-button-row-mfa',
 } as const;

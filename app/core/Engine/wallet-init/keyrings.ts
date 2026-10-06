@@ -27,6 +27,7 @@ import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
+import { getMpcKeyringBuilderMessenger } from '../messengers/accounts/mpc-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
 import {
@@ -38,6 +39,7 @@ import {
   snapKeyringV2Builder,
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
+import { buildMpcKeyringBuilder } from './mpc-keyring-builder';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -132,6 +134,12 @@ export function getKeyringBuilders(
     });
   moneyKeyringBuilder.type = MoneyKeyring.type;
   keyrings.push(moneyKeyringBuilder);
+
+  // Always register the MPC builder so an existing MPC keyring can be
+  // deserialized before MFA is enabled in the current session.
+  keyrings.push(
+    buildMpcKeyringBuilder(getMpcKeyringBuilderMessenger(messenger)),
+  );
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringMessenger = getLegacySnapKeyringBuilderMessenger(messenger);

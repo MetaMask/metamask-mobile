@@ -146,6 +146,13 @@ post_install do |installer|
     :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
   )
 
+  # Keep pod deployment targets aligned with the app's iOS minimum.
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |build_configuration|
+      build_configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.4'
+    end
+  end
+
   # Modify RCT-Folly Portability.h to disable coroutines
   Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
     begin

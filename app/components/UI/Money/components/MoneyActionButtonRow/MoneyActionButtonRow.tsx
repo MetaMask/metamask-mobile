@@ -12,12 +12,14 @@ import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 interface ActionButtonConfig {
   onPress: () => void;
   disabled?: boolean;
+  label?: string;
 }
 
 interface MoneyActionButtonRowProps {
   add: ActionButtonConfig;
   transfer: ActionButtonConfig;
   card: ActionButtonConfig;
+  mfa?: ActionButtonConfig;
 }
 
 const styles = StyleSheet.create({
@@ -31,6 +33,7 @@ const MoneyActionButtonRow = ({
   add,
   transfer,
   card,
+  mfa,
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -64,6 +67,17 @@ const MoneyActionButtonRow = ({
       twClassName="py-3"
       style={styles.buttonContainer}
     />
+    {mfa && (
+      <MainActionButton
+        iconName={IconName.ShieldLock}
+        label={mfa.label ?? strings('money.enable_mfa')}
+        onPress={mfa.onPress}
+        isDisabled={mfa.disabled}
+        testID={MoneyActionButtonRowTestIds.MFA_BUTTON}
+        twClassName="py-3"
+        style={styles.buttonContainer}
+      />
+    )}
   </Box>
 );
 

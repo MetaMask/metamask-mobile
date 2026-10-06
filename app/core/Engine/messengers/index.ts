@@ -177,6 +177,9 @@ import {
   getMoneyAccountUpgradeControllerMessenger,
   getMoneyAccountUpgradeControllerInitMessenger,
 } from './money-account-upgrade-controller-messenger';
+import { getMpcKeyringBuilderMessenger } from './accounts/mpc-keyring-builder-messenger';
+import { getMoneyAccountMpcServiceMessenger } from './money-account-mpc-service-messenger';
+import { getMpcSigningMfaControllerMessenger } from './mpc-signing-mfa-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -332,6 +335,14 @@ export const MESSENGER_FACTORIES = {
   MoneyAccountController: {
     getMessenger: getMoneyAccountControllerMessenger,
     getInitMessenger: getMoneyAccountControllerInitMessenger,
+  },
+  MoneyAccountMpcService: {
+    getMessenger: getMoneyAccountMpcServiceMessenger,
+    getInitMessenger: noop,
+  },
+  MpcSigningMfaController: {
+    getMessenger: getMpcSigningMfaControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
@@ -565,3 +576,5 @@ export const MESSENGER_FACTORIES = {
     getInitMessenger: getMoneyAccountUpgradeControllerInitMessenger,
   },
 } as const;
+
+export { getMpcKeyringBuilderMessenger };
