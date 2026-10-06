@@ -66,7 +66,7 @@ const CancelStepLayout = ({
         keyboardShouldPersistTaps="handled"
       >
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
           twClassName="mb-6"

@@ -42,10 +42,10 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName={`p-4 rounded-2xl border-2 ${
+      twClassName={`p-3 rounded-xl border ${
         isSelected
-          ? 'border-border-default bg-background-section'
-          : 'border-border-muted'
+          ? 'border-border-default bg-background-muted-hover'
+          : 'border-border-muted bg-background-muted'
       }`}
     >
       <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
