@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Image } from 'expo-image';
+import AvatarPredict from '../AvatarPredict';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarBaseSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -141,14 +142,10 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
         <Box twClassName="flex-1">
           {market.image && (
             <Box alignItems={BoxAlignItems.Center} twClassName="mb-3">
-              <Box twClassName="w-6 h-6 rounded-lg bg-muted overflow-hidden">
-                <Image
-                  source={{ uri: market.image }}
-                  style={tw.style('w-full h-full')}
-                  contentFit="cover"
-                  recyclingKey={market.image}
-                />
-              </Box>
+              <AvatarPredict
+                src={{ uri: market.image }}
+                size={AvatarBaseSize.Sm}
+              />
             </Box>
           )}
 
