@@ -54,16 +54,18 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.ROOT,
-      expect.objectContaining({
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params: expect.objectContaining({
-          sourceToken: expect.objectContaining({ symbol: 'ETH' }),
-          destToken: expect.objectContaining({ symbol: 'USDC' }),
-        }),
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        sourceToken: expect.objectContaining({ symbol: 'ETH' }),
+        destToken: expect.objectContaining({ symbol: 'USDC' }),
+        location: 'Main View',
+        scrollToTopOnNav: true,
+        sourcePage: 'ActivityDetails',
+        swapViewTraceId: expect.any(String),
+        bridgeViewMode: 'Swap',
+      },
+    });
     // "Swap again" opens with an empty amount (no reused source amount), and
     // any stale amount in the Bridge slice is cleared.
     expect(mockNavigate.mock.calls[0][1].params.sourceAmount).toBeUndefined();
@@ -111,19 +113,22 @@ describe('useActivityDetailsDoItAgain', () => {
 
     // The held USDT resolves to a real token (icon + balance); the un-held DAI
     // falls back to the skeleton (symbol only).
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.ROOT,
-      expect.objectContaining({
-        params: expect.objectContaining({
-          destToken: expect.objectContaining({
-            symbol: 'USDT',
-            image: 'https://example.com/usdt.png',
-            balance: '25.0',
-          }),
-          sourceToken: expect.objectContaining({ symbol: 'DAI' }),
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      params: {
+        destToken: expect.objectContaining({
+          symbol: 'USDT',
+          image: 'https://example.com/usdt.png',
+          balance: '25.0',
         }),
-      }),
-    );
+        sourceToken: expect.objectContaining({ symbol: 'DAI' }),
+        location: 'Main View',
+        scrollToTopOnNav: true,
+        sourcePage: 'ActivityDetails',
+        swapViewTraceId: expect.any(String),
+        bridgeViewMode: 'Swap',
+      },
+      screen: 'BridgeView',
+    });
   });
 
   it('matches a Polygon native leg (0x…1010) against the held holding normalized to 0x0', () => {
@@ -158,18 +163,22 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.ROOT,
-      expect.objectContaining({
-        params: expect.objectContaining({
-          sourceToken: expect.objectContaining({
-            symbol: 'POL',
-            image: 'https://example.com/pol.png',
-            balance: '5.0',
-          }),
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      params: {
+        sourceToken: expect.objectContaining({
+          symbol: 'POL',
+          image: 'https://example.com/pol.png',
+          balance: '5.0',
         }),
-      }),
-    );
+        destToken: undefined,
+        location: 'Main View',
+        scrollToTopOnNav: true,
+        sourcePage: 'ActivityDetails',
+        swapViewTraceId: expect.any(String),
+        bridgeViewMode: 'Swap',
+      },
+      screen: 'BridgeView',
+    });
   });
 
   it('hydrates a non-EVM (Solana) swap leg from held tokens even though the activity row has no decimals', () => {
@@ -221,26 +230,29 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.ROOT,
-      expect.objectContaining({
-        params: expect.objectContaining({
-          // Real decimals (9 / 6) come from the held tokens, not the 0
-          // placeholder the skeleton carries for non-EVM rows.
-          sourceToken: expect.objectContaining({
-            symbol: 'SOL',
-            decimals: 9,
-            image: 'https://example.com/sol.png',
-            balance: '2.5',
-          }),
-          destToken: expect.objectContaining({
-            symbol: 'USDC',
-            decimals: 6,
-            balance: '42.0',
-          }),
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      params: {
+        // Real decimals (9 / 6) come from the held tokens, not the 0
+        // placeholder the skeleton carries for non-EVM rows.
+        sourceToken: expect.objectContaining({
+          symbol: 'SOL',
+          decimals: 9,
+          image: 'https://example.com/sol.png',
+          balance: '2.5',
         }),
-      }),
-    );
+        destToken: expect.objectContaining({
+          symbol: 'USDC',
+          decimals: 6,
+          balance: '42.0',
+        }),
+        location: 'Main View',
+        scrollToTopOnNav: true,
+        sourcePage: 'ActivityDetails',
+        swapViewTraceId: expect.any(String),
+        bridgeViewMode: 'Swap',
+      },
+      screen: 'BridgeView',
+    });
   });
 
   it('does nothing when the source token cannot be mapped to a bridge token', () => {

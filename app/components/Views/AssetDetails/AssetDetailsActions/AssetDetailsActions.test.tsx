@@ -190,7 +190,8 @@ describe('AssetDetailsActions', () => {
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
 
     // Then the goToSwaps callback should be called
-    expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    expect(mockGoToSwaps).toHaveBeenCalledWith();
   });
 
   it('calls onSend when the send button is pressed', () => {

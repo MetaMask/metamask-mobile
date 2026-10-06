@@ -192,6 +192,43 @@ describe('BridgeTransactionDetails', () => {
     expect(() => getByText('Transaction details')).toThrow();
   });
 
+  it('reopens swaps with the previous pair when bridge again is pressed', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: mockEVMTx } }}
+        />
+      ),
+      { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+      { state: mockState },
+    );
+
+    fireEvent.press(getByTestId('activity-details-do-it-again-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        sourcePage: 'BridgeTransactionDetails',
+        bridgeViewMode: 'Bridge',
+        destToken: expect.objectContaining({
+          symbol: 'TOKEN2',
+          image: '',
+          chainId: '0xa',
+          address: '0x456',
+        }),
+        sourceToken: expect.objectContaining({
+          symbol: 'TOKEN1',
+          image: '',
+          chainId: '0x1',
+          address: '0x123',
+        }),
+        location: 'Main View',
+        scrollToTopOnNav: true,
+        swapViewTraceId: expect.any(String),
+      },
+    });
+  });
+
   it('opens the legacy block-explorer modal from the single explorer button', () => {
     const { getByTestId } = renderScreen(
       () => (

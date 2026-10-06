@@ -105,14 +105,15 @@ describe('RecurringSwapAgainButton', () => {
     expect(mockSetRenderedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: expect.objectContaining({
+      params: {
         sourcePage: 'RecurringSwapDetails',
         bridgeViewMode: BridgeViewMode.Unified,
         sourceToken: SOURCE_TOKEN,
         destToken: DESTINATION_TOKEN,
         location: MetaMetricsSwapsEventSource.TransactionDetails,
         scrollToTopOnNav: true,
-      }),
+        swapViewTraceId: 'test-trace-id',
+      },
     });
     expect(mockNavigate.mock.calls[0][1].params).not.toHaveProperty(
       'sourceAmount',

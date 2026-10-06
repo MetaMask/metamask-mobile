@@ -95,6 +95,22 @@ describe('ActivityEmptyState', () => {
     expect(screen.getByText('Swap tokens')).toBeOnTheScreen();
   });
 
+  it('opens swaps from the funded transactions empty state', () => {
+    render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Transactions} />);
+
+    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        location: 'Main View',
+        sourcePage: 'ActivityEmptyState',
+        bridgeViewMode: 'Unified',
+        swapViewTraceId: expect.any(String),
+      },
+    });
+  });
+
   it('routes each CTA to the expected destination', async () => {
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Predictions} />);
     fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));

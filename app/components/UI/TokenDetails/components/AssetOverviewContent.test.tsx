@@ -685,13 +685,13 @@ describe('AssetOverviewContent', () => {
       expect(onExitAction).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params: expect.objectContaining({
+        params: {
           sourcePage: 'TokenDetails',
           bridgeViewMode: BridgeViewMode.Unified,
           location: MetaMetricsSwapsEventSource.TokenView,
           initialTab: BridgeTabKey.Recurring,
-          swapViewTraceId: expect.any(String),
-        }),
+          swapViewTraceId: 'test-trace-id',
+        },
       });
     });
 
