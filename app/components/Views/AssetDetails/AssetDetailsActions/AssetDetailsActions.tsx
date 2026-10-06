@@ -21,8 +21,10 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../../util/analytics/actionButtonTracking';
-import { useSwapBridgeNavigation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -68,7 +70,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: MetaMetricsSwapsEventSource.TokenView,
+    location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'TokenDetails',
   });
 
