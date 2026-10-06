@@ -29,6 +29,7 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
@@ -37,6 +38,7 @@ import type { QuickBuyTradeMode } from '../../QuickBuy/types';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
+import TokenDetailsPositionLine from './TokenDetailsPositionLine';
 
 const styles = StyleSheet.create({
   footer: {
@@ -119,6 +121,11 @@ interface TokenStickyFooterProps {
   sourcePage?: string;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
+  /**
+   * Social position id for this wallet and token. Omitted until Social
+   * confirms how to resolve it; the line then shows value only.
+   */
+  positionId?: string;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -141,8 +148,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onOpenQuickBuy,
   sourcePage,
   useAmbientColor = false,
+  positionId,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isPositionLineEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -396,6 +405,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   return (
     <>
       <View style={footerStyle}>
+        {isPositionLineEnabled && (
+          <TokenDetailsPositionLine
+            positionId={positionId}
+            balanceFiatUsd={balanceFiatUsd}
+          />
+        )}
         <View testID="bottomsheetfooter" style={styles.footer}>
           {showSwapButton && !isBuySellLayout && (
             <Button
