@@ -310,7 +310,6 @@ function TradeWalletActions() {
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'MainView',
-    swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
   const dismissRootModalFlow = useCallback(() => {
@@ -373,7 +372,13 @@ function TradeWalletActions() {
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
-      goToSwapsBase();
+      goToSwapsBase(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ActionLocation.NAVBAR,
+      );
     };
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);
