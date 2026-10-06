@@ -16,6 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
@@ -171,8 +172,11 @@ const VbaDetails = () => {
         if (pix) {
           setInstructions(pix);
         }
-      } catch {
+      } catch (error) {
         // Keep any previously shown PIX instructions.
+        Logger.error(error as Error, {
+          message: 'VbaDetails: failed to load PIX deposit instructions',
+        });
       }
     }
 
@@ -184,8 +188,11 @@ const VbaDetails = () => {
         setTransactionStatus(
           pickLatestTransaction(transactions)?.status ?? null,
         );
-      } catch {
+      } catch (error) {
         // Keep any previously shown transaction status.
+        Logger.error(error as Error, {
+          message: 'VbaDetails: failed to list autoramp transactions',
+        });
       }
     }
   }, [walletAddress]);
@@ -198,14 +205,19 @@ const VbaDetails = () => {
         if (!cancelled) {
           setLoadError(false);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setLoadError(true);
         }
+        Logger.error(error as Error, {
+          message: 'VbaDetails: deposit refresh failed',
+        });
       }
     };
-    tick();
-    const timer = setInterval(tick, POLL_INTERVAL_MS);
+    void tick();
+    const timer = setInterval(() => {
+      void tick();
+    }, POLL_INTERVAL_MS);
     return () => {
       cancelled = true;
       clearInterval(timer);

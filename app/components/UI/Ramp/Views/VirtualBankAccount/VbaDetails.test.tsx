@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
 import VbaDetails, {
   pickLatestTransaction,
   VbaDetailsSelectorsIDs,
@@ -12,6 +13,7 @@ const mockNavigate = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
+let mockWalletAddress: string | null = '0xabc';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -21,7 +23,15 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../selectors/rampsController', () => ({
-  selectSelectedVbaWalletAddress: () => '0xabc',
+  selectSelectedVbaWalletAddress: () => mockWalletAddress,
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -71,6 +81,10 @@ const setAutoramps = (autoramps: TestAutoramp[]) => {
 };
 
 describe('pickLatestTransaction', () => {
+  it('returns undefined for an empty list', () => {
+    expect(pickLatestTransaction([])).toBeUndefined();
+  });
+
   it('prefers the newest createdAt over array order', () => {
     const latest = pickLatestTransaction([
       { id: 'old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
@@ -88,15 +102,46 @@ describe('pickLatestTransaction', () => {
 
     expect(latest?.id).toBe('pending');
   });
+
+  it('falls back to the last terminal transaction when all are terminal', () => {
+    const latest = pickLatestTransaction([
+      { id: 'first', status: 'Failed' },
+      { id: 'last', status: 'Completed' },
+    ]);
+
+    expect(latest?.id).toBe('last');
+  });
+
+  it('ignores invalid createdAt values', () => {
+    const latest = pickLatestTransaction([
+      { id: 'bad', status: 'Completed', createdAt: 'not-a-date' },
+      { id: 'pending', status: 'Pending' },
+    ]);
+
+    expect(latest?.id).toBe('pending');
+  });
 });
 
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockWalletAddress = '0xabc';
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     setAutoramps([{ ...approvedAutoramp }]);
+    (
+      Engine.context as {
+        NeoBankService?: {
+          getPixDepositInstructions: typeof mockGetPix;
+          listAutorampTransactions: typeof mockListTransactions;
+        };
+      }
+    ).NeoBankService = {
+      getPixDepositInstructions: (...args: unknown[]) => mockGetPix(...args),
+      listAutorampTransactions: (...args: unknown[]) =>
+        mockListTransactions(...args),
+    };
   });
 
   it('renders the details screen', async () => {
@@ -142,6 +187,20 @@ describe('VbaDetails', () => {
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
   });
 
+  it('shows PIX without a pix key when MoonPay omits it', async () => {
+    mockGetPix.mockResolvedValue({
+      brCode: '00020126',
+      instruction: 'Pay with PIX',
+    });
+
+    const { getByTestId, queryByText } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(queryByText('pix@example.com')).toBeNull();
+  });
+
   it('shows the newest transaction status when an older completed exists', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
     mockListTransactions.mockResolvedValue([
@@ -172,6 +231,7 @@ describe('VbaDetails', () => {
     });
     expect(getByText('00020126')).toBeOnTheScreen();
     expect(queryByText(/Couldn't refresh the deposit/)).toBeNull();
+    expect(Logger.error).toHaveBeenCalled();
   });
 
   it('refreshes a non-Approved autoramp before loading PIX', async () => {
@@ -204,10 +264,38 @@ describe('VbaDetails', () => {
         getByText("Couldn't refresh the deposit. We'll try again."),
       ).toBeOnTheScreen();
     });
+    expect(Logger.error).toHaveBeenCalled();
   });
 
   it('waits for PIX when no usable autoramp exists', async () => {
     setAutoramps([]);
+
+    const { getByText } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(
+        getByText('PIX instructions appear here once the account is approved.'),
+      ).toBeOnTheScreen();
+    });
+    expect(mockGetPix).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when no Money Account wallet is selected', async () => {
+    mockWalletAddress = null;
+
+    const { getByText } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(
+        getByText('PIX instructions appear here once the account is approved.'),
+      ).toBeOnTheScreen();
+    });
+    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('skips PIX fetch when NeoBankService is unavailable', async () => {
+    delete (Engine.context as { NeoBankService?: unknown }).NeoBankService;
 
     const { getByText } = renderWithProvider(<VbaDetails />);
 
