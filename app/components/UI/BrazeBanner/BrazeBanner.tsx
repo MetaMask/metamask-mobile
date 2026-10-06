@@ -16,6 +16,7 @@ import BrazeBannerCard from './BrazeBannerCard';
 
 interface BrazeBannerProps {
   placementId: string;
+  isGlass?: boolean;
 }
 
 /**
@@ -31,7 +32,7 @@ interface BrazeBannerProps {
  * - `empty`     → returns null (no campaign / timeout reached)
  * - `dismissed` → returns null immediately, no skeleton shown again
  */
-const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
+const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   const tw = useTailwind();
   const {
     status,
@@ -81,6 +82,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
           imageUrl={imageUrl}
           ctaLabel={ctaLabel}
           onDismiss={dismiss}
+          isGlass={isGlass}
         />
       </Pressable>
     </Box>

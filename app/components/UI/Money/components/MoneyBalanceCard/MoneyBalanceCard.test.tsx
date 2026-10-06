@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
 import MoneyBalanceCard from './MoneyBalanceCard';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -1089,6 +1090,34 @@ describe('MoneyBalanceCard', () => {
         tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
         tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
       });
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the opaque card by default', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the card on an interactive glass surface', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE).props.isInteractive,
+      ).toBe(true);
+      expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('still opens Money home when the glass card is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
   });
 });
