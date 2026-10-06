@@ -426,14 +426,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     onSecurityPress={() => activateTab('security')}
                   />
                 </Box>
+                <Box twClassName="py-4">
+                  <StatBar
+                    variant={variant}
+                    stats={statBarStats}
+                    onStatPress={handleStatPress}
+                  />
+                </Box>
               </Price>
-
-              {/* Outside the gutter so its rules span the full width. */}
-              <StatBar
-                variant={variant}
-                stats={statBarStats}
-                onStatPress={handleStatPress}
-              />
 
               <TokenDetailsActionsSection
                 token={token}
