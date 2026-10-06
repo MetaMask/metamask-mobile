@@ -19,6 +19,10 @@ export function getQuickBuyFeatureId(source?: QuickBuySheetSource): FeatureId {
     case 'explore_rwas':
     case 'explore_stocks':
       return FeatureId.QUICK_BUY_EXPLORE;
+    case 'gacha':
+      // bridge-controller has no Gacha feature id yet; attribution relies on
+      // the `gacha` analytics source until swaps adds one.
+      return FeatureId.UNKNOWN;
     default:
       return FeatureId.UNKNOWN;
   }

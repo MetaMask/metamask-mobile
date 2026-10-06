@@ -2,9 +2,16 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import type { QuickBuyTradeMode } from './types';
+import Logger from '../../../util/Logger';
+import type {
+  QuickBuyFundingOptions,
+  QuickBuyTradeMode,
+  QuickBuyTradeState,
+} from './types';
 
 export interface TrackedQuickBuyTrade {
+  /** Released with the tracked trade once it reaches its terminal state. */
+  onTradeStateChange?: QuickBuyFundingOptions['onTradeStateChange'];
   tradeMode: QuickBuyTradeMode;
   /** The token the user is trading (e.g. ETH) — the QuickBuy target. */
   tokenSymbol: string;
@@ -69,6 +76,20 @@ const settledTradeIds = new Set<string>();
  */
 const SETTLED_TRADE_ID_LIMIT = 50;
 
+/** Keep host callback errors from interrupting transaction tracking. */
+export function notifyQuickBuyTradeState(
+  callback: QuickBuyFundingOptions['onTradeStateChange'],
+  state: QuickBuyTradeState,
+): void {
+  try {
+    callback?.(state);
+  } catch (error) {
+    Logger.error(error instanceof Error ? error : new Error(String(error)), {
+      tags: { feature: 'quick_buy', operation: 'trade_state_callback' },
+    });
+  }
+}
+
 export function trackQuickBuyTrade(
   txMetaId: string,
   info: TrackedQuickBuyTrade,
@@ -80,6 +101,14 @@ export function getTrackedQuickBuyTrade(
   txMetaId: string,
 ): TrackedQuickBuyTrade | undefined {
   return trackedTrades.get(txMetaId);
+}
+
+/** Releases an abandoned host without dropping transaction status or toasts. */
+export function detachQuickBuyTradeStateCallback(txMetaId: string): void {
+  const trade = trackedTrades.get(txMetaId);
+  if (trade) {
+    delete trade.onTradeStateChange;
+  }
 }
 
 export function getTrackedQuickBuyTradeIds(): string[] {

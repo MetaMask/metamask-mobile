@@ -5,16 +5,24 @@ import {
 import {
   beginQuickBuySubmission,
   clearSettledQuickBuyTrades,
+  detachQuickBuyTradeStateCallback,
   endQuickBuySubmission,
   getTrackedQuickBuyTrade,
   getTrackedQuickBuyTradeIds,
   hasPendingQuickBuySubmission,
   isQuickBuyTransaction,
   markQuickBuyTradeSettled,
+  notifyQuickBuyTradeState,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
+import Logger from '../../../util/Logger';
+
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
 
 const txMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
   overrides as TransactionMeta;
@@ -47,6 +55,23 @@ describe('quickBuyTradeTracker', () => {
     trackQuickBuyTrade('tx-1', buyTrade);
 
     expect(getTrackedQuickBuyTrade('tx-1')).toEqual(buyTrade);
+  });
+
+  it('isolates host callback errors from trade tracking', () => {
+    const error = new Error('host failed');
+
+    expect(() =>
+      notifyQuickBuyTradeState(
+        () => {
+          throw error;
+        },
+        { status: 'submitting' },
+      ),
+    ).not.toThrow();
+
+    expect(Logger.error).toHaveBeenCalledWith(error, {
+      tags: { feature: 'quick_buy', operation: 'trade_state_callback' },
+    });
   });
 
   it('returns undefined for an unknown tx meta id', () => {
@@ -93,6 +118,31 @@ describe('quickBuyTradeTracker', () => {
 
     expect(getTrackedQuickBuyTrade('tx-1')).toBeUndefined();
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+  });
+
+  it('detaches an abandoned callback while preserving the tracked trade', () => {
+    trackQuickBuyTrade('tx-1', {
+      ...buyTrade,
+      onTradeStateChange: jest.fn(),
+    });
+    const unrelatedCallback = jest.fn();
+    trackQuickBuyTrade('tx-2', {
+      ...sellTrade,
+      onTradeStateChange: unrelatedCallback,
+    });
+
+    detachQuickBuyTradeStateCallback('tx-1');
+
+    expect(getTrackedQuickBuyTrade('tx-1')).toEqual(buyTrade);
+    expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1', 'tx-2']);
+    expect(isQuickBuyTransaction(txMeta({ id: 'tx-1' }))).toBe(true);
+    expect(getTrackedQuickBuyTrade('tx-2')?.onTradeStateChange).toBe(
+      unrelatedCallback,
+    );
+  });
+
+  it('ignores detaching an unknown trade', () => {
+    expect(() => detachQuickBuyTradeStateCallback('missing')).not.toThrow();
   });
 
   it('ignores untracking an unknown id', () => {

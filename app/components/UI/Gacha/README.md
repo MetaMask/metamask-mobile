@@ -1,37 +1,82 @@
-# Gacha module foundation
+# Gacha
 
-This module registers `GachaController` in Engine, a Gacha navigation stack,
-an empty Packs tab, an empty My cards tab and a homepage entry point.
-The homepage title and button both open the Packs tab.
+Gacha owns the screens, tabs, navigation and homepage entry point.
 
-## Feature flag
+`controllers/GachaController.ts` owns the feature state and its Engine integration. It creates `providers/collector-crypt/CollectorCryptProvider.ts`, which owns purchases, recovery, card synchronization and buybacks. The provider reads and updates its dedicated `collectorCrypt` state through callbacks; it does not own a second persistent store.
 
-Both the homepage section and the main navigator registration are gated only
-by the version-gated LaunchDarkly flag `gachaEnabled`:
+`services/` contains technical clients shared by the feature, including the MetaMask Solana NFT API. Collector Crypt filtering and card conversion stay inside the provider.
 
-```json
-{ "enabled": true, "minimumVersion": "8.15.0" }
-```
+Future providers belong alongside `collector-crypt/`. Their operation and recovery logic stays provider-specific; Gacha carries their persistent state and coordinates access without introducing a generic provider framework.
 
-Missing, invalid or disabled flags keep the feature hidden. The shared flag
-validator compares `minimumVersion` with the installed native app version.
-Visibility does not depend on the selected account or its network.
+The version-gated remote flag `gachaEnabled` controls feature visibility and defaults to disabled. A valid remote value always wins, including `enabled: false`. When the flag is missing or invalid, or when `OVERRIDE_REMOTE_FEATURE_FLAGS="true"`, development builds fall back to `MM_GACHA_ENABLED="true"` in `.js.env`; other feature flags are unchanged. Release builds ignore this fallback and stay disabled. To force Gacha on in development while the remote flag is set, use the feature flag override screen or `OVERRIDE_REMOTE_FEATURE_FLAGS`.
 
-## Controller lifecycle
+## Prototype and proposed V1
 
-`GachaController` extends `BaseController` and starts with an empty state.
-It uses the regular Engine initialization, `getState` action, `stateChanged`
-event, Redux state projection and wallet-reset lifecycle. With no state
-fields yet, there is no application data to persist or restore. The next
-change introduces real state fields through the standard Engine persistence
-path, without a shared persistence override or immediate disk flush.
+[ADR](../../../../docs/gacha/ADR.md) describes the proposed V1. This module is the working prototype, not an implementation of every V1 requirement. Keep the following boundaries explicit when reviewing or extending it:
 
-This foundation contains no provider, API service, wallet signing, funding,
-pack artwork, onboarding or purchase logic. These belong to the next change.
+| Area                   | Current prototype                                                                                                                                                                                                                                                                                                                                                                                      | V1 dependency or remaining work                                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Signing                | Gacha's own confirmation sheet is the only user confirmation. Mobile sends the provider transaction unchanged to the Solana Snap `signTransaction` client request (`onClientRequest`, MetaMask origin only), which signs without a Snap dialog. That method exists only in the local `../internal-snaps` Snap build referenced by `package.json`. There is no Mobile transaction decoder or guard yet. | The ADR requires a MetaMask-only Snap entry point validating the confirmed intent, transaction and simulation. That contract and trusted configuration need the Solana team's implementation, review and a published Snap release before production. |
+| Recovery               | Persist signed purchases and submission attempts; retain uncertain or paid work. Discard a buyback preparation only when known not to have been submitted.                                                                                                                                                                                                                                             | Reconcile transaction validity and outcomes with Solana; record refund details. A local timeout or delayed webhook is not proof that a submitted transaction failed.                                                                                 |
+| Funding                | One foreground intent, revoked on account change, leaving Gacha or app restart; submitted funding remains in Activity. Missing USDC is rounded up, without a buffer.                                                                                                                                                                                                                                   | The ADR proposes restart recovery and a configurable buffer. Both are deferred; do not reintroduce the buffer into this demo.                                                                                                                        |
+| Catalogue and purchase | One pack per confirmation; prices and odds come from the provider catalogue.                                                                                                                                                                                                                                                                                                                           | Multiple packs, Turbo and reconfirmation when terms change after funding remain V1 work.                                                                                                                                                             |
+| API and NFT freshness  | Mobile calls the public CollectorCrypt APIs directly (`gacha.collectorcrypt.com/api`, `api.collectorcrypt.com`), with no MetaMask proxy and no API key, plus local award/sale reconciliation.                                                                                                                                                                                                          | Production proxy/API-key attribution and server-side NFT cache freshness need the respective service owners. A client cache reset cannot bypass the API's server cache.                                                                              |
+| Reveal                 | Hand-built Reanimated, Gesture Handler and `react-native-svg` scene using the existing libraries. The cut gesture drives the animation progress and the card's rarity selects the light, particles and haptics, all on the UI thread. Reduced motion is the only fallback.                                                                                                                             | The ADR proposes one reusable Rive animation and leaves a static fallback for slower devices open. No Rive asset, performance budget or slow-device fallback exists yet; decide with design before V1.                                               |
 
-## Validation
+The controller implementation stays in this module, with its initializer under `app/core/Engine/controllers/gacha-controller/`, following the existing feature-controller pattern. The current messenger delegates only Snap requests; account selection and feature visibility are read by UI selectors. The ADR's controller-level account and feature-flag access is not wired yet.
 
-- Unit tests cover the controller, messenger, initializer, feature flag,
-  navigation registration and homepage integration.
-- Component-view tests cover the homepage entry points, empty tabs and back
-  navigation using real Redux state and navigation.
+Gacha uses the Engine's standard debounced controller persistence (200 ms). This prototype accepts the short window between a state update and its disk write; transaction submission does not wait for an explicit flush. Once saved, an uncertain payment stays recoverable regardless of its age.
+
+Card refresh reconciles both NFT sources and retains known cards when metadata is temporarily missing. Pull to refresh explicitly requests an NFT API cache bypass; ordinary synchronization also requests it after a local purchase or sale.
+
+## Tests
+
+Follow the repository's `mms-mobile-testing` skill: screen and navigation behavior belongs in component-view tests with real Redux state and registered routes; purchase and recovery transitions belong in integration tests with real controller/provider/services and mocked I/O. Keep unit tests for pure helpers, image/animation contracts and the narrowly isolated Quick Buy callback contract. No Appium suite is needed to cover those boundaries.
+
+Run Gacha component-view tests with `yarn jest -c jest.config.view.js app/components/UI/Gacha --runInBand --coverage=false --watchman=false` and controller integration tests with `yarn jest -c jest.config.integration.js GachaController.integration --runInBand --coverage=false --watchman=false`. Native image rendering, haptic synchronization and the iOS lifecycle changes still require device validation; Jest does not certify those behaviors.
+
+## Onboarding
+
+`GachaController.hasCompletedOnboarding` is a persisted, wallet-wide preference, independent of the selected account and provider data. It defaults to false, including for existing installations. Until it is completed, Gacha exposes only the onboarding route. The homepage title, empty-state action and card tiles all enter that route.
+
+The homepage section's visibility depends only on the Gacha feature flag. It remains visible when the selected account group has no Solana account; purchases and funding still require a compatible account.
+
+`views/GachaOnboarding` presents three steps in one screen: collecting and illustrative odds, buyback examples, then the selected Solana account's live USDC balance. The dark theme and lime accents follow the reference design. The illustration uses the red Pokémon Astral 2500 pack. Header, progress and footer remain visible; the content scrolls on smaller screens. Example odds, rates and offer windows are not live quotes: each pack/card supplies its actual terms.
+
+Fund opens the existing Solana USDC Quick Buy sheet above the last step. Dismissing it or settling a trade never completes onboarding; settlement refreshes the balance. Only OK calls `completeOnboarding()`, replacing onboarding with Packs and removing it from navigation history. Closing returns to the original screen without changing the preference. Once completed, homepage card tiles retain their detail → Your cards → homepage back path, while the title opens Packs. A wallet reset also resets onboarding.
+
+## Pack artwork
+
+Mobile stores only the finished WebP exports in [assets/pack-artwork](./assets/pack-artwork), all at the same level: `<slug>.webp` for full resolution and `<slug>-list.webp` for the 384 × 768 list thumbnail. The catalogue covers 30 Collector Crypt packs and the provider-independent Origin default. Purchase confirmation and reveal use the full-size images; the two-column pack list uses thumbnails.
+
+Source illustrations, prompts and export tools are not in this repository and are not published yet. Until they are, the committed WebPs are the reference. To add or replace a pack, export a 1024 × 2048 `<slug>.webp` and a 384 × 768 `<slug>-list.webp` into `assets/pack-artwork`, then register both in `controllers/GachaPackCatalog.ts`. Do not add authoring files or dependencies here. Before production, publish the artwork source under the MetaMask or Consensys organization, or document its export contract here, so the assets can be regenerated and audited.
+
+[controllers/GachaPackCatalog.ts](./controllers/GachaPackCatalog.ts) owns the shared visual identities, display names and provider-code associations. An equivalent Pokémon 50 offer from another provider maps to the existing `pokemon-50-spark` identity and reuses the same images. This is presentation configuration, not persisted controller state, and providers have no knowledge of the chosen artwork. Unknown providers or codes show Origin while preserving the API name. The printed pouch color follows the artwork catalogue's price band; reveal lighting follows the actual card's rarity through `PackReveal.constants.ts`. Sharing artwork never replaces live prices, availability, odds or purchase payloads.
+
+Confirmation fits its content up to the screen's safe-area limit. The title and Buy and open button stay fixed; the illustration, price and rarity odds scroll with native momentum and bounce only when they exceed the available height.
+
+The pack grid uses FlashList with stable keys and recycled cells. Tiles reserve equal image/title/price/button slots and show only the artwork, name, USDC icon and amount, and Open button. Packs remain accessible with insufficient funds; their confirmation offers Fund and open. Keep the tile's intrinsic height: vertical `flex-1` inside a virtualized row can collapse its measured height and let adjacent rows overlap. Filter changes reset the scroll position without remounting the list; thumbnails use the image memory/disk cache.
+
+## Funding
+
+The header balance opens the existing Quick Buy sheet in buy-only mode, with Solana USDC as its destination and the current Gacha account as recipient. Fund and open authorizes one specific pack purchase after funding. `providers/collector-crypt/hooks/usePackFunding.ts` keeps this temporary intent separate from persisted pack operations.
+
+The confirmation button and Quick Buy use only the missing USDC, rounded up to a whole unit, without a buffer. Both use the same calculation in `providers/collector-crypt/utils/packs.ts`. For a shortfall of 20.1 USDC, the button shows `Fund 21 USDC and open` and Quick Buy receives 21 USD. Quick Buy accepts an editable source-spend estimate, not an exact destination amount. Quick Buy converts that USD estimate into the user's display currency and rounds that displayed input up as well. It never treats a sheet dismissal or source-chain confirmation as a completed bridge. Its transaction tracker delivers completion/failure after actual bridge settlement, or confirmed same-chain Solana swap, even after the sheet closes.
+
+After completion, Gacha force-refreshes the intended account's balance for at most five seconds. It generates the authorized pack only once the actual USDC balance covers its price, then enters the normal purchase/reveal flow without another confirmation. A stale balance or failure ends automatic opening and leaves the funds in the account. The user can cancel automatic opening while waiting; leaving Gacha, switching accounts, or restarting the app also revokes it. Submitted funding still completes and remains in Activity. Other pack purchases are temporarily disabled while this intent is active. Funding through the balance pill never purchases a pack.
+
+## Pack reveal
+
+`components/PackReveal` is a provider-independent presentation: a full-resolution pouch floats above an ambient background, a horizontal gesture cuts its seal, then the top strip detaches and the card emerges. Reanimated and Gesture Handler animate on the UI thread; the same pack image is clipped into two regions, with no additional artwork or animation library. The result's actual rarity chooses the light, particles and haptic profile. Missing rarity uses the neutral common profile. Haptics use the shared MetaMask toolkit and respect its user preference and kill switch.
+
+The hint sits above the pouch. A travelling diffuse light indicates the seam; a persistent luminous cut and its tip follow the finger. Cutting has 32 progress steps, with rigid impacts at least 35 ms apart while advancing. The 6.8-second opening brings a foil reflection toward the seam, builds tension and separates the seal. Rarity-colored light and rays expand behind the continuously descending pouch before the card appears; a brief narrow glint at the seam provides the white highlight without covering the scene. The card emerges in perspective with its projected slab edge, straightens and receives a final reflection clipped to its surface. At rest its entrance rotation returns exactly to zero to preserve image sharpness. Card information and actions appear once it settles. `PackReveal` passes the same UI-thread progress value to its card content through a render function, without per-frame React updates or remounting the preloaded image. Reduced motion skips the light and choreography.
+
+`PackReveal.constants.ts` holds the timings and rarity profiles: Common/Uncommon/Rare/Epic use 18/24/32/40 sparks and 8/12/18/26 crackle pulses. Epic clusters use 60–110 ms spacing. Pulse offsets are in milliseconds so lengthening the visual suspense does not stretch the tactile rhythm. Pulse delivery follows the UI animation rather than independent timers; stale, backgrounded or missed beats are skipped, never replayed as a backlog. Native impact feedback is best effort: it approximates crackling through the existing toolkit, without a custom Core Haptics envelope or a new native dependency. Validate the sensation and synchronization on physical devices when tuning these profiles.
+
+`views/GachaReveal` keeps transaction progress and recovery separate from this presentation. The interactive cut is offered after the provider returns an opened operation and the card image or fallback is ready. Original card images preload behind the pack; an eight-second image timeout keeps a slow image server from blocking an already purchased card. The animation pauses in the background, supports reduced motion and has an accessible Reveal card alternative. Footer space and card metadata space are reserved before revealing to avoid layout jumps. The final actions sell and buy the same pack, or keep the card and buy the same pack. Closing returns to Packs. No transaction is triggered by the cutting gesture or animation callback.
+
+### Local Dev tab
+
+Set `MM_GACHA_REVEAL_DEMO="true"` in the ignored `.js.env`, then restart Metro to apply the build-time environment variable. The existing local switch now exposes a **Dev** tab beside Packs and Your cards. It contains **Demo pack** at 0 USDC and **Reset onboarding**, which clears only the onboarding preference and immediately reopens the three steps. Testing tools never appear in the commercial pack list. Release builds ignore the flag, including direct attempts to open the Dev tab or demo route.
+
+The demo reuses the Pokémon 25 artwork and reads the first card already stored for the selected account. It changes only a local copy's rarity; the collection, balance and operations are never modified, and no purchase/sale method runs. Choose Common, Uncommon, Rare or Epic to restart the animation with that profile. Both demo footer buttons replay it, including the simulated sell action. Closing returns to Dev. If the account has no cached card, the preview explains how to select one instead of purchasing anything. Remove the environment flag to hide the tools after visual validation.

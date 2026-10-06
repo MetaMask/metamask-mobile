@@ -408,7 +408,7 @@
     "@metamask/snaps-sdk": "^12.1.0",
     "@metamask/snaps-utils": "^12.6.0",
     "@metamask/social-controllers": "^3.4.0",
-    "@metamask/solana-wallet-snap": "^5.0.1",
+    "@metamask/solana-wallet-snap": "file:../internal-snaps/packages/solana-wallet-snap",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/stellar-wallet-snap": "^1.0.0",

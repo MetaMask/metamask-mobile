@@ -989,7 +989,10 @@ export type RootStackParamList = {
 
   // Gacha routes — `Gacha` is a nested stack navigator.
   Gacha: NavigatorScreenParams<GachaStackParamList> | undefined;
+  GachaOnboarding: GachaStackParamList['GachaOnboarding'];
   GachaHome: GachaStackParamList['GachaHome'];
+  GachaReveal: GachaStackParamList['GachaReveal'];
+  GachaCard: GachaStackParamList['GachaCard'];
 
   // Social Leaderboard routes
   SocialV0View:

@@ -2,6 +2,7 @@ import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { strings } from '../../../../locales/i18n';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
@@ -207,12 +208,37 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 jest.mock('../../UI/Gacha', () => ({
   selectGachaEnabledFlag: jest.fn(() => false),
+  selectGachaHasCompletedOnboarding: jest.fn(() => false),
+  useCollectorCryptCards: jest.fn(() => ({
+    account: undefined,
+    cards: [],
+    isLoading: false,
+    isSyncing: false,
+    error: undefined,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  })),
+  CardTile: () => null,
 }));
 
-const mockGachaSection = (enabled: boolean) => {
-  jest
-    .requireMock('../../UI/Gacha')
-    .selectGachaEnabledFlag.mockReturnValue(enabled);
+const MOCK_GACHA_SOLANA_ACCOUNT = {
+  id: 'gacha-solana-account',
+  address: 'SoLAddress1111111111111111111111111111111111',
+};
+
+const mockGachaSection = (
+  enabled: boolean,
+  { hasSolanaAccount = true }: { hasSolanaAccount?: boolean } = {},
+) => {
+  const gachaMock = jest.requireMock('../../UI/Gacha');
+  gachaMock.selectGachaEnabledFlag.mockReturnValue(enabled);
+  gachaMock.useCollectorCryptCards.mockReturnValue({
+    account: hasSolanaAccount ? MOCK_GACHA_SOLANA_ACCOUNT : undefined,
+    cards: [],
+    isLoading: false,
+    isSyncing: false,
+    error: undefined,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  });
 };
 
 jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
@@ -841,12 +867,20 @@ describe('Homepage', () => {
       });
     });
 
-    it('renders the Gacha section when its flag is enabled without a Solana account', () => {
+    it('renders the Gacha section when its flag is enabled with a Solana account', () => {
       mockGachaSection(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      expect(screen.getByText('Gacha')).toBeOnTheScreen();
+      expect(screen.getByText(strings('gacha.title'))).toBeOnTheScreen();
+    });
+
+    it('shows the Gacha section when the selected account group has no Solana account', () => {
+      mockGachaSection(true, { hasSolanaAccount: false });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(screen.getByText(strings('gacha.title'))).toBeOnTheScreen();
     });
 
     it('leaves Gacha out of the sections when its flag is disabled', () => {
@@ -856,7 +890,7 @@ describe('Homepage', () => {
 
       expect(callBySectionName('gacha')).toBeUndefined();
       expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
-      expect(screen.queryByText('Gacha')).not.toBeOnTheScreen();
+      expect(screen.queryByText(strings('gacha.title'))).not.toBeOnTheScreen();
     });
   });
 

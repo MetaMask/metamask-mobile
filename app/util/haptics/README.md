@@ -15,29 +15,47 @@ Centralized haptic feedback module for MetaMask Mobile.
 
 ## Catalog
 
-| Moment               | Function                            | Underlying API               | Style  | Paired UI                         | Notes                                           |
-| -------------------- | ----------------------------------- | ---------------------------- | ------ | --------------------------------- | ----------------------------------------------- |
-| Success notification | `playSuccessNotification()`         | `notificationAsync(Success)` | —      | Toast / completion banner         | Non-negotiable #1                               |
-| Error notification   | `playErrorNotification()`           | `notificationAsync(Error)`   | —      | Error toast / failure banner      | Non-negotiable #2. System failures only.        |
-| Warning notification | `playWarningNotification()`         | `notificationAsync(Warning)` | —      | Compliance / restriction modal    |                                                 |
-| Slider tick          | `playImpact('sliderTick')`          | `impactAsync(Light)`         | Light  | Slider step animation             |                                                 |
-| Edge gesture engage  | `playImpact('edgeGestureEngage')`   | `impactAsync(Light)`         | Light  | Browser back/forward edge swipe   | Touch-down in edge zone; not slider ticks       |
-| Page navigation      | `playImpact('pageNavigation')`      | `impactAsync(Medium)`        | Medium | Browser swipe back/forward commit | Distinct from tab bar `tabChange`               |
-| Slider grip          | `playImpact('sliderGrip')`          | `impactAsync(Medium)`        | Medium | Slider thumb press / release      | Distinct from tick / threshold crossings        |
-| Tab change           | `playImpact('tabChange')`           | `impactAsync(Medium)`        | Medium | Tab transition                    |                                                 |
-| Primary CTA          | `playImpact('primaryCta')`          | `impactAsync(Medium)`        | Medium | Buy / sheet Save / primary commit | Distinct from tab bar; tune independently       |
-| Pull refresh engage  | `playImpact('pullToRefreshEngage')` | `impactAsync(Light)`         | Light  | Pull stretch past early threshold | Lighter than commit; pairs with `pullToRefresh` |
-| Pull to refresh      | `playImpact('pullToRefresh')`       | `impactAsync(Medium)`        | Medium | Pull-to-refresh reload commit     |                                                 |
-| Chart crosshair      | `playImpact('chartCrosshair')`      | `impactAsync(Light)`         | Light  | OHLC data change                  |                                                 |
-| Selection            | `playSelection()`                   | `selectionAsync()`           | —      | Discrete value picker             |                                                 |
+| Moment                | Function                            | Underlying API               | Style  | Paired UI                         | Notes                                           |
+| --------------------- | ----------------------------------- | ---------------------------- | ------ | --------------------------------- | ----------------------------------------------- |
+| Success notification  | `playSuccessNotification()`         | `notificationAsync(Success)` | —      | Toast / completion banner         | Non-negotiable #1                               |
+| Error notification    | `playErrorNotification()`           | `notificationAsync(Error)`   | —      | Error toast / failure banner      | Non-negotiable #2. System failures only.        |
+| Warning notification  | `playWarningNotification()`         | `notificationAsync(Warning)` | —      | Compliance / restriction modal    |                                                 |
+| Slider tick           | `playImpact('sliderTick')`          | `impactAsync(Light)`         | Light  | Slider step animation             |                                                 |
+| Edge gesture engage   | `playImpact('edgeGestureEngage')`   | `impactAsync(Light)`         | Light  | Browser back/forward edge swipe   | Touch-down in edge zone; not slider ticks       |
+| Page navigation       | `playImpact('pageNavigation')`      | `impactAsync(Medium)`        | Medium | Browser swipe back/forward commit | Distinct from tab bar `tabChange`               |
+| Slider grip           | `playImpact('sliderGrip')`          | `impactAsync(Medium)`        | Medium | Slider thumb press / release      | Distinct from tick / threshold crossings        |
+| Tab change            | `playImpact('tabChange')`           | `impactAsync(Medium)`        | Medium | Tab transition                    |                                                 |
+| Primary CTA           | `playImpact('primaryCta')`          | `impactAsync(Medium)`        | Medium | Buy / sheet Save / primary commit | Distinct from tab bar; tune independently       |
+| Pull refresh engage   | `playImpact('pullToRefreshEngage')` | `impactAsync(Light)`         | Light  | Pull stretch past early threshold | Lighter than commit; pairs with `pullToRefresh` |
+| Pull to refresh       | `playImpact('pullToRefresh')`       | `impactAsync(Medium)`        | Medium | Pull-to-refresh reload commit     |                                                 |
+| Chart crosshair       | `playImpact('chartCrosshair')`      | `impactAsync(Light)`         | Light  | OHLC data change                  |                                                 |
+| Selection             | `playSelection()`                   | `selectionAsync()`           | —      | Discrete value picker             |                                                 |
+| Gacha cut             | `playImpact('gachaCut')`            | `impactAsync(Rigid)`         | Rigid  | Discrete pack cutting progress    | Gesture thresholds, never every frame           |
+| Gacha open            | `playImpact('gachaOpen')`           | `impactAsync(Heavy)`         | Heavy  | Pack seal separation              | Presentation of an already completed purchase   |
+| Gacha common reveal   | `playImpact('gachaRevealCommon')`   | `impactAsync(Soft)`          | Soft   | Common opening burst              | Rarity presentation, not a transaction outcome  |
+| Gacha uncommon reveal | `playImpact('gachaRevealUncommon')` | `impactAsync(Medium)`        | Medium | Uncommon opening burst            | Rarity presentation, not a transaction outcome  |
+| Gacha rare reveal     | `playImpact('gachaRevealRare')`     | `impactAsync(Rigid)`         | Rigid  | Rare opening burst                | Rarity presentation, not a transaction outcome  |
+| Gacha epic reveal     | `playImpact('gachaRevealEpic')`     | `impactAsync(Heavy)`         | Heavy  | Densest epic opening burst        | Rarity presentation, not a transaction outcome  |
+
+### Gacha prototype moments
+
+The six Gacha moments serve only the Gacha prototype and leave other moments
+unchanged. Each reveal rarity has its own style, rising from Soft to Medium,
+Rigid and Heavy. The reveal animation adds pulse density on top. On Android,
+Expo plays Soft like Light and Rigid like Medium.
+
+Design and platform sign-off (step 5) and real-device sync QA (step 6) are
+still pending for these moments. Tuning notes live in the
+[Gacha README](../../components/UI/Gacha/README.md).
 
 ### Adding a new moment
 
 1. Add the value to `catalog.ts` (`ImpactMoment` or `NotificationMoment`) with JSDoc.
 2. Map the underlying style in `vendorPlayback.ts` (`IMPACT_STYLE_MAP`).
 3. Add a row to this README table.
-4. Get design + platform sign-off.
-5. QA validates sync on both iOS and Android real devices under load.
+4. Add its label and ordered entry to `HapticsDeveloperOptionsSection.tsx` and the corresponding locale string.
+5. Get design + platform sign-off.
+6. QA validates sync on both iOS and Android real devices under load.
 
 ## Usage
 

@@ -8,6 +8,7 @@ import {
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   clearSettledQuickBuyTrades,
+  detachQuickBuyTradeStateCallback,
   getTrackedQuickBuyTradeIds,
   isQuickBuyTransaction,
   trackQuickBuyTrade,
@@ -136,6 +137,67 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(result).toBe(false);
     expect(showToast).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
+  });
+
+  it.each([StatusTypes.COMPLETE, StatusTypes.FAILED])(
+    'delivers one terminal host event for the selected trade on %s',
+    (status) => {
+      const onTradeStateChange = jest.fn();
+      const unrelatedCallback = jest.fn();
+      trackQuickBuyTrade('funding-1', { ...buyTrade, onTradeStateChange });
+      trackQuickBuyTrade('unrelated', {
+        ...buyTrade,
+        onTradeStateChange: unrelatedCallback,
+      });
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.PENDING),
+      );
+
+      resolveQuickBuyTerminalToast('funding-1', jest.fn(), theme);
+      expect(onTradeStateChange).not.toHaveBeenCalled();
+      mockGetHistoryItem.mockReturnValue(historyItemWithStatus(status));
+      resolveQuickBuyTerminalToast('funding-1', undefined, theme);
+      resolveQuickBuyTerminalToast('funding-1', undefined, theme);
+
+      expect(onTradeStateChange).toHaveBeenCalledTimes(1);
+      expect(onTradeStateChange).toHaveBeenCalledWith({
+        status: status === StatusTypes.COMPLETE ? 'complete' : 'failed',
+        transactionId: 'funding-1',
+      });
+      expect(unrelatedCallback).not.toHaveBeenCalled();
+    },
+  );
+
+  it('delivers completion for a confirmed same-chain Solana trade', () => {
+    const onTradeStateChange = jest.fn();
+    trackQuickBuyTrade('solana-1', { ...solanaTrade, onTradeStateChange });
+    mockGetHistoryItem.mockReturnValue(undefined);
+    setMultichainTransaction('sig-1', KeyringTransactionStatus.Confirmed);
+
+    resolveQuickBuyTerminalToast('solana-1', undefined, theme);
+
+    expect(onTradeStateChange).toHaveBeenCalledWith({
+      status: 'complete',
+      transactionId: 'solana-1',
+    });
+    expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+  });
+
+  it('still shows settlement after the host abandons its funding intent', () => {
+    const onTradeStateChange = jest.fn();
+    const showToast = jest.fn();
+    trackQuickBuyTrade('funding-1', { ...buyTrade, onTradeStateChange });
+    detachQuickBuyTradeStateCallback('funding-1');
+    mockGetHistoryItem.mockReturnValue(
+      historyItemWithStatus(StatusTypes.COMPLETE),
+    );
+
+    resolveQuickBuyTerminalToast('funding-1', showToast, theme);
+
+    expect(onTradeStateChange).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
 
   it('returns false without reading history when the id is not tracked', () => {

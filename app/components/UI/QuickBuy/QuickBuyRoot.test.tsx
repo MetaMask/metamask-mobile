@@ -26,11 +26,11 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 
 const mockTrack = jest.fn();
 
-jest.mock('../../Views/SocialLeaderboard/analytics', () => {
-  const actual = jest.requireActual('../../Views/SocialLeaderboard/analytics');
+jest.mock('./hooks/useQuickBuyEventTracking', () => {
+  const actual = jest.requireActual('./hooks/useQuickBuyEventTracking');
   return {
     ...actual,
-    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+    useQuickBuyEventTracking: () => ({ track: mockTrack }),
   };
 });
 

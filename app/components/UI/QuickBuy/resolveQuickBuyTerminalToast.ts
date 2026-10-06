@@ -11,6 +11,7 @@ import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
   markQuickBuyTradeSettled,
+  notifyQuickBuyTradeState,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
 
@@ -77,13 +78,17 @@ function emitTerminalToast(
   txMetaId: string,
   trade: TrackedQuickBuyTrade,
   outcome: TerminalOutcome,
-  showToast: ToastRef['showToast'],
+  showToast: ToastRef['showToast'] | undefined,
   theme: Theme,
 ): boolean {
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  showToast(
+  notifyQuickBuyTradeState(trade.onTradeStateChange, {
+    status: isComplete ? 'complete' : 'failed',
+    transactionId: txMetaId,
+  });
+  showToast?.(
     buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
       trade,
       theme,
@@ -101,9 +106,8 @@ function emitTerminalToast(
 }
 
 /**
- * Reconciles a single tracked QuickBuy trade against the authoritative
- * lifecycle status and, if the swap has reached a terminal state, surfaces the
- * matching `complete` / `failed` toast (plus haptic) and stops tracking it.
+ * Terminal outcome of a tracked trade, read without settling it, notifying
+ * its host or showing a toast.
  *
  * `BridgeStatusController` is the source of truth for EVM swaps and every
  * cross-chain bridge. Same-chain Solana swaps never reach a terminal status
@@ -111,24 +115,41 @@ function emitTerminalToast(
  * `MultichainTransactionsController`. See `quickBuyTradeTracker` and the bridge
  * team thread on the upstream gap.
  *
+ * @param txMetaId - Tracked trade id.
+ * @returns The outcome, or `undefined` when untracked or still pending.
+ */
+export function getQuickBuyTradeOutcome(
+  txMetaId: string,
+): TerminalOutcome | undefined {
+  const trade = getTrackedQuickBuyTrade(txMetaId);
+  if (!trade) {
+    return undefined;
+  }
+  return (
+    resolveFromBridgeStatus(txMetaId) ??
+    (trade.isNonEvmSwap
+      ? resolveFromMultichain(trade.txSignature ?? txMetaId)
+      : undefined)
+  );
+}
+
+/**
+ * Reconciles a single tracked QuickBuy trade against the authoritative
+ * lifecycle status (see `getQuickBuyTradeOutcome`) and, if the swap has
+ * reached a terminal state, surfaces the matching `complete` / `failed` toast
+ * (plus haptic) and stops tracking it.
+ *
  * @returns `true` when a terminal toast was shown, `false` otherwise (untracked,
  * still pending, or no history yet).
  */
 export function resolveQuickBuyTerminalToast(
   txMetaId: string,
-  showToast: ToastRef['showToast'],
+  showToast: ToastRef['showToast'] | undefined,
   theme: Theme,
 ): boolean {
   const trade = getTrackedQuickBuyTrade(txMetaId);
-  if (!trade) {
-    return false;
-  }
-
-  let outcome = resolveFromBridgeStatus(txMetaId);
-  if (!outcome && trade.isNonEvmSwap) {
-    outcome = resolveFromMultichain(trade.txSignature ?? txMetaId);
-  }
-  if (!outcome) {
+  const outcome = getQuickBuyTradeOutcome(txMetaId);
+  if (!trade || !outcome) {
     return false;
   }
 

@@ -48,6 +48,12 @@ const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
   ImpactMoment.PullToRefresh,
   ImpactMoment.ChartCrosshair,
   ImpactMoment.FollowToggle,
+  ImpactMoment.GachaCut,
+  ImpactMoment.GachaOpen,
+  ImpactMoment.GachaRevealCommon,
+  ImpactMoment.GachaRevealUncommon,
+  ImpactMoment.GachaRevealRare,
+  ImpactMoment.GachaRevealEpic,
 ];
 
 const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
@@ -73,6 +79,18 @@ const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
     'app_settings.developer_options.haptics.impacts.chart_crosshair',
   [ImpactMoment.FollowToggle]:
     'app_settings.developer_options.haptics.impacts.follow_toggle',
+  [ImpactMoment.GachaCut]:
+    'app_settings.developer_options.haptics.impacts.gacha_cut',
+  [ImpactMoment.GachaOpen]:
+    'app_settings.developer_options.haptics.impacts.gacha_open',
+  [ImpactMoment.GachaRevealCommon]:
+    'app_settings.developer_options.haptics.impacts.gacha_reveal_common',
+  [ImpactMoment.GachaRevealUncommon]:
+    'app_settings.developer_options.haptics.impacts.gacha_reveal_uncommon',
+  [ImpactMoment.GachaRevealRare]:
+    'app_settings.developer_options.haptics.impacts.gacha_reveal_rare',
+  [ImpactMoment.GachaRevealEpic]:
+    'app_settings.developer_options.haptics.impacts.gacha_reveal_epic',
 };
 
 const RAW_IMPACT_STYLE_ORDER: readonly ImpactFeedbackStyle[] = [

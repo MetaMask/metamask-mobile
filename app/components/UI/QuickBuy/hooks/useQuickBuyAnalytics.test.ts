@@ -61,8 +61,8 @@ jest.mock('../analytics', () => {
   };
 });
 
-jest.mock('../../../Views/SocialLeaderboard/analytics', () => ({
-  useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+jest.mock('./useQuickBuyEventTracking', () => ({
+  useQuickBuyEventTracking: () => ({ track: mockTrack }),
 }));
 
 jest.mock('../../../../core/Analytics', () => ({
@@ -359,6 +359,28 @@ describe('useQuickBuyAnalytics', () => {
   });
 
   describe('trackTradeSubmitted / trackTradeCompleted', () => {
+    it('attributes Gacha funding without adding a Social trader', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics('', CAIP19, { source: 'gacha' }),
+      );
+
+      act(() => {
+        result.current.trackTradeSubmitted({ caip19: CAIP19 });
+        result.current.trackTradeCompleted({ caip19: CAIP19 });
+      });
+
+      expect(mockTrack).toHaveBeenNthCalledWith(
+        1,
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED,
+        { source: 'gacha', caip19: CAIP19 },
+      );
+      expect(mockTrack).toHaveBeenNthCalledWith(
+        2,
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
+        { source: 'gacha', caip19: CAIP19 },
+      );
+    });
+
     it('fires TRADE_SUBMITTED with provided props', () => {
       const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
 

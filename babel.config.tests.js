@@ -34,6 +34,8 @@ const newOverrides = [
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
+      'app/components/UI/Gacha/selectors/featureFlags/index.ts',
+      'app/components/UI/Gacha/selectors/featureFlags/index.test.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',

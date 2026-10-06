@@ -81,13 +81,11 @@ jest.mock('../utils/streamQuickBuyQuotes', () => ({
 }));
 
 const mockTrack = jest.fn();
-jest.mock('../../../Views/SocialLeaderboard/analytics', () => {
-  const actual = jest.requireActual(
-    '../../../Views/SocialLeaderboard/analytics',
-  );
+jest.mock('./useQuickBuyEventTracking', () => {
+  const actual = jest.requireActual('./useQuickBuyEventTracking');
   return {
     ...actual,
-    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+    useQuickBuyEventTracking: () => ({ track: mockTrack }),
   };
 });
 

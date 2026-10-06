@@ -1223,6 +1223,65 @@ describe('MainNavigator', () => {
       expect(gachaScreen).toBeUndefined();
     });
 
+    // Native gesture recognizers aren't exercised by the Jest navigation stack.
+    it('blocks parent swipes during reveal and restores them on other Gacha screens', () => {
+      mockSelectGachaEnabledFlag.mockReturnValue(true);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const gachaScreen = container.root.find(
+        (child) =>
+          child.type?.toString?.() === 'Screen' &&
+          child.props.name === Routes.GACHA.ROOT,
+      );
+      const route = {
+        key: Routes.GACHA.ROOT,
+        name: Routes.GACHA.ROOT,
+        state: {
+          index: 1,
+          routes: [
+            { key: Routes.GACHA.HOME, name: Routes.GACHA.HOME },
+            { key: Routes.GACHA.REVEAL, name: Routes.GACHA.REVEAL },
+          ],
+        },
+      };
+
+      const revealOptions = gachaScreen.props.options({ route });
+      const homeOptions = gachaScreen.props.options({
+        route: { ...route, state: { ...route.state, index: 0 } },
+      });
+
+      expect(revealOptions).toEqual({
+        ...slideFromRightNativeOptions,
+        gestureEnabled: false,
+        fullScreenGestureEnabled: false,
+      });
+      expect(homeOptions).toEqual(slideFromRightNativeOptions);
+    });
+
+    it('blocks parent swipes when reveal is the initial nested destination', () => {
+      mockSelectGachaEnabledFlag.mockReturnValue(true);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const gachaScreen = container.root.find(
+        (child) =>
+          child.type?.toString?.() === 'Screen' &&
+          child.props.name === Routes.GACHA.ROOT,
+      );
+
+      const options = gachaScreen.props.options({
+        route: {
+          key: Routes.GACHA.ROOT,
+          name: Routes.GACHA.ROOT,
+          params: { screen: Routes.GACHA.REVEAL },
+        },
+      });
+
+      expect(options.gestureEnabled).toBe(false);
+      expect(options.fullScreenGestureEnabled).toBe(false);
+    });
+
     it('includes Market Insights view when feature flag is enabled', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
 

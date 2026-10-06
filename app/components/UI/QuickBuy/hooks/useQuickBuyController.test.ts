@@ -4,6 +4,7 @@ import { runQuickBuyControllerCases } from './runQuickBuyControllerCases';
 import {
   positionToQuickBuyTarget,
   type QuickBuyAnalyticsContext,
+  type QuickBuyFundingOptions,
   type QuickBuyTarget,
 } from '../types';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
@@ -130,6 +131,10 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
     payload: v,
   })),
   setDestToken: jest.fn((v) => ({ type: 'bridge/setDestToken', payload: v })),
+  setDestAddress: jest.fn((v) => ({
+    type: 'bridge/setDestAddress',
+    payload: v,
+  })),
   resetBridgeState: jest.fn(() => ({ type: 'bridge/resetBridgeState' })),
   setIsSubmittingTx: jest.fn((v) => ({
     type: 'bridge/setIsSubmittingTx',
@@ -197,6 +202,8 @@ jest.mock('../../../../component-library/components/Toast', () => {
 });
 
 jest.mock('../quickBuyTradeTracker', () => ({
+  notifyQuickBuyTradeState: jest.requireActual('../quickBuyTradeTracker')
+    .notifyQuickBuyTradeState,
   trackQuickBuyTrade: jest.fn(),
   getTrackedQuickBuyTrade: jest.fn(),
   getTrackedQuickBuyTradeIds: jest.fn(() => []),
@@ -210,6 +217,7 @@ jest.mock('../quickBuyToastOptions', () => ({
 }));
 
 jest.mock('../resolveQuickBuyTerminalToast', () => ({
+  getQuickBuyTradeOutcome: jest.fn(),
   resolveQuickBuyTerminalToast: jest.fn(),
 }));
 
@@ -219,9 +227,9 @@ jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
-jest.mock('../../../Views/SocialLeaderboard/analytics', () => ({
-  ...jest.requireActual('../../../Views/SocialLeaderboard/analytics'),
-  useSocialLeaderboardAnalytics: jest.fn(() => ({ track: jest.fn() })),
+jest.mock('./useQuickBuyEventTracking', () => ({
+  ...jest.requireActual('./useQuickBuyEventTracking'),
+  useQuickBuyEventTracking: jest.fn(() => ({ track: jest.fn() })),
 }));
 
 const defaultTarget = positionToQuickBuyTarget({
@@ -259,6 +267,7 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
+    fundingOptions?: QuickBuyFundingOptions,
   ) => {
     const utils = renderHook(
       () =>
@@ -267,6 +276,7 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext,
           initialTradeMode,
+          fundingOptions,
         ),
       { initialProps },
     );

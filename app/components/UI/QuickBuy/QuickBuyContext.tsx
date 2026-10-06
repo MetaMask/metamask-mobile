@@ -12,6 +12,7 @@ import {
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
+  QuickBuyFundingOptions,
   QuickBuyScreen,
   QuickBuyTarget,
   QuickBuyTradeMode,
@@ -40,7 +41,7 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
 
 export const QuickBuyContext = createContext<QuickBuyContextValue | null>(null);
 
-interface QuickBuyProviderProps {
+interface QuickBuyProviderProps extends QuickBuyFundingOptions {
   target: QuickBuyTarget;
   onClose: () => void;
   features: QuickBuyFeatures;
@@ -56,6 +57,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   onClose,
   features,
   initialTradeMode,
+  initialAmountUsd,
+  destinationAddress,
+  onTradeStateChange,
   analyticsContext,
   activeScreen,
   setActiveScreen,
@@ -66,6 +70,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     analyticsContext,
     initialTradeMode,
+    { initialAmountUsd, destinationAddress, onTradeStateChange },
   );
   // Open the keypad by default so the sheet matches the taller Figma layout
   // (footer + keypad visible together).

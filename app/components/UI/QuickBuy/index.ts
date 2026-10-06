@@ -7,6 +7,8 @@ export type { TraderPositionQuickBuyProps } from './TraderPositionQuickBuy';
 export type {
   QuickBuyTarget,
   QuickBuyFeatures,
+  QuickBuyFundingOptions,
+  QuickBuyTradeState,
   QuickBuyTradeMode,
   QuickBuyScreen,
   QuickBuyAnalyticsContext,

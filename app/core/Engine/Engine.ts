@@ -72,7 +72,7 @@ import { captureException } from '@sentry/react-native';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../../core/redux/slices/inpageProvider';
+} from '../redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import {

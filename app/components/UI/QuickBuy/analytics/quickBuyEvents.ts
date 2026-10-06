@@ -77,7 +77,9 @@ export type QuickBuySheetSource =
   | 'explore_now'
   | 'explore_rwas'
   | 'explore_trending'
-  | 'explore_stocks';
+  | 'explore_stocks'
+  // USDC funding of a Gacha pack purchase (`Gacha/components/FundingSheet`).
+  | 'gacha';
 
 /**
  * How the user reached the follow-trading token (trade) screen before opening

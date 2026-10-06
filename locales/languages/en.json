@@ -3373,13 +3373,179 @@
   },
   "gacha": {
     "title": "Gacha",
+    "usdc": "USDC",
+    "usdc_amount": "{{amount}} USDC",
+    "no_solana_account": "Select an account with a Solana address to open packs.",
     "tabs": {
       "packs": "Packs",
-      "cards": "My cards"
+      "cards": "Your cards",
+      "dev": "Dev"
+    },
+    "rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "epic": "Epic"
+    },
+    "packs": {
+      "all_collections": "All",
+      "open": "Open",
+      "empty": "No packs are available right now. Check back soon.",
+      "error": "We couldn't load the packs.",
+      "refresh_error": "We couldn't refresh the packs."
+    },
+    "purchase": {
+      "price": "Price",
+      "odds": "Odds",
+      "confirm": "Buy and open",
+      "fund_and_open": "Fund {{amount}} USDC and open",
+      "generating": "Preparing your pack"
+    },
+    "funding": {
+      "add_funds": "Add Solana USDC",
+      "funding": "Funding your Solana account",
+      "checking": "Checking your USDC balance",
+      "purchasing": "Preparing your pack",
+      "auto_open": "{{name}} will open automatically once funding is complete.",
+      "cancel_opening": "Cancel automatic opening",
+      "auto_open_cancelled": "We canceled automatic opening. Your funding still goes through, so you can open the pack once it arrives.",
+      "dismiss": "Dismiss",
+      "failed": "Funding didn't complete. Your pack wasn't purchased.",
+      "balance_not_ready": "Funding completed, but we couldn't verify enough USDC yet. Your pack wasn't purchased. You can open it once your balance updates."
+    },
+    "reveal": {
+      "signing": "Signing the payment",
+      "paying": "Confirming the payment",
+      "opening": "Opening your pack",
+      "pending_hint": "This usually takes a few seconds.",
+      "buyback_offer": "Instant buyback offer",
+      "buyback_unavailable": "No buyback offer for this card.",
+      "buyback_checking": "Checking the buyback offer",
+      "buyback_error": "We couldn't check the buyback offer. Try again.",
+      "sell_and_open_amount": "Sell for {{amount}} USDC and buy again",
+      "buy_again": "Buy another · {{amount}} USDC",
+      "cut_hint": "Swipe across the seal to open",
+      "reveal_card": "Reveal card",
+      "preparing_card": "Preparing your card...",
+      "selling": "Selling",
+      "close": "Close"
+    },
+    "demo": {
+      "title": "Demo pack",
+      "sell_and_open": "Simulate selling and open again",
+      "replay": "Replay demo pack",
+      "no_card": "Choose an account with a card in Your cards to preview the reveal."
+    },
+    "card": {
+      "title": "Card",
+      "front_label": "{{name}}, front",
+      "back_label": "{{name}}, back",
+      "drag_hint": "Drag left or right to rotate, or tap to turn over",
+      "value": "Value",
+      "asking_price": "Asking price",
+      "insured_value": "Insured value",
+      "details": "Details",
+      "owner": "Owner",
+      "year": "Year",
+      "grade": "Grade",
+      "grading_company": "Grading company",
+      "grading_id": "Grading ID",
+      "metadata": "Metadata",
+      "collection": "Collection",
+      "set": "Set",
+      "rarity": "Rarity",
+      "view_on_collector_crypt": "View on Collector Crypt",
+      "sell_for": "Sell for {{amount}} USDC",
+      "not_found": "This card is no longer in your wallet.",
+      "check_sale_status": "Check sale status",
+      "sale_status_error": "We couldn't check the sale status. Try again."
+    },
+    "cards": {
+      "total_value": "Total value",
+      "all_cards": "Cards ({{count}})",
+      "sell_available": "Sell available",
+      "no_sell_available": "No cards available to sell",
+      "empty": "You don't have any cards yet. Open a pack to get your first one.",
+      "open_pack": "Open a pack",
+      "selling_tag": "Selling",
+      "sync_error": "We couldn't refresh your cards.",
+      "retry": "Try again"
+    },
+    "pending": {
+      "processing_title": "A pack is being opened",
+      "processing_description": "We'll show your card as soon as it's ready.",
+      "unrevealed_title": "You have a card to reveal",
+      "unrevealed_description": "We opened your pack. Your card is ready to reveal.",
+      "attention_title": "A pack needs your attention",
+      "attention_description": "See what happened and what you can do next.",
+      "view": "View"
+    },
+    "toast": {
+      "sold": "Sold for {{amount}} USDC",
+      "sell_failed": "The sale didn't go through",
+      "open_failed": "We couldn't open your pack"
+    },
+    "errors": {
+      "title": "Something went wrong",
+      "retry": "Try again",
+      "start_over": "Start over",
+      "network_error": "Connection problem. Check your network and try again.",
+      "rate_limited": "Too many requests. Wait a moment and try again.",
+      "machine_unavailable": "This pack isn't available right now. Try another pack.",
+      "invalid_response": "Collector Crypt returned an unexpected response.",
+      "signing_rejected": "MetaMask couldn't sign the transaction. Unlock your wallet and try again.",
+      "snap_unsupported": "Your Solana wallet needs an update to open packs.",
+      "submit_failed": "We couldn't confirm the transaction. Try again to check its status.",
+      "pack_expired": "This pack expired before the payment went through. You weren't charged.",
+      "pack_failed": "This pack couldn't be opened. Collector Crypt has refunded the payment.",
+      "open_pending": "Your pack is still being processed. Try again to check its status.",
+      "buyback_unavailable": "This card can't be sold back anymore.",
+      "offer_changed": "The buyback offer changed. Check the new amount and try again.",
+      "sale_pending": "The sale was sent but isn't confirmed yet. We'll update your cards shortly.",
+      "not_found": "We couldn't find this item.",
+      "unknown": "An unexpected error occurred."
     },
     "home_section": {
-      "empty": "Nothing to show yet.",
+      "empty_description": "Open a pack and collect graded trading cards.",
       "open_pack": "Open a pack"
+    },
+    "onboarding": {
+      "what_this_is": "What this is",
+      "how_buyback_works": "How the buyback works",
+      "before_you_start": "Before you start",
+      "step": "Step {{step}} of {{total}}",
+      "graded": "PSA-graded",
+      "clear_odds": "Clear odds",
+      "collectibles": "MetaMask collectibles",
+      "collect_title": "Collect PSA-graded cards",
+      "collect_description": "Open a pack. Keep your card or sell it back.",
+      "example_odds": "Example odds",
+      "odds_disclaimer": "Demo odds for this prototype. Check each pack's odds before buying. A card's value can be lower than the pack price.",
+      "buyback_title": "Keep it or sell it back",
+      "buyback_description": "Collector Crypt can offer to buy your card back after the reveal. The rate and offer window depend on the pack. Funds go to your wallet.",
+      "your_card": "Your PSA-graded card",
+      "example_offer": "Example buyback offer",
+      "example_window": "Example offer window",
+      "hours": "72 hours",
+      "funds_go_to": "Funds go to",
+      "your_wallet": "Your wallet",
+      "published_rates": "Published rates",
+      "published_rates_description": "Review the buyback rate and offer window before you buy a pack.",
+      "your_choice": "Your choice",
+      "your_choice_description": "Keep the card or sell it back after the reveal.",
+      "solana_description": "This runs on your MetaMask Solana account. Anything you buy lands there.",
+      "solana_account": "Your MetaMask Solana account",
+      "solana_account_description": "Your cards and buyback funds stay here.",
+      "balance": "Available on Solana",
+      "empty_balance": "You don't have any USDC yet. Add funds now, or later from your balance in Gacha.",
+      "fund_description": "Packs are paid for in USDC. You can add funds now or from your balance in Gacha later.",
+      "fund": "Fund",
+      "next": "Next",
+      "complete": "OK"
+    },
+    "dev": {
+      "reset_onboarding": "Reset onboarding",
+      "description": "Local development tools. The demo pack never buys or sells a card."
     }
   },
   "predict_next": {
@@ -5297,7 +5463,13 @@
           "pull_to_refresh_engage": "Impact — Pull to refresh (engage)",
           "pull_to_refresh": "Impact — Pull to refresh (release)",
           "chart_crosshair": "Impact — Chart crosshair",
-          "follow_toggle": "Impact — Follow toggle"
+          "follow_toggle": "Impact — Follow toggle",
+          "gacha_cut": "Impact — Gacha cut",
+          "gacha_open": "Impact — Gacha open",
+          "gacha_reveal_common": "Impact — Gacha common reveal",
+          "gacha_reveal_uncommon": "Impact — Gacha uncommon reveal",
+          "gacha_reveal_rare": "Impact — Gacha rare reveal",
+          "gacha_reveal_epic": "Impact — Gacha epic reveal"
         },
         "raw_styles": {
           "light": "Raw impact — Light",

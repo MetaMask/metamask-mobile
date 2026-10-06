@@ -43,6 +43,8 @@ import { isSameAsset, selectDefaultSourceToken } from '../tokenSelection';
 import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
+  QuickBuyFundingOptions,
+  QuickBuyTradeState,
   QuickBuyTarget,
   QuickBuyTradeMode,
 } from '../types';
@@ -76,6 +78,7 @@ import {
   selectIsSlippageUserOverride,
   selectSlippage,
   setDestToken,
+  setDestAddress,
   setIsSubmittingTx,
   setSourceAmount,
   setSourceToken,
@@ -110,8 +113,12 @@ import {
   trackQuickBuyTrade,
   beginQuickBuySubmission,
   endQuickBuySubmission,
+  notifyQuickBuyTradeState,
 } from '../quickBuyTradeTracker';
-import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
+import {
+  getQuickBuyTradeOutcome,
+  resolveQuickBuyTerminalToast,
+} from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 
@@ -261,8 +268,12 @@ export function useQuickBuyController(
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
   initialTradeMode: QuickBuyTradeMode = 'buy',
+  fundingOptions: QuickBuyFundingOptions = {},
 ): UseQuickBuyControllerResult {
+  const { initialAmountUsd, destinationAddress, onTradeStateChange } =
+    fundingOptions;
   const hiddenInputRef = useRef<TextInput>(null);
+  const hasStartedSubmission = useRef(false);
   const dispatch = useDispatch();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -630,6 +641,11 @@ export function useQuickBuyController(
 
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
+  useEffect(() => {
+    if (destinationAddress && destToken && destAddress !== destinationAddress) {
+      dispatch(setDestAddress(destinationAddress));
+    }
+  }, [destinationAddress, destAddress, destToken, dispatch]);
 
   // ─── Live selected-token balances (TSA-632) ────────────────────────────
   // The selected pay-with token (`selectedSourceToken`, buy mode) and receive
@@ -969,7 +985,9 @@ export function useQuickBuyController(
   // Robinhood while the wallet is still on Ethereum (TSA-1008).
   const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
-  const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
+  const isDestinationAddressMissing =
+    (hasDestinationPicker && !destAddress) ||
+    Boolean(destinationAddress && destinationAddress !== destAddress);
 
   const sourceBalanceFiatValue = useMemo(() => {
     if (
@@ -1412,6 +1430,37 @@ export function useQuickBuyController(
     ],
   );
 
+  // Prefill once rates are ready; never overwrite subsequent user edits.
+  const hasAppliedInitialAmount = useRef(false);
+  useEffect(() => {
+    if (hasAppliedInitialAmount.current || !hasSourcePrice) return;
+    const rate =
+      currentCurrency.toLowerCase() === 'usd' ? 1 : usdToCurrentCurrencyRate;
+    if (
+      !rate ||
+      !Number.isFinite(rate) ||
+      rate <= 0 ||
+      !initialAmountUsd ||
+      !Number.isFinite(initialAmountUsd) ||
+      initialAmountUsd <= 0
+    )
+      return;
+    hasAppliedInitialAmount.current = true;
+    if (fiatAmount || sourceAmountTokens) return;
+    const amount = Math.ceil(initialAmountUsd * rate).toString();
+    setFiatAmount(amount);
+    setQuotedFiatAmount(amount);
+    lastCommittedFiatRef.current = amount;
+    setImmediateFetchToken((value) => value + 1);
+  }, [
+    initialAmountUsd,
+    hasSourcePrice,
+    currentCurrency,
+    usdToCurrentCurrencyRate,
+    fiatAmount,
+    sourceAmountTokens,
+  ]);
+
   // Debounced track for custom amount entries — fires once after the user
   // stops typing for 500ms, so we don't emit on every keystroke.
   useEffect(() => {
@@ -1477,7 +1526,26 @@ export function useQuickBuyController(
       return;
     }
 
-    if (!activeQuote || !walletAddress) return;
+    if (
+      !activeQuote ||
+      !walletAddress ||
+      (destinationAddress &&
+        (isDestinationAddressMissing || isQuoteRequestStale))
+    )
+      return;
+
+    // One trade per sheet instance, including the closing animation. Redux's
+    // submitting flag cannot guard two presses within the same render.
+    if (hasStartedSubmission.current) return;
+    hasStartedSubmission.current = true;
+
+    let terminalNotified = false;
+    const notifyTradeState = (state: QuickBuyTradeState) => {
+      if (terminalNotified) return;
+      terminalNotified =
+        state.status === 'complete' || state.status === 'failed';
+      notifyQuickBuyTradeState(onTradeStateChange, state);
+    };
 
     // `amount_usd` is contractually USD; the entered amount is in the user's
     // display currency, so convert it here.
@@ -1553,6 +1621,7 @@ export function useQuickBuyController(
     // take minutes to settle (cross-chain), so the user gets instant feedback
     // on the trigger screen while submission happens in the background. The
     // complete/failed toast later fires from the app-root registration.
+    notifyTradeState({ status: 'submitting' });
     onClose();
     toastRef?.current?.showToast(
       buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
@@ -1597,6 +1666,11 @@ export function useQuickBuyController(
         trackQuickBuyTrade(txMetaId, {
           ...tradeToastInfo,
           txSignature: txHash,
+          ...(onTradeStateChange && { onTradeStateChange: notifyTradeState }),
+        });
+        notifyTradeState({
+          status: 'submitted',
+          transactionId: txMetaId,
         });
         // The swap may already have settled by the time submitTx resolves, in
         // which case the terminal stateChange events fired before this id was
@@ -1606,7 +1680,17 @@ export function useQuickBuyController(
         const showToast = toastRef?.current?.showToast;
         if (showToast) {
           resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
+        } else if (onTradeStateChange) {
+          // Without a toast, leave the trade tracked so the app-root
+          // registration still shows it; only tell the host (deduplicated).
+          const outcome = getQuickBuyTradeOutcome(txMetaId);
+          if (outcome) {
+            notifyTradeState({ status: outcome, transactionId: txMetaId });
+          }
         }
+      } else {
+        // No identity means the host cannot safely continue an automatic flow.
+        notifyTradeState({ status: 'failed' });
       }
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -1618,6 +1702,7 @@ export function useQuickBuyController(
         });
       }
     } catch (error) {
+      notifyTradeState({ status: 'failed' });
       const err = error instanceof Error ? error : new Error(String(error));
       Logger.error(
         err,
@@ -1662,6 +1747,10 @@ export function useQuickBuyController(
     handleClose,
     activeQuote,
     walletAddress,
+    isDestinationAddressMissing,
+    destinationAddress,
+    isQuoteRequestStale,
+    onTradeStateChange,
     stxEnabled,
     dispatch,
     onClose,

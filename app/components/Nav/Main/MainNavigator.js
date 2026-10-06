@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { Keyboard, Platform } from 'react-native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
@@ -1256,7 +1257,13 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.GACHA.ROOT}
           component={GachaScreenStack}
-          options={slideFromRightNativeOptions}
+          options={({ route }) => ({
+            ...slideFromRightNativeOptions,
+            // The parent stack must not intercept the reveal's cutting gesture.
+            ...(getFocusedRouteNameFromRoute(route) === Routes.GACHA.REVEAL
+              ? { gestureEnabled: false, fullScreenGestureEnabled: false }
+              : {}),
+          })}
         />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (

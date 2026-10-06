@@ -46,7 +46,7 @@ import {
   type QuickBuyOriginalEntryPoint,
   type QuickBuySheetSource,
 } from '../analytics';
-import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
+import { useQuickBuyEventTracking } from './useQuickBuyEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getQuoteRefreshRate } from '../../Bridge/utils/quoteUtils';
 import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
@@ -231,7 +231,7 @@ export function useQuickBuyQuotes({
     selectGasIncludedQuoteParams,
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const { track } = useSocialLeaderboardAnalytics();
+  const { track } = useQuickBuyEventTracking();
 
   // Stream quotes (surfacing each provider as it replies) when the client is
   // gated on for bridge SSE — otherwise fall back to the one-shot fetch.

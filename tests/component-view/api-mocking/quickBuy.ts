@@ -68,14 +68,16 @@ export const QUICK_BUY_QUOTE_TX_FEE_AMOUNT = '1000000000000000';
  */
 export const QUICK_BUY_QUOTE_TOTAL_FOR_10_USD = '$12.00';
 
-export function setupQuickBuyApiMock(): void {
+export function setupQuickBuyApiMock(
+  additionalAssets: (typeof mockQuickBuyUsdcMetadata)[] = [],
+): void {
   disableNetConnect();
 
   nock(TOKEN_API_ORIGIN)
     .persist()
     .get('/v3/assets')
     .query(true)
-    .reply(200, [mockQuickBuyUsdcMetadata]);
+    .reply(200, [mockQuickBuyUsdcMetadata, ...additionalAssets]);
 
   nock(STATIC_ORIGIN).persist().get(/.*/).reply(200, '');
 

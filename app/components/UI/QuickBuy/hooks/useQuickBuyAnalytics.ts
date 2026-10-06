@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { resetBridgeState } from '../../../../core/redux/slices/bridge';
 import Engine from '../../../../core/Engine';
-import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
+import { useQuickBuyEventTracking } from './useQuickBuyEventTracking';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
@@ -50,7 +50,7 @@ export function useQuickBuyAnalytics(
   markTradeSubmitted: () => void;
 } {
   const dispatch = useDispatch();
-  const { track } = useSocialLeaderboardAnalytics();
+  const { track } = useQuickBuyEventTracking();
 
   const dismissStageRef = useRef<QuickBuyDismissStage>(
     QuickBuyEventValues.DISMISS_STAGE.TOKEN_DETAIL,

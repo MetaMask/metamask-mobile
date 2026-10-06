@@ -129,6 +129,23 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
+    it.each([
+      [ImpactMoment.GachaCut, ImpactFeedbackStyle.Rigid],
+      [ImpactMoment.GachaOpen, ImpactFeedbackStyle.Heavy],
+      [ImpactMoment.GachaRevealCommon, ImpactFeedbackStyle.Soft],
+      [ImpactMoment.GachaRevealUncommon, ImpactFeedbackStyle.Medium],
+      [ImpactMoment.GachaRevealRare, ImpactFeedbackStyle.Rigid],
+      [ImpactMoment.GachaRevealEpic, ImpactFeedbackStyle.Heavy],
+    ] as const)(
+      'plays %s as an impact with style %s',
+      async (moment, style) => {
+        await playImpact(moment);
+
+        expect(impactAsync).toHaveBeenCalledWith(style);
+        expect(notificationAsync).not.toHaveBeenCalled();
+      },
+    );
+
     it('playSelection calls selectionAsync', async () => {
       await playSelection();
       expect(selectionAsync).toHaveBeenCalled();

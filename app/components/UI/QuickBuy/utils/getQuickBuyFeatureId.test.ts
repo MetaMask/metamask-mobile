@@ -48,6 +48,10 @@ describe('getQuickBuyFeatureId', () => {
     );
   });
 
+  it('maps the Gacha funding source to UNKNOWN until swaps defines its feature id', () => {
+    expect(getQuickBuyFeatureId('gacha')).toBe(FeatureId.UNKNOWN);
+  });
+
   it('defaults to UNKNOWN when source is missing', () => {
     expect(getQuickBuyFeatureId()).toBe(FeatureId.UNKNOWN);
   });

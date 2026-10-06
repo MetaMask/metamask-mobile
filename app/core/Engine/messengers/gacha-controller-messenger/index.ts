@@ -11,10 +11,11 @@ import {
 import type { RootMessenger } from '../../types';
 
 /**
- * Connects Gacha to Engine without granting external controller access.
+ * Messenger of the GachaController. Only the Solana Snap request is
+ * delegated to let Gacha forward provider signing requests.
  *
- * @param rootMessenger - The Engine messenger.
- * @returns The Gacha controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The GachaController messenger.
  */
 export function getGachaControllerMessenger(
   rootMessenger: RootMessenger<
@@ -22,8 +23,14 @@ export function getGachaControllerMessenger(
     MessengerEvents<GachaControllerMessenger>
   >,
 ): GachaControllerMessenger {
-  return new Messenger({
+  const messenger: GachaControllerMessenger = new Messenger({
     namespace: GACHA_CONTROLLER_NAME,
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: ['SnapController:handleRequest'],
+    events: [],
+    messenger,
+  });
+  return messenger;
 }

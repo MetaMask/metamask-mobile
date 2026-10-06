@@ -19,7 +19,7 @@ import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
 } from './analytics';
-import { useSocialLeaderboardAnalytics } from '../../Views/SocialLeaderboard/analytics';
+import { useQuickBuyEventTracking } from './hooks/useQuickBuyEventTracking';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
@@ -38,6 +38,7 @@ import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
+  QuickBuyFundingOptions,
   QuickBuyRootProps,
   QuickBuyScreen,
   QuickBuyTarget,
@@ -74,7 +75,7 @@ function renderActiveScreen(
   }
 }
 
-interface QuickBuyRootInnerProps {
+interface QuickBuyRootInnerProps extends QuickBuyFundingOptions {
   target: QuickBuyTarget;
   onClose: () => void;
   features: QuickBuyFeatures;
@@ -88,13 +89,16 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   onClose,
   features,
   initialTradeMode,
+  initialAmountUsd,
+  destinationAddress,
+  onTradeStateChange,
   analyticsContext,
   children,
 }) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const { track } = useSocialLeaderboardAnalytics();
+  const { track } = useQuickBuyEventTracking();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
@@ -183,6 +187,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           onClose={requestClose}
           features={features}
           initialTradeMode={openingTradeMode}
+          initialAmountUsd={initialAmountUsd}
+          destinationAddress={destinationAddress}
+          onTradeStateChange={onTradeStateChange}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
@@ -222,6 +229,9 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   onClose,
   features = TOP_TRADERS_QUICK_BUY_FEATURES,
   initialTradeMode,
+  initialAmountUsd,
+  destinationAddress,
+  onTradeStateChange,
   analyticsContext,
   children,
 }) => {
@@ -235,6 +245,9 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
       onClose={onClose}
       features={features}
       initialTradeMode={initialTradeMode}
+      initialAmountUsd={initialAmountUsd}
+      destinationAddress={destinationAddress}
+      onTradeStateChange={onTradeStateChange}
       analyticsContext={analyticsContext}
     >
       {children}

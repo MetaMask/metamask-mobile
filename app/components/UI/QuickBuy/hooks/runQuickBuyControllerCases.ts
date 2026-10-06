@@ -17,6 +17,7 @@ import {
   selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
+  setDestAddress,
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
@@ -58,10 +59,14 @@ import {
   endQuickBuySubmission,
 } from '../quickBuyTradeTracker';
 import { merge } from 'lodash';
-import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
+import {
+  getQuickBuyTradeOutcome,
+  resolveQuickBuyTerminalToast,
+} from '../resolveQuickBuyTerminalToast';
 import {
   positionToQuickBuyTarget,
   type QuickBuyAnalyticsContext,
+  type QuickBuyFundingOptions,
   type QuickBuyTarget,
 } from '../types';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
@@ -299,6 +304,7 @@ export const runQuickBuyControllerCases = ({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
+    fundingOptions?: QuickBuyFundingOptions,
   ) => {
     result: {
       current: UseQuickBuyControllerResult;
@@ -336,6 +342,84 @@ export const runQuickBuyControllerCases = ({
 
     afterEach(() => {
       jest.resetAllMocks();
+    });
+
+    describe('funding prefill', () => {
+      it('rounds the USD prefill up without overwriting user edits', () => {
+        const { result, rerender } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'buy',
+          { initialAmountUsd: 26.5 },
+        );
+        expect(result.current.fiatAmount).toBe('27');
+
+        act(() => result.current.handleAmountChange('30'));
+        rerender();
+
+        expect(result.current.fiatAmount).toBe('30');
+      });
+
+      it('rounds the prefill up after converting to the display currency', () => {
+        (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('EUR');
+        (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+          ETH: { conversionRate: 1800, usdConversionRate: 2000 },
+        });
+
+        const { result } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'buy',
+          { initialAmountUsd: 11 },
+        );
+
+        expect(result.current.fiatAmount).toBe('10');
+      });
+
+      it('waits for the conversion rate for a non-USD display currency', () => {
+        (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('EUR');
+        (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({});
+
+        const { result, rerender } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'buy',
+          { initialAmountUsd: 10 },
+        );
+        expect(result.current.fiatAmount).toBe('');
+
+        (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+          ETH: { conversionRate: 1800, usdConversionRate: 2000 },
+        });
+        rerender();
+
+        expect(result.current.fiatAmount).toBe('9');
+      });
+
+      it('pins the funding recipient before allowing submission', async () => {
+        const { result } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'buy',
+          { destinationAddress: 'solana-recipient' },
+        );
+
+        await act(async () => result.current.handleConfirm());
+
+        expect(setDestAddress).toHaveBeenCalledWith('solana-recipient');
+        expect(result.current.isConfirmDisabled).toBe(true);
+        expect(
+          Engine.context.BridgeStatusController.submitTx,
+        ).not.toHaveBeenCalled();
+      });
     });
 
     describe('handleAmountChange', () => {
@@ -3912,7 +3996,9 @@ export const runQuickBuyControllerCases = ({
       });
 
       describe('stay-on-screen swap toasts', () => {
-        const mockUsableQuote = () => {
+        const mockUsableQuote = (
+          overrides: Partial<UseQuickBuyQuotesResult> = {},
+        ) => {
           setupQuoteSourceMock({
             activeQuote: createActiveQuote(),
             destTokenAmount: '1',
@@ -3928,6 +4014,7 @@ export const runQuickBuyControllerCases = ({
             quoteRefreshRateMs: 30000,
             maxRefreshCount: 5,
             refetchQuotes: jest.fn(),
+            ...overrides,
           });
         };
 
@@ -3983,6 +4070,48 @@ export const runQuickBuyControllerCases = ({
           });
         });
 
+        it('submits only once when confirm is pressed again while closing', async () => {
+          mockUsableQuote();
+          let resolveSubmit: (value: unknown) => void = () => undefined;
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockReturnValue(
+            new Promise((resolve) => {
+              resolveSubmit = resolve;
+            }),
+          );
+          const onClose = jest.fn();
+          const onTradeStateChange = jest.fn();
+          const { result } = renderHook(
+            createTarget(),
+            onClose,
+            undefined,
+            undefined,
+            'buy',
+            { onTradeStateChange },
+          );
+          let firstSubmission: Promise<void> | undefined;
+
+          await act(async () => {
+            firstSubmission = result.current.handleConfirm();
+            await result.current.handleConfirm();
+          });
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalledTimes(1);
+          expect(onClose).toHaveBeenCalledTimes(1);
+          expect(onTradeStateChange).toHaveBeenCalledTimes(1);
+          await act(async () => {
+            resolveSubmit({ id: 'funding-1', hash: 'signature' });
+            await firstSubmission;
+            await result.current.handleConfirm();
+          });
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalledTimes(1);
+        });
+
         it('tracks the trade and shows a pending toast on successful submit', async () => {
           mockUsableQuote();
           (
@@ -4007,6 +4136,95 @@ export const runQuickBuyControllerCases = ({
             theme: expect.any(Object),
           });
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        it('reports submitting before close and settles after the sheet unmounts', async () => {
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'funding-1', hash: '0xabc' });
+          const onTradeStateChange = jest.fn();
+          const onClose = jest.fn();
+          const { result, unmount } = renderHook(
+            createTarget(),
+            onClose,
+            undefined,
+            undefined,
+            'buy',
+            { onTradeStateChange },
+          );
+
+          await act(async () => result.current.handleConfirm());
+
+          expect(onTradeStateChange.mock.calls.map(([state]) => state)).toEqual(
+            [
+              { status: 'submitting' },
+              { status: 'submitted', transactionId: 'funding-1' },
+            ],
+          );
+          expect(onTradeStateChange.mock.invocationCallOrder[0]).toBeLessThan(
+            onClose.mock.invocationCallOrder[0],
+          );
+          const tracked = jest.mocked(trackQuickBuyTrade).mock.calls[0][1];
+          unmount();
+          tracked.onTradeStateChange?.({
+            status: 'complete',
+            transactionId: 'funding-1',
+          });
+          tracked.onTradeStateChange?.({
+            status: 'complete',
+            transactionId: 'funding-1',
+          });
+
+          expect(onTradeStateChange).toHaveBeenCalledTimes(3);
+          expect(onTradeStateChange).toHaveBeenLastCalledWith({
+            status: 'complete',
+            transactionId: 'funding-1',
+          });
+        });
+
+        it('reports failed when submission is rejected', async () => {
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockRejectedValue(new Error('user rejected'));
+          const onTradeStateChange = jest.fn();
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            'buy',
+            { onTradeStateChange },
+          );
+
+          await act(async () => result.current.handleConfirm());
+
+          expect(onTradeStateChange.mock.calls.map(([state]) => state)).toEqual(
+            [{ status: 'submitting' }, { status: 'failed' }],
+          );
+          expect(trackQuickBuyTrade).not.toHaveBeenCalled();
+        });
+
+        it('rejects a stale quote for the pinned funding recipient', async () => {
+          mockUsableQuote({ isQuoteRequestStale: true });
+          (selectDestAddress as unknown as jest.Mock).mockReturnValue(
+            'solana-recipient',
+          );
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            'buy',
+            { destinationAddress: 'solana-recipient' },
+          );
+
+          await act(async () => result.current.handleConfirm());
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).not.toHaveBeenCalled();
         });
 
         it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
@@ -4178,6 +4396,49 @@ export const runQuickBuyControllerCases = ({
             });
 
             expect(resolveQuickBuyTerminalToast).not.toHaveBeenCalled();
+            expect(getQuickBuyTradeOutcome).not.toHaveBeenCalled();
+          } finally {
+            mockToastRef.current = { showToast: mockShowToast };
+          }
+        });
+
+        it('notifies the funding host of an early settlement but leaves the toast to the app root when the toast ref is missing', async () => {
+          mockToastRef.current = null;
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'funding-1', hash: '0xabc' });
+          jest.mocked(getQuickBuyTradeOutcome).mockReturnValue('complete');
+          const onTradeStateChange = jest.fn();
+
+          try {
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              { onTradeStateChange },
+            );
+
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+            const tracked = jest.mocked(trackQuickBuyTrade).mock.calls[0][1];
+            tracked.onTradeStateChange?.({
+              status: 'complete',
+              transactionId: 'funding-1',
+            });
+
+            expect(resolveQuickBuyTerminalToast).not.toHaveBeenCalled();
+            expect(getQuickBuyTradeOutcome).toHaveBeenCalledWith('funding-1');
+            expect(
+              onTradeStateChange.mock.calls.map(([state]) => state),
+            ).toEqual([
+              { status: 'submitting' },
+              { status: 'submitted', transactionId: 'funding-1' },
+              { status: 'complete', transactionId: 'funding-1' },
+            ]);
           } finally {
             mockToastRef.current = { showToast: mockShowToast };
           }

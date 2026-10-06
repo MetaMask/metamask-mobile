@@ -948,7 +948,13 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
-  "GachaController": {},
+  "GachaController": {
+    "hasCompletedOnboarding": false,
+    "collectorCrypt": {
+      "operations": {},
+      "cards": {}
+    }
+  },
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",

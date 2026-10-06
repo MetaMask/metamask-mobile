@@ -17,6 +17,26 @@ export interface QuickBuyTarget {
 
 export type QuickBuyTradeMode = 'buy' | 'sell';
 
+/** Submission and settlement of the trade initiated by this sheet. */
+export type QuickBuyTradeState =
+  | { status: 'submitting' }
+  | { status: 'submitted' | 'complete'; transactionId: string }
+  | { status: 'failed'; transactionId?: string };
+
+/** Optional host configuration for funding flows. */
+export interface QuickBuyFundingOptions {
+  /** Editable source spend in USD, converted once and rounded up to whole display-currency units. */
+  initialAmountUsd?: number;
+  /** Pin the recipient instead of reusing the bridge's last destination. */
+  destinationAddress?: string;
+  /**
+   * `submitting` precedes onClose. Terminal events survive sheet dismissal and
+   * fire once after actual settlement, not source submission. In-memory only;
+   * hosts must ignore events when their funding intent has been abandoned.
+   */
+  onTradeStateChange?: (state: QuickBuyTradeState) => void;
+}
+
 /** Which amount is shown as the large primary value in the amount section. */
 export type QuickBuyAmountDisplayMode = 'fiat' | 'crypto';
 
@@ -62,7 +82,7 @@ export interface QuickBuyAnalyticsContext {
 }
 
 /** Props for `QuickBuy.Root` — the sheet that hosts the whole flow. */
-export interface QuickBuyRootProps {
+export interface QuickBuyRootProps extends QuickBuyFundingOptions {
   isVisible: boolean;
   target: QuickBuyTarget | null;
   onClose: () => void;

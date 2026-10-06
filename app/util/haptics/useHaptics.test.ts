@@ -114,4 +114,30 @@ describe('useHaptics', () => {
 
     expect(notificationAsync).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['reduced haptics', false, false],
+    ['kill switch', true, true],
+  ] as const)(
+    'stops Gacha impacts when %s becomes active',
+    async (_gate, hapticsEnabled, killSwitchActive) => {
+      setupSelectors(true, false);
+      const { result, rerender } = renderHook(() => useHaptics());
+      await act(async () => {
+        await result.current.playImpact(ImpactMoment.GachaCut);
+      });
+      expect(impactAsync).toHaveBeenCalledTimes(1);
+      jest.clearAllMocks();
+      setupSelectors(hapticsEnabled, killSwitchActive);
+
+      rerender();
+      await act(async () => {
+        await result.current.playImpact(ImpactMoment.GachaCut);
+        await result.current.playImpact(ImpactMoment.GachaOpen);
+        await result.current.playImpact(ImpactMoment.GachaRevealEpic);
+      });
+
+      expect(impactAsync).not.toHaveBeenCalled();
+    },
+  );
 });
