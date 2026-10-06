@@ -70,6 +70,28 @@ on:
         required: false
         type: string
         default: ''
+      enable_testmu_hyperexecute:
+        description: >-
+          Run the same Android performance specs on TestMu HyperExecute in
+          addition to BrowserStack. Scheduled runs leave this false.
+        required: false
+        type: boolean
+        default: false
+      testmu_app_url_android_onboarding:
+        description: 'TestMu AI Android onboarding app URL (lt://...). Optional when APKs are uploaded from the build job.'
+        required: false
+        type: string
+        default: ''
+      testmu_app_url_android_imported_wallet:
+        description: 'TestMu AI Android imported-wallet app URL (lt://...). Optional when APKs are uploaded from the build job.'
+        required: false
+        type: string
+        default: ''
+      he_concurrency:
+        description: 'HyperExecute autosplit concurrency for the TestMu lane'
+        required: false
+        type: string
+        default: '2'
 
 permissions:
   contents: write
@@ -259,10 +281,33 @@ jobs:
           fi
           echo "Resolved fingerprint: $(grep fingerprint= "$GITHUB_OUTPUT" | tail -1)"
 
+  check-testmu-credentials:
+    name: Resolve TestMu AI Credentials
+    runs-on: ubuntu-latest
+    if: inputs.enable_testmu_hyperexecute == true
+    outputs:
+      testmu_ready: ${{ steps.resolve.outputs.testmu_ready }}
+    steps:
+      - name: Resolve TestMu AI credentials
+        id: resolve
+        env:
+          # Do not write these secrets to job outputs. GitHub strips outputs
+          # whose values match a secret, which previously left uploads unauthorized.
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          if [ -n "$LT_USERNAME" ] && [ -n "$LT_ACCESS_KEY" ]; then
+            echo "TestMu AI credentials are configured"
+            echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "TestMu HyperExecute skipped: set LT_USERNAME and LT_ACCESS_KEY secrets"
+            echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [prepare]
+    needs: [prepare, check-testmu-credentials]
     # All Android runs without explicit BrowserStack URLs go through this
     # workflow. It selects fingerprint reuse for app changes and latest-main
     # artifact reuse for test-only changes, with a fresh-build fallback.
@@ -271,6 +316,10 @@ jobs:
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
+      (
+        needs.check-testmu-credentials.result == 'skipped' ||
+        needs.check-testmu-credentials.result == 'success'
+      ) &&
       !inputs.browserstack_app_url_android_onboarding &&
       !inputs.browserstack_app_url_android_imported_wallet
     with:
@@ -279,6 +328,7 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
       reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
+      upload_to_testmu: ${{ inputs.enable_testmu_hyperexecute == true && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && inputs.testmu_app_url_android_onboarding == '' && inputs.testmu_app_url_android_imported_wallet == '' }}
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
@@ -388,6 +438,68 @@ jobs:
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
+  run-android-onboarding-tests-testmu:
+    name: Performance Test Android TestMu HyperExecute (Onboarding)
+    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
+    if: >-
+      always() && !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      inputs.enable_testmu_hyperexecute == true &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      (
+        needs.trigger-android-dual-versions.result == 'skipped' ||
+        needs.trigger-android-dual-versions.result == 'success'
+      ) &&
+      (
+        inputs.testmu_app_url_android_onboarding != '' ||
+        needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != ''
+      )
+    with:
+      platform: android
+      build_type: onboarding
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      branch_name: ${{ inputs.branch_name }}
+      device_matrix: ${{ needs.prepare.outputs.android_matrix }}
+      testmu_app_url: ${{ inputs.testmu_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
+      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      he_concurrency: ${{ inputs.he_concurrency }}
+    secrets: inherit
+
+  run-android-imported-wallet-tests-testmu:
+    name: Performance Test Android TestMu HyperExecute (Imported Wallet)
+    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
+    if: >-
+      always() && !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      inputs.enable_testmu_hyperexecute == true &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      (
+        needs.trigger-android-dual-versions.result == 'skipped' ||
+        needs.trigger-android-dual-versions.result == 'success'
+      ) &&
+      (
+        inputs.testmu_app_url_android_imported_wallet != '' ||
+        needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
+      )
+    with:
+      platform: android
+      build_type: imported-wallet
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      branch_name: ${{ inputs.branch_name }}
+      device_matrix: ${{ needs.prepare.outputs.android_matrix }}
+      testmu_app_url: ${{ inputs.testmu_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
+      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      he_concurrency: ${{ inputs.he_concurrency }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -398,6 +510,8 @@ jobs:
         run-android-onboarding-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-android-onboarding-tests-testmu,
+        run-android-imported-wallet-tests-testmu,
       ]
     if: always() && needs.prepare.outputs.run_tests == 'true'
     steps:
@@ -494,6 +608,8 @@ jobs:
         run-android-onboarding-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-android-onboarding-tests-testmu,
+        run-android-imported-wallet-tests-testmu,
         aggregate-results,
       ]
     if: always() && needs.aggregate-results.result != 'skipped'

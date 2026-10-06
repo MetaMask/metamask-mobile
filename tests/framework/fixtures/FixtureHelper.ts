@@ -536,8 +536,10 @@ export async function withFixtures(
     currentDeviceDetails,
     disableSynchronization: _disableSynchronization = false,
   } = options;
+  const isRemoteCloudDevice =
+    currentDeviceDetails?.isBrowserstack || currentDeviceDetails?.isRemoteCloud;
   const deviceCommands =
-    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+    currentDeviceDetails && !isRemoteCloudDevice
       ? new DeviceCommandHandler({ currentDeviceDetails, logger })
       : undefined;
 

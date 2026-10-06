@@ -2,12 +2,13 @@ import type { ServiceProvider } from '../common/interfaces/ServiceProvider.ts';
 import type { ProjectConfig } from '../common/types.ts';
 import { EmulatorProvider } from './emulator';
 import { BrowserStackProvider } from './browserstack';
+import { TestMuAIProvider } from './testmu';
 import { ProviderName } from '../../types.ts';
 
 /**
  * Supported provider types
  */
-export type ProviderType = 'emulator' | 'browserstack';
+export type ProviderType = 'emulator' | 'browserstack' | 'testmu';
 
 /**
  * Factory function to create the appropriate service provider
@@ -18,7 +19,7 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
 
   if (!provider) {
     throw new Error(
-      'Device provider is not specified in the configuration. Please specify "emulator" or "browserstack".',
+      'Device provider is not specified in the configuration. Please specify "emulator", "browserstack", or "testmu".',
     );
   }
 
@@ -30,9 +31,12 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
     case ProviderName.BROWSERSTACK:
       return new BrowserStackProvider(project);
 
+    case ProviderName.TESTMU:
+      return new TestMuAIProvider(project);
+
     default:
       throw new Error(
-        `Unknown device provider: "${provider}". Supported providers: emulator, browserstack.`,
+        `Unknown device provider: "${provider}". Supported providers: emulator, browserstack, testmu.`,
       );
   }
 }

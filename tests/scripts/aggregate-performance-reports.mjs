@@ -301,7 +301,13 @@ function extractPlatformScenarioAndDevice(filePath) {
 
   if (deviceMatch) {
     console.log(`✅ Found device match: ${deviceMatch}`);
-    const parts = deviceMatch.split('-');
+    const isTestMuHyperExecute = deviceMatch
+      .toLowerCase()
+      .startsWith('testmu-he-');
+    const artifactName = isTestMuHyperExecute
+      ? deviceMatch.slice('testmu-he-'.length)
+      : deviceMatch;
+    const parts = artifactName.split('-');
     console.log(`📝 Device parts:`, parts);
 
     // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
@@ -316,7 +322,10 @@ function extractPlatformScenarioAndDevice(filePath) {
       const deviceParts = deviceInfo.split('-');
       if (deviceParts.length >= 2) {
         const osVersion = deviceParts[deviceParts.length - 1];
-        const deviceName = deviceParts.slice(0, -1).join(' ');
+        let deviceName = deviceParts.slice(0, -1).join(' ');
+        if (isTestMuHyperExecute) {
+          deviceName = `${deviceName} (TestMu HE)`;
+        }
         deviceKey = `${deviceName}+${osVersion}`;
         console.log(`🔑 Created device key: ${deviceKey}`);
       } else {

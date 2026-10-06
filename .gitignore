@@ -153,6 +153,8 @@ test-reports/
 appwright/reporters/reports/*
 tests/reporters/reports/
 *.apk
+tmp/hyperexecute/
+tests/hyperexecute/discovered-*.txt
 
 # anvil binaries
 .metamask/*
