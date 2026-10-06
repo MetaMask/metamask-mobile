@@ -17,6 +17,11 @@ import {
 
 type TerminalOutcome = 'complete' | 'failed';
 
+interface BridgeTerminalResolution {
+  outcome: TerminalOutcome;
+  transactionHash?: string;
+}
+
 /**
  * Authoritative terminal status from `BridgeStatusController`. Covers EVM swaps
  * (marked `COMPLETE` on `TransactionController:transactionConfirmed`) and all
@@ -24,14 +29,24 @@ type TerminalOutcome = 'complete' | 'failed';
  */
 function resolveFromBridgeStatus(
   txMetaId: string,
-): TerminalOutcome | undefined {
+): BridgeTerminalResolution | undefined {
   const historyItem =
     Engine.context.BridgeStatusController.getBridgeHistoryItemByTxMetaId(
       txMetaId,
     );
   const status = historyItem?.status?.status;
-  if (status === StatusTypes.COMPLETE) return 'complete';
-  if (status === StatusTypes.FAILED) return 'failed';
+  if (status === StatusTypes.COMPLETE) {
+    return {
+      outcome: 'complete',
+      transactionHash: historyItem?.reportedSubmittedTxHash,
+    };
+  }
+  if (status === StatusTypes.FAILED) {
+    return {
+      outcome: 'failed',
+      transactionHash: historyItem?.reportedSubmittedTxHash,
+    };
+  }
   return undefined;
 }
 
@@ -80,14 +95,24 @@ function emitTerminalToast(
   outcome: TerminalOutcome,
   showToast: ToastRef['showToast'],
   theme: Theme,
+  transactionHash?: string,
 ): boolean {
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
   if (trade.postSwapShare) {
-    patchPostSwapShareSession({
+    const sessionUpdated = patchPostSwapShareSession({
       status: isComplete ? 'complete' : 'failed',
+      ...(transactionHash ? { transactionHash } : {}),
     });
+    if (!sessionUpdated) {
+      showToast(
+        buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+          trade,
+          theme,
+        }),
+      );
+    }
   } else {
     showToast(
       buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
@@ -129,7 +154,10 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  let outcome = resolveFromBridgeStatus(txMetaId);
+  const bridgeResolution = resolveFromBridgeStatus(txMetaId);
+  let outcome = bridgeResolution?.outcome;
+  const transactionHash =
+    bridgeResolution?.transactionHash ?? trade.txSignature;
   if (!outcome && trade.isNonEvmSwap) {
     outcome = resolveFromMultichain(trade.txSignature ?? txMetaId);
   }
@@ -137,5 +165,12 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  return emitTerminalToast(txMetaId, trade, outcome, showToast, theme);
+  return emitTerminalToast(
+    txMetaId,
+    trade,
+    outcome,
+    showToast,
+    theme,
+    transactionHash,
+  );
 }

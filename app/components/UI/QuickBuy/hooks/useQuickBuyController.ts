@@ -1562,8 +1562,9 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    if (postSwapShare) {
-      const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const shouldPostSwapShare = postSwapShare && Boolean(tradeInFlightChain);
+    if (shouldPostSwapShare) {
       const pairLabel =
         sourceToken?.symbol && destToken?.symbol
           ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
@@ -1629,9 +1630,9 @@ export function useQuickBuyController(
         trackQuickBuyTrade(txMetaId, {
           ...tradeToastInfo,
           txSignature: txHash,
-          postSwapShare,
+          postSwapShare: shouldPostSwapShare,
         });
-        if (postSwapShare && txHash) {
+        if (shouldPostSwapShare && txHash) {
           patchPostSwapShareSession({ transactionHash: txHash });
         }
         // The swap may already have settled by the time submitTx resolves, in
@@ -1671,9 +1672,10 @@ export function useQuickBuyController(
       );
       // submitTx threw before publish (e.g. user rejection), so no bridge
       // history item will ever exist — surface the failure immediately.
-      if (postSwapShare) {
-        patchPostSwapShareSession({ status: 'failed' });
-      } else {
+      const sessionUpdated = shouldPostSwapShare
+        ? patchPostSwapShareSession({ status: 'failed' })
+        : false;
+      if (!sessionUpdated) {
         toastRef?.current?.showToast(
           buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
         );

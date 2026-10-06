@@ -63,12 +63,13 @@ export const beginPostSwapShareSession = (
 
 export const patchPostSwapShareSession = (
   patch: Partial<PostSwapShareSession>,
-): void => {
+): boolean => {
   if (!state.session) {
-    return;
+    return false;
   }
   state.session = { ...state.session, ...patch };
   notify();
+  return true;
 };
 
 export const clearPostSwapShareSession = (): void => {
