@@ -3,7 +3,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingChecklistTradePress } from './useWalletHomeOnboardingChecklistTradePress';
 import type { BridgeToken } from '../Bridge/types';
 import type { WalletHomeOnboardingTradeSwapPair } from './walletHomeOnboardingTradeSwapBalances';
-import { SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
@@ -59,7 +59,7 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: SwapBridgeNavigationLocation.MainView,
+      location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
     expect(mockGoToSwaps).toHaveBeenCalledWith(
@@ -81,7 +81,7 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: SwapBridgeNavigationLocation.MainView,
+      location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
     expect(mockGoToSwaps).toHaveBeenCalledWith(
@@ -105,7 +105,7 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: SwapBridgeNavigationLocation.MainView,
+      location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
     expect(mockGoToSwaps).toHaveBeenCalledWith(
@@ -124,7 +124,7 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: SwapBridgeNavigationLocation.MainView,
+      location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
     expect(mockGoToSwaps).toHaveBeenCalledWith(
