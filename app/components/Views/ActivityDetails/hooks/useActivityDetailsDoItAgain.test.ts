@@ -1,12 +1,20 @@
 import { renderHook } from '@testing-library/react-native';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from './useActivityDetailsDoItAgain';
-import Routes from '../../../../constants/navigation/Routes';
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import { useTokensWithBalance } from '../../../UI/Bridge/hooks/useTokensWithBalance';
-import { setSourceAmount } from '../../../../core/redux/slices/bridge';
+import { toBridgeToken } from './activityDetailsDoItAgainUtils';
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -54,22 +62,17 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: {
-        sourceToken: expect.objectContaining({ symbol: 'ETH' }),
-        destToken: expect.objectContaining({ symbol: 'USDC' }),
-        location: 'Main View',
-        scrollToTopOnNav: true,
-        sourcePage: 'ActivityDetails',
-        swapViewTraceId: expect.any(String),
-        bridgeViewMode: 'Swap',
-      },
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityDetails',
+      sourceToken: toBridgeToken(sourceToken, 'eip155:1'),
+      destToken: toBridgeToken(destinationToken, 'eip155:1'),
+      location: MetaMetricsSwapsEventSource.MainView,
     });
-    // "Swap again" opens with an empty amount (no reused source amount), and
-    // any stale amount in the Bridge slice is cleared.
-    expect(mockNavigate.mock.calls[0][1].params.sourceAmount).toBeUndefined();
-    expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      scrollToTopOnNav: true,
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('hydrates a token from the user holdings (icon + balance) when it is held', () => {
@@ -113,21 +116,14 @@ describe('useActivityDetailsDoItAgain', () => {
 
     // The held USDT resolves to a real token (icon + balance); the un-held DAI
     // falls back to the skeleton (symbol only).
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-      params: {
-        destToken: expect.objectContaining({
-          symbol: 'USDT',
-          image: 'https://example.com/usdt.png',
-          balance: '25.0',
-        }),
-        sourceToken: expect.objectContaining({ symbol: 'DAI' }),
-        location: 'Main View',
-        scrollToTopOnNav: true,
-        sourcePage: 'ActivityDetails',
-        swapViewTraceId: expect.any(String),
-        bridgeViewMode: 'Swap',
-      },
-      screen: 'BridgeView',
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityDetails',
+      sourceToken: toBridgeToken(polygonDai, 'eip155:137'),
+      destToken: heldUsdt,
+      location: MetaMetricsSwapsEventSource.MainView,
+    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      scrollToTopOnNav: true,
     });
   });
 
@@ -163,22 +159,18 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-      params: {
-        sourceToken: expect.objectContaining({
-          symbol: 'POL',
-          image: 'https://example.com/pol.png',
-          balance: '5.0',
-        }),
-        destToken: undefined,
-        location: 'Main View',
-        scrollToTopOnNav: true,
-        sourcePage: 'ActivityDetails',
-        swapViewTraceId: expect.any(String),
-        bridgeViewMode: 'Swap',
-      },
-      screen: 'BridgeView',
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityDetails',
+      sourceToken: heldPol,
+      destToken: undefined,
+      location: MetaMetricsSwapsEventSource.MainView,
     });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
   it('hydrates a non-EVM (Solana) swap leg from held tokens even though the activity row has no decimals', () => {
@@ -230,29 +222,18 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-      params: {
-        // Real decimals (9 / 6) come from the held tokens, not the 0
-        // placeholder the skeleton carries for non-EVM rows.
-        sourceToken: expect.objectContaining({
-          symbol: 'SOL',
-          decimals: 9,
-          image: 'https://example.com/sol.png',
-          balance: '2.5',
-        }),
-        destToken: expect.objectContaining({
-          symbol: 'USDC',
-          decimals: 6,
-          balance: '42.0',
-        }),
-        location: 'Main View',
-        scrollToTopOnNav: true,
-        sourcePage: 'ActivityDetails',
-        swapViewTraceId: expect.any(String),
-        bridgeViewMode: 'Swap',
-      },
-      screen: 'BridgeView',
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityDetails',
+      sourceToken: heldSol,
+      destToken: heldUsdc,
+      location: MetaMetricsSwapsEventSource.MainView,
     });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
   it('does nothing when the source token cannot be mapped to a bridge token', () => {
@@ -265,7 +246,8 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockUseSwapBridgeNavigation).not.toHaveBeenCalled();
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
 });
 

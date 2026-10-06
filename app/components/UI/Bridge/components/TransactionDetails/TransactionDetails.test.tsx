@@ -12,6 +12,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { Transaction } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
 import { FeatureId, StatusTypes } from '@metamask/bridge-controller';
+import { SwapBridgeNavigationLocation } from '../../hooks/useSwapBridgeNavigation';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,6 +31,19 @@ jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
 }));
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../hooks/useSwapBridgeNavigation', () => {
+  const actual = jest.requireActual('../../hooks/useSwapBridgeNavigation');
+  return {
+    ...actual,
+    useSwapBridgeNavigation: (args: unknown) =>
+      mockUseSwapBridgeNavigation(args),
+  };
+});
 
 const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 
@@ -203,30 +217,32 @@ describe('BridgeTransactionDetails', () => {
       { state: mockState },
     );
 
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'BridgeTransactionDetails',
+      location: SwapBridgeNavigationLocation.TransactionDetails,
+      destToken: expect.objectContaining({
+        symbol: 'TOKEN2',
+        image: '',
+        chainId: '0xa',
+        address: '0x456',
+      }),
+      sourceToken: expect.objectContaining({
+        symbol: 'TOKEN1',
+        image: '',
+        chainId: '0x1',
+        address: '0x123',
+      }),
+    });
+
     fireEvent.press(getByTestId('activity-details-do-it-again-button'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: {
-        sourcePage: 'BridgeTransactionDetails',
-        bridgeViewMode: 'Bridge',
-        destToken: expect.objectContaining({
-          symbol: 'TOKEN2',
-          image: '',
-          chainId: '0xa',
-          address: '0x456',
-        }),
-        sourceToken: expect.objectContaining({
-          symbol: 'TOKEN1',
-          image: '',
-          chainId: '0x1',
-          address: '0x123',
-        }),
-        location: 'Main View',
-        scrollToTopOnNav: true,
-        swapViewTraceId: expect.any(String),
-      },
-    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('opens the legacy block-explorer modal from the single explorer button', () => {

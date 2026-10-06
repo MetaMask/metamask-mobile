@@ -92,6 +92,9 @@ export interface BridgeRouteParams {
   swapViewTraceId?: string;
 }
 
+/**
+ * @deprecated Use MetaMetricsSwapsEventSource instead.
+ */
 export enum SwapBridgeNavigationLocation {
   MainView = MetaMetricsSwapsEventSource.MainView,
   TokenView = MetaMetricsSwapsEventSource.TokenView,
@@ -99,6 +102,7 @@ export enum SwapBridgeNavigationLocation {
   TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
   FollowTradingTokenScreen = MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
   FollowTradingFeedScreen = MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
+  TransactionDetails = MetaMetricsSwapsEventSource.TransactionDetails,
 }
 
 /**
@@ -127,6 +131,8 @@ export const toMetaMetricsSwapsEventSource = (
       return MetaMetricsSwapsEventSource.FollowTradingTokenScreen;
     case SwapBridgeNavigationLocation.FollowTradingFeedScreen:
       return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
+    case SwapBridgeNavigationLocation.TransactionDetails:
+      return MetaMetricsSwapsEventSource.TransactionDetails;
     default:
       return MetaMetricsSwapsEventSource.MainView;
   }
@@ -211,7 +217,6 @@ export const useSwapBridgeNavigation = ({
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
     (
-      bridgeViewMode: BridgeViewMode,
       sourceTokenOverride?: BridgeToken,
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
@@ -220,6 +225,7 @@ export const useSwapBridgeNavigation = ({
       swapButtonClickLocationOverride?:
         | ActionLocation
         | SwapBridgeNavigationLocation,
+      initialTab?: BridgeTabKey,
     ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
@@ -360,13 +366,14 @@ export const useSwapBridgeNavigation = ({
       const params = startSwapBridgePageLoadTrace({
         sourceToken,
         sourcePage,
-        bridgeViewMode,
+        bridgeViewMode: BridgeViewMode.Unified,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
         ...(shouldAutoFocusSourceAmountInput && {
           autoFocusSourceAmountInput: true,
         }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+        ...(initialTab && { initialTab }),
       });
 
       // Prefetch popular tokens
@@ -451,32 +458,11 @@ export const useSwapBridgeNavigation = ({
       transactionActiveAbTests,
       isBasicFunctionalityEnabled,
       prefetchPopularTokens,
-      resetBridgeState,
     ],
   );
   const { networkModal } = useAddNetwork();
 
-  const goToSwaps = useCallback(
-    (
-      tokenOverride?: BridgeToken,
-      destTokenOverride?: BridgeToken,
-      buttonLabel?: string,
-      scrollToTopOnNav?: boolean,
-      swapButtonClickLocationOverride?:
-        | ActionLocation
-        | SwapBridgeNavigationLocation,
-    ) => {
-      goToNativeBridge(
-        BridgeViewMode.Unified,
-        tokenOverride,
-        destTokenOverride,
-        buttonLabel,
-        scrollToTopOnNav,
-        swapButtonClickLocationOverride,
-      );
-    },
-    [goToNativeBridge],
-  );
+  const goToSwaps = useCallback(goToNativeBridge, [goToNativeBridge]);
 
   return {
     goToSwaps,

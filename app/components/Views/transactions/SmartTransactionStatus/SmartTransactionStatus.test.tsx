@@ -10,6 +10,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { merge } from 'lodash';
+import { SwapBridgeNavigationLocation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const initialState = {
   engine: {
@@ -18,6 +19,16 @@ const initialState = {
 };
 
 const mockNavigate = jest.fn();
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../../../UI/Bridge/hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -496,7 +507,12 @@ describe('SmartTransactionStatus', () => {
             }),
           );
           fireEvent.press(primaryButton);
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT);
+          expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+            sourcePage: 'SmartTransactionStatus',
+            location: SwapBridgeNavigationLocation.TransactionDetails,
+          });
+          expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+          expect(mockGoToSwaps).toHaveBeenCalledWith();
         });
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
@@ -659,7 +675,12 @@ describe('SmartTransactionStatus', () => {
             strings('smart_transactions.try_again'),
           );
           fireEvent.press(primaryButton);
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT);
+          expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+            sourcePage: 'SmartTransactionStatus',
+            location: SwapBridgeNavigationLocation.TransactionDetails,
+          });
+          expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+          expect(mockGoToSwaps).toHaveBeenCalledWith();
         });
         it('should navigate to Activity page on press of secondary button', () => {
           const { getByText } = renderWithProvider(
