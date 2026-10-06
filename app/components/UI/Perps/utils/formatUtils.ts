@@ -8,6 +8,7 @@ import {
   type FiatRangeConfig,
   formatPerpsFiat,
   formatHyperLiquidPrice,
+  formatWithSignificantDigits,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
@@ -61,6 +62,38 @@ export const formatPerpsPrice = (
   } catch {
     return fallback();
   }
+};
+
+/**
+ * Fraction digits `PRICE_RANGES_UNIVERSAL` would use for a market price.
+ * A dollar price change should use this count so it matches the price,
+ * instead of picking a finer range from the change's own magnitude.
+ */
+export const getUniversalPriceFractionDigits = (price: number): number => {
+  const absPrice = Math.abs(price);
+  if (!Number.isFinite(absPrice) || absPrice === 0) {
+    return 0;
+  }
+
+  const rangeConfig = PRICE_RANGES_UNIVERSAL.find((range) =>
+    range.condition(absPrice),
+  );
+
+  if (!rangeConfig) {
+    return 2;
+  }
+
+  if (rangeConfig.significantDigits) {
+    const { decimals } = formatWithSignificantDigits(
+      absPrice,
+      rangeConfig.significantDigits,
+      rangeConfig.minimumDecimals,
+      rangeConfig.maximumDecimals,
+    );
+    return decimals;
+  }
+
+  return rangeConfig.maximumDecimals;
 };
 
 /**

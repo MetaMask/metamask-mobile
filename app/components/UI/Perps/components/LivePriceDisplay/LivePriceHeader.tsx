@@ -9,8 +9,9 @@ import {
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
   formatPercentage,
+  getUniversalPriceFractionDigits,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
@@ -177,10 +178,15 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       }
 
       const sign = absoluteChange > 0 ? '+' : absoluteChange < 0 ? '-' : '';
+      // Match the market price's fraction digits. Formatting the change on
+      // its own magnitude picks a finer range (e.g. $0.81169 next to $84.491).
+      const priceFractionDigits = getUniversalPriceFractionDigits(currentPrice);
       const formattedAbsoluteChange = formatPerpsFiat(
         Math.abs(absoluteChange),
         {
           ranges: PRICE_RANGES_UNIVERSAL,
+          minimumDecimals: priceFractionDigits,
+          maximumDecimals: priceFractionDigits,
         },
       );
       return `${sign}${formattedAbsoluteChange} (${percentage})`;
