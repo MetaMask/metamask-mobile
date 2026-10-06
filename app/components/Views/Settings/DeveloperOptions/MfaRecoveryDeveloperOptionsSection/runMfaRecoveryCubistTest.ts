@@ -5,6 +5,12 @@ import {
   type Scope,
 } from '@cubist-labs/cubesigner-sdk';
 import {
+  AuthType,
+  JwtBearerAuth,
+  Platform,
+  type LoginResponse,
+} from '@metamask/profile-sync-controller/sdk';
+import {
   MfaRecoveryController,
   type Identifier,
   type MfaRecoveryControllerMessenger,
@@ -16,35 +22,49 @@ import {
   type MessengerEvents,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import { bytesToHex, sha256 } from '@metamask/utils';
-import QuickCrypto from 'react-native-quick-crypto';
-import Engine from '../../../../../core/Engine';
-import { toChecksumAddress } from '../../../../../util/address';
+import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
+import { authEnv } from '../../../../../core/apiEnv';
 import { CubistEscrowProvider } from './CubistEscrowProvider';
 import {
-  StubAuthProvider,
+  PasskeyIdentifierAuthProvider,
+  SIWE_CHAIN_ID,
+  SIWE_DOMAIN,
   SiweIdentifierAuthProvider,
+  StubAuthProvider,
   passthroughEncryptor,
 } from './mfaRecoveryTestProviders';
 
 const DEFAULT_REGISTRATION_URL =
   'https://recovery-registration.dev-api.cx.metamask.io';
-const DEFAULT_CUBIST_ENVIRONMENT: Environment = 'gamma';
 const DEFAULT_SESSION_SCOPES: Scope[] = ['manage:*'];
 const RECOVERY_SECRET_LENGTH = 32;
-const MFA_RECOVERY_DEV_API_KEY = process.env.MFA_RECOVERY_DEV_API_KEY;
+
+export interface MfaRecoveryTestDependencies {
+  address: string;
+  signPersonalMessage: (params: {
+    data: string;
+    from: string;
+  }) => Promise<string>;
+  randomBytes: (length: number) => Uint8Array;
+  getAuthSession?: () => Promise<AuthSession>;
+}
+
+interface AuthSession {
+  accessToken: string;
+}
 
 export type MfaRecoveryTestStep =
   | 'signing_in'
-  | 'registering_cubist_user'
+  | 'requesting_oidc_token'
   | 'creating_cubist_session'
   | 'registering_recovery_secret'
   | 'authenticating_identifier'
   | 'reading_recovery_secret'
+  | 'updating_recovery_secret'
+  | 'updating_identifiers'
   | 'completed';
 
 export interface MfaRecoveryTestResult {
-  ensureUserStatus: 'created' | 'exists';
   epoch: number;
   matches: boolean;
 }
@@ -62,6 +82,7 @@ interface CubistConfig {
   receiptPublicKey: string;
   scopes: Scope[];
   registrationUrl: string;
+  mpcApiKey: string;
 }
 
 type RootMessenger = Messenger<
@@ -70,25 +91,9 @@ type RootMessenger = Messenger<
   MessengerEvents<MfaRecoveryControllerMessenger>
 >;
 
-interface RecoveryContext {
-  config: CubistConfig;
-  accessToken: string;
-  controller: MfaRecoveryController;
-  siweIdentifier: Identifier;
-  ensureUserStatus?: 'created' | 'exists';
-}
-
-type RecoveryContextPreparation = (
-  config: CubistConfig,
-  accessToken: string,
-) => Promise<'created' | 'exists' | undefined>;
-
 let lastRegisteredSecret: Uint8Array | undefined;
 
-/**
- * Error raised by the developer-only recovery flow before a controller error
- * is available.
- */
+/** Error raised by the developer-only recovery flow. */
 export class MfaRecoveryTestError extends Error {
   readonly code: string;
 
@@ -99,16 +104,7 @@ export class MfaRecoveryTestError extends Error {
   }
 }
 
-/**
- * Returns a safe code for displaying a recovery test failure.
- *
- * Controller errors use `code`. Cubist `ErrResponse` uses `errorCode` and
- * `status` instead, so those are mapped here rather than collapsing to
- * `unknown_error`.
- *
- * @param error - Failure from the recovery flow.
- * @returns Stable error code, without exposing tokens or secrets.
- */
+/** Returns a stable error code without exposing tokens or secrets. */
 export function getMfaRecoveryErrorCode(error: unknown): string {
   if (!isRecord(error)) {
     return 'unknown_error';
@@ -125,12 +121,7 @@ export function getMfaRecoveryErrorCode(error: unknown): string {
   return 'unknown_error';
 }
 
-/**
- * Returns a short, non-secret description of a recovery test failure.
- *
- * @param error - Failure from the recovery flow.
- * @returns Server or exception message, when one is safe to show.
- */
+/** Returns short diagnostic detail for the developer UI. */
 export function getMfaRecoveryErrorDetail(error: unknown): string | undefined {
   if (!isRecord(error)) {
     return undefined;
@@ -139,8 +130,6 @@ export function getMfaRecoveryErrorDetail(error: unknown): string | undefined {
   if (typeof error.message === 'string' && error.message.trim().length > 0) {
     parts.push(error.message.trim());
   }
-  // Cubist `ErrResponse` fields; the body is often empty on 4xx so these are
-  // the only way to tell which endpoint rejected the request.
   if (typeof error.statusText === 'string' && error.statusText.length > 0) {
     parts.push(error.statusText);
   }
@@ -157,73 +146,63 @@ export function getMfaRecoveryErrorDetail(error: unknown): string | undefined {
   return detail.length === 0 ? undefined : detail.slice(0, 400);
 }
 
-/**
- * Runs the live Cubist MFA recovery round trip from Developer Options.
- *
- * @param onStep - Optional progress callback.
- * @returns Registration status and recovery verification result.
- */
+/** Runs the same live registration/recovery round trip in the app or Node. */
 export async function runMfaRecoveryCubistTest(
+  dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void = () => undefined,
 ): Promise<MfaRecoveryTestResult> {
-  const context = await createRecoveryContext(
+  const { controller, siweIdentifier, passkeys } = await createRecoveryContext(
+    dependencies,
     onStep,
-    async (config, accessToken) => {
-      onStep('registering_cubist_user');
-      const providerRegistrationPayload =
-        await CubeSignerClient.proveOidcIdentity(
-          envs[config.environment],
-          config.orgId,
-          accessToken,
-        );
-
-      return await ensureCubistUser(
-        config,
-        accessToken,
-        providerRegistrationPayload,
-      );
-    },
   );
-  if (context.ensureUserStatus === undefined) {
-    throw new MfaRecoveryTestError(
-      'Recovery registration did not return a user status',
-      'registration_response_invalid',
-    );
-  }
+  const newSecret = () =>
+    new Uint8Array(dependencies.randomBytes(RECOVERY_SECRET_LENGTH));
+  const readAndCompare = async (identifier: Identifier, secret: Uint8Array) => {
+    const recovered = await readRecoverySecret(controller, identifier, onStep);
+    return {
+      epoch: recovered.epoch,
+      matches: bytesToHex(recovered.recoverySecret) === bytesToHex(secret),
+    };
+  };
 
   onStep('registering_recovery_secret');
-  const recoverySecret = new Uint8Array(
-    QuickCrypto.randomBytes(RECOVERY_SECRET_LENGTH),
-  );
-  await context.controller.register(recoverySecret, [context.siweIdentifier]);
-  lastRegisteredSecret = new Uint8Array(recoverySecret);
+  let secret = newSecret();
+  const passkeyIdentifier = passkeys.createIdentifier();
+  await controller.register(secret, [siweIdentifier, passkeyIdentifier]);
+  lastRegisteredSecret = new Uint8Array(secret);
+  let result = await readAndCompare(siweIdentifier, secret);
 
-  const recovered = await readRecoverySecret(
-    context.controller,
-    context.siweIdentifier,
-    onStep,
-  );
-  const matches =
-    bytesToHex(recovered.recoverySecret) === bytesToHex(recoverySecret);
-
+  if (result.matches) {
+    onStep('updating_recovery_secret');
+    secret = newSecret();
+    await controller.updateRecoverySecret(
+      passkeyIdentifier,
+      secret,
+      result.epoch,
+    );
+    lastRegisteredSecret = new Uint8Array(secret);
+    result = await readAndCompare(passkeyIdentifier, secret);
+  }
+  if (result.matches) {
+    onStep('updating_identifiers');
+    const replacementPasskey = passkeys.createIdentifier();
+    await controller.updateIdentifiers(
+      siweIdentifier,
+      [siweIdentifier, replacementPasskey],
+      result.epoch,
+    );
+    result = await readAndCompare(replacementPasskey, secret);
+  }
   onStep('completed');
-  return {
-    ensureUserStatus: context.ensureUserStatus,
-    epoch: recovered.epoch,
-    matches,
-  };
+  return result;
 }
 
-/**
- * Runs only the recovery half of the live Cubist MFA flow.
- *
- * @param onStep - Optional progress callback.
- * @returns Recovery verification result and a non-secret fingerprint.
- */
+/** Runs recovery without overwriting the previously registered secret. */
 export async function runMfaRecoveryCubistRecover(
+  dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void = () => undefined,
 ): Promise<MfaRecoveryRecoverResult> {
-  const context = await createRecoveryContext(onStep);
+  const context = await createRecoveryContext(dependencies, onStep);
   const recovered = await readRecoverySecret(
     context.controller,
     context.siweIdentifier,
@@ -234,7 +213,6 @@ export async function runMfaRecoveryCubistRecover(
       ? undefined
       : bytesToHex(recovered.recoverySecret) ===
         bytesToHex(lastRegisteredSecret);
-
   onStep('completed');
   return {
     epoch: recovered.epoch,
@@ -247,30 +225,36 @@ export async function runMfaRecoveryCubistRecover(
 }
 
 async function createRecoveryContext(
+  dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void,
-  prepareSession?: RecoveryContextPreparation,
-): Promise<RecoveryContext> {
+) {
   const config = getCubistConfig();
-  const address = getPrimaryAddress();
+  const { address, signPersonalMessage } = dependencies;
+  if (!address) {
+    throw new MfaRecoveryTestError(
+      'The primary account is unavailable',
+      'primary_account_unavailable',
+    );
+  }
 
-  // Reuse the app's SRP session (same `AuthType.SRP` JwtBearerAuth the rest of
-  // the app uses) instead of a separate SIWE login.
   onStep('signing_in');
-  const { AuthenticationController } = Engine.context;
-  const bearerToken = await AuthenticationController.getBearerToken();
+  const session = await (dependencies.getAuthSession?.() ??
+    signInWithSiwe(dependencies));
+  const { accessToken } = session;
   const authProvider = new StubAuthProvider({
-    accessToken: bearerToken,
-    apiKey: MFA_RECOVERY_DEV_API_KEY,
-    apiHost: 'https://mpc-service-non-enclave.dev-api.cx.metamask.io',
+    accessToken,
+    apiKey: config.mpcApiKey,
   });
-  const accessToken = await authProvider.getAccessToken();
-  const ensureUserStatus = await prepareSession?.(config, accessToken);
 
+  const accessToken1 = await authProvider.getAccessToken();
+
+  onStep('requesting_oidc_token');
+  const idToken = await requestOidcToken(config, accessToken1);
   onStep('creating_cubist_session');
   const sessionResponse = await CubeSignerClient.createOidcSession(
     envs[config.environment],
     config.orgId,
-    accessToken,
+    idToken,
     config.scopes,
   );
   const client = await CubeSignerClient.create(sessionResponse.data());
@@ -279,30 +263,54 @@ async function createRecoveryContext(
     wrapPublicKey: config.wrapPublicKey,
     receiptPublicKey: config.receiptPublicKey,
   });
-
   const siweIdentifier = createSiweIdentifier(address);
+  const siwe = new SiweIdentifierAuthProvider(address, signPersonalMessage);
+  const passkeys = new PasskeyIdentifierAuthProvider();
   const controller = new MfaRecoveryController({
     messenger: getControllerMessenger(),
     authProvider,
-    identifierAuthProvider: new SiweIdentifierAuthProvider(
-      address,
-      async ({ data, from }) =>
-        await Engine.context.KeyringController.signPersonalMessage({
-          data,
-          from,
-        }),
-    ),
+    identifierAuthProvider: {
+      getKeyBoundIdentifierToken: async (params) =>
+        params.identifier.type === 'passkey'
+          ? await passkeys.getKeyBoundIdentifierToken(params)
+          : await siwe.getKeyBoundIdentifierToken(params),
+    },
     escrows: [escrow],
     pendingOperationEncryptor: passthroughEncryptor,
   });
+  return { controller, siweIdentifier, passkeys };
+}
 
-  return {
-    config,
-    accessToken,
-    controller,
-    siweIdentifier,
-    ensureUserStatus,
-  };
+async function signInWithSiwe({
+  address,
+  signPersonalMessage,
+}: MfaRecoveryTestDependencies) {
+  let loginResponse: LoginResponse | null = null;
+  const auth = new JwtBearerAuth(
+    { env: authEnv(), platform: Platform.MOBILE, type: AuthType.SiWE },
+    {
+      storage: {
+        async getLoginResponse(): Promise<LoginResponse | null> {
+          return loginResponse;
+        },
+        async setLoginResponse(value: LoginResponse): Promise<void> {
+          loginResponse = value;
+        },
+      },
+    },
+  );
+  auth.prepare({
+    address,
+    chainId: 1,
+    domain: 'metamask.io',
+    signMessage: async (message) =>
+      await signPersonalMessage({
+        data: bytesToHex(stringToBytes(message)),
+        from: address,
+      }),
+  });
+  const accessToken = await auth.getAccessToken();
+  return { accessToken };
 }
 
 async function readRecoverySecret(
@@ -313,58 +321,51 @@ async function readRecoverySecret(
   onStep('authenticating_identifier');
   const identifierSession =
     await controller.authenticateIdentifier(siweIdentifier);
-
   onStep('reading_recovery_secret');
   return await controller.getRecoverySecret(identifierSession);
 }
 
-async function ensureCubistUser(
+async function requestOidcToken(
   config: CubistConfig,
   accessToken: string,
-  providerRegistrationPayload: unknown,
-): Promise<'created' | 'exists'> {
+): Promise<string> {
   const response = await fetch(
     new URL(
-      '/v1/recovery/registration/ensure-user',
+      '/v1/recovery/registration/oidc-token',
       `${config.registrationUrl}/`,
     ).toString(),
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        providerVerifierId: 'cubist',
-        providerRegistrationPayload,
-      }),
-    },
+    { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` } },
   );
-
   if (!response.ok) {
-    const body = await response.text().catch(() => '');
     throw new MfaRecoveryTestError(
-      `Recovery registration failed with HTTP ${response.status} ${body.slice(0, 200)}`.trim(),
+      `Recovery registration failed with HTTP ${response.status}`,
       'registration_request_failed',
     );
   }
-
   const body: unknown = await response.json();
   if (
     !isRecord(body) ||
-    (body.status !== 'created' && body.status !== 'exists')
+    typeof body.idToken !== 'string' ||
+    body.idToken.trim().length === 0 ||
+    typeof body.expiresAt !== 'number' ||
+    !Number.isFinite(body.expiresAt)
   ) {
     throw new MfaRecoveryTestError(
-      'Recovery registration returned an invalid status',
+      'Recovery registration returned an invalid OIDC token',
       'registration_response_invalid',
     );
   }
-  return body.status;
+  if (body.expiresAt <= Math.floor(Date.now() / 1000)) {
+    throw new MfaRecoveryTestError(
+      'Recovery registration returned an expired OIDC token',
+      'registration_token_expired',
+    );
+  }
+  return body.idToken;
 }
 
 function getCubistConfig(): CubistConfig {
-  const environment =
-    readEnvironmentVariable('MM_CUBIST_ENV') ?? DEFAULT_CUBIST_ENVIRONMENT;
+  const environment = readEnvironmentVariable('MM_CUBIST_ENV') ?? 'gamma';
   if (
     environment !== 'beta' &&
     environment !== 'gamma' &&
@@ -375,7 +376,6 @@ function getCubistConfig(): CubistConfig {
       'invalid_configuration',
     );
   }
-
   return {
     environment,
     orgId: getRequiredConfig('MM_CUBIST_ORG_ID'),
@@ -385,6 +385,7 @@ function getCubistConfig(): CubistConfig {
     registrationUrl:
       readEnvironmentVariable('MM_RECOVERY_REGISTRATION_URL') ??
       DEFAULT_REGISTRATION_URL,
+    mpcApiKey: getRequiredConfig('MFA_RECOVERY_DEV_API_KEY'),
   };
 }
 
@@ -422,12 +423,10 @@ type EnvironmentVariableName =
   | 'MM_CUBIST_WRAP_PUBLIC_KEY'
   | 'MM_CUBIST_RECEIPT_PUBLIC_KEY'
   | 'MM_CUBIST_SESSION_SCOPES'
-  | 'MM_RECOVERY_REGISTRATION_URL';
+  | 'MM_RECOVERY_REGISTRATION_URL'
+  | 'MFA_RECOVERY_DEV_API_KEY';
 
-// `babel-plugin-transform-inline-environment-variables` only inlines static
-// `process.env.NAME` accesses at bundle time; a computed `process.env[name]`
-// is left as-is and is always `undefined` in the Hermes runtime. Each variable
-// must therefore be spelled out literally here.
+// Keep static accesses so Babel can inline environment variables in Hermes.
 function readEnvironmentVariable(
   name: EnvironmentVariableName,
 ): string | undefined {
@@ -444,24 +443,11 @@ function readEnvironmentVariable(
       return process.env.MM_CUBIST_SESSION_SCOPES;
     case 'MM_RECOVERY_REGISTRATION_URL':
       return process.env.MM_RECOVERY_REGISTRATION_URL;
+    case 'MFA_RECOVERY_DEV_API_KEY':
+      return process.env.MFA_RECOVERY_DEV_API_KEY;
     default:
       return undefined;
   }
-}
-
-// Keyring state stores lowercase addresses, but `SiweMessage` rewrites the
-// address to EIP-55 before signing. The auth nonce must be requested with the
-// same checksummed form or the login endpoint rejects the signature.
-function getPrimaryAddress(): string {
-  const address =
-    Engine.context.KeyringController.state.keyrings[0]?.accounts?.[0];
-  if (typeof address !== 'string' || address.length === 0) {
-    throw new MfaRecoveryTestError(
-      'The primary account is unavailable',
-      'primary_account_unavailable',
-    );
-  }
-  return toChecksumAddress(address);
 }
 
 function getControllerMessenger(): MfaRecoveryControllerMessenger {
@@ -477,18 +463,9 @@ function getControllerMessenger(): MfaRecoveryControllerMessenger {
 function createSiweIdentifier(address: string): Identifier {
   return {
     type: 'siwe',
-    namespace: 'eip155:1',
-    value: address,
-    verifier: { address },
-  };
-}
-
-function createStubIdentifier(address: string): Identifier {
-  return {
-    type: 'passkey',
-    namespace: 'metamask.io',
-    value: `dev-stub-${address}`,
-    verifier: {},
+    namespace: `${SIWE_DOMAIN}:${SIWE_CHAIN_ID}`,
+    value: address.toLowerCase(),
+    verifier: { domain: SIWE_DOMAIN, chainId: SIWE_CHAIN_ID },
   };
 }
 

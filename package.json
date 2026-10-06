@@ -115,6 +115,7 @@
     "analytics:contract:check": "tsx scripts/analytics/typed-events/check-contract.ts",
     "analytics:contract:check:locked": "tsx scripts/analytics/typed-events/check-contract.ts --lock-file scripts/analytics/typed-events/contract.lock.json",
     "test:unit:llm-workflow": "jest -c jest.config.llm-workflow.js",
+    "test:mfa-recovery:cubist": "tsx scripts/run-mfa-recovery-cubist-test.ts",
     "test:smart-e2e": "tsx --test .ai-pr-analyzer/modes/smart-e2e/*.test.ts .github/actions/smart-e2e-selection/*.test.mjs",
     "mm:doctor": "tsx tests/llm-workflow/doctor-entry.ts",
     "test:view:base": "jest -c jest.config.view.js --no-watchman --silent",

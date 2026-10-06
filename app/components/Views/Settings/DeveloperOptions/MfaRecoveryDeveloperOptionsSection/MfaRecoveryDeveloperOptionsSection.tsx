@@ -1,4 +1,6 @@
 import React, { useCallback, useState } from 'react';
+import QuickCrypto from 'react-native-quick-crypto';
+import Engine from '../../../../../core/Engine';
 import {
   Button,
   ButtonSize,
@@ -19,6 +21,7 @@ import {
   type MfaRecoveryRecoverResult,
   type MfaRecoveryTestResult,
   type MfaRecoveryTestStep,
+  type MfaRecoveryTestDependencies,
 } from './runMfaRecoveryCubistTest';
 
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
@@ -26,6 +29,7 @@ const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
 
 type MfaRecoveryRunResult = MfaRecoveryTestResult | MfaRecoveryRecoverResult;
 type MfaRecoveryRunner = (
+  dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void,
 ) => Promise<MfaRecoveryRunResult>;
 type MfaRecoveryResultFormatter = (result: MfaRecoveryRunResult) => string;
@@ -55,10 +59,28 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       let currentStep: MfaRecoveryTestStep | null = null;
 
       try {
-        const recoveryResult = await runner((nextStep) => {
-          currentStep = nextStep;
-          setStep(nextStep);
-        });
+        const recoveryResult = await runner(
+          {
+            address:
+              Engine.context.KeyringController.state.keyrings[0]
+                ?.accounts?.[0] ?? '',
+            signPersonalMessage: async (params) =>
+              await Engine.context.KeyringController.signPersonalMessage(
+                params,
+              ),
+            randomBytes: (length) =>
+              new Uint8Array(QuickCrypto.randomBytes(length)),
+            getAuthSession: async () => {
+              const accessToken =
+                await Engine.context.AuthenticationController.getBearerToken();
+              return { accessToken };
+            },
+          },
+          (nextStep) => {
+            currentStep = nextStep;
+            setStep(nextStep);
+          },
+        );
         setResult(formatResult(recoveryResult));
       } catch (runError) {
         const code = getMfaRecoveryErrorCode(runError);
@@ -82,11 +104,10 @@ const MfaRecoveryDeveloperOptionsSection = () => {
 
   const handleRunCubistTest = useCallback(() => {
     handleRun(runMfaRecoveryCubistTest, (recoveryResult) => {
-      if (!('ensureUserStatus' in recoveryResult)) {
+      if ('fingerprint' in recoveryResult) {
         throw new Error('Unexpected recovery result');
       }
       return strings('app_settings.developer_options.mfa_recovery.success', {
-        status: recoveryResult.ensureUserStatus,
         epoch: recoveryResult.epoch,
         matches: recoveryResult.matches ? 'yes' : 'no',
       });
@@ -95,7 +116,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
 
   const handleRecoverSecret = useCallback(() => {
     handleRun(runMfaRecoveryCubistRecover, (recoveryResult) => {
-      if ('ensureUserStatus' in recoveryResult) {
+      if (!('fingerprint' in recoveryResult)) {
         throw new Error('Unexpected recovery result');
       }
       if (recoveryResult.matches === undefined) {

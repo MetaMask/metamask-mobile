@@ -10821,15 +10821,16 @@ __metadata:
 
 "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz#./metamask-mfa-recovery-controller-0.0.0.tgz::hash=ed73db&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz#./metamask-mfa-recovery-controller-0.0.0.tgz::hash=ee6e8e&locator=metamask%40workspace%3A."
   dependencies:
+    "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/utils": "npm:^12.0.0"
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/0b5185d346ba7499f500a669b4c683cc7825e9f1abc5c15436bef28c9aa80c0ffc80244d96738b3cf005fd393cf9fcb758e2aaeb48ecadad77cf0b549767917f
+  checksum: 10/b4349f495c42a37a87a4c78655e228f00f31761ae00dc6ad2ac7f59af3bc94be9e8e3cfedcb7b86dd48f318b140b61301825bfdff4d4c21ec46c8fa9f1debc19
   languageName: node
   linkType: hard
 
@@ -45142,8 +45143,8 @@ __metadata:
 
 "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=3cd186"
-  checksum: 10/366cd68ad5a813d2be4e7c704a24c2f4bd2066d8776eee0c67748391eaa080992c57e1997566ce950407e659677cc2747fdff23842d4cc25f15e29a44ea300fd
+  resolution: "react-native-aes-crypto-forked@patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch::version=1.2.1&hash=b86009"
+  checksum: 10/09d633d49b103e8bd135df1dc9d94071bbb05c114948d949d7a969ad435464b8ad1546169553119b57ecd490a128abde57b2409176cf0e46729406dfb799c8f7
   languageName: node
   linkType: hard
 

@@ -19,11 +19,21 @@ describe('mfa recovery test providers', () => {
     });
   });
 
+  it('returns the JWT subject as the authenticated profile id', async () => {
+    const provider = new StubAuthProvider({
+      accessToken: APP_ACCESS_TOKEN,
+      apiKey: 'api-key',
+    });
+
+    await expect(provider.getAuthenticatedProfileId()).resolves.toBe(
+      'profile-1',
+    );
+  });
+
   it('derives the profile and creates a request-bound auth token', async () => {
     const provider = new StubAuthProvider({
       accessToken: APP_ACCESS_TOKEN,
       apiKey: 'api-key',
-      now: () => 1_000,
     });
     const token = await provider.authorizeRecoveryRequest({
       requestHash: '0x6869',
@@ -38,25 +48,19 @@ describe('mfa recovery test providers', () => {
       ],
     });
 
-    expect(token).toMatchObject({
-      profileId: 'profile-1',
-      requestHash: '0x6869',
-      twoFactor: true,
-      identifierOwnershipApproved: true,
-      issuer: 'mfa-recovery-developer-test',
-      expiresAt: 4_600,
-      signature: 'minted-token',
-    });
-    expect(token.identifiersHash).toEqual(expect.any(String));
+    expect(token).toBe('minted-token');
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3000/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'api-key',
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://mpc-service-non-enclave.dev-api.cx.metamask.io/token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'api-key',
+        },
+        body: expect.stringContaining('"user":"profile-1"'),
       },
-      body: expect.stringContaining('"user":"profile-1"'),
-    });
+    );
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(
       expect.objectContaining({
         user: 'profile-1',
@@ -64,6 +68,7 @@ describe('mfa recovery test providers', () => {
           aal: 'aal2',
           amr: ['totp', 'passkey'],
           requestHash: 'aGk',
+          identifiersHash: expect.any(String),
         }),
       }),
     );
@@ -109,6 +114,22 @@ describe('mfa recovery test providers', () => {
     await expect(provider.getAccessToken()).rejects.toThrow('HTTP 401');
   });
 
+  it('rejects when the token response omits a string token', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: async () => ({ token: 123 }),
+    });
+    const provider = new StubAuthProvider({
+      accessToken: APP_ACCESS_TOKEN,
+      apiKey: 'api-key',
+    });
+
+    await expect(
+      provider.authorizeRecoveryRequest({ requestHash: '0x6869' }),
+    ).rejects.toThrow('invalid access token response');
+  });
+
   it('signs a SIWE identifier proof with the primary account', async () => {
     const signPersonalMessage = jest.fn().mockResolvedValue('0xsignature');
     const provider = new SiweIdentifierAuthProvider(
@@ -136,9 +157,9 @@ describe('mfa recovery test providers', () => {
       proofPublicKey: '{"kty":"EC"}',
       requestHash: '0xrequest',
       providerAssertion: {
-        type: 'siwe',
-        address: '0xabc',
-        message: expect.stringContaining('0xrequest'),
+        message: expect.stringMatching(
+          /^metamask\.io wants you to sign in with your Ethereum account:[\s\S]*Nonce: 0x[0-9a-f]{64}/u,
+        ),
         signature: '0xsignature',
       },
     });

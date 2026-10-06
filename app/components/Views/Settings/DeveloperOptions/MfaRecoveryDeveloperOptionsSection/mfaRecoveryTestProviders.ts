@@ -8,16 +8,22 @@ import {
   stringToBytes,
 } from '@metamask/utils';
 import type {
-  AuthControllerToken,
   Identifier,
   PendingOperation,
   PendingOperationEncryptor,
   RecoveryAuthProvider,
   RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
+import { SoftwarePasskey, base64Url } from './softwarePasskey';
 
-const AUTH_TOKEN_LIFETIME_SECONDS = 60 * 60;
-const DEFAULT_TOKEN_API_HOST = 'http://localhost:3000';
+/** Must be allowed by the escrow's IDENTIFIER_POLICY (siwe domains/chainIds). */
+export const SIWE_DOMAIN = 'metamask.io';
+export const SIWE_CHAIN_ID = 1;
+/** Must be allowed by the escrow's IDENTIFIER_POLICY (passkey rpIds/origins). */
+export const PASSKEY_RP_ID = 'metamask.io';
+export const PASSKEY_ORIGIN = 'https://metamask.io';
+const DEFAULT_TOKEN_API_HOST =
+  'https://mpc-service-non-enclave.dev-api.cx.metamask.io';
 const TOKEN_API_KEY_HEADER = 'x-api-key';
 
 type SignPersonalMessage = (params: {
@@ -29,14 +35,11 @@ interface StubAuthProviderOptions {
   accessToken: string;
   apiKey: string;
   apiHost?: string;
-  now?: () => number;
 }
 
 /**
- * Test-only AuthController replacement for the developer flow.
- *
- * The AuthenticationController bearer token provides the profile id. The
- * development MPC service mints the JWTs used by the recovery flow.
+ * Recovery auth provider that derives the profile ID from the app access token
+ * and mints request-bound JWTs through the MPC token service.
  */
 export class StubAuthProvider implements RecoveryAuthProvider {
   readonly #profileId: string;
@@ -45,18 +48,14 @@ export class StubAuthProvider implements RecoveryAuthProvider {
 
   readonly #apiHost: string;
 
-  readonly #now: () => number;
-
   constructor({
     accessToken,
     apiKey,
     apiHost = DEFAULT_TOKEN_API_HOST,
-    now = () => Math.floor(Date.now() / 1000),
   }: StubAuthProviderOptions) {
     this.#profileId = getJwtSubject(accessToken);
     this.#apiKey = apiKey;
     this.#apiHost = apiHost;
-    this.#now = now;
   }
 
   async getAccessToken(): Promise<string> {
@@ -71,32 +70,19 @@ export class StubAuthProvider implements RecoveryAuthProvider {
     requestHash: string;
     requireTwoFactor?: boolean;
     identifiers?: Identifier[];
-  }): Promise<AuthControllerToken> {
+  }): Promise<string> {
     const identifiersHash =
       params.identifiers === undefined
         ? undefined
         : await hashIdentifiers(params.identifiers);
 
-    return {
-      profileId: this.#profileId,
-      requestHash: params.requestHash,
-      ...(params.requireTwoFactor ? { twoFactor: true as const } : {}),
-      ...(identifiersHash === undefined
-        ? {}
-        : {
-            identifiersHash,
-            identifierOwnershipApproved: true as const,
-          }),
-      issuer: 'mfa-recovery-developer-test',
-      expiresAt: this.#now() + AUTH_TOKEN_LIFETIME_SECONDS,
-      signature: await this.#mintToken({
-        requestHash: toBase64Url(hexToBytes(params.requestHash)),
-        ...(params.requireTwoFactor
-          ? { aal: 'aal2', amr: ['totp', 'passkey'] }
-          : {}),
-        ...(identifiersHash === undefined ? {} : { identifiersHash }),
-      }),
-    };
+    return await this.#mintToken({
+      requestHash: toBase64Url(hexToBytes(params.requestHash)),
+      ...(params.requireTwoFactor
+        ? { aal: 'aal2', amr: ['totp', 'passkey'] }
+        : {}),
+      ...(identifiersHash === undefined ? {} : { identifiersHash }),
+    });
   }
 
   async #mintToken(ext?: Record<string, unknown>): Promise<string> {
@@ -153,11 +139,25 @@ export class SiweIdentifierAuthProvider
     requestHash: string;
     providerAssertion: unknown;
   }> {
+    // The escrow requires nonce = hash([proofPublicKey, requestHash]).
+    const nonce = bytesToHex(
+      await sha256(
+        stringToBytes(
+          JSON.stringify([params.proofPublicKey, params.requestHash]),
+        ),
+      ),
+    );
     const message = [
-      'MetaMask MFA recovery identifier proof',
-      `Address: ${this.#address}`,
-      `Proof public key: ${params.proofPublicKey}`,
-      `Request hash: ${params.requestHash}`,
+      `${SIWE_DOMAIN} wants you to sign in with your Ethereum account:`,
+      this.#address,
+      '',
+      'Authorize MetaMask MFA recovery.',
+      '',
+      `URI: https://${SIWE_DOMAIN}`,
+      'Version: 1',
+      `Chain ID: ${SIWE_CHAIN_ID}`,
+      `Nonce: ${nonce}`,
+      `Issued At: ${new Date().toISOString()}`,
     ].join('\n');
     const signature = await this.#signPersonalMessage({
       from: this.#address,
@@ -168,12 +168,63 @@ export class SiweIdentifierAuthProvider
       identifier: params.identifier,
       proofPublicKey: params.proofPublicKey,
       requestHash: params.requestHash,
-      providerAssertion: {
-        type: 'siwe',
-        address: this.#address,
-        message,
-        signature,
+      providerAssertion: { message, signature },
+    };
+  }
+}
+
+/**
+ * Signs key-bound passkey identifier proofs with in-memory software passkeys.
+ */
+export class PasskeyIdentifierAuthProvider
+  implements RecoveryIdentifierAuthProvider
+{
+  readonly #passkeys = new Map<string, SoftwarePasskey>();
+
+  /** Creates a passkey and returns its recovery identifier. */
+  createIdentifier(): Identifier {
+    const passkey = new SoftwarePasskey();
+    this.#passkeys.set(passkey.credentialId, passkey);
+    return {
+      type: 'passkey',
+      namespace: PASSKEY_RP_ID,
+      value: passkey.credentialId,
+      verifier: {
+        rpId: PASSKEY_RP_ID,
+        origins: [PASSKEY_ORIGIN],
+        credentialId: passkey.credentialId,
+        publicKey: passkey.publicJwk,
       },
+    };
+  }
+
+  async getKeyBoundIdentifierToken(params: {
+    identifier: Identifier;
+    proofPublicKey: string;
+    requestHash: string;
+  }) {
+    const passkey = this.#passkeys.get(params.identifier.value);
+    if (!passkey) {
+      throw new Error('Unknown test passkey');
+    }
+    // The escrow requires challenge = the raw digest of hash([proofPublicKey, requestHash]).
+    const challenge = base64Url(
+      await sha256(
+        stringToBytes(
+          JSON.stringify([params.proofPublicKey, params.requestHash]),
+        ),
+      ),
+    );
+    const { id, response } = await passkey.get({
+      rpId: PASSKEY_RP_ID,
+      origin: PASSKEY_ORIGIN,
+      challenge,
+    });
+    return {
+      identifier: params.identifier,
+      proofPublicKey: params.proofPublicKey,
+      requestHash: params.requestHash,
+      providerAssertion: { id, response },
     };
   }
 }
