@@ -158,6 +158,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * When true, selecting a market replaces the underlying MARKET_DETAILS
          * (and dismisses this list) instead of pushing another details screen.
@@ -380,6 +381,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * Stamped when Perps Home was removed from this stack (TAT-3786).
          * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
