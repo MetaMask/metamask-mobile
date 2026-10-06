@@ -73,7 +73,6 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
         balanceOnly={!isSell}
         enabledChainIds={isSell ? undefined : payWithChainIds}
         excludeToken={positionTokenFromSetup}
-        excludeRwaTokens
         onOpenNetworkList={() => setActiveScreen('selectNetwork')}
         hostManagesNetworkFilter
         renderScrollComponent={GestureHandlerScrollView}
