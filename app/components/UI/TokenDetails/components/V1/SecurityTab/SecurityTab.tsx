@@ -4,6 +4,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -11,13 +13,18 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import SecurityPill from '../SecurityPill/SecurityPill';
 import HoldersDistributionBar from './components/HoldersDistributionBar';
-import SecurityCheckRow from './components/SecurityCheckRow';
-import SecurityScanMeta from './components/SecurityScanMeta';
-import SecurityStatRow from './components/SecurityStatRow';
-import { SECURITY_CHECKS_BY_NAMESPACE } from './SecurityTab.constants';
+import SecurityRow from './components/SecurityRow';
+import {
+  SECURITY_CHECKS_BY_NAMESPACE,
+  SECURITY_CHECK_LABEL_KEYS,
+  SECURITY_STAT_LABEL_KEYS,
+} from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
   SecurityStatKey,
+  type SecurityCheck,
+  type SecurityCheckKey,
+  type SecurityCheckOutcome,
   type SecurityRowKey,
   type SecurityTabFacts,
 } from './SecurityTab.types';
@@ -54,6 +61,79 @@ const SectionHeader = ({ titleKey }: { titleKey: string }) => (
   <Text variant={TextVariant.SectionHeading} color={TextColor.TextDefault}>
     {strings(titleKey)}
   </Text>
+);
+
+/**
+ * How each check outcome presents.
+ *
+ * Typed as a full `Record` so a third outcome cannot be added to
+ * `SecurityCheckOutcome` without deciding how it looks.
+ */
+const CHECK_OUTCOME_PRESENTATION: Record<
+  SecurityCheckOutcome,
+  { icon?: { name: IconName; color: IconColor }; valueColor: TextColor }
+> = {
+  pass: {
+    icon: { name: IconName.CheckBold, color: IconColor.SuccessDefault },
+    valueColor: TextColor.SuccessDefault,
+  },
+  fail: {
+    icon: { name: IconName.Close, color: IconColor.ErrorDefault },
+    valueColor: TextColor.ErrorDefault,
+  },
+  /** No glyph, leaving the dash to carry the "no data" meaning. */
+  unknown: { valueColor: TextColor.TextAlternative },
+};
+
+/**
+ * One contract check — a label, a pass/fail glyph and the check's own wording.
+ *
+ * An unresolved check shows a dimmed dash and no glyph. That matters more here
+ * than on the stat rows: Blockaid reports only the risks it detected and never
+ * the checks it ran, so a green tick for "nothing found" would claim a test
+ * result that does not exist. An absent check and an explicit `unknown` have to
+ * land on the same dash.
+ */
+const CheckRow = ({
+  checkKey,
+  check,
+  onExplain,
+}: {
+  checkKey: SecurityCheckKey;
+  check?: SecurityCheck;
+  onExplain: (rowKey: SecurityRowKey) => void;
+}) => {
+  const outcome = check?.outcome ?? 'unknown';
+  const { icon, valueColor } = CHECK_OUTCOME_PRESENTATION[outcome];
+
+  return (
+    <SecurityRow
+      rowKey={checkKey}
+      label={strings(SECURITY_CHECK_LABEL_KEYS[checkKey])}
+      value={outcome === 'unknown' ? null : (check?.value ?? null)}
+      icon={icon}
+      valueColor={valueColor}
+      onExplain={onExplain}
+    />
+  );
+};
+
+/** A stat row differs from a check only in where its label comes from. */
+const StatRow = ({
+  statKey,
+  value,
+  onExplain,
+}: {
+  statKey: SecurityStatKey;
+  value: string | null;
+  onExplain: (rowKey: SecurityRowKey) => void;
+}) => (
+  <SecurityRow
+    rowKey={statKey}
+    label={strings(SECURITY_STAT_LABEL_KEYS[statKey])}
+    value={value}
+    onExplain={onExplain}
+  />
 );
 
 /**
@@ -103,14 +183,30 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           </Text>
         ) : null}
         {SECURITY_CHECKS_BY_NAMESPACE[facts.namespace].map((checkKey) => (
-          <SecurityCheckRow
+          <CheckRow
             key={checkKey}
             checkKey={checkKey}
             check={checks[checkKey]}
             onExplain={handleExplain}
           />
         ))}
-        <SecurityScanMeta checkedMinutesAgo={facts.checkedMinutesAgo} />
+        {/* Provenance for the four rows above: they come from a third-party
+            scan, and naming the provider plus the scan's age is what lets the
+            reader judge how much to trust a tick that may be hours old. A null
+            age drops the freshness clause rather than guessing at a time. */}
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="pt-2"
+          testID={SecurityTabSelectors.SCAN_META}
+        >
+          {facts.checkedMinutesAgo === null
+            ? strings('token_details_v1.security_tab.checks_meta.attribution')
+            : strings(
+                'token_details_v1.security_tab.checks_meta.attribution_checked',
+                { count: facts.checkedMinutesAgo },
+              )}
+        </Text>
       </Box>
 
       {/* ── Holders ─────────────────────────────────────────────────────────
@@ -128,12 +224,12 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           remainingPercentage={holders.remainingPercentage}
         />
         <Box twClassName="pt-3">
-          <SecurityStatRow
+          <StatRow
             statKey={SecurityStatKey.Holders}
             value={holders.count}
             onExplain={handleExplain}
           />
-          <SecurityStatRow
+          <StatRow
             statKey={SecurityStatKey.TopTen}
             value={holders.topTenPercentage}
             onExplain={handleExplain}
@@ -146,22 +242,22 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         <Box twClassName="pb-3">
           <SectionHeader titleKey="token_details_v1.security_tab.sections.liquidity" />
         </Box>
-        <SecurityStatRow
+        <StatRow
           statKey={SecurityStatKey.TotalLiquidity}
           value={liquidity.total}
           onExplain={handleExplain}
         />
-        <SecurityStatRow
+        <StatRow
           statKey={SecurityStatKey.LiquidityToMarketCap}
           value={liquidity.liquidityToMarketCap}
           onExplain={handleExplain}
         />
-        <SecurityStatRow
+        <StatRow
           statKey={SecurityStatKey.LpBurnedLocked}
           value={liquidity.lpBurnedLocked}
           onExplain={handleExplain}
         />
-        <SecurityStatRow
+        <StatRow
           statKey={SecurityStatKey.PrimaryPool}
           value={liquidity.primaryPool}
           onExplain={handleExplain}
@@ -177,12 +273,12 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           <Box twClassName="pb-3">
             <SectionHeader titleKey="token_details_v1.security_tab.sections.trading" />
           </Box>
-          <SecurityStatRow
+          <StatRow
             statKey={SecurityStatKey.BuySellTax}
             value={trading.buySellTax}
             onExplain={handleExplain}
           />
-          <SecurityStatRow
+          <StatRow
             statKey={SecurityStatKey.VolumeFlags}
             value={trading.volumeFlags}
             onExplain={handleExplain}
@@ -195,7 +291,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         <Box twClassName="pb-3">
           <SectionHeader titleKey="token_details_v1.security_tab.sections.origin" />
         </Box>
-        <SecurityStatRow
+        <StatRow
           statKey={SecurityStatKey.Created}
           value={origin.created}
           onExplain={handleExplain}

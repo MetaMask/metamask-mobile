@@ -10,6 +10,7 @@ import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplai
 import SecurityTab from './SecurityTab';
 import {
   SECURITY_CHECKS_BY_NAMESPACE,
+  SECURITY_EMPTY_VALUE,
   SECURITY_EXPLAINER_KEYS,
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
@@ -17,6 +18,7 @@ import {
   SecurityCheckKey,
   SecurityStatKey,
   SupportedSecurityNamespace,
+  type SecurityCheck,
   type SecurityRowKey,
 } from './SecurityTab.types';
 
@@ -92,6 +94,63 @@ describe('SecurityTab', () => {
       expect(
         SECURITY_CHECKS_BY_NAMESPACE[SupportedSecurityNamespace.Solana],
       ).not.toContain(SecurityCheckKey.ContractVerified);
+    });
+  });
+
+  describe('check outcomes', () => {
+    const renderCheck = (check?: SecurityCheck) =>
+      render(
+        <SecurityTab
+          facts={{
+            ...MOCK_SECURITY_FACTS_EVM,
+            checks: { [SecurityCheckKey.NoHoneypot]: check },
+          }}
+          onExplain={jest.fn()}
+        />,
+      );
+
+    it.each([
+      ['pass', 'Sells work'],
+      ['fail', 'Sells blocked'],
+    ] as const)(
+      'shows a %s check with its glyph and wording',
+      (outcome, value) => {
+        const { getByTestId } = renderCheck({ outcome, value });
+
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowValue(SecurityCheckKey.NoHoneypot),
+          ),
+        ).toHaveTextContent(value);
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowIcon(SecurityCheckKey.NoHoneypot),
+          ),
+        ).toBeOnTheScreen();
+      },
+    );
+
+    // Blockaid reports the risks it detected, never the checks it ran, so a
+    // tick on an unresolved check would assert a result the API never
+    // returned. Every route to "not established" has to land on a bare dash.
+    it.each([
+      ['an absent check', undefined],
+      ['an explicitly unknown check', { outcome: 'unknown', value: null }],
+      [
+        'an unknown check that still carries a value',
+        { outcome: 'unknown', value: 'Clean' },
+      ],
+    ] as const)('shows a dash and no glyph for %s', (_label, check) => {
+      const { getByTestId, queryByTestId } = renderCheck(check);
+
+      expect(
+        getByTestId(SecurityTabSelectors.rowValue(SecurityCheckKey.NoHoneypot)),
+      ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+      expect(
+        queryByTestId(
+          SecurityTabSelectors.rowIcon(SecurityCheckKey.NoHoneypot),
+        ),
+      ).toBeNull();
     });
   });
 
