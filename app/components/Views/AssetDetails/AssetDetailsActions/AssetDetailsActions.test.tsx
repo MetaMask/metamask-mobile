@@ -12,7 +12,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import { SwapBridgeNavigationLocation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
@@ -193,8 +193,8 @@ describe('AssetDetailsActions', () => {
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: MetaMetricsSwapsEventSource.TokenView,
-      sourcePage: 'TokenDetails',
+      location: SwapBridgeNavigationLocation.MainView,
+      sourcePage: 'MainView',
     });
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));

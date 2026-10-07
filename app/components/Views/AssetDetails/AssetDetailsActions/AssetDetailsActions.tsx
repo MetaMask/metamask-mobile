@@ -70,8 +70,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
-    sourcePage: 'TokenDetails',
+    location: SwapBridgeNavigationLocation.MainView,
+    sourcePage: 'MainView',
   });
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
