@@ -133,6 +133,11 @@ class AppDelegate: ExpoAppDelegate {
     return superResult
   }
 
+  override func applicationDidEnterBackground(_ application: UIApplication) {
+    PrivacyCover.shared.show(in: window)
+    super.applicationDidEnterBackground(application)
+  }
+
   override func applicationDidBecomeActive(_ application: UIApplication) {
     super.applicationDidBecomeActive(application)
     // Re-assert our delegate on every foreground entry so Braze/Notifee cannot reclaim

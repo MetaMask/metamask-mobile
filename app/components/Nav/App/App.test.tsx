@@ -239,9 +239,6 @@ jest.mock('../../Views/ProHub/screens/Earned', () => () => (
 jest.mock('../../Views/ProHub/screens/CancelMembership', () => () => (
   <MockView testID="mock-pro-hub-cancel-membership" />
 ));
-jest.mock('../../Views/LockScreen', () => () => (
-  <MockView testID="mock-lock-screen" />
-));
 jest.mock('../../Views/MultichainAccounts/AddressList', () => ({
   AddressList: () => <MockView testID="mock-address-list" />,
 }));
@@ -710,10 +707,6 @@ describe('App', () => {
       expect(Routes.EDIT_NETWORK).toBeDefined();
     });
 
-    it('has lock screen route defined', () => {
-      expect(Routes.LOCK_SCREEN).toBeDefined();
-    });
-
     it('has confirmation routes defined', () => {
       expect(Routes.CONFIRMATION_REQUEST_MODAL).toBeDefined();
       expect(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE).toBeDefined();
@@ -855,19 +848,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
-      });
-    });
-
-    it('renders the lock screen route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [{ name: Routes.LOCK_SCREEN }],
-      };
-
-      const { toJSON } = renderAppWithDefaultState(routeState);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
       });
     });
   });
@@ -2235,19 +2215,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders the LockScreen route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [{ name: Routes.LOCK_SCREEN }],
-      };
-
-      const { getByTestId } = renderAppAtRoute(routeState);
-
-      await waitFor(() => {
-        expect(getByTestId('mock-lock-screen')).toBeTruthy();
       });
     });
   });

@@ -29,7 +29,7 @@ import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
-import LockManagerService from '../../../core/LockManagerService';
+import AppLockService from '../../../core/AppLock/AppLockService';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -230,13 +230,13 @@ const TokenListModalsRoutes = () => (
 );
 
 const TokenListRoutes = () => {
-  // Disable auto-lock during Ramps unified buy v2 flow
-  // This allows users to minimize the app to check personal details or complete
-  // verification steps without being locked out and redirected to wallet home
+  // Dangerous stop-gap. Lets someone leave for verification without being
+  // locked out and sent to Home. Most likely removed once navigation
+  // persistence lands. See AppLockService.dangerousPauseAutoLock.
   useEffect(() => {
-    LockManagerService.stopListening();
+    AppLockService.dangerousPauseAutoLock();
     return () => {
-      LockManagerService.startListening();
+      AppLockService.dangerousResumeAutoLock();
     };
   }, []);
 

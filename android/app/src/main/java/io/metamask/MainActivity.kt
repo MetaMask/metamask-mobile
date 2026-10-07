@@ -11,9 +11,21 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 import io.branch.rnbranch.RNBranchModule
 import io.metamask.nativeModules.NotificationModule
+import io.metamask.nativeModules.PrivacyCover
 import com.braze.reactbridge.BrazeReactUtils
 
 class MainActivity : ReactActivity() {
+    override fun onPause() {
+        PrivacyCover.markAuthenticationUnavailable()
+        PrivacyCover.show(this)
+        super.onPause()
+    }
+
+    override fun onPostResume() {
+        super.onPostResume()
+        PrivacyCover.markAuthenticationReady()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Capture Notification Intent
         NotificationModule.saveNotificationIntent(intent)
@@ -24,6 +36,12 @@ class MainActivity : ReactActivity() {
         // This is required for expo-splash-screen.
         setTheme(R.style.AppTheme)
         super.onCreate(null)
+        // Android 13+ can suppress the Recents thumbnail without FLAG_SECURE, so
+        // screenshots keep working while the app is open. Older versions hold
+        // FLAG_SECURE for the wallet session instead (see AppLockService).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(false)
+        }
     }
 
     /**

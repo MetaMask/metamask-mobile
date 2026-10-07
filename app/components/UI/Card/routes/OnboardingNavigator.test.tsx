@@ -78,11 +78,11 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-jest.mock('../../../../core/LockManagerService', () => ({
+jest.mock('../../../../core/AppLock/AppLockService', () => ({
   __esModule: true,
   default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
+    dangerousPauseAutoLock: jest.fn(),
+    dangerousResumeAutoLock: jest.fn(),
   },
 }));
 

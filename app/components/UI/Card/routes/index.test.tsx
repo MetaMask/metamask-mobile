@@ -233,19 +233,21 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
   },
 }));
 
-jest.mock('../../../../core/LockManagerService', () => ({
+jest.mock('../../../../core/AppLock/AppLockService', () => ({
   __esModule: true,
   default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
+    dangerousPauseAutoLock: jest.fn(),
+    dangerousResumeAutoLock: jest.fn(),
   },
 }));
 
-const mockLockManagerService = jest.requireMock(
-  '../../../../core/LockManagerService',
+const mockAppLockService = jest.requireMock(
+  '../../../../core/AppLock/AppLockService',
 ).default;
-const mockStopListening = mockLockManagerService.stopListening as jest.Mock;
-const mockStartListening = mockLockManagerService.startListening as jest.Mock;
+const mockPauseAutoLock =
+  mockAppLockService.dangerousPauseAutoLock as jest.Mock;
+const mockResumeAutoLock =
+  mockAppLockService.dangerousResumeAutoLock as jest.Mock;
 
 const createMockStore = (isAuthenticated = false, isCardholder = false) =>
   configureStore({
@@ -350,24 +352,24 @@ describe('CardRoutes', () => {
 
   describe('Auto-lock Management', () => {
     beforeEach(() => {
-      mockStopListening.mockClear();
-      mockStartListening.mockClear();
+      mockPauseAutoLock.mockClear();
+      mockResumeAutoLock.mockClear();
     });
 
-    it('disables auto-lock when Card root mounts', () => {
+    it('pauses auto-lock when Card root mounts', () => {
       renderWithProviders(<CardRoutes />);
 
-      expect(mockStopListening).toHaveBeenCalledTimes(1);
+      expect(mockPauseAutoLock).toHaveBeenCalledTimes(1);
     });
 
-    it('re-enables auto-lock when Card root unmounts', () => {
+    it('resumes auto-lock when Card root unmounts', () => {
       const { unmount } = renderWithProviders(<CardRoutes />);
 
-      expect(mockStartListening).not.toHaveBeenCalled();
+      expect(mockResumeAutoLock).not.toHaveBeenCalled();
 
       unmount();
 
-      expect(mockStartListening).toHaveBeenCalledTimes(1);
+      expect(mockResumeAutoLock).toHaveBeenCalledTimes(1);
     });
   });
 });

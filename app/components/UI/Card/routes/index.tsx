@@ -16,7 +16,7 @@ import {
   selectIsCardholder,
 } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
-import LockManagerService from '../../../../core/LockManagerService';
+import AppLockService from '../../../../core/AppLock/AppLockService';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -235,10 +235,12 @@ const CardModalsRoutes = () => (
 );
 
 const CardRoutes = () => {
+  // Dangerous stop-gap so leaving for verification does not reset to Home.
+  // Most likely removed once navigation persistence lands.
   useEffect(() => {
-    LockManagerService.stopListening();
+    AppLockService.dangerousPauseAutoLock();
     return () => {
-      LockManagerService.startListening();
+      AppLockService.dangerousResumeAutoLock();
     };
   }, []);
 

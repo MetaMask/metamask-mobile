@@ -1742,6 +1742,32 @@ class AuthenticationService {
   };
 
   /**
+   * Prompts biometric unlock after checking whether the seedless password is
+   * outdated. Shared by cold start and resume so both prompt identically.
+   * Rejects when unlock fails; callers decide the Login fallback.
+   */
+  tryBiometricUnlock = async (): Promise<void> => {
+    if (
+      await this.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      })
+    ) {
+      NavigationService.navigation?.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      return;
+    }
+
+    await this.unlockWallet();
+  };
+
+  /**
    * Checks if the seedless password is outdated and shows a modal if it is.
    * This method verifies the outdated state and navigates to show the password outdated modal.
    *

@@ -1057,7 +1057,6 @@ export type RootStackParamList = {
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
-  LockScreen: undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
