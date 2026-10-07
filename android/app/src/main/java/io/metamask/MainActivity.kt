@@ -26,6 +26,18 @@ class MainActivity : ReactActivity() {
         PrivacyCover.markAuthenticationReady()
     }
 
+    /**
+     * Predictive back calls this from React Native's dispatcher callback.
+     * Swallow it while the cover is up so it cannot pop the screen underneath.
+     */
+    @Suppress("OVERRIDE_DEPRECATION")
+    override fun onBackPressed() {
+        if (PrivacyCover.isShown()) {
+            return
+        }
+        super.onBackPressed()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Capture Notification Intent
         NotificationModule.saveNotificationIntent(intent)

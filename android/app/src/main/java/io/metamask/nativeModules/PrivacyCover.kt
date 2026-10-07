@@ -4,6 +4,8 @@ import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import com.facebook.react.bridge.Promise
 import io.metamask.R
 
@@ -18,6 +20,9 @@ import io.metamask.R
  */
 internal object PrivacyCover {
     private var overlay: View? = null
+    /** Consumes system back while the cover is visible so the screen underneath stays put. */
+    private var backCallback: OnBackPressedCallback? = null
+    private var backCallbackActivity: Activity? = null
     /** Bumped on every pause so a stale resume cannot start authentication. */
     private var authenticationEpoch = 0
     /** Set to [authenticationEpoch] only while `onPostResume` is the latest lifecycle event. */
@@ -49,7 +54,10 @@ internal object PrivacyCover {
         }
         cover.bringToFront()
         cover.visibility = View.VISIBLE
+        blockBack(activity)
     }
+
+    fun isShown(): Boolean = overlay?.visibility == View.VISIBLE
 
     fun hide() {
         // A dismiss queued while the activity is pausing belongs to a resume
@@ -58,6 +66,28 @@ internal object PrivacyCover {
             return
         }
         overlay?.visibility = View.GONE
+        backCallback?.isEnabled = false
+    }
+
+    /**
+     * Registered after React Native's own back callback, so while it is enabled
+     * the dispatcher delivers back here first and the screen underneath does not move.
+     */
+    private fun blockBack(activity: Activity) {
+        val componentActivity = activity as? ComponentActivity ?: return
+        if (backCallback == null || backCallbackActivity !== componentActivity) {
+            backCallback?.remove()
+            val callback = object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // The privacy cover is up. Drop the press.
+                }
+            }
+            componentActivity.onBackPressedDispatcher.addCallback(componentActivity, callback)
+            backCallback = callback
+            backCallbackActivity = componentActivity
+        } else {
+            backCallback?.isEnabled = true
+        }
     }
 
     /**
