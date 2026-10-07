@@ -12,16 +12,6 @@ describe('PerpsGTMModal.styles', () => {
     expect(styles.footerContainer.paddingHorizontal).toBe(30);
   });
 
-  it('caps horizontal padding on tablet widths', () => {
-    const styles = createStyles(lightTheme, false, {
-      width: 1366,
-      height: 1024,
-    });
-
-    expect(styles.headerContainer.paddingHorizontal).toBe(24);
-    expect(styles.footerContainer.paddingHorizontal).toBe(45);
-  });
-
   it('recomputes vertical spacing from the current window height', () => {
     const portrait = createStyles(lightTheme, false, {
       width: 1024,

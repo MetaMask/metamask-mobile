@@ -13,7 +13,7 @@ export interface ModalMandatoryStyleSheetVars {
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
- * @param params.vars Current window height, so the body resizes on rotation.
+ * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
 

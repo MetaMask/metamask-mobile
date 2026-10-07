@@ -6,8 +6,6 @@ import { Theme } from '@metamask/design-tokens';
 const BASE_WIDTH = 375;
 const BASE_HEIGHT_IOS = 812; // iPhone X/11/12/13/14/15 Pro base
 const BASE_HEIGHT_ANDROID = 736; // Common Android base
-// Above every phone width (~1.3x), so only tablets are capped.
-const MAX_HORIZONTAL_SCALE = 1.5;
 
 // Calculate platform-aware scaling factors
 const isIOS = Platform.OS === 'ios';
@@ -25,14 +23,13 @@ const createScalers = ({ width, height }: PerpsGTMModalWindowSize) => {
   // Use more conservative scaling to prevent excessive padding
   const scale = Math.min(widthScale, heightScale);
   const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
-  const horizontalScale = Math.min(widthScale, MAX_HORIZONTAL_SCALE);
 
   return {
     scaleSize: (size: number) => Math.ceil(size * conservativeScale),
     scaleFont: (size: number) => Math.ceil(size * conservativeScale),
     // For vertical spacing, use percentage of available height instead of pure scaling
     scaleVertical: (size: number) => Math.ceil(height * (size / baseHeight)),
-    scaleHorizontal: (size: number) => Math.ceil(size * horizontalScale),
+    scaleHorizontal: (size: number) => Math.ceil(size * widthScale),
   };
 };
 

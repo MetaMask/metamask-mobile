@@ -32,7 +32,7 @@ export class ScreenOrientationService {
    */
   static async lockToDefault(): Promise<void> {
     if (Platform.OS === 'ios' && Platform.isPad) {
-      // Unlocking falls back to UISupportedInterfaceOrientations~ipad in Info.plist.
+      // Unlocking falls back to the iPad orientations allowed in Info.plist.
       await this.allowLandscape();
       return;
     }

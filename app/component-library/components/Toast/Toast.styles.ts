@@ -11,9 +11,6 @@ export interface ToastStyleSheetVars {
 /**
  * Style sheet for Toast component.
  *
- * @param params - Style sheet params.
- * @param params.theme - App theme from ThemeContext.
- * @param params.vars - Current window width, so the toast resizes on rotation.
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: ToastStyleSheetVars }) => {
