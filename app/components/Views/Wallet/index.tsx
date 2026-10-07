@@ -159,6 +159,10 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import {
+  BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
+  BALANCE_REFERENCE_SPACING,
+} from '../../UI/Assets/components/Balance/AccountGroupBalance.styles';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -213,6 +217,13 @@ import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 const HEADER_FADE_HEIGHT = 16;
 const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
 const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
+// The floating header's account capsule (h-10) sits centred in its min-h-14
+// root, so the balance cap height lands the reference gap below the capsule.
+const FLOATING_HEADER_BALANCE_INSET = Math.round(
+  BALANCE_REFERENCE_SPACING -
+    (56 - 40) / 2 -
+    BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
+);
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1181,16 +1192,12 @@ const Wallet = ({
       onTradePrimaryPress,
       onNotificationsPrimaryPress:
         handleWalletHomeOnboardingNotificationsPrimary,
-      // The capsule header only sits above the balance on the floating JS header.
-      isGlass: isHomeGlass && isFloatingJsHeader,
     }),
     [
       runWalletHomePostOnboardingComplete,
       postOnboardingExitAnimating,
       onTradePrimaryPress,
       handleWalletHomeOnboardingNotificationsPrimary,
-      isHomeGlass,
-      isFloatingJsHeader,
     ],
   );
 
@@ -1295,10 +1302,14 @@ const Wallet = ({
       ) : null}
       {compactHeaderAccountName}
       <Box
-        style={styles.portfolioHeaderCluster}
+        style={[
+          styles.portfolioHeaderCluster,
+          isFloatingJsHeader && { paddingTop: FLOATING_HEADER_BALANCE_INSET },
+        ]}
         paddingTop={
           isSearchHeaderEnabled && inWalletHomePostOnboardingFlow ? 4 : 0
         }
+        testID={WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER}
       >
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
         {walletHomeMainAssetDetailsActions}

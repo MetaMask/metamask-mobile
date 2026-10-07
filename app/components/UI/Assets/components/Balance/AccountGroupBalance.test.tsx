@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
@@ -129,24 +130,13 @@ describe('AccountGroupBalance', () => {
 
     // Component should render the balance container even when loading
     expect(getByTestId('balance-container')).toBeOnTheScreen();
-    expect(getByTestId('balance-container')).not.toHaveStyle({
-      marginTop: 14,
-      marginBottom: 10,
-    });
-  });
-
-  it('tightens the balance margins to the glass capsule header', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountGroupBalance isGlass />,
-      { state: testState },
+    // Visible 16px to the action buttons after the font ink inset; the gap to
+    // the header is the header's to apply.
+    const style = StyleSheet.flatten(
+      getByTestId('balance-container').props.style,
     );
-
-    // Visible 32px, matching the money card to the tokens divider, after the
-    // header capsule inset, font ink inset, and the 16px portfolio header gap.
-    expect(getByTestId('balance-container')).toHaveStyle({
-      marginTop: 14,
-      marginBottom: 10,
-    });
+    expect(style.marginBottom).toBe(10);
+    expect(style.marginTop).toBeUndefined();
   });
 
   it('renders formatted balance when balance data is fetched', () => {

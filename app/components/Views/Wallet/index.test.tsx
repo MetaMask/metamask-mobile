@@ -145,6 +145,8 @@ jest.mock('../../../component-library/hooks/useLiquidGlass', () => ({
   useLiquidGlass: () => ({
     isGlassEnabled: mockIsGlassEnabled,
     glassColorScheme: 'dark',
+    isBlurEnabled: false,
+    blurTint: 'systemChromeMaterialDark',
   }),
 }));
 
@@ -2214,6 +2216,30 @@ describe('Header and Nav Bar refresh AB test', () => {
             .contentContainerStyle,
         ),
       ).toEqual(expect.objectContaining({ paddingTop: 0 }));
+    });
+
+    it('insets the balance from the floating header capsule', () => {
+      const { getByTestId } = render(Wallet);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
+            .props.style,
+        ),
+      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+    });
+
+    it('leaves the balance inset to the native bar when it owns the header', () => {
+      mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+      const { getByTestId } = render(Wallet);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
+            .props.style,
+        ).paddingTop,
+      ).toBe(0);
     });
   });
 
