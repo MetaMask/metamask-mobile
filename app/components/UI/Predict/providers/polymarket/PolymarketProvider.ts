@@ -40,6 +40,7 @@ import {
   GetPriceResponse,
   GetSeriesParams,
   PredictActivity,
+  PredictActivityPage,
   PredictCategory,
   PredictMarket,
   PredictPosition,
@@ -144,7 +145,6 @@ import {
   searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
-import type { PredictActivityPage } from '../../types';
 import {
   extractNeededTeamsFromEvents,
   getEventLeague,
@@ -2007,7 +2007,9 @@ export class PolymarketProvider implements PredictProvider {
       const positionsText = await response.text();
       let pageData: PolymarketDataApiV2Response<PolymarketPositionV2>;
       try {
-        pageData = JSON.parse(positionsText) as PolymarketDataApiV2Response<PolymarketPositionV2>;
+        pageData = JSON.parse(
+          positionsText,
+        ) as PolymarketDataApiV2Response<PolymarketPositionV2>;
       } catch (parseError) {
         const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
         DevLogger.log('PolymarketProvider: non-JSON positions response', {
@@ -2089,7 +2091,8 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to get activity');
       }
 
-      const activityRaw = (await response.json()) as PolymarketDataApiV2Response<PolymarketActivityV2>;
+      const activityRaw =
+        (await response.json()) as PolymarketDataApiV2Response<PolymarketActivityV2>;
 
       if (!activityRaw || !Array.isArray(activityRaw.data)) {
         throw new Error('Invalid activity response');
@@ -2157,7 +2160,10 @@ export class PolymarketProvider implements PredictProvider {
 
     // percentUpnl mirrors the portfolio header formula (getPositionsPnl):
     // (Σ current_value − Σ entry_cost) / Σ entry_cost over open positions.
-    const openPositions = await this.getPositions({ address, claimable: false });
+    const openPositions = await this.getPositions({
+      address,
+      claimable: false,
+    });
     const totals = openPositions.reduce(
       (acc, position) => ({
         currentValue: acc.currentValue + position.currentValue,

@@ -1109,7 +1109,7 @@ describe('PolymarketProvider', () => {
     });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([{}]),
+      json: jest.fn().mockResolvedValue({ data: [{}] }),
     });
     signer.signTypedMessage.mockResolvedValue('0xsigned-order');
   });
@@ -1254,7 +1254,7 @@ describe('PolymarketProvider', () => {
       walletType: 'safe',
     });
     expect(global.fetch).toHaveBeenCalledWith(
-      `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&limit=1`,
+      `https://data-api.polymarket.com/v2/activity?user=${legacySafeAddress}&limit=1`,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(mockResolveDepositWalletAddress).not.toHaveBeenCalled();
@@ -1263,7 +1263,7 @@ describe('PolymarketProvider', () => {
   it('routes deployed legacy Safe with empty raw activity to deposit wallet', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -1286,7 +1286,7 @@ describe('PolymarketProvider', () => {
   it('keeps funded legacy Safe users when raw activity is empty', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockGetRawBalance.mockImplementation(async ({ tokenAddress }) =>
       tokenAddress === USDC_E_ADDRESS ? 100_000_000n : 0n,
@@ -1391,8 +1391,38 @@ describe('PolymarketProvider', () => {
   describe('getActivity', () => {
     const rawActivity = [
       {
-        id: 'raw-activity-1',
         type: 'TRADE',
+        side: 'BUY',
+        size: 20,
+        price: 0.5,
+        usdc_size: 10,
+        timestamp: 1700000000,
+        transaction_hash: '0xabc',
+        condition_id: '0xcondition',
+        outcome_index: 0,
+        title: 'Market',
+        outcome: 'Yes',
+        icon: 'icon.png',
+        slug: 'market-slug',
+        event_slug: 'event-slug',
+      },
+    ];
+    const mappedActivity = [
+      {
+        type: 'TRADE',
+        side: 'BUY',
+        size: 20,
+        price: 0.5,
+        usdcSize: 10,
+        timestamp: 1700000000,
+        transactionHash: '0xabc',
+        conditionId: '0xcondition',
+        outcomeIndex: 0,
+        title: 'Market',
+        outcome: 'Yes',
+        icon: 'icon.png',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
       },
     ];
     const parsedActivity: PredictActivity[] = [
@@ -1406,7 +1436,7 @@ describe('PolymarketProvider', () => {
 
     const mockLegacySafeAccountStateFetch = () => ({
       ok: true,
-      json: jest.fn().mockResolvedValue([{}]),
+      json: jest.fn().mockResolvedValue({ data: [{}] }),
     });
 
     const mockActivityFetch = (body: unknown, ok = true) => ({
@@ -1418,22 +1448,30 @@ describe('PolymarketProvider', () => {
       mockParsePolymarketActivity.mockReturnValue(parsedActivity);
     });
 
-    it('requests paginated activity with supplied limit and offset', async () => {
+    it('requests v2 activity with supplied limit and cursor', async () => {
       global.fetch = jest
         .fn()
         .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
-        .mockResolvedValueOnce(mockActivityFetch(rawActivity));
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: rawActivity,
+            pagination: { next_cursor: 'cursor-next' },
+          }),
+        );
 
       await expect(
         createProvider().getActivity({
           address: signer.address,
           limit: 10,
-          offset: 20,
+          cursor: 'cursor-abc',
         }),
-      ).resolves.toEqual(parsedActivity);
+      ).resolves.toEqual({
+        activities: parsedActivity,
+        nextCursor: 'cursor-next',
+      });
 
       expect(global.fetch).toHaveBeenLastCalledWith(
-        `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&excludeLostRedeems=true&limit=10&offset=20`,
+        `https://data-api.polymarket.com/v2/activity?user=${legacySafeAddress}&limit=10&cursor=cursor-abc`,
         {
           method: 'GET',
           headers: {
@@ -1442,23 +1480,59 @@ describe('PolymarketProvider', () => {
           signal: expect.any(AbortSignal),
         },
       );
-      expect(mockParsePolymarketActivity).toHaveBeenCalledWith(rawActivity);
+      expect(mockParsePolymarketActivity).toHaveBeenCalledWith(mappedActivity);
     });
 
     it('defaults activity pagination to the first 20 items', async () => {
       global.fetch = jest
         .fn()
         .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
-        .mockResolvedValueOnce(mockActivityFetch(rawActivity));
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: rawActivity,
+            pagination: { next_cursor: null },
+          }),
+        );
 
       await expect(
         createProvider().getActivity({ address: signer.address }),
-      ).resolves.toEqual(parsedActivity);
+      ).resolves.toEqual({
+        activities: parsedActivity,
+        nextCursor: undefined,
+      });
 
       expect(global.fetch).toHaveBeenLastCalledWith(
-        `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&excludeLostRedeems=true&limit=20&offset=0`,
+        `https://data-api.polymarket.com/v2/activity?user=${legacySafeAddress}&limit=20`,
         expect.any(Object),
       );
+    });
+
+    it('filters lost redeems (REDEEM rows with zero payout) client-side', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: [
+              ...rawActivity,
+              { ...rawActivity[0], type: 'REDEEM', usdc_size: 0 },
+              { ...rawActivity[0], type: 'REDEEM', usdc_size: 25 },
+            ],
+            pagination: { next_cursor: null },
+          }),
+        );
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).resolves.toEqual({
+        activities: parsedActivity,
+        nextCursor: undefined,
+      });
+
+      expect(mockParsePolymarketActivity).toHaveBeenCalledWith([
+        ...mappedActivity,
+        { ...mappedActivity[0], type: 'REDEEM', usdcSize: 25 },
+      ]);
     });
 
     it('throws when the activity request is not ok', async () => {
@@ -1472,11 +1546,11 @@ describe('PolymarketProvider', () => {
       ).rejects.toThrow('Failed to get activity');
     });
 
-    it('throws when the activity response is invalid', async () => {
+    it('throws when the activity response is not the v2 envelope', async () => {
       global.fetch = jest
         .fn()
         .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
-        .mockResolvedValueOnce(mockActivityFetch({ data: rawActivity }));
+        .mockResolvedValueOnce(mockActivityFetch(rawActivity));
 
       await expect(
         createProvider().getActivity({ address: signer.address }),
@@ -1701,7 +1775,7 @@ describe('PolymarketProvider', () => {
   it('passes legacy Safe migration sweep as allowancesTx for deposit-wallet orders', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -1824,7 +1898,7 @@ describe('PolymarketProvider', () => {
   it('prepares deposit-wallet deposits with optional legacy Safe sweep first', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -2108,7 +2182,7 @@ describe('PolymarketProvider', () => {
   it('marks deposit-wallet claim transactions as externally signed before signing', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -2207,7 +2281,7 @@ describe('PolymarketProvider', () => {
   it('publishes deposit-wallet claims through the relayer batch and returns once a hash is available', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -2255,7 +2329,7 @@ describe('PolymarketProvider', () => {
   it('requires external-sign metadata before publishing deposit-wallet claims', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -2278,7 +2352,7 @@ describe('PolymarketProvider', () => {
   it('syncs deposit-wallet CLOB balance allowance after confirmed claims', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue([]),
+      json: jest.fn().mockResolvedValue({ data: [] }),
     });
     mockIsSmartContractAddress
       .mockResolvedValueOnce(true)
@@ -2563,6 +2637,263 @@ describe('PolymarketProvider', () => {
       unexpectedError,
       expect.any(Object),
     );
+  });
+
+  describe('getPositions (Data API v2)', () => {
+    const createPositionRow = (overrides: Record<string, unknown> = {}) => ({
+      condition_id: '0xcondition',
+      event_id: 'event-1',
+      icon: 'icon.png',
+      title: 'Market',
+      slug: 'market-slug',
+      size: 20,
+      outcome: 'Yes',
+      outcome_index: 0,
+      unrealized_pnl: 5,
+      cur_price: 0.75,
+      current_value: 15,
+      entry_cost_usdc: 10,
+      avg_price: 0.5,
+      redeemable: false,
+      negative_risk: false,
+      realized_pnl: 0,
+      end_date: '2026-12-31',
+      token_id: 'token-1',
+      ...overrides,
+    });
+
+    const mappedPositionRow = {
+      conditionId: '0xcondition',
+      eventId: 'event-1',
+      icon: 'icon.png',
+      title: 'Market',
+      slug: 'market-slug',
+      eventSlug: undefined,
+      size: 20,
+      outcome: 'Yes',
+      outcomeIndex: 0,
+      cashPnl: 5,
+      curPrice: 0.75,
+      currentValue: 15,
+      percentPnl: 50,
+      initialValue: 10,
+      avgPrice: 0.5,
+      redeemable: false,
+      negativeRisk: false,
+      realizedPnl: 0,
+      endDate: '2026-12-31',
+      asset: 'token-1',
+    };
+
+    const mockActivityCheck = () =>
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ data: [{}] }),
+      });
+
+    const mockPositionsPage = (
+      rows: unknown[],
+      nextCursor: string | null = null,
+    ) => {
+      const body = JSON.stringify({
+        data: rows,
+        pagination: { next_cursor: nextCursor },
+      });
+      return (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockResolvedValue(body),
+        json: jest.fn().mockResolvedValue(JSON.parse(body)),
+      });
+    };
+
+    it('reads open positions from the v2 route with envelope + CURRENT_VALUE sort', async () => {
+      mockActivityCheck();
+      mockPositionsPage([createPositionRow()]);
+
+      await createProvider().getPositions({ address: signer.address });
+
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(mockParsePolymarketPositions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          positions: [mappedPositionRow],
+        }),
+      );
+    });
+
+    it('maps claimable reads to the REDEEMABLE status', async () => {
+      mockActivityCheck();
+      mockPositionsPage([]);
+
+      await createProvider().getPositions({
+        address: signer.address,
+        claimable: true,
+      });
+
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&status=REDEEMABLE`,
+        expect.anything(),
+      );
+    });
+
+    it('targets a single outcome with condition and a market with event_id', async () => {
+      mockActivityCheck();
+      mockPositionsPage([]);
+
+      await createProvider().getPositions({
+        address: signer.address,
+        outcomeId: '0xcondition',
+      });
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&condition=0xcondition`,
+        expect.anything(),
+      );
+
+      mockActivityCheck();
+      mockPositionsPage([]);
+
+      await createProvider().getPositions({
+        address: signer.address,
+        marketId: 'event-1',
+      });
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&event_id=event-1`,
+        expect.anything(),
+      );
+    });
+
+    it('follows next_cursor until it is exhausted', async () => {
+      mockActivityCheck();
+      mockPositionsPage([createPositionRow()], 'cursor-2');
+      mockPositionsPage([createPositionRow({ token_id: 'token-2' })]);
+
+      await createProvider().getPositions({ address: signer.address });
+
+      expect(global.fetch).toHaveBeenCalledTimes(3);
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&cursor=cursor-2`,
+        expect.anything(),
+      );
+      expect(mockParsePolymarketPositions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          positions: [
+            mappedPositionRow,
+            { ...mappedPositionRow, asset: 'token-2' },
+          ],
+        }),
+      );
+    });
+
+    it('caps cursor-following at 5 pages', async () => {
+      mockActivityCheck();
+      for (let page = 0; page < 6; page += 1) {
+        mockPositionsPage([createPositionRow()], `cursor-${page + 1}`);
+      }
+
+      await createProvider().getPositions({ address: signer.address });
+
+      // 1 activity check + 5 position pages (the 6th page is never requested).
+      expect(global.fetch).toHaveBeenCalledTimes(6);
+      const lastParseCall = mockParsePolymarketPositions.mock.calls.at(-1);
+      expect(lastParseCall?.[0].positions).toHaveLength(5);
+    });
+
+    it('throws when the response is not the v2 envelope', async () => {
+      mockActivityCheck();
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockResolvedValue('[]'),
+      });
+
+      await expect(
+        createProvider().getPositions({ address: signer.address }),
+      ).rejects.toThrow('Invalid positions response');
+      expect(mockParsePolymarketPositions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getUnrealizedPnL (Data API v2)', () => {
+    it('composes cashUpnl from the latest point and percentUpnl from open positions', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ data: [{}] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            data: {
+              proxy_wallet: legacySafeAddress,
+              points: [
+                { t: 1, unrealized_pnl: 3.5 },
+                { t: 2, unrealized_pnl: 7.25 },
+              ],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: jest
+            .fn()
+            .mockResolvedValue(
+              JSON.stringify({ data: [], pagination: { next_cursor: null } }),
+            ),
+        });
+      mockParsePolymarketPositions.mockResolvedValue([
+        createClaimPosition({ currentValue: 150, initialValue: 100 }),
+        createClaimPosition({
+          currentValue: 40,
+          initialValue: 100,
+          id: 'position-2',
+        }),
+      ]);
+
+      await expect(
+        createProvider().getUnrealizedPnL({ address: signer.address }),
+      ).resolves.toEqual({
+        user: legacySafeAddress,
+        cashUpnl: 7.25,
+        // (190 − 200) / 200 × 100
+        percentUpnl: -5,
+      });
+    });
+
+    it('keeps a null latest unrealized_pnl missing instead of zero', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ data: [{}] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            data: {
+              proxy_wallet: legacySafeAddress,
+              points: [{ t: 1, unrealized_pnl: 3.5 }, { t: 2 }],
+            },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: jest
+            .fn()
+            .mockResolvedValue(
+              JSON.stringify({ data: [], pagination: { next_cursor: null } }),
+            ),
+        });
+      mockParsePolymarketPositions.mockResolvedValue([]);
+
+      const result = await createProvider().getUnrealizedPnL({
+        address: signer.address,
+      });
+
+      expect(result.cashUpnl).toBeUndefined();
+      expect(result.percentUpnl).toBeUndefined();
+    });
   });
 });
 

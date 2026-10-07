@@ -31,6 +31,8 @@ import {
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
+  mapPolymarketActivityV2,
+  mapPolymarketPositionsV2,
   normalizeRelatedTagsToFilterOptions,
   getAllowance,
   getClobMarketInfo,
@@ -53,7 +55,9 @@ import type {
   PolymarketApiEvent,
   PolymarketApiMarket,
   PolymarketApiTeam,
+  PolymarketActivityV2,
   PolymarketPosition,
+  PolymarketPositionV2,
 } from './types';
 
 const mockSignTypedMessage = jest.fn();
@@ -3785,5 +3789,130 @@ describe('polymarket utils', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).not.toHaveProperty(
       'twapWindowSeconds',
     );
+  });
+});
+
+describe('mapPolymarketPositionsV2', () => {
+  const row: PolymarketPositionV2 = {
+    condition_id: '0xcondition',
+    event_id: 'event-1',
+    icon: 'icon.png',
+    title: 'Market',
+    slug: 'market-slug',
+    event_slug: 'event-slug',
+    size: 20,
+    outcome: 'Yes',
+    outcome_index: 1,
+    unrealized_pnl: 5,
+    cur_price: 0.75,
+    current_value: 15,
+    entry_cost_usdc: 10,
+    avg_price: 0.5,
+    redeemable: true,
+    negative_risk: true,
+    realized_pnl: 2,
+    end_date: '2026-12-31',
+    token_id: 'token-1',
+  };
+
+  it('maps snake_case v2 fields to the v1-shaped camelCase DTO', () => {
+    expect(mapPolymarketPositionsV2([row])).toEqual([
+      {
+        conditionId: '0xcondition',
+        eventId: 'event-1',
+        icon: 'icon.png',
+        title: 'Market',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
+        size: 20,
+        outcome: 'Yes',
+        outcomeIndex: 1,
+        cashPnl: 5,
+        curPrice: 0.75,
+        currentValue: 15,
+        percentPnl: 50,
+        initialValue: 10,
+        avgPrice: 0.5,
+        redeemable: true,
+        negativeRisk: true,
+        realizedPnl: 2,
+        endDate: '2026-12-31',
+        asset: 'token-1',
+      },
+    ]);
+  });
+
+  it('derives percentPnl with the portfolio formula and guards a zero cost basis', () => {
+    expect(
+      mapPolymarketPositionsV2([
+        { ...row, current_value: 12, entry_cost_usdc: 8 },
+      ])[0].percentPnl,
+    ).toBe(50);
+    expect(
+      mapPolymarketPositionsV2([{ ...row, entry_cost_usdc: 0 }])[0].percentPnl,
+    ).toBe(0);
+  });
+
+  it('coerces a missing unrealized_pnl to zero cashPnl', () => {
+    expect(
+      mapPolymarketPositionsV2([{ ...row, unrealized_pnl: null }])[0].cashPnl,
+    ).toBe(0);
+  });
+});
+
+describe('mapPolymarketActivityV2', () => {
+  const row: PolymarketActivityV2 = {
+    type: 'TRADE',
+    side: 'BUY',
+    size: 20,
+    price: 0.5,
+    usdc_size: 10,
+    timestamp: 1700000000,
+    transaction_hash: '0xabc',
+    condition_id: '0xcondition',
+    outcome_index: 0,
+    title: 'Market',
+    outcome: 'Yes',
+    icon: 'icon.png',
+    slug: 'market-slug',
+    event_slug: 'event-slug',
+    token_id: 'token-1',
+  };
+
+  it('maps snake_case v2 fields to the v1-shaped camelCase DTO', () => {
+    expect(mapPolymarketActivityV2([row])).toEqual([
+      {
+        type: 'TRADE',
+        side: 'BUY',
+        size: 20,
+        price: 0.5,
+        usdcSize: 10,
+        timestamp: 1700000000,
+        transactionHash: '0xabc',
+        conditionId: '0xcondition',
+        outcomeIndex: 0,
+        title: 'Market',
+        outcome: 'Yes',
+        icon: 'icon.png',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
+      },
+    ]);
+  });
+
+  it('drops lost redeems (zero payout) but keeps winning redeems', () => {
+    // The last row simulates a malformed row with no payout field at all.
+    const rows = [
+      row,
+      { ...row, type: 'REDEEM', usdc_size: 0 },
+      { ...row, type: 'REDEEM', usdc_size: 25 },
+      { ...row, type: 'REDEEM', usdc_size: undefined },
+    ] as PolymarketActivityV2[];
+
+    const mapped = mapPolymarketActivityV2(rows);
+
+    expect(mapped).toHaveLength(2);
+    expect(mapped[0]).toMatchObject({ type: 'TRADE' });
+    expect(mapped[1]).toMatchObject({ type: 'REDEEM', usdcSize: 25 });
   });
 });
