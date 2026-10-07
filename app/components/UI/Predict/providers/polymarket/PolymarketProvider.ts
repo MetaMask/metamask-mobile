@@ -193,6 +193,15 @@ import {
 /** Page size for Data API v2 paginated reads (positions). */
 const PREDICT_POSITIONS_PAGE_SIZE = 100;
 /**
+ * Upper bound on empty-page cursor hops per activity read. Data API v2 has no
+ * server-side lost-redeem filter, so a fetched page can map to zero visible
+ * rows while its envelope still carries a `next_cursor`. The provider follows
+ * such cursors itself (see `fetchActivity`) so the UI never receives an empty
+ * page that would stall `onEndReached` paging; this cap bounds the work if a
+ * pathological upstream keeps returning cursors without any visible rows.
+ */
+const PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS = 5;
+/**
  * Upper bound on cursor-followed pages per positions read, so a pathological
  * response can never loop unbounded. 5 pages × 100 rows = 500 positions.
  */
@@ -2068,48 +2077,77 @@ export class PolymarketProvider implements PredictProvider {
         this.#getCachedAccountState(address)?.address ??
         (await this.getAccountState({ ownerAddress: address })).address;
 
-      const queryParams = new URLSearchParams({
-        user: predictAddress,
-        limit: String(limit),
-      });
+      const fetchPage = async (
+        pageCursor?: string,
+      ): Promise<PredictActivityPage> => {
+        const queryParams = new URLSearchParams({
+          user: predictAddress,
+          limit: String(limit),
+        });
 
-      if (cursor) {
-        queryParams.set('cursor', cursor);
-      }
+        if (pageCursor) {
+          queryParams.set('cursor', pageCursor);
+        }
 
-      const response = await fetchWithTimeout(
-        `${DATA_API_ENDPOINT}/v2/activity?${queryParams.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetchWithTimeout(
+          `${DATA_API_ENDPOINT}/v2/activity?${queryParams.toString()}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
           },
-        },
-      );
+        );
 
-      if (!response.ok) {
-        throw new Error('Failed to get activity');
-      }
+        if (!response.ok) {
+          throw new Error('Failed to get activity');
+        }
 
-      const activityRaw =
-        (await response.json()) as PolymarketDataApiV2Response<PolymarketActivityV2>;
+        const activityRaw =
+          (await response.json()) as PolymarketDataApiV2Response<PolymarketActivityV2>;
 
-      if (!activityRaw || !Array.isArray(activityRaw.data)) {
-        throw new Error('Invalid activity response');
-      }
+        if (!activityRaw || !Array.isArray(activityRaw.data)) {
+          throw new Error('Invalid activity response');
+        }
 
-      const parsedActivity = parsePolymarketActivity(
-        mapPolymarketActivityV2(activityRaw.data),
-      );
+        const parsedActivity = parsePolymarketActivity(
+          mapPolymarketActivityV2(activityRaw.data),
+        );
 
-      if (!Array.isArray(parsedActivity)) {
-        throw new Error('Invalid parsed activity response');
-      }
+        if (!Array.isArray(parsedActivity)) {
+          throw new Error('Invalid parsed activity response');
+        }
 
-      return {
-        activities: parsedActivity,
-        nextCursor: activityRaw.pagination?.next_cursor ?? undefined,
+        return {
+          activities: parsedActivity,
+          nextCursor: activityRaw.pagination?.next_cursor ?? undefined,
+        };
       };
+
+      // Lost redeems are dropped client-side (mapPolymarketActivityV2), so a
+      // fetched page can filter down to zero rows while its envelope still
+      // carries a next_cursor. Returning that page as-is would report another
+      // page to useInfiniteQuery, but an empty list never trips FlatList
+      // onEndReached, so remaining history would never load. Keep following
+      // the cursor here until a page survives filtering or the API reports
+      // exhaustion, and return the last fetched page so the UI continues from
+      // its cursor. The hop count is capped (PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS)
+      // so a pathological upstream that always returns a cursor with no visible
+      // rows cannot loop unbounded; after the cap the last empty page is
+      // returned as-is rather than silently truncating history.
+      let page = await fetchPage(cursor);
+      let emptyPageHops = 0;
+
+      while (
+        page.activities.length === 0 &&
+        page.nextCursor !== undefined &&
+        emptyPageHops < PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS
+      ) {
+        emptyPageHops += 1;
+        page = await fetchPage(page.nextCursor);
+      }
+
+      return page;
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 

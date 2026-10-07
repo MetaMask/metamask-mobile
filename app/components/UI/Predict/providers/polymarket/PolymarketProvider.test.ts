@@ -1535,6 +1535,115 @@ describe('PolymarketProvider', () => {
       ]);
     });
 
+    it('follows the cursor when a page filters to only lost redeems', async () => {
+      // First page is entirely lost redeems: it maps to an empty activities
+      // list but its envelope still carries a next_cursor, so the provider
+      // must hop to the next page itself.
+      mockParsePolymarketActivity
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce(parsedActivity);
+
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: [{ ...rawActivity[0], type: 'REDEEM', usdc_size: 0 }],
+            pagination: { next_cursor: 'cursor-1' },
+          }),
+        )
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: rawActivity,
+            pagination: { next_cursor: 'cursor-2' },
+          }),
+        );
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).resolves.toEqual({
+        activities: parsedActivity,
+        // Cursor of the LAST fetched page, so the UI continues from there.
+        nextCursor: 'cursor-2',
+      });
+
+      expect(mockParsePolymarketActivity).toHaveBeenNthCalledWith(1, []);
+      expect(mockParsePolymarketActivity).toHaveBeenNthCalledWith(
+        2,
+        mappedActivity,
+      );
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/activity?user=${legacySafeAddress}&limit=20&cursor=cursor-1`,
+        expect.any(Object),
+      );
+    });
+
+    it('returns an empty page with no cursor when paging is exhausted after empty hops', async () => {
+      mockParsePolymarketActivity.mockReturnValue([]);
+
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: [{ ...rawActivity[0], type: 'REDEEM', usdc_size: 0 }],
+            pagination: { next_cursor: 'cursor-1' },
+          }),
+        )
+        .mockResolvedValueOnce(
+          mockActivityFetch({
+            data: [],
+            pagination: { next_cursor: null },
+          }),
+        );
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).resolves.toEqual({
+        activities: [],
+        nextCursor: undefined,
+      });
+
+      // Exactly two activity fetches: the initial page plus one hop; the null
+      // cursor on the second page ends paging instead of hopping again.
+      expect(global.fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops hopping after the empty-page hop cap', async () => {
+      mockParsePolymarketActivity.mockReturnValue([]);
+
+      const emptyRedeemPage = (nextCursor: string) => ({
+        data: [{ ...rawActivity[0], type: 'REDEEM', usdc_size: 0 }],
+        pagination: { next_cursor: nextCursor },
+      });
+
+      const mockFetch = jest.fn();
+      global.fetch = mockFetch;
+      mockFetch.mockResolvedValueOnce(mockLegacySafeAccountStateFetch());
+      // Initial page + 5 hops, each returning only lost redeems with another
+      // cursor. The 6th response is never requested because the cap is hit.
+      for (let hop = 1; hop <= 6; hop += 1) {
+        mockFetch.mockResolvedValueOnce(
+          mockActivityFetch(emptyRedeemPage(`cursor-${hop}`)),
+        );
+      }
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).resolves.toEqual({
+        activities: [],
+        nextCursor: 'cursor-6',
+      });
+
+      // 1 account-state fetch + 1 initial activity page + 5 hops (the capped
+      // maximum). A 7th activity page is never requested.
+      expect(mockFetch).toHaveBeenCalledTimes(7);
+      expect(mockFetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/v2/activity?user=${legacySafeAddress}&limit=20&cursor=cursor-5`,
+        expect.any(Object),
+      );
+    });
+
     it('throws when the activity request is not ok', async () => {
       global.fetch = jest
         .fn()
