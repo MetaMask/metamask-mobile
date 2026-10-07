@@ -13,6 +13,7 @@ const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
   goToSwaps: mockGoToSwaps,
 }));
 jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../../../UI/Bridge/hooks/useSwapBridgeNavigation'),
   useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
 }));
 
@@ -68,9 +69,12 @@ describe('useActivityDetailsDoItAgain', () => {
       destToken: toBridgeToken(destinationToken, 'eip155:1'),
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith({
-      scrollToTopOnNav: true,
-    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
   });
@@ -122,9 +126,12 @@ describe('useActivityDetailsDoItAgain', () => {
       destToken: heldUsdt,
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith({
-      scrollToTopOnNav: true,
-    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
   it('matches a Polygon native leg (0x…1010) against the held holding normalized to 0x0', () => {
@@ -246,7 +253,10 @@ describe('useActivityDetailsDoItAgain', () => {
 
     result.current();
 
-    expect(mockUseSwapBridgeNavigation).not.toHaveBeenCalled();
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityDetails',
+      location: MetaMetricsSwapsEventSource.MainView,
+    });
     expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
 });
