@@ -154,7 +154,7 @@ export function getProxiedDataApiUrl(requestUrl: string): string | null {
 }
 
 /** v1 camelCase position fixture row (Data API v1 shape). */
-type PolymarketPositionRowV1 = {
+interface PolymarketPositionRowV1 {
   conditionId?: string;
   eventId?: string;
   icon?: string;
@@ -174,10 +174,10 @@ type PolymarketPositionRowV1 = {
   realizedPnl?: number;
   endDate?: string;
   asset?: string;
-};
+}
 
 /** v1 camelCase activity fixture row (Data API v1 shape). */
-type PolymarketActivityRowV1 = {
+interface PolymarketActivityRowV1 {
   type?: string;
   side?: string;
   size?: number;
@@ -192,14 +192,14 @@ type PolymarketActivityRowV1 = {
   icon?: string;
   slug?: string;
   eventSlug?: string;
-};
+}
 
 /** v1 unrealized P&L fixture row (Data API v1 shape). */
-type PolymarketUpnlRowV1 = {
+interface PolymarketUpnlRowV1 {
   user?: string;
   cashUpnl?: number;
   percentUpnl?: number;
-};
+}
 
 /** Converts v1 position fixture rows to Data API v2 snake_case rows. */
 function toPolymarketPositionsV2Rows(rows: PolymarketPositionRowV1[]) {
