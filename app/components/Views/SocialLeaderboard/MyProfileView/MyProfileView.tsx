@@ -86,7 +86,12 @@ const ProfileTabButton: React.FC<ProfileTabButtonProps> = ({
   onPress,
   testID,
 }) => (
-  <Pressable onPress={onPress} testID={testID}>
+  <Pressable
+    onPress={onPress}
+    testID={testID}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: isActive }}
+  >
     <Box
       twClassName={isActive ? 'border-b-2 border-default' : ''}
       paddingBottom={3}
@@ -462,6 +467,7 @@ const MyProfileView: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               twClassName="border-b border-muted px-4 gap-4"
+              accessibilityRole="tablist"
             >
               <ProfileTabButton
                 label={strings('social_leaderboard.trader_profile.open')}
