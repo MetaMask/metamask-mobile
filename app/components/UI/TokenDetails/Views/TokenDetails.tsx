@@ -62,6 +62,9 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { useIsMemeToken } from '../hooks/useIsMemeToken';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
@@ -337,6 +340,13 @@ const TokenDetails: React.FC<{
     assetId: caip19AssetId,
     prefetchedData: token.securityData,
   });
+
+  const isMemeTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  const { isMeme: isMemeToken } = useIsMemeToken({
+    assetId: caip19AssetId,
+    enabled: isMemeTdpEnabled,
+  });
+  const shouldRouteToMemeTdp = isMemeTdpEnabled && isMemeToken;
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
@@ -651,6 +661,10 @@ const TokenDetails: React.FC<{
       )}
     </>
   );
+
+  if (shouldRouteToMemeTdp) {
+    return <TokenDetailsV1 token={token} />;
+  }
 
   return (
     <View style={styles.wrapper}>
