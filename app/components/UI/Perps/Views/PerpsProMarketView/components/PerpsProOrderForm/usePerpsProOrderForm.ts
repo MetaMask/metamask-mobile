@@ -52,7 +52,11 @@ import { ensureError } from '../../../../../../../util/errorUtils';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../../../constants/perpsAnalytics';
+import { toPerpsSizeUnitAnalyticsValue } from '../../../../utils/perpsSizeDenomination';
 import {
   bpsToPercent,
   resolvePerpsMaxSlippageBps,
@@ -2049,6 +2053,9 @@ export const usePerpsProOrderForm = ({
         PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
       [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
+      [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
+        sizeInput.denomination.unit,
+      ),
       ...(isChaseSubmission
         ? {
             [PERPS_EVENT_PROPERTY.ORDER_TYPE]:

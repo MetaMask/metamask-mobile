@@ -22,7 +22,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { OrderType } from '@metamask/perps-controller';
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
@@ -46,6 +46,7 @@ import {
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
+import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -305,7 +306,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
-  const [showAssetValue, setShowAssetValue] = useState(false);
+  const { denomination, setDenomination } = usePerpsSizeDenomination();
+  const showAssetValue = denomination === 'asset';
   const directionLabel =
     direction === 'long'
       ? strings('perps.order.button.long', { asset })
@@ -407,7 +409,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               'perps.trade_sheet.amount_slider_accessibility_label',
             )}, ${amount || '0'}`}
             onPress={onAmountPress}
-            onDisplayToggle={() => setShowAssetValue((value) => !value)}
+            onDisplayToggle={() =>
+              setDenomination(showAssetValue ? 'usd' : 'asset')
+            }
             displayToggleAccessibilityLabel={strings(
               showAssetValue
                 ? 'perps.trade_sheet.show_fiat_value'

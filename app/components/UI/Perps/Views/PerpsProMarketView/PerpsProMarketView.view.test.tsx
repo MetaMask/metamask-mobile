@@ -34,6 +34,7 @@ import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
+import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
 import {
   isChaseOrderHandleVisible,
   resetChaseOrderVisibilityForTests,
@@ -268,6 +269,7 @@ const resetPerpsControllerMocks = () => {
 };
 
 beforeEach(() => {
+  resetPerpsSizeDenominationForTests();
   issuedTwapReadPromises.clear();
   activeTwapSubscriptions.clear();
   settledChaseReadPromises.clear();
@@ -2708,6 +2710,70 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
     },
   );
+
+  itForPlatforms('keeps coin sizing after opening another market', async () => {
+    renderFundedProMarket();
+    await findSizeInput();
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+    });
+
+    cleanup();
+    renderPerpsProMarketView({
+      initialParams: {
+        market: {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$90,000.00',
+          change24h: '+$100.00',
+          change24hPercent: '+1%',
+          volume: '$1.5B',
+          openInterest: '$500M',
+          maxLeverage: '50x',
+          marketType: 'crypto',
+          providerId: 'hyperliquid',
+          szDecimals: 5,
+        },
+      },
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+        marketData: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$90,000.00',
+            change24h: '+$100.00',
+            change24hPercent: '+1%',
+            volume: '$1.5B',
+            openInterest: '$500M',
+            maxLeverage: '50x',
+            marketType: 'crypto',
+            providerId: 'hyperliquid',
+            szDecimals: 5,
+          },
+        ],
+        prices: {
+          BTC: {
+            symbol: 'BTC',
+            price: '90000',
+            markPrice: '90000',
+            percentChange24h: '1',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (BTC)',
+      );
+    });
+  });
 
   itForPlatforms(
     'keeps asset sizing available when Scale ladder prices differ from the market',

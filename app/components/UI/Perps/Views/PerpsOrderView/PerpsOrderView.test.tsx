@@ -78,7 +78,11 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
+import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -1301,6 +1305,7 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    resetPerpsSizeDenominationForTests();
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
@@ -6774,6 +6779,7 @@ describe('PerpsOrderView', () => {
           [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
           [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
 

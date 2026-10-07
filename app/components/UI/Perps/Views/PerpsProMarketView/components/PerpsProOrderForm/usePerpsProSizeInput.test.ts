@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { resetPerpsSizeDenominationForTests } from '../../../../utils/perpsSizeDenomination';
 import {
   usePerpsProSizeInput,
   type UsePerpsProSizeInputParams,
@@ -22,6 +23,7 @@ const createParams = (
 describe('usePerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPerpsSizeDenominationForTests();
   });
 
   it('starts in USD mode with the canonical amount', () => {
@@ -31,6 +33,30 @@ describe('usePerpsProSizeInput', () => {
 
     expect(result.current.sizeInput.value).toBe('100');
     expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+  });
+
+  it('keeps coin denomination on the next form instance', () => {
+    const { result, unmount } = renderHook(() =>
+      usePerpsProSizeInput(createParams()),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+
+    unmount();
+    const nextForm = renderHook(() =>
+      usePerpsProSizeInput(createParams({ assetSymbol: 'ETH' })),
+    );
+
+    expect(nextForm.result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'ETH',
+    });
   });
 
   it('keeps an empty USD draft while committing zero', () => {

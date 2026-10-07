@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePerpsSizeDenomination } from '../../../../hooks/usePerpsSizeDenomination';
 import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
@@ -10,8 +11,6 @@ import type {
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
-
-type SizeDenominationUnit = PerpsProSizeDenomination['unit'];
 
 interface AssetDraftState {
   value: string;
@@ -132,8 +131,8 @@ export const usePerpsProSizeInput = ({
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
     Number.isFinite(effectivePrice) && effectivePrice > 0;
-  const [activeDenominationUnit, setDenominationUnit] =
-    useState<SizeDenominationUnit>('usd');
+  const { denomination: activeDenominationUnit, setDenomination } =
+    usePerpsSizeDenomination();
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
@@ -407,14 +406,14 @@ export const usePerpsProSizeInput = ({
         value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
         source: 'canonical',
       });
-      setDenominationUnit('asset');
+      setDenomination('asset');
       return;
     }
 
     const nextUsdAmount = getUsdFromAsset(assetDraft, effectivePrice);
     setUsdDraft(nextUsdAmount);
     commitUsdAmount(nextUsdAmount || '0');
-    setDenominationUnit('usd');
+    setDenomination('usd');
   }, [
     assetDraft,
     canToggleDenomination,
@@ -424,6 +423,7 @@ export const usePerpsProSizeInput = ({
     effectivePrice,
     keepSizeEmpty,
     clearSliderMaxIntent,
+    setDenomination,
     szDecimals,
     usdDraft,
   ]);

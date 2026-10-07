@@ -10,6 +10,7 @@ import { typography } from '@metamask/design-tokens';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
+import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
 
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
@@ -132,6 +133,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 
 describe('PerpsTradeScreen errors', () => {
   beforeEach(() => {
+    resetPerpsSizeDenominationForTests();
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
@@ -326,6 +328,22 @@ describe('PerpsTradeScreen errors', () => {
     expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
     expect(
       screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps coin sizing after the trade screen remounts', () => {
+    const { unmount } = render(<PerpsTradeScreen {...defaultProps} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    expect(
+      screen.getByRole('button', { name: 'Show fiat value' }),
+    ).toBeOnTheScreen();
+
+    unmount();
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Show fiat value' }),
     ).toBeOnTheScreen();
   });
 

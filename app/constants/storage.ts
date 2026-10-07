@@ -89,6 +89,9 @@ export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PERPS_MODE_SELECTION_COMPLETED = `${prefix}perpsModeSelectionCompleted`;
 
+/** Market-agnostic order size denomination (`usd` or `asset`). */
+export const PERPS_SIZE_DENOMINATION = `${prefix}perpsSizeDenomination`;
+
 export const perpsCompetitionBannerDismissedKey = (campaignId: string) =>
   `${prefix}perpsCompetitionBannerDismissed:${campaignId}`;
 
