@@ -681,6 +681,30 @@ describe('formatUtils', () => {
       ).toEqual({ start: 3, end: 3 });
     });
 
+    it('preserves the cursor when inserting within repeated digits', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '111',
+          nextDisplayValue: '1111',
+          nextFormattedValue: '1,111',
+          previousSelection: { start: 1, end: 1 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 3, end: 3 });
+    });
+
+    it('preserves the cursor when backspacing within repeated digits', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '1,111',
+          nextDisplayValue: '1,11',
+          nextFormattedValue: '111',
+          previousSelection: { start: 3, end: 3 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 1, end: 1 });
+    });
+
     it('maps selected text replacement to the formatted cursor position', () => {
       expect(
         getPerpsFormattedInputSelection({

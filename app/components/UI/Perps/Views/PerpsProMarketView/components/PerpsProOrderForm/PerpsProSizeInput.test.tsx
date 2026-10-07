@@ -139,6 +139,35 @@ describe('PerpsProSizeInput', () => {
     expect(onChangeText).not.toHaveBeenCalled();
   });
 
+  it('applies external value replacements immediately while focused', () => {
+    const onChangeText = jest.fn();
+    const { rerender } = renderInput({ onChangeText });
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+
+    fireEvent(input, 'focus');
+    fireEvent.changeText(input, '1000');
+    rerender(
+      <PerpsProSizeInput {...createProps({ value: '1000', onChangeText })} />,
+    );
+
+    expect(input).toHaveProp('value', '1,000');
+
+    rerender(
+      <PerpsProSizeInput
+        {...createProps({
+          value: '0.5',
+          denomination: { unit: 'asset', symbol: 'ETH' },
+          onChangeText,
+        })}
+      />,
+    );
+
+    expect(input).toHaveProp('value', '0.5');
+    expect(input).toHaveProp('selection', { start: 3, end: 3 });
+    expect(onChangeText).toHaveBeenCalledTimes(1);
+    expect(onChangeText).toHaveBeenLastCalledWith('1000');
+  });
+
   it('resumes external value updates after blurring while disabled', () => {
     const onBlur = jest.fn();
     const { rerender } = renderInput({ value: '100', onBlur });

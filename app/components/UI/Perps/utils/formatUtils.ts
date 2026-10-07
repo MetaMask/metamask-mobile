@@ -470,30 +470,9 @@ const getPerpsDisplayCursorAfterEdit = (
     );
   }
 
-  let sharedPrefixLength = 0;
+  const editLength = nextDisplayValue.length - previousDisplayValue.length;
 
-  while (
-    sharedPrefixLength < previousDisplayValue.length &&
-    sharedPrefixLength < nextDisplayValue.length &&
-    previousDisplayValue[sharedPrefixLength] ===
-      nextDisplayValue[sharedPrefixLength]
-  ) {
-    sharedPrefixLength += 1;
-  }
-
-  let sharedSuffixLength = 0;
-
-  while (
-    sharedSuffixLength < previousDisplayValue.length - sharedPrefixLength &&
-    sharedSuffixLength < nextDisplayValue.length - sharedPrefixLength &&
-    previousDisplayValue[
-      previousDisplayValue.length - sharedSuffixLength - 1
-    ] === nextDisplayValue[nextDisplayValue.length - sharedSuffixLength - 1]
-  ) {
-    sharedSuffixLength += 1;
-  }
-
-  return nextDisplayValue.length - sharedSuffixLength;
+  return clampInputCursor(selectionStart + editLength, nextDisplayValue.length);
 };
 
 export const getPerpsFormattedInputSelection = ({

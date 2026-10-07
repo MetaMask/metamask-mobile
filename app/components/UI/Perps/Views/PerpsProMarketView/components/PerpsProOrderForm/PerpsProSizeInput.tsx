@@ -207,8 +207,26 @@ const PerpsProSizeInput = ({
 
   useEffect(() => {
     if (!isFocused) {
+      lastEmittedValueRef.current = value;
       setDisplayValue(formatPerpsInput(value, locale));
+      return;
     }
+
+    if (value === lastEmittedValueRef.current) {
+      return;
+    }
+
+    const nextDisplayValue = formatPerpsInput(value, inputLocaleRef.current);
+    const nextSelection = {
+      start: nextDisplayValue.length,
+      end: nextDisplayValue.length,
+    };
+
+    lastEmittedValueRef.current = value;
+    selectionRef.current = nextSelection;
+    shouldIgnoreNextSelectionChangeRef.current = true;
+    setSelection(nextSelection);
+    setDisplayValue(nextDisplayValue);
   }, [isFocused, locale, value]);
 
   const handleFieldPress = useCallback(() => {

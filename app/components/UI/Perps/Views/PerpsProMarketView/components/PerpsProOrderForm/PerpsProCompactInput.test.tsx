@@ -223,6 +223,21 @@ describe('PerpsProCompactInput', () => {
     expect(onChangeText).not.toHaveBeenCalled();
   });
 
+  it('applies focused external replacements in the editing locale', () => {
+    const onChangeText = jest.fn();
+    const initialProps = { ...defaultProps, value: '100', onChangeText };
+    const { rerender } = render(<PerpsProCompactInput {...initialProps} />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    rerender(<PerpsProCompactInput {...initialProps} value="1200.5" />);
+
+    expect(input).toHaveProp('value', '1,200.5');
+    expect(input).toHaveProp('selection', { start: 7, end: 7 });
+    expect(onChangeText).not.toHaveBeenCalled();
+  });
+
   describe('onFieldPress', () => {
     it('uses onFocus instead of reporting a second alignment for an initial direct input tap', () => {
       const onFieldPress = jest.fn();
