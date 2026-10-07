@@ -576,6 +576,7 @@ export function useQuickBuyController(
     if (tradeMode !== 'sell' || !destToken || destToken.currencyExchangeRate) {
       return;
     }
+    let isCancelled = false;
     const key = getTokenKey(destToken);
     getTokenExchangeRate({
       chainId: destToken.chainId,
@@ -583,11 +584,14 @@ export function useQuickBuyController(
       currency: currentCurrency,
     })
       .then((rate) => {
-        if (typeof rate === 'number') {
+        if (!isCancelled && typeof rate === 'number') {
           setFetchedReceiveTokenRate({ key, rate });
         }
       })
       .catch(() => undefined);
+    return () => {
+      isCancelled = true;
+    };
   }, [tradeMode, destToken, currentCurrency]);
   // Display-only: must not feed quote fetching, or a rate update would refetch.
   const destTokenForFiat =

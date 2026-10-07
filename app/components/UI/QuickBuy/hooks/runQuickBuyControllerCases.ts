@@ -4420,6 +4420,57 @@ export const runQuickBuyControllerCases = ({
       });
     });
 
+    describe('receive token rate fetch', () => {
+      it('ignores a stale rate response after the receive token changes', async () => {
+        let resolveStaleRate: (rate: number) => void = jest.fn();
+        (getTokenExchangeRate as jest.Mock)
+          .mockReturnValueOnce(
+            new Promise((resolve) => {
+              resolveStaleRate = resolve;
+            }),
+          )
+          .mockResolvedValueOnce(0.99);
+        mockUsePositionTokenBalance.mockReturnValue(createSourceToken());
+        mockUseReceiveTokens.mockReturnValue([
+          createSourceToken({
+            address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+            chainId: '0xa',
+            symbol: 'USDT',
+            currencyExchangeRate: undefined,
+          }),
+        ]);
+        const { result } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'sell',
+        );
+
+        act(() => {
+          result.current.handleSelectReceiveToken(
+            createSourceToken({
+              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+              chainId: '0x2105',
+              symbol: 'USDC',
+              currencyExchangeRate: undefined,
+            }),
+          );
+        });
+        await act(() => Promise.resolve());
+        resolveStaleRate(1.5);
+        await act(() => Promise.resolve());
+
+        expect(jest.mocked(useDisplayCurrencyValue)).toHaveBeenLastCalledWith(
+          undefined,
+          expect.objectContaining({
+            chainId: '0x2105',
+            currencyExchangeRate: 0.99,
+          }),
+        );
+      });
+    });
+
     describe('source chain client lookup', () => {
       it('keeps sourceChainId when NetworkController has no client for the chain', () => {
         (
