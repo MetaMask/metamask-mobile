@@ -2,10 +2,6 @@ import { BigNumber } from 'bignumber.js';
 import { LimitOrderExecutionType } from '../../constants/limitOrders';
 import { trimTrailingZeros } from '../trimTrailingZeros';
 
-// Estimated MetaMask fee taken from the swap that fills the order, expressed
-// as a fraction of the destination amount (0.875%).
-const QUOTE_BPS_FEE = 0.00875;
-
 /**
  * Destination amount the order would produce if it filled at its limit price.
  *
@@ -21,8 +17,7 @@ const QUOTE_BPS_FEE = 0.00875;
  * - buy priced in fiat: sourceAmount * source fiat rate / limitPrice
  *
  * The fiat cases are estimates: they value the counter token at its live
- * market rate, which keeps moving until the order fills. The result is also
- * reduced by {@link QUOTE_BPS_FEE} to approximate the fee the fill would incur.
+ * market rate, which keeps moving until the order fills.
  */
 export const getSwapsLimitOrderDestTokenAmount = ({
   counterFiatRate,
@@ -65,14 +60,10 @@ export const getSwapsLimitOrderDestTokenAmount = ({
     return '0';
   }
 
-  const destTokenAmountBeforeFee =
+  const destTokenAmount =
     executionType === LimitOrderExecutionType.SELL
       ? amount.multipliedBy(counterPerQuoted)
       : amount.dividedBy(counterPerQuoted);
-
-  const destTokenAmount = destTokenAmountBeforeFee.multipliedBy(
-    new BigNumber(1).minus(QUOTE_BPS_FEE),
-  );
 
   if (!destTokenAmount.isFinite()) {
     return undefined;

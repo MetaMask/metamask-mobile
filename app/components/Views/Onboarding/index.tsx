@@ -7,11 +7,9 @@ import React, {
   useContext,
 } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   BackHandler,
   ScrollView,
-  InteractionManager,
   Platform,
   StyleSheet,
   View,
@@ -127,6 +125,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import OnboardingFoxLoader from '../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
 import {
   OnboardingCtaIds,
   OnboardingScreenIds,
@@ -144,8 +143,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -225,11 +222,31 @@ async function isDeviceOffline(): Promise<boolean> {
   return !netState.isConnected || netState.isInternetReachable === false;
 }
 
+interface IdleCallbackHost {
+  requestIdleCallback?: (callback: () => void) => number;
+}
+
+const scheduleIdleTask = (task: () => void): void => {
+  const idleHost = globalThis as unknown as IdleCallbackHost;
+
+  if (typeof idleHost.requestIdleCallback === 'function') {
+    idleHost.requestIdleCallback(task);
+    return;
+  }
+
+  setTimeout(task, 0);
+};
+
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
     ...StyleSheet.absoluteFill,
     zIndex: 999,
     elevation: 999,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 1000,
+    elevation: 1000,
   },
 });
 
@@ -248,9 +265,6 @@ const Onboarding = () => {
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
   const loading = useSelector((state: RootState) => state.user.loadingSet);
-  const loadingMsg = useSelector(
-    (state: RootState) => state.user.loadingMsg || '',
-  );
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
@@ -587,7 +601,6 @@ const Onboarding = () => {
       createWallet: boolean,
       provider: string,
     ): void => {
-      const isIOS = Platform.OS === 'ios';
       endSocialLoginAttemptTrace(true);
 
       // Error case (result.type !== 'success') is not handled here because
@@ -638,24 +651,11 @@ const Onboarding = () => {
             parentContext: onboardingTraceCtx.current,
           });
 
-          if (isIOS) {
-            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-            navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-              {
-                accountName: result.accountName,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            );
-          } else {
-            // Direct navigation to ChoosePassword for Android
-            navigation.navigate('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-              provider,
-            });
-          }
+          navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+            provider,
+          });
         }
       } else if (result.existingUser) {
         trace({
@@ -664,19 +664,10 @@ const Onboarding = () => {
           tags: getTraceTags(store.getState()),
           parentContext: onboardingTraceCtx.current,
         });
-        isIOS
-          ? navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-              {
-                [PREVIOUS_SCREEN]: ONBOARDING,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            )
-          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-            });
+        navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
@@ -804,7 +795,6 @@ const Onboarding = () => {
                 socialConnectionType,
               );
 
-              // delay unset loading to avoid flash of loading state
               setTimeout(() => {
                 unsetLoading();
               }, 1000);
@@ -1150,7 +1140,6 @@ const Onboarding = () => {
             // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
             await markMetricsOptInUISeen();
 
-            // delay unset loading to avoid flash of loading state
             setTimeout(() => {
               unsetLoading();
             }, 1000);
@@ -1268,27 +1257,6 @@ const Onboarding = () => {
   const setStartFoxAnimation = useCallback((): void => {
     setState((prevState) => ({ ...prevState, startFoxAnimation: 'Start' }));
   }, []);
-
-  const renderLoader = useCallback(
-    (): React.ReactElement => (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 gap-y-8 mb-40"
-      >
-        <Box justifyContent={BoxJustifyContent.Center}>
-          <ActivityIndicator size="small" />
-          <Text
-            variant={TextVariant.BodyMd}
-            style={tw.style('mt-[30px] text-center text-default')}
-          >
-            {loadingMsg}
-          </Text>
-        </Box>
-      </Box>
-    ),
-    [loadingMsg, tw],
-  );
 
   const renderContent = useCallback(
     (): React.ReactElement => (
@@ -1416,7 +1384,7 @@ const Onboarding = () => {
     void checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
-    InteractionManager.runAfterInteractions(() => {
+    scheduleIdleTask(() => {
       void checkForMigrationFailureAndVaultBackup();
       void PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
@@ -1461,9 +1429,9 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(() =>
-        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
-      );
+      scheduleIdleTask(() => {
+        void PreventScreenshot.allow(CAPTURE_KEYS.onboarding);
+      });
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
@@ -1614,6 +1582,12 @@ const Onboarding = () => {
         style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
+        <FastOnboarding
+          onPressContinueWithGoogle={onPressContinueWithGoogle}
+          onPressContinueWithApple={onPressContinueWithApple}
+          onPressImport={onPressImport}
+          onPressCreate={onPressCreate}
+        />
         <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
           <ScrollView
             style={tw.style('flex-1')}
@@ -1625,42 +1599,32 @@ const Onboarding = () => {
               twClassName="flex-1 py-4"
             >
               {renderContent()}
-
-              {loading && (
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  twClassName="absolute top-0 left-0 right-0 bottom-0"
-                  style={tw.style(
-                    { zIndex: 1000 },
-                    { backgroundColor: onboardingCanvasColor },
-                  )}
-                >
-                  {renderLoader()}
-                </Box>
-              )}
             </Box>
           </ScrollView>
 
           <FadeOutOverlay />
 
-          <FastOnboarding
-            onPressContinueWithGoogle={onPressContinueWithGoogle}
-            onPressContinueWithApple={onPressContinueWithApple}
-            onPressImport={onPressImport}
-            onPressCreate={onPressCreate}
-          />
-
           {handleSimpleNotification()}
         </SafeAreaView>
 
-        {/* Fox on the full-bleed root canvas */}
         {!hasTestOverrides && (
           <FoxAnimation
             hasFooter={false}
             trigger={startFoxAnimation}
             fullBleedBottom
           />
+        )}
+
+        {/*
+          The loader overlays the landing content instead of replacing it so
+          FadeOutOverlay, the onboarding animations and the toast keep their
+          mounted state (and do not replay) when loading is unset after a
+          failed or cancelled OAuth attempt.
+        */}
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <OnboardingFoxLoader />
+          </View>
         )}
       </View>
     </ErrorBoundary>
