@@ -326,9 +326,13 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   default: () => null,
 }));
 
+const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
+  default: (props: { header?: React.ReactNode }) => {
+    mockTransactions(props);
+    return props.header ?? null;
+  },
 }));
 
 jest.mock(
@@ -435,14 +439,6 @@ jest.mock('../../../../hooks/useABTest', () => ({
 
 jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
-}));
-
-const mockMarketInsightsDisclaimer = jest.fn(
-  (_props: { onClose?: () => void }) => null,
-);
-jest.mock('../../MarketInsights', () => ({
-  MarketInsightsDisclaimerBottomSheet: (props: { onClose?: () => void }) =>
-    mockMarketInsightsDisclaimer(props),
 }));
 
 const mockAssetDetailsQuickBuy = jest.fn(
@@ -1421,32 +1417,6 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('market insights disclaimer', () => {
-    it('does not render the disclaimer bottom sheet before it is requested', () => {
-      render(<TokenDetails />);
-
-      expect(mockMarketInsightsDisclaimer).not.toHaveBeenCalled();
-    });
-
-    it('renders the disclaimer bottom sheet when the disclaimer is pressed and hides it on close', () => {
-      render(<TokenDetails />);
-
-      act(() => {
-        mockLatestOnMarketInsightsDisclaimerPress?.();
-      });
-      expect(mockMarketInsightsDisclaimer).toHaveBeenCalled();
-
-      const { onClose } = (mockMarketInsightsDisclaimer.mock.calls.at(
-        -1,
-      )?.[0] ?? {}) as { onClose?: () => void };
-      act(() => {
-        onClose?.();
-      });
-
-      expect(onClose).toBeDefined();
-    });
-  });
-
   describe('non-EVM asset', () => {
     it('renders without crashing and shows sticky footer for non-EVM assets', () => {
       mockUseTokenTransactions.mockReturnValue({
@@ -1768,6 +1738,58 @@ describe('TokenDetails', () => {
       expect(mockUseABTest).not.toHaveBeenCalled();
       expect(mockUseTokenPrice).not.toHaveBeenCalled();
       expect(mockUseTokenTransactions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('header live price on scroll', () => {
+    const getScrollHandler = () =>
+      (mockTransactions.mock.calls.at(-1)?.[0] ?? {}) as {
+        onScrollThroughContent?: (y: number) => void;
+      };
+
+    it('shows the contract address (no description) before scrolling', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    });
+
+    it('swaps the header subtitle to the live price once scrolled, and back when returning to top', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(120);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: expect.anything() }),
+      );
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(0);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    });
+
+    it('keeps the contract address when there is no live price', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 0,
+      });
+
+      render(<TokenDetails />);
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(120);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
     });
   });
 });

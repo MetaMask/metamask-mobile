@@ -5841,6 +5841,11 @@
       }
     }
   },
+  "token_details_overview": {
+    "performance": {
+      "title": "Performance"
+    }
+  },
   "token_details_v1": {
     "security_pill": {
       "screened": "Screened",
@@ -5857,6 +5862,7 @@
       "website": "Open website",
       "x": "Open on X",
       "telegram": "Open on Telegram",
+      "search_on_x": "Search on X",
       "copy_address": "Copy contract address {{address}}"
     },
     "stats": {
@@ -5908,7 +5914,19 @@
           "description": "Amount of this token currently circulating."
         }
       }
-    }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "security": "Security",
+      "feed": "Feed"
+    },
+    "performance": {
+      "title": "Performance"
+    },
+    "activity": {
+      "title": "{{symbol}} activity"
+    },
+    "tab_placeholder": "Coming soon"
   },
   "account_details": {
     "title": "Account details",

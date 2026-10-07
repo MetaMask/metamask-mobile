@@ -17,7 +17,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  StyleSheet,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -36,7 +42,6 @@ import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -61,6 +66,7 @@ import {
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
@@ -217,8 +223,6 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
-    useState(false);
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { variant: quickBuyEntrypointVariant } = useABTest(
     SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -335,6 +339,16 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  const handleMultichainScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      onScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [onScrollOffset],
+  );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
 
@@ -511,10 +525,6 @@ const TokenDetails: React.FC<{
     trackActionTapped(TokenDetailsAction.CopyTokenAddress);
   }, [trackActionTapped]);
 
-  const handleMarketInsightsDisclaimerPress = useCallback(() => {
-    setIsInsightsDisclaimerVisible(true);
-  }, []);
-
   const starButton = useMemo(
     () => (
       <WatchlistStarButton
@@ -598,7 +608,6 @@ const TokenDetails: React.FC<{
         onSend={handleSend}
         onReceive={onReceive}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={handleMarketInsightsDisclaimerPress}
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
@@ -641,6 +650,7 @@ const TokenDetails: React.FC<{
             : undefined
         }
         onCopyAddress={handleCopyAddress}
+        description={headerDescription}
       />
 
       {txIsNonEvmAsset ? (
@@ -654,10 +664,12 @@ const TokenDetails: React.FC<{
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
+          onScroll={handleMultichainScroll}
         />
       ) : (
         <Transactions
           header={renderHeader()}
+          onScrollThroughContent={onScrollOffset}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}
@@ -694,11 +706,6 @@ const TokenDetails: React.FC<{
         onOpenQuickBuy={openQuickBuy}
       />
 
-      {isInsightsDisclaimerVisible && (
-        <MarketInsightsDisclaimerBottomSheet
-          onClose={() => setIsInsightsDisclaimerVisible(false)}
-        />
-      )}
       {shareUrl && (
         <ShareTokenBottomSheetController
           ref={shareSheetRef}
