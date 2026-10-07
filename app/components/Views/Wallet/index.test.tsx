@@ -887,7 +887,6 @@ describe('Wallet', () => {
       expect(getAssetDetailsActionsProps()).toMatchObject({
         displayBuyButton: expect.any(Boolean),
         displaySwapsButton: expect.any(Boolean),
-        goToSwaps: expect.any(Function),
         onReceive: expect.any(Function),
         onSend: expect.any(Function),
         buyButtonActionID: 'wallet-buy-button',
@@ -1035,12 +1034,6 @@ describe('Wallet', () => {
       const passedProps = getAssetDetailsActionsProps();
       expect(passedProps.onBuy).toBeUndefined();
       expect(passedProps.buyButtonActionID).toBeDefined();
-    });
-
-    it('passes goToSwaps as a function', () => {
-      render(Wallet);
-
-      expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
     });
   });
 

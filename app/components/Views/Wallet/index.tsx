@@ -168,10 +168,6 @@ import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/const
 import { NetworkConnectionBannerContent } from '../../UI/NetworkConnectionBanner';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
@@ -417,22 +413,11 @@ const Wallet = ({
   const showMoneyBalanceCard =
     isMoneyAccountEnabled && !inWalletHomePostOnboardingFlow;
 
-  /**
-   * Provider configuration for the current selected network
-   */
-  const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
-  // Setup for AssetDetailsActions
-  const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
-    sourcePage: 'MainView',
-  });
-
-  const onTradePrimaryPress =
-    useWalletHomeOnboardingChecklistTradePress(goToSwaps);
+  const onTradePrimaryPress = useWalletHomeOnboardingChecklistTradePress();
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1193,7 +1178,6 @@ const Wallet = ({
       <AssetDetailsActions
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
         onReceive={onReceive}
         onSend={onSend}
         buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
