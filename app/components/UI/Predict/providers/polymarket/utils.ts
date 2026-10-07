@@ -1055,6 +1055,18 @@ function isVisiblePolymarketMarket(
   return true;
 }
 
+function isUnsupportedProtocolEvent(
+  event: PolymarketApiEvent,
+  visibleMarkets: PolymarketApiMarket[],
+  protocolV2Enabled: boolean,
+): boolean {
+  if (protocolV2Enabled || visibleMarkets.length > 0) {
+    return false;
+  }
+
+  return event.markets?.some(isProtocolV2Market) === true;
+}
+
 export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
@@ -1108,6 +1120,10 @@ export const parsePolymarketEvents = (
       }).filter((market) =>
         isVisiblePolymarketMarket(market, protocolV2Enabled),
       );
+
+      if (isUnsupportedProtocolEvent(event, markets, protocolV2Enabled)) {
+        return [];
+      }
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not

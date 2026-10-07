@@ -3581,7 +3581,7 @@ describe('polymarket utils', () => {
     ]);
   });
 
-  it('returns no outcomes when every market version is v2', () => {
+  it('drops an event when every market version is v2', () => {
     const event: PolymarketApiEvent = {
       id: 'v2-event',
       slug: 'v2-event',
@@ -3601,9 +3601,7 @@ describe('polymarket utils', () => {
       volume: 0,
     };
 
-    const [market] = parsePolymarketEvents([event], 'trending');
-
-    expect(market.outcomes).toEqual([]);
+    expect(parsePolymarketEvents([event], 'trending')).toEqual([]);
   });
 
   it('keeps CTF markets when an event also contains a v2 market', () => {
