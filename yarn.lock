@@ -39182,7 +39182,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^26.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
