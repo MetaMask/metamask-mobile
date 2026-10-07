@@ -220,6 +220,38 @@ describe('MusdRescueSendSheet', () => {
     });
   });
 
+  it('drops a second send tap while an ENS submission is still resolving', async () => {
+    const ensAddress = '0x2345678901234567890123456789012345678912';
+    let resolveEns: (address: string) => void = () => undefined;
+    jest.mocked(doENSLookup).mockImplementation(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveEns = resolve;
+        }),
+    );
+    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
+
+    fireEvent.changeText(
+      getByTestId(MusdRescueSendSheetTestIds.RECIPIENT_INPUT),
+      'support.eth',
+    );
+    fireEvent.changeText(
+      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
+      '1.5',
+    );
+    // First tap starts the submission; the button is still enabled because
+    // ENS resolution happens before isSubmitting flips.
+    fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
+    fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
+
+    resolveEns(ensAddress);
+
+    await waitFor(() => {
+      expect(mockInitiateRescueSend).toHaveBeenCalledTimes(1);
+    });
+    expect(mockInitiateRescueSend.mock.calls[0][0].recipient).toBe(ensAddress);
+  });
+
   it('initiates the send with the resolved recipient and amount', async () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 

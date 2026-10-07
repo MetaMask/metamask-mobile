@@ -47,6 +47,9 @@ const MusdRescueSendSheet = () => {
   const [amount, setAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  // Set synchronously on entry so a second tap cannot start a second
+  // submission while the first is still resolving ENS or validating.
+  const isSubmitInFlightRef = useRef(false);
 
   const isBalanceUnavailable = isBalanceLoading || isBalanceFetchError;
   const hasLiquidBalance = Boolean(liquidMusd?.gt(0));
@@ -66,7 +69,7 @@ const MusdRescueSendSheet = () => {
     }
   }, [maxAmount]);
 
-  const handleSend = useCallback(async () => {
+  const handleSendInner = useCallback(async () => {
     setErrorMessage(undefined);
 
     let resolvedRecipient = recipient;
@@ -147,6 +150,18 @@ const MusdRescueSendSheet = () => {
     recipient,
     trackSurfaceClicked,
   ]);
+
+  const handleSend = useCallback(async () => {
+    if (isSubmitInFlightRef.current) {
+      return;
+    }
+    isSubmitInFlightRef.current = true;
+    try {
+      await handleSendInner();
+    } finally {
+      isSubmitInFlightRef.current = false;
+    }
+  }, [handleSendInner]);
 
   const isSendDisabled =
     isSubmitting || !recipient || !amount || isBalanceUnavailable;
