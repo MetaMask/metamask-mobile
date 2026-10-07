@@ -129,6 +129,12 @@ describe('AccountGroupBalance', () => {
 
     // Component should render the balance container even when loading
     expect(getByTestId('balance-container')).toBeOnTheScreen();
+    // Visible 32px, matching the money card to the tokens divider, after the
+    // header capsule inset, font ink inset, and the 16px portfolio header gap.
+    expect(getByTestId('balance-container')).toHaveStyle({
+      marginTop: 14,
+      marginBottom: 10,
+    });
   });
 
   it('renders formatted balance when balance data is fetched', () => {
