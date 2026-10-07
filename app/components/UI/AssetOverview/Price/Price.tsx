@@ -27,6 +27,7 @@ export type PriceProps = PriceSharedProps & {
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+  children?: React.ReactNode;
 };
 
 const Price = (props: PriceProps) => {
@@ -39,6 +40,7 @@ const Price = (props: PriceProps) => {
     setTimePeriod,
     currentPrice,
     currentCurrency,
+    children,
     ...rest
   } = props;
 
@@ -53,7 +55,9 @@ const Price = (props: PriceProps) => {
       currentPrice={currentPrice}
       currentCurrency={currentCurrency}
       {...rest}
-    />
+    >
+      {children}
+    </PriceAdvanced>
   );
 };
 

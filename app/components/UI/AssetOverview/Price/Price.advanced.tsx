@@ -149,6 +149,7 @@ export interface PriceAdvancedProps {
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
+  children?: React.ReactNode;
 }
 
 const PriceAdvanced = ({
@@ -165,6 +166,7 @@ const PriceAdvanced = ({
   onPriceDirectionChange,
   useAmbientColor = false,
   hasInsufficientCoverage = false,
+  children,
 }: PriceAdvancedProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -1140,6 +1142,8 @@ const PriceAdvanced = ({
             />
           );
         })()}
+
+      {children}
 
       {/* ── Skeleton bar (flag ON, candle mode only) ───────────────────── */}
       {isTechnicalIndicatorsEnabled &&
