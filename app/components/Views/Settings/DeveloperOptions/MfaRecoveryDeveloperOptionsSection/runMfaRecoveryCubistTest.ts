@@ -59,10 +59,11 @@ interface AuthSession {
   profileId: string;
 }
 
-/** Sent to `/mfa/verify/complete`; the escrow checks both against the token's `ext` claims. */
+/** Sent to `/mfa/verify`; the escrow checks the hashes against the token's `ext` claims and `audiences` against its `aud`. */
 export interface RecoveryRequestBinding {
   request_hash: string;
   identifiers_hash?: string;
+  audiences: string[];
 }
 
 export type MfaRecoveryTestStep =
@@ -275,7 +276,11 @@ async function createRecoveryContext(
     messenger: getControllerMessenger(),
     authProvider: {
       getAuthenticatedProfileId: async () => profileId,
-      authorizeRecoveryRequest: async ({ requestHash, identifiers }) => {
+      authorizeRecoveryRequest: async ({
+        requestHash,
+        identifiers,
+        audiences,
+      }) => {
         if (!dependencies.stepUp) {
           throw new MfaRecoveryTestError(
             'This run cannot step up to aal:2',
@@ -284,6 +289,7 @@ async function createRecoveryContext(
         }
         return await dependencies.stepUp(session, {
           request_hash: requestHash,
+          audiences,
           identifiers_hash: identifiers
             ? await hashIdentifiers(identifiers)
             : undefined,

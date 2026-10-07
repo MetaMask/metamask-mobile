@@ -254,7 +254,7 @@ export async function stepUpWithSoftwarePasskey(
   const verification = await postMfa<{
     flow_id: string;
     passkey_request_data: string;
-  }>('verify', hydraToken, { credential_type: 'passkey' });
+  }>('verify', hydraToken, { credential_type: 'passkey', ...binding });
   const { challenge } = parsePublicKeyOptions<{ challenge: string }>(
     verification.passkey_request_data,
   );
@@ -271,7 +271,6 @@ export async function stepUpWithSoftwarePasskey(
       flow_id: verification.flow_id,
       credential_type: 'passkey',
       passkey_assertion: JSON.stringify(assertion),
-      ...binding,
     },
   );
   return await exchangeForHydraToken(token);
@@ -320,7 +319,7 @@ async function exchangeForHydraToken(assertion: string): Promise<string> {
 async function postMfa<T>(
   path: string,
   hydraToken: string,
-  body: Record<string, string | undefined>,
+  body: Record<string, unknown>,
 ): Promise<T> {
   const response = await fetch(
     `${getEnvUrls(authEnv()).authApiUrl}/api/v2/mfa/${path}`,
