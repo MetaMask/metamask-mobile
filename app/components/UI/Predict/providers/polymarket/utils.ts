@@ -2020,11 +2020,11 @@ export const mapPolymarketPositionsV2 = (
       title: row.title,
       slug: row.slug,
       eventSlug: row.event_slug,
-      size: row.size,
+      size: row.current_size ?? 0,
       outcome: row.outcome,
       outcomeIndex: row.outcome_index,
       cashPnl: row.unrealized_pnl ?? 0,
-      curPrice: row.cur_price,
+      curPrice: row.current_price ?? 0,
       currentValue,
       percentPnl:
         initialValue > 0

@@ -3800,11 +3800,11 @@ describe('mapPolymarketPositionsV2', () => {
     title: 'Market',
     slug: 'market-slug',
     event_slug: 'event-slug',
-    size: 20,
+    current_size: 20,
     outcome: 'Yes',
     outcome_index: 1,
     unrealized_pnl: 5,
-    cur_price: 0.75,
+    current_price: 0.75,
     current_value: 15,
     entry_cost_usdc: 10,
     avg_price: 0.5,
@@ -3857,6 +3857,21 @@ describe('mapPolymarketPositionsV2', () => {
     expect(
       mapPolymarketPositionsV2([{ ...row, unrealized_pnl: null }])[0].cashPnl,
     ).toBe(0);
+  });
+
+  it('coerces missing current_size/current_price to zero so live-sync math stays finite', () => {
+    // `size`/`cur_price` are v1 names; v2 sends `current_size`/`current_price`.
+    // Mapping a missing field to undefined previously poisoned the live-price
+    // sync (size * bestBid === NaN) into an infinite render loop.
+    const mapped = mapPolymarketPositionsV2([
+      {
+        ...row,
+        current_size: undefined as unknown as number,
+        current_price: undefined as unknown as number,
+      },
+    ])[0];
+    expect(mapped.size).toBe(0);
+    expect(mapped.curPrice).toBe(0);
   });
 });
 

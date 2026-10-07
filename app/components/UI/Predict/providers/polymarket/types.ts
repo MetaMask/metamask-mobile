@@ -71,12 +71,14 @@ export interface PolymarketPositionV2 {
   title: string;
   slug: string;
   event_slug?: string;
-  size: number;
+  /** Current holding size for the outcome (v1 `size`). */
+  current_size: number;
   outcome: string;
   outcome_index: number;
   /** Cumulative unrealized P&L for the row; open positions only. */
   unrealized_pnl?: number | null;
-  cur_price: number;
+  /** Current outcome price (v1 `curPrice`). */
+  current_price: number;
   current_value: number;
   /** Cost basis in USDC (v1 `initialValue`). */
   entry_cost_usdc: number;
