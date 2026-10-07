@@ -1,14 +1,6 @@
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Theme } from '@metamask/design-tokens';
-import {
-  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
-  SupportedCaipChainId,
-} from '@metamask/multichain-network-controller';
-import {
-  isCaipAssetType,
-  parseCaipAssetType,
-  type CaipAssetType,
-} from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { parseCaipAssetType } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -62,8 +54,6 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
-import { useIsMemeToken } from '../hooks/useIsMemeToken';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
@@ -73,7 +63,9 @@ import {
 } from '../constants/constants';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
+import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
+import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
@@ -247,29 +239,7 @@ const TokenDetails: React.FC<{
     EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
   );
 
-  const caip19AssetId = useMemo((): CaipAssetType | null => {
-    try {
-      if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
-        return token.caipAssetId;
-      }
-      if (isCaipAssetType(token.address)) {
-        return token.address as CaipAssetType;
-      }
-      if (!token.chainId) return null;
-      const formatted = formatAddressToAssetId(token.address, token.chainId);
-      if (formatted) return formatted as CaipAssetType;
-      // For non-EVM native tokens (e.g. Bitcoin), formatAddressToAssetId returns
-      // undefined for addresses like "native". Fall back to the chain's native
-      // currency CAIP-19 id from the multichain network configurations.
-      const nonEvmConfig =
-        AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
-          token.chainId as SupportedCaipChainId
-        ];
-      return (nonEvmConfig?.nativeCurrency as CaipAssetType) ?? null;
-    } catch {
-      return null;
-    }
-  }, [token.caipAssetId, token.address, token.chainId]);
+  const caip19AssetId = useTokenCaipAssetId(token);
 
   const shareUrl = useMemo(
     () =>
@@ -340,13 +310,6 @@ const TokenDetails: React.FC<{
     assetId: caip19AssetId,
     prefetchedData: token.securityData,
   });
-
-  const isMemeTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
-  const { isMeme: isMemeToken } = useIsMemeToken({
-    assetId: caip19AssetId,
-    enabled: isMemeTdpEnabled,
-  });
-  const shouldRouteToMemeTdp = isMemeTdpEnabled && isMemeToken;
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
@@ -662,10 +625,6 @@ const TokenDetails: React.FC<{
     </>
   );
 
-  if (shouldRouteToMemeTdp) {
-    return <TokenDetailsV1 token={token} />;
-  }
-
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -759,13 +718,16 @@ const TokenDetails: React.FC<{
 };
 
 /**
- * TokenDetailsRouteWrapper screen
- * Reads token from React Navigation route.params and renders TokenDetails.
+ * Legacy Token Details page.
+ *
+ * Owns the analytics lifecycle (TOKEN_DETAILS_OPENED / TOKEN_DETAILS_CLOSED)
+ * and the perps / sticky-button / market-insights state that gates it. All of
+ * it is specific to this page, so none of it runs for a V1 variant.
  */
-export const TokenDetailsRouteWrapper: React.FC = () => {
-  const route = useRoute();
+const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
+  token,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const token = route.params as TokenDetailsRouteParams;
 
   const [perpsMarket, setPerpsMarket] = useState<{
     hasPerpsMarket: boolean;
@@ -946,6 +908,28 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       onCtaClicked={handleCtaClicked}
       onPerpsMarketResolved={setPerpsMarket}
     />
+  );
+};
+
+/**
+ * TokenDetailsRouteWrapper screen
+ *
+ * Reads the token from React Navigation route.params and picks the page to
+ * render. Swapping component types rather than returning early keeps the two
+ * pages' hooks fully independent: neither page's hooks run for the other, and
+ * a variant resolving asynchronously remounts instead of changing hook order.
+ */
+export const TokenDetailsRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+  const variant = useTokenDetailsVariant(token);
+
+  // `variant` is only a discriminator today. It becomes a prop on TokenDetailsV1
+  // once a section's copy or layout actually varies by asset category.
+  return variant ? (
+    <TokenDetailsV1 token={token} />
+  ) : (
+    <TokenDetailsLegacy token={token} />
   );
 };
 
