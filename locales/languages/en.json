@@ -607,11 +607,15 @@
     "create_password_cta": "Create password",
     "new_password_placeholder": "New password",
     "confirm_password_placeholder": "Re-enter new password",
-    "acknowledgement_error": "Confirm that you understand MetaMask cannot recover this password.",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "password_warning_title": "MetaMask can’t reset your password",
+    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_srp": "Secret Recovery Phrase",
+    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_confirm": "I understand",
+    "password_warning_cancel": "Cancel"
   },
   "wallet_creation_error": {
     "title": "Something went wrong",
@@ -1300,6 +1304,9 @@
         },
         "description": "No matching trades in the activity so far."
       },
+      "empty_filtered": {
+        "title": "No trades yet"
+      },
       "load_more": "Load more",
       "error": {
         "title": "Couldn't load the feed",
@@ -1317,6 +1324,10 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "No data",
+      "copies": {
+        "one": "{{count}} copy",
+        "other": "{{count}} copies"
+      },
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
@@ -1325,12 +1336,14 @@
         "mock_data_footnote": "* Mock data",
         "entry_price": "Entry price",
         "exit_price": "Exit price",
+        "entry": "Entry",
+        "exit": "Exit",
+        "cost": "Cost",
         "hold_time": "Hold time",
-        "max_hold_time": "Max hold time",
-        "status": "Status",
-        "closed": "Closed",
         "buy": "Buy",
-        "sell": "Sell"
+        "sell": "Sell",
+        "bought": "Bought",
+        "sold": "Sold"
       }
     },
     "composer": {
@@ -1359,7 +1372,8 @@
       "empty_closed": "No closed positions",
       "error_title": "Couldn't load positions",
       "retry": "Try again",
-      "posting": "Posting..."
+      "posting": "Posting...",
+      "post_failed": "Couldn't create post. Try again."
     },
     "shell": {
       "subnav": {
@@ -1536,6 +1550,8 @@
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "other_empty_title": "No posts yet",
+      "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
       "no_profile_title": "Create your profile",
@@ -1620,11 +1636,14 @@
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
+      "sell_title": "Sell {{symbol}}",
+      "change_trade_mode": "Change trade mode",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
       "buy_mode": "Buy",
       "with": "with",
-      "total": "Total",
+      "est_receive": "Est. receive",
+      "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "slippage": "Slippage",
       "minimum_received": "Minimum received",
@@ -1640,14 +1659,8 @@
       "select_quote_title": "Select quote",
       "rate": "Rate",
       "get_new_quote": "Get new quote",
-      "available_balance": "{{amount}} available",
+      "available_balance": "{{amount}} Available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
-      "pay_with_no_tokens": "No tokens available to pay with",
-      "receive_with_no_tokens": "No tokens available to receive",
-      "pay_with_filter_all": "All",
-      "buy_label": "Buy",
-      "sell_label": "Sell",
       "receive": "Receive",
       "max": "Max",
       "add_funds": "Add funds",
@@ -1656,15 +1669,7 @@
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
-      "toast_failed_sell": "Couldn't sell {{symbol}}",
-      "edit_quick_amounts_title": "Edit default amounts",
-      "edit_quick_amounts_set_buy": "To buy",
-      "edit_quick_amounts_set_sell": "To sell",
-      "edit_quick_amounts_confirm": "Save",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "toast_failed_sell": "Couldn't sell {{symbol}}"
     }
   },
   "perps": {
@@ -1714,8 +1719,10 @@
     },
     "service_interruption": {
       "title": "We're experiencing an outage",
-      "description": "Some services may be unavailable while the team works on a fix.",
-      "contact_support": "Contact support"
+      "description": "Some services are temporarily unavailable. {{faqLink}}, or {{supportLink}}.",
+      "faq_link": "See your options in FAQs",
+      "contact_support": "contact support",
+      "faq_title": "Perps FAQs"
     },
     "competition_banner": {
       "title": "Competition leaderboard",
@@ -1833,6 +1840,8 @@
       "cancel_trade": "Cancel trade",
       "trade_canceled": "Trade canceled",
       "funds_returned_to_account": "Funds returned to your account",
+      "order_not_placed": "Deposit received, order not placed",
+      "order_not_placed_description": "Your deposit went through, but it hasn't shown up in your Perps balance yet. Check your balance before placing the order again.",
       "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
@@ -1983,6 +1992,14 @@
       "twap": "TWAP",
       "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} only",
+      "positions_hidden_by_filters": {
+        "one": "1 position is hidden by the filters.",
+        "other": "{{count}} positions are hidden by the filters."
+      },
+      "orders_hidden_by_filters": {
+        "one": "1 order is hidden by the filters.",
+        "other": "{{count}} orders are hidden by the filters."
+      },
       "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
@@ -2132,10 +2149,10 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
         "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
-        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
-        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
-        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
@@ -2203,7 +2220,8 @@
         "difference_from_market": "Difference from market:",
         "limit_price_above": "Limit price is above current price",
         "limit_price_below": "Limit price is below current price",
-        "limit_price_too_far": "Price can't be more than 95% away from the market price"
+        "limit_price_too_far": "Price can't be more than 95% away from the market price",
+        "limit_price_too_far_range": "Enter a price between {{min}} and {{max}}."
       },
       "leverage_modal": {
         "title": "Leverage",
@@ -2498,7 +2516,8 @@
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance",
-      "exceeds_available": "Amount exceeds available margin"
+      "exceeds_available": "Amount exceeds available margin",
+      "no_removable_margin": "No margin can be removed right now. This position needs its current margin to stay open."
     },
     "tpsl": {
       "title": "Auto close",
@@ -2735,7 +2754,9 @@
       "margin": {
         "add_success": "Added ${{amount}} margin to {{asset}} position",
         "remove_success": "Removed ${{amount}} margin from {{asset}} position",
-        "adjustment_failed": "Margin adjustment failed"
+        "adjustment_failed": "Margin adjustment failed",
+        "remove_amount_changed_title": "Removable margin changed",
+        "remove_amount_changed": "Your position moved. You can now remove up to ${{amount}}. Check the amount and try again."
       }
     },
     "markets": {
@@ -3389,6 +3410,13 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "search": {
+      "placeholder": "Search markets",
+      "idle": "Search by team, topic, or market question.",
+      "empty": "No markets found for \"{{query}}\".",
+      "error": "Search couldn’t complete.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "title": "Portfolio",
       "positions": "Positions",
@@ -3400,6 +3428,7 @@
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
       "active_positions": "Active positions",
+      "cash_out": "Cash Out",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
       "empty": {
@@ -3415,9 +3444,18 @@
     },
     "order_preview": {
       "amount": "USD amount",
+      "contracts": "Contract count",
       "minimum_amount": "Enter at least ${{amount}}.",
+      "minimum_contracts": "Enter at least 1 contract.",
+      "over_sell": "You can sell up to {{contracts}} contracts.",
+      "held_contracts": "You hold {{contracts}} contracts",
       "estimated_contracts": "Est. contracts",
       "average_price": "Avg. price",
+      "limit_price": "Limit price",
+      "proceeds": "Proceeds",
+      "net_proceeds": "Net proceeds",
+      "net_proceeds_line": "Net proceeds {{amount}}",
+      "max": "Max",
       "potential_payout": "Potential payout",
       "potential_profit": "Potential profit",
       "fee": "Fee",
@@ -3451,14 +3489,20 @@
       "partial_title": "Order partially filled",
       "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
       "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "sell_filled_title": "Cash Out complete",
+      "sell_partial_title": "Cash Out partially filled",
+      "sell_partial_description": "{{filled}} of {{quoted}} contracts sold. The other {{remainder}} remain in your position.",
+      "sold_context": "You sold {{contracts}} {{outcome}} contracts",
       "filled_contracts": "Filled",
       "average_fill_price": "Avg. fill price",
       "actual_spend": "Spent",
       "payout_exposure": "Payout exposure",
       "not_filled_title": "Order not filled",
       "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "sell_not_filled_description": "The market is moving fast, so we couldn't sell at {{price}}. Nothing was sold.",
       "rejected_title": "Order rejected",
       "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "sell_rejected_description": "The venue refused this order. Nothing was sold and your position is untouched.",
       "reconciling_title": "Still confirming your order",
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
@@ -4147,6 +4191,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "homepage_search_placeholder": "Search",
     "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
@@ -5259,7 +5304,7 @@
       },
       "identity": {
         "title": "Identity",
-        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
       "notifications": {
@@ -5643,6 +5688,7 @@
       "all": "All"
     },
     "chart_time_period_navigation": {
+      "1h": "1H",
       "1d": "1D",
       "7d": "7D",
       "1w": "1W",
@@ -8329,7 +8375,7 @@
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon."
+      "maintenance_message": "{{experienceName}} is down for maintenance and will be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
@@ -9431,7 +9477,15 @@
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
+      "activity_title_filled": "Swapped {{source}} to {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Date created",
+      "order_type": "Order type",
+      "order_type_limit": "Limit"
     },
     "recurring": {
       "you_get": "You get",
@@ -10222,8 +10276,7 @@
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
-        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
-        "description_immersve": "We need a few details to set up your card.",
+        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
         "i_already_have_an_account": "I already have a MetaMask Card",
         "i_already_have_an_account_immersve": "I already have an account",
         "email_label": "Email address",
@@ -12143,7 +12196,10 @@
       "predict": {
         "label": "Predict",
         "footnote": "One prediction trade per month. Unused trades don't roll over."
-      }
+      },
+      "resets_on": "Resets on {{date}}",
+      "load_error": "Couldn't load your allowances.",
+      "retry": "Try again"
     },
     "physical_card": {
       "title": "Get your free MetaMask Card",
@@ -12162,9 +12218,9 @@
       "add_money": "Add money"
     },
     "membership": {
-      "title": "Your membership",
-      "plan": "Membership",
-      "earned_this_month": "Earned this month",
+      "title": "Your plan",
+      "plan": "Plan",
+      "lifetime_earnings": "Lifetime earnings",
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
@@ -12172,18 +12228,10 @@
       "renews_on": "Renews on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
-      "manage": "Manage",
+      "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership",
-      "earned_info": {
-        "title": "Earned this month",
-        "description": "The amount you earned in APY and mUSD back as a Pro member."
-      },
-      "saved_info": {
-        "title": "Saved this month",
-        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
-      }
+      "cancel_membership": "Cancel membership"
     },
     "cancel_membership": {
       "title": "Why are you canceling?",
@@ -12214,13 +12262,14 @@
     }
   },
   "pro_subscription": {
-    "title": "Earn more with Pro",
+    "title": "MetaMask Orange",
     "description": "{{monthlyPrice}}/mo ({{annualPrice}} for annual membership)",
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
-    "join_pro": "Join Pro",
+    "join_pro": "Upgrade",
+    "join_orange": "Join Orange",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
-    "pro": "Pro",
+    "pro": "Orange",
     "pricing": {
       "loading": "Loading plans...",
       "error": "We couldn't load plan prices. Try again.",

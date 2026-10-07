@@ -1,9 +1,9 @@
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import Engine from '../../../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../../../util/version';
 import { parseGetLimitOrderResponse } from './validators';
 import type { GetLimitOrderResponse } from './schema';
+import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
 
 export interface GetLimitOrderParams {
   /**
@@ -30,10 +30,12 @@ export async function getLimitOrder({
   const bearerToken =
     await Engine.context.AuthenticationController.getBearerToken();
 
-  const searchParams = new URLSearchParams({ id: orderId, accountAddress });
+  const searchParams = new URLSearchParams({ accountAddress });
 
   const response = await fetch(
-    `${BRIDGE_API_BASE_URL}/v2/orders/limit?${searchParams.toString()}`,
+    `${getLimitOrdersBaseUrl()}/v2/orders/limit/${encodeURIComponent(
+      orderId,
+    )}?${searchParams.toString()}`,
     {
       method: 'GET',
       headers: {

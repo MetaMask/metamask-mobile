@@ -519,8 +519,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
-  CHART_SERVICE_INTERRUPTION_BANNER:
-    'perps-pro-market-chart-service-interruption-banner',
+  SERVICE_INTERRUPTION_BANNER: 'perps-pro-market-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
   STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
   STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',
@@ -553,6 +552,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
   POSITIONS_FILTER_ROW: 'perps-pro-market-positions-filter-row',
+  HIDDEN_BY_FILTERS_CAPTION: 'perps-pro-market-hidden-by-filters-caption',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
@@ -1051,6 +1051,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   INFO_SCREEN: 'perps-trade-sheet-info-screen',
   INFO_BACK_BUTTON: 'perps-trade-sheet-info-back-button',
   INFO_GOT_IT_BUTTON: 'perps-trade-sheet-info-got-it-button',
+  PAY_WITH_SCREEN: 'perps-trade-sheet-pay-with-screen',
+  PAY_WITH_BACK_BUTTON: 'perps-trade-sheet-pay-with-back-button',
   LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
   LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
   LIMIT_PRICE_PRESET_PERCENTAGE_1:
@@ -1206,10 +1208,14 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-available-value',
   LIQUIDATION_PRICE_VALUE: 'perps-adjust-margin-liquidation-price-value',
   LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-no-removable-margin',
 } as const;
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-adjust-margin-bottom-sheet',
+  HEADER_PRICE: 'perps-adjust-margin-bottom-sheet-header-price',
+  HEADER_CHANGE: 'perps-adjust-margin-bottom-sheet-header-change',
+  HEADER_SKELETON: 'perps-adjust-margin-bottom-sheet-header-skeleton',
   MODE_TOGGLE: 'perps-adjust-margin-bottom-sheet-mode-toggle',
   ADD_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-add-mode',
   REMOVE_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-remove-mode',
@@ -1227,6 +1233,7 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
   LIQUIDATION_DISTANCE_INFO:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-bottom-sheet-no-removable-margin',
 } as const;
 
 // ========================================
