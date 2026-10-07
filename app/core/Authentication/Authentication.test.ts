@@ -5929,6 +5929,17 @@ describe('Authentication', () => {
       });
     });
 
+    it('leaves the current route in place when navigationBehavior is preserve', async () => {
+      await Authentication.unlockWallet({
+        password: passwordToUse,
+        navigationBehavior: 'preserve',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(true));
+      expect(mockNavigateToPostUnlockHome).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
     it('navigates to the post-unlock home destination when a password is provided', async () => {
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
@@ -6825,6 +6836,16 @@ describe('Authentication', () => {
 
       expect(unlockWalletSpy).toHaveBeenCalledWith();
       expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('preserves the current route when resume asks it to', async () => {
+      await Authentication.tryBiometricUnlock({
+        navigationBehavior: 'preserve',
+      });
+
+      expect(unlockWalletSpy).toHaveBeenCalledWith({
+        navigationBehavior: 'preserve',
+      });
     });
 
     it('resets to the rehydrate screen without unlocking when the seedless password is outdated', async () => {

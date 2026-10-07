@@ -425,8 +425,8 @@ export class AppLockService {
         return;
       }
 
-      // Stay pending through the prompt. Unlock dispatches
-      // onboarding-complete before post-unlock navigation reads the link.
+      // Stay pending through the prompt so an onboarding-complete dispatch
+      // cannot parse a deeplink before authentication finishes.
       const authenticationReady =
         await this.#waitUntilAndroidAuthenticationReady();
       if (
@@ -437,6 +437,17 @@ export class AppLockService {
         return;
       }
       await this.#promptUnlock();
+      if (
+        this.#currentAppState !== 'active' ||
+        this.#backgroundedAt !== undefined ||
+        !KeyringController.isUnlocked()
+      ) {
+        return;
+      }
+      // Resume does not reset navigation. A waiting deeplink is the only
+      // thing that may move the user, and the hold must already be clear.
+      this.#lockDecisionPending = false;
+      ReduxService.store.dispatch(checkForDeeplink());
     } finally {
       if (this.#backgroundedAt === undefined) {
         this.#lockDecisionPending = false;
@@ -474,7 +485,9 @@ export class AppLockService {
    */
   #promptUnlock = async (): Promise<void> => {
     try {
-      await Authentication.tryBiometricUnlock();
+      await Authentication.tryBiometricUnlock({
+        navigationBehavior: 'preserve',
+      });
     } catch (error) {
       NavigationService.navigation?.reset({
         routes: [{ name: Routes.ONBOARDING.LOGIN }],

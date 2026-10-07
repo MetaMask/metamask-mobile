@@ -142,7 +142,9 @@ describe('AppLockService', () => {
     mockGetInstance.mockReturnValue(mockSecureKeychainInstance);
     mockIsUnlocked.mockReturnValue(true);
     mockSetLocked.mockResolvedValue(undefined);
-    mockTryBiometricUnlock.mockResolvedValue(undefined);
+    mockTryBiometricUnlock.mockImplementation(async () => {
+      mockIsUnlocked.mockReturnValue(true);
+    });
     currentTime = START_TIME;
     nowSpy = jest.spyOn(Date, 'now').mockReturnValue(currentTime);
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -387,7 +389,10 @@ describe('AppLockService', () => {
       mockTryBiometricUnlock.mockImplementation(
         () =>
           new Promise<void>((resolve) => {
-            resolveUnlock = resolve;
+            resolveUnlock = () => {
+              mockIsUnlocked.mockReturnValue(true);
+              resolve();
+            };
           }),
       );
       emitAppState('background');
@@ -396,16 +401,23 @@ describe('AppLockService', () => {
       emitAppState('active');
       await flushPromises();
 
-      expect(mockTryBiometricUnlock).toHaveBeenCalledTimes(1);
+      expect(mockTryBiometricUnlock).toHaveBeenCalledWith({
+        navigationBehavior: 'preserve',
+      });
       expect(mockHidePrivacyCover).not.toHaveBeenCalled();
       expect(service.isAutoLockPending()).toBe(true);
 
+      mockDispatch.mockImplementation((action) => {
+        if (action?.type === checkForDeeplink().type) {
+          expect(service.isAutoLockPending()).toBe(false);
+        }
+      });
       resolveUnlock();
       await settle();
 
       expect(service.isAutoLockPending()).toBe(false);
       expectPrivacyCoverDismissed();
-      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
     });
 
     it('resets to Login and tracks the error when biometric unlock fails', async () => {
@@ -508,7 +520,7 @@ describe('AppLockService', () => {
       expect(mockSetLocked).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockTryBiometricUnlock).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
       expect(service.isAutoLockPending()).toBe(false);
       expectPrivacyCoverDismissed();
     });
@@ -541,7 +553,7 @@ describe('AppLockService', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockTryBiometricUnlock).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
       expect(service.isAutoLockPending()).toBe(false);
     });
 
