@@ -47,6 +47,8 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   ToastContext,
   ToastVariants,
@@ -99,8 +101,11 @@ import {
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { chainNameToId } from '../utils/chainMapping';
-import { getPerpPositionDirection, isPerpPosition } from '../utils/perp';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  getPerpPositionDirection,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import PerpsTradeButton from './components/PerpsTradeButton';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import type { Trade } from '@metamask/social-controllers';
@@ -224,11 +229,20 @@ const TraderPositionView = () => {
   }, [navigation]);
 
   const handleTraderPress = useCallback(() => {
+    if (isSocialV1Treatment()) {
+      navigateToSocialV1Profile(navigation, {
+        traderId,
+        traderName,
+        traderAddress,
+        traderAvatarUri: traderImageUrl,
+      });
+      return;
+    }
     navigation.navigate(Routes.SOCIAL.PROFILE, {
       traderId,
       traderName,
     });
-  }, [navigation, traderId, traderName]);
+  }, [navigation, traderAddress, traderId, traderImageUrl, traderName]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!displayPosition?.tokenAddress) {

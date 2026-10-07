@@ -1,6 +1,6 @@
 import { MARKET_CAP_RANGE } from '../../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../../shell/filters/types';
-import { resolveTraderCohort } from '../../SocialV1View/feed/utils/traderStats';
+import { resolveTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
 import type { LiveTradeRowModel } from '../types';
 
 /** Slider bounds are USD billions; feed market cap is USD. */

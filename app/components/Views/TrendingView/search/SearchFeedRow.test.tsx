@@ -15,6 +15,7 @@ import SearchFeedRow, {
 } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
 
 const MockPressable = Pressable;
 const MockText = Text;
@@ -43,6 +44,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('./analytics', () => ({
+  getSearchQueryLength: jest.requireActual('./analytics').getSearchQueryLength,
   trackExploreSearchEvent: jest.fn(),
 }));
 
@@ -92,8 +94,16 @@ jest.mock('../feeds/tokens/TokenRowItem', () => ({
 
 jest.mock('../feeds/perps/PerpsRowItem', () => ({
   __esModule: true,
-  default: ({ market }: { market: PerpsMarketData }) => (
-    <MockText testID="stub-perps-row">{market.symbol}</MockText>
+  default: ({
+    market,
+    source,
+  }: {
+    market: PerpsMarketData;
+    source?: string;
+  }) => (
+    <MockText testID="stub-perps-row" accessibilityLabel={source}>
+      {market.symbol}
+    </MockText>
   ),
 }));
 
@@ -194,6 +204,7 @@ describe('SearchFeedRow', () => {
           tab_name: 'all',
           item_clicked: itemClicked,
           position: 2,
+          query_length: 1,
         }),
       );
     },
@@ -220,6 +231,24 @@ describe('SearchFeedRow', () => {
     },
   );
 
+  it('passes explore_search source for perps feed', () => {
+    const perpsMarket = { symbol: 'ETH' } as PerpsMarketData;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="perps"
+        item={perpsMarket}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+      />,
+    );
+
+    expect(getByTestId('stub-perps-row').props.accessibilityLabel).toBe(
+      PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH,
+    );
+  });
+
   it('omits section_name on result_clicked when not on the All tab', () => {
     const token = { assetId: 'asset-1' } as TrendingAsset;
     const { getByTestId } = render(
@@ -244,6 +273,38 @@ describe('SearchFeedRow', () => {
     );
     const payload = mockTrackExploreSearchEvent.mock.calls[0][0];
     expect(payload).not.toHaveProperty('section_name');
+  });
+
+  it('sends the trimmed query length at tap time on result_clicked', () => {
+    const token = { assetId: 'asset-1' } as TrendingAsset;
+    const { getByTestId, rerender } = render(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="et"
+        tabName="all"
+      />,
+    );
+
+    rerender(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="  eth  "
+        tabName="all"
+      />,
+    );
+    fireEvent.press(getByTestId('search-feed-tap'));
+
+    expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interaction_type: 'result_clicked',
+        search_query: '  eth  ',
+        query_length: 3,
+      }),
+    );
   });
 
   it.each([
@@ -412,6 +473,7 @@ describe('Predict market properties on result_clicked', () => {
       item_clicked: 'pred-9',
       position: 1,
       result_count: 4,
+      query_length: 6,
       market_id: 'pred-9',
       market_slug: 'lakers-vs-celtics',
       market_tags: ['nba', 'playoffs'],
@@ -661,6 +723,7 @@ describe('token identity analytics', () => {
         item_clicked: assetId,
         position: 3,
         result_count: 10,
+        query_length: 1,
         token_name: name,
         token_symbol: symbol,
       });

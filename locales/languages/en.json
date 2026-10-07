@@ -687,6 +687,9 @@
     "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
     "or": "or",
     "import_wallet_from_extension": "import from the MetaMask extension",
+    "import_menu_title": "Import",
+    "import_from_srp_qr": "Import from Secret Recovery Phrase QR Code",
+    "import_from_extension_menu": "Import from the MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -1304,6 +1307,9 @@
         },
         "description": "No matching trades in the activity so far."
       },
+      "empty_filtered": {
+        "title": "No trades yet"
+      },
       "load_more": "Load more",
       "error": {
         "title": "Couldn't load the feed",
@@ -1547,6 +1553,8 @@
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "other_empty_title": "No posts yet",
+      "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
       "no_profile_title": "Create your profile",
@@ -1714,8 +1722,10 @@
     },
     "service_interruption": {
       "title": "We're experiencing an outage",
-      "description": "Some services may be unavailable while the team works on a fix.",
-      "contact_support": "Contact support"
+      "description": "Some services are temporarily unavailable. {{faqLink}}, or {{supportLink}}.",
+      "faq_link": "See your options in FAQs",
+      "contact_support": "contact support",
+      "faq_title": "Perps FAQs"
     },
     "competition_banner": {
       "title": "Competition leaderboard",
@@ -1833,6 +1843,8 @@
       "cancel_trade": "Cancel trade",
       "trade_canceled": "Trade canceled",
       "funds_returned_to_account": "Funds returned to your account",
+      "order_not_placed": "Deposit received, order not placed",
+      "order_not_placed_description": "Your deposit went through, but it hasn't shown up in your Perps balance yet. Check your balance before placing the order again.",
       "your_funds_have_arrived": "Your funds have arrived",
       "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
@@ -2140,8 +2152,8 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
         "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
-        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
-        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
         "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
@@ -2211,7 +2223,8 @@
         "difference_from_market": "Difference from market:",
         "limit_price_above": "Limit price is above current price",
         "limit_price_below": "Limit price is below current price",
-        "limit_price_too_far": "Price can't be more than 95% away from the market price"
+        "limit_price_too_far": "Price can't be more than 95% away from the market price",
+        "limit_price_too_far_range": "Enter a price between {{min}} and {{max}}."
       },
       "leverage_modal": {
         "title": "Leverage",
@@ -2506,7 +2519,8 @@
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance",
-      "exceeds_available": "Amount exceeds available margin"
+      "exceeds_available": "Amount exceeds available margin",
+      "no_removable_margin": "No margin can be removed right now. This position needs its current margin to stay open."
     },
     "tpsl": {
       "title": "Auto close",
@@ -2743,7 +2757,9 @@
       "margin": {
         "add_success": "Added ${{amount}} margin to {{asset}} position",
         "remove_success": "Removed ${{amount}} margin from {{asset}} position",
-        "adjustment_failed": "Margin adjustment failed"
+        "adjustment_failed": "Margin adjustment failed",
+        "remove_amount_changed_title": "Removable margin changed",
+        "remove_amount_changed": "Your position moved. You can now remove up to ${{amount}}. Check the amount and try again."
       }
     },
     "markets": {
@@ -3397,6 +3413,13 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "search": {
+      "placeholder": "Search markets",
+      "idle": "Search by team, topic, or market question.",
+      "empty": "No markets found for \"{{query}}\".",
+      "error": "Search couldn’t complete.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "title": "Portfolio",
       "positions": "Positions",
@@ -4171,6 +4194,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "homepage_search_placeholder": "Search",
     "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
@@ -5667,6 +5691,7 @@
       "all": "All"
     },
     "chart_time_period_navigation": {
+      "1h": "1H",
       "1d": "1D",
       "7d": "7D",
       "1w": "1W",
@@ -8353,7 +8378,7 @@
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon."
+      "maintenance_message": "{{experienceName}} is down for maintenance and will be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
@@ -8400,7 +8425,7 @@
     "withdraw_from_aave": "Withdraw from Aave",
     "deposit_more": "Deposit more",
     "earning": "Earning",
-    "lending_earnings": "Lending earnings",
+    "lending": "Lending",
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
     "network": "Network",
@@ -8926,7 +8951,7 @@
     "unstake": "Unstake",
     "stake_more": "Stake more",
     "claim": "Claim",
-    "your_earnings": "Your earnings",
+    "staking": "Staking",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
     "estimated_annual_earnings": "Estimated annual earnings",
@@ -9451,11 +9476,21 @@
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
       "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "unsupported_fee_token_pair": "One of the two assets must be a supported fee token. Select a supported source or destination asset to continue.",
+      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
       "error_canceling_order": "Could not cancel your order. Please try again.",
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
       "order_canceled_title": "Order canceled",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "usd_price_notice": "Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
+      "activity_title_filled": "Swapped {{source}} to {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Date created",
+      "order_type": "Order type",
+      "order_type_limit": "Limit"
     },
     "recurring": {
       "you_get": "You get",
@@ -10246,8 +10281,7 @@
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
-        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
-        "description_immersve": "We need a few details to set up your card.",
+        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
         "i_already_have_an_account": "I already have a MetaMask Card",
         "i_already_have_an_account_immersve": "I already have an account",
         "email_label": "Email address",
@@ -12189,9 +12223,9 @@
       "add_money": "Add money"
     },
     "membership": {
-      "title": "Your membership",
-      "plan": "Membership",
-      "earned_this_month": "Earned this month",
+      "title": "Your plan",
+      "plan": "Plan",
+      "lifetime_earnings": "Lifetime earnings",
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
@@ -12199,18 +12233,10 @@
       "renews_on": "Renews on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
-      "manage": "Manage",
+      "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership",
-      "earned_info": {
-        "title": "Earned this month",
-        "description": "The amount you earned in APY and mUSD back as a Pro member."
-      },
-      "saved_info": {
-        "title": "Saved this month",
-        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
-      }
+      "cancel_membership": "Cancel membership"
     },
     "cancel_membership": {
       "title": "Why are you canceling?",
@@ -12241,13 +12267,14 @@
     }
   },
   "pro_subscription": {
-    "title": "Earn more with Pro",
+    "title": "MetaMask Orange",
     "description": "{{monthlyPrice}}/mo ({{annualPrice}} for annual membership)",
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
-    "join_pro": "Join Pro",
+    "join_pro": "Upgrade",
+    "join_orange": "Join Orange",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
-    "pro": "Pro",
+    "pro": "Orange",
     "pricing": {
       "loading": "Loading plans...",
       "error": "We couldn't load plan prices. Try again.",

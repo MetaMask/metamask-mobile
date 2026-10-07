@@ -22,17 +22,14 @@ import Animated, {
   useFrameCallback,
   useSharedValue,
 } from 'react-native-reanimated';
-import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
+import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
 import type { TokenFeedTarget } from '../hooks/tokenFeedQueries';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
 import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
-import type {
-  SocialV1FeedPost,
-  SocialV1HotToken,
-  SocialV1TokenFeedState,
-} from '../types';
+import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
+import type { SocialV1HotToken, SocialV1TokenFeedState } from '../types';
 import {
   getSocialV1HotTokenCheckTestId,
   getSocialV1HotTokenChipTestId,
@@ -90,7 +87,8 @@ const HotTokenChip: React.FC<{
   <Box twClassName="shrink-0">
     <ExplorePill
       testID={testID}
-      isSelected={isSelected}
+      accessibilityState={{ selected: isSelected }}
+      twClassName={isSelected ? 'border-default' : undefined}
       leading={
         <PositionTokenAvatar
           position={token.avatar}

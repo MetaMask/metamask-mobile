@@ -1,7 +1,11 @@
 import React from 'react';
 import { Keyboard } from 'react-native';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
-import { MAX_SRP_LENGTH, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
+import {
+  capSrpWordCount,
+  MAX_SRP_LENGTH,
+  SPACE_CHAR,
+} from '../../../util/srp/srpInputUtils';
 import Logger from '../../../util/Logger';
 import { SrpInputGridProps } from './SrpInputGrid.types';
 
@@ -57,9 +61,9 @@ export const applySeedPhraseChangeAtIndex = ({
         ...seedPhrase.slice(index + 1),
       ];
 
-      const normalizedWords = mergedSeedPhrase
-        .map((w) => w.trim())
-        .filter((w) => w !== '');
+      const normalizedWords = capSrpWordCount(
+        mergedSeedPhrase.map((w) => w.trim()).filter((w) => w !== ''),
+      );
       const hasReachedMax = normalizedWords.length >= MAX_SRP_LENGTH;
 
       let nextSeedPhraseState = normalizedWords;

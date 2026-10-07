@@ -38,7 +38,7 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
-// Captures the onOpenBottomSheet callback registered by QuickBuyRootInner.
+// Captures the onOpen prop passed to the sheet by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -56,16 +56,17 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           onClose,
+          onOpen,
         }: {
           children: unknown;
           onClose?: () => void;
+          onOpen?: () => void;
         },
         ref: unknown,
       ) => {
+        storedOnOpenCallback = onOpen;
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
-            storedOnOpenCallback = cb;
-          },
+          onOpenBottomSheet: jest.fn(),
           onCloseBottomSheet: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
@@ -279,6 +280,7 @@ const buildHookResult = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
+  isMaxAmountAllowed: true,
   positionTokenFromSetup: undefined,
   selectedReceiveToken: undefined,
   handleSelectReceiveToken: jest.fn(),

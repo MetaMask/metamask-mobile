@@ -7,11 +7,9 @@ import React, {
   useContext,
 } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   BackHandler,
   ScrollView,
-  InteractionManager,
   Platform,
   StyleSheet,
   View,
@@ -127,6 +125,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import OnboardingFoxLoader from '../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
 import {
   OnboardingCtaIds,
   OnboardingScreenIds,
@@ -144,14 +143,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  Theme,
-  ThemeProvider,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
 import { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -229,11 +222,31 @@ async function isDeviceOffline(): Promise<boolean> {
   return !netState.isConnected || netState.isInternetReachable === false;
 }
 
+interface IdleCallbackHost {
+  requestIdleCallback?: (callback: () => void) => number;
+}
+
+const scheduleIdleTask = (task: () => void): void => {
+  const idleHost = globalThis as unknown as IdleCallbackHost;
+
+  if (typeof idleHost.requestIdleCallback === 'function') {
+    idleHost.requestIdleCallback(task);
+    return;
+  }
+
+  setTimeout(task, 0);
+};
+
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
     ...StyleSheet.absoluteFill,
     zIndex: 999,
     elevation: 999,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 1000,
+    elevation: 1000,
   },
 });
 
@@ -252,9 +265,6 @@ const Onboarding = () => {
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
   const loading = useSelector((state: RootState) => state.user.loadingSet);
-  const loadingMsg = useSelector(
-    (state: RootState) => state.user.loadingMsg || '',
-  );
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
@@ -526,7 +536,7 @@ const Onboarding = () => {
       });
     };
 
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -575,7 +585,7 @@ const Onboarding = () => {
         account_type: AccountType.Imported,
       });
     };
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -591,7 +601,6 @@ const Onboarding = () => {
       createWallet: boolean,
       provider: string,
     ): void => {
-      const isIOS = Platform.OS === 'ios';
       endSocialLoginAttemptTrace(true);
 
       // Error case (result.type !== 'success') is not handled here because
@@ -642,24 +651,11 @@ const Onboarding = () => {
             parentContext: onboardingTraceCtx.current,
           });
 
-          if (isIOS) {
-            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-            navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-              {
-                accountName: result.accountName,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            );
-          } else {
-            // Direct navigation to ChoosePassword for Android
-            navigation.navigate('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-              provider,
-            });
-          }
+          navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+            provider,
+          });
         }
       } else if (result.existingUser) {
         trace({
@@ -668,19 +664,10 @@ const Onboarding = () => {
           tags: getTraceTags(store.getState()),
           parentContext: onboardingTraceCtx.current,
         });
-        isIOS
-          ? navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-              {
-                [PREVIOUS_SCREEN]: ONBOARDING,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            )
-          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-            });
+        navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
@@ -808,7 +795,6 @@ const Onboarding = () => {
                 socialConnectionType,
               );
 
-              // delay unset loading to avoid flash of loading state
               setTimeout(() => {
                 unsetLoading();
               }, 1000);
@@ -1154,7 +1140,6 @@ const Onboarding = () => {
             // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
             await markMetricsOptInUISeen();
 
-            // delay unset loading to avoid flash of loading state
             setTimeout(() => {
               unsetLoading();
             }, 1000);
@@ -1193,7 +1178,7 @@ const Onboarding = () => {
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
-      handleExistingUser(action);
+      void handleExistingUser(action);
     },
     [
       navigation,
@@ -1273,27 +1258,6 @@ const Onboarding = () => {
     setState((prevState) => ({ ...prevState, startFoxAnimation: 'Start' }));
   }, []);
 
-  const renderLoader = useCallback(
-    (): React.ReactElement => (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 gap-y-8 mb-40"
-      >
-        <Box justifyContent={BoxJustifyContent.Center}>
-          <ActivityIndicator size="small" />
-          <Text
-            variant={TextVariant.BodyMd}
-            style={tw.style('mt-[30px] text-center text-default')}
-          >
-            {loadingMsg}
-          </Text>
-        </Box>
-      </Box>
-    ),
-    [loadingMsg, tw],
-  );
-
   const renderContent = useCallback(
     (): React.ReactElement => (
       <Box
@@ -1306,41 +1270,26 @@ const Onboarding = () => {
           setStartFoxAnimation={setStartFoxAnimation}
           onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
-          {/*
-           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
-           * system theme setting: the "Create" button is always dark (black bg, white text) and the
-           * "Import" button is always light (white bg, black text). This design choice ensures both
-           * buttons remain visually distinct and accessible against the purple onboarding background
-           * in all theme contexts.
-           */}
-          <ThemeProvider
-            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
+          <Button
+            variant={ButtonVariant.Primary}
+            onPress={() => handleCtaActions('create')}
+            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            isFullWidth
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('create')}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {strings('onboarding.start_exploring_now')}
-            </Button>
-          </ThemeProvider>
-          <ThemeProvider
-            theme={Theme.Light} // Keep this button in light mode regardless of theme
+            {strings('onboarding.start_exploring_now')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            onPress={() => handleCtaActions('existing')}
+            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
+            isFullWidth
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('existing')}
-              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {SEEDLESS_ONBOARDING_ENABLED
-                ? strings('onboarding.import_using_srp_social_login')
-                : strings('onboarding.import_using_srp')}
-            </Button>
-          </ThemeProvider>
+            {SEEDLESS_ONBOARDING_ENABLED
+              ? strings('onboarding.import_using_srp_social_login')
+              : strings('onboarding.import_using_srp')}
+          </Button>
         </OnboardingAnimation>
       </Box>
     ),
@@ -1432,12 +1381,12 @@ const Onboarding = () => {
 
     unsetLoading();
     updateNavBar();
-    checkIfExistingUser();
+    void checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
-    InteractionManager.runAfterInteractions(() => {
-      checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
+    scheduleIdleTask(() => {
+      void checkForMigrationFailureAndVaultBackup();
+      void PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1480,9 +1429,9 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(() =>
-        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
-      );
+      scheduleIdleTask(() => {
+        void PreventScreenshot.allow(CAPTURE_KEYS.onboarding);
+      });
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
@@ -1607,7 +1556,7 @@ const Onboarding = () => {
 
   const onboardingCanvasColor =
     themeContext.themeAppearance === 'dark'
-      ? importedColors.gettingStartedTextColor
+      ? themeContext.colors.background.default
       : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   const ThrowErrorIfNeeded = () => {
@@ -1633,6 +1582,12 @@ const Onboarding = () => {
         style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
+        <FastOnboarding
+          onPressContinueWithGoogle={onPressContinueWithGoogle}
+          onPressContinueWithApple={onPressContinueWithApple}
+          onPressImport={onPressImport}
+          onPressCreate={onPressCreate}
+        />
         <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
           <ScrollView
             style={tw.style('flex-1')}
@@ -1644,42 +1599,32 @@ const Onboarding = () => {
               twClassName="flex-1 py-4"
             >
               {renderContent()}
-
-              {loading && (
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  twClassName="absolute top-0 left-0 right-0 bottom-0"
-                  style={tw.style(
-                    { zIndex: 1000 },
-                    { backgroundColor: onboardingCanvasColor },
-                  )}
-                >
-                  {renderLoader()}
-                </Box>
-              )}
             </Box>
           </ScrollView>
 
           <FadeOutOverlay />
 
-          <FastOnboarding
-            onPressContinueWithGoogle={onPressContinueWithGoogle}
-            onPressContinueWithApple={onPressContinueWithApple}
-            onPressImport={onPressImport}
-            onPressCreate={onPressCreate}
-          />
-
           {handleSimpleNotification()}
         </SafeAreaView>
 
-        {/* Fox on the full-bleed root canvas */}
         {!hasTestOverrides && (
           <FoxAnimation
             hasFooter={false}
             trigger={startFoxAnimation}
             fullBleedBottom
           />
+        )}
+
+        {/*
+          The loader overlays the landing content instead of replacing it so
+          FadeOutOverlay, the onboarding animations and the toast keep their
+          mounted state (and do not replay) when loading is unset after a
+          failed or cancelled OAuth attempt.
+        */}
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <OnboardingFoxLoader />
+          </View>
         )}
       </View>
     </ErrorBoundary>

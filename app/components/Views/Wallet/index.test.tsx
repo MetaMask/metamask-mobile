@@ -1,6 +1,16 @@
 import React from 'react';
 import type { Json } from '@metamask/utils';
 
+let mockSearchPasteTreatment = false;
+
+jest.mock('../TrendingView/search/useHomepageSearchPaste', () => ({
+  useHomepageSearchPaste: jest.fn(() => ({
+    isSearchHeaderEnabled: mockSearchPasteTreatment,
+    showPastePill: false,
+    handlePastePress: jest.fn(),
+  })),
+}));
+
 // Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
 import StorageWrapper from '../../../store/storage-wrapper';
 
@@ -867,7 +877,6 @@ describe('Wallet', () => {
       expect(getAssetDetailsActionsProps()).toMatchObject({
         displayBuyButton: expect.any(Boolean),
         displaySwapsButton: expect.any(Boolean),
-        goToSwaps: expect.any(Function),
         onReceive: expect.any(Function),
         onSend: expect.any(Function),
         buyButtonActionID: 'wallet-buy-button',
@@ -1015,12 +1024,6 @@ describe('Wallet', () => {
       const passedProps = getAssetDetailsActionsProps();
       expect(passedProps.onBuy).toBeUndefined();
       expect(passedProps.buyButtonActionID).toBeDefined();
-    });
-
-    it('passes goToSwaps as a function', () => {
-      render(Wallet);
-
-      expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
     });
   });
 
@@ -1905,7 +1908,7 @@ describe('MoneyBalanceCard slot', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('renders the MoneyBalanceCard when Money account is visible', () => {
+  it('renders the MoneyBalanceCard when Money is enabled', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
 
@@ -1914,13 +1917,13 @@ describe('MoneyBalanceCard slot', () => {
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('does not render the MoneyBalanceCard when Money account is geo-ineligible', () => {
+  it('mounts the MoneyBalanceCard when Money is enabled but geo-ineligible', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = false;
 
-    const { queryByTestId } = render(Wallet);
+    const { getByTestId } = render(Wallet);
 
-    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+    expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
@@ -1958,6 +1961,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountEnabled = false;
     mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
+    mockSearchPasteTreatment = false;
   });
 
   it('leaves the control header untouched', () => {

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -21,9 +22,16 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
+  registerTransactionAbTestAttributionForIds,
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { trackStashedPrewarmTransactionAdded } from '../utils/unclaimedPrewarmTransactionMetrics';
+import {
+  claimPrewarmedDepositOrder,
+  resolveDepositOrderProvider,
+} from '../utils/prewarmedDepositOrder';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   CONFIRMATION_HEADER_CONFIG,
   PROVIDER_CONFIG,
@@ -233,6 +241,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          // Switching markets from the chart header is a high-frequency move,
+          // so the picker runs faster than the platform's default slide-up,
+          // which reads as latency rather than as a transition. iOS only:
+          // native-stack documents animationDuration as @platform ios, and
+          // react-native-screens no-ops setTransitionDuration on Android, so
+          // Android keeps its fixed slide_from_bottom timing regardless.
+          animationDuration: AnimationDuration.Promptly,
           // Selecting a market should replace the details beneath this picker
           // rather than pushing another MARKET_DETAILS on top of the stack.
           replaceOnSelect: true,
@@ -245,6 +260,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const { depositWithOrder } = usePerpsTrading();
   const { switchProvider } = usePerpsProvider();
   const activeProvider = useSelector(selectPerpsProvider);
+  const selectedAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
 
@@ -284,9 +300,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       };
       // Lighter has no deposit-with-order route. Switch first so the form uses
       // Lighter's balance and market metadata, including from aggregated mode.
-      if (orderProvider === 'lighter') {
+      if (orderProvider === PROVIDER_CONFIG.LighterProvider) {
         if (
-          params.providerId === 'lighter' &&
+          params.providerId === PROVIDER_CONFIG.LighterProvider &&
           activeProvider !== undefined &&
           activeProvider !== params.providerId
         ) {
@@ -298,11 +314,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
         return;
       }
-      const depositProvider =
-        activeProvider === undefined ||
-        activeProvider === PROVIDER_CONFIG.AggregatedProvider
-          ? PROVIDER_CONFIG.DefaultProvider
-          : activeProvider;
+      const depositProvider = resolveDepositOrderProvider(activeProvider);
       let createOrder = depositWithOrder;
       if (
         params.providerId !== undefined &&
@@ -318,16 +330,46 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
         );
       }
-      withPendingTransactionActiveAbTests(
-        params.transactionActiveAbTests,
-        createOrder,
-      )
+      // The market screen may already have prepared this transaction. Claiming it
+      // skips both creation and approval queueing; the criteria encode the
+      // provider, so a market needing a switch never matches and falls through.
+      const claimedPrewarm = selectedAccountAddress
+        ? claimPrewarmedDepositOrder({
+            accountAddress: selectedAccountAddress,
+            providerId: params.providerId ?? depositProvider,
+          })
+        : undefined;
+      const prepareOrder = async () => {
+        if (claimedPrewarm) {
+          try {
+            const transactionId = await claimedPrewarm;
+            registerTransactionAbTestAttributionForIds(
+              [transactionId],
+              params.transactionActiveAbTests,
+            );
+            // Added was held back at prewarm time. Emit it now, after
+            // attribution is registered, because the user actually started.
+            // eslint-disable-next-line no-void -- metric builders must not delay opening confirmation
+            void trackStashedPrewarmTransactionAdded(transactionId);
+            return;
+          } catch {
+            // Prewarm failed or became unusable; create a fresh transaction.
+          }
+        }
+        await withPendingTransactionActiveAbTests(
+          params.transactionActiveAbTests,
+          createOrder,
+        );
+      };
+      prepareOrder()
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              ...(useBottomSheet
+                ? { useBottomSheet: true, forceBottomSheet: true }
+                : {}),
               showPerpsHeader: useBottomSheet
                 ? false
                 : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
@@ -346,6 +388,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       depositWithOrder,
       switchProvider,
       activeProvider,
+      selectedAccountAddress,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
       track,

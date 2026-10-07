@@ -38,7 +38,10 @@ import {
 import { FIAT_INPUT_DECIMALS } from '../../Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../Bridge/utils/isGaslessQuote';
 import { useFeeDisclaimer } from '../../Bridge/hooks/useFeeDisclaimer';
-import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import {
+  calcUsdAmountFromFiat,
+  getTokenExchangeRate,
+} from '../../Bridge/utils/exchange-rates';
 import { isSameAsset, selectDefaultSourceToken } from '../tokenSelection';
 import type {
   QuickBuyAmountDisplayMode,
@@ -88,6 +91,12 @@ import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialSer
 import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import {
+  clearSuppressedNetworkAddedToast,
+  suppressNextNetworkAddedToast,
+} from '../../../../util/networks/networkToastSuppression';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
@@ -97,6 +106,7 @@ import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasInclud
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
+import { useShouldRenderMaxOption } from '../../Bridge/hooks/useShouldRenderMaxOption';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
 import { useRecipientInitialization } from '../../Bridge/hooks/useRecipientInitialization';
 import {
@@ -173,6 +183,8 @@ export interface UseQuickBuyControllerResult {
   maxSpendFiat: number;
   /** True when neither fiat nor token-balance gates allow slider interaction. */
   isSliderDisabled: boolean;
+  /** False when spending the full balance would leave nothing for gas. */
+  isMaxAmountAllowed: boolean;
   formattedExchangeRate: string | undefined;
   /** Display-only current price of the asset shown in the header. */
   tokenPrice?: number;
@@ -528,6 +540,9 @@ export function useQuickBuyController(
   const [selectedReceiveToken, setSelectedReceiveToken] = useState<
     BridgeToken | undefined
   >(undefined);
+  const [fetchedReceiveTokenRate, setFetchedReceiveTokenRate] = useState<
+    { key: string; rate: number } | undefined
+  >(undefined);
 
   // Auto-select the default receive token. Prefer the native token of the
   // position's chain (e.g. selling USDC on Base defaults to ETH on Base) and
@@ -557,6 +572,32 @@ export function useQuickBuyController(
   const destToken =
     tradeMode === 'buy' ? positionTokenFromSetup : selectedReceiveToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
+  useEffect(() => {
+    if (tradeMode !== 'sell' || !destToken || destToken.currencyExchangeRate) {
+      return;
+    }
+    let isCancelled = false;
+    const key = getTokenKey(destToken);
+    getTokenExchangeRate({
+      chainId: destToken.chainId,
+      tokenAddress: destToken.address,
+      currency: currentCurrency,
+    })
+      .then((rate) => {
+        if (!isCancelled && typeof rate === 'number') {
+          setFetchedReceiveTokenRate({ key, rate });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      isCancelled = true;
+    };
+  }, [tradeMode, destToken, currentCurrency]);
+  // Display-only: must not feed quote fetching, or a rate update would refetch.
+  const destTokenForFiat =
+    destToken && fetchedReceiveTokenRate?.key === getTokenKey(destToken)
+      ? { ...destToken, currencyExchangeRate: fetchedReceiveTokenRate.rate }
+      : destToken;
 
   // The entered amount is in the user's display currency, but the
   // `amount_usd` analytics property is contractually USD. Convert via the
@@ -902,7 +943,7 @@ export function useQuickBuyController(
   const minReceivedTokenAmount = activeQuote?.quote?.dest?.minAmountNormalized;
   const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
     minReceivedTokenAmount,
-    destToken,
+    destTokenForFiat,
   );
 
   // Derive both sides of the ratio from the same activeQuote so the rate is
@@ -1023,6 +1064,10 @@ export function useQuickBuyController(
   const isSliderDisabled = hasSourcePrice
     ? maxSpendFiat <= 0
     : maxSpendTokens <= 0;
+  const isMaxAmountAllowed = useShouldRenderMaxOption(
+    sourceToken,
+    latestSourceBalance?.displayBalance,
+  );
 
   // Display-only copy of the dest token enriched with a balance-independent
   // rate (`useDestTokenExchangeRate`) so the pre-quote pill renders even when
@@ -1075,11 +1120,17 @@ export function useQuickBuyController(
   const isGasless = isGaslessQuote(activeQuote?.quote);
   const estimatedReceiveFiatValue = useDisplayCurrencyValue(
     estimatedReceiveAmount,
-    destToken,
+    destTokenForFiat,
   );
+  // Prefer the quote's own fiat value: the local calc needs a cached market
+  // price for the dest token and renders $0.00 without one.
+  const quoteDestValueInCurrency = activeQuote?.quote?.dest?.valueInCurrency;
+  const quoteDestFiat = quoteDestValueInCurrency
+    ? formatCurrency(Number(quoteDestValueInCurrency), currentCurrency)
+    : undefined;
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount
-      ? estimatedReceiveFiatValue
+      ? (quoteDestFiat ?? estimatedReceiveFiatValue)
       : undefined;
   const gasFeeDeductionLabel =
     isGasless && formattedNetworkFee !== '-'
@@ -1354,16 +1405,37 @@ export function useQuickBuyController(
     [selectedSourceToken, sourceTokenOptions, trackPayWithSelected],
   );
 
+  const { addPopularNetwork } = useAddPopularNetwork();
   const handleSelectReceiveToken = useCallback(
     (token: BridgeToken) => {
       const previousToken = selectedReceiveToken?.symbol ?? '';
       if (token.symbol !== previousToken) {
         trackReceiveTokenSelected(token.symbol, previousToken);
       }
+      // Quotes and fiat estimates need a configured network.
+      const popularNetwork = networkConfigurations[token.chainId as Hex]
+        ? undefined
+        : PopularList.find((network) => network.chainId === token.chainId);
+      if (popularNetwork) {
+        suppressNextNetworkAddedToast(popularNetwork.chainId);
+        addPopularNetwork(popularNetwork, false).catch((error) => {
+          clearSuppressedNetworkAddedToast(popularNetwork.chainId);
+          Logger.error(error, {
+            message: 'QuickBuy: failed to auto-add network',
+            chainId: token.chainId,
+          });
+        });
+      }
       setSelectedReceiveToken(token);
       resetAmountState();
     },
-    [resetAmountState, selectedReceiveToken?.symbol, trackReceiveTokenSelected],
+    [
+      resetAmountState,
+      selectedReceiveToken?.symbol,
+      trackReceiveTokenSelected,
+      networkConfigurations,
+      addPopularNetwork,
+    ],
   );
 
   const handleAmountChange = useCallback(
@@ -1895,6 +1967,7 @@ export function useQuickBuyController(
     sliderPercent,
     maxSpendFiat,
     isSliderDisabled,
+    isMaxAmountAllowed,
     formattedExchangeRate,
     tokenPrice,
     metamaskFeePercent,

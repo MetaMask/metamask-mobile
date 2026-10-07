@@ -85,12 +85,21 @@ const styles = StyleSheet.create({
   },
 });
 
-const getPerpsConversionScreenOptions = (
+/**
+ * The bottom sheet draws its own backdrop fade and slide, so the native stack
+ * animation must be cleared. Otherwise the stack would slide the whole
+ * transparent screen, backdrop included, on dismiss instead of fading it.
+ */
+export const getPerpsConversionScreenOptions = (
   isBottomSheet: boolean,
   baseOptions: NativeStackNavigationOptions,
 ): NativeStackNavigationOptions =>
   isBottomSheet
-    ? { ...baseOptions, ...transparentModalScreenOptions }
+    ? {
+        ...baseOptions,
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }
     : baseOptions;
 
 export function getRedesignedConfirmationsHeaderOptions(
@@ -162,6 +171,19 @@ export const getAdjustMarginOptions = (
         title: strings('perps.adjust_margin.title'),
         headerShown: false,
       };
+
+export const getMarketListOptions = (
+  animation: NativeStackNavigationOptions['animation'] | undefined,
+  animationDuration: NativeStackNavigationOptions['animationDuration'],
+): NativeStackNavigationOptions => ({
+  title: strings('perps.home.markets'),
+  headerShown: false,
+  animation: animation ?? 'slide_from_right',
+  // native-stack passes undefined through to its own default, so no need to
+  // omit the key when the caller (e.g. the chart header's market picker)
+  // hasn't set a duration.
+  animationDuration,
+});
 
 export const getTpslOptions = (
   useBottomSheet: boolean | undefined,
@@ -348,6 +370,23 @@ const PerpsModalStack = () => {
             name={Routes.PERPS.SELECT_ORDER_TYPE}
             component={PerpsSelectOrderTypeView}
           />
+          {/* Trade sheet from outside the Perps stack (Social copy trade). The
+              redirect waits for the connection this stack provides, then
+              replaces itself with the sheet confirmation, so the sheet opens
+              over the page the user pressed on instead of a Perps screen. */}
+          <ModalStack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+          />
+          <ModalStack.Screen
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            component={PerpsConfirmScreen}
+            options={({ route }) =>
+              getRedesignedConfirmationsHeaderOptions(
+                route.params as PerpsNavigationParamList['RedesignedConfirmations'],
+              )
+            }
+          />
         </ModalStack.Navigator>
       </PerpsStreamProvider>
     </PerpsConnectionProvider>
@@ -441,11 +480,12 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.MARKET_LIST}
                 component={PerpsMarketListView}
-                options={({ route }) => ({
-                  title: strings('perps.home.markets'),
-                  headerShown: false,
-                  animation: route.params?.animation ?? 'slide_from_right',
-                })}
+                options={({ route }) =>
+                  getMarketListOptions(
+                    route.params?.animation,
+                    route.params?.animationDuration,
+                  )
+                }
                 initialParams={{
                   variant: 'full',
                   title: strings('perps.home.markets'),

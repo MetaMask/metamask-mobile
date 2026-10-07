@@ -20,7 +20,7 @@ import {
 } from '../../Bridge/utils/currencyUtils';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
-import { formatTokenAmount } from '../../../Views/SocialLeaderboard/utils/formatters';
+import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
 import { strings } from '../../../../../locales/i18n';
 
 interface QuickBuyAmountSectionProps {
@@ -59,6 +59,9 @@ interface QuickBuyAmountSectionProps {
   onAmountAreaPress?: () => void;
   onAmountChange?: (text: string) => void;
 }
+
+// Larger than the design system's largest variant (DisplayLg, 40px).
+const PRIMARY_AMOUNT_TW_CLASS = 'text-[54px] leading-[70px]';
 
 /** True when the currency symbol appears before the digits for this locale. */
 function isCurrencySymbolPrefix(currency: string): boolean {
@@ -159,7 +162,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       <Animated.View
         testID="quick-buy-amount-cursor"
         style={[
-          tw.style('mx-0.5 w-0.5 h-8 bg-primary-default'),
+          tw.style('mx-0.5 w-0.5 h-12 bg-primary-default'),
           { opacity: cursorOpacity },
         ]}
       />
@@ -178,6 +181,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         >
           <Text
             variant={TextVariant.DisplayLg}
+            twClassName={PRIMARY_AMOUNT_TW_CLASS}
             fontWeight={FontWeight.Bold}
             color={amountColor}
           >
@@ -187,6 +191,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           {sourceSymbol ? (
             <Text
               variant={TextVariant.DisplayLg}
+              twClassName={PRIMARY_AMOUNT_TW_CLASS}
               fontWeight={FontWeight.Bold}
               color={amountColor}
             >
@@ -213,6 +218,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         {symbol && symbolIsPrefix ? (
           <Text
             variant={TextVariant.DisplayLg}
+            twClassName={PRIMARY_AMOUNT_TW_CLASS}
             fontWeight={FontWeight.Bold}
             color={amountColor}
           >
@@ -221,6 +227,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         ) : null}
         <Text
           variant={TextVariant.DisplayLg}
+          twClassName={PRIMARY_AMOUNT_TW_CLASS}
           fontWeight={FontWeight.Bold}
           color={amountColor}
         >
@@ -230,6 +237,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         {symbol && !symbolIsPrefix ? (
           <Text
             variant={TextVariant.DisplayLg}
+            twClassName={PRIMARY_AMOUNT_TW_CLASS}
             fontWeight={FontWeight.Bold}
             color={amountColor}
           >
@@ -262,6 +270,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       {editingPrimary ?? (
         <Text
           variant={TextVariant.DisplayLg}
+          twClassName={PRIMARY_AMOUNT_TW_CLASS}
           fontWeight={FontWeight.Bold}
           color={amountColor}
         >

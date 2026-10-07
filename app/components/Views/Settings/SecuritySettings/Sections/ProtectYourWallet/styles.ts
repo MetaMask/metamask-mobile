@@ -27,9 +27,6 @@ export const createStyles = (colors: any) =>
     warningTextGreen: {
       color: colors.text.default,
     },
-    viewHint: {
-      marginLeft: 4,
-    },
     warningBold: {
       ...fontStyles.bold,
       color: colors.primary.default,

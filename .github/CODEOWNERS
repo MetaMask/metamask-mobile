@@ -245,6 +245,7 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 
 # Social & AI Team
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
+app/components/UI/SocialFeed/                                        @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
 app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
@@ -382,7 +383,6 @@ app/components/Views/SrpInput                               @MetaMask/web3auth
 app/components/Views/RestoreWallet                          @MetaMask/web3auth
 app/components/Views/WalletCreationError                    @MetaMask/web3auth
 app/components/Views/OAuthRehydration                       @MetaMask/web3auth
-app/components/Views/SocialLoginIosUser                     @MetaMask/web3auth
 app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
