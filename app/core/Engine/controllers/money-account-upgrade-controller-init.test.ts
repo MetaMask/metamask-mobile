@@ -17,6 +17,9 @@ import {
   whenMoneyAccountUpgradeReady,
 } from './money-account-upgrade-controller-init';
 import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
+import { ApiEnv, getApiEnv } from '../../apiEnv';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import { TENDERLY_MONAD_RPC_ENDPOINT_NAME } from './network-controller/tenderly-monad-rpc';
 import Logger from '../../../util/Logger';
 
 jest.mock('@metamask/money-account-upgrade-controller');
@@ -29,9 +32,19 @@ jest.mock('../../Engine', () => ({
     context: {
       NetworkController: {
         addNetwork: jest.fn().mockResolvedValue(undefined),
+        updateNetwork: jest.fn().mockResolvedValue(undefined),
       },
     },
   },
+}));
+
+jest.mock('../../apiEnv', () => ({
+  ApiEnv: { Dev: 'dev', Uat: 'uat', Prod: 'prod' },
+  getApiEnv: jest.fn(() => 'prod'),
+}));
+
+jest.mock('../../../util/remoteFeatureFlag', () => ({
+  validatedVersionGatedFeatureFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
@@ -173,10 +186,14 @@ describe('moneyAccountUpgradeControllerInit', () => {
       } as never,
     });
     jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
+    jest.mocked(getApiEnv).mockReturnValue(ApiEnv.Prod);
+    jest.mocked(validatedVersionGatedFeatureFlag).mockReturnValue(false);
   });
 
   const mockAddNetwork = Engine.context.NetworkController
     .addNetwork as jest.Mock;
+  const mockUpdateNetwork = Engine.context.NetworkController
+    .updateNetwork as jest.Mock;
 
   it('returns a MoneyAccountUpgradeController instance', () => {
     const { requestMock } = getInitRequestMock({ isUnlocked: false });
@@ -603,6 +620,81 @@ describe('moneyAccountUpgradeControllerInit', () => {
         expect.objectContaining({
           tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
           context: expect.objectContaining({ name: 'money_account_upgrade' }),
+        }),
+      );
+    });
+
+    it('points an existing Monad network at the Tenderly fork for a dev neobank build', async () => {
+      jest.mocked(getApiEnv).mockReturnValue(ApiEnv.Dev);
+      jest.mocked(validatedVersionGatedFeatureFlag).mockReturnValue(true);
+      jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({
+        [VAULT_CHAIN_ID]: {
+          chainId: VAULT_CHAIN_ID,
+          name: 'Monad',
+          nativeCurrency: 'MON',
+          blockExplorerUrls: [],
+          rpcEndpoints: [
+            {
+              url: 'https://monad-mainnet.infura.io/v3/key',
+              name: 'Monad',
+              type: 'custom',
+            },
+          ],
+          defaultRpcEndpointIndex: 0,
+        } as never,
+      });
+
+      const { requestMock, baseMessenger, getStateMock } = getInitRequestMock({
+        isUnlocked: true,
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      publishFlagOn(baseMessenger, getStateMock);
+      await flushAsync();
+
+      expect(mockAddNetwork).not.toHaveBeenCalled();
+      expect(mockUpdateNetwork).toHaveBeenCalledWith(
+        VAULT_CHAIN_ID,
+        expect.objectContaining({
+          defaultRpcEndpointIndex: 1,
+          rpcEndpoints: [
+            expect.objectContaining({
+              url: 'https://monad-mainnet.infura.io/v3/key',
+            }),
+            expect.objectContaining({
+              name: TENDERLY_MONAD_RPC_ENDPOINT_NAME,
+              url: 'https://virtual.monad.eu.rpc.tenderly.co/amitabh94/project/2d9e85-3a9b13',
+            }),
+          ],
+        }),
+        { replacementSelectedRpcEndpointIndex: 1 },
+      );
+    });
+
+    it('adds Monad on the Tenderly fork when the chain is missing', async () => {
+      jest.mocked(getApiEnv).mockReturnValue(ApiEnv.Dev);
+      jest.mocked(validatedVersionGatedFeatureFlag).mockReturnValue(true);
+      jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({});
+
+      const { requestMock, baseMessenger, getStateMock } = getInitRequestMock({
+        isUnlocked: true,
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      publishFlagOn(baseMessenger, getStateMock);
+      await flushAsync();
+
+      expect(mockUpdateNetwork).not.toHaveBeenCalled();
+      expect(mockAddNetwork).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: VAULT_CHAIN_ID,
+          rpcEndpoints: [
+            expect.objectContaining({
+              name: TENDERLY_MONAD_RPC_ENDPOINT_NAME,
+              url: 'https://virtual.monad.eu.rpc.tenderly.co/amitabh94/project/2d9e85-3a9b13',
+              failoverUrls: [],
+            }),
+          ],
         }),
       );
     });

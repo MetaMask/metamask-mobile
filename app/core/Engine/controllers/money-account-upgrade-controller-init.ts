@@ -18,6 +18,15 @@ import {
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import { MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY } from '../../../selectors/featureFlagController/moneyAccount';
+import {
+  MONAD_CHAIN_ID,
+  resolveMonadRpcConfig,
+  shouldUseTenderlyMonadRpc,
+  tenderlyMonadRpcUrl,
+  TENDERLY_MONAD_RPC_ENDPOINT_NAME,
+} from './network-controller/tenderly-monad-rpc';
 import Logger from '../../../util/Logger';
 
 /** Sentry tag used to group/filter Money Account upgrade failures. */
@@ -31,11 +40,57 @@ const SENTRY_FEATURE_TAG = 'money-account-upgrade';
  * hasn't been configured, and Monad is not enabled by default
  * so we need to  make sure it's there before init runs.
  */
-const ensureChainConfigured = async (chainId: Hex): Promise<void> => {
+function neobankForkEnabled(
+  remoteFeatureFlags: Record<string, unknown> | undefined,
+): boolean {
+  return shouldUseTenderlyMonadRpc(
+    validatedVersionGatedFeatureFlag(
+      remoteFeatureFlags?.[MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY],
+    ) ?? false,
+  );
+}
+
+const ensureChainConfigured = async (
+  chainId: Hex,
+  useTenderlyFork: boolean,
+): Promise<void> => {
   const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
     ReduxService.store.getState() as RootState,
   );
-  if (networkConfigurations[chainId]) {
+  const existing = networkConfigurations[chainId];
+  const forkUrl =
+    useTenderlyFork && chainId === MONAD_CHAIN_ID
+      ? tenderlyMonadRpcUrl()
+      : undefined;
+
+  if (existing) {
+    if (!forkUrl) {
+      return;
+    }
+    const next = resolveMonadRpcConfig({
+      enabled: true,
+      tenderlyRpcUrl: forkUrl,
+      rpcEndpoints: existing.rpcEndpoints,
+      defaultRpcEndpointIndex: existing.defaultRpcEndpointIndex ?? 0,
+    });
+    if (!next) {
+      return;
+    }
+    await Engine.context.NetworkController.updateNetwork(
+      chainId,
+      {
+        blockExplorerUrls: existing.blockExplorerUrls,
+        chainId,
+        defaultBlockExplorerUrlIndex: existing.defaultBlockExplorerUrlIndex,
+        defaultRpcEndpointIndex: next.defaultRpcEndpointIndex,
+        name: existing.name,
+        nativeCurrency: existing.nativeCurrency,
+        rpcEndpoints: next.rpcEndpoints,
+      },
+      {
+        replacementSelectedRpcEndpointIndex: next.defaultRpcEndpointIndex,
+      },
+    );
     return;
   }
 
@@ -61,9 +116,11 @@ const ensureChainConfigured = async (chainId: Hex): Promise<void> => {
     nativeCurrency: popularEntry.ticker,
     rpcEndpoints: [
       {
-        url: popularEntry.rpcUrl,
-        failoverUrls: popularEntry.failoverRpcUrls,
-        name: popularEntry.nickname,
+        url: forkUrl ?? popularEntry.rpcUrl,
+        failoverUrls: forkUrl ? [] : popularEntry.failoverRpcUrls,
+        name: forkUrl
+          ? TENDERLY_MONAD_RPC_ENDPOINT_NAME
+          : popularEntry.nickname,
         type: RpcEndpointType.Custom,
       },
     ],
@@ -137,7 +194,9 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   const bootstrap = async (vaultConfig: MoneyAccountVaultConfig) => {
     const chainId = vaultConfig.chainId as Hex;
 
-    await ensureChainConfigured(chainId);
+    const flags = initMessenger.call('RemoteFeatureFlagController:getState')
+      .remoteFeatureFlags;
+    await ensureChainConfigured(chainId, neobankForkEnabled(flags));
 
     await controller.init({
       chainId,
@@ -247,6 +306,15 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
       !configsEqual(vaultConfig, lastRunConfig)
     ) {
       runBootstrap(vaultConfig);
+      return;
+    }
+
+    // The neobank flag can turn on after Monad was already added with the
+    // public RPC. Re-point that chain without re-running the upgrade.
+    if (bootstrapRan && neobankForkEnabled(flags)) {
+      ensureChainConfigured(vaultConfig.chainId as Hex, true).catch(
+        reportBootstrapError,
+      );
     }
   };
 
