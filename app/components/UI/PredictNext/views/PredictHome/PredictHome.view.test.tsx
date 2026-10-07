@@ -639,6 +639,9 @@ describe('PredictHome', () => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(nflEvents.find((event) => event.id === id));
         }
+        if (action === 'PredictPortfolioService:getPositions') {
+          return Promise.resolve({ venueId: 'kalshi', positions: [] });
+        }
         return Promise.resolve({
           venueId: 'kalshi',
           id,

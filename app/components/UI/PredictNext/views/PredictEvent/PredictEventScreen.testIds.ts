@@ -13,6 +13,11 @@ export const PredictEventScreenTestIds = {
   GAME_STATUS: 'predict-next-event-game-status',
   GAME_METADATA: 'predict-next-event-game-metadata',
   MARKETS: 'predict-next-event-markets',
+  POSITIONS_SECTION: 'predict-next-event-positions-section',
+  positionRow: (marketId: string, side: string) =>
+    `predict-next-event-position-${marketId}-${side}`,
+  positionCashOut: (marketId: string, side: string) =>
+    `predict-next-event-position-cash-out-${marketId}-${side}`,
   market: (marketId: string) => `predict-next-event-market-${marketId}`,
   PREDICT_SECTION: 'predict-next-event-predict-section',
   EVENT_RULES_BUTTON: 'predict-next-event-rules-button',

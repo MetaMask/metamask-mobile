@@ -1,7 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import {
+  composePredictNextOrderService,
+  configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
   makePredictNextMultiMarketEvent,
+  makePredictNextPosition,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
   publishPredictNextGameLiveUpdate,
@@ -188,6 +191,9 @@ const resolveEvent = (event: PredictEvent = createEvent()) => {
       }
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return Promise.resolve(createHistory(id, range));
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId, positions: [] });
       }
       return Promise.resolve(undefined);
     },
@@ -492,7 +498,9 @@ describe('PredictEventScreen', () => {
             ? Promise.reject(new Error('unsafe history detail'))
             : Promise.resolve(createHistory(id, range));
         }
-        return Promise.resolve(undefined);
+        return action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined);
       },
     );
     const view = renderPredictEventScreen(routeParams);
@@ -519,7 +527,9 @@ describe('PredictEventScreen', () => {
         if (action === 'PredictMarketDataService:getMarketHistory') {
           return Promise.resolve(createHistory(id, range, 1));
         }
-        return Promise.resolve(undefined);
+        return action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined);
       },
     );
     const view = renderPredictEventScreen(routeParams);
@@ -543,7 +553,12 @@ describe('PredictEventScreen', () => {
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return new Promise(() => undefined);
       }
-      return Promise.resolve(undefined);
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId, positions: [] });
+      }
+      return action.startsWith('PredictPortfolioService:getPositions')
+        ? Promise.resolve({ venueId, positions: [] })
+        : Promise.resolve(undefined);
     });
     const view = renderPredictEventScreen(routeParams);
 
@@ -721,7 +736,9 @@ describe('PredictEventScreen', () => {
             createHistory(id, range, id === homeMarket.id ? 1 : 2),
           );
         }
-        return Promise.resolve(undefined);
+        return action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined);
       },
     );
     const view = renderPredictEventScreen(routeParams);
@@ -1758,7 +1775,14 @@ describe('PredictEventScreen', () => {
   it('retries only the immutable Event query after a blocking error', async () => {
     messengerCall
       .mockRejectedValueOnce(new Error('unsafe transport detail'))
-      .mockResolvedValueOnce(createEvent());
+      .mockResolvedValueOnce(createEvent())
+      // Account-scoped reads follow the Event retry; infinite queries must
+      // resolve a valid page shape, never undefined.
+      .mockImplementation((action: string) =>
+        action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined),
+      );
     const view = renderPredictEventScreen(routeParams);
     const error = await view.findByTestId(PredictEventScreenTestIds.ERROR);
 
@@ -1796,5 +1820,99 @@ describe('PredictEventScreen', () => {
     await waitFor(() =>
       expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen(),
     );
+  });
+
+  describe('Your positions', () => {
+    const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+
+    afterEach(() => {
+      delete (Engine.context as Record<string, unknown>).PredictOrderService;
+    });
+
+    it('renders held Positions for the Event Markets and opens the bounded Cash Out flow', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positions: [
+          makePredictNextPosition({
+            marketId: 'market-1',
+            side: 'yes',
+            shares: '75.00',
+            context: {
+              eventId: 'unrelated-event',
+              eventTitle: 'Unrelated Event title',
+              marketQuestion: 'Will it happen?',
+              outcomeId: 'yes',
+              outcomeLabel: 'Lakers',
+            },
+          }),
+        ],
+      });
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        composePredictNextOrderService();
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      expect(
+        view.getByTestId(PredictEventScreenTestIds.POSITIONS_SECTION),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictEventScreenTestIds.positionRow('market-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        view.getByTestId(
+          PredictEventScreenTestIds.positionCashOut('market-1', 'yes'),
+        ),
+      );
+
+      expect(
+        await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+      ).toBeOnTheScreen();
+      // The sell sheet binds to the Position's whole-contract size and the
+      // canonical identity of the presented Event, not the Position's stale
+      // catalog context.
+      expect(
+        view.getByTestId(PredictOrderFlowTestIds.HELD_CONTRACTS),
+      ).toHaveTextContent('You hold 75 contracts');
+      expect(
+        view.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent('Yes');
+    });
+
+    it('hides the section when the Positions read fails and keeps the Markets browsable', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positions: new Error('positions unavailable'),
+      });
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      expect(
+        view.queryByTestId(PredictEventScreenTestIds.POSITIONS_SECTION),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('market-1')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the section when the Predict User holds no Position in this Event', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positions: [makePredictNextPosition()],
+      });
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      // The fixture Position targets an unrelated Market.
+      expect(
+        view.queryByTestId(PredictEventScreenTestIds.POSITIONS_SECTION),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

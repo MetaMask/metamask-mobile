@@ -3410,6 +3410,9 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "event": {
+      "your_positions": "Your positions"
+    },
     "search": {
       "placeholder": "Search markets",
       "idle": "Search by team, topic, or market question.",
