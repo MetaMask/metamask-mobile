@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -233,6 +234,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          // Switching markets from the chart header is a high-frequency move,
+          // so the picker runs faster than the platform's default slide-up,
+          // which reads as latency rather than as a transition. iOS only:
+          // native-stack documents animationDuration as @platform ios, and
+          // react-native-screens no-ops setTransitionDuration on Android, so
+          // Android keeps its fixed slide_from_bottom timing regardless.
+          animationDuration: AnimationDuration.Promptly,
           // Selecting a market should replace the details beneath this picker
           // rather than pushing another MARKET_DETAILS on top of the stack.
           replaceOnSelect: true,
