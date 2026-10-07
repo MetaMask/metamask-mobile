@@ -197,6 +197,7 @@ let mockPositionModifyPreviewParams:
   | undefined;
 
 let mockIsAtCap = false;
+let mockUseBottomSheet = false;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
@@ -401,6 +402,12 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => ({
+    useBottomSheet: mockUseBottomSheet,
+  }),
+}));
+
 jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
   class MockChaseOrderRequestError extends Error {
     code: 'context_not_ready' | 'stale_request';
@@ -585,6 +592,7 @@ describe('usePerpsProOrderForm', () => {
     mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
+    mockUseBottomSheet = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
@@ -793,6 +801,35 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(mockOrderValidationParams?.providerId).toBe('lighter');
+    });
+
+    it('lets a Scale order switch its size denomination without changing notional', () => {
+      // Regression for TAT-3976: Scale used to force the size field to USD, so
+      // the size-unit arrows were rendered inert.
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '90000';
+
+      const { result } = renderProForm();
+
+      expect(result.current.sizeInput.canToggleDenomination).toBe(true);
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      expect(result.current.sizeInput.denomination).toEqual({
+        unit: 'asset',
+        symbol: 'BTC',
+      });
+      expect(result.current.effectiveUsdAmount).toBe('90000');
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+      expect(result.current.effectiveUsdAmount).toBe('90000');
     });
 
     it('routes Chase fees through its placement provider', () => {
@@ -3694,8 +3731,9 @@ describe('usePerpsProOrderForm', () => {
 
     it('finalizes a trailing decimal separator from the limit price before submit', async () => {
       // Arrange: Place Order can fire before blur commits a state update.
+      // Stay inside the 95% band so submit is not blocked by too_far.
       mockOrderForm.type = 'limit';
-      mockOrderForm.limitPrice = '12.';
+      mockOrderForm.limitPrice = '80000.';
       const { result } = renderProForm();
 
       // Act
@@ -3705,7 +3743,7 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       const params = mockExecuteOrder.mock.calls[0][0];
-      expect(params.price).toBe('12');
+      expect(params.price).toBe('80000');
       expect(params.orderType).toBe('limit');
     });
   });
@@ -4050,9 +4088,13 @@ describe('usePerpsProOrderForm', () => {
         result.current.scaleOrder.onTotalOrdersChange('3');
       });
 
-      expect(result.current.sizeInput.value).toBe('90000');
-      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
-      expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+      // Switching to Scale keeps the chosen display unit; sizing stays canonical USD.
+      expect(result.current.sizeInput.value).toBe('1');
+      expect(result.current.sizeInput.denomination).toEqual({
+        unit: 'asset',
+        symbol: 'BTC',
+      });
+      expect(result.current.effectiveUsdAmount).toBe('90000');
 
       await act(async () => {
         await result.current.onPlaceOrderPress();
@@ -6315,6 +6357,33 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('shows a 95% band error before the limit price blurs', () => {
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '1000';
+      mockContextValue.hasBlurredLimitPrice = false;
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        {
+          field: 'limitPrice',
+          issue: { code: 'too_far', min: '$150.00', max: '$60,000.00' },
+        },
+      ];
+
+      const { result } = renderProForm();
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message:
+          strings('perps.order.limit_price_modal.limit_price_too_far') +
+          ' ' +
+          strings('perps.order.limit_price_modal.limit_price_too_far_range', {
+            min: '$150.00',
+            max: '$60,000.00',
+          }),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
     it('defers a required trigger error until the trigger price blurs', () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = undefined;
@@ -6898,6 +6967,40 @@ describe('usePerpsProOrderForm', () => {
       });
       expect(mockSetTakeProfitPrice).toHaveBeenCalledWith('95000');
       expect(mockSetStopLossPrice).toHaveBeenCalledWith('80000');
+    });
+
+    it('opens TP/SL as a bottom sheet when assigned the bottom-sheet arm', () => {
+      // Arrange
+      mockUseBottomSheet = true;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.objectContaining({ useBottomSheet: true }),
+      );
+    });
+
+    it('omits useBottomSheet from the TP/SL route on the screen arm', () => {
+      // Arrange
+      mockUseBottomSheet = false;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.not.objectContaining({ useBottomSheet: expect.anything() }),
+      );
     });
 
     it('shows the limit-price-required toast and does not navigate for a limit order without a price', () => {

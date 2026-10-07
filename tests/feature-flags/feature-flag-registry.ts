@@ -388,6 +388,41 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  assetsMemecoinTdpV1: {
+    name: 'assetsMemecoinTdpV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.17.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'feature is OFF',
+            thresholdVersion: 2,
+            value: {
+              enabled: false,
+            },
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'feature is ON',
+            thresholdVersion: 2,
+            value: {
+              enabled: true,
+            },
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsNotificationsEnabled: {
     name: 'assetsNotificationsEnabled',
     type: FeatureFlagType.Remote,
@@ -4385,6 +4420,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+      minimumVersion: '8.13.0',
+      startDate: '',
+      endDate: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  // Not in the production client-config response yet. inProd stays false so
+  // the weekly registry sync does not treat this as removed from production.
+  cardUkMigrationSignInRouting: {
+    name: 'cardUkMigrationSignInRouting',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4472,7 +4523,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   moneyCardActivityCashbackMultisendContracts: {
@@ -6089,6 +6140,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  brazeEventBlocklist: {
+    name: 'brazeEventBlocklist',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      blockedEvents: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   brazeBannerHomeMinVersion: {
     name: 'brazeBannerHomeMinVersion',
     type: FeatureFlagType.Remote,
@@ -6097,25 +6160,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  brazeSegmentForwarding: {
-    name: 'brazeSegmentForwarding',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      allowedEvents: [],
-      allowedTraits: [],
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-  brazeBannerHome: {
-    name: 'brazeBannerHome',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -7313,6 +7357,56 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictHomeCategories: {
+    name: 'predictHomeCategories',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.13.0',
+      categories: [
+        {
+          id: 'politics',
+          tagSlug: 'politics',
+          iconName: 'Global',
+          enabled: true,
+        },
+        { id: 'sports', tagSlug: 'sports', iconName: 'Trophy', enabled: true },
+        {
+          id: 'crypto',
+          tagSlug: 'crypto',
+          iconName: 'MoneyBag',
+          enabled: true,
+        },
+        {
+          id: 'esports',
+          tagSlug: 'esports',
+          iconName: 'Speedometer',
+          enabled: true,
+        },
+        {
+          id: 'culture',
+          tagSlug: 'pop-culture',
+          iconName: 'StarFilled',
+          enabled: true,
+        },
+        {
+          id: 'finance',
+          tagSlug: 'finance',
+          iconName: 'Bank',
+          enabled: true,
+        },
+        {
+          id: 'tech',
+          tagSlug: 'tech',
+          iconName: 'Data',
+          enabled: true,
+        },
+      ],
+    },
     status: FeatureFlagStatus.Active,
   },
 

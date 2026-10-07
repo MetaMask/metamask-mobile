@@ -1679,8 +1679,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       assetId: market.symbol,
       mode: 'perps',
       marketId,
+      szDecimals: marketData?.szDecimals,
     });
-  }, [market, currentPrice, navigation]);
+  }, [market, marketData?.szDecimals, currentPrice, navigation]);
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);
@@ -1962,6 +1963,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            scrollY={scrollYShared}
+            testID={
+              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+            }
+          />
+        </Box>
+      )}
+
       <PerpsMarketHeader
         market={market}
         testIDs={createLiteMarketHeaderTestIDs()}
@@ -2085,19 +2100,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             <Box twClassName="px-4 mb-4">
               <PerpsPriceDeviationWarning
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
-              />
-            </Box>
-          )}
-
-          {/* Service Interruption Banner */}
-          {/* Outer flag guard avoids mounting the padded wrapper (and banner hooks) when disabled.
-              The banner also returns null via the same flag when mounted. */}
-          {isServiceInterruptionBannerEnabled && (
-            <Box twClassName="px-4 mb-4">
-              <PerpsServiceInterruptionBanner
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
-                }
               />
             </Box>
           )}

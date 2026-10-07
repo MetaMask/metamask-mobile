@@ -2,17 +2,32 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
+import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
-import type { SocialV1HotToken } from '../types';
+import type { SocialV1HotToken, SocialV1TokenFeedState } from '../types';
 import HotTokensCarousel from './HotTokensCarousel';
 import {
+  getSocialV1HotTokenCheckTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
 jest.mock('../hooks/useSocialV1HotTokens');
+jest.mock('../hooks/useSocialV1TokenFeed');
 
 const mockUseSocialV1HotTokens = jest.mocked(useSocialV1HotTokens);
+const mockUseSocialV1TokenFeed = jest.mocked(useSocialV1TokenFeed);
+
+const idleTokenFeed = (): SocialV1TokenFeedState => ({
+  posts: [],
+  isLoading: false,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  loadMore: jest.fn(),
+  error: null,
+  refresh: jest.fn(),
+});
 
 const arrange = (tokens: SocialV1HotToken[], isLoading = false) => {
   mockUseSocialV1HotTokens.mockReturnValue({ tokens, isLoading, error: null });
@@ -24,9 +39,16 @@ const NVIDIA = mockHotToken({
   label: 'NVIDIA',
 });
 
+/** Chip test IDs in rail order. Matches only the primary track, not the loop copy. */
+const railChipTestIds = () =>
+  screen
+    .getAllByTestId(/^social-v1-hot-token-chip-(?!.*-loop$)/)
+    .map((chip) => chip.props.testID);
+
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSocialV1TokenFeed.mockReturnValue(idleTokenFeed());
   });
 
   it('renders a chip per hot token', () => {
@@ -45,13 +67,13 @@ describe('HotTokensCarousel', () => {
     ).toHaveTextContent('NVIDIA');
   });
 
-  it('renders on a single row', () => {
+  it('renders the chips inside the carousel container', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel />);
 
     expect(
-      screen.getByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-0`),
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
@@ -70,8 +92,136 @@ describe('HotTokensCarousel', () => {
     expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
   });
 
-  // Chips are inert until the hot-topic destination exists; pressing one must
-  // not throw when no handler is wired.
+  it('loads the token feed for a selected chip that has a contract', () => {
+    const onTokenFeedChange = jest.fn();
+    const token = mockHotToken({
+      id: 'hot-pump',
+      symbol: 'PUMP',
+      label: 'Pump',
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    const tokenFeed = idleTokenFeed();
+    mockUseSocialV1TokenFeed.mockReturnValue(tokenFeed);
+    arrange([token]);
+
+    renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenCalledWith({
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    expect(onTokenFeedChange).toHaveBeenCalledWith(tokenFeed);
+  });
+
+  it('keeps the selected contract feed after that asset leaves the rail', () => {
+    const onTokenFeedChange = jest.fn();
+    const token = mockHotToken({
+      id: 'hot-pump',
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    arrange([token]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    arrange([]);
+    onTokenFeedChange.mockClear();
+    rerender(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenLastCalledWith({
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    expect(onTokenFeedChange).not.toHaveBeenCalledWith(null);
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-pump')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not request a token feed for a chip without a contract', () => {
+    const onTokenFeedChange = jest.fn();
+    arrange([mockHotToken()]);
+
+    renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId="hot-btc"
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenCalledWith(null);
+    expect(onTokenFeedChange).toHaveBeenCalledWith(null);
+  });
+
+  it('marks the selected asset chip', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: false }));
+  });
+
+  it('checks the selected chip and only that one', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenCheckTestId('hot-nvda')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getSocialV1HotTokenCheckTestId('hot-btc')),
+    ).toBeNull();
+  });
+
+  // The rail is parked while a filter is on, so the selected chip has to be the
+  // one at the resting left edge rather than wherever frequency put it.
+  it('moves the selected chip to the front of the rail', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+      getSocialV1HotTokenChipTestId('hot-btc'),
+    ]);
+  });
+
+  it('keeps frequency order while nothing is selected', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+
+    expect(railChipTestIds()).toEqual([
+      getSocialV1HotTokenChipTestId('hot-btc'),
+      getSocialV1HotTokenChipTestId('hot-nvda'),
+    ]);
+  });
+
+  // Pressing a chip with no handler is a no-op rather than a throw, so a page
+  // can mount the rail before it wires filtering.
   it('stays inert when no press handler is supplied', () => {
     arrange([mockHotToken()]);
 
@@ -103,5 +253,28 @@ describe('HotTokensCarousel', () => {
     const { toJSON } = renderWithProvider(<HotTokensCarousel />);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('duplicates the chips once the track overflows the viewport', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+    fireEvent(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
+      'layout',
+      { nativeEvent: { layout: { width: 200, height: 40 } } },
+    );
+    fireEvent(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID),
+      'layout',
+      { nativeEvent: { layout: { width: 800, height: 40 } } },
+    );
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc-loop')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda-loop')),
+    ).toBeOnTheScreen();
   });
 });

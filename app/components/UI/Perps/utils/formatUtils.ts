@@ -4,6 +4,7 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
@@ -375,6 +376,44 @@ export const formatLeverage = (leverage: string | number): string => {
   }
 
   return `${num.toFixed(1)}x`;
+};
+
+/**
+ * Formats how far (in %) the price must move from `entryPrice` to reach
+ * `liquidationPrice`, e.g. `"30.05%"`.
+ *
+ * @returns `undefined` when either price is missing, non-finite or
+ * non-positive, so callers can hide the figure instead of showing `NaN%`.
+ * @example formatLiquidationDistance(100, 70) => "30.00%"
+ * @example formatLiquidationDistance(100, '130') => "30.00%"
+ * @example formatLiquidationDistance(100, undefined) => undefined
+ */
+export const formatLiquidationDistance = (
+  entryPrice: number | string | null | undefined,
+  liquidationPrice: number | string | null | undefined,
+): string | undefined => {
+  const entry =
+    typeof entryPrice === 'string' ? parseFloat(entryPrice) : entryPrice;
+  const liquidation =
+    typeof liquidationPrice === 'string'
+      ? parseFloat(liquidationPrice)
+      : liquidationPrice;
+
+  if (
+    entry === null ||
+    entry === undefined ||
+    liquidation === null ||
+    liquidation === undefined ||
+    !Number.isFinite(entry) ||
+    !Number.isFinite(liquidation) ||
+    entry <= 0 ||
+    liquidation <= 0
+  ) {
+    return undefined;
+  }
+
+  const distance = (Math.abs(entry - liquidation) / entry) * 100;
+  return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
 };
 
 /**

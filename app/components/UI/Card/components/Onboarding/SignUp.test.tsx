@@ -1,4 +1,5 @@
 import React from 'react';
+import { Keyboard } from 'react-native';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -204,6 +205,7 @@ const mockSetSelectedCountry = jest.fn();
 const mockLogout = jest.fn();
 const mockBeginMigration = jest.fn();
 const mockCancelMigration = jest.fn();
+const mockRequestLegacyAccountClosure = jest.fn();
 const mockGetUserDetails = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
@@ -219,6 +221,8 @@ jest.mock('../../../../../core/Engine', () => ({
       logout: (...args: unknown[]) => mockLogout(...args),
       beginMigration: (...args: unknown[]) => mockBeginMigration(...args),
       cancelMigration: (...args: unknown[]) => mockCancelMigration(...args),
+      requestLegacyAccountClosure: (...args: unknown[]) =>
+        mockRequestLegacyAccountClosure(...args),
       getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
@@ -366,6 +370,7 @@ describe('SignUp Component', () => {
     mockGetUserDetails.mockReset();
     mockGetUserDetails.mockResolvedValue({});
     mockLogout.mockResolvedValue(undefined);
+    mockRequestLegacyAccountClosure.mockResolvedValue(undefined);
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseImmersveSupportedRegions.mockReturnValue({
       region: null,
@@ -807,7 +812,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('Canada')).toBeOnTheScreen();
+      expect(getByText('Canada', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
@@ -858,7 +863,7 @@ describe('SignUp Component', () => {
       );
 
       // GB is now pre-selected
-      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
       // Button is enabled (country is selected) and shows waitlist label
       expect(getByTestId('signup-continue-button')).toBeEnabled();
       // Country not available info text shown
@@ -899,7 +904,7 @@ describe('SignUp Component', () => {
       );
 
       // GB is pre-selected but treated as supported (Immersve), not waitlist
-      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
@@ -911,6 +916,30 @@ describe('SignUp Component', () => {
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
+    });
+
+    // Unit fallback: SignUp has no *.view.test.tsx; this file already renders
+    // the screen with mocked hooks/selectors. Locks the shared description key.
+    it('uses the provider-agnostic sign-up description for Immersve countries', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByTestId, queryByText } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('onboarding-step-description')).toHaveTextContent(
+        'card.card_onboarding.sign_up.description',
+      );
+      expect(
+        queryByText('card.card_onboarding.sign_up.description_immersve'),
+      ).not.toBeOnTheScreen();
     });
 
     const enableImmersve = () => {
@@ -1154,6 +1183,32 @@ describe('SignUp Component', () => {
       expect(queryByTestId('signup-immersve-error-text')).toBeOnTheScreen();
     });
 
+    it('dismisses the keyboard without continuing when the phone keypad is submitted', async () => {
+      enableImmersve();
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(() => undefined);
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+      await act(async () => {
+        fireEvent(
+          getByTestId('signup-immersve-phone-number-input'),
+          'onSubmitEditing',
+        );
+      });
+
+      expect(dismissSpy).toHaveBeenCalled();
+      expect(mockImmersveSignIn).not.toHaveBeenCalled();
+      expect(mockRouteImmersve).not.toHaveBeenCalled();
+      dismissSpy.mockRestore();
+    });
+
     it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {
       // Simulates a background re-fetch of registrationSettings that produces a
       // new getRegionByCode reference without changing the actual data.
@@ -1175,7 +1230,7 @@ describe('SignUp Component', () => {
       );
 
       // US was auto-selected on first render
-      expect(getByText('United States')).toBeOnTheScreen();
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
       expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
 
       // Simulate background refetch: new function identity, same data
@@ -1195,7 +1250,7 @@ describe('SignUp Component', () => {
 
       // hasAutoSelectedCountry ref must have blocked the second run
       expect(secondGetRegionByCode).not.toHaveBeenCalled();
-      expect(getByText('United States')).toBeOnTheScreen();
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
     });
   });
 
@@ -1429,7 +1484,11 @@ describe('SignUp Component', () => {
       );
       fireEvent.press(alreadyHaveAccountButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+        { pop: true, merge: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -1444,9 +1503,11 @@ describe('SignUp Component', () => {
 
       fireEvent.press(getByTestId('signup-i-already-have-an-account-text'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        { pop: true, merge: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
@@ -1472,7 +1533,7 @@ describe('SignUp Component', () => {
       );
 
       expect(getByTestId('signup-country-select')).toHaveTextContent(
-        'United Kingdom',
+        /United Kingdom/,
       );
       expect(mockSetSelectedCountry).not.toHaveBeenCalled();
       expect(mockSetUserLocation).not.toHaveBeenCalled();
@@ -1875,13 +1936,49 @@ describe('SignUp Component', () => {
       });
 
       expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockRequestLegacyAccountClosure).toHaveBeenCalledTimes(1);
       expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+      expect(
+        mockRequestLegacyAccountClosure.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockBeginMigration.mock.invocationCallOrder[0]);
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });
       expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
         mockImmersveSignIn.mock.invocationCallOrder[0],
       );
+    });
+
+    it('continues Immersve sign-up when legacy account closure fails', async () => {
+      mockRequestLegacyAccountClosure.mockRejectedValue(
+        new Error('closure failed'),
+      );
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockResolvedValue([]);
+      mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
+      mockPatchContactDetails.mockResolvedValue(undefined);
+      mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockImmersveSignIn).toHaveBeenCalled();
+      });
     });
 
     it('calls cancelMigration when Immersve continue fails after beginMigration', async () => {
@@ -1935,6 +2032,7 @@ describe('SignUp Component', () => {
       });
 
       expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockRequestLegacyAccountClosure).not.toHaveBeenCalled();
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });

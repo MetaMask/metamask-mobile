@@ -12,6 +12,7 @@ import {
   formatCoinVolume,
   formatPositionSize,
   formatLeverage,
+  formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
   parsePercentageString,
@@ -915,6 +916,23 @@ describe('formatUtils', () => {
         expect(formatPositionSize(0.0024, undefined)).toBe('0.0024');
         expect(formatPositionSize(44, undefined)).toBe('44');
       });
+    });
+  });
+
+  describe('formatLiquidationDistance', () => {
+    it('formats the distance from entry to liquidation as a percentage', () => {
+      expect(formatLiquidationDistance(100, 70)).toBe('30.00%');
+      expect(formatLiquidationDistance(100, 130)).toBe('30.00%');
+      expect(formatLiquidationDistance('103.02', '70.45')).toBe('31.62%');
+    });
+
+    it('returns undefined when either price is unusable', () => {
+      expect(formatLiquidationDistance(100, undefined)).toBeUndefined();
+      expect(formatLiquidationDistance(null, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, '0')).toBeUndefined();
+      expect(formatLiquidationDistance(0, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
+      expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
     });
   });
 

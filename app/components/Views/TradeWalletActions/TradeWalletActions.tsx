@@ -520,7 +520,7 @@ function TradeWalletActions() {
         <ActionListItem
           label={strings('asset_overview.perps_button')}
           description={strings('asset_overview.perps_description')}
-          iconName={IconName.Candlestick}
+          iconName={IconName.Infinity}
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
@@ -530,7 +530,7 @@ function TradeWalletActions() {
         <ActionListItem
           label={strings('asset_overview.predict_button')}
           description={strings('asset_overview.predict_description')}
-          iconName={IconName.Speedometer}
+          iconName={IconName.Predictions}
           onPress={onPredict}
           testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
           isDisabled={!canSignTransactions}

@@ -30,6 +30,7 @@ export const FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
   [TabBarIconKey.Activity]: IconName.ClockFilled,
   [TabBarIconKey.Money]: IconName.MusdFilled,
+  [TabBarIconKey.Social]: IconName.PeopleFilled,
 };
 
 /** Trimmed off the bottom safe-area inset so the pill sits closer to the edge. */

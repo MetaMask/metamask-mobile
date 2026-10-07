@@ -24,6 +24,9 @@ import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -123,11 +126,6 @@ const mockPerpsOHLCVBar = ({ testID }: { testID?: string }) => (
 const mockPerpsPriceDeviationWarning = ({ testID }: { testID?: string }) => (
   <Box testID={testID} />
 );
-const mockPerpsServiceInterruptionBanner = ({
-  testID,
-}: {
-  testID?: string;
-}) => <Box testID={testID} />;
 const mockUsePerpsLiveCandles = jest.fn();
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
@@ -224,12 +222,6 @@ jest.mock('../../../components/PerpsPriceDeviationWarning', () => ({
   __esModule: true,
   default: (props: { testID?: string }) =>
     mockPerpsPriceDeviationWarning(props),
-}));
-
-jest.mock('../../../components/PerpsServiceInterruptionBanner', () => ({
-  __esModule: true,
-  default: (props: { testID?: string }) =>
-    mockPerpsServiceInterruptionBanner(props),
 }));
 
 const getLastAdvancedChartProps = () => {
@@ -1062,5 +1054,26 @@ describe('PerpsProChartPanel', () => {
         expect.objectContaining({ currentPrice: 50500 }),
       );
     });
+  });
+
+  it('navigates to price alerts with szDecimals from market data', () => {
+    jest.mocked(useSelector).mockReturnValue(true);
+
+    renderChartPanel();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_PRICE_ALERTS_BUTTON,
+      ),
+    );
+
+    expect(useNavigation().navigate).toHaveBeenCalledWith(
+      Routes.PERPS.PRICE_ALERTS,
+      expect.objectContaining({
+        mode: 'perps',
+        szDecimals: 2,
+        assetId: 'BTC',
+      }),
+    );
   });
 });

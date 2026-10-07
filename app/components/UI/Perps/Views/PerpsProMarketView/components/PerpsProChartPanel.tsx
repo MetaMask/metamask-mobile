@@ -61,7 +61,6 @@ import {
 import PerpsChartFullscreenModal from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsOHLCVBar from '../../../components/PerpsOHLCVBar';
 import PerpsPriceDeviationWarning from '../../../components/PerpsPriceDeviationWarning';
-import PerpsServiceInterruptionBanner from '../../../components/PerpsServiceInterruptionBanner';
 import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
@@ -348,8 +347,16 @@ const PerpsProChartPanel = ({
       assetId: symbol,
       mode: 'perps',
       marketId,
+      szDecimals: marketData?.szDecimals,
     });
-  }, [symbol, marketIdProp, marketData?.providerId, currentPrice, navigation]);
+  }, [
+    symbol,
+    marketIdProp,
+    marketData?.providerId,
+    marketData?.szDecimals,
+    currentPrice,
+    navigation,
+  ]);
 
   let chartContent: React.ReactNode = (
     <Skeleton
@@ -522,11 +529,6 @@ const PerpsProChartPanel = ({
           testID={PerpsProMarketViewSelectorsIDs.CHART_PRICE_DEVIATION_WARNING}
         />
       ) : null}
-      <PerpsServiceInterruptionBanner
-        testID={
-          PerpsProMarketViewSelectorsIDs.CHART_SERVICE_INTERRUPTION_BANNER
-        }
-      />
       {isMarketContextReady && (
         <PerpsChartFullscreenModal
           isVisible={isFullscreenChartVisible}

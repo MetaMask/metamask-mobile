@@ -2,7 +2,10 @@ import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
-import type { ProPositionSideFilter } from '../utils/proPositionSideFilter';
+import type {
+  ProOrderSideFilter,
+  ProPositionSideFilter,
+} from '../utils/proPositionSideFilter';
 
 const styles = StyleSheet.create({
   bar: {
@@ -12,7 +15,7 @@ const styles = StyleSheet.create({
 });
 
 interface ProPositionSideFilterIconProps {
-  sideFilter: ProPositionSideFilter;
+  sideFilter: ProPositionSideFilter | ProOrderSideFilter;
 }
 
 /**
