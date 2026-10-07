@@ -209,7 +209,7 @@ import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetwor
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
 const HEADER_FADE_HEIGHT = 16;
-const HEADER_FADE_OPACITIES = [0.85, 0.65, 0.35, 0];
+const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
 const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
 
 const createStyles = ({ colors }: Theme) =>
@@ -940,12 +940,14 @@ const Wallet = ({
   const nativeHeaderInset = isNativeHeader
     ? safeAreaInsets.top + NATIVE_HEADER_BAR_HEIGHT
     : 0;
-  // Without the native bar (Android, iOS < 26) the interim header floats over
-  // the content on a fade, emulating the iOS 26 scroll edge effect.
+  // Without the native bar (Android, iOS < 26) the interim header floats over the content on a fade.
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
-  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(0);
   const tw = useTailwind();
+  // Seeded with the header's min height so the first frame already clears it.
+  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
+    Number(tw.style('h-14').height),
+  );
   const headerFadeColors = useMemo(
     () =>
       HEADER_FADE_OPACITIES.map((opacity) =>
@@ -1089,7 +1091,7 @@ const Wallet = ({
     ],
   );
 
-  const walletHeader = (
+  const renderWalletHeader = () => (
     <WalletHeader
       displayName={displayName}
       navigation={navigation}
@@ -1351,7 +1353,7 @@ const Wallet = ({
                   titleSectionHeight={accountNameSectionBottom}
                 />
               ) : isFloatingJsHeader ? null : (
-                walletHeader
+                renderWalletHeader()
               )}
               <View
                 ref={containerViewRef}
@@ -1364,6 +1366,28 @@ const Wallet = ({
                   });
                 }}
               >
+                {isFloatingJsHeader && (
+                  // Mounted first so assistive tech reads the header before the content.
+                  <View
+                    pointerEvents="box-none"
+                    style={tw.style('absolute left-0 right-0 top-0 z-10')}
+                    testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
+                    onLayout={(e) =>
+                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
+                    }
+                  >
+                    <LinearGradient
+                      pointerEvents="none"
+                      colors={headerFadeColors}
+                      locations={HEADER_FADE_LOCATIONS}
+                      style={[
+                        RNStyleSheet.absoluteFill,
+                        { bottom: -HEADER_FADE_HEIGHT },
+                      ]}
+                    />
+                    {renderWalletHeader()}
+                  </View>
+                )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
@@ -1400,26 +1424,6 @@ const Wallet = ({
                     />
                   </ConditionalScrollView>
                 </HomepageScrollContext.Provider>
-                {isFloatingJsHeader && (
-                  <View
-                    pointerEvents="box-none"
-                    style={tw.style('absolute left-0 right-0 top-0')}
-                    onLayout={(e) =>
-                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
-                    }
-                  >
-                    <LinearGradient
-                      pointerEvents="none"
-                      colors={headerFadeColors}
-                      locations={HEADER_FADE_LOCATIONS}
-                      style={[
-                        RNStyleSheet.absoluteFill,
-                        { bottom: -HEADER_FADE_HEIGHT },
-                      ]}
-                    />
-                    {walletHeader}
-                  </View>
-                )}
               </View>
             </>
           ) : (

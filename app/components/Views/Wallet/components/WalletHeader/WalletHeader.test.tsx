@@ -256,21 +256,18 @@ describe('WalletHeader', () => {
       );
     });
 
-    it('puts the account picker and actions on Liquid Glass where available', () => {
-      jest.mocked(useLiquidGlass).mockReturnValue({
-        ...noGlass,
-        isGlassEnabled: true,
-      });
-
+    it('puts the account picker and actions in capsules', () => {
       const { getByTestId } = renderWithProvider(
         <WalletHeader {...interimProps} />,
       );
 
       expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS),
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER),
+        getByTestId(
+          WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -292,45 +289,30 @@ describe('WalletHeader', () => {
       );
     });
 
-    it('blurs the account picker and actions on iOS without Liquid Glass', () => {
+    it('blurs the capsules on iOS without Liquid Glass', () => {
       jest.mocked(useLiquidGlass).mockReturnValue({
         ...noGlass,
         isBlurEnabled: true,
         blurTint: 'systemChromeMaterialDark',
       });
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <WalletHeader {...interimProps} />,
-      );
+      renderWithProvider(<WalletHeader {...interimProps} />);
 
-      expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_BLUR_ACTIONS),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_BLUR_ACCOUNT_PICKER),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS),
-      ).not.toBeOnTheScreen();
+      expect(mockBlurView).toHaveBeenCalledTimes(2);
       expect(mockBlurView).toHaveBeenCalledWith(
         expect.objectContaining({ tint: 'systemChromeMaterialDark' }),
       );
     });
 
-    it('renders a plain picker and icons without Liquid Glass', () => {
-      const { queryByTestId } = renderWithProvider(
+    it('renders plain capsules without Liquid Glass', () => {
+      const { getByTestId } = renderWithProvider(
         <WalletHeader {...interimProps} />,
       );
 
-      expect(
-        queryByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER,
-        ),
-      ).not.toBeOnTheScreen();
       expect(mockBlurView).not.toHaveBeenCalled();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE),
+      ).toHaveStyle({ paddingLeft: 12, paddingRight: 12 });
     });
   });
 });
