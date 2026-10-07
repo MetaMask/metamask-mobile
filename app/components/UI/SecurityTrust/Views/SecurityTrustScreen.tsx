@@ -273,7 +273,7 @@ const SecurityTrustScreen: React.FC = () => {
           <Text
             variant={TextVariant.HeadingMd}
             color={resultTextColor}
-            fontWeight={FontWeight.Medium}
+            fontWeight={FontWeight.Bold}
           >
             {resultLabel}
           </Text>
