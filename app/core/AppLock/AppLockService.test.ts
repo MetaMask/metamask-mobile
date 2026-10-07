@@ -727,65 +727,6 @@ describe('AppLockService', () => {
     });
   });
 
-  describe('dangerousPauseAutoLock / dangerousResumeAutoLock', () => {
-    beforeEach(() => {
-      service.start();
-      setLockTime(LOCK_TIME_IMMEDIATE);
-      lockKeyringOnSetLocked();
-    });
-
-    it('still shows the privacy screen but does not lock while paused', async () => {
-      service.dangerousPauseAutoLock();
-
-      emitAppState('background');
-      await settle();
-
-      expect(mockHidePrivacyCover).not.toHaveBeenCalled();
-      expect(mockSetLocked).not.toHaveBeenCalled();
-    });
-
-    it('does not lock on resume while paused and lets a deeplink parse', async () => {
-      service.dangerousPauseAutoLock();
-      emitAppState('background');
-      advanceClock(60_000);
-
-      emitAppState('active');
-      await settle();
-
-      expect(mockSetLocked).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
-      expectPrivacyCoverDismissed();
-    });
-
-    it('locks again on background after dangerousResumeAutoLock', async () => {
-      service.dangerousPauseAutoLock();
-      service.dangerousResumeAutoLock();
-
-      emitAppState('background');
-      await settle();
-
-      expect(mockSetLocked).toHaveBeenCalledTimes(1);
-    });
-
-    it('keeps the deeplink hold when paused after the vault is locked', async () => {
-      emitAppState('background');
-      await settle();
-
-      service.dangerousPauseAutoLock();
-
-      expect(service.isAutoLockPending()).toBe(true);
-    });
-
-    it('releases the deeplink hold when paused', () => {
-      setLockTime(LOCK_TIME_30S);
-      emitAppState('background');
-
-      service.dangerousPauseAutoLock();
-
-      expect(service.isAutoLockPending()).toBe(false);
-    });
-  });
-
   describe('stop', () => {
     it('releases the deeplink hold and disables auto-lock', async () => {
       service.start();

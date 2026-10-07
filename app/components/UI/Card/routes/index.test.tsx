@@ -233,22 +233,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
   },
 }));
 
-jest.mock('../../../../core/AppLock/AppLockService', () => ({
-  __esModule: true,
-  default: {
-    dangerousPauseAutoLock: jest.fn(),
-    dangerousResumeAutoLock: jest.fn(),
-  },
-}));
-
-const mockAppLockService = jest.requireMock(
-  '../../../../core/AppLock/AppLockService',
-).default;
-const mockPauseAutoLock =
-  mockAppLockService.dangerousPauseAutoLock as jest.Mock;
-const mockResumeAutoLock =
-  mockAppLockService.dangerousResumeAutoLock as jest.Mock;
-
 const createMockStore = (isAuthenticated = false, isCardholder = false) =>
   configureStore({
     reducer: {
@@ -347,29 +331,6 @@ describe('CardRoutes', () => {
       const { getAllByText } = renderWithProviders(<CardRoutes />);
 
       expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Auto-lock Management', () => {
-    beforeEach(() => {
-      mockPauseAutoLock.mockClear();
-      mockResumeAutoLock.mockClear();
-    });
-
-    it('pauses auto-lock when Card root mounts', () => {
-      renderWithProviders(<CardRoutes />);
-
-      expect(mockPauseAutoLock).toHaveBeenCalledTimes(1);
-    });
-
-    it('resumes auto-lock when Card root unmounts', () => {
-      const { unmount } = renderWithProviders(<CardRoutes />);
-
-      expect(mockResumeAutoLock).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockResumeAutoLock).toHaveBeenCalledTimes(1);
     });
   });
 });

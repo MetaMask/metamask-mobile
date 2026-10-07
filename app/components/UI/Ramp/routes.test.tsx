@@ -288,17 +288,6 @@ jest.mock('./Views/OrderDetails', () => {
   return MockView;
 });
 
-const mockResumeAutoLock = jest.fn();
-const mockPauseAutoLock = jest.fn();
-
-jest.mock('../../../core/AppLock/AppLockService', () => ({
-  __esModule: true,
-  default: {
-    dangerousPauseAutoLock: () => mockPauseAutoLock(),
-    dangerousResumeAutoLock: () => mockResumeAutoLock(),
-  },
-}));
-
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -325,17 +314,6 @@ describe('TokenListRoutes', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProviders();
     expect(toJSON()).toBeTruthy();
-  });
-
-  it('pauses auto-lock on mount', () => {
-    renderWithProviders();
-    expect(mockPauseAutoLock).toHaveBeenCalled();
-  });
-
-  it('resumes auto-lock on unmount', () => {
-    const { unmount } = renderWithProviders();
-    unmount();
-    expect(mockResumeAutoLock).toHaveBeenCalled();
   });
 });
 

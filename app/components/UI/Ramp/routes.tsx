@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
@@ -29,7 +29,6 @@ import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
-import AppLockService from '../../../core/AppLock/AppLockService';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -229,38 +228,26 @@ const TokenListModalsRoutes = () => (
   </ModalsStack.Navigator>
 );
 
-const TokenListRoutes = () => {
-  // Dangerous stop-gap. Lets someone leave for verification without being
-  // locked out and sent to Home. Most likely removed once navigation
-  // persistence lands. See AppLockService.dangerousPauseAutoLock.
-  useEffect(() => {
-    AppLockService.dangerousPauseAutoLock();
-    return () => {
-      AppLockService.dangerousResumeAutoLock();
-    };
-  }, []);
-
-  return (
-    <QueryClientProvider client={reactQueryService.queryClient}>
-      <RootStack.Navigator
-        initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
-        screenOptions={{ headerShown: false }}
-      >
-        <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION_ROOT}
-          component={MainRoutes}
-        />
-        <RootStack.Screen
-          name={Routes.RAMP.MODALS.ID}
-          component={TokenListModalsRoutes}
-          options={{
-            ...clearNativeStackNavigatorOptions,
-            ...transparentModalScreenOptions,
-          }}
-        />
-      </RootStack.Navigator>
-    </QueryClientProvider>
-  );
-};
+const TokenListRoutes = () => (
+  <QueryClientProvider client={reactQueryService.queryClient}>
+    <RootStack.Navigator
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
+      screenOptions={{ headerShown: false }}
+    >
+      <RootStack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION_ROOT}
+        component={MainRoutes}
+      />
+      <RootStack.Screen
+        name={Routes.RAMP.MODALS.ID}
+        component={TokenListModalsRoutes}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
+    </RootStack.Navigator>
+  </QueryClientProvider>
+);
 
 export default TokenListRoutes;

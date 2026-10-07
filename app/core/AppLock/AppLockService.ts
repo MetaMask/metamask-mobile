@@ -66,8 +66,6 @@ const holdsSecureFlagForRecents = (): boolean =>
  * screen works regardless of login state.
  * - `start()` / `stop()` on LOGIN / LOGOUT: enables / disables auto-lock and
  * the auth prompt on resume.
- * - `dangerousPauseAutoLock()` / `dangerousResumeAutoLock()`: dangerous stop-gap for Card and
- * Ramp. Most likely removed once navigation persistence lands.
  *
  * Concurrency: a single in-flight resume resolution. Any `active` event that
  * arrives while one is running (e.g. the system biometric sheet toggling
@@ -80,11 +78,6 @@ export class AppLockService {
 
   /** True between LOGIN and LOGOUT. */
   #isAutoLockEnabled = false;
-  /**
-   * True while Card or Ramp has paused auto-lock. Dangerous stop-gap; see
-   * `dangerousPauseAutoLock`.
-   */
-  #isAutoLockPaused = false;
 
   /** `Date.now()` when the app last entered `background`. */
   #backgroundedAt?: number;
@@ -148,40 +141,6 @@ export class AppLockService {
   };
 
   /**
-   * Suppresses auto-lock until `dangerousResumeAutoLock()`. The privacy cover still
-   * shows, but the wallet stays unlocked when the user comes back, which
-   * overrides their lock timeout for as long as the caller stays mounted.
-   *
-   * Card and Ramp use this so a third-party verification handoff does not
-   * reset navigation to Home. That is a stop-gap. Navigation persistence is
-   * expected to keep the flow in place across a lock, and these methods will
-   * most likely be removed in the next iteration. Do not add new callers.
-   *
-   * @deprecated Dangerous. Stop-gap until navigation persistence lands. Most
-   * likely removed in the next iteration.
-   */
-  dangerousPauseAutoLock = (): void => {
-    this.#isAutoLockPaused = true;
-    // A locked vault still has to finish authentication. Releasing the hold
-    // here would let a deeplink parse and then get wiped by the unlock
-    // navigation.
-    if (this.#lockPromise || !Engine.context.KeyringController.isUnlocked()) {
-      return;
-    }
-    this.#lockDecisionPending = false;
-  };
-
-  /**
-   * Restores auto-lock after `dangerousPauseAutoLock()`.
-   *
-   * @deprecated Dangerous. Stop-gap until navigation persistence lands. Most
-   * likely removed in the next iteration. See `dangerousPauseAutoLock`.
-   */
-  dangerousResumeAutoLock = (): void => {
-    this.#isAutoLockPaused = false;
-  };
-
-  /**
    * True from background until resume has either left the wallet unlocked or
    * finished the unlock prompt. Deeplink parsing must wait: a lock would
    * reset navigation, and unlock dispatches onboarding-complete before
@@ -197,7 +156,6 @@ export class AppLockService {
     this.#appStateSubscription = undefined;
     this.#lockDecisionPending = false;
     this.#isAutoLockEnabled = false;
-    this.#isAutoLockPaused = false;
     this.#backgroundedAt = undefined;
     this.#lockPromise = undefined;
     this.#resolveForegroundPromise = undefined;
@@ -315,7 +273,7 @@ export class AppLockService {
   #onBackground = (): void => {
     this.#backgroundedAt = Date.now();
 
-    if (!this.#isAutoLockEnabled || this.#isAutoLockPaused) {
+    if (!this.#isAutoLockEnabled) {
       return;
     }
 
@@ -405,7 +363,6 @@ export class AppLockService {
 
       if (
         KeyringController.isUnlocked() &&
-        !this.#isAutoLockPaused &&
         this.#isLockTimeActive(lockTime) &&
         Date.now() - backgroundedAt >= lockTime
       ) {

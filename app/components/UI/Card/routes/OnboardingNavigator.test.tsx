@@ -78,14 +78,6 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-jest.mock('../../../../core/AppLock/AppLockService', () => ({
-  __esModule: true,
-  default: {
-    dangerousPauseAutoLock: jest.fn(),
-    dangerousResumeAutoLock: jest.fn(),
-  },
-}));
-
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');
 jest.mock('../components/Onboarding/ConfirmEmail', () => 'ConfirmEmail');
