@@ -1,9 +1,9 @@
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
 import {
-  selectConversionRateBySymbol,
+  selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { getUsdToFiatConversionRate } from '../../Money/utils/moneyActivityFiat';
 import { UsdToFiatRate } from './fiat';
 
 /**
@@ -12,9 +12,7 @@ import { UsdToFiatRate } from './fiat';
 export function useUsdToFiatRate(): UsdToFiatRate {
   const currency = useSelector(selectCurrentCurrency);
   const normalizedCurrency = currency.toUpperCase();
-  const rate = useSelector((state: RootState) =>
-    selectConversionRateBySymbol(state, 'usd'),
-  );
+  const currencyRates = useSelector(selectCurrencyRates);
 
   if (normalizedCurrency === 'USD') {
     return { currency: 'USD', rate: 1 };
@@ -22,6 +20,6 @@ export function useUsdToFiatRate(): UsdToFiatRate {
 
   return {
     currency: normalizedCurrency,
-    rate: rate > 0 ? rate : undefined,
+    rate: getUsdToFiatConversionRate(currencyRates),
   };
 }

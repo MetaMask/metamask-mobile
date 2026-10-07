@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import {
-  selectConversionRateBySymbol,
+  selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { useUsdToFiatRate } from './useUsdToFiatRate';
@@ -11,14 +11,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectConversionRateBySymbol: jest.fn(),
+  selectCurrencyRates: jest.fn(),
   selectCurrentCurrency: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockSelectConversionRateBySymbol = jest.mocked(
-  selectConversionRateBySymbol,
-);
+const mockSelectCurrencyRates = jest.mocked(selectCurrencyRates);
 const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
 
 describe('useUsdToFiatRate', () => {
@@ -28,10 +26,13 @@ describe('useUsdToFiatRate', () => {
       if (selector === selectCurrentCurrency) {
         return mockSelectCurrentCurrency({} as never);
       }
+      if (selector === selectCurrencyRates) {
+        return mockSelectCurrencyRates({} as never);
+      }
       return selector({} as never);
     });
     mockSelectCurrentCurrency.mockReturnValue('USD');
-    mockSelectConversionRateBySymbol.mockReturnValue(0);
+    mockSelectCurrencyRates.mockReturnValue({});
   });
 
   it('returns a rate of one for USD', () => {
@@ -44,20 +45,26 @@ describe('useUsdToFiatRate', () => {
 
   it('returns the USD-to-EUR rate when EUR is selected', () => {
     mockSelectCurrentCurrency.mockReturnValue('eur');
-    mockSelectConversionRateBySymbol.mockReturnValue(0.92);
+    mockSelectCurrencyRates.mockReturnValue({
+      ETH: {
+        conversionRate: 2300,
+        usdConversionRate: 2500,
+      },
+    });
 
     const { result } = renderHook(() => useUsdToFiatRate());
 
     expect(result.current).toEqual({ currency: 'EUR', rate: 0.92 });
-    expect(mockSelectConversionRateBySymbol).toHaveBeenCalledWith(
-      expect.anything(),
-      'usd',
-    );
   });
 
   it('treats a missing EUR rate as undefined', () => {
     mockSelectCurrentCurrency.mockReturnValue('EUR');
-    mockSelectConversionRateBySymbol.mockReturnValue(0);
+    mockSelectCurrencyRates.mockReturnValue({
+      ETH: {
+        conversionRate: 0,
+        usdConversionRate: 2500,
+      },
+    });
 
     const { result } = renderHook(() => useUsdToFiatRate());
 
