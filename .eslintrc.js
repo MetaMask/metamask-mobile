@@ -780,6 +780,51 @@ module.exports = {
         ],
       },
     },
+    {
+      // The MFA engine moves to a core package shared with the extension.
+      files: ['app/util/identity/mfa/engine/**/*.{ts,tsx}'],
+      excludedFiles: ['app/util/identity/mfa/engine/**/*.test.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: [
+                  'react-native',
+                  'react-native-*',
+                  'expo-*',
+                  '@react-navigation/*',
+                  'react-redux',
+                  '**/core/Engine',
+                  '**/core/Engine/**',
+                  '**/selectors/**',
+                  '**/store/**',
+                  '**/component-library/**',
+                  '**/components/**',
+                ],
+                message:
+                  'The MFA engine must stay platform-agnostic: take clients through ports in engine/types.ts.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ['app/**/*.{js,jsx,ts,tsx}'],
+      excludedFiles: ['app/util/identity/mfa/**'],
+      rules: {
+        'no-restricted-properties': [
+          'error',
+          {
+            property: 'getVerificationToken',
+            message:
+              'Get verification tokens from useMfa().verifyOrEnroll: it reuses a live session and shows the MFA screens when there is none.',
+          },
+        ],
+      },
+    },
   ],
 
   globals: {
