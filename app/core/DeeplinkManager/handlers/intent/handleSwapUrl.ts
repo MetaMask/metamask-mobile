@@ -23,6 +23,7 @@ import {
 } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 import Engine from '../../../Engine';
+import { resetSwapSessionBeforeDeeplink } from '../../utils/resetSwapSessionBeforeDeeplink';
 import { isHex } from 'viem';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import {
@@ -255,6 +256,7 @@ export const createSwapDeeplinkIntent = async ({
   swapPath,
 }: HandleSwapUrlParams): Promise<DeeplinkIntent> => ({
   target: await resolveSwapTarget(swapPath),
+  prepare: resetSwapSessionBeforeDeeplink,
 });
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
@@ -263,6 +265,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   } catch (error) {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
+    resetSwapSessionBeforeDeeplink();
     const params = startSwapBridgePageLoadTrace({
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,

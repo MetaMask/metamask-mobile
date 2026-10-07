@@ -413,6 +413,11 @@ import {
   type LimitOrdersDataServiceActions,
   type LimitOrdersDataServiceEvents,
 } from '../../components/UI/Bridge/services/LimitOrdersDataService';
+import {
+  SentinelFeeTokensDataService,
+  type SentinelFeeTokensDataServiceActions,
+  type SentinelFeeTokensDataServiceEvents,
+} from '../../components/UI/Bridge/services/SentinelFeeTokensDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -748,6 +753,7 @@ export type GlobalActions =
   | PredictOrderServiceActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
+  | SentinelFeeTokensDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -874,6 +880,7 @@ export type GlobalEvents =
   | PredictOrderServiceEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
+  | SentinelFeeTokensDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -1039,6 +1046,7 @@ export type MessengerClients = {
   PredictOrderService: PredictOrderService;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
+  SentinelFeeTokensDataService: SentinelFeeTokensDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1255,6 +1263,7 @@ export type MessengerClientsToInitialize =
   | 'PredictOrderService'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
+  | 'SentinelFeeTokensDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'

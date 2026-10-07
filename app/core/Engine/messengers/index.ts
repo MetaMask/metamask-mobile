@@ -61,6 +61,7 @@ import {
 } from './predict-portfolio-service-messenger';
 import { getRecurringOrdersDataServiceMessenger } from './recurring-orders-data-service-messenger';
 import { getLimitOrdersDataServiceMessenger } from './limit-orders-data-service-messenger';
+import { getSentinelFeeTokensDataServiceMessenger } from './sentinel-fee-tokens-data-service-messenger';
 import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
@@ -394,6 +395,10 @@ export const MESSENGER_FACTORIES = {
   },
   LimitOrdersDataService: {
     getMessenger: getLimitOrdersDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SentinelFeeTokensDataService: {
+    getMessenger: getSentinelFeeTokensDataServiceMessenger,
     getInitMessenger: noop,
   },
   BridgeController: {
