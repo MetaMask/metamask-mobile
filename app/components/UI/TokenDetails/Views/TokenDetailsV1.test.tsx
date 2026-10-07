@@ -21,6 +21,9 @@ import {
 } from '../hooks/useLivePriceHeaderDescription';
 import type { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
+import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.testIds';
+import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
+import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import {
   StatBarSelectors,
@@ -378,11 +381,11 @@ describe('TokenDetailsV1', () => {
 
     // Only the default tab is mounted initially.
     expect(getByTestId('mock-overview')).toBeTruthy();
-    expect(queryByTestId('token-details-v1-tab-panel-security')).toBeNull();
+    expect(queryByTestId(SecurityTabSelectors.TAB)).toBeNull();
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
 
-    expect(getByTestId('token-details-v1-tab-panel-security')).toBeTruthy();
+    expect(getByTestId(SecurityTabSelectors.TAB)).toBeTruthy();
   });
 
   it('renders the security & social row inside the price hero slot, with the mocked security verdict', () => {
@@ -448,10 +451,66 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId(SecurityPillSelectors.VERDICT));
 
-    expect(
-      getByTestId('token-details-v1-tab-panel-security'),
-    ).toBeOnTheScreen();
+    expect(getByTestId(SecurityTabSelectors.TAB)).toBeOnTheScreen();
     expect(getByText('security:true')).toBeOnTheScreen();
+  });
+
+  // The sheet is hosted here rather than inside SecurityTab because the design
+  // system `BottomSheet` is positioned `absolute inset-0` against its nearest
+  // positioned ancestor instead of being portalled. Mounted inside the page
+  // ScrollView it gets clipped to the viewport and scrolls away with the
+  // content, so these two tests are what keep it out here.
+  describe('security explainer sheet', () => {
+    const openSecurityTab = () => {
+      const utils = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+      fireEvent.press(utils.getByTestId('token-details-v1-tab-security'));
+      return utils;
+    };
+
+    it('opens the tapped row’s definition', () => {
+      const { getByTestId, queryByTestId } = openSecurityTab();
+
+      expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+
+      fireEvent.press(
+        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+      );
+
+      expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+        'Top 10 holders',
+      );
+    });
+
+    it('mounts the sheet outside the scrolling page content', () => {
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(
+        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+      );
+
+      expect(
+        within(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID)).queryByTestId(
+          TokenExplainerSheetSelectors.SHEET,
+        ),
+      ).toBeNull();
+      expect(getByTestId(TokenExplainerSheetSelectors.SHEET)).toBeOnTheScreen();
+    });
+
+    it('closes the sheet again', () => {
+      const { getByTestId, queryByTestId } = openSecurityTab();
+
+      fireEvent.press(
+        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.Created)),
+      );
+      fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
+
+      expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+    });
   });
 
   it('offers the contract address for copying', () => {
@@ -492,7 +551,7 @@ describe('TokenDetailsV1', () => {
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
 
     expect(getByText('security:true')).toBeTruthy();
-    expect(getByTestId('token-details-v1-tab-panel-security')).toBeTruthy();
+    expect(getByTestId(SecurityTabSelectors.TAB)).toBeTruthy();
 
     fireEvent.press(getByTestId('token-details-v1-tab-overview'));
 

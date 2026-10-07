@@ -48,11 +48,14 @@ import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
-import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
+import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
+import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
+import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
 import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
 import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
+import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
@@ -72,6 +75,12 @@ import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
+import {
+  MOCK_SECURITY_FACTS_EVM,
+  MOCK_SECURITY_FACTS_SOLANA,
+  MOCK_SECURITY_FLAG_COUNT,
+  MOCK_SECURITY_VERDICT,
+} from '../mocks/tokenDetailsV1Mocks';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
@@ -89,14 +98,6 @@ export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
  * tab content scroll under it.
  */
 export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
-
-/**
- * TODO(ASSETS-4018): replace with the real verdict and flag count once
- * security data is available. Change these values locally to preview the other
- * states; the count is only rendered for `medium_risk`.
- */
-const MOCK_SECURITY_VERDICT: SecurityVerdict = 'screened';
-const MOCK_SECURITY_FLAG_COUNT = 1;
 
 /**
  * TODO(ASSETS-4016): replace with the token's real age once the API platform
@@ -124,9 +125,9 @@ const ShareTokenBottomSheetController = forwardRef<
 ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
 
 /**
- * Lightweight placeholder panel for the Security / Feed tabs. Their content
- * ships with follow-up stories (ASSETS-4022 / ASSETS-4021) — the tab bar is
- * rendered "as is" so navigation and layout stay final.
+ * Lightweight placeholder panel for the Feed tab, whose content ships with
+ * ASSETS-4021 — the tab bar is rendered "as is" so navigation and layout stay
+ * final.
  */
 const TokenDetailsV1TabPlaceholder = ({
   tab,
@@ -304,6 +305,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
 
+  /**
+   * Security row whose definition is open, held here rather than inside
+   * `SecurityTab` because the sheet it drives has to mount outside the page
+   * `ScrollView` — see the note on `SecurityTabProps.onExplain`.
+   */
+  const [explainedSecurityRow, setExplainedSecurityRow] =
+    useState<SecurityRowKey | null>(null);
+
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
       if (!mountedTabs.has(tab)) {
@@ -319,9 +328,34 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         );
       }
+      if (tab === 'security') {
+        // TODO(ASSETS-4022): replace with real facts derived from
+        // `securityData`. The fixture is chosen by chain because the two
+        // namespaces render materially different tabs — Solana has no fee or
+        // creation data at all — so a single fixture would leave one of them
+        // unverified.
+        return (
+          <SecurityTab
+            facts={
+              isNonEvmChainId(token.chainId as string)
+                ? MOCK_SECURITY_FACTS_SOLANA
+                : MOCK_SECURITY_FACTS_EVM
+            }
+            onExplain={setExplainedSecurityRow}
+          />
+        );
+      }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
     [mountedTabs, token, caip19AssetId, currentCurrency, securityData],
+  );
+
+  const explainedSecurityCopy = explainedSecurityRow
+    ? SECURITY_EXPLAINER_KEYS[explainedSecurityRow]
+    : null;
+  const handleSecurityExplainerClose = useCallback(
+    () => setExplainedSecurityRow(null),
+    [],
   );
 
   const currentPriceUsd = useMemo(() => {
@@ -472,6 +506,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             </ScrollView>
           )}
         </PriceChartContext.Consumer>
+
+        {/* Both sheets sit outside the ScrollView on purpose: the design
+            system `BottomSheet` is positioned `absolute inset-0` against its
+            nearest positioned ancestor instead of being portalled, so mounting
+            one inside the scroll content would clip it to the viewport and
+            scroll it away with the page. */}
+        {explainedSecurityCopy && (
+          <TokenExplainerSheet
+            title={strings(explainedSecurityCopy.title)}
+            description={strings(explainedSecurityCopy.description)}
+            onClose={handleSecurityExplainerClose}
+          />
+        )}
 
         {shareUrl && (
           <ShareTokenBottomSheetController

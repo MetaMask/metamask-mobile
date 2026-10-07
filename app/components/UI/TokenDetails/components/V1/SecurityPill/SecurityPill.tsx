@@ -96,10 +96,9 @@ export interface SecurityPillProps {
    */
   flagCount?: number;
   /**
-   * Opens the Security tab, where the individual flags are listed.
-   *
-   * TODO(ASSETS-4022): wire to the V1 Security tab once it exists. The pill
-   * renders as static text until then.
+   * Opens the Security tab, where the individual flags are listed. The pill
+   * renders as static text when omitted, which is how the tab's own header
+   * reuses it.
    */
   onPress?: () => void;
 }
