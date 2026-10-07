@@ -344,6 +344,105 @@ describe('submitSmartTransactionHook', () => {
     );
   });
 
+  it('falls back to regular transaction submit if the getFees call fails', async () => {
+    withRequest(
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        jest
+          .spyOn(request.smartTransactionsController, 'getFees')
+          .mockRejectedValue(
+            Object.assign(new Error('Failed to get fees'), {
+              data: { error: 'INTERNAL_SERVER_ERROR' },
+            }),
+          );
+
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        const result = await submitSmartTransactionHook(request);
+
+        expect(result).toEqual({
+          transactionHash: undefined,
+          getFeesError: 'INTERNAL_SERVER_ERROR',
+        });
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledTimes(0);
+        expect(submitSignedTransactionsSpy).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  it('falls back to regular transaction submit if the getFees call fails with a string error', async () => {
+    withRequest(
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        jest
+          .spyOn(request.smartTransactionsController, 'getFees')
+          .mockRejectedValue(
+            Object.assign(new Error('Failed to get fees'), {
+              data: 'INTERNAL_SERVER_ERROR',
+            }),
+          );
+
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        const result = await submitSmartTransactionHook(request);
+
+        expect(result).toEqual({
+          transactionHash: undefined,
+          getFeesError: 'Failed to get fees',
+        });
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledTimes(0);
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).not.toHaveBeenCalled();
+        expect(submitSignedTransactionsSpy).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   it('sets the status refresh interval if provided in feature flags', async () => {
     withRequest(async ({ request, smartTransactionsController }) => {
       const setStatusRefreshIntervalSpy = jest.spyOn(
