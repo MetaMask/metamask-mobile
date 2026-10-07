@@ -66,6 +66,9 @@ import {
 } from '../types';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
+import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 
 const mockUseQuickBuyAnalytics = useQuickBuyAnalytics as jest.MockedFunction<
   typeof useQuickBuyAnalytics
@@ -104,6 +107,7 @@ const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockToAssetId = toAssetId as jest.MockedFunction<typeof toAssetId>;
 
+const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
 const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
@@ -285,6 +289,11 @@ const setupDefaultMocks = () => {
     'eip155:1/erc20:0x0000000000000000000000000000000000000000',
   );
   mockGoToBuy.mockResolvedValue(undefined);
+  mockAddPopularNetwork.mockResolvedValue(undefined);
+  (useAddPopularNetwork as jest.Mock).mockReturnValue({
+    addPopularNetwork: mockAddPopularNetwork,
+  });
+  (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
 };
 
 export const runQuickBuyControllerCases = ({
@@ -4348,6 +4357,117 @@ export const runQuickBuyControllerCases = ({
         const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.usdToCurrentCurrencyRate).toBe(2);
+      });
+    });
+
+    describe('auto-add missing network', () => {
+      const baseReceiveToken = createSourceToken({
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: '0x2105',
+        symbol: 'USDC',
+      });
+
+      it('adds a missing popular network without switching when a receive token is selected', () => {
+        const baseNetwork = PopularList.find(
+          (network) => network.chainId === '0x2105',
+        );
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        act(() => {
+          result.current.handleSelectReceiveToken(baseReceiveToken);
+        });
+
+        expect(mockAddPopularNetwork).toHaveBeenCalledTimes(1);
+        expect(mockAddPopularNetwork).toHaveBeenCalledWith(baseNetwork, false);
+      });
+
+      it('does not add the network when the receive token chain is already configured', () => {
+        (selectNetworkConfigurations as unknown as jest.Mock).mockReturnValue({
+          '0x1': { nativeCurrency: 'ETH' },
+          '0x2105': { nativeCurrency: 'ETH' },
+        });
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        act(() => {
+          result.current.handleSelectReceiveToken(baseReceiveToken);
+        });
+
+        expect(mockAddPopularNetwork).not.toHaveBeenCalled();
+      });
+
+      it('prices the estimated receive fiat with a fetched rate when the default receive token is unpriced', async () => {
+        (getTokenExchangeRate as jest.Mock).mockResolvedValue(0.99);
+        mockUsePositionTokenBalance.mockReturnValue(createSourceToken());
+        mockUseReceiveTokens.mockReturnValue([
+          { ...baseReceiveToken, currencyExchangeRate: undefined },
+        ]);
+
+        renderHook(createTarget(), jest.fn(), undefined, undefined, 'sell');
+        await act(() => Promise.resolve());
+
+        expect(getTokenExchangeRate).toHaveBeenCalledWith({
+          chainId: '0x2105',
+          tokenAddress: baseReceiveToken.address,
+          currency: 'USD',
+        });
+        expect(jest.mocked(useDisplayCurrencyValue)).toHaveBeenLastCalledWith(
+          undefined,
+          expect.objectContaining({
+            chainId: '0x2105',
+            currencyExchangeRate: 0.99,
+          }),
+        );
+      });
+    });
+
+    describe('receive token rate fetch', () => {
+      it('ignores a stale rate response after the receive token changes', async () => {
+        let resolveStaleRate: (rate: number) => void = jest.fn();
+        (getTokenExchangeRate as jest.Mock)
+          .mockReturnValueOnce(
+            new Promise((resolve) => {
+              resolveStaleRate = resolve;
+            }),
+          )
+          .mockResolvedValueOnce(0.99);
+        mockUsePositionTokenBalance.mockReturnValue(createSourceToken());
+        mockUseReceiveTokens.mockReturnValue([
+          createSourceToken({
+            address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+            chainId: '0xa',
+            symbol: 'USDT',
+            currencyExchangeRate: undefined,
+          }),
+        ]);
+        const { result } = renderHook(
+          createTarget(),
+          jest.fn(),
+          undefined,
+          undefined,
+          'sell',
+        );
+
+        act(() => {
+          result.current.handleSelectReceiveToken(
+            createSourceToken({
+              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+              chainId: '0x2105',
+              symbol: 'USDC',
+              currencyExchangeRate: undefined,
+            }),
+          );
+        });
+        await act(() => Promise.resolve());
+        resolveStaleRate(1.5);
+        await act(() => Promise.resolve());
+
+        expect(jest.mocked(useDisplayCurrencyValue)).toHaveBeenLastCalledWith(
+          undefined,
+          expect.objectContaining({
+            chainId: '0x2105',
+            currencyExchangeRate: 0.99,
+          }),
+        );
       });
     });
 
