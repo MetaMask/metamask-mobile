@@ -41,6 +41,7 @@ import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import Logger from '../../../../../util/Logger';
 import {
+  BOTTOM_SHEET_NAMES,
   SCREEN_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -51,6 +52,7 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
@@ -77,6 +79,9 @@ const MoneyBalanceCard = () => {
     selectHasWalletFundingPrimaryCta,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
 
   const {
     trackButtonClicked,
@@ -108,6 +113,14 @@ const MoneyBalanceCard = () => {
     !isBalanceFetchError &&
     !isUnavailable &&
     totalFiatRaw === '0';
+  const hasResolvedNonZeroBalance =
+    hasMoneyAccount &&
+    !isBalanceLoading &&
+    !isBalanceFetchError &&
+    totalFiatRaw !== undefined &&
+    totalFiatRaw !== '0';
+  const shouldRenderCard =
+    isMoneyAccountGeoEligible || hasResolvedNonZeroBalance;
 
   const balanceText = totalFiatFormatted ?? '';
 
@@ -136,31 +149,47 @@ const MoneyBalanceCard = () => {
   }
 
   useEffect(() => {
-    if (hasSeenMoneyCardRef.current) {
+    if (!shouldRenderCard || hasSeenMoneyCardRef.current) {
       return;
     }
     hasSeenMoneyCardRef.current = true;
     trackComponentViewed();
-  }, [trackComponentViewed]);
+  }, [shouldRenderCard, trackComponentViewed]);
+
+  const navigateToGeoBlockSheet = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+  }, [navigation]);
 
   const handleCardPress = useCallback(() => {
     trackSurfaceClicked({
-      redirect_target:
-        hasSeenMoneyOnboarding || !isOnboardingEnabled
+      redirect_target: !isMoneyAccountGeoEligible
+        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+        : hasSeenMoneyOnboarding || !isOnboardingEnabled
           ? SCREEN_NAMES.MONEY_HOME
           : SCREEN_NAMES.MONEY_ONBOARDING,
     });
+
+    if (!isMoneyAccountGeoEligible) {
+      navigateToGeoBlockSheet();
+      return;
+    }
+
     navigateToMoneyHome();
   }, [
     hasSeenMoneyOnboarding,
+    isMoneyAccountGeoEligible,
     isOnboardingEnabled,
+    navigateToGeoBlockSheet,
     navigateToMoneyHome,
     trackSurfaceClicked,
   ]);
 
   const handleAddPress = useCallback(async () => {
+    const redirectedToGeoBlock = !isMoneyAccountGeoEligible;
     const redirectedToOnboarding =
-      !hasSeenMoneyOnboarding && isOnboardingEnabled;
+      !redirectedToGeoBlock && !hasSeenMoneyOnboarding && isOnboardingEnabled;
 
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -168,10 +197,17 @@ const MoneyBalanceCard = () => {
         ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
         : MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: buttonLabelKey,
-      redirect_target: redirectedToOnboarding
-        ? SCREEN_NAMES.MONEY_ONBOARDING
-        : SCREEN_NAMES.MONEY_DEPOSIT,
+      redirect_target: redirectedToGeoBlock
+        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+        : redirectedToOnboarding
+          ? SCREEN_NAMES.MONEY_ONBOARDING
+          : SCREEN_NAMES.MONEY_DEPOSIT,
     });
+
+    if (redirectedToGeoBlock) {
+      navigateToGeoBlockSheet();
+      return;
+    }
 
     if (redirectedToOnboarding) {
       navigation.navigate(Routes.MONEY.ONBOARDING, {
@@ -192,8 +228,10 @@ const MoneyBalanceCard = () => {
   }, [
     hasSeenMoneyOnboarding,
     initiateDeposit,
+    isMoneyAccountGeoEligible,
     isOnboardingEnabled,
     navigation,
+    navigateToGeoBlockSheet,
     trackButtonClicked,
   ]);
 
@@ -206,6 +244,10 @@ const MoneyBalanceCard = () => {
       screen: Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET,
     });
   }, [navigation, trackTooltipClicked]);
+
+  if (!shouldRenderCard) {
+    return null;
+  }
 
   const renderBalanceSlot = () => {
     if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
