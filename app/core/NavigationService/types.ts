@@ -355,6 +355,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -377,6 +379,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     };
 
 /**
