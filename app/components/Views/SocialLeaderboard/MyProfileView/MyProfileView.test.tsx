@@ -13,7 +13,10 @@ import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
 import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
-import type { UseTraderPositionsResult } from '../TraderProfileView/hooks/useTraderPositions';
+import type {
+  UseTraderPositionsOptions,
+  UseTraderPositionsResult,
+} from '../TraderProfileView/hooks/useTraderPositions';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -41,7 +44,10 @@ const mockUseMyProfileAddress = jest.fn<string | undefined, []>(
   () => '0xselected',
 );
 const mockUseTraderProfile = jest.fn<UseTraderProfileResult, []>();
-const mockUseTraderPositions = jest.fn<UseTraderPositionsResult, []>();
+const mockUseTraderPositions = jest.fn<
+  UseTraderPositionsResult,
+  [string, UseTraderPositionsOptions?]
+>();
 const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
@@ -67,7 +73,10 @@ jest.mock('./hooks', () => ({
 
 jest.mock('../TraderProfileView/hooks', () => ({
   useTraderProfile: () => mockUseTraderProfile(),
-  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
+  useTraderPositions: (
+    addressOrId: string,
+    options?: UseTraderPositionsOptions,
+  ) => mockUseTraderPositions(addressOrId, options),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
