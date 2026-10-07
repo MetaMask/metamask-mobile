@@ -1,0 +1,112 @@
+# Non-blocking shadow experiment for spec-006 (PR CI unit/CV benchmark).
+# NOT required for merge. Do not add to check-all-jobs-pass.
+# Compares one unit shard (and optional CV shard) with coverage on vs off.
+name: CI unit/CV coverage experiment
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ci-unit-cv-experiment.yml'
+  workflow_dispatch:
+    inputs:
+      run_cv:
+        description: 'Also run one Component view shard matrix'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+concurrency:
+  group: ci-unit-cv-experiment-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-coverage-matrix:
+    name: Unit experiment coverage=${{ matrix.coverage }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        coverage: ['true', 'false']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Project setup
+        run: yarn setup:github-ci --node
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - name: Run unit shard 1 (coverage=${{ matrix.coverage }})
+        id: unit
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
+        run: |
+          set -euo pipefail
+          START=$(date +%s)
+          if [ "${{ matrix.coverage }}" = "true" ]; then
+            yarn test:unit --shard=1/10 --workerIdleMemoryLimit=2GB --forceExit --silent \
+              --coverageReporters=json \
+              --json --outputFile=tests/results/unit-experiment-coverage-true.json
+          else
+            yarn test:unit --shard=1/10 --workerIdleMemoryLimit=2GB --forceExit --silent \
+              --coverage=false \
+              --json --outputFile=tests/results/unit-experiment-coverage-false.json
+          fi
+          END=$(date +%s)
+          echo "duration_seconds=$((END - START))" >> "$GITHUB_OUTPUT"
+          echo "Unit shard 1 coverage=${{ matrix.coverage }} duration=$((END - START))s"
+
+  cv-coverage-matrix:
+    name: CV experiment coverage=${{ matrix.coverage }}
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_cv == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        coverage: ['true', 'false']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Project setup
+        run: yarn setup:github-ci --node
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - name: Run CV shard 1 (coverage=${{ matrix.coverage }})
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
+          TEST_OS: ios
+        run: |
+          set -euo pipefail
+          START=$(date +%s)
+          if [ "${{ matrix.coverage }}" = "true" ]; then
+            yarn test:view:ci --shard=1/4 \
+              --json --outputFile=tests/results/cv-experiment-coverage-true.json
+          else
+            yarn test:view:base --coverage=false \
+              --testPathPattern='.*\.view(\..*)?\.test\.(ts|tsx|js|jsx)$' \
+              --forceExit --silent --shard=1/4 \
+              --json --outputFile=tests/results/cv-experiment-coverage-false.json
+          fi
+          END=$(date +%s)
+          echo "CV shard 1 coverage=${{ matrix.coverage }} duration=$((END - START))s"
