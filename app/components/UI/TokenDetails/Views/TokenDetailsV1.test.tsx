@@ -6,9 +6,17 @@ import {
   TOKEN_DETAILS_V1_TEST_ID,
   TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID,
 } from './TokenDetailsV1';
-import type { TokenDetailsRouteParams } from '../constants/constants';
+import {
+  TokenDetailsVariant,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
+import {
+  StatBarSelectors,
+  StatExplainerSheetSelectors,
+} from '../components/V1/StatBar/StatBar.testIds';
+import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 
 const mockGoBack = jest.fn();
 
@@ -56,13 +64,23 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders the page', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeOnTheScreen();
   });
 
   it('navigates back when the back button is pressed', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     fireEvent.press(getByTestId(TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID));
 
@@ -70,7 +88,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders the security & social row with the mocked security verdict', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(
       getByTestId(SecuritySocialSectionSelectors.SECTION),
@@ -85,6 +108,7 @@ describe('TokenDetailsV1', () => {
     const { getByTestId } = render(
       <TokenDetailsV1
         token={{ ...baseToken, securityData: securityDataWithLinks }}
+        variant={TokenDetailsVariant.Memecoin}
       />,
     );
 
@@ -100,13 +124,23 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders no social links for a token without security data', () => {
-    const { queryByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(queryByTestId(SecuritySocialSectionSelectors.LINK_X)).toBeNull();
   });
 
   it('offers the contract address for copying', () => {
-    const { getByTestId } = render(<TokenDetailsV1 token={baseToken} />);
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
 
     expect(
       getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
@@ -116,11 +150,73 @@ describe('TokenDetailsV1', () => {
   // A native token's `address` is a placeholder, not something worth copying.
   it('hides the copy chip for a native token', () => {
     const { queryByTestId } = render(
-      <TokenDetailsV1 token={{ ...baseToken, isNative: true }} />,
+      <TokenDetailsV1
+        token={{ ...baseToken, isNative: true }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
 
     expect(
       queryByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
     ).toBeNull();
+  });
+
+  it('renders the stat bar for the variant it is given', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(getByTestId(StatBarSelectors.BAR)).toBeOnTheScreen();
+    expect(
+      getByTestId(StatBarSelectors.cell(TokenStatKey.MarketCap)),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render a stat explainer until a label is tapped', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+  });
+
+  it('opens the explainer for the stat whose label was tapped', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Holders)));
+
+    // Asserts the copy, not just that a sheet opened: the press has to carry
+    // which stat it was through to the sheet.
+    expect(getByTestId(StatExplainerSheetSelectors.TITLE)).toHaveTextContent(
+      'Holders',
+    );
+    expect(
+      getByTestId(StatExplainerSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent('Number of unique addresses holding this token.');
+  });
+
+  it('dismisses the explainer when the button is pressed', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Tax)));
+    fireEvent.press(getByTestId(StatExplainerSheetSelectors.GOT_IT_BUTTON));
+
+    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
   });
 });
