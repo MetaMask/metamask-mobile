@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, Linking, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Image, Linking, ScrollView, useWindowDimensions } from 'react-native';
 import {
   Text,
   TextVariant,
@@ -56,7 +56,10 @@ export const createV2VerifyIdentityNavDetails =
 const V2VerifyIdentity = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const { styles } = useStyles(styleSheet, {});
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const shortSide = Math.min(windowWidth, windowHeight);
+  const styleVars = useMemo(() => ({ shortSide }), [shortSide]);
+  const { styles } = useStyles(styleSheet, styleVars);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
   const { amount, currency, assetId, headlessSessionId } =

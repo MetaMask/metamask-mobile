@@ -1,21 +1,27 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions, TextStyle, Platform } from 'react-native';
+import { StyleSheet, TextStyle, Platform } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { getFontFamily, TextVariant } from '../../Texts/Text';
 import { typography } from '@metamask/design-tokens';
 
-const screenHeight = Dimensions.get('window').height;
+export interface ModalMandatoryStyleSheetVars {
+  windowHeight: number;
+}
+
 /**
  * Style sheet function for ModalConfirmation component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
- * @param params.vars Inputs that the style sheet depends on.
+ * @param params.vars Current window height, so the body resizes on rotation.
  * @returns StyleSheet object.
  */
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: ModalMandatoryStyleSheetVars;
+}) => {
+  const { theme, vars } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -45,7 +51,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       height: 32,
     },
-    bodyContainer: { height: screenHeight / 2, padding: 0 },
+    bodyContainer: { height: vars.windowHeight / 2, padding: 0 },
     checkboxContainer: {
       flexDirection: 'row',
       marginTop: 16,

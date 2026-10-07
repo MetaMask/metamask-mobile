@@ -1,11 +1,10 @@
 import React, { useMemo, useRef } from 'react';
-import { Dimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.8;
+const CARD_WIDTH_RATIO = 0.8;
 const CARD_HEIGHT = 220;
 const SKELETON_PLACEHOLDER_COUNT = 3;
 
@@ -36,6 +35,8 @@ function HorizontalCarousel<T>({
 }: HorizontalCarouselProps<T>) {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<T | undefined>>(null);
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = windowWidth * CARD_WIDTH_RATIO;
 
   const skeletonData = useMemo(
     () => Array.from<T | undefined>({ length: skeletonCount }),
@@ -52,7 +53,7 @@ function HorizontalCarousel<T>({
         return (
           <Box
             borderColor={BoxBorderColor.BorderDefault}
-            style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}
+            style={tw.style({ width: cardWidth, minHeight: CARD_HEIGHT })}
             twClassName={`rounded-2xl overflow-hidden ${
               !isLastItem ? 'pr-3' : ''
             }`}
@@ -78,7 +79,7 @@ function HorizontalCarousel<T>({
       horizontal
       pagingEnabled={false}
       showsHorizontalScrollIndicator={false}
-      snapToInterval={CARD_WIDTH}
+      snapToInterval={cardWidth}
       decelerationRate="fast"
       testID={testID ?? `${idPrefix}-flash-list`}
     />

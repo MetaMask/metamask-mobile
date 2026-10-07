@@ -82,8 +82,8 @@ const Root = ({ foxCode }: RootProps) => {
     SecureKeychain.init(foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
-    // Lock screen orientation to portrait on app start
-    ScreenOrientationService.lockToPortrait();
+    // Phones stay portrait. iPad rotates so landscape fills the screen.
+    ScreenOrientationService.lockToDefault();
     // Wait for store to be initialized in Detox tests
     if (isTestEnvironment) {
       waitForStore();

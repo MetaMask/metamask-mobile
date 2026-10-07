@@ -1,47 +1,53 @@
-import { Platform, StyleSheet, Dimensions } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
-
-// Responsive scaling utilities
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Platform-specific base dimensions
 const BASE_WIDTH = 375;
 const BASE_HEIGHT_IOS = 812; // iPhone X/11/12/13/14/15 Pro base
 const BASE_HEIGHT_ANDROID = 736; // Common Android base
+// Above every phone width (~1.3x), so only tablets are capped.
+const MAX_HORIZONTAL_SCALE = 1.5;
 
 // Calculate platform-aware scaling factors
 const isIOS = Platform.OS === 'ios';
 const baseHeight = isIOS ? BASE_HEIGHT_IOS : BASE_HEIGHT_ANDROID;
 
-const widthScale = screenWidth / BASE_WIDTH;
-const heightScale = screenHeight / baseHeight;
+export interface PerpsGTMModalWindowSize {
+  width: number;
+  height: number;
+}
 
-// Use more conservative scaling to prevent excessive padding
-const scale = Math.min(widthScale, heightScale);
-const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
+const createScalers = ({ width, height }: PerpsGTMModalWindowSize) => {
+  const widthScale = width / BASE_WIDTH;
+  const heightScale = height / baseHeight;
 
-// Platform-aware responsive scaling functions
-const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
-const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
+  // Use more conservative scaling to prevent excessive padding
+  const scale = Math.min(widthScale, heightScale);
+  const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
+  const horizontalScale = Math.min(widthScale, MAX_HORIZONTAL_SCALE);
 
-// For vertical spacing, use percentage of available height instead of pure scaling
-const scaleVertical = (size: number) => {
-  // Use percentage of screen height for more consistent spacing
-  const percentage = size / baseHeight;
-  return Math.ceil(screenHeight * percentage);
+  return {
+    scaleSize: (size: number) => Math.ceil(size * conservativeScale),
+    scaleFont: (size: number) => Math.ceil(size * conservativeScale),
+    // For vertical spacing, use percentage of available height instead of pure scaling
+    scaleVertical: (size: number) => Math.ceil(height * (size / baseHeight)),
+    scaleHorizontal: (size: number) => Math.ceil(size * horizontalScale),
+  };
 };
-
-const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
 
 const createStyles = (
   theme: Theme,
   isDarkMode: boolean,
+  windowSize: PerpsGTMModalWindowSize,
   titleFontSize?: number | null,
   subtitleFontSize?: number | null,
   useSystemFont?: boolean,
-) =>
-  StyleSheet.create({
+) => {
+  const { scaleSize, scaleFont, scaleVertical, scaleHorizontal } =
+    createScalers(windowSize);
+
+  return StyleSheet.create({
     pageContainer: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
@@ -126,5 +132,6 @@ const createStyles = (
       fontSize: scaleFont(16),
     },
   });
+};
 
 export default createStyles;

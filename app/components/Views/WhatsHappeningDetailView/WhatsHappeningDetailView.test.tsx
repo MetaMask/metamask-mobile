@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Dimensions, Pressable, View } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import MarketInsightsDisclaimerBottomSheet from '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
 import WhatsHappeningDetailView, {
-  CARD_WIDTH,
+  getCardWidth,
 } from './WhatsHappeningDetailView';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../../UI/WhatsHappening/constants';
 
 const GAP = 12;
+const CARD_WIDTH = getCardWidth(Dimensions.get('window').width);
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
 
 const mockEndTrace = jest.fn();
