@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { useIsNativeHeader, useNativeHeader } from './useNativeHeader';
@@ -16,8 +17,8 @@ jest.mock('../../../util/theme', () => ({
 }));
 
 const mockSetOptions = jest.fn();
-const leftItems = () => [];
-const rightItems = () => [];
+const leftItems = (): NativeStackHeaderItem[] => [];
+const rightItems = (): NativeStackHeaderItem[] => [];
 
 describe('useIsNativeHeader', () => {
   it('is on where the OS can draw Liquid Glass', () => {
@@ -87,6 +88,39 @@ describe('useNativeHeader', () => {
         unstable_headerLeftItems: undefined,
         unstable_headerRightItems: undefined,
       }),
+    );
+  });
+
+  it('updates the items without hiding the bar', () => {
+    const { rerender } = renderHook(
+      ({ items }: { items: () => NativeStackHeaderItem[] }) =>
+        useNativeHeader({ leftItems, rightItems: items }),
+      { initialProps: { items: rightItems } },
+    );
+    mockSetOptions.mockClear();
+    const nextRightItems = (): NativeStackHeaderItem[] => [];
+
+    rerender({ items: nextRightItems });
+
+    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerShown: true,
+        unstable_headerRightItems: nextRightItems,
+      }),
+    );
+  });
+
+  it('hides the native bar when the screen unmounts', () => {
+    const { unmount } = renderHook(() =>
+      useNativeHeader({ leftItems, rightItems }),
+    );
+    mockSetOptions.mockClear();
+
+    unmount();
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ headerShown: false }),
     );
   });
 });

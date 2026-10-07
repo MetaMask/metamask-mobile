@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import type { ViewStyle } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
   type NavigationProp,
@@ -15,12 +15,7 @@ import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
 const INTERIM_ACCOUNT_NAME_MAX_CHARS = 12;
 
-// UIKit draws the glass capsule around the item, so the picker drops its own fill.
-const nativeAccountPickerStyle: ViewStyle = {
-  backgroundColor: 'transparent',
-  paddingVertical: 0,
-  paddingHorizontal: 12,
-};
+export const INTERIM_ACCOUNT_PICKER_CLASS = 'bg-transparent px-3 py-0';
 
 export const formatInterimAccountName = (displayName: string): string => {
   // Array.from splits by code point so an emoji is never cut in half.
@@ -62,6 +57,12 @@ export const useWalletHeaderNativeHeader = ({
   isEnabled,
 }: WalletHeaderNativeHeaderParams): boolean => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const tw = useTailwind();
+  // Memoized so the header items keep a stable identity.
+  const accountPickerStyle = useMemo(
+    () => tw.style(INTERIM_ACCOUNT_PICKER_CLASS),
+    [tw],
+  );
 
   const handleAccountPickerPress = useCallback(() => {
     navigation.navigate(...createAccountSelectorNavDetails({}));
@@ -77,12 +78,12 @@ export const useWalletHeaderNativeHeader = ({
             onPress={handleAccountPickerPress}
             testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
             hitSlop={touchAreaSlop}
-            style={nativeAccountPickerStyle}
+            style={accountPickerStyle}
           />
         ),
       },
     ],
-    [displayName, handleAccountPickerPress, touchAreaSlop],
+    [accountPickerStyle, displayName, handleAccountPickerPress, touchAreaSlop],
   );
 
   // One custom item, so our spacing applies; UIKit still draws the glass

@@ -66,10 +66,14 @@ export const useNativeHeader = ({
       unstable_headerLeftItems: leftItems,
       unstable_headerRightItems: rightItems,
     });
-
-    // Hand the screen back to its JS header if the gate turns off.
-    return () => navigation.setOptions(HIDDEN_HEADER_OPTIONS);
   }, [isNativeHeader, navigation, colors.icon.default, leftItems, rightItems]);
+
+  useLayoutEffect(() => {
+    if (!isNativeHeader) {
+      return;
+    }
+    return () => navigation.setOptions(HIDDEN_HEADER_OPTIONS);
+  }, [isNativeHeader, navigation]);
 
   return isNativeHeader;
 };
