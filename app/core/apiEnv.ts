@@ -45,3 +45,25 @@ const AUTH_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
 
 /** `Env` enum value to hand to `AuthenticationController` / `profile-sync` SDK. */
 export const authEnv = (): Env => AUTH_ENV_BY_API_ENV[getApiEnv()];
+
+const SOCIAL_API_URL_BY_ENV: Record<ApiEnv, string> = {
+  [ApiEnv.Dev]: 'https://social.dev-api.cx.metamask.io',
+  [ApiEnv.Uat]: 'https://social.dev-api.cx.metamask.io',
+  [ApiEnv.Prod]: 'https://social.api.cx.metamask.io',
+};
+
+/**
+ * Social API host.
+ * An explicit `SOCIAL_API_URL` wins. When it is unset, the host follows
+ * `MM_API_ENV`: prod uses the production host, and dev and uat use the dev
+ * host. Social has no UAT host.
+ *
+ * @returns The Social API base URL, without a trailing slash requirement.
+ */
+export const socialApiUrl = (): string => {
+  const override = process.env.SOCIAL_API_URL?.trim();
+  if (override) {
+    return override;
+  }
+  return SOCIAL_API_URL_BY_ENV[getApiEnv()];
+};
