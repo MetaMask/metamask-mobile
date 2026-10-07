@@ -24,7 +24,10 @@ import PickerAccount from '../../../../../component-library/components/Pickers/P
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
 import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
-import { formatInterimAccountName } from './useWalletHeaderNativeHeader';
+import {
+  formatInterimAccountName,
+  INTERIM_ACCOUNT_PICKER_CLASS,
+} from './useWalletHeaderNativeHeader';
 import WalletHeaderInterimActions, {
   WalletHeaderMenuButton,
 } from './WalletHeaderInterimActions';
@@ -46,12 +49,6 @@ interface TouchAreaSlop {
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
 const hiddenSearchBarStyle: ViewStyle = { opacity: 0 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
-// The glass capsule supplies the height and fill, so the picker drops its own.
-const glassAccountPickerStyle: ViewStyle = {
-  backgroundColor: 'transparent',
-  paddingVertical: 0,
-  paddingHorizontal: 12,
-};
 
 export interface WalletHeaderProps {
   displayName: string;
@@ -229,7 +226,7 @@ const WalletHeader = ({
               onPress={handleAccountPickerPress}
               testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
               hitSlop={touchAreaSlop}
-              style={glassAccountPickerStyle}
+              style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
             />
           </GlassView>
         </View>
