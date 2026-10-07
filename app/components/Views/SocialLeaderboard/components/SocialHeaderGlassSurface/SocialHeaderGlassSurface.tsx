@@ -1,11 +1,9 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
 
 import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
-import { BLUR_INTENSITY } from '../../../../../component-library/hooks/useBlurMaterial';
 
 export interface SocialHeaderGlassSurfaceProps {
   children?: React.ReactNode;
@@ -14,9 +12,8 @@ export interface SocialHeaderGlassSurfaceProps {
 }
 
 /**
- * A header capsule drawn as Liquid Glass where the OS can render it, as a
- * blurred system material on older iOS, and as a plain section-coloured
- * capsule everywhere else. Same material rule as the
+ * A header capsule drawn as Liquid Glass where the OS can render it and as a
+ * plain section-coloured capsule everywhere else. Same material rule as the
  * glass trade menu, so the Social header matches the rest of the chrome.
  *
  * Children must not paint their own background on the glass path, or they
@@ -28,8 +25,7 @@ const SocialHeaderGlassSurface = ({
   testID,
 }: SocialHeaderGlassSurfaceProps) => {
   const tw = useTailwind();
-  const { isGlassEnabled, glassColorScheme, isBlurEnabled, blurTint } =
-    useLiquidGlass();
+  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
 
   if (isGlassEnabled) {
     return (
@@ -47,22 +43,6 @@ const SocialHeaderGlassSurface = ({
       >
         {children}
       </GlassView>
-    );
-  }
-
-  if (isBlurEnabled) {
-    return (
-      <BlurView
-        tint={blurTint}
-        intensity={BLUR_INTENSITY}
-        style={tw.style(
-          'h-10 flex-row items-center overflow-hidden rounded-full border border-muted',
-          twClassName,
-        )}
-        testID={testID}
-      >
-        {children}
-      </BlurView>
     );
   }
 
