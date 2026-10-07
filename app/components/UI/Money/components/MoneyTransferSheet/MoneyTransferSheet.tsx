@@ -221,9 +221,9 @@ const MoneyTransferSheet = () => {
       label: strings('money.transfer_sheet.send_external'),
       icon: IconName.Arrow2Up,
       testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
-      onPress: handleSendExternal, // isRescueSendAvailable ? handleSendExternal : undefined,
-      disabled: false, // !isRescueSendAvailable,
-      comingSoon: false, // !isRescueSendAvailable,
+      onPress: isRescueSendAvailable ? handleSendExternal : undefined,
+      disabled: !isRescueSendAvailable,
+      comingSoon: !isRescueSendAvailable,
     },
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
