@@ -9,12 +9,12 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from './LimitOrderCostToleranceInfoSheet.testIds';
-import type { LimitOrderCostToleranceInfoSheetProps } from './LimitOrderCostToleranceInfoSheet.types';
+import { LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs } from './LimitOrderAccountUpgradeFeeInfoSheet.testIds';
+import type { LimitOrderAccountUpgradeFeeInfoSheetProps } from './LimitOrderAccountUpgradeFeeInfoSheet.types';
 
-const LimitOrderCostToleranceInfoSheet = ({
+const LimitOrderAccountUpgradeFeeInfoSheet = ({
   goBack,
-}: LimitOrderCostToleranceInfoSheetProps) => {
+}: LimitOrderAccountUpgradeFeeInfoSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -24,29 +24,29 @@ const LimitOrderCostToleranceInfoSheet = ({
   return (
     <BottomSheet
       ref={sheetRef}
-      testID={LimitOrderCostToleranceInfoSheetSelectorsIDs.SHEET}
+      testID={LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
       <BottomSheetHeader
         onClose={closeSheet}
         closeButtonProps={{
-          testID: LimitOrderCostToleranceInfoSheetSelectorsIDs.CLOSE_BUTTON,
+          testID: LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
-        {strings('bridge.cost_tolerance')}
+        {strings('bridge.limit.account_upgrade_fee_info_title')}
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingBottom={4}>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="text-center"
-          testID={LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY}
+          testID={LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.BODY}
         >
-          {strings('bridge.cost_tolerance_tooltip_content')}
+          {strings('bridge.limit.account_upgrade_fee_info_body')}
         </Text>
       </Box>
     </BottomSheet>
   );
 };
 
-export default LimitOrderCostToleranceInfoSheet;
+export default LimitOrderAccountUpgradeFeeInfoSheet;

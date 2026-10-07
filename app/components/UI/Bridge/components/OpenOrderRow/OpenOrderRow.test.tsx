@@ -74,7 +74,7 @@ describe('OpenOrderRow', () => {
       'ETH → USDC',
     );
     expect(getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveTextContent(
-      'Expiry: 4d left',
+      strings('bridge.limit.expiry', { timeLeft: '4d left' }),
     );
     expect(getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveTextContent(
       '$208.99',

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import LimitOrderCostToleranceInfoSheet from './LimitOrderCostToleranceInfoSheet';
+import LimitOrderAccountUpgradeFeeInfoSheet from './LimitOrderAccountUpgradeFeeInfoSheet';
 
-export const LimitOrderCostToleranceInfoSheetScreen = () => {
+export const LimitOrderAccountUpgradeFeeInfoSheetScreen = () => {
   const { goBack } = useNavigation<AppNavigationProp>();
 
-  return <LimitOrderCostToleranceInfoSheet goBack={goBack} />;
+  return <LimitOrderAccountUpgradeFeeInfoSheet goBack={goBack} />;
 };
