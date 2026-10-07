@@ -590,6 +590,12 @@ const Wallet = ({
     };
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+    }, [dispatch]),
+  );
+
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
   // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
   useEffect(() => {

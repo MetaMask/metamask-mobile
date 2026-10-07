@@ -8,7 +8,9 @@ import {
   isMpcBackedMoneyAccount,
   type MpcBackedMoneyAccount,
 } from '../../../lib/Money/mpc-money-account';
+import Logger from '../../../util/Logger';
 
+const LOG_PREFIX = 'MpcMoneyAccountController';
 const MIGRATE_ACTION = 'MoneyAccountController:migrateMoneyAccountAddress';
 
 export { isMpcBackedMoneyAccount };
@@ -33,6 +35,7 @@ export class MpcMoneyAccountController extends MoneyAccountController {
         }
       | undefined;
 
+    Logger.log(LOG_PREFIX, 'registerActionHandler', MIGRATE_ACTION);
     messenger?.registerActionHandler?.(MIGRATE_ACTION, (address: string) => {
       this.migrateMoneyAccountAddress(address);
     });
@@ -44,6 +47,7 @@ export class MpcMoneyAccountController extends MoneyAccountController {
    * @param newAddress - The MPC keyring account address.
    */
   migrateMoneyAccountAddress(newAddress: string): void {
+    Logger.log(LOG_PREFIX, 'migrateMoneyAccountAddress', newAddress);
     const current = this.getMoneyAccount();
     if (!current) {
       throw new Error('No money account to migrate');

@@ -478,7 +478,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - MpcReactNative (0.1.0):
+  - MpcReactNative (0.2.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4275,7 +4275,7 @@ SPEC CHECKSUMS:
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: ee142214581f3bb68fbda7efcf07b835a189eeda
-  MpcReactNative: 86aab16f4ce0ef8f415749d19324a8bc7e1615c1
+  MpcReactNative: ac2b4a460129d7e4abbd337b3e925659ecdb5be9
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: b44527bd18cae3f8c16d641d1cfcc36adcdb5604

@@ -7,6 +7,7 @@ import type { Messenger } from '@metamask/messenger';
 import type { MoneyAccountControllerInitAction } from '@metamask/money-account-controller';
 import { isStrictHexString, type Hex } from '@metamask/utils';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import Logger from '../../../util/Logger';
 
 const serviceName = 'MoneyAccountMpcService';
 
@@ -42,6 +43,7 @@ export class MoneyAccountMpcService {
   readonly #messenger: MoneyAccountMpcMessenger;
 
   constructor({ messenger }: { messenger: MoneyAccountMpcMessenger }) {
+    Logger.log(serviceName, 'constructor');
     this.#messenger = messenger;
     this.#messenger.registerMethodActionHandlers(this, ['enableMfa']);
   }
@@ -52,6 +54,7 @@ export class MoneyAccountMpcService {
    * @returns The MPC keyring account address.
    */
   async enableMfa(): Promise<{ address: Hex }> {
+    Logger.log(serviceName, 'enableMfa');
     await this.#messenger.call('MoneyAccountController:init');
 
     const address = await this.#resolveMpcAddress();
@@ -74,6 +77,7 @@ export class MoneyAccountMpcService {
     if (isStrictHexString(existingAddress)) {
       return existingAddress;
     }
+    Logger.log(serviceName, 'resolveMpcAddress', existingAddress);
 
     const created = (await this.#messenger.call(
       'KeyringController:addNewKeyring',

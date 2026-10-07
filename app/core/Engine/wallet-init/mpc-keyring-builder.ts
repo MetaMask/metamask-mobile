@@ -6,14 +6,18 @@ import {
 import type { Keyring } from '@metamask/keyring-utils';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import type { Messenger } from '@metamask/messenger';
+import { dkls23Lib } from '@metamask/mpc-react-native';
 import type { MpcSigningMfaControllerRequestSigningConfirmationAction } from '../controllers/mpc-signing-mfa-controller';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import type { AuthenticationControllerGetBearerTokenAction } from '../messengers/identity/authentication-controller-messenger';
+import Logger from '../../../util/Logger';
+
+const LOG_PREFIX = 'MpcKeyringBuilder';
 
 const DEFAULT_MFA_CLOUD_SIGNER_URL =
   'https://mpc-service-non-enclave.dev-api.cx.metamask.io/v2';
 const DEFAULT_MFA_RELAYER_URL =
-  'wss://mm-sdk-relay.dev-api.cx.metamask.io/connection/websocket';
+  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket';
 
 export type MpcKeyringBuilderMessenger = Messenger<
   'MpcKeyringBuilder',
@@ -43,6 +47,8 @@ function readEnv(name: string, fallback: string): string {
 async function getBackupEncryptionKey(
   messenger: MpcKeyringBuilderMessenger,
 ): Promise<Uint8Array> {
+  Logger.log(LOG_PREFIX, 'getBackupEncryptionKey');
+
   const mnemonic = (await messenger.call(
     'KeyringController:withKeyringUnsafe',
     { type: KeyringTypes.hd },
@@ -66,11 +72,13 @@ async function getProfileToken(
   messenger: MpcKeyringBuilderMessenger,
   opts?: { twoFactor?: boolean; challenge?: Uint8Array },
 ): Promise<string> {
+  Logger.log(LOG_PREFIX, 'getProfileToken', opts);
   if (opts?.twoFactor && opts.challenge) {
     await messenger.call('MpcSigningMfaController:requestSigningConfirmation');
   }
 
   const token = await messenger.call('AuthenticationController:getBearerToken');
+  Logger.log(LOG_PREFIX, 'getProfileToken bearer token', token);
   if (!token) {
     throw new Error('Sign in to MetaMask before enabling MFA');
   }
@@ -80,8 +88,9 @@ async function getProfileToken(
 /**
  * Build the MPC keyring using the React Native DKLS23 implementation.
  *
- * The keyring and native library are loaded lazily so ordinary wallet startup
- * does not initialize MPC native code.
+ * The keyring class is loaded lazily. The React Native UniFFI entrypoint is
+ * imported at module initialization so it can install and initialize its
+ * native bindings before the library is used.
  *
  * @param messenger - Messenger used for authentication, MFA, and the backup key.
  * @returns An MPC keyring builder.
@@ -97,11 +106,6 @@ export function buildMpcKeyringBuilder(
     if (!MPCKeyring) {
       throw new Error('MPC keyring package did not export a constructor');
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { dkls23Lib } = require('@metamask/mpc-react-native') as {
-      dkls23Lib: unknown;
-    };
 
     return new MPCKeyring({
       getRandomBytes: (size) => {

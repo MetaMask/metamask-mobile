@@ -11002,23 +11002,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mpc-interface@file:./vendor/mpc/metamask-mpc-interface-0.1.0.tgz::locator=metamask%40workspace%3A.":
-  version: 0.1.0
-  resolution: "@metamask/mpc-interface@file:./vendor/mpc/metamask-mpc-interface-0.1.0.tgz#./vendor/mpc/metamask-mpc-interface-0.1.0.tgz::hash=68e423&locator=metamask%40workspace%3A."
-  checksum: 10/760b7bf05e36d6236add3b1ee35507ac7531f60d1a917a1bff83c62eea728cecba9ead814b18eb6d306661a68607ba4a6c3b829f85f46b689f1031cce2232973
+"@metamask/mpc-interface@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/mpc-interface@npm:0.2.0"
+  checksum: 10/9762cd1e932ae392f32fe3bc48805f10dc52b7aa544c58242fc28d0663b82403dffe3bc93140c47ae7d12f147e7ca1a737aa4989151612bd66ece84d6e01a76b
   languageName: node
   linkType: hard
 
-"@metamask/mpc-react-native@file:./vendor/mpc/metamask-mpc-react-native-0.1.0.tgz::locator=metamask%40workspace%3A.":
-  version: 0.1.0
-  resolution: "@metamask/mpc-react-native@file:./vendor/mpc/metamask-mpc-react-native-0.1.0.tgz#./vendor/mpc/metamask-mpc-react-native-0.1.0.tgz::hash=da7075&locator=metamask%40workspace%3A."
+"@metamask/mpc-react-native@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/mpc-react-native@npm:0.2.0"
   dependencies:
-    "@metamask/mpc-interface": "workspace:*"
+    "@metamask/mpc-interface": "npm:0.2.0"
     uniffi-bindgen-react-native: "npm:^0.31.0-2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/1fde6f20856e847c58cee353373752cb8d99cf421c379ab793fbfe5b98c75fc2705f30a7f6c4415e9405feb6342eea02f921e35b3bb0d392c3a38bf305476690
+  checksum: 10/3bc15c5236377a6c79c5c6d8dda55b8469bb5908100490191a026e57293943885008e6d14acfaa1d1ff9d6adaadf0e019bf3b346d54a938cb17dde18d875d036
   languageName: node
   linkType: hard
 
@@ -39426,8 +39426,8 @@ __metadata:
     "@metamask/money-account-controller": "npm:^1.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^3.0.0"
     "@metamask/money-account-utils": "npm:^1.0.0"
-    "@metamask/mpc-interface": ./vendor/mpc/metamask-mpc-interface-0.1.0.tgz
-    "@metamask/mpc-react-native": "file:./vendor/mpc/metamask-mpc-react-native-0.1.0.tgz"
+    "@metamask/mpc-interface": "npm:0.2.0"
+    "@metamask/mpc-react-native": "npm:0.2.0"
     "@metamask/multichain-account-service": "npm:^14.1.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"
