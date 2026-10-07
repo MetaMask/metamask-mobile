@@ -1750,5 +1750,24 @@ describe('TokenDetails', () => {
       );
       expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
     });
+
+    it('does not run legacy page hooks when it renders TokenDetailsV1', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).toHaveBeenCalled();
+      // A/B exposure events would otherwise be attributed to users who never
+      // see the legacy page, skewing those experiments.
+      expect(mockUseABTest).not.toHaveBeenCalled();
+      expect(mockUseTokenPrice).not.toHaveBeenCalled();
+      expect(mockUseTokenTransactions).not.toHaveBeenCalled();
+    });
   });
 });
