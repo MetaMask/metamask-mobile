@@ -96,16 +96,18 @@ describe('RefererHeroCard', () => {
     earningsLoading = false,
     earningsError = false,
     referralError = false,
+    referralCode = REFERRAL_CODE,
   }: {
     summary?: EarningsSummaryDto | null;
     earningsLoading?: boolean;
     earningsError?: boolean;
     referralError?: boolean;
+    referralCode?: typeof REFERRAL_CODE | null;
   } = {}) =>
     renderWithProvider(
       <RefererHeroCard
         profileId={PROFILE_ID}
-        referralCode={REFERRAL_CODE}
+        referralCode={referralCode}
         localizedText={LOCALIZED_TEXT}
       />,
       {
@@ -190,6 +192,15 @@ describe('RefererHeroCard', () => {
     );
 
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
+  });
+
+  it('shows a dash and hides Share when the referral code is missing', () => {
+    const { getByTestId, queryByTestId } = renderHero({ referralCode: null });
+
+    expect(
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE),
+    ).toHaveTextContent('-');
+    expect(queryByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON)).toBeNull();
   });
 
   it('shows a dash on metric cards when the summary failed without cached data', () => {
