@@ -4403,7 +4403,7 @@ export const runQuickBuyControllerCases = ({
         ]);
 
         renderHook(createTarget(), jest.fn(), undefined, undefined, 'sell');
-        await act(async () => undefined);
+        await act(() => Promise.resolve());
 
         expect(getTokenExchangeRate).toHaveBeenCalledWith({
           chainId: '0x2105',

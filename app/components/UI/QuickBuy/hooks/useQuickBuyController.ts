@@ -581,11 +581,13 @@ export function useQuickBuyController(
       chainId: destToken.chainId,
       tokenAddress: destToken.address,
       currency: currentCurrency,
-    }).then((rate) => {
-      if (typeof rate === 'number') {
-        setFetchedReceiveTokenRate({ key, rate });
-      }
-    });
+    })
+      .then((rate) => {
+        if (typeof rate === 'number') {
+          setFetchedReceiveTokenRate({ key, rate });
+        }
+      })
+      .catch(() => undefined);
   }, [tradeMode, destToken, currentCurrency]);
   // Display-only: must not feed quote fetching, or a rate update would refetch.
   const destTokenForFiat =
