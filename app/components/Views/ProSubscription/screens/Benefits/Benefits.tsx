@@ -272,7 +272,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           isDisabled={isCtaDisabled}
           isFullWidth
         >
-          {strings('pro_subscription.join_pro')}
+          {strings('pro_subscription.join_orange')}
         </Button>
       </Box>
 

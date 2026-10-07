@@ -11,10 +11,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
-import { useSocialEntryOptions } from '../../components/SocialEntryOptionsBottomSheet';
-import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import SocialTraderIdentityRow from '../../components/SocialTraderIdentityRow';
+import { useSocialEntryOptions } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { getSocialEntryOptionsTriggerTestId } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
+import SocialTraderIdentityRow from '../../../../UI/SocialFeed/components/SocialTraderIdentityRow';
 import LiveTradeCardTitle from './LiveTradeCardTitle';
 import type { LiveTradeRowModel } from '../types';
 import LiveTradeCardSurface from './LiveTradeCardSurface';

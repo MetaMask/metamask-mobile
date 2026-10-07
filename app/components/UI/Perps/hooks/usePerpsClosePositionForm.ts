@@ -867,7 +867,7 @@ export function usePerpsClosePositionForm(
     return validationResult.errors.filter(
       (err) =>
         err.startsWith(minimumAmountErrorPrefix) ||
-        err === limitPriceTooFarError,
+        err.startsWith(limitPriceTooFarError),
     );
   }, [validationResult.errors]);
 
