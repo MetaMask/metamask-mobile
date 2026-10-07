@@ -33,6 +33,10 @@ class AppDelegate: ExpoAppDelegate {
   @objc static var braze: Braze?
   @objc static var apnsDeviceToken: Data?
   @objc static var brazePushRegistrationRequested = false
+  /// True after this process has passed the APNs token to Braze for opt-in.
+  /// The Swift SDK drops that token on the next launch, and also after a
+  /// rate-limited `unregisterPush`, so a later unregister must load it again.
+  @objc static var brazeHasPushTokenInProcess = false
 
   // Detox's `+[ReactNativeSupport reloadApp]` does
   // `[appDelegate valueForKey:@"rootViewFactory"]` to grab RN's RootViewFactory
@@ -179,7 +183,11 @@ class AppDelegate: ExpoAppDelegate {
     AppDelegate.apnsDeviceToken = deviceToken
     if AppDelegate.brazePushRegistrationRequested {
       AppDelegate.braze?.notifications.register(deviceToken: deviceToken)
+      AppDelegate.brazeHasPushTokenInProcess = true
     }
+    // A pending unregister may be waiting for this token. Opt-in registration
+    // above stays off while `brazePushRegistrationRequested` is false.
+    BrazePushHandleApnsDeviceToken(deviceToken)
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
@@ -187,6 +195,7 @@ class AppDelegate: ExpoAppDelegate {
     _ application: UIApplication,
     didFailToRegisterForRemoteNotificationsWithError error: Error
   ) {
+    BrazePushHandleApnsRegistrationFailure(error.localizedDescription)
     super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
   }
 
