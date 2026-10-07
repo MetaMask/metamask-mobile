@@ -46,7 +46,6 @@ describe('resolvePredictFeatureFlags', () => {
       predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
-      protocolV2MarketEnabled: false,
     });
   });
 

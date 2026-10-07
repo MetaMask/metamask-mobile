@@ -5299,20 +5299,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Not in the production client-config response yet. inProd stays false so
-  // the weekly registry sync does not treat this as removed from production.
-  predictPolymarketMigration: {
-    name: 'predictPolymarketMigration',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '',
-      protocolV2MarketEnabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   predictBottomSheet: {
     name: 'predictBottomSheet',
     type: FeatureFlagType.Remote,

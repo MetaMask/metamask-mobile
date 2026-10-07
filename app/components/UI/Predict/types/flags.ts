@@ -178,7 +178,6 @@ export interface PredictFeatureFlags {
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
-  protocolV2MarketEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
@@ -187,15 +186,4 @@ export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
 
 export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
-}
-
-/**
- * Remote flag for the Polymarket Protocol V2 migration.
- *
- * `enabled` and `minimumVersion` gate the payload.
- * `protocolV2MarketEnabled` shows Gamma `v2` markets.
- */
-export interface PredictPolymarketMigrationFlag
-  extends VersionGatedFeatureFlag {
-  protocolV2MarketEnabled: boolean;
 }

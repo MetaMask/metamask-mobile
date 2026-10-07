@@ -36,10 +36,7 @@ import {
   PredictMarketHighlightsFlag,
   PredictWimbledonTabFlag,
 } from '../types/flags';
-import {
-  isPredictProtocolV2MarketEnabled,
-  unwrapRemoteFeatureFlag,
-} from './flags';
+import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
@@ -159,9 +156,6 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
-  const protocolV2MarketEnabled = isPredictProtocolV2MarketEnabled(
-    flags.predictPolymarketMigration,
-  );
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -218,6 +212,5 @@ export function resolvePredictFeatureFlags(
     predictSportsFeed,
     predictHomeCategories,
     predictWimbledonTab,
-    protocolV2MarketEnabled,
   };
 }

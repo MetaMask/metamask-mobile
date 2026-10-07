@@ -1040,27 +1040,19 @@ function isProtocolV2Market(market?: PolymarketApiMarket): boolean {
   return market?.version === PROTOCOL_V2_MARKET_VERSION;
 }
 
-function isVisiblePolymarketMarket(
-  market: PolymarketApiMarket,
-  protocolV2Enabled: boolean,
-): boolean {
+function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
   if (market?.active === false) {
     return false;
   }
 
-  if (!protocolV2Enabled && isProtocolV2Market(market)) {
-    return false;
-  }
-
-  return true;
+  return !isProtocolV2Market(market);
 }
 
 function isUnsupportedProtocolEvent(
   event: PolymarketApiEvent,
   visibleMarkets: PolymarketApiMarket[],
-  protocolV2Enabled: boolean,
 ): boolean {
-  if (protocolV2Enabled || visibleMarkets.length > 0) {
+  if (visibleMarkets.length > 0) {
     return false;
   }
 
@@ -1073,8 +1065,6 @@ export interface ParsePolymarketEventsOptions {
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
   enabledSportsMarketTypes?: string[];
-  /** When false, Gamma markets with version `v2` are removed before parsing. */
-  protocolV2Enabled?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1112,16 +1102,13 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
-      const protocolV2Enabled = options.protocolV2Enabled === true;
       const markets = sortMarkets({
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter((market) =>
-        isVisiblePolymarketMarket(market, protocolV2Enabled),
-      );
+      }).filter(isVisiblePolymarketMarket);
 
-      if (isUnsupportedProtocolEvent(event, markets, protocolV2Enabled)) {
+      if (isUnsupportedProtocolEvent(event, markets)) {
         return [];
       }
 
