@@ -58,4 +58,24 @@ describe('applySeedPhraseChangeAtIndex', () => {
     expect(Keyboard.dismiss).toHaveBeenCalled();
     expect(setNextSeedPhraseInputFocusedIndex).toHaveBeenCalledWith(null);
   });
+
+  it('keeps only the first 24 words when more than the maximum SRP length are pasted', () => {
+    const extraWord = 'extra';
+    const twentyFourWords =
+      'tumble heart quit undo right legal salute lizard tape unveil art lava filter fee snack fragile duck impact oven come cram tourist casino sort';
+    const seedPhrase = [''];
+
+    applySeedPhraseChangeAtIndex({
+      seedPhrase,
+      seedPhraseText: `${twentyFourWords} ${extraWord}`,
+      index: 0,
+      onSeedPhraseChange,
+      onCurrentWordChange,
+      setErrorWordIndexes,
+      setNextSeedPhraseInputFocusedIndex,
+    });
+
+    expect(onSeedPhraseChange).toHaveBeenCalledWith(twentyFourWords.split(' '));
+    expect(Keyboard.dismiss).toHaveBeenCalled();
+  });
 });

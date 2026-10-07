@@ -73,7 +73,7 @@ export const PerpsProInputKeyboardAccessory = ({
         <ButtonBase
           size={ButtonBaseSize.Sm}
           onPress={Keyboard.dismiss}
-          twClassName="h-10 rounded-lg bg-muted px-4"
+          twClassName="h-10 rounded-full bg-muted px-4"
           testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${inputTestID}`}
         >
           {strings('perps.pro_order_form.keyboard_done')}
