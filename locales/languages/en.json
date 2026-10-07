@@ -1194,8 +1194,7 @@
       "button": "Try again"
     },
     "vba_details": {
-      "title": "Virtual bank account",
-      "description": "Your account is ready. Details for adding and receiving money will appear here.",
+      "title": "View your VBA page",
       "button": "Done"
     }
   },

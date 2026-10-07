@@ -18,10 +18,11 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the details screen', () => {
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+  it('renders the View your VBA page title', () => {
+    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByText('View your VBA page')).toBeOnTheScreen();
   });
 
   it('navigates to Money home when done is pressed', () => {

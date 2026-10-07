@@ -18,6 +18,10 @@ import {
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes } from '../routes';
+import {
+  applyVbaDevOverrides,
+  shouldForceVbaSetupError,
+} from '../vbaDevOverrides';
 
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
@@ -82,10 +86,19 @@ export const useOpenVbaOnboarding = (
           return;
         }
 
-        const accountSnapshot: RampsVbaOnboardingSnapshot =
+        if (!source.endsWith('-retry') && shouldForceVbaSetupError()) {
+          throw new Error('Forced VBA setup error for local demo');
+        }
+
+        const hydratedSnapshot =
           await Engine.context.RampsController.hydrateVbaOnboarding({
             walletAddress,
           });
+        const accountSnapshot: RampsVbaOnboardingSnapshot = source.endsWith(
+          '-retry',
+        )
+          ? hydratedSnapshot
+          : applyVbaDevOverrides(hydratedSnapshot);
         if (
           accountSnapshot.sessionExists &&
           !accountSnapshot.vendorDisclaimersComplete

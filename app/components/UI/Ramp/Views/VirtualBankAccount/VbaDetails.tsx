@@ -1,15 +1,14 @@
 import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -23,9 +22,8 @@ export const VbaDetailsSelectorsIDs = {
 } as const;
 
 /**
- * Terminal success screen for VBA onboarding. Reached once the Money account is
- * provisioned (`hydrateVbaOnboarding` returns `autorampStatus: 'ready'`). This is
- * currently a stub; account details will be rendered here in a follow-up.
+ * "View your VBA" page shown once the Money account is provisioned
+ * (`hydrateVbaOnboarding` returns `autorampStatus: 'ready'`).
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -39,26 +37,17 @@ const VbaDetails = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView
-      edges={['right', 'bottom', 'left']}
-      style={tw.style('flex-1 bg-default')}
-    >
-      <HeaderStandard includesTopInset />
-      <ScrollView
-        contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
+    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-1 px-4"
         testID={VbaDetailsSelectorsIDs.CONTAINER}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
+        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
           {strings('virtual_bank_account.vba_details.title')}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2"
-        >
-          {strings('virtual_bank_account.vba_details.description')}
-        </Text>
-      </ScrollView>
+      </Box>
       <Box twClassName="p-4">
         <Button
           variant={ButtonVariant.Primary}
