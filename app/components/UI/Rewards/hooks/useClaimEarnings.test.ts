@@ -629,6 +629,25 @@ describe('useClaimEarnings', () => {
     );
   });
 
+  it('shows the wait toast and does not ask for a signature when the hourly limit is short', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(409, 'VELOCITY_LIMIT_EXCEEDED'),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockSignPersonalMessage).not.toHaveBeenCalled();
+    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureWaitToast,
+    );
+    expect(onOpened).not.toHaveBeenCalled();
+    expect(onSubmitted).not.toHaveBeenCalled();
+  });
+
   it('shows the wait toast when a claim is already in progress', async () => {
     mockEngineCall.mockRejectedValue(
       new RewardsMoneyClaimRefusalError(409, 'AWAITING_RELEASE'),
