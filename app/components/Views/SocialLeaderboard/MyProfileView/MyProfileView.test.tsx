@@ -677,7 +677,10 @@ describe('MyProfileView', () => {
   it('prefetches positions with the viewed profile address', () => {
     renderWithProvider(<MyProfileView />);
 
-    expect(mockUseTraderPositions).toHaveBeenCalledWith('0xselected');
+    expect(mockUseTraderPositions).toHaveBeenCalledWith(
+      '0xselected',
+      undefined,
+    );
   });
 
   it('shows open positions after tapping Open', () => {
