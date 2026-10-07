@@ -7,8 +7,6 @@ import { Theme } from '../../../util/theme/models';
 // Internal dependencies.
 import { MainActionButtonStyleSheetVars } from './MainActionButton.types';
 
-export const BUTTON_RADIUS = 16;
-
 /**
  * Style sheet function for MainActionButton component.
  *
@@ -22,7 +20,7 @@ const styleSheet = (params: {
   vars: MainActionButtonStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, isDisabled, isGlass } = vars;
+  const { style, isDisabled } = vars;
 
   let backgroundColor = theme.colors.background.muted;
 
@@ -30,24 +28,19 @@ const styleSheet = (params: {
     backgroundColor = theme.colors.background.muted;
   }
 
-  const contentLayout = {
-    paddingHorizontal: 4,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  } as const;
-
   return StyleSheet.create({
     base: Object.assign(
       {
-        ...(isGlass ? {} : { backgroundColor, ...contentLayout }),
-        borderRadius: BUTTON_RADIUS,
-        opacity: isDisabled && !isGlass ? 0.5 : 1,
+        backgroundColor,
+        borderRadius: 16,
+        paddingHorizontal: 4,
+        paddingVertical: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        opacity: isDisabled ? 0.5 : 1,
       } as const,
       style,
     ),
-    glassContent: contentLayout,
-    disabledGlassContent: { opacity: 0.5 },
     pressed: {
       backgroundColor: theme.colors.background.mutedPressed,
     },

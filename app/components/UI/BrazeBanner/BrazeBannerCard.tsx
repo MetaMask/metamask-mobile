@@ -17,9 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { BANNER_HEIGHT, BANNER_IMAGE_SIZE } from './BrazeBanner.constants';
-import GlassSurface from '../../../component-library/components-temp/GlassSurface';
-
-const BANNER_RADIUS = 12;
 
 interface BrazeBannerCardProps {
   title: string | null;
@@ -27,7 +24,6 @@ interface BrazeBannerCardProps {
   imageUrl: string | null;
   ctaLabel: string | null;
   onDismiss: () => void;
-  isGlass?: boolean;
 }
 
 /**
@@ -105,11 +101,18 @@ const BrazeBannerCard = ({
   imageUrl,
   ctaLabel,
   onDismiss,
-  isGlass = false,
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
-  const content = (
-    <>
+  return (
+    <Box
+      testID={BRAZE_BANNER_TEST_IDS.CARD}
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      backgroundColor={BoxBackgroundColor.BackgroundMuted}
+      gap={4}
+      twClassName="w-full rounded-xl px-4 py-3"
+      style={{ minHeight: BANNER_HEIGHT }}
+    >
       {imageUrl && (
         <Box
           twClassName="overflow-hidden rounded-xl"
@@ -142,37 +145,6 @@ const BrazeBannerCard = ({
           color={IconColor.IconAlternative}
         />
       </Pressable>
-    </>
-  );
-
-  if (isGlass) {
-    return (
-      <GlassSurface
-        testID={BRAZE_BANNER_TEST_IDS.CARD}
-        borderRadius={BANNER_RADIUS}
-        isInteractive
-        hasSheen
-        style={[
-          tw.style('w-full flex-row items-center gap-4 px-4 py-3'),
-          { minHeight: BANNER_HEIGHT },
-        ]}
-      >
-        {content}
-      </GlassSurface>
-    );
-  }
-
-  return (
-    <Box
-      testID={BRAZE_BANNER_TEST_IDS.CARD}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      backgroundColor={BoxBackgroundColor.BackgroundMuted}
-      gap={4}
-      twClassName="w-full rounded-xl px-4 py-3"
-      style={{ minHeight: BANNER_HEIGHT }}
-    >
-      {content}
     </Box>
   );
 };

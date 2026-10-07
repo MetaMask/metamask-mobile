@@ -33,7 +33,6 @@ export enum FeatureFlagNames {
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
-  homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

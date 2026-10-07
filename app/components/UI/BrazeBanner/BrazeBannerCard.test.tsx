@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import BrazeBannerCard from './BrazeBannerCard';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/GlassSurface';
 
 // ---------------------------------------------------------------------------
 // Mock: design-system
@@ -124,30 +123,5 @@ describe('BrazeBannerCard', () => {
     const { getByTestId } = renderCard({ onDismiss });
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
     expect(onDismiss).toHaveBeenCalledTimes(1);
-  });
-
-  describe('glass', () => {
-    it('keeps the opaque card by default', () => {
-      const { getByTestId } = renderCard();
-
-      expect(
-        getByTestId(BRAZE_BANNER_TEST_IDS.CARD).props.isInteractive,
-      ).toBeUndefined();
-    });
-
-    it('draws the same content on an interactive glass surface', () => {
-      const onDismiss = jest.fn();
-      const { getByTestId } = renderCard({ isGlass: true, onDismiss });
-
-      expect(getByTestId(BRAZE_BANNER_TEST_IDS.CARD).props.isInteractive).toBe(
-        true,
-      );
-      expect(getByTestId(BRAZE_BANNER_TEST_IDS.BODY)).toBeOnTheScreen();
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
-
-      expect(onDismiss).toHaveBeenCalledTimes(1);
-    });
   });
 });

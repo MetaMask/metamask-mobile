@@ -90,8 +90,6 @@ import {
   ButtonIconVariant,
 } from '../../../component-library/components/Toast';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
-import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
-import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
@@ -757,9 +755,6 @@ const Wallet = ({
 
   const { isCompactHeader, isInterimHeader, isHeaderSearchEnabled } =
     useHomeNavBarConfig({ trackExposure: true });
-  const isHomeGlass = useIsGlassSurfaceEnabled(
-    selectHomeBrandRefreshSurfacesEnabled,
-  );
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);
@@ -1082,10 +1077,7 @@ const Wallet = ({
         componentLabel="BrazeBanner"
         onError={handleBannerError}
       >
-        <BrazeBanner
-          placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID}
-          isGlass={isHomeGlass}
-        />
+        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
       </ComponentErrorBoundary>
     ) : homeGrowthBanner === 'carousel' ? (
       <View accessible={false}>
@@ -1164,7 +1156,6 @@ const Wallet = ({
         sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
         receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
-        hasGlassButtons={isHomeGlass}
       />
     )
   ) : null;
@@ -1255,7 +1246,7 @@ const Wallet = ({
         {walletHomeMainAssetDetailsActions}
         {growthBanner}
         {homepageDiscoveryPills}
-        {showMoneyBalanceCard && <MoneyBalanceCard isGlass={isHomeGlass} />}
+        {showMoneyBalanceCard && <MoneyBalanceCard />}
       </Box>
     </>
   );
