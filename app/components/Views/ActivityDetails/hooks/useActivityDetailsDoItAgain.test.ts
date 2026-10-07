@@ -69,12 +69,7 @@ describe('useActivityDetailsDoItAgain', () => {
       destToken: toBridgeToken(destinationToken, 'eip155:1'),
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({ scrollToTopOnNav: true });
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
   });
@@ -126,12 +121,7 @@ describe('useActivityDetailsDoItAgain', () => {
       destToken: heldUsdt,
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({ scrollToTopOnNav: true });
   });
 
   it('matches a Polygon native leg (0x…1010) against the held holding normalized to 0x0', () => {
