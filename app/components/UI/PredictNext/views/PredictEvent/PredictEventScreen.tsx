@@ -365,6 +365,7 @@ export const PredictEventScreen = () => {
     (quote: GameSelectionQuote) => {
       openOrderFlow({
         action: 'buy',
+        eventId,
         venueId,
         marketId: quote.market.id,
         side: quote.outcome.side,
@@ -380,6 +381,7 @@ export const PredictEventScreen = () => {
     (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
       openOrderFlow({
         action: 'buy',
+        eventId,
         venueId,
         marketId: market.id,
         side: outcome.side,

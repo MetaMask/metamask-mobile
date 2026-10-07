@@ -168,6 +168,7 @@ export const PredictHome = () => {
     (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
       openOrderFlow({
         action: 'buy',
+        eventId: event.id,
         venueId: event.venueId,
         marketId: market.id,
         side: outcome.side,
