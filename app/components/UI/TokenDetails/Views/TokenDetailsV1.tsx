@@ -4,20 +4,26 @@ import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
   HeaderSubpage,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
+import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
+export const TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID =
+  'token-details-v1-back-button';
+
+/**
+ * TODO(ASSETS-4018): replace with the real verdict and flag count once
+ * security data is available. Change these values locally to preview the other
+ * states; the count is only rendered for `medium_risk`.
+ */
+const MOCK_SECURITY_VERDICT: SecurityVerdict = 'medium_risk';
+const MOCK_SECURITY_FLAG_COUNT = 1;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -31,10 +37,11 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 interface TokenDetailsV1Props {
+  /** Consumed by the sections landing in follow-up tickets. */
   token: TokenDetailsRouteParams;
 }
 
-export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
+export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -44,30 +51,25 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
 
   return (
     <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
-      <HeaderSubpage title={token.symbol ?? ''} onBack={handleBackPress} />
+      {/* Back button only. The full header (price, symbol, star / alert /
+          share) is owned by a separate ticket. `includesTopInset` keeps the
+          row clear of the status bar, matching TokenDetailsInlineHeader. */}
+      <HeaderSubpage
+        includesTopInset
+        onBack={handleBackPress}
+        backButtonProps={{ testID: TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID }}
+      />
 
+      {/* Owns the page gutter and the spacing between sections, so sections
+          render content only and never their own page padding. */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 gap-2 px-6"
+        twClassName="flex-1 gap-4 px-4 pt-2"
       >
-        <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Bold}
-        >
-          Dedicated meme coin view
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {`A tailored experience for ${
-            token.symbol ?? 'this token'
-          } is being built. Check back soon.`}
-        </Text>
+        <SecuritySocialSection
+          securityVerdict={MOCK_SECURITY_VERDICT}
+          securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
+        />
       </Box>
     </View>
   );
