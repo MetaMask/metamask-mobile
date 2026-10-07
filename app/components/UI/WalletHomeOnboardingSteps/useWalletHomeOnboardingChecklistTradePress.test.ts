@@ -62,13 +62,11 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
       location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      sourceToken,
-      destToken,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      sourceTokenOverride: sourceToken,
+      destTokenOverride: destToken,
+      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+    });
   });
 
   it('falls back to default goToSwaps when no swap pair', () => {
@@ -84,13 +82,9 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
       location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+    });
   });
 
   it('uses swap pair resolved after mount', () => {
@@ -108,13 +102,9 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
       location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: 'MainView',
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+    });
 
     mockUseWalletHomeOnboardingTradeSwapPair.mockReturnValue(swapPair);
     rerender({});
