@@ -60,6 +60,7 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsV1 } from './TokenDetailsV1';
+import TokenDetailsPagePending from './TokenDetailsPagePending';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
@@ -930,8 +931,12 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const variant = useTokenDetailsVariant(token);
+  const { variant, isPending } = useTokenDetailsVariant(token);
   usePrefetchTokenDetails(token);
+
+  if (isPending) {
+    return <TokenDetailsPagePending token={token} />;
+  }
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />

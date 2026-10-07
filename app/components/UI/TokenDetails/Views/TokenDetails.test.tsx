@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
+import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectNetworkConfigurationByChainId,
@@ -184,6 +185,15 @@ jest.mock('../hooks/useTokenTransactions', () => ({
 
 jest.mock('../queries/usePrefetchTokenDetails', () => ({
   usePrefetchTokenDetails: () => undefined,
+}));
+
+const mockUseTokenAssetDetails = jest.fn((_assetId: unknown) => ({
+  asset: null as { launchpadData: object | null } | null,
+  isLoading: false,
+  isError: false,
+}));
+jest.mock('../queries/useTokenAssetDetails', () => ({
+  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
 }));
 
 const mockUseIsMemeToken = jest.fn((_opts: Record<string, unknown>) => ({
@@ -1690,6 +1700,11 @@ describe('TokenDetails', () => {
         isError: false,
         query: {},
       });
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: false,
+        isError: false,
+      });
       mockTokenDetailsV1.mockClear();
     });
 
@@ -1703,9 +1718,58 @@ describe('TokenDetails', () => {
     it('does not render TokenDetailsV1 when the flag is on but the token is not a meme', () => {
       applyBaselineSelectorsWithMemeFlag(true);
 
-      render(<TokenDetails />);
+      const { queryByTestId } = render(<TokenDetails />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
+    });
+
+    it('shows the interim shell and sticky swap while the token API is pending', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
+      expect(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
+      expect(mockUseTokenPrice).toHaveBeenCalled();
+    });
+
+    it('renders TokenDetailsV1 when the token API returns launchpad data', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: { launchpadData: { description: 'A launch' } },
+        isLoading: false,
+        isError: false,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).toHaveBeenCalledWith(
+        expect.objectContaining({ token: expect.any(Object) }),
+      );
+      expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
+    });
+
+    it('renders the legacy page when the token API has no launchpad data', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: { launchpadData: null },
+        isLoading: false,
+        isError: false,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
     });
 
     it('renders TokenDetailsV1 and skips the legacy header when the flag is on and the token is a meme', () => {
