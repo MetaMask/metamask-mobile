@@ -622,6 +622,20 @@
   "TransactionPayController": {
     "transactionData": {}
   },
+  "ProfileController": {
+    "profile": {
+      "avatarUrl": "",
+      "bio": "",
+      "connectedToX": false,
+      "createdAt": "",
+      "displayName": "",
+      "linkedAddresses": [],
+      "profileId": "",
+      "tradingPrivacy": "public",
+      "updatedAt": "",
+      "username": ""
+    }
+  },
   "ProfileMetricsController": {
     "accountSourceBackfillEnqueued": false,
     "initialEnqueueCompleted": false,
