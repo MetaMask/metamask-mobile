@@ -10,6 +10,8 @@ import {
 import { useStyles } from '../../../hooks/useStyles';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 
@@ -22,7 +24,7 @@ export const TOKEN_DETAILS_V1_BACK_BUTTON_TEST_ID =
  * security data is available. Change these values locally to preview the other
  * states; the count is only rendered for `medium_risk`.
  */
-const MOCK_SECURITY_VERDICT: SecurityVerdict = 'medium_risk';
+const MOCK_SECURITY_VERDICT: SecurityVerdict = 'screened';
 const MOCK_SECURITY_FLAG_COUNT = 1;
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -37,13 +39,20 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 interface TokenDetailsV1Props {
-  /** Consumed by the sections landing in follow-up tickets. */
   token: TokenDetailsRouteParams;
 }
 
-export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = () => {
+export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+
+  const assetId = useTokenCaipAssetId(token);
+  // Rows that navigate here (watchlist, trending, search) already hold this
+  // payload, so the hook skips the fetch and the links render on first paint.
+  const { securityData } = useTokenSecurityData({
+    assetId,
+    prefetchedData: token.securityData,
+  });
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -69,6 +78,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = () => {
         <SecuritySocialSection
           securityVerdict={MOCK_SECURITY_VERDICT}
           securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
+          externalLinks={securityData?.metadata?.externalLinks}
+          contractAddress={token.isNative ? null : token.address}
         />
       </Box>
     </View>

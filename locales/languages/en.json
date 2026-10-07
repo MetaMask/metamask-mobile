@@ -5852,6 +5852,12 @@
       "unscreened": "Unscreened",
       "pending": "Pending",
       "accessibility_label": "Security: {{verdict}}. Open Security tab"
+    },
+    "social": {
+      "website": "Open website",
+      "x": "Open on X",
+      "telegram": "Open on Telegram",
+      "copy_address": "Copy contract address {{address}}"
     }
   },
   "account_details": {
