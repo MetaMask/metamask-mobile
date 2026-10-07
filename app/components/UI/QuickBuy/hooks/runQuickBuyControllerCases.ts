@@ -66,6 +66,8 @@ import {
 } from '../types';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
+import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
+import { PopularList } from '../../../../util/networks/customNetworks';
 
 const mockUseQuickBuyAnalytics = useQuickBuyAnalytics as jest.MockedFunction<
   typeof useQuickBuyAnalytics
@@ -104,6 +106,7 @@ const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockToAssetId = toAssetId as jest.MockedFunction<typeof toAssetId>;
 
+const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
 const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
@@ -285,6 +288,10 @@ const setupDefaultMocks = () => {
     'eip155:1/erc20:0x0000000000000000000000000000000000000000',
   );
   mockGoToBuy.mockResolvedValue(undefined);
+  mockAddPopularNetwork.mockResolvedValue(undefined);
+  (useAddPopularNetwork as jest.Mock).mockReturnValue({
+    addPopularNetwork: mockAddPopularNetwork,
+  });
 };
 
 export const runQuickBuyControllerCases = ({
@@ -4348,6 +4355,42 @@ export const runQuickBuyControllerCases = ({
         const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.usdToCurrentCurrencyRate).toBe(2);
+      });
+    });
+
+    describe('auto-add missing network', () => {
+      const baseReceiveToken = createSourceToken({
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: '0x2105',
+        symbol: 'USDC',
+      });
+
+      it('adds a missing popular network without switching when a receive token is selected', () => {
+        const baseNetwork = PopularList.find(
+          (network) => network.chainId === '0x2105',
+        );
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        act(() => {
+          result.current.handleSelectReceiveToken(baseReceiveToken);
+        });
+
+        expect(mockAddPopularNetwork).toHaveBeenCalledTimes(1);
+        expect(mockAddPopularNetwork).toHaveBeenCalledWith(baseNetwork, false);
+      });
+
+      it('does not add the network when the receive token chain is already configured', () => {
+        (selectNetworkConfigurations as unknown as jest.Mock).mockReturnValue({
+          '0x1': { nativeCurrency: 'ETH' },
+          '0x2105': { nativeCurrency: 'ETH' },
+        });
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        act(() => {
+          result.current.handleSelectReceiveToken(baseReceiveToken);
+        });
+
+        expect(mockAddPopularNetwork).not.toHaveBeenCalled();
       });
     });
 

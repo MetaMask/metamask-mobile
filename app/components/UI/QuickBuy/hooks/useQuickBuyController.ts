@@ -88,6 +88,12 @@ import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialSer
 import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import {
+  clearSuppressedNetworkAddedToast,
+  suppressNextNetworkAddedToast,
+} from '../../../../util/networks/networkToastSuppression';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
@@ -1361,16 +1367,37 @@ export function useQuickBuyController(
     [selectedSourceToken, sourceTokenOptions, trackPayWithSelected],
   );
 
+  const { addPopularNetwork } = useAddPopularNetwork();
   const handleSelectReceiveToken = useCallback(
     (token: BridgeToken) => {
       const previousToken = selectedReceiveToken?.symbol ?? '';
       if (token.symbol !== previousToken) {
         trackReceiveTokenSelected(token.symbol, previousToken);
       }
+      // Quotes and fiat estimates need a configured network.
+      const popularNetwork = networkConfigurations[token.chainId as Hex]
+        ? undefined
+        : PopularList.find((network) => network.chainId === token.chainId);
+      if (popularNetwork) {
+        suppressNextNetworkAddedToast(popularNetwork.chainId);
+        addPopularNetwork(popularNetwork, false).catch((error) => {
+          clearSuppressedNetworkAddedToast(popularNetwork.chainId);
+          Logger.error(error, {
+            message: 'QuickBuy: failed to auto-add network',
+            chainId: token.chainId,
+          });
+        });
+      }
       setSelectedReceiveToken(token);
       resetAmountState();
     },
-    [resetAmountState, selectedReceiveToken?.symbol, trackReceiveTokenSelected],
+    [
+      resetAmountState,
+      selectedReceiveToken?.symbol,
+      trackReceiveTokenSelected,
+      networkConfigurations,
+      addPopularNetwork,
+    ],
   );
 
   const handleAmountChange = useCallback(

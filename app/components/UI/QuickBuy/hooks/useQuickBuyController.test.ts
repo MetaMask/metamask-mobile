@@ -106,6 +106,10 @@ jest.mock('../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(),
+}));
+
 jest.mock('../../../Views/confirmations/hooks/gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: jest.fn(),
 }));
