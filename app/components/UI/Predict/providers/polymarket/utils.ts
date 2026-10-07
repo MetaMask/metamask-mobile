@@ -81,6 +81,8 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  PolymarketPositionV2,
+  PolymarketActivityV2,
   RoundConfig,
   TickSize,
   OrderBook,
@@ -1998,6 +2000,75 @@ export const parsePolymarketPositions = async ({
   return parsedPositions;
 };
 
+/**
+ * Maps Polymarket Data API v2 position rows (snake_case) to the v1-shaped
+ * `PolymarketPosition` DTO consumed by `parsePolymarketPositions`.
+ *
+ * v2 rows carry no percent P&L, so it is derived from the row's own values
+ * using the same formula as the portfolio header (`getPositionsPnl`).
+ */
+export const mapPolymarketPositionsV2 = (
+  rows: PolymarketPositionV2[],
+): PolymarketPosition[] =>
+  rows.map((row) => {
+    const initialValue = row.entry_cost_usdc ?? 0;
+    const currentValue = row.current_value ?? 0;
+    return {
+      conditionId: row.condition_id,
+      eventId: row.event_id,
+      icon: row.icon,
+      title: row.title,
+      slug: row.slug,
+      eventSlug: row.event_slug,
+      size: row.size,
+      outcome: row.outcome,
+      outcomeIndex: row.outcome_index,
+      cashPnl: row.unrealized_pnl ?? 0,
+      curPrice: row.cur_price,
+      currentValue,
+      percentPnl:
+        initialValue > 0
+          ? ((currentValue - initialValue) / initialValue) * 100
+          : 0,
+      initialValue,
+      avgPrice: row.avg_price,
+      redeemable: row.redeemable,
+      negativeRisk: row.negative_risk,
+      realizedPnl: row.realized_pnl,
+      endDate: row.end_date,
+      asset: row.token_id,
+    };
+  });
+
+/**
+ * Maps Polymarket Data API v2 activity rows (snake_case) to the v1-shaped
+ * `PolymarketApiActivity` DTO consumed by `parsePolymarketActivity`.
+ *
+ * v2 has no server-side equivalent of v1's `excludeLostRedeems` filter, so
+ * lost redeems (REDEEM rows with no payout) are dropped here.
+ */
+export const mapPolymarketActivityV2 = (
+  rows: PolymarketActivityV2[],
+): PolymarketApiActivity[] =>
+  rows
+    .filter((row) => !(row.type === 'REDEEM' && (row.usdc_size ?? 0) === 0))
+    .map((row) => ({
+      type: row.type as PolymarketApiActivity['type'],
+      side: row.side,
+      size: row.size,
+      price: row.price,
+      usdcSize: row.usdc_size,
+      timestamp: row.timestamp,
+      transactionHash: row.transaction_hash,
+      conditionId: row.condition_id,
+      outcomeIndex: row.outcome_index,
+      title: row.title,
+      outcome: row.outcome as PolymarketApiActivity['outcome'],
+      icon: row.icon,
+      slug: row.slug,
+      eventSlug: row.event_slug,
+    }));
+
 export const encodeRedeemPositions = ({
   collateralToken,
   parentCollectionId,
@@ -2273,27 +2344,6 @@ export const getIsApprovedForAll = async ({
   // Decode the result - convert hex to boolean
   const isApproved = parseNumericRpcResult(res) !== 0n;
   return isApproved;
-};
-
-export const getMarketPositions = async ({
-  marketId,
-  address,
-}: {
-  marketId: string;
-  address: string;
-}) => {
-  const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetchWithTimeout(
-    `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
-  );
-  if (!response.ok) {
-    throw new Error('Failed to get market positions');
-  }
-  const responseData = await response.json();
-  const parsedPositions = await parsePolymarketPositions({
-    positions: responseData,
-  });
-  return parsedPositions;
 };
 
 export const getRawBalance = async ({

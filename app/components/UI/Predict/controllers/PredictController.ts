@@ -100,6 +100,7 @@ import {
   PlaceOrderParams,
   PredictAccountMeta,
   PredictActivity,
+  PredictActivityPage,
   PredictBalance,
   PredictBuyAttempt,
   PredictBuyAttemptContext,
@@ -1268,7 +1269,7 @@ export class PredictController extends BaseController<
 
   async getActivity(
     params: GetActivityParams = {},
-  ): Promise<PredictActivity[]> {
+  ): Promise<PredictActivityPage> {
     return withTrace(
       this.traceable,
       {
@@ -1283,10 +1284,10 @@ export class PredictController extends BaseController<
         },
         errorContext: { providerId: POLYMARKET_PROVIDER_ID },
         fallbackErrorCode: PREDICT_ERROR_CODES.ACTIVITY_NOT_AVAILABLE,
-        traceData: (activity) => ({ activityCount: activity.length }),
+        traceData: (page) => ({ activityCount: page.activities.length }),
       },
       async () => {
-        const { address, limit, offset } = params;
+        const { address, limit, cursor } = params;
         const selectedAddress = address ?? this.getSigner().address;
         const activityParams: GetActivityParams & { address: string } = {
           address: selectedAddress,
@@ -1296,8 +1297,8 @@ export class PredictController extends BaseController<
           activityParams.limit = limit;
         }
 
-        if (offset !== undefined) {
-          activityParams.offset = offset;
+        if (cursor !== undefined) {
+          activityParams.cursor = cursor;
         }
 
         return this.provider.getActivity(activityParams);

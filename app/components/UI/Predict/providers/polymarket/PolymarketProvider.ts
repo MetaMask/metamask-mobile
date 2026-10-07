@@ -112,7 +112,11 @@ import {
   PolymarketApiEvent,
   PolymarketApiEventsKeysetResponse,
   PolymarketApiTeam,
+  PolymarketDataApiV2Response,
   PolymarketPosition,
+  PolymarketPositionV2,
+  PolymarketActivityV2,
+  PolymarketUserPnlV2Response,
 } from './types';
 import {
   createApiKey,
@@ -120,6 +124,8 @@ import {
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
+  mapPolymarketActivityV2,
+  mapPolymarketPositionsV2,
   normalizeRelatedTagsToFilterOptions,
   fetchCarouselFromPolymarketApi,
   getBalance,
@@ -138,6 +144,7 @@ import {
   searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
+import type { PredictActivityPage } from '../../types';
 import {
   extractNeededTeamsFromEvents,
   getEventLeague,
@@ -182,6 +189,14 @@ import {
   fetchWithTimeout,
   isExpectedPolymarketRequestAbort,
 } from './fetchWithTimeout';
+
+/** Page size for Data API v2 paginated reads (positions). */
+const PREDICT_POSITIONS_PAGE_SIZE = 100;
+/**
+ * Upper bound on cursor-followed pages per positions read, so a pathological
+ * response can never loop unbounded. 5 pages × 100 rows = 500 positions.
+ */
+const PREDICT_POSITIONS_MAX_PAGES = 5;
 
 /**
  * Narrows the geoblock payload to the fields the app relies on. Returns `null`
@@ -972,7 +987,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public getActivity(
     _params: GetActivityParams & { address: string },
-  ): Promise<PredictActivity[]> {
+  ): Promise<PredictActivityPage> {
     return this.fetchActivity(_params);
   }
 
@@ -1931,8 +1946,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getPositions({
     address,
-    limit = 100, // todo: reduce this once we've decided on the pagination approach
-    offset = 0,
+    limit = PREDICT_POSITIONS_PAGE_SIZE,
     claimable,
     marketId,
     outcomeId,
@@ -1947,59 +1961,80 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const queryParams = new URLSearchParams({
-      limit: limit.toString(),
-      offset: offset.toString(),
-      user: predictAddress,
-      sortBy: 'CURRENT',
-    });
-
-    if (claimable !== undefined) {
-      queryParams.set('redeemable', claimable.toString());
-    }
-
-    // Use market (conditionId/outcomeId) if provided for targeted fetch
-    // This is mutually exclusive with eventId (marketId)
-    if (outcomeId) {
-      queryParams.set('market', outcomeId);
-    } else if (marketId) {
-      queryParams.set('eventId', marketId);
-    }
-
-    const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
-    const response = await fetchWithTimeout(positionsUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to get positions');
-    }
-    const positionsText = await response.text();
-    let positionsData: PolymarketPosition[];
-    try {
-      positionsData = JSON.parse(positionsText) as PolymarketPosition[];
-    } catch (parseError) {
-      const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
-      DevLogger.log('PolymarketProvider: non-JSON positions response', {
-        url: positionsUrl,
-        status: response.status,
-        contentType: response.headers.get('content-type'),
-        bodySnippet: snippet,
-      });
-      throw new Error(
-        `Polymarket positions returned non-JSON (status ${response.status}): ${snippet}`,
-      );
-    }
-
     const teamLookup = this.#createTeamLookup(
       this.#getSupportedLeagues().length > 0,
     );
 
+    // v2 defaults to open positions and pages with an opaque cursor; follow
+    // next_cursor until exhausted, capped for sanity.
+    const positions: PolymarketPositionV2[] = [];
+    let cursor: string | undefined;
+    for (let page = 0; page < PREDICT_POSITIONS_MAX_PAGES; page += 1) {
+      const queryParams = new URLSearchParams({
+        limit: limit.toString(),
+        user: predictAddress,
+        sortBy: 'CURRENT_VALUE',
+      });
+
+      // v2 status defaults to OPEN; claimable maps to the REDEEMABLE status.
+      if (claimable !== undefined) {
+        queryParams.set('status', claimable ? 'REDEEMABLE' : 'OPEN');
+      }
+
+      // Use condition (conditionId/outcomeId) if provided for targeted fetch.
+      // This is mutually exclusive with event_id (marketId).
+      if (outcomeId) {
+        queryParams.set('condition', outcomeId);
+      } else if (marketId) {
+        queryParams.set('event_id', marketId);
+      }
+
+      if (cursor) {
+        queryParams.set('cursor', cursor);
+      }
+
+      const positionsUrl = `${DATA_API_ENDPOINT}/v2/positions?${queryParams.toString()}`;
+      const response = await fetchWithTimeout(positionsUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get positions');
+      }
+      const positionsText = await response.text();
+      let pageData: PolymarketDataApiV2Response<PolymarketPositionV2>;
+      try {
+        pageData = JSON.parse(positionsText) as PolymarketDataApiV2Response<PolymarketPositionV2>;
+      } catch (parseError) {
+        const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
+        DevLogger.log('PolymarketProvider: non-JSON positions response', {
+          url: positionsUrl,
+          status: response.status,
+          contentType: response.headers.get('content-type'),
+          bodySnippet: snippet,
+        });
+        throw new Error(
+          `Polymarket positions returned non-JSON (status ${response.status}): ${snippet}`,
+        );
+      }
+
+      if (!pageData || !Array.isArray(pageData.data)) {
+        throw new Error('Invalid positions response');
+      }
+
+      positions.push(...pageData.data);
+
+      cursor = pageData.pagination?.next_cursor ?? undefined;
+      if (!cursor) {
+        break;
+      }
+    }
+
     const parsedPositions = await parsePolymarketPositions({
-      positions: positionsData,
+      positions: mapPolymarketPositionsV2(positions),
       teamLookup,
     });
 
@@ -2018,8 +2053,8 @@ export class PolymarketProvider implements PredictProvider {
   private async fetchActivity({
     address,
     limit = PREDICT_ACTIVITY_PAGE_SIZE,
-    offset = 0,
-  }: GetActivityParams & { address: string }): Promise<PredictActivity[]> {
+    cursor,
+  }: GetActivityParams & { address: string }): Promise<PredictActivityPage> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     if (!address) {
@@ -2033,13 +2068,15 @@ export class PolymarketProvider implements PredictProvider {
 
       const queryParams = new URLSearchParams({
         user: predictAddress,
-        excludeLostRedeems: 'true',
         limit: String(limit),
-        offset: String(offset),
       });
 
+      if (cursor) {
+        queryParams.set('cursor', cursor);
+      }
+
       const response = await fetchWithTimeout(
-        `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+        `${DATA_API_ENDPOINT}/v2/activity?${queryParams.toString()}`,
         {
           method: 'GET',
           headers: {
@@ -2052,21 +2089,24 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to get activity');
       }
 
-      const activityRaw = (await response.json()) as unknown;
+      const activityRaw = (await response.json()) as PolymarketDataApiV2Response<PolymarketActivityV2>;
 
-      if (!Array.isArray(activityRaw)) {
+      if (!activityRaw || !Array.isArray(activityRaw.data)) {
         throw new Error('Invalid activity response');
       }
 
       const parsedActivity = parsePolymarketActivity(
-        activityRaw as PolymarketApiActivity[],
+        mapPolymarketActivityV2(activityRaw.data),
       );
 
       if (!Array.isArray(parsedActivity)) {
         throw new Error('Invalid parsed activity response');
       }
 
-      return parsedActivity;
+      return {
+        activities: parsedActivity,
+        nextCursor: activityRaw.pagination?.next_cursor ?? undefined,
+      };
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
@@ -2090,8 +2130,8 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const response = await fetchWithTimeout(
-      `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
+    const pnlResponse = await fetchWithTimeout(
+      `${DATA_API_ENDPOINT}/v2/user-pnl?user=${predictAddress}`,
       {
         method: 'GET',
         headers: {
@@ -2100,17 +2140,42 @@ export class PolymarketProvider implements PredictProvider {
       },
     );
 
-    if (!response.ok) {
+    if (!pnlResponse.ok) {
       throw new Error('Failed to fetch unrealized P&L');
     }
 
-    const data = (await response.json()) as UnrealizedPnL[];
+    const pnlData = (await pnlResponse.json()) as PolymarketUserPnlV2Response;
 
-    if (!Array.isArray(data)) {
+    if (!pnlData?.data || !Array.isArray(pnlData.data.points)) {
       throw new Error('No unrealized P&L data found');
     }
 
-    return data[0];
+    // cashUpnl is the latest point's unrealized_pnl; a null value stays
+    // missing — never coerce it to zero.
+    const latestPoint = pnlData.data.points.at(-1);
+    const cashUpnl = latestPoint?.unrealized_pnl ?? undefined;
+
+    // percentUpnl mirrors the portfolio header formula (getPositionsPnl):
+    // (Σ current_value − Σ entry_cost) / Σ entry_cost over open positions.
+    const openPositions = await this.getPositions({ address, claimable: false });
+    const totals = openPositions.reduce(
+      (acc, position) => ({
+        currentValue: acc.currentValue + position.currentValue,
+        initialValue: acc.initialValue + position.initialValue,
+      }),
+      { currentValue: 0, initialValue: 0 },
+    );
+    const percentUpnl =
+      totals.initialValue > 0
+        ? ((totals.currentValue - totals.initialValue) / totals.initialValue) *
+          100
+        : undefined;
+
+    return {
+      user: predictAddress,
+      cashUpnl,
+      percentUpnl,
+    };
   }
 
   public async previewOrder(
@@ -2743,7 +2808,7 @@ export class PolymarketProvider implements PredictProvider {
       limit: '1',
     });
     const response = await fetchWithTimeout(
-      `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+      `${DATA_API_ENDPOINT}/v2/activity?${queryParams.toString()}`,
     );
 
     if (!response.ok) {
@@ -2752,11 +2817,18 @@ export class PolymarketProvider implements PredictProvider {
 
     const activityRaw: unknown = await response.json();
 
-    if (!Array.isArray(activityRaw)) {
-      throw new Error('Polymarket activity response must be an array');
+    if (
+      !activityRaw ||
+      typeof activityRaw !== 'object' ||
+      !Array.isArray((activityRaw as PolymarketDataApiV2Response<unknown>).data)
+    ) {
+      throw new Error('Polymarket activity response must be a v2 envelope');
     }
 
-    return activityRaw.length > 0;
+    return (
+      ((activityRaw as PolymarketDataApiV2Response<unknown>).data?.length ??
+        0) > 0
+    );
   }
 
   public async getAccountState(

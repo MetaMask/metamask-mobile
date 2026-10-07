@@ -55,6 +55,73 @@ export interface ClobMarketInfo {
   mos?: number;
 }
 
+/** Polymarket Data API v2 envelope: every response wraps its payload in `data`; paginated routes add an opaque cursor. */
+export interface PolymarketDataApiV2Response<Row> {
+  data: Row[] | null;
+  pagination?: {
+    next_cursor?: string | null;
+  } | null;
+}
+
+/** Raw Polymarket Data API v2 position row (`GET /v2/positions`). */
+export interface PolymarketPositionV2 {
+  condition_id: string;
+  event_id: string;
+  icon: string;
+  title: string;
+  slug: string;
+  event_slug?: string;
+  size: number;
+  outcome: string;
+  outcome_index: number;
+  /** Cumulative unrealized P&L for the row; open positions only. */
+  unrealized_pnl?: number | null;
+  cur_price: number;
+  current_value: number;
+  /** Cost basis in USDC (v1 `initialValue`). */
+  entry_cost_usdc: number;
+  avg_price: number;
+  redeemable: boolean;
+  negative_risk: boolean;
+  realized_pnl: number;
+  end_date: string;
+  /** Outcome token id (v1 `asset`). Not an indicator of market protocol. */
+  token_id: string;
+}
+
+/** Raw Polymarket Data API v2 activity row (`GET /v2/activity`). */
+export interface PolymarketActivityV2 {
+  type: string;
+  side: 'BUY' | 'SELL' | '';
+  size?: number | string | null;
+  price: number;
+  usdc_size: number;
+  timestamp: number;
+  transaction_hash: string;
+  condition_id: string;
+  outcome_index: number;
+  title: string;
+  outcome?: string;
+  icon: string;
+  slug?: string;
+  event_slug?: string;
+  token_id?: string;
+}
+
+/** Raw Polymarket Data API v2 user-PnL series (`GET /v2/user-pnl`). */
+export interface PolymarketUserPnlV2Response {
+  data: {
+    proxy_wallet: string;
+    interval: string;
+    fidelity: string;
+    points: {
+      t?: number;
+      unrealized_pnl?: number | null;
+      [key: string]: unknown;
+    }[];
+  } | null;
+}
+
 // Polymarket API response types
 export interface PolymarketApiMarket {
   conditionId: string;
