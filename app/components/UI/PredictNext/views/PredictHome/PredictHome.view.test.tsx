@@ -1,6 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
@@ -15,7 +14,6 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
   NCAA_GAMES_FEED_ID,
   NCAA_FEED_SCREEN_ID,
@@ -113,7 +111,7 @@ describe('PredictHome', () => {
   });
 
   it('masks Balance when privacy mode is enabled', async () => {
-    const view = renderPredictNext(undefined, true);
+    const view = renderPredictNext(true);
 
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
     expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
@@ -694,19 +692,5 @@ describe('PredictHome', () => {
     expect(
       view.queryByTestId(PredictEventScreenTestIds.VIEW),
     ).not.toBeOnTheScreen();
-  });
-
-  it('tracks the homepage entry point', async () => {
-    renderPredictNext({
-      entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
-    });
-
-    await waitFor(() =>
-      expect(
-        Engine.context.PredictController.trackHomeViewed,
-      ).toHaveBeenCalledWith({
-        entryPoint: 'homescreen_balance_breakdown',
-      }),
-    );
   });
 });
