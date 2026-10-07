@@ -72,8 +72,10 @@ on:
         default: ''
       enable_testmu_hyperexecute:
         description: >-
-          Run the same Android performance specs on TestMu HyperExecute in
-          addition to BrowserStack. Scheduled runs leave this false.
+          Run Android performance specs on TestMu HyperExecute. Pull requests
+          always use TestMu and skip BrowserStack, regardless of this flag.
+          Scheduled runs leave it false. Manual runs can set it to add a
+          TestMu lane next to BrowserStack.
         required: false
         type: boolean
         default: false
@@ -284,7 +286,7 @@ jobs:
   check-testmu-credentials:
     name: Resolve TestMu AI Credentials
     runs-on: ubuntu-latest
-    if: inputs.enable_testmu_hyperexecute == true
+    if: inputs.enable_testmu_hyperexecute == true || inputs.pr_number != ''
     outputs:
       testmu_ready: ${{ steps.resolve.outputs.testmu_ready }}
     steps:
@@ -295,17 +297,21 @@ jobs:
           # whose values match a secret, which previously left uploads unauthorized.
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           if [ -n "$LT_USERNAME" ] && [ -n "$LT_ACCESS_KEY" ]; then
             echo "TestMu AI credentials are configured"
             echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$PR_NUMBER" ]; then
+            echo "PR performance runs require LT_USERNAME and LT_ACCESS_KEY secrets"
+            exit 1
           else
             echo "TestMu HyperExecute skipped: set LT_USERNAME and LT_ACCESS_KEY secrets"
             echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
           fi
 
   trigger-android-dual-versions:
-    name: Trigger Android Dual Versions and Extract BrowserStack URLs
+    name: ${{ inputs.pr_number != '' && 'Trigger Android Dual Versions and Upload to TestMu' || 'Trigger Android Dual Versions and Extract BrowserStack URLs' }}
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     needs: [prepare, check-testmu-credentials]
     # All Android runs without explicit BrowserStack URLs go through this
@@ -328,7 +334,8 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
       reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
-      upload_to_testmu: ${{ inputs.enable_testmu_hyperexecute == true && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && inputs.testmu_app_url_android_onboarding == '' && inputs.testmu_app_url_android_imported_wallet == '' }}
+      upload_to_browserstack: ${{ inputs.pr_number == '' }}
+      upload_to_testmu: ${{ (inputs.enable_testmu_hyperexecute == true || inputs.pr_number != '') && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && inputs.testmu_app_url_android_onboarding == '' && inputs.testmu_app_url_android_imported_wallet == '' }}
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
@@ -345,6 +352,7 @@ jobs:
     needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !failure() && !cancelled() &&
+      inputs.pr_number == '' &&
       needs.prepare.outputs.run_tests == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -373,7 +381,7 @@ jobs:
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       - prepare
-    if: always() && !failure() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_onboarding != ''
+    if: always() && !failure() && !cancelled() && inputs.pr_number == '' && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_onboarding != ''
     with:
       platform: ios
       build_type: onboarding
@@ -397,6 +405,7 @@ jobs:
     needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
+      inputs.pr_number == '' &&
       needs.prepare.outputs.run_tests == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -424,7 +433,7 @@ jobs:
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       - prepare
-    if: always() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
+    if: always() && !cancelled() && inputs.pr_number == '' && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
     with:
       platform: ios
       build_type: imported-wallet
@@ -445,7 +454,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
-      inputs.enable_testmu_hyperexecute == true &&
+      (inputs.enable_testmu_hyperexecute == true || inputs.pr_number != '') &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -476,7 +485,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
-      inputs.enable_testmu_hyperexecute == true &&
+      (inputs.enable_testmu_hyperexecute == true || inputs.pr_number != '') &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||

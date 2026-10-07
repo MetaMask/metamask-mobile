@@ -56,7 +56,7 @@ on:
         type: string
         default: ''
       enable_testmu_hyperexecute:
-        description: 'Also run Android performance specs on TestMu HyperExecute. Scheduled runs stay BrowserStack-only.'
+        description: 'Also run Android performance specs on TestMu HyperExecute next to BrowserStack. Scheduled runs stay BrowserStack-only. Pull requests always use TestMu only.'
         required: false
         type: boolean
         default: false

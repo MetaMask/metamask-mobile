@@ -65,13 +65,20 @@ on:
           run without requiring a fingerprint, then upload them to BrowserStack
           as-is. This mode is intended for test-only changes.
         default: false
+      upload_to_browserstack:
+        required: false
+        type: boolean
+        description: >-
+          When true, upload the staged APKs to BrowserStack. Pull-request
+          performance runs set this false and upload to TestMu only.
+        default: true
       upload_to_testmu:
         required: false
         type: boolean
         description: >-
-          When true, upload the same staged APKs to TestMu AI after the
-          BrowserStack upload. Requires LT_USERNAME and LT_ACCESS_KEY.
-          A TestMu failure does not fail the BrowserStack upload.
+          When true, upload the same staged APKs to TestMu AI. Requires
+          LT_USERNAME and LT_ACCESS_KEY. A TestMu failure does not fail the
+          job when BrowserStack upload is also enabled.
         default: false
       runner_provider:
         description: >-
@@ -587,7 +594,7 @@ jobs:
     secrets: inherit
 
   upload-to-browserstack:
-    name: Upload APKs to BrowserStack
+    name: ${{ inputs.upload_to_browserstack && 'Upload APKs to BrowserStack' || 'Upload APKs to TestMu AI' }}
     # Namespace uses metamask-android-build (JDK + /opt/android-sdk). ci-linux
     # does not have that image; setup-e2e-env skips JDK when provider=namespace.
     # current keeps today's split: Cirrus lg for fingerprint-repack, ubuntu-latest
@@ -867,6 +874,7 @@ jobs:
 
       - name: Upload APKs to BrowserStack
         id: browserstack-upload
+        if: inputs.upload_to_browserstack
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -1004,7 +1012,7 @@ jobs:
           inputs.upload_to_testmu &&
           env.RESOLVED_RUNNER_PROVIDER == 'namespace' &&
           !(needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true)
-        continue-on-error: true
+        continue-on-error: ${{ inputs.upload_to_browserstack }}
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
 
       - name: Checkout TestMu upload scripts
@@ -1012,23 +1020,39 @@ jobs:
           inputs.upload_to_testmu &&
           env.RESOLVED_RUNNER_PROVIDER != 'namespace' &&
           !(needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true)
-        continue-on-error: true
+        continue-on-error: ${{ inputs.upload_to_browserstack }}
         uses: actions/checkout@v6
 
       - name: Upload APKs to TestMu AI
         id: testmu-upload
         if: inputs.upload_to_testmu
-        continue-on-error: true
+        continue-on-error: ${{ inputs.upload_to_browserstack }}
         env:
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
-          WITH_SRP_VERSION: ${{ steps.browserstack-upload.outputs.with-srp-version }}
-          WITHOUT_SRP_VERSION: ${{ steps.browserstack-upload.outputs.without-srp-version }}
+          FINGERPRINT_REUSED: ${{ needs.resolve-fingerprint-reuse.outputs.found }}
+          REUSED_SOURCE_SHA: ${{ needs.resolve-fingerprint-reuse.outputs.source-sha }}
+          MAIN_BRANCH_ONLY: ${{ inputs.main_branch_only }}
+          FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
+          FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
         run: |
           set -euo pipefail
           if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
             echo "LT_USERNAME and LT_ACCESS_KEY are required to upload APKs to TestMu AI"
             exit 1
+          fi
+
+          if [ "$FINGERPRINT_REUSED" = "true" ]; then
+            if [ "$MAIN_BRANCH_ONLY" = "true" ]; then
+              WITH_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+            else
+              WITH_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+            fi
+          else
+            WITH_SRP_VERSION="${FRESH_WITH_SRP_VERSION}"
+            WITHOUT_SRP_VERSION="${FRESH_WITHOUT_SRP_VERSION}"
           fi
 
           chmod +x tests/scripts/upload-testmu-app.sh tests/scripts/verify-testmu-app-url.sh
