@@ -211,6 +211,15 @@ jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
   getPerpsUtmAttributionProperties: jest.fn(() => ({})),
 }));
 
+const mockCheckAccountSupport = jest.fn();
+jest.mock('../../hooks/usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: jest.fn(),
+  }),
+}));
+
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
   usePerpsNetworkManagement: () => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
@@ -1400,6 +1409,7 @@ describe('PerpsOrderView', () => {
     mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
+    mockCheckAccountSupport.mockResolvedValue(true);
     applyDefaultHookMocks();
     (global.requestAnimationFrame as jest.Mock).mockImplementation(
       runFrameSynchronously,
@@ -2441,7 +2451,7 @@ describe('PerpsOrderView', () => {
       fieldIssues: [],
     };
 
-    const arrangePendingValidation = () => {
+    const arrangePendingValidation = async () => {
       let resolveValidation: (result: ValidationResult) => void = () =>
         undefined;
       const validateNow = jest.fn(
@@ -2466,8 +2476,10 @@ describe('PerpsOrderView', () => {
       const rendered = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       let submission: void | Promise<void>;
-      act(() => {
+      await act(async () => {
         submission = getMockTradeScreenProps().onSubmit();
+        // Account support resolves before pending validation starts.
+        await Promise.resolve();
       });
       expect(validateNow).toHaveBeenCalledTimes(1);
 
@@ -2492,7 +2504,7 @@ describe('PerpsOrderView', () => {
     // navigation transition unmounts this view, so the dismissal itself must
     // stop the pending submit — not only the eventual unmount.
     it('does not place an order once the sheet reported it closed, even before unmount', async () => {
-      const { placeOrder, settleValidation } = arrangePendingValidation();
+      const { placeOrder, settleValidation } = await arrangePendingValidation();
 
       act(() => {
         mockTradeSheetOnClose?.();
@@ -2505,7 +2517,7 @@ describe('PerpsOrderView', () => {
 
     it('does not place an order once the view unmounted', async () => {
       const { placeOrder, settleValidation, unmount } =
-        arrangePendingValidation();
+        await arrangePendingValidation();
 
       unmount();
       await settleValidation();
@@ -3855,6 +3867,27 @@ describe('PerpsOrderView', () => {
         defaultMockHooks.usePerpsTrading.placeOrder,
       ).not.toHaveBeenCalled();
     });
+  });
+
+  it('blocks order placement for an unsupported account', async () => {
+    const mockPlaceOrder = jest.fn();
+    mockCheckAccountSupport.mockResolvedValue(false);
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: mockPlaceOrder,
+      isPlacing: false,
+    });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+    expect(mockPlaceOrder).not.toHaveBeenCalled();
   });
 
   it('handles network error during order placement', () => {
