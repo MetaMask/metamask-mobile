@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -10,22 +11,34 @@ import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const navigation = {
   navigate: mockNavigate,
+  dispatch: mockDispatch,
 } as unknown as AppNavigationProp;
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    dispatch: mockDispatch,
+  }),
 }));
 
 const mockHydrate = jest.fn();
 const mockGetState = jest.fn();
 const mockHasAcceptedVbaVendorTerms = jest.fn();
+const mockGetVbaVendorTermsAcceptance = jest.fn();
+const mockRecordVendorDisclaimers = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     RampsController: {
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
+    },
+    KycController: {
+      recordVendorDisclaimers: (...args: unknown[]) =>
+        mockRecordVendorDisclaimers(...args),
     },
   },
 }));
@@ -53,6 +66,8 @@ jest.mock('../../../../../../util/Logger', () => ({
 jest.mock('../vbaVendorTermsStorage', () => ({
   hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
     mockHasAcceptedVbaVendorTerms(...args),
+  getVbaVendorTermsAcceptance: (...args: unknown[]) =>
+    mockGetVbaVendorTermsAcceptance(...args),
 }));
 
 describe('useOpenVbaOnboarding', () => {
@@ -60,6 +75,8 @@ describe('useOpenVbaOnboarding', () => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    mockRecordVendorDisclaimers.mockResolvedValue([]);
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
@@ -88,7 +105,7 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
-  it('navigates to Money home when the autoramp is ready', async () => {
+  it('navigates to the VBA details screen when the autoramp is ready', async () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -102,9 +119,63 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.DETAILS,
+    });
+  });
+
+  it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+    });
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue({
+      disclaimerIds: ['privacy', 'terms'],
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
+      disclaimerIds: ['privacy', 'terms'],
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+          sessionExists: true,
+          vendorTermsAcceptedLocally: true,
+        },
+      },
+    });
+  });
+
+  it('opens identity verification when a session is pending before provider terms', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      kycStatus: 'pending',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          vendorTermsAcceptedLocally: true,
+          kycStatus: 'pending',
+        },
+      },
     });
   });
 
@@ -114,6 +185,7 @@ describe('useOpenVbaOnboarding', () => {
       sessionExists: true,
       vendorDisclaimersComplete: true,
       sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted',
       kycStatus: 'pending',
     });
 
@@ -124,6 +196,47 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
       screen: VbaOnboardingRoutes.KYC_PENDING,
     });
+  });
+
+  it('opens the KYC failure page when verification is rejected', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      kycStatus: 'rejected',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.KYC_REJECTED,
+    });
+  });
+
+  it('opens identity verification when retrying a still-rejected KYC session', async () => {
+    const rejectedSnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'rejected' as const,
+    };
+    mockHydrate.mockResolvedValue(rejectedSnapshot);
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current({ retryRejectedKyc: true });
+
+    const snapshot = {
+      ...rejectedSnapshot,
+      vendorTermsAcceptedLocally: true,
+    };
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+        snapshot,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens a retryable status when account provisioning fails', async () => {

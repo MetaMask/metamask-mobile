@@ -336,7 +336,6 @@ const PerpsHomeView = () => {
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
-  const [aggregateFills, setAggregateFills] = useState(true);
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -357,7 +356,7 @@ const PerpsHomeView = () => {
     recentActivity,
     sortBy,
     isLoading,
-  } = usePerpsHomeData({ aggregateFills });
+  } = usePerpsHomeData({});
 
   // Independently gates the section from the Terminal backend flag that
   // supplies `listedAt` data, so it can be hidden even when that data flows.
@@ -963,8 +962,6 @@ const PerpsHomeView = () => {
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
-            aggregateFills={aggregateFills}
-            onAggregateFillsChange={setAggregateFills}
           />
         ),
       },
@@ -1004,7 +1001,6 @@ const PerpsHomeView = () => {
       forexMarkets,
       sortBy,
       recentActivity,
-      aggregateFills,
       handleSectionLayout,
       moreItems,
     ],
@@ -1109,9 +1105,24 @@ const PerpsHomeView = () => {
       {/* Perps Outreach Banner */}
       <PerpsOutreachBanner includesTopInset location="perps_home" />
 
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            includesTopInset={!outreachCampaign}
+            scrollY={headerScrollY}
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+        </Box>
+      )}
+
       {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
       <HeaderStandardAnimated
-        includesTopInset={!outreachCampaign}
+        includesTopInset={
+          !outreachCampaign && !isServiceInterruptionBannerEnabled
+        }
         // h-16 (64px) matches the Figma header when the Lite pill is shown
         // (HeaderBase defaults to 56px).
         twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
@@ -1168,13 +1179,6 @@ const PerpsHomeView = () => {
               setTitleSectionHeight(event.nativeEvent.layout.height)
             }
           >
-            {isServiceInterruptionBannerEnabled && (
-              <Box twClassName="px-4 mb-4">
-                <PerpsServiceInterruptionBanner
-                  testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-                />
-              </Box>
-            )}
             <TitleHub
               testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
               title={perpsScreenTitle}

@@ -456,6 +456,7 @@ import {
   type SubscriptionControllerActions,
   type SubscriptionControllerEvents,
   type SubscriptionControllerState,
+  SubscriptionDelegationService,
   SubscriptionService,
   type SubscriptionServiceActions,
   type SubscriptionServiceEvents,
@@ -989,6 +990,7 @@ export type MessengerClients = {
   SignatureController: SignatureController;
   StorageService: StorageService;
   SubscriptionController: SubscriptionController;
+  SubscriptionDelegationService: SubscriptionDelegationService;
   SubscriptionService: SubscriptionService;
   ShieldController: ShieldController;
   ShieldApiService: ShieldApiService;

@@ -417,8 +417,18 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       return null;
     }
 
+    const hasSectionDivider =
+      activity?.type === PredictActivityType.BUY ||
+      activity?.type === PredictActivityType.SELL;
+
     return (
-      <Box twClassName="mb-6">
+      // When the divider is shown, the bottom margin matches the divider's top
+      // margin so the rule sits evenly between the last market row and the
+      // first transaction row.
+      <Box
+        twClassName={hasSectionDivider ? 'mb-3' : 'mb-6'}
+        testID={PredictActivityDetailsSelectorsIDs.MARKET_SECTION}
+      >
         {activityDetails.marketRows.map((row, index) => (
           <React.Fragment key={`${row.label}-${index}`}>
             {row.isMarket
@@ -435,9 +445,11 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             ) : null}
           </React.Fragment>
         ))}
-        {activity?.type === PredictActivityType.BUY ||
-        activity?.type === PredictActivityType.SELL ? (
-          <Box twClassName="w-full border-t border-muted mt-3" />
+        {hasSectionDivider ? (
+          <Box
+            twClassName="w-full border-t border-muted mt-3"
+            testID={PredictActivityDetailsSelectorsIDs.SECTION_DIVIDER}
+          />
         ) : null}
       </Box>
     );
@@ -448,8 +460,15 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       return null;
     }
 
+    const hasNetPnlDivider = activityDetails.netPnlRows.length > 0;
+
     return (
-      <Box twClassName="mb-6">
+      // When Net P&L follows, the rule's top margin matches the section's
+      // bottom margin so both sides of the rule are 24px (same as Outcome/Fees).
+      <Box
+        twClassName={hasNetPnlDivider ? 'mb-3' : 'mb-6'}
+        testID={PredictActivityDetailsSelectorsIDs.TRANSACTION_SECTION}
+      >
         {activityDetails.transactionRows.map((row, index) => {
           const key = `${row.label}-${index}`;
           const rowNode = renderDetailRow(
@@ -461,6 +480,12 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           );
           return <React.Fragment key={key}>{rowNode}</React.Fragment>;
         })}
+        {hasNetPnlDivider ? (
+          <Box
+            twClassName="w-full border-t border-muted mt-3"
+            testID={PredictActivityDetailsSelectorsIDs.NET_PNL_DIVIDER}
+          />
+        ) : null}
       </Box>
     );
   };
@@ -471,7 +496,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     }
 
     return (
-      <Box twClassName="mt-4 border-t border-muted pt-4">
+      <Box>
         {activityDetails.netPnlRows.map((row, index) =>
           renderDetailRow(
             row.label,

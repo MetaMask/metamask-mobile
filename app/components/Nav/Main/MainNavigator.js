@@ -82,10 +82,6 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
-import VbaEmailAdapter from '../../UI/Ramp/Views/VirtualBankAccount/modules/VbaEmailAdapter';
-import VbaIdentityVerificationAdapter from '../../UI/Ramp/Views/VirtualBankAccount/modules/VbaIdentityVerificationAdapter';
-import VbaVendorTermsAdapter from '../../UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
-
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -133,6 +129,7 @@ import {
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { getExploreSearchScreenOptions } from '../../../constants/navigation/exploreSearchScreenOptions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
@@ -595,7 +592,6 @@ const HOME_TAB_COMPONENTS = {
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   rewards: RewardsHomeUnmountOnTabBlur,
-  social: SocialV0View,
 };
 
 const HomeTabs = () => {
@@ -610,6 +606,11 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_VARIANTS,
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
+  const { variant: socialV1Variant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    SOCIAL_V1_ASSIGNMENT_OPTIONS,
+  );
   const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
   const isNativeTabBar = useIsNativeTabBar();
   const safeAreaInsets = useSafeAreaInsets();
@@ -620,6 +621,12 @@ const HomeTabs = () => {
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
+  // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
+  // treatment, legacy V0 for control. Exposure is recorded when the surface
+  // itself mounts, not when the tab slot is registered.
+  const socialTabComponent = socialV1Variant.useSocialV1
+    ? SocialV1View
+    : SocialV0View;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -702,6 +709,9 @@ const HomeTabs = () => {
     return null;
   };
 
+  const tabComponentFor = (tab) =>
+    tab.key === 'social' ? socialTabComponent : HOME_TAB_COMPONENTS[tab.key];
+
   const renderJsTabScreen = (tab) => (
     <JsTab.Screen
       key={tab.name}
@@ -711,7 +721,7 @@ const HomeTabs = () => {
         // `TabBar` fires the Navigation Drawer event itself.
         isFloatingTabBar ? { trackBottomNavPress } : undefined,
       )}
-      component={HOME_TAB_COMPONENTS[tab.key]}
+      component={tabComponentFor(tab)}
     />
   );
 
@@ -725,7 +735,7 @@ const HomeTabs = () => {
           : toNativeTabOptions(tab)
       }
       listeners={getNativeTabListeners(tab)}
-      component={HOME_TAB_COMPONENTS[tab.key]}
+      component={tabComponentFor(tab)}
     />
   );
 
@@ -1107,21 +1117,6 @@ const MainNavigator = () => {
       <NativeStack.Screen name={Routes.RAMP.SELL}>
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      {/* Kept until all VBA entry points use the modular onboarding host. */}
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_KYC_EMAIL}
-          component={VbaEmailAdapter}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT}
-          component={VbaVendorTermsAdapter}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_VERIFY_IDENTITY}
-          component={VbaIdentityVerificationAdapter}
-        />
-      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.RAMP.VBA_ONBOARDING}
         component={VbaOnboardingNavigator}
@@ -1297,6 +1292,10 @@ const MainNavigator = () => {
             component={MyProfileView}
           />
           <NativeStack.Screen
+            name={Routes.SOCIAL.V1_PROFILE}
+            component={MyProfileView}
+          />
+          <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
           />
@@ -1359,6 +1358,12 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
+          options={({ route }) =>
+            getExploreSearchScreenOptions(
+              route.params?.entryPoint,
+              slideFromRightNativeOptions,
+            )
+          }
         />
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}

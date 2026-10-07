@@ -152,10 +152,10 @@ describe('PerpsTPSLView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
-    ).toHaveTextContent('+');
+    ).toHaveAccessibilityValue({ text: '+' });
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
-    ).toHaveTextContent('-');
+    ).toHaveAccessibilityValue({ text: '-' });
   });
 
   it('flips the take profit RoE badge from + to - on press', async () => {
@@ -174,7 +174,7 @@ describe('PerpsTPSLView', () => {
         screen.getByTestId(
           PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
         ),
-      ).toHaveTextContent('-');
+      ).toHaveAccessibilityValue({ text: '-' });
     });
   });
 

@@ -133,6 +133,7 @@ describe('useConfirmNavigation', () => {
     navigateToConfirmation({
       stack: STACK_MOCK,
       loader: ConfirmationLoader.CustomAmount,
+      amount: '5',
       forceBottomSheet: true,
       bottomSheetHeightPercentage: 72,
     });
@@ -140,6 +141,7 @@ describe('useConfirmNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_REQUEST_MODAL,
       {
+        amount: '5',
         bottomSheetHeightPercentage: 72,
         forceBottomSheet: true,
         loader: ConfirmationLoader.CustomAmount,
@@ -157,12 +159,14 @@ describe('useConfirmNavigation', () => {
     navigateToConfirmation({
       stack: STACK_MOCK,
       loader: ConfirmationLoader.CustomAmount,
+      amount: '5',
       forceBottomSheet: true,
       replace: true,
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.CONFIRMATION_REQUEST_MODAL, {
+        amount: '5',
         forceBottomSheet: true,
         loader: ConfirmationLoader.CustomAmount,
       }),
