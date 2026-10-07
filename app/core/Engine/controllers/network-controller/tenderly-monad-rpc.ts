@@ -3,9 +3,10 @@ import {
   type UpdateNetworkFields,
 } from '@metamask/network-controller';
 import type { Hex } from '@metamask/utils';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
 
 function isDevApiEnv(): boolean {
-  return (process.env.MM_DEV_API_ENV ?? '').toLowerCase() === 'dev';
+  return getApiEnv() === ApiEnv.Dev;
 }
 
 export const MONAD_CHAIN_ID: Hex = '0x8f';
@@ -14,10 +15,10 @@ export const TENDERLY_MONAD_RPC_ENDPOINT_NAME = 'Tenderly Monad fork';
 
 /**
  * Dev-only Monad fork. Production builds never select this URL:
- * `MM_DEV_API_ENV` is inlined at build time and is not `dev` for RC/prod.
+ * `MM_API_ENV` is inlined at build time and is not `dev` for RC/prod.
  */
 const TENDERLY_MONAD_RPC_URL =
-  'https://virtual.monad.eu.rpc.tenderly.co/amitabh94/project/0291f8-2a4243';
+  'https://virtual.monad.eu.rpc.tenderly.co/amitabh94/project/2d9e85-3a9b13';
 
 type MonadRpcEndpoint = UpdateNetworkFields['rpcEndpoints'][number];
 
@@ -28,7 +29,7 @@ export interface MonadRpcConfig {
 
 /**
  * Read URL for the Tenderly Monad fork.
- * Present only in builds compiled with `MM_DEV_API_ENV=dev`.
+ * Present only in builds compiled with `MM_API_ENV=dev`.
  */
 export function tenderlyMonadRpcUrl(): string | undefined {
   if (!isDevApiEnv()) {

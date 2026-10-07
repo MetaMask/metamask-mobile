@@ -13,11 +13,9 @@ import {
 import Logger from '../../../../util/Logger';
 
 /**
- * Points Monad at the Tenderly fork for dev builds in the neobank cohort,
- * and removes that endpoint when either gate is off.
+ * Points Monad at the Tenderly fork. Call only after both gates have passed.
  */
-export function useTenderlyMonadRpc(): void {
-  const neobankEnabled = useSelector(selectMoneyMovementBrazilNeobankEnabled);
+function useTenderlyMonadRpc(): void {
   const networks = useSelector(selectEvmNetworkConfigurationsByChainId);
   const monad = networks?.[MONAD_CHAIN_ID];
 
@@ -28,7 +26,7 @@ export function useTenderlyMonadRpc(): void {
 
     const tenderlyRpcUrl = tenderlyMonadRpcUrl();
     const next = resolveMonadRpcConfig({
-      enabled: shouldUseTenderlyMonadRpc(neobankEnabled),
+      enabled: true,
       tenderlyRpcUrl,
       rpcEndpoints: monad.rpcEndpoints,
       defaultRpcEndpointIndex: monad.defaultRpcEndpointIndex,
@@ -54,5 +52,22 @@ export function useTenderlyMonadRpc(): void {
     ).catch((error: unknown) => {
       Logger.error(error as Error, 'Failed to apply Tenderly Monad RPC');
     });
-  }, [monad, neobankEnabled]);
+  }, [monad]);
+}
+
+/**
+ * Mounted only for a dev build. The network update runs only while
+ * `moneyMovementBrazilNeobank` is on.
+ */
+export function TenderlyMonadRpc(): null {
+  const neobankEnabled = useSelector(selectMoneyMovementBrazilNeobankEnabled);
+  if (!shouldUseTenderlyMonadRpc(neobankEnabled)) {
+    return null;
+  }
+  return <TenderlyMonadRpcApply />;
+}
+
+function TenderlyMonadRpcApply(): null {
+  useTenderlyMonadRpc();
+  return null;
 }

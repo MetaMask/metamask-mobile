@@ -1,9 +1,16 @@
 import { RpcEndpointType } from '@metamask/network-controller';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
 
 import {
   resolveMonadRpcConfig,
+  shouldUseTenderlyMonadRpc,
   TENDERLY_MONAD_RPC_ENDPOINT_NAME,
 } from './tenderly-monad-rpc';
+
+jest.mock('../../../apiEnv', () => ({
+  ApiEnv: { Dev: 'dev', Uat: 'uat', Prod: 'prod' },
+  getApiEnv: jest.fn(() => 'prod'),
+}));
 
 const TENDERLY_URL = 'https://virtual.monad.example/fork';
 const PUBLIC_URL = 'https://monad.example/rpc';
@@ -14,6 +21,26 @@ const publicEndpoint = {
   type: RpcEndpointType.Custom,
   networkClientId: 'monad-public',
 };
+
+describe('shouldUseTenderlyMonadRpc', () => {
+  it('is true only for a dev build with the neobank flag on', () => {
+    jest.mocked(getApiEnv).mockReturnValue(ApiEnv.Dev);
+
+    expect(shouldUseTenderlyMonadRpc(true)).toBe(true);
+  });
+
+  it('is false for a production build even when the neobank flag is on', () => {
+    jest.mocked(getApiEnv).mockReturnValue(ApiEnv.Prod);
+
+    expect(shouldUseTenderlyMonadRpc(true)).toBe(false);
+  });
+
+  it('is false for a dev build when the neobank flag is off', () => {
+    jest.mocked(getApiEnv).mockReturnValue(ApiEnv.Dev);
+
+    expect(shouldUseTenderlyMonadRpc(false)).toBe(false);
+  });
+});
 
 describe('resolveMonadRpcConfig', () => {
   it('adds the Tenderly endpoint and selects it when enabled', () => {

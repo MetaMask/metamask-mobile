@@ -184,7 +184,8 @@ import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
-import { useTenderlyMonadRpc } from '../../UI/Money/hooks/useTenderlyMonadRpc';
+import { TenderlyMonadRpc } from '../../UI/Money/hooks/useTenderlyMonadRpc';
+import { tenderlyMonadRpcUrl } from '../../../core/Engine/controllers/network-controller/tenderly-monad-rpc';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
@@ -1441,7 +1442,6 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
-  useTenderlyMonadRpc();
   const predictRegistrations = usePredictToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
@@ -1542,6 +1542,7 @@ const App: React.FC = () => {
         */}
         <ToasterOverlay />
         <PerpsWebSocketHealthToast />
+        {tenderlyMonadRpcUrl() ? <TenderlyMonadRpc /> : null}
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
