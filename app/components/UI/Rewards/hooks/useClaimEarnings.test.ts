@@ -108,6 +108,8 @@ const UNDER_DOLLAR = '999999';
 
 const localizedText = {
   claimSuccessToast: 'Earnings successfully claimed',
+  claimPartialSuccessToast:
+    'Part of mUSD successfully claimed to your Money account. You may try to claim the rest in an hour.',
   claimFailureToast: 'Earnings could not be claimed',
   claimFailureRetryToast: 'Try again',
   claimFailureWaitToast: 'Try again shortly',
@@ -341,6 +343,29 @@ describe('useClaimEarnings', () => {
     expect(onSubmitted).toHaveBeenCalledTimes(1);
     expect(onOpened).toHaveBeenCalledTimes(1);
     expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('shows the partial toast when the claim deferred the rest', async () => {
+    mockEngineCall.mockResolvedValue({
+      kind: 'authorized',
+      body: {
+        ...authorized().body,
+        excluded: [
+          { type: 'SWAPS_FEE_CASHBACK', reason: 'VELOCITY_LIMIT_DEFERRED' },
+        ],
+      },
+    });
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockSuccessToast).toHaveBeenCalledWith(
+      localizedText.claimPartialSuccessToast,
+    );
+    expect(mockErrorToast).not.toHaveBeenCalled();
+    expect(onSubmitted).toHaveBeenCalledTimes(1);
   });
 
   it('keeps Claim disabled until the summary refresh settles', async () => {
