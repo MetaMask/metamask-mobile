@@ -13,7 +13,7 @@ import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 describe('GlassSurface', () => {
   it('renders its children on the glass', () => {
     const { getByTestId, getByText } = render(
-      <GlassSurface borderRadius={12} testID="glass">
+      <GlassSurface radiusClassName="rounded-xl" testID="glass">
         <Text>Content</Text>
       </GlassSurface>,
     );
@@ -22,9 +22,9 @@ describe('GlassSurface', () => {
     expect(getByText('Content')).toBeOnTheScreen();
   });
 
-  it('rounds and clips the glass to the given radius', () => {
+  it('rounds and clips the glass to the radius token', () => {
     const { getByTestId } = render(
-      <GlassSurface borderRadius={16} testID="glass" />,
+      <GlassSurface radiusClassName="rounded-2xl" testID="glass" />,
     );
 
     expect(getByTestId('glass')).toHaveStyle({
@@ -35,11 +35,17 @@ describe('GlassSurface', () => {
 
   it('is static unless marked interactive', () => {
     const { getByTestId, rerender } = render(
-      <GlassSurface borderRadius={12} testID="glass" />,
+      <GlassSurface radiusClassName="rounded-xl" testID="glass" />,
     );
     expect(getByTestId('glass').props.isInteractive).toBe(false);
 
-    rerender(<GlassSurface borderRadius={12} testID="glass" isInteractive />);
+    rerender(
+      <GlassSurface
+        radiusClassName="rounded-xl"
+        testID="glass"
+        isInteractive
+      />,
+    );
 
     expect(getByTestId('glass').props.isInteractive).toBe(true);
   });
@@ -47,7 +53,7 @@ describe('GlassSurface', () => {
   describe('sheen', () => {
     it('draws no sheen by default', () => {
       const { queryByTestId } = render(
-        <GlassSurface borderRadius={16} testID="glass" />,
+        <GlassSurface radiusClassName="rounded-2xl" testID="glass" />,
       );
 
       expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
@@ -56,7 +62,7 @@ describe('GlassSurface', () => {
     // The native gradient receives processed colors.
     it('covers the glass with the muted-tint sheen on the screen colour', () => {
       const { getByTestId } = render(
-        <GlassSurface borderRadius={16} testID="glass" hasSheen>
+        <GlassSurface radiusClassName="rounded-2xl" testID="glass" hasSheen>
           <Text>Content</Text>
         </GlassSurface>,
       );
@@ -78,7 +84,7 @@ describe('GlassSurface', () => {
         <ThemeContext.Provider
           value={{ ...mockTheme, themeAppearance: AppThemeKey.dark }}
         >
-          <GlassSurface borderRadius={16} hasSheen />
+          <GlassSurface radiusClassName="rounded-2xl" hasSheen />
         </ThemeContext.Provider>,
       );
 

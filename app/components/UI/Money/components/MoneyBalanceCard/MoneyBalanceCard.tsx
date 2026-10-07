@@ -35,8 +35,9 @@ import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import styleSheet, { CARD_RADIUS } from './MoneyBalanceCard.styles';
+import styleSheet from './MoneyBalanceCard.styles';
 import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
@@ -396,14 +397,25 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         justifyContent={BoxJustifyContent.End}
         twClassName="shrink-0"
       >
-        <Button
-          testID={buttonTestId}
-          variant={buttonVariant}
-          size={ButtonSize.Md}
-          onPress={handleAddPress}
-        >
-          {strings(buttonLabelKey)}
-        </Button>
+        {buttonVariant === ButtonVariant.Secondary ? (
+          <ButtonGlass
+            isGlass={isGlass}
+            testID={buttonTestId}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </ButtonGlass>
+        ) : (
+          <Button
+            testID={buttonTestId}
+            variant={buttonVariant}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </Button>
+        )}
       </Box>
     </>
   );
@@ -416,7 +428,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         style={styles.glassContainer}
       >
         <GlassSurface
-          borderRadius={CARD_RADIUS}
+          radiusClassName="rounded-xl"
           isInteractive
           hasSheen
           testID={MoneyBalanceCardTestIds.GLASS_SURFACE}

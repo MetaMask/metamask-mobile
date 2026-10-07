@@ -19,8 +19,6 @@ import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { BANNER_HEIGHT, BANNER_IMAGE_SIZE } from './BrazeBanner.constants';
 import GlassSurface from '../../../component-library/components-temp/GlassSurface';
 
-const BANNER_RADIUS = 12;
-
 interface BrazeBannerCardProps {
   title: string | null;
   body: string;
@@ -149,7 +147,7 @@ const BrazeBannerCard = ({
     return (
       <GlassSurface
         testID={BRAZE_BANNER_TEST_IDS.CARD}
-        borderRadius={BANNER_RADIUS}
+        radiusClassName="rounded-xl"
         isInteractive
         hasSheen
         style={[

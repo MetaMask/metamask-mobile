@@ -798,12 +798,17 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('CTA variant follows the presence of another primary CTA on Home', () => {
+    // Secondary renders through ButtonGlass, so read the variant off the
+    // design-system Button underneath rather than the first match.
     const getVariant = (
-      UNSAFE_getByProps: ReturnType<
+      UNSAFE_getAllByProps: ReturnType<
         typeof renderWithProvider
-      >['UNSAFE_getByProps'],
+      >['UNSAFE_getAllByProps'],
       testID: string,
-    ) => UNSAFE_getByProps({ testID }).props.variant;
+    ) =>
+      UNSAFE_getAllByProps({ testID }).find(
+        (node) => node.props.variant !== undefined,
+      )?.props.variant;
 
     describe('empty balance, onboarding seen', () => {
       beforeEach(() => {
@@ -819,20 +824,24 @@ describe('MoneyBalanceCard', () => {
       it('renders Add as Secondary when another primary CTA is present on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
 
       it('renders Add as Primary when no other primary CTA is on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
     });
@@ -841,20 +850,24 @@ describe('MoneyBalanceCard', () => {
       it('renders Add as Primary when no other primary CTA is on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
 
       it('renders Add as Secondary when another primary CTA is present on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
     });
@@ -873,20 +886,24 @@ describe('MoneyBalanceCard', () => {
       it('renders Add as Primary when no other primary CTA is on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
 
       it('renders Add as Secondary when another primary CTA is present on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
     });
@@ -1219,6 +1236,27 @@ describe('MoneyBalanceCard', () => {
       ).toBe(true);
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
       expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('draws a secondary Add on glass too', () => {
+      mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MoneyBalanceCard isGlass />,
+      );
+
+      // One sheen for the card, one for the Add button.
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+    });
+
+    it('keeps a primary Add solid on the glass card', () => {
+      mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MoneyBalanceCard isGlass />,
+      );
+
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
     });
 
     it('still opens Money home when the glass card is pressed', () => {
