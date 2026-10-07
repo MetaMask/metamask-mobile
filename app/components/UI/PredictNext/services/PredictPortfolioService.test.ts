@@ -345,6 +345,83 @@ describe('PredictPortfolioService', () => {
       expect(portfolio.fetchActivity).not.toHaveBeenCalled();
     });
 
+    it('keyless invalidation refreshes every cached read, including Activity', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      portfolio.fetchActivity.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        activity: [],
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      await service.getActivity(KALSHI_VENUE_ID, { limit: 20 });
+
+      await service.invalidateQueries();
+
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+      expect(portfolio.fetchActivity).toHaveBeenCalledTimes(2);
+    });
+
+    it('exact-key invalidation refreshes only the exactly matching read', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      await service.getPositions(KALSHI_VENUE_ID, { limit: 20 });
+
+      await service.invalidateQueries({
+        queryKey: portfolioQueries.getPositions(KALSHI_VENUE_ID, {
+          limit: 20,
+        }).queryKey,
+        exact: true,
+      });
+
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(2);
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('evicts the oldest cached read past the registry bound', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+      });
+      const service = buildService(portfolio);
+      for (let limit = 1; limit <= 33; limit += 1) {
+        await service.getPositions(KALSHI_VENUE_ID, { limit });
+      }
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(33);
+
+      // The oldest read (limit: 1) was evicted: its exact invalidation finds
+      // no cached entry and refetches nothing.
+      await service.invalidateQueries({
+        queryKey: portfolioQueries.getPositions(KALSHI_VENUE_ID, { limit: 1 })
+          .queryKey,
+        exact: true,
+      });
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(33);
+
+      // The newest read survives and refreshes through its own query function.
+      await service.invalidateQueries({
+        queryKey: portfolioQueries.getPositions(KALSHI_VENUE_ID, { limit: 33 })
+          .queryKey,
+        exact: true,
+      });
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(34);
+    });
+
     it('keeps prior data and resolves when a refresh fails', async () => {
       const portfolio = createPortfolio();
       portfolio.fetchBalance.mockResolvedValueOnce({
