@@ -629,6 +629,20 @@
     "reportedAccounts": [],
     "syncQueue": {}
   },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
+  },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
