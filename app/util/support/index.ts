@@ -169,6 +169,31 @@ export const getSavedSupportDataSharingPreference = (): boolean | null => {
 };
 
 /**
+ * Opens support immediately when the user has saved a data-sharing choice.
+ *
+ * @returns `true` when a saved preference was found and support opening was
+ * started, otherwise `false` so the caller can show the consent UI.
+ */
+export const openSupportWithSavedPreference = (
+  open: OpenSupportUrl,
+  baseUrl?: string,
+  onOpenSupport?: () => void,
+): boolean => {
+  const savedPreference = getSavedSupportDataSharingPreference();
+  if (savedPreference === true) {
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void confirmSupportConsent(open, baseUrl, onOpenSupport);
+    return true;
+  }
+  if (savedPreference === false) {
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void rejectSupportConsent(open, baseUrl, onOpenSupport);
+    return true;
+  }
+  return false;
+};
+
+/**
  * Shows the support consent sheet, then opens the support URL via the
  * caller-provided `open` function (e.g. navigating to SimpleWebview,
  * `Linking.openURL`, or an in-app browser), keeping each entry point's
@@ -198,13 +223,7 @@ export const navigateToSupportConsent = (
   baseUrl?: string,
   onOpenSupport?: () => void,
 ): void => {
-  const savedPreference = getSavedSupportDataSharingPreference();
-  if (savedPreference === true) {
-    confirmSupportConsent(open, baseUrl, onOpenSupport);
-    return;
-  }
-  if (savedPreference === false) {
-    rejectSupportConsent(open, baseUrl, onOpenSupport);
+  if (openSupportWithSavedPreference(open, baseUrl, onOpenSupport)) {
     return;
   }
 
