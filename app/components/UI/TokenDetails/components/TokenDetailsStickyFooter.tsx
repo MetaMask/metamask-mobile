@@ -408,6 +408,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         {isPositionLineEnabled && (
           <TokenDetailsPositionLine
             positionId={positionId}
+            tokenAddress={token.address}
+            chainId={token.chainId}
             balanceFiatUsd={balanceFiatUsd}
           />
         )}

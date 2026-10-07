@@ -13,6 +13,10 @@ jest.mock('../../SocialFeed/TraderPositionPnl', () => ({
   useUnrealizedPnl: jest.fn(),
   useTraderPosition: jest.fn(),
   useUsdToFiatRate: jest.fn(),
+  useOpenPositionId: jest.fn(() => ({
+    position: null,
+    isResolving: false,
+  })),
   convertUsdToFiat: jest.fn(),
   formatFiat: jest.fn((amount: number) =>
     amount < 0 ? `-$${Math.abs(amount).toFixed(2)}` : `+$${amount.toFixed(2)}`,
