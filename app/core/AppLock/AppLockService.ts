@@ -168,7 +168,7 @@ export class AppLockService {
    * Drops the pre-Android 13 capture block. No-op where Recents is suppressed
    * natively, so a release cannot clear FLAG_SECURE for another owner.
    */
-  #releaseSecureFlag = (): void => {
+  readonly #releaseSecureFlag = (): void => {
     if (!holdsSecureFlagForRecents()) {
       return;
     }
@@ -184,7 +184,7 @@ export class AppLockService {
    * Records that the native cover is up. Cancels a dismiss that has not fired
    * yet, so backgrounding again during the minimum visible time keeps it up.
    */
-  #showPrivacyCover = (): void => {
+  readonly #showPrivacyCover = (): void => {
     const dismissWasPending = this.#privacyCoverDismissTimer !== undefined;
     this.#clearPrivacyCoverDismissTimer();
     if (this.#privacyCoverShownAtMs !== undefined && !dismissWasPending) {
@@ -198,7 +198,7 @@ export class AppLockService {
    * recorded it is dismissed immediately. Otherwise the dismiss waits until
    * the cover has been up for `PRIVACY_COVER_MIN_VISIBLE_MS`.
    */
-  #hidePrivacyCover = (): void => {
+  readonly #hidePrivacyCover = (): void => {
     if (this.#privacyCoverDismissTimer !== undefined) {
       return;
     }
@@ -218,13 +218,13 @@ export class AppLockService {
     }, remainingMs);
   };
 
-  #dismissPrivacyCoverNow = (): void => {
+  readonly #dismissPrivacyCoverNow = (): void => {
     this.#clearPrivacyCoverDismissTimer();
     this.#privacyCoverShownAtMs = undefined;
     this.#dismissNativePrivacyCover();
   };
 
-  #clearPrivacyCoverDismissTimer = (): void => {
+  readonly #clearPrivacyCoverDismissTimer = (): void => {
     if (this.#privacyCoverDismissTimer === undefined) {
       return;
     }
@@ -232,7 +232,7 @@ export class AppLockService {
     this.#privacyCoverDismissTimer = undefined;
   };
 
-  #dismissNativePrivacyCover = (): void => {
+  readonly #dismissNativePrivacyCover = (): void => {
     const privacyCoverModule: PrivacyCoverNativeModule | undefined =
       NativeModules.PrivacyCoverModule;
     privacyCoverModule?.hide();
@@ -242,7 +242,7 @@ export class AppLockService {
   // AppState handling
   // ---------------------------------------------------------------------------
 
-  #handleAppStateChange = (nextAppState: AppStateStatus): void => {
+  readonly #handleAppStateChange = (nextAppState: AppStateStatus): void => {
     this.#currentAppState = nextAppState;
     try {
       switch (nextAppState) {
@@ -270,7 +270,7 @@ export class AppLockService {
     }
   };
 
-  #onBackground = (): void => {
+  readonly #onBackground = (): void => {
     this.#backgroundedAt = Date.now();
 
     if (!this.#isAutoLockEnabled) {
@@ -286,15 +286,20 @@ export class AppLockService {
     // unless the lock time is immediate.
     this.#lockDecisionPending = true;
     if (lockTime === 0) {
-      this.#startLock();
+      this.#startLock().catch((error) => {
+        Logger.error(
+          error as Error,
+          'AppLockService: Failed to lock on background',
+        );
+      });
     }
   };
 
   /** `settings.lockTime` of `0` or a positive duration. `-1` and non-numbers are off. */
-  #isLockTimeActive = (lockTime: number): boolean =>
+  readonly #isLockTimeActive = (lockTime: number): boolean =>
     Number.isFinite(lockTime) && lockTime >= 0;
 
-  #onForeground = (): void => {
+  readonly #onForeground = (): void => {
     if (this.#resolveForegroundPromise) {
       if (SecureKeychain.getInstance().isAuthenticating) {
         // Android backgrounds the host Activity for its credential sheet.
@@ -338,7 +343,7 @@ export class AppLockService {
    * Decides where the user goes after resume. The privacy screen stays up for
    * the whole duration (dismissed by the caller once this settles).
    */
-  #resolveForeground = async (
+  readonly #resolveForeground = async (
     backgroundedAt: number | undefined,
   ): Promise<void> => {
     try {
@@ -417,7 +422,7 @@ export class AppLockService {
    * prompt is only safe after `onPostResume`. `onPause` rejects this wait so
    * a resume that already ended cannot start authentication.
    */
-  #waitUntilAndroidAuthenticationReady = async (): Promise<boolean> => {
+  readonly #waitUntilAndroidAuthenticationReady = async (): Promise<boolean> => {
     if (Platform.OS !== 'android') {
       return true;
     }
@@ -440,7 +445,7 @@ export class AppLockService {
    * Prompts authentication, falling back to the Login screen on failure.
    * The privacy screen is the only cover while this runs.
    */
-  #promptUnlock = async (): Promise<void> => {
+  readonly #promptUnlock = async (): Promise<void> => {
     try {
       await Authentication.tryBiometricUnlock({
         navigationBehavior: 'preserve',
@@ -452,7 +457,7 @@ export class AppLockService {
       trackErrorAsAnalytics(
         'Lockscreen: Authentication failed',
         (error as Error)?.message,
-      );
+      ).catch(() => undefined);
     }
   };
 
@@ -460,7 +465,7 @@ export class AppLockService {
   // Locking
   // ---------------------------------------------------------------------------
 
-  #startLock = (): Promise<void> => {
+  readonly #startLock = (): Promise<void> => {
     if (!this.#lockPromise) {
       this.#lockPromise = this.#lockNow().finally(() => {
         this.#lockPromise = undefined;
@@ -475,7 +480,7 @@ export class AppLockService {
    * Android, and locking underneath it would tear down the very unlock the
    * user is completing.
    */
-  #lockNow = async (): Promise<void> => {
+  readonly #lockNow = async (): Promise<void> => {
     if (SecureKeychain.getInstance().isAuthenticating) {
       return;
     }
