@@ -2,6 +2,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   RewardsMoneyDataService,
   RewardsMoneyAuthorizationError,
+  RewardsMoneyRebateQuoteError,
   buildOriginTypeQuery,
   type RewardsMoneyDataServiceMessenger,
 } from './rewards-money-data-service';
@@ -107,6 +108,7 @@ describe('RewardsMoneyDataService', () => {
         'getClaimHistory',
         'getCommissions',
         'getClaimById',
+        'getRebateQuote',
         'getRewardsMoneyEnvUrl',
         'canChangeRewardsMoneyEnvUrl',
         'setRewardsMoneyEnvUrl',
@@ -559,6 +561,124 @@ describe('RewardsMoneyDataService', () => {
       expect(buildOriginTypeQuery(['REFERRAL_REV_SHARE'])).toBe(
         '?earning_origin_type=REFERRAL_REV_SHARE',
       );
+    });
+  });
+
+  describe('getRebateQuote', () => {
+    const quote = { feeData: { metabridge: { token: 'USDC' } } };
+    const response = {
+      product: 'swaps' as const,
+      eligible: true,
+      rebateBips: 2000,
+      reason: null,
+    };
+
+    const jsonError = (
+      status: number,
+      body: unknown,
+      headers: Record<string, string> = {},
+    ): Response =>
+      ({
+        ok: false,
+        status,
+        headers: {
+          get: (name: string) => headers[name.toLowerCase()] ?? null,
+        },
+        text: async () => JSON.stringify(body),
+      }) as Response;
+
+    it('POSTs the body to the rebate quote route with the bearer token', async () => {
+      mockFetch.mockResolvedValue(okJson(response));
+
+      await expect(
+        service.getRebateQuote({ product: 'swaps', quote }),
+      ).resolves.toEqual(response);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/earnings/rebate/quote'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ product: 'swaps', quote }),
+          headers: expect.objectContaining({
+            Authorization: 'Bearer hydra-token',
+          }),
+        }),
+      );
+    });
+
+    it('keeps a validation failure, a rate limit, a shed, and any other failure distinct', async () => {
+      mockFetch.mockResolvedValueOnce(
+        jsonError(400, {
+          statusCode: 400,
+          message: ['trade is only accepted for perps and predict'],
+          error: 'Bad Request',
+        }),
+      );
+      mockFetch.mockResolvedValueOnce(
+        jsonError(
+          429,
+          {
+            statusCode: 429,
+            reason: 'RATE_LIMITED',
+            message: 'Too many requests',
+          },
+          { 'retry-after': '12' },
+        ),
+      );
+      mockFetch.mockResolvedValueOnce(
+        jsonError(503, {
+          statusCode: 503,
+          message: 'Too many rebate quotes in flight; show no rebate row',
+          error: 'Service Unavailable',
+        }),
+      );
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        headers: { get: () => null },
+        text: async () => 'boom',
+      } as unknown as Response);
+
+      await expect(
+        service.getRebateQuote({ product: 'swaps', quote }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyRebateQuoteError',
+        status: 400,
+        failure: 'INVALID_REQUEST',
+        detail: 'trade is only accepted for perps and predict',
+      });
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        status: 429,
+        failure: 'RATE_LIMITED',
+        detail: 'Too many requests',
+        retryAfterSeconds: 12,
+      });
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        status: 503,
+        failure: 'UNAVAILABLE',
+        detail: 'Too many rebate quotes in flight; show no rebate row',
+      });
+      const failed = await service
+        .getRebateQuote({ product: 'perps' })
+        .catch((thrown: unknown) => thrown);
+      expect(failed).toBeInstanceOf(RewardsMoneyRebateQuoteError);
+      expect(failed).toMatchObject({
+        status: 500,
+        failure: 'FAILED',
+        detail: undefined,
+      });
+    });
+
+    it('leaves a 401 as an authorization error', async () => {
+      mockFetch.mockResolvedValue(notOk(401));
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toBeInstanceOf(RewardsMoneyAuthorizationError);
     });
   });
 });

@@ -24,6 +24,9 @@ import {
   type GetReferralFunnelDto,
   type GetReferralMeDto,
   type OwnReferralCodesDto,
+  type PerpsRebateTrade,
+  type RebateQuoteBody,
+  type RebateQuoteResponse,
   type ReferralFunnelDto,
   type ReferralMeDto,
   type ReferrerOriginType,
@@ -159,6 +162,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClaimHistory',
   'getCommissions',
   'getClaimById',
+  'getSwapsRebateQuote',
+  'getPerpsRebateQuote',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -339,6 +344,36 @@ export class RewardsMoneyController extends BaseController<
       'RewardsMoneyDataService:validateReferralCode',
       code,
     );
+  }
+
+  /**
+   * Rebate a swaps confirmation screen should show. The bridge quote decides
+   * fee-token eligibility. Not cached: the rate has to disappear the moment
+   * an operator ends the window, and a different quote can name a different
+   * fee token.
+   */
+  getSwapsRebateQuote(
+    quote: Record<string, unknown>,
+  ): Promise<RebateQuoteResponse> {
+    return this.#getRebateQuote({ product: 'swaps', quote });
+  }
+
+  /**
+   * Rebate a perps confirmation screen should show. `trade` is optional and
+   * the server drops it today; the answer does not depend on it.
+   */
+  getPerpsRebateQuote(trade?: PerpsRebateTrade): Promise<RebateQuoteResponse> {
+    return this.#getRebateQuote(
+      trade === undefined ? { product: 'perps' } : { product: 'perps', trade },
+    );
+  }
+
+  async #getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call('RewardsMoneyDataService:getRebateQuote', body);
   }
 
   async getEarningsSummary(

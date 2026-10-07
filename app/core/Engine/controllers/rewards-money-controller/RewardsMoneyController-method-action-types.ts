@@ -50,6 +50,26 @@ export type RewardsMoneyControllerValidateReferralCodeAction = {
   handler: RewardsMoneyController['validateReferralCode'];
 };
 
+/**
+ * Rebate a swaps confirmation screen should show. The bridge quote decides
+ * fee-token eligibility. Not cached: the rate has to disappear the moment
+ * an operator ends the window, and a different quote can name a different
+ * fee token.
+ */
+export type RewardsMoneyControllerGetSwapsRebateQuoteAction = {
+  type: `RewardsMoneyController:getSwapsRebateQuote`;
+  handler: RewardsMoneyController['getSwapsRebateQuote'];
+};
+
+/**
+ * Rebate a perps confirmation screen should show. `trade` is optional and
+ * the server drops it today; the answer does not depend on it.
+ */
+export type RewardsMoneyControllerGetPerpsRebateQuoteAction = {
+  type: `RewardsMoneyController:getPerpsRebateQuote`;
+  handler: RewardsMoneyController['getPerpsRebateQuote'];
+};
+
 export type RewardsMoneyControllerGetEarningsSummaryAction = {
   type: `RewardsMoneyController:getEarningsSummary`;
   handler: RewardsMoneyController['getEarningsSummary'];
@@ -88,6 +108,8 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetReferralFunnelAction
   | RewardsMoneyControllerGetReferralCodesAction
   | RewardsMoneyControllerValidateReferralCodeAction
+  | RewardsMoneyControllerGetSwapsRebateQuoteAction
+  | RewardsMoneyControllerGetPerpsRebateQuoteAction
   | RewardsMoneyControllerGetEarningsSummaryAction
   | RewardsMoneyControllerGetEarningsLedgerAction
   | RewardsMoneyControllerGetClaimHistoryAction

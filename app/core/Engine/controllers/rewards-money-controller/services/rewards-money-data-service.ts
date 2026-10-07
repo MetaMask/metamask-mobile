@@ -9,6 +9,8 @@ import type {
   EarningsLedgerPageDto,
   EarningsSummaryDto,
   OwnReferralCodesDto,
+  RebateQuoteBody,
+  RebateQuoteResponse,
   ReferralFunnelDto,
   ReferralMeDto,
   ReferrerOriginType,
@@ -42,6 +44,52 @@ export class RewardsMoneyAuthorizationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'RewardsMoneyAuthorizationError';
+  }
+}
+
+/**
+ * Why `POST /earnings/rebate/quote` did not return a quote. A 200 whose
+ * `reason` is set is not this: that quote is the answer, and the screen
+ * shows no row. These are the responses the screen has to tell apart.
+ */
+export type RewardsMoneyRebateQuoteFailure =
+  | 'INVALID_REQUEST'
+  | 'RATE_LIMITED'
+  | 'UNAVAILABLE'
+  | 'FAILED';
+
+/**
+ * A rebate quote the server refused. `failure` is the status the confirmation
+ * screen branches on; `detail` is the server's message when it sent one.
+ * `401` is not this: that is {@link RewardsMoneyAuthorizationError}.
+ */
+export class RewardsMoneyRebateQuoteError extends Error {
+  readonly status: number;
+
+  readonly failure: RewardsMoneyRebateQuoteFailure;
+
+  /** Nest `message`, or `reason` when that is all the body carries. */
+  readonly detail: string | undefined;
+
+  /** Seconds from a `Retry-After` header, when the refusal carried one. */
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(
+    status: number,
+    failure: RewardsMoneyRebateQuoteFailure,
+    detail?: string,
+    retryAfterSeconds?: number,
+  ) {
+    super(
+      detail && detail.length > 0
+        ? detail
+        : `Get rebate quote failed: ${status}`,
+    );
+    this.name = 'RewardsMoneyRebateQuoteError';
+    this.status = status;
+    this.failure = failure;
+    this.detail = detail;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -92,6 +140,11 @@ export interface RewardsMoneyDataServiceGetClaimByIdAction {
   handler: RewardsMoneyDataService['getClaimById'];
 }
 
+export interface RewardsMoneyDataServiceGetRebateQuoteAction {
+  type: `${typeof SERVICE_NAME}:getRebateQuote`;
+  handler: RewardsMoneyDataService['getRebateQuote'];
+}
+
 export interface RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyDataService['getRewardsMoneyEnvUrl'];
@@ -122,6 +175,7 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
+  | RewardsMoneyDataServiceGetRebateQuoteAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -146,6 +200,73 @@ function trimTrailingSlashes(url: string): string {
     end -= 1;
   }
   return url.slice(0, end);
+}
+
+/** `Retry-After` is delta-seconds. An HTTP-date is accepted too. */
+function retryAfterSeconds(header: string | null): number | undefined {
+  if (!header) {
+    return undefined;
+  }
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.max(1, Math.ceil(seconds));
+  }
+  const at = Date.parse(header);
+  if (Number.isNaN(at)) {
+    return undefined;
+  }
+  return Math.max(1, Math.ceil((at - Date.now()) / 1000));
+}
+
+/**
+ * The quote failures a confirmation screen branches on. Anything else,
+ * including a 500, stays `FAILED` so a shed is not reported as a validation
+ * error.
+ */
+function rebateQuoteFailure(status: number): RewardsMoneyRebateQuoteFailure {
+  if (status === 400) {
+    return 'INVALID_REQUEST';
+  }
+  if (status === 429) {
+    return 'RATE_LIMITED';
+  }
+  if (status === 503) {
+    return 'UNAVAILABLE';
+  }
+  return 'FAILED';
+}
+
+/**
+ * Nest sends `message` as a string or a list. A rate limit sends `reason`
+ * beside that message. A body that is not JSON still leaves the status.
+ */
+function rebateQuoteDetail(bodyText: string): string | undefined {
+  if (bodyText.length === 0) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(bodyText) as {
+      message?: unknown;
+      reason?: unknown;
+    };
+    if (typeof parsed.message === 'string' && parsed.message.length > 0) {
+      return parsed.message;
+    }
+    if (Array.isArray(parsed.message)) {
+      const messages = parsed.message.filter(
+        (item): item is string => typeof item === 'string' && item.length > 0,
+      );
+      if (messages.length > 0) {
+        return messages.join('; ');
+      }
+    }
+    if (typeof parsed.reason === 'string' && parsed.reason.length > 0) {
+      return parsed.reason;
+    }
+  } catch {
+    // A non-JSON body still classifies by status.
+  }
+  return undefined;
 }
 
 /**
@@ -225,6 +346,10 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClaimById`,
       this.getClaimById.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getRebateQuote`,
+      this.getRebateQuote.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsMoneyEnvUrl`,
@@ -432,6 +557,34 @@ export class RewardsMoneyDataService {
     }
 
     return (await response.json()) as ClaimHistoryPageDto;
+  }
+
+  /**
+   * What rebate, if any, a confirmation screen shows. Writes nothing. The
+   * profile is the bearer token's; the body never names one.
+   */
+  async getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
+    const response = await this.#makeRequest('/earnings/rebate/quote', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      let bodyText = '';
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = '';
+      }
+      throw new RewardsMoneyRebateQuoteError(
+        response.status,
+        rebateQuoteFailure(response.status),
+        rebateQuoteDetail(bodyText),
+        retryAfterSeconds(response.headers.get('retry-after')),
+      );
+    }
+
+    return (await response.json()) as RebateQuoteResponse;
   }
 
   async getClaimById(claimId: string): Promise<ClaimDto> {

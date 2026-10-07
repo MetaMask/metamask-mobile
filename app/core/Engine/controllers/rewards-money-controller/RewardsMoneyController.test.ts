@@ -10,6 +10,7 @@ import {
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
+import { RewardsMoneyRebateQuoteError } from './services/rewards-money-data-service';
 import type {
   ClaimDto,
   ClaimHistoryPageDto,
@@ -269,6 +270,8 @@ describe('RewardsMoneyController', () => {
           'getEarningsLedger',
           'getClaimHistory',
           'getClaimById',
+          'getSwapsRebateQuote',
+          'getPerpsRebateQuote',
           'isRewardsMoneyFeatureEnabled',
           'setRewardsMoneyEnvUrl',
         ]),
@@ -350,6 +353,18 @@ describe('RewardsMoneyController', () => {
 
     it('does not call data service when flag is off for getReferralMe', async () => {
       await expect(controller.getReferralMe()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
+    it('does not call data service when flag is off for rebate quotes', async () => {
+      await expect(
+        controller.getSwapsRebateQuote({ quoteId: 'q' }),
+      ).rejects.toThrow('Rewards Money is disabled');
+      await expect(controller.getPerpsRebateQuote()).rejects.toThrow(
         'Rewards Money is disabled',
       );
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -757,6 +772,81 @@ describe('RewardsMoneyController', () => {
             call[0] === 'RewardsMoneyDataService:getCommissions',
         ),
       ).toHaveLength(0);
+    });
+  });
+
+  describe('rebate quotes', () => {
+    const swapsQuote = { feeData: { metabridge: { token: 'USDC' } } };
+    const swapsResponse = {
+      product: 'swaps' as const,
+      eligible: true,
+      rebateBips: 2000,
+      reason: null,
+    };
+    const perpsResponse = {
+      product: 'perps' as const,
+      eligible: false,
+      rebateBips: 0,
+      reason: 'NO_REBATE' as const,
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'RewardsMoneyDataService:getRebateQuote') {
+          const body = args[0] as { product: string };
+          return Promise.resolve(
+            body.product === 'swaps' ? swapsResponse : perpsResponse,
+          );
+        }
+        return undefined;
+      });
+    });
+
+    it('sends the bridge quote as a swaps rebate quote', async () => {
+      await expect(controller.getSwapsRebateQuote(swapsQuote)).resolves.toEqual(
+        swapsResponse,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'swaps', quote: swapsQuote },
+      );
+    });
+
+    it('sends a perps rebate quote without a trade unless one is given', async () => {
+      const trade = { coin: 'BTC', side: 'BUY' as const, notionalUsd: '100' };
+
+      await expect(controller.getPerpsRebateQuote()).resolves.toEqual(
+        perpsResponse,
+      );
+      await expect(controller.getPerpsRebateQuote(trade)).resolves.toEqual(
+        perpsResponse,
+      );
+
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'perps' },
+      );
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'perps', trade },
+      );
+    });
+
+    it('surfaces a quote refusal without wrapping it', async () => {
+      const refusal = new RewardsMoneyRebateQuoteError(
+        429,
+        'RATE_LIMITED',
+        'Too many requests',
+        12,
+      );
+      mockMessenger.call.mockRejectedValue(refusal);
+
+      await expect(controller.getSwapsRebateQuote(swapsQuote)).rejects.toBe(
+        refusal,
+      );
+      await expect(controller.getPerpsRebateQuote()).rejects.toBe(refusal);
     });
   });
 });
