@@ -38,7 +38,10 @@ import {
 import { FIAT_INPUT_DECIMALS } from '../../Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../Bridge/utils/isGaslessQuote';
 import { useFeeDisclaimer } from '../../Bridge/hooks/useFeeDisclaimer';
-import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import {
+  calcUsdAmountFromFiat,
+  getTokenExchangeRate,
+} from '../../Bridge/utils/exchange-rates';
 import { isSameAsset, selectDefaultSourceToken } from '../tokenSelection';
 import type {
   QuickBuyAmountDisplayMode,
@@ -537,6 +540,9 @@ export function useQuickBuyController(
   const [selectedReceiveToken, setSelectedReceiveToken] = useState<
     BridgeToken | undefined
   >(undefined);
+  const [fetchedReceiveTokenRate, setFetchedReceiveTokenRate] = useState<
+    { key: string; rate: number } | undefined
+  >(undefined);
 
   // Auto-select the default receive token. Prefer the native token of the
   // position's chain (e.g. selling USDC on Base defaults to ETH on Base) and
@@ -566,6 +572,26 @@ export function useQuickBuyController(
   const destToken =
     tradeMode === 'buy' ? positionTokenFromSetup : selectedReceiveToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
+  useEffect(() => {
+    if (tradeMode !== 'sell' || !destToken || destToken.currencyExchangeRate) {
+      return;
+    }
+    const key = getTokenKey(destToken);
+    getTokenExchangeRate({
+      chainId: destToken.chainId,
+      tokenAddress: destToken.address,
+      currency: currentCurrency,
+    }).then((rate) => {
+      if (typeof rate === 'number') {
+        setFetchedReceiveTokenRate({ key, rate });
+      }
+    });
+  }, [tradeMode, destToken, currentCurrency]);
+  // Display-only: must not feed quote fetching, or a rate update would refetch.
+  const destTokenForFiat =
+    destToken && fetchedReceiveTokenRate?.key === getTokenKey(destToken)
+      ? { ...destToken, currencyExchangeRate: fetchedReceiveTokenRate.rate }
+      : destToken;
 
   // The entered amount is in the user's display currency, but the
   // `amount_usd` analytics property is contractually USD. Convert via the
@@ -911,7 +937,7 @@ export function useQuickBuyController(
   const minReceivedTokenAmount = activeQuote?.quote?.dest?.minAmountNormalized;
   const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
     minReceivedTokenAmount,
-    destToken,
+    destTokenForFiat,
   );
 
   // Derive both sides of the ratio from the same activeQuote so the rate is
@@ -1088,7 +1114,7 @@ export function useQuickBuyController(
   const isGasless = isGaslessQuote(activeQuote?.quote);
   const estimatedReceiveFiatValue = useDisplayCurrencyValue(
     estimatedReceiveAmount,
-    destToken,
+    destTokenForFiat,
   );
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount

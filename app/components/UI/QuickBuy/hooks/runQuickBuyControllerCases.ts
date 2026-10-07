@@ -68,6 +68,7 @@ import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 
 const mockUseQuickBuyAnalytics = useQuickBuyAnalytics as jest.MockedFunction<
   typeof useQuickBuyAnalytics
@@ -292,6 +293,7 @@ const setupDefaultMocks = () => {
   (useAddPopularNetwork as jest.Mock).mockReturnValue({
     addPopularNetwork: mockAddPopularNetwork,
   });
+  (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
 };
 
 export const runQuickBuyControllerCases = ({
@@ -4391,6 +4393,30 @@ export const runQuickBuyControllerCases = ({
         });
 
         expect(mockAddPopularNetwork).not.toHaveBeenCalled();
+      });
+
+      it('prices the estimated receive fiat with a fetched rate when the default receive token is unpriced', async () => {
+        (getTokenExchangeRate as jest.Mock).mockResolvedValue(0.99);
+        mockUsePositionTokenBalance.mockReturnValue(createSourceToken());
+        mockUseReceiveTokens.mockReturnValue([
+          { ...baseReceiveToken, currencyExchangeRate: undefined },
+        ]);
+
+        renderHook(createTarget(), jest.fn(), undefined, undefined, 'sell');
+        await act(async () => undefined);
+
+        expect(getTokenExchangeRate).toHaveBeenCalledWith({
+          chainId: '0x2105',
+          tokenAddress: baseReceiveToken.address,
+          currency: 'USD',
+        });
+        expect(jest.mocked(useDisplayCurrencyValue)).toHaveBeenLastCalledWith(
+          undefined,
+          expect.objectContaining({
+            chainId: '0x2105',
+            currencyExchangeRate: 0.99,
+          }),
+        );
       });
     });
 
