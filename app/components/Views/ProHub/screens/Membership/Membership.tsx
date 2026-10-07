@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,14 +23,17 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { RootState } from '../../../../../reducers';
+import { ensureError } from '../../../../../util/errorUtils';
+import Logger from '../../../../../util/Logger';
 import {
   selectMoneyAccountPlusPricing,
   selectSubscriptionByProduct,
 } from '../../../../../selectors/subscriptionController';
 import { MembershipTestIds } from './Membership.testIds';
-import { getMembershipDetails } from './Membership.utils';
+import { canResumeMembership, getMembershipDetails } from './Membership.utils';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -73,13 +76,16 @@ interface ManageRowProps {
   label: string;
   onPress: () => void;
   testID?: string;
+  isDisabled?: boolean;
 }
 
-const ManageRow = ({ label, onPress, testID }: ManageRowProps) => (
+const ManageRow = ({ label, onPress, testID, isDisabled }: ManageRowProps) => (
   <TouchableOpacity
     onPress={onPress}
     testID={testID}
     accessibilityRole="button"
+    accessibilityState={{ disabled: isDisabled }}
+    disabled={isDisabled}
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -118,6 +124,14 @@ const Membership = () => {
     () => getMembershipDetails(subscription, plusPricing),
     [plusPricing, subscription],
   );
+  const resumeAvailable = canResumeMembership(subscription);
+  const hideMembershipAction =
+    subscription?.cancelAtPeriodEnd === true && !resumeAvailable;
+  const [isResuming, setIsResuming] = useState(false);
+  const [resumeErrorMessage, setResumeErrorMessage] = useState<string | null>(
+    null,
+  );
+  const isResumingRef = useRef(false);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -134,6 +148,33 @@ const Membership = () => {
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);
+
+  const handleResumeMembership = useCallback(async () => {
+    if (isResumingRef.current || !subscription) {
+      return;
+    }
+
+    isResumingRef.current = true;
+    setIsResuming(true);
+    setResumeErrorMessage(null);
+
+    try {
+      await Engine.context.SubscriptionController.unCancelSubscription({
+        subscriptionId: subscription.id,
+      });
+    } catch (error) {
+      Logger.error(ensureError(error, 'Membership.unCancelSubscription'), {
+        tags: {
+          feature: 'money_account_plus',
+          operation: 'uncancel_subscription',
+        },
+      });
+      setResumeErrorMessage(strings('pro_hub.membership.resume_failed'));
+    } finally {
+      isResumingRef.current = false;
+      setIsResuming(false);
+    }
+  }, [subscription]);
 
   return (
     <View
@@ -313,11 +354,35 @@ const Membership = () => {
             onPress={handleContactSupport}
             testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
           />
-          <ManageRow
-            label={strings('pro_hub.membership.cancel_membership')}
-            onPress={handleCancelMembership}
-            testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
-          />
+          {hideMembershipAction ? null : (
+            <ManageRow
+              label={strings(
+                resumeAvailable
+                  ? 'pro_hub.membership.resume_membership'
+                  : 'pro_hub.membership.cancel_membership',
+              )}
+              onPress={
+                resumeAvailable
+                  ? handleResumeMembership
+                  : handleCancelMembership
+              }
+              testID={
+                resumeAvailable
+                  ? MembershipTestIds.RESUME_MEMBERSHIP_ROW
+                  : MembershipTestIds.CANCEL_MEMBERSHIP_ROW
+              }
+              isDisabled={resumeAvailable && isResuming}
+            />
+          )}
+          {resumeErrorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={MembershipTestIds.RESUME_ERROR}
+            >
+              {resumeErrorMessage}
+            </Text>
+          ) : null}
         </Box>
       </ScrollView>
     </View>

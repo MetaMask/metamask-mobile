@@ -7,7 +7,7 @@ import {
   type Subscription,
 } from '@metamask/subscription-controller';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
-import { getMembershipDetails } from './Membership.utils';
+import { canResumeMembership, getMembershipDetails } from './Membership.utils';
 
 const readyPricing = {
   monthly: {
@@ -54,6 +54,60 @@ const createSubscription = (
   cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
   ...overrides,
+});
+
+describe('canResumeMembership', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it('is true when cancellation is pending and the period end is still ahead', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(true);
+  });
+
+  it('is false when the period end is already past', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
+  it('is false when the period end is missing', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: undefined,
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
+  it('is false when the period end is not a date', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: 'not-a-date',
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
+  it('is false for a canceled subscription that is not pending period-end cancellation', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.canceled,
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
+  it('is false when there is no subscription', () => {
+    expect(canResumeMembership(undefined, now)).toBe(false);
+  });
 });
 
 describe('getMembershipDetails', () => {
