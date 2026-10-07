@@ -9,6 +9,7 @@ import {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
@@ -560,6 +561,37 @@ describe('card feature flag readers', () => {
           hasCompletedMigration: true,
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('readCardLinkApiEnabled', () => {
+    const originalEnv = process.env.MM_CARD_LINK_API_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_LINK_API_ENABLED;
+      } else {
+        process.env.MM_CARD_LINK_API_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads cardFeature.cardLinkApiEnabled when it is a boolean', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: true } }),
+      ).toBe(true);
+      expect(
+        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: false } }),
+      ).toBe(false);
+    });
+
+    it('falls back to MM_CARD_LINK_API_ENABLED when the remote key is absent', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(readCardLinkApiEnabled({ cardFeature: { constants: {} } })).toBe(
+        true,
+      );
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(readCardLinkApiEnabled({})).toBe(false);
     });
   });
 

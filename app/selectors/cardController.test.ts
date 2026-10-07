@@ -8,6 +8,9 @@ import {
   selectCardholderAccounts,
   selectHasCardholderAccounts,
   selectIsCardholder,
+  selectCardLinks,
+  selectHasLinkedCard,
+  selectLinkedCardProvider,
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
@@ -319,6 +322,64 @@ describe('selectHasCardholderAccounts', () => {
       cardholderAccounts: ['eip155:0:0xabc'],
     });
     expect(selectHasCardholderAccounts(state)).toBe(true);
+  });
+});
+
+describe('card link selectors', () => {
+  const row = (
+    provider: 'baanx' | 'immersve',
+    status: 'onboarding' | 'active' | 'closed',
+  ) => ({
+    provider,
+    status,
+    linkedAccountRef: null,
+    closedReason: status === 'closed' ? ('migrated' as const) : null,
+    migratedToProvider: null,
+    linkedAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-01T00:00:00.000Z',
+  });
+
+  it('returns null links before the first fetch', () => {
+    const state = createMockRootState({ cardLinks: null });
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasLinkedCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
+  });
+
+  it('reports no linked card for an empty array', () => {
+    const state = createMockRootState({ cardLinks: [] });
+    expect(selectCardLinks(state)).toStrictEqual([]);
+    expect(selectHasLinkedCard(state)).toBe(false);
+  });
+
+  it('returns the provider of an onboarding row', () => {
+    const state = createMockRootState({
+      cardLinks: [row('immersve', 'onboarding')],
+    });
+    expect(selectHasLinkedCard(state)).toBe(true);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('prefers an active row over an onboarding row', () => {
+    const state = createMockRootState({
+      cardLinks: [row('baanx', 'onboarding'), row('immersve', 'active')],
+    });
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('ignores a closed row, routing a migrated user to the active provider', () => {
+    const state = createMockRootState({
+      cardLinks: [row('baanx', 'closed'), row('immersve', 'active')],
+    });
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('reports no linked card when every row is closed', () => {
+    const state = createMockRootState({
+      cardLinks: [row('baanx', 'closed')],
+    });
+    expect(selectHasLinkedCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
   });
 });
 

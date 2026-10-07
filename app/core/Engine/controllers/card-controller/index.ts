@@ -1,6 +1,13 @@
+import { Platform } from 'react-native';
+import { getBuildNumber, getVersion } from 'react-native-device-info';
+import QuickCrypto from 'react-native-quick-crypto';
 import type { MessengerClientInitFunction } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
-import type { CardControllerMessenger } from './types';
+import type {
+  CardClientInfo,
+  CardControllerMessenger,
+  CardSha256,
+} from './types';
 import { BaanxService } from './services/BaanxService';
 import { BaanxProvider } from './providers/BaanxProvider';
 import { resolveBaanxConfig } from './services/baanx-config';
@@ -16,6 +23,19 @@ import {
   type CardFeatureFlag,
   type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
+
+const getMobileClientInfo = (): CardClientInfo => ({
+  product: 'metamask-mobile',
+  version: getVersion(),
+  build: getBuildNumber(),
+  platform: Platform.OS,
+});
+
+/** The same QuickCrypto digest `pkceHelpers.ts` uses. */
+const mobileSha256: CardSha256 = async (text) =>
+  new Uint8Array(
+    await QuickCrypto.subtle.digest('SHA-256', new TextEncoder().encode(text)),
+  );
 
 /**
  * Initialize the CardController.
@@ -61,6 +81,7 @@ export const cardControllerInit: MessengerClientInitFunction<
   const cardService = new CardService({
     getBaseUrl: () =>
       getDefaultCardApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT),
+    getClientInfo: getMobileClientInfo,
   });
 
   const controller = new CardController({
@@ -73,6 +94,7 @@ export const cardControllerInit: MessengerClientInitFunction<
       [CardProviderIds.Immersve]: immersveProvider,
     },
     cardService,
+    sha256: mobileSha256,
   });
 
   return { controller };

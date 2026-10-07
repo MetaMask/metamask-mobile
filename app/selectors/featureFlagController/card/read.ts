@@ -84,6 +84,22 @@ export function readCardFeatureFlag(
 }
 
 /**
+ * Whether CardController reads and writes card links (`cardFeature.cardLinkApiEnabled`).
+ *
+ * A boolean on the remote flag wins, including an explicit `false`. Without
+ * one, `MM_CARD_LINK_API_ENABLED` decides, so a local build can turn it on
+ * before the remote key exists.
+ */
+export function readCardLinkApiEnabled(flags: CardRemoteFeatureFlags): boolean {
+  const remote = (flags?.cardFeature as CardFeatureFlag | undefined)
+    ?.cardLinkApiEnabled;
+  if (typeof remote === 'boolean') {
+    return remote;
+  }
+  return process.env.MM_CARD_LINK_API_ENABLED === 'true';
+}
+
+/**
  * Whether a provider is available.
  *
  * Resolution order: the `card<Provider>` switch -> the local env override ->

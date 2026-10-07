@@ -8,6 +8,7 @@ const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
+const mockRecordProviderOnboardingStarted = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -21,6 +22,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockGetSpendingPrerequisites(...args),
       patchContactDetails: (...args: unknown[]) =>
         mockPatchContactDetails(...args),
+      recordProviderOnboardingStarted: (...args: unknown[]) =>
+        mockRecordProviderOnboardingStarted(...args),
     },
   },
 }));
@@ -87,6 +90,43 @@ describe('useImmersveResumeOnboarding', () => {
     mockGetFundingSources.mockResolvedValue([]);
     mockCreateFundingSource.mockResolvedValue({ id: 'fs-new' });
     mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+  });
+
+  describe('card link write', () => {
+    it('records onboarding started for the SIWE account after sign-in succeeds', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledTimes(1);
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+    });
+
+    it('does not record onboarding started when the user is already authenticated', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current({ ...PARAMS, alreadyAuthenticated: true });
+      });
+
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
+    it('does not record onboarding started when sign-in fails', async () => {
+      mockSignIn.mockRejectedValue(new Error('siwe failed'));
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await expect(result.current(PARAMS)).rejects.toThrow('siwe failed');
+      });
+
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
   });
 
   it('sets the provider country, signs in, patches contact, then routes for a new user', async () => {

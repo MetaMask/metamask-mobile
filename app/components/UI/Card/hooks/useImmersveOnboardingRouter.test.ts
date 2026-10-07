@@ -33,6 +33,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const mockSetSignInLinkStage = jest.fn();
 const mockMarkMigrationCompleted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -41,6 +42,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockSetSignInLinkStage(...args),
       markMigrationCompleted: (...args: unknown[]) =>
         mockMarkMigrationCompleted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
@@ -175,6 +178,21 @@ describe('useImmersveOnboardingRouter', () => {
       index: 0,
       routes: [{ name: Routes.CARD.HOME }],
     });
+  });
+
+  it('records the card as activated when active', () => {
+    getRoute()({ type: 'active' });
+
+    expect(mockRecordCardActivated).toHaveBeenCalledTimes(1);
+    expect(mockRecordCardActivated).toHaveBeenCalledWith({
+      provider: 'immersve',
+    });
+  });
+
+  it('does not record a card activation for a non-active action', () => {
+    getRoute()({ type: 'pending' });
+
+    expect(mockRecordCardActivated).not.toHaveBeenCalled();
   });
 
   it('suppresses the toast when active but showAccountExistsToast is false', () => {

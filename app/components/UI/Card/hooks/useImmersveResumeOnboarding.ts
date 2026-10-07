@@ -61,6 +61,11 @@ export const useImmersveResumeOnboarding = () => {
 
         if (!alreadyAuthenticated) {
           await signIn({ country, address });
+          // Never throws: a failed card-link write must not block onboarding.
+          controller.recordProviderOnboardingStarted({
+            provider: CardProviderIds.Immersve,
+            address,
+          });
         }
 
         const resume = await controller.getResumeCardInfo();

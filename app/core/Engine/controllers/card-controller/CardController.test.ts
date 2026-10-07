@@ -337,6 +337,9 @@ describe('CardController', () => {
       redeemWithdrawal: null,
       signInLink: null,
       accountLookupCache: {},
+      cardLinks: null,
+      cardLinksFetchedAt: null,
+      cardLinksSeeded: false,
     });
   });
 
