@@ -32,6 +32,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'KycService',
   'QrSyncProvisioningService',
   'SocialService',
+  'ProfileService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
   'MoneyAccountApiDataService',
@@ -126,6 +127,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'KycController:stateChange',
   'SocialController:stateChange',
   'QrSyncController:stateChange',
+  'ProfileController:stateChange',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';

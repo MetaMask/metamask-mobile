@@ -30,6 +30,10 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
+jest.mock('../../../ProfileDrawer', () => ({
+  createProfileDrawerNavDetails: jest.fn(() => ['ProfileDrawer', {}]),
+}));
+
 const touchAreaSlop = { top: 8, bottom: 8, left: 8, right: 8 };
 
 const defaultProps: WalletHeaderProps = {
@@ -64,6 +68,21 @@ describe('WalletHeader', () => {
     );
 
     expect(defaultProps.handleHamburgerPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to Profile Drawer when the account picker is pressed', () => {
+    const navigate = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <WalletHeader
+        {...defaultProps}
+        navigation={{ navigate }}
+        useSearchHeaderLayout={false}
+      />,
+    );
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+    expect(navigate).toHaveBeenCalledWith('ProfileDrawer', {});
   });
 
   describe('when the Money account is visible', () => {

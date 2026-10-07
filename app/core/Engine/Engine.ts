@@ -192,6 +192,8 @@ import { aiDigestControllerInit } from './controllers/ai-digest-controller-init'
 import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
+import { profileServiceInit } from './controllers/profile-service-init';
+import { profileControllerInit } from './controllers/profile-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
@@ -410,6 +412,8 @@ export class Engine {
           networkConnectionBannerControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
+        ProfileService: profileServiceInit,
+        ProfileController: profileControllerInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
@@ -497,6 +501,8 @@ export class Engine {
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
+    const profileService = messengerClientsByName.ProfileService;
+    const profileController = messengerClientsByName.ProfileController;
     const proofOfOwnershipService =
       messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
@@ -718,6 +724,8 @@ export class Engine {
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
+      ProfileController: profileController,
+      ProfileService: profileService,
       ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
@@ -1706,6 +1714,7 @@ export default {
       MoneyAccountController,
       MoneyAccountUpgradeController,
       QrSyncController,
+      ProfileController,
     } = instance.context;
 
     return {
@@ -1792,6 +1801,7 @@ export default {
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
       QrSyncController: QrSyncController.state,
+      ProfileController: ProfileController.state,
     };
   },
 
