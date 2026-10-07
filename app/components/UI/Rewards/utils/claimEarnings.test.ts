@@ -247,6 +247,19 @@ describe('claimToastKey', () => {
     }
   });
 
+  it('tells a short hourly budget to wait', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'VELOCITY_LIMIT_EXCEEDED',
+        },
+      ]),
+    ).toBe('claimFailureWaitToast');
+  });
+
   it('tells a rate limit and a lapse cooldown to wait', () => {
     for (const reason of ['RATE_LIMITED', 'CLAIM_COOLDOWN']) {
       expect(
@@ -498,6 +511,28 @@ describe('runEarningsClaim', () => {
       opened: false,
       reason: 'SIGN_FAILED',
     });
+  });
+
+  it('refuses a short hourly budget before any signature', async () => {
+    const signMessage = jest.fn();
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim: async () => {
+        throw new RewardsMoneyClaimRefusalError(409, 'VELOCITY_LIMIT_EXCEEDED');
+      },
+      canSignEarningAddress: () => true,
+      signMessage,
+      submitVoucher: jest.fn(),
+    });
+
+    expect(signMessage).not.toHaveBeenCalled();
+    expect(outcomes[0]).toMatchObject({
+      submitted: false,
+      opened: false,
+      reason: 'VELOCITY_LIMIT_EXCEEDED',
+    });
+    expect(claimToastKey(outcomes)).toBe('claimFailureWaitToast');
   });
 
   it('records a refusal without submitting', async () => {

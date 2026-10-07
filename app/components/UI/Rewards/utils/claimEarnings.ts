@@ -54,6 +54,8 @@ const TRANSACTION_FAILED_EVENT =
 
 const WAIT_REASONS = new Set([
   'AWAITING_RELEASE',
+  // A short hourly budget is refused before the proof gate, so Claim never
+  // asks for a signature. The wait sentence is the right one.
   'VELOCITY_LIMIT_EXCEEDED',
   'RATE_LIMITED',
   'CLAIM_COOLDOWN',
