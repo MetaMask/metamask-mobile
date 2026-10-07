@@ -4,8 +4,6 @@
 <dict>
 	<key>AppIdentifierPrefix</key>
 	<string>$(AppIdentifierPrefix)</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>MetaMask uses Face ID to confirm adding your card to Apple Wallet.</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
@@ -30,5 +28,9 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).MetaMaskWalletUIExtension</string>
 	</dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>MetaMask uses Face ID to confirm adding your card to Apple Wallet.</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 </dict>
 </plist>
