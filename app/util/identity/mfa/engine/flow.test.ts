@@ -45,6 +45,9 @@ const buildToken = (method: MfaMethod): VerificationToken => ({
  * In-memory stand-in for the AuthenticationController: enrollments add
  * credentials, and enrollments and verifications open a session proven with
  * their method.
+ *
+ * @param initialCredentials - The credentials the profile starts with.
+ * @returns The fake controller and helpers to inspect it.
  */
 const createFakeController = (initialCredentials: EnrolledCredential[]) => {
   let credentials = [...initialCredentials];

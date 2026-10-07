@@ -290,6 +290,11 @@ export const createMfaFlow = ({
   /**
    * Applies the error to the state, or returns the operation that recovers
    * from it.
+   *
+   * @param error - The error thrown by the failed operation.
+   * @param isRecovery - Whether that operation was itself a recovery; then an
+   * expired code is not resent again.
+   * @returns The recovery to run, or `undefined` when the state shows the error.
    */
   const handleError = (
     error: unknown,
