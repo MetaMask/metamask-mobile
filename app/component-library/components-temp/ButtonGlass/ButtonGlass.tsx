@@ -8,9 +8,6 @@ import {
 
 import GlassSurface from '../GlassSurface';
 
-// The design-system Button is a full pill.
-const PILL_RADIUS = 999;
-
 export type ButtonGlassProps = ButtonBaseProps & {
   isGlass: boolean;
   containerStyle?: StyleProp<ViewStyle>;
@@ -40,7 +37,7 @@ const ButtonGlass = ({
 
   return (
     <GlassSurface
-      borderRadius={PILL_RADIUS}
+      radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
       hasSheen
       containerStyle={containerStyle}

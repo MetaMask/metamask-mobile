@@ -48,6 +48,8 @@ export interface AccountGroupBalanceProps {
   onTradePrimaryPress?: () => void;
   /** Notifications checklist step: Primary invokes this (e.g. open settings) before advancing. */
   onNotificationsPrimaryPress?: () => void;
+  /** Brand refresh glass header: tighten the balance margins to the capsule. */
+  isGlass?: boolean;
 }
 
 const AccountGroupBalance = ({
@@ -55,9 +57,10 @@ const AccountGroupBalance = ({
   suspendRiveForCurtain = false,
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
+  isGlass = false,
 }: AccountGroupBalanceProps) => {
   const { PreferencesController } = Engine.context;
-  const styles = createStyles();
+  const styles = useMemo(() => createStyles({ isGlass }), [isGlass]);
   const { formatCurrency } = useFormatters();
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,

@@ -1181,12 +1181,16 @@ const Wallet = ({
       onTradePrimaryPress,
       onNotificationsPrimaryPress:
         handleWalletHomeOnboardingNotificationsPrimary,
+      // The capsule header only sits above the balance on the floating JS header.
+      isGlass: isHomeGlass && isFloatingJsHeader,
     }),
     [
       runWalletHomePostOnboardingComplete,
       postOnboardingExitAnimating,
       onTradePrimaryPress,
       handleWalletHomeOnboardingNotificationsPrimary,
+      isHomeGlass,
+      isFloatingJsHeader,
     ],
   );
 

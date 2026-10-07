@@ -36,7 +36,7 @@ const { fontSize: displaySize, lineHeight: displayLine } =
 const { fontSize: changeSize, lineHeight: changeLine } =
   typography.sBodyMDMedium;
 
-const createStyles = () =>
+const createStyles = ({ isGlass }: { isGlass: boolean }) =>
   StyleSheet.create({
     accountGroupBalance: {
       marginHorizontal: 16,
@@ -45,16 +45,18 @@ const createStyles = () =>
       flexDirection: 'column',
       gap: 4,
       alignItems: 'flex-start',
-      marginTop: Math.round(
-        REFERENCE_SPACING -
-          HEADER_CAPSULE_INSET -
-          inkInset(displaySize, displayLine, 'aboveCap'),
-      ),
-      marginBottom: Math.round(
-        REFERENCE_SPACING -
-          PORTFOLIO_HEADER_GAP -
-          inkInset(changeSize, changeLine, 'belowBaseline'),
-      ),
+      ...(isGlass && {
+        marginTop: Math.round(
+          REFERENCE_SPACING -
+            HEADER_CAPSULE_INSET -
+            inkInset(displaySize, displayLine, 'aboveCap'),
+        ),
+        marginBottom: Math.round(
+          REFERENCE_SPACING -
+            PORTFOLIO_HEADER_GAP -
+            inkInset(changeSize, changeLine, 'belowBaseline'),
+        ),
+      }),
     },
   });
 

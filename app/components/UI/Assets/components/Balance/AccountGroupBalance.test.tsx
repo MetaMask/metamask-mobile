@@ -129,6 +129,18 @@ describe('AccountGroupBalance', () => {
 
     // Component should render the balance container even when loading
     expect(getByTestId('balance-container')).toBeOnTheScreen();
+    expect(getByTestId('balance-container')).not.toHaveStyle({
+      marginTop: 14,
+      marginBottom: 10,
+    });
+  });
+
+  it('tightens the balance margins to the glass capsule header', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupBalance isGlass />,
+      { state: testState },
+    );
+
     // Visible 32px, matching the money card to the tokens divider, after the
     // header capsule inset, font ink inset, and the 16px portfolio header gap.
     expect(getByTestId('balance-container')).toHaveStyle({
