@@ -13,7 +13,9 @@
 #   - code_fencing: features to include via code fencing
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
-# Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
+# Signing: AWS Secrets Manager (Account 363762752069) holds the distribution certificate
+# and the app provisioning profile. Wallet extension profiles are base64 GitHub
+# Environment secrets, mapped only on the builds that embed the extensions.
 
 # =============================================================================
 # YAML Anchors (reusable config blocks)
@@ -174,6 +176,13 @@ _secrets: &secrets # Infrastructure
   EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
   EXPO_TOKEN: 'EXPO_TOKEN'
 
+# Wallet extension provisioning profiles (base64 GitHub Environment secrets).
+# Only builds that set IOS_WALLET_EXTENSIONS embed the extensions, so only those
+# builds map these secrets. build-rc and build-production hold the values.
+_wallet_extension_profiles: &wallet_extension_profiles
+  IOS_SIGNING_PROFILE_WALLET_UI_EXTENSION: 'IOS_SIGNING_PROFILE_WALLET_UI_EXTENSION'
+  IOS_SIGNING_PROFILE_WALLET_NONUI_EXTENSION: 'IOS_SIGNING_PROFILE_WALLET_NONUI_EXTENSION'
+
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
 # GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer; build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
@@ -260,7 +269,9 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'main'
-    secrets: *secrets
+      IOS_WALLET_EXTENSIONS: 'true'
+    secrets:
+      <<: [*secrets, *wallet_extension_profiles]
     code_fencing: *code_fencing_main
 
   # Beta (production APIs, RC signing; TestFlight / Play Store beta track)
@@ -282,7 +293,9 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'rc'
       METAMASK_BUILD_TYPE: 'main'
-    secrets: *secrets
+      IOS_WALLET_EXTENSIONS: 'true'
+    secrets:
+      <<: [*secrets, *wallet_extension_profiles]
     code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)

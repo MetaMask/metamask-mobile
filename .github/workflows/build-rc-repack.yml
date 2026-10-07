@@ -324,6 +324,13 @@ jobs:
             echo "RESIGN_PROVISIONING_PROFILE=$RUNNER_TEMP/build_pp.mobileprovision"
             echo "RESIGN_KEYCHAIN_PATH=$KEYCHAIN"
           } >> "$GITHUB_ENV"
+          # configure-signing decodes these when IOS_WALLET_EXTENSIONS=true.
+          if [ -f "$RUNNER_TEMP/wallet_ui_extension.mobileprovision" ]; then
+            echo "RESIGN_WALLET_UI_EXTENSION_PROFILE=$RUNNER_TEMP/wallet_ui_extension.mobileprovision" >> "$GITHUB_ENV"
+          fi
+          if [ -f "$RUNNER_TEMP/wallet_nonui_extension.mobileprovision" ]; then
+            echo "RESIGN_WALLET_NONUI_EXTENSION_PROFILE=$RUNNER_TEMP/wallet_nonui_extension.mobileprovision" >> "$GITHUB_ENV"
+          fi
 
       - name: Repack iOS IPA
         if: inputs.platform == 'ios'
@@ -354,7 +361,9 @@ jobs:
             ipa_path:"$OUTPUT" \
             signing_identity:"$RESIGN_SIGNING_IDENTITY" \
             provisioning_profile:"$RESIGN_PROVISIONING_PROFILE" \
-            keychain_path:"$RESIGN_KEYCHAIN_PATH"
+            keychain_path:"$RESIGN_KEYCHAIN_PATH" \
+            wallet_ui_extension_profile:"${RESIGN_WALLET_UI_EXTENSION_PROFILE:-}" \
+            wallet_nonui_extension_profile:"${RESIGN_WALLET_NONUI_EXTENSION_PROFILE:-}"
 
       - name: Repack Android APK
         if: inputs.platform == 'android'

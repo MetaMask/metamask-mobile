@@ -261,8 +261,11 @@
 			membershipExceptions = (
 				.build,
 				Package.swift,
-				Tests,
-				"lock-holder",
+				Tests/EncryptorPortTests.swift,
+				Tests/Fixtures,
+				Tests/MitigationsTests.swift,
+				Tests/SessionRefreshTests.swift,
+				lock-holder/main.swift,
 			);
 			target = 13B07F861A680F5B00A75B9A /* MetaMask */;
 		};
@@ -271,8 +274,11 @@
 			membershipExceptions = (
 				.build,
 				Package.swift,
-				Tests,
-				"lock-holder",
+				Tests/EncryptorPortTests.swift,
+				Tests/Fixtures,
+				Tests/MitigationsTests.swift,
+				Tests/SessionRefreshTests.swift,
+				lock-holder/main.swift,
 			);
 			target = 1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */;
 		};
@@ -281,8 +287,11 @@
 			membershipExceptions = (
 				.build,
 				Package.swift,
-				Tests,
-				"lock-holder",
+				Tests/EncryptorPortTests.swift,
+				Tests/Fixtures,
+				Tests/MitigationsTests.swift,
+				Tests/SessionRefreshTests.swift,
+				lock-holder/main.swift,
 			);
 			target = 1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */;
 		};
@@ -1283,6 +1292,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				EXCLUDED_SOURCE_FILE_NAMES = "$(MM_WALLET_EXTENSIONS_EXCLUDED_$(MM_WALLET_EXTENSIONS))";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "development-metamask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "development-metamask";
@@ -1350,6 +1360,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				EXCLUDED_SOURCE_FILE_NAMES = "$(MM_WALLET_EXTENSIONS_EXCLUDED_$(MM_WALLET_EXTENSIONS))";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask";
@@ -1387,6 +1398,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
 				CURRENT_PROJECT_VERSION = 4823;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1452,6 +1464,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMaskWalletUIExtension/MetaMaskWalletUIExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 4823;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1475,7 +1488,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWalletUIExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask.MetaMaskWalletUIExtension";
+				PROVISIONING_PROFILE_SPECIFIER = "AppStore MetaMaskWalletUIExtension";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1514,6 +1527,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
 				CURRENT_PROJECT_VERSION = 4823;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1579,6 +1593,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMaskWalletNonUIExtension/MetaMaskWalletNonUIExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 4823;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1602,7 +1617,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWalletNonUIExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask.MetaMaskWalletNonUIExtension";
+				PROVISIONING_PROFILE_SPECIFIER = "AppStore MetaMaskWalletNonUIExtension";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1787,6 +1802,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MM_WALLET_EXTENSIONS = YES;
+				MM_WALLET_EXTENSIONS_EXCLUDED_NO = "MetaMaskWalletUIExtension.appex MetaMaskWalletNonUIExtension.appex";
+				MM_WALLET_EXTENSIONS_EXCLUDED_YES = "";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -1842,6 +1860,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MM_WALLET_EXTENSIONS = YES;
+				MM_WALLET_EXTENSIONS_EXCLUDED_NO = "MetaMaskWalletUIExtension.appex MetaMaskWalletNonUIExtension.appex";
+				MM_WALLET_EXTENSIONS_EXCLUDED_YES = "";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

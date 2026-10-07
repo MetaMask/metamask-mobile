@@ -1,5 +1,7 @@
 # Configure code signing from AWS Secrets Manager
 # Uses role + secret name from builds.yml (per Mobile Signer Roles & Secrets doc)
+# Wallet extension profiles are not fetched here. When IOS_WALLET_EXTENSIONS=true,
+# they arrive as base64 env vars from the GitHub Environment and are decoded below.
 name: 'Configure Signing'
 description: 'Assume AWS role and fetch signing certificates from Secrets Manager'
 
@@ -122,6 +124,48 @@ runs:
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
         echo "✅ Installed provisioning profile"
+
+        # Extension profiles stay encoded until here. "Set secrets" only copies
+        # the GitHub Environment values into the job environment.
+        if [[ "${IOS_WALLET_EXTENSIONS:-}" == "true" ]]; then
+          if [[ -z "${IOS_SIGNING_PROFILE_WALLET_UI_EXTENSION:-}" || -z "${IOS_SIGNING_PROFILE_WALLET_NONUI_EXTENSION:-}" ]]; then
+            echo "::error::IOS_WALLET_EXTENSIONS is true but an extension provisioning profile secret is missing."
+            exit 1
+          fi
+
+          install_extension_profile() {
+            local secret_name="$1" value="$2" target="$3" expected_name="$4" bundle_id="$5"
+            printf '%s' "$value" | tr -d '[:space:]' | base64 --decode > "$target"
+            local plist="$RUNNER_TEMP/$(basename "$target").plist"
+            if ! security cms -D -i "$target" > "$plist" 2>/dev/null; then
+              echo "::error::$secret_name does not decode to a provisioning profile."
+              exit 1
+            fi
+            local name app_id
+            name=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$plist")
+            app_id=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$plist")
+            if [[ "$name" != "$expected_name" ]]; then
+              echo "::error::$secret_name is '$name'; expected '$expected_name'."
+              exit 1
+            fi
+            case "$app_id" in
+              *."$bundle_id") ;;
+              *)
+                echo "::error::$secret_name is for '$app_id'; expected $bundle_id."
+                exit 1
+                ;;
+            esac
+            cp "$target" ~/Library/MobileDevice/Provisioning\ Profiles/
+            echo "✅ Installed $expected_name"
+          }
+
+          install_extension_profile IOS_SIGNING_PROFILE_WALLET_UI_EXTENSION \
+            "$IOS_SIGNING_PROFILE_WALLET_UI_EXTENSION" "$RUNNER_TEMP/wallet_ui_extension.mobileprovision" \
+            "AppStore MetaMaskWalletUIExtension" io.metamask.MetaMask.MetaMaskWalletUIExtension
+          install_extension_profile IOS_SIGNING_PROFILE_WALLET_NONUI_EXTENSION \
+            "$IOS_SIGNING_PROFILE_WALLET_NONUI_EXTENSION" "$RUNNER_TEMP/wallet_nonui_extension.mobileprovision" \
+            "AppStore MetaMaskWalletNonUIExtension" io.metamask.MetaMask.MetaMaskWalletNonUIExtension
+        fi
 
         # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
         security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
