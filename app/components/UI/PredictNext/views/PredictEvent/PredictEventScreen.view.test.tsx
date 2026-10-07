@@ -1,10 +1,13 @@
 import '../../../../../../tests/component-view/mocks';
 import {
   composePredictNextOrderService,
+  composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextPosition,
+  makePredictNextSellPreview,
+  makePredictNextSellReceipt,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
   publishPredictNextGameLiveUpdate,
@@ -1824,10 +1827,80 @@ describe('PredictEventScreen', () => {
 
   describe('Your positions', () => {
     const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+    /** Composed real services to destroy after each test. */
+    const composedServices: ReturnType<
+      typeof composePredictNextPortfolioTrading
+    >[] = [];
+    /** Engine boundary restorations registered by a test. */
+    const testRestores: (() => void)[] = [];
 
     afterEach(() => {
+      testRestores.splice(0).forEach((restore) => restore());
+      composedServices.splice(0).forEach((composed) => composed.destroy());
       delete (Engine.context as Record<string, unknown>).PredictOrderService;
     });
+
+    /** Routes the shared renderer's UI query client messenger adapter to
+     * the real services' root, keeping fixture answers for the rest. */
+    const observeRealPortfolioReads = (
+      trading: ReturnType<typeof composePredictNextPortfolioTrading>,
+    ) => {
+      const controllerMessenger = Engine.controllerMessenger as unknown as {
+        call: (action: string, ...params: unknown[]) => Promise<unknown>;
+        subscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+        unsubscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+      };
+      const originalCall = controllerMessenger.call;
+      const originalSubscribe = controllerMessenger.subscribe;
+      const originalUnsubscribe = controllerMessenger.unsubscribe;
+      testRestores.push(() => {
+        controllerMessenger.call = originalCall;
+        controllerMessenger.subscribe = originalSubscribe;
+        controllerMessenger.unsubscribe = originalUnsubscribe;
+      });
+      // Direct property swap, not jest.spyOn: the mocked
+      // controllerMessenger's methods are already Jest mocks, and a spy
+      // here re-enters itself when the fixture delegate is the same mock.
+      controllerMessenger.call = (action: string, ...params: unknown[]) => {
+        if (action.startsWith('PredictPortfolioService:')) {
+          // The composition root is a MockAnyNamespace messenger: it
+          // accepts any action the real services registered.
+          return (
+            trading.rootMessenger.call as unknown as (
+              action: string,
+              ...params: unknown[]
+            ) => Promise<unknown>
+          )(action, ...params);
+        }
+        return originalCall(action, ...params);
+      };
+      controllerMessenger.subscribe = (event, callback) => {
+        if (event.startsWith('PredictPortfolioService:')) {
+          (
+            trading.rootMessenger.subscribe as unknown as (
+              event: string,
+              callback: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+        }
+      };
+      controllerMessenger.unsubscribe = (event, callback) => {
+        if (event.startsWith('PredictPortfolioService:')) {
+          (
+            trading.rootMessenger.unsubscribe as unknown as (
+              event: string,
+              callback: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+        }
+      };
+    };
 
     it('renders held Positions for the Event Markets and opens the bounded Cash Out flow', async () => {
       configurePredictNextFeeds({
@@ -1881,6 +1954,143 @@ describe('PredictEventScreen', () => {
       expect(
         view.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
       ).toHaveTextContent('Yes');
+    });
+
+    it('updates the mounted Position read after a Cash Out fills', async () => {
+      // Real services over the stubbed transport: the Positions read the
+      // section observes runs through the real Portfolio service cache and
+      // its cacheUpdated events, the way the Engine composes them.
+      let positionsBody: unknown = {
+        venueId: 'kalshi',
+        positions: [
+          makePredictNextPosition({
+            marketId: 'market-1',
+            side: 'yes',
+            shares: '75.00',
+            context: {
+              eventId: 'unrelated-event',
+              eventTitle: 'Unrelated Event title',
+              marketQuestion: 'Will it happen?',
+              outcomeId: 'yes',
+              outcomeLabel: 'Lakers',
+            },
+          }),
+        ],
+      };
+      fetchMock.mockImplementation(async (url, init) => {
+        if (String(url).endsWith('/orders/commit')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () =>
+              makePredictNextSellReceipt({
+                status: 'partially_filled',
+                filledContracts: '37.50',
+                averageFillPrice: '0.4700',
+                fee: '0.20',
+                actualProceeds: '19.74',
+                netProceeds: '19.54',
+              }),
+          } as Response;
+        }
+        if (String(url).endsWith('/orders/preview')) {
+          const body = JSON.parse(String(init?.body)) as {
+            marketId: string;
+            contracts: string;
+          };
+          return {
+            ok: true,
+            status: 200,
+            json: async () =>
+              makePredictNextSellPreview({
+                marketId: body.marketId,
+                requestedContracts: Number(body.contracts),
+              }),
+          } as Response;
+        }
+        if (String(url).includes('/venues/kalshi/positions')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => positionsBody,
+          } as Response;
+        }
+        return { ok: false, status: 404, json: async () => ({}) } as Response;
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      configurePredictNextFeeds({ details: [createEvent()] });
+      const trading = composePredictNextPortfolioTrading();
+      composedServices.push(trading);
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        trading.orderService;
+      observeRealPortfolioReads(trading);
+
+      const view = renderPredictEventScreen(routeParams);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+      // eslint-disable-next-line no-console
+      console.log(
+        'SPYCALLS',
+        JSON.stringify(
+          (globalThis as { __spyCalls?: string[] }).__spyCalls?.slice(0, 8),
+        ),
+      );
+
+      fireEvent.press(
+        view.getByTestId(
+          PredictEventScreenTestIds.positionCashOut('market-1', 'yes'),
+        ),
+      );
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET);
+      fireEvent.press(
+        view.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      );
+      await waitFor(() =>
+        expect(view.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+      );
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+        ).toBeOnTheScreen(),
+      );
+      // Real elapsed time between the pre-trade read and the receipt, so
+      // the refreshed snapshot's dataUpdatedAt is strictly newer — the
+      // property the UI cache's hydration applies.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // The venue reports the reduced Position while the sheet is up: the
+      // terminal receipt's invalidation must refresh the mounted read
+      // through the service without any focus or staleTime workaround.
+      positionsBody = {
+        venueId: 'kalshi',
+        positions: [
+          makePredictNextPosition({
+            marketId: 'market-1',
+            side: 'yes',
+            shares: '37.50',
+            context: {
+              eventId: 'unrelated-event',
+              eventTitle: 'Unrelated Event title',
+              marketQuestion: 'Will it happen?',
+              outcomeId: 'yes',
+              outcomeLabel: 'Lakers',
+            },
+          }),
+        ],
+      };
+
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      await view.findByTestId(PredictOrderFlowTestIds.DONE);
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
+
+      await waitFor(() =>
+        expect(view.getByText('Lakers · 37.5 shares')).toBeOnTheScreen(),
+      );
     });
 
     it('hides the section when the Positions read fails and keeps the Markets browsable', async () => {

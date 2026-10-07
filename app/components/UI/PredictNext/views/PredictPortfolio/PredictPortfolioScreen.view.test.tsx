@@ -722,6 +722,8 @@ describe('PredictPortfolioScreen', () => {
     const composedServices: ReturnType<
       typeof composePredictNextPortfolioTrading
     >[] = [];
+    /** Engine boundary restorations registered by a test. */
+    const testRestores: (() => void)[] = [];
 
     /** Stubs the sell (Cash Out) preview and commit routes. The preview
      * echoes the requested contract count; the commit replies with the
@@ -804,6 +806,7 @@ describe('PredictPortfolioScreen', () => {
     };
 
     afterEach(() => {
+      testRestores.splice(0).forEach((restore) => restore());
       composedServices.splice(0).forEach((composed) => composed.destroy());
       delete (Engine.context as Record<string, unknown>).PredictOrderService;
     });
@@ -934,53 +937,61 @@ describe('PredictPortfolioScreen', () => {
       // service actions and cache events to the real services' root. The
       // remaining actions keep the fixture answers.
       const controllerMessenger = Engine.controllerMessenger as unknown as {
-        call: jest.Mock;
-        subscribe: jest.Mock;
-        unsubscribe: jest.Mock;
+        call: (action: string, ...params: unknown[]) => Promise<unknown>;
+        subscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+        unsubscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
       };
-      jest
-        .spyOn(controllerMessenger, 'call')
-        .mockImplementation((action: string, ...params: unknown[]) => {
-          if (action.startsWith('PredictPortfolioService:')) {
-            // The composition root is a MockAnyNamespace messenger: it
-            // accepts any action the real services registered.
-            return (
-              trading.rootMessenger.call as unknown as (
-                action: string,
-                ...params: unknown[]
-              ) => Promise<unknown>
-            )(action, ...params);
-          }
-          return messengerCall(action, ...params);
-        });
-      jest
-        .spyOn(controllerMessenger, 'subscribe')
-        .mockImplementation(
-          (event: string, callback: (...args: unknown[]) => void) => {
-            if (event.startsWith('PredictPortfolioService:')) {
-              (
-                trading.rootMessenger.subscribe as unknown as (
-                  event: string,
-                  callback: (...args: unknown[]) => void,
-                ) => void
-              )(event, callback);
-            }
-          },
-        );
-      jest
-        .spyOn(controllerMessenger, 'unsubscribe')
-        .mockImplementation(
-          (event: string, callback: (...args: unknown[]) => void) => {
-            if (event.startsWith('PredictPortfolioService:')) {
-              (
-                trading.rootMessenger.unsubscribe as unknown as (
-                  event: string,
-                  callback: (...args: unknown[]) => void,
-                ) => void
-              )(event, callback);
-            }
-          },
-        );
+      const originalCall = controllerMessenger.call;
+      const originalSubscribe = controllerMessenger.subscribe;
+      const originalUnsubscribe = controllerMessenger.unsubscribe;
+      testRestores.push(() => {
+        controllerMessenger.call = originalCall;
+        controllerMessenger.subscribe = originalSubscribe;
+        controllerMessenger.unsubscribe = originalUnsubscribe;
+      });
+      // Direct property swap, not jest.spyOn: the mocked
+      // controllerMessenger's methods are already Jest mocks, and a spy
+      // here can re-enter itself when the fixture delegate is the same
+      // mock.
+      controllerMessenger.call = (action: string, ...params: unknown[]) => {
+        if (action.startsWith('PredictPortfolioService:')) {
+          // The composition root is a MockAnyNamespace messenger: it
+          // accepts any action the real services registered.
+          return (
+            trading.rootMessenger.call as unknown as (
+              action: string,
+              ...params: unknown[]
+            ) => Promise<unknown>
+          )(action, ...params);
+        }
+        return originalCall(action, ...params);
+      };
+      controllerMessenger.subscribe = (event, callback) => {
+        if (event.startsWith('PredictPortfolioService:')) {
+          (
+            trading.rootMessenger.subscribe as unknown as (
+              event: string,
+              callback: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+        }
+      };
+      controllerMessenger.unsubscribe = (event, callback) => {
+        if (event.startsWith('PredictPortfolioService:')) {
+          (
+            trading.rootMessenger.unsubscribe as unknown as (
+              event: string,
+              callback: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+        }
+      };
 
       const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
