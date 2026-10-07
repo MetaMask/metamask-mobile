@@ -5459,6 +5459,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  swapsSentinelFeeTokens: {
+    name: 'swapsSentinelFeeTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      cacheTtlMs: 900000,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   swapsSWAPS4135AbtestNumpadQuickAmounts: {
     name: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
     type: FeatureFlagType.Remote,
