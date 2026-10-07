@@ -365,10 +365,7 @@ export class PredictPortfolioService extends BaseDataService<
     options?: InvalidateOptions,
   ): Promise<void> {
     // Stale first: the refreshes below must not return cached data.
-    await super.invalidateQueries(
-      { ...filters, refetchType: 'none' },
-      options,
-    );
+    await super.invalidateQueries({ ...filters, refetchType: 'none' }, options);
     // Re-read every cached entry matching the key filters. A failed refresh
     // keeps the prior cached data and must not fail the caller: the reads
     // stay stale only until their next fetch.
