@@ -108,6 +108,7 @@ jest.mock('../../AssetOverview/Price/Price', () => {
   const MockPrice = ({ children }: { children?: React.ReactNode }) => (
     <View testID="mock-price">{children}</View>
   );
+  MockPrice.Provider = MockPrice;
   MockPrice.Header = () => null;
   MockPrice.Chart = () => null;
   return {
