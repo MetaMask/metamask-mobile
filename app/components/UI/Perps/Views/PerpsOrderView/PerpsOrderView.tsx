@@ -84,6 +84,7 @@ import RewardsAnimations, {
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../../components/PerpsAccountUnsupportedModal';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
@@ -131,6 +132,7 @@ import {
   toPerpsSizeUnitAnalyticsValue,
 } from '../../utils/perpsSizeDenomination';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -575,6 +577,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -1969,6 +1976,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
       }
 
+      // Cover this await with the submit lock. The validating path sets the
+      // same lock only after this read, so a second tap in the same turn
+      // would otherwise start a parallel placement.
+      isSubmittingRef.current = true;
+      let accountSupported = false;
+      try {
+        accountSupported = await checkAccountSupport();
+      } finally {
+        isSubmittingRef.current = false;
+      }
+      if (!accountSupported) {
+        return;
+      }
+
       if (liquidityError) {
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
@@ -2438,6 +2459,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       estimatedSlippageBps,
       exceedsMaxSlippage,
       liquidityError,
+      checkAccountSupport,
       vipTier,
       useBottomSheet,
       readShownSizeUnit,
@@ -3677,6 +3699,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           }
         />
       )}
+      <PerpsAccountUnsupportedModal
+        isVisible={isAccountUnsupportedModalVisible}
+        onClose={closeAccountUnsupportedModal}
+      />
     </SafeAreaView>
   );
 };
