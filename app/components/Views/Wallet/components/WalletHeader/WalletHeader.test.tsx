@@ -32,10 +32,31 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
+const mockBlurView = jest.fn();
+jest.mock('expo-blur', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    BlurView: (props: Record<string, unknown>) => {
+      mockBlurView(props);
+      return ReactActual.createElement(View, props);
+    },
+  };
+});
+
+const noGlass = {
+  isGlassEnabled: false,
+  glassColorScheme: 'light' as const,
+  isBlurEnabled: false,
+  blurTint: 'systemChromeMaterialLight' as const,
+};
+
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => ({
   useLiquidGlass: jest.fn(() => ({
     isGlassEnabled: false,
     glassColorScheme: 'light',
+    isBlurEnabled: false,
+    blurTint: 'systemChromeMaterialLight',
   })),
 }));
 
@@ -61,10 +82,7 @@ describe('WalletHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
-    jest.mocked(useLiquidGlass).mockReturnValue({
-      isGlassEnabled: false,
-      glassColorScheme: 'light',
-    });
+    jest.mocked(useLiquidGlass).mockReturnValue(noGlass);
   });
 
   it('calls handleHamburgerPress when the menu button is pressed', () => {
@@ -240,8 +258,8 @@ describe('WalletHeader', () => {
 
     it('puts the account picker and actions on Liquid Glass where available', () => {
       jest.mocked(useLiquidGlass).mockReturnValue({
+        ...noGlass,
         isGlassEnabled: true,
-        glassColorScheme: 'light',
       });
 
       const { getByTestId } = renderWithProvider(
@@ -258,8 +276,8 @@ describe('WalletHeader', () => {
 
     it('opens the account selector from the glass account picker', () => {
       jest.mocked(useLiquidGlass).mockReturnValue({
+        ...noGlass,
         isGlassEnabled: true,
-        glassColorScheme: 'light',
       });
       const navigate = jest.fn();
       const { getByTestId } = renderWithProvider(
@@ -271,6 +289,31 @@ describe('WalletHeader', () => {
       expect(navigate).toHaveBeenCalledWith(
         Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
         {},
+      );
+    });
+
+    it('blurs the account picker and actions on iOS without Liquid Glass', () => {
+      jest.mocked(useLiquidGlass).mockReturnValue({
+        ...noGlass,
+        isBlurEnabled: true,
+        blurTint: 'systemChromeMaterialDark',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <WalletHeader {...interimProps} />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_BLUR_ACTIONS),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_BLUR_ACCOUNT_PICKER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS),
+      ).not.toBeOnTheScreen();
+      expect(mockBlurView).toHaveBeenCalledWith(
+        expect.objectContaining({ tint: 'systemChromeMaterialDark' }),
       );
     });
 
@@ -287,6 +330,7 @@ describe('WalletHeader', () => {
           WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER,
         ),
       ).not.toBeOnTheScreen();
+      expect(mockBlurView).not.toHaveBeenCalled();
     });
   });
 });

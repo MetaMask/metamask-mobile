@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
 import {
   BadgeStatus,
@@ -24,6 +25,7 @@ import PickerAccount from '../../../../../component-library/components/Pickers/P
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
 import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
+import { BLUR_INTENSITY } from '../../../../../component-library/hooks/useBlurMaterial';
 import {
   formatInterimAccountName,
   INTERIM_ACCOUNT_PICKER_CLASS,
@@ -92,7 +94,8 @@ const WalletHeader = ({
 }: WalletHeaderProps) => {
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
-  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
+  const { isGlassEnabled, glassColorScheme, isBlurEnabled, blurTint } =
+    useLiquidGlass();
   const searchBarRef = useRef<View>(null);
 
   const measureSearchOrigin = useCallback(
@@ -177,58 +180,100 @@ const WalletHeader = ({
       />
     );
 
-    if (!isGlassEnabled) {
-      return (
-        <HeaderRoot
-          testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-          endAccessory={
-            <View style={headerActionButtonsContainerStyle} accessible={false}>
-              {interimActions}
-            </View>
-          }
-          twClassName="pl-1 pr-3"
-        >
-          {accountPicker}
-        </HeaderRoot>
-      );
-    }
+    const capsuleClass =
+      'h-11 flex-row items-center overflow-hidden rounded-full';
 
-    // The native glass only takes the capsule's corners when clipped.
-    const glassCapsuleClass =
-      'h-10 flex-row items-center overflow-hidden rounded-full';
+    const renderCapsule = ({
+      content,
+      layoutClass,
+      paddingClass,
+      glassTestID,
+      blurTestID,
+      fallbackTestID,
+    }: {
+      content: React.ReactNode;
+      /** Outer layout, e.g. margins and alignment. */
+      layoutClass: string;
+      paddingClass: string;
+      glassTestID: string;
+      blurTestID: string;
+      fallbackTestID: string;
+    }) =>
+      isGlassEnabled ? (
+        <GlassView
+          glassEffectStyle="regular"
+          colorScheme={glassColorScheme}
+          isInteractive
+          // The native glass only takes the capsule's corners when clipped.
+          style={tw.style(capsuleClass, layoutClass, paddingClass)}
+          testID={glassTestID}
+        >
+          {content}
+        </GlassView>
+      ) : isBlurEnabled ? (
+        // Older iOS has no glass, so the capsule blurs the content behind it.
+        <BlurView
+          tint={blurTint}
+          intensity={BLUR_INTENSITY}
+          style={tw.style(
+            capsuleClass,
+            'border border-muted',
+            layoutClass,
+            paddingClass,
+          )}
+          testID={blurTestID}
+        >
+          {content}
+        </BlurView>
+      ) : (
+        // Where the OS can't draw glass, a flat opaque capsule keeps the shape
+        // and stays legible over content scrolling beneath the header.
+        <View
+          style={tw.style(
+            capsuleClass,
+            'bg-section border border-muted',
+            layoutClass,
+            paddingClass,
+          )}
+          testID={fallbackTestID}
+        >
+          {content}
+        </View>
+      );
 
     return (
       <HeaderRoot
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-        endAccessory={
-          <GlassView
-            glassEffectStyle="regular"
-            colorScheme={glassColorScheme}
-            isInteractive
-            style={tw.style(glassCapsuleClass, 'px-2')}
-            testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS}
-          >
-            {interimActions}
-          </GlassView>
-        }
+        endAccessory={renderCapsule({
+          content: interimActions,
+          layoutClass: '',
+          paddingClass: isGlassEnabled ? 'px-2' : 'px-3',
+          glassTestID: WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS,
+          blurTestID: WalletViewSelectorsIDs.WALLET_HEADER_BLUR_ACTIONS,
+          fallbackTestID: WalletViewSelectorsIDs.WALLET_HEADER_CAPSULE_ACTIONS,
+        })}
         twClassName="pl-3 pr-3"
       >
         <View style={accountPickerContainerStyle}>
-          <GlassView
-            glassEffectStyle="regular"
-            colorScheme={glassColorScheme}
-            isInteractive
-            style={tw.style(glassCapsuleClass, 'mr-4 max-w-full self-start')}
-            testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER}
-          >
-            <PickerAccount
-              accountName={pickerAccountName}
-              onPress={handleAccountPickerPress}
-              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-              hitSlop={touchAreaSlop}
-              style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
-            />
-          </GlassView>
+          {renderCapsule({
+            content: (
+              <PickerAccount
+                accountName={pickerAccountName}
+                onPress={handleAccountPickerPress}
+                testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                hitSlop={touchAreaSlop}
+                style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
+              />
+            ),
+            layoutClass: 'mr-4 max-w-full self-start',
+            paddingClass: isGlassEnabled ? '' : 'px-1',
+            glassTestID:
+              WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER,
+            blurTestID:
+              WalletViewSelectorsIDs.WALLET_HEADER_BLUR_ACCOUNT_PICKER,
+            fallbackTestID:
+              WalletViewSelectorsIDs.WALLET_HEADER_CAPSULE_ACCOUNT_PICKER,
+          })}
         </View>
       </HeaderRoot>
     );
