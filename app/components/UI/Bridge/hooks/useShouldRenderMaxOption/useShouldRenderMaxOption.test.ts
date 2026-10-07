@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { useShouldRenderMaxOption } from '.';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
-import { useIsNativeGasIncludedSupported } from '../useIsNativeGasIncludedSupported';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -13,10 +12,6 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../useTokenAddress', () => ({
   useTokenAddress: jest.fn(),
-}));
-
-jest.mock('../useIsNativeGasIncludedSupported', () => ({
-  useIsNativeGasIncludedSupported: jest.fn(),
 }));
 
 jest.mock('@metamask/bridge-controller', () => {
@@ -38,10 +33,6 @@ const mockIsNativeAddress = isNativeAddress as jest.MockedFunction<
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
   typeof isSolanaChainId
 >;
-const mockUseIsNativeGasIncludedSupported =
-  useIsNativeGasIncludedSupported as jest.MockedFunction<
-    typeof useIsNativeGasIncludedSupported
-  >;
 
 const mockToken: BridgeToken = {
   address: '0x1234567890123456789012345678901234567890',
@@ -75,7 +66,6 @@ describe('useShouldRenderMaxOption', () => {
     mockUseTokenAddress.mockReturnValue(mockToken.address);
     mockIsNativeAddress.mockReturnValue(false);
     mockIsSolanaChainId.mockReturnValue(false);
-    mockUseIsNativeGasIncludedSupported.mockReturnValue(false);
   });
 
   it('returns false when token is undefined', () => {
@@ -144,19 +134,6 @@ describe('useShouldRenderMaxOption', () => {
     );
 
     expect(result.current).toBe(false);
-  });
-
-  it('returns true for a native token when simulation includes fees', () => {
-    mockUseTokenAddress.mockReturnValue(nativeToken.address);
-    mockIsNativeAddress.mockReturnValue(true);
-    mockUseIsNativeGasIncludedSupported.mockReturnValue(true);
-
-    const { result } = renderHook(() =>
-      useShouldRenderMaxOption(nativeToken, '1.25'),
-    );
-
-    expect(result.current).toBe(true);
-    expect(mockUseIsNativeGasIncludedSupported).toHaveBeenCalledWith('0x1');
   });
 
   it('returns false for sponsored native quote when gasIncluded paths are disabled', () => {

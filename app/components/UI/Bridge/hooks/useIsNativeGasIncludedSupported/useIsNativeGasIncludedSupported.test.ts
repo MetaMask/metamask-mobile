@@ -12,25 +12,25 @@ describe('useIsNativeGasIncludedSupported', () => {
     jest.clearAllMocks();
   });
 
-  it('returns whether native gas is included for the chain', () => {
+  it('updates state when native gas is included for the chain', () => {
     mockUseAsyncResult.mockReturnValue({ pending: false, value: true });
 
-    const { result } = renderHookWithProvider(
+    const { store } = renderHookWithProvider(
       () => useIsNativeGasIncludedSupported('0x13b2' as Hex),
       { state: {} },
     );
 
-    expect(result.current).toBe(true);
+    expect(store.getState().bridge.isNativeGasIncludedSupported).toBe(true);
   });
 
-  it('returns undefined while loading', () => {
+  it('updates state to false while loading', () => {
     mockUseAsyncResult.mockReturnValue({ pending: true, value: undefined });
 
-    const { result } = renderHookWithProvider(
+    const { store } = renderHookWithProvider(
       () => useIsNativeGasIncludedSupported('0x13b2' as Hex),
       { state: {} },
     );
 
-    expect(result.current).toBeUndefined();
+    expect(store.getState().bridge.isNativeGasIncludedSupported).toBe(false);
   });
 });
