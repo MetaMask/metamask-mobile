@@ -8,6 +8,10 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -16,40 +20,38 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 
-export type VbaOnboardingStubVariant =
-  | 'kyc_pending'
-  | 'account_provisioning_error'
-  | 'error';
-
-export const VbaOnboardingStubSelectorsIDs = {
-  CONTAINER: 'vba-onboarding-stub-container',
-  BACK_BUTTON: 'vba-onboarding-stub-back-button',
-  CONTINUE_BUTTON: 'vba-onboarding-stub-continue-button',
+export const VbaKycRejectedSelectorsIDs = {
+  CONTAINER: 'vba-kyc-rejected-container',
+  BACK_BUTTON: 'vba-kyc-rejected-back-button',
+  RETRY_BUTTON: 'vba-kyc-rejected-retry-button',
 } as const;
 
-interface VbaOnboardingStubProps {
-  variant: VbaOnboardingStubVariant;
-  onContinue: () => void | Promise<void>;
+interface VbaKycRejectedProps {
+  onRetry: () => void | Promise<void>;
 }
 
-const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
+/**
+ * Shown when VBA KYC is rejected. Retry re-enters identity verification
+ * instead of refreshing this screen while the session is still rejected.
+ */
+const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const [isContinuing, setIsContinuing] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(async () => {
-    if (isContinuing) {
+  const handleRetry = useCallback(async () => {
+    if (isRetrying) {
       return;
     }
-    setIsContinuing(true);
+    setIsRetrying(true);
     try {
-      await onContinue();
+      await onRetry();
     } finally {
-      setIsContinuing(false);
+      setIsRetrying(false);
     }
-  }, [isContinuing, onContinue]);
+  }, [isRetrying, onRetry]);
 
   return (
     <SafeAreaView
@@ -59,23 +61,29 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
       <HeaderStandard
         onBack={handleBack}
         backButtonProps={{
-          testID: VbaOnboardingStubSelectorsIDs.BACK_BUTTON,
+          testID: VbaKycRejectedSelectorsIDs.BACK_BUTTON,
         }}
         includesTopInset
       />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
-        testID={`${VbaOnboardingStubSelectorsIDs.CONTAINER}-${variant}`}
+        testID={VbaKycRejectedSelectorsIDs.CONTAINER}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
-          {strings(`virtual_bank_account.${variant}.title`)}
+        <Icon
+          name={IconName.Danger}
+          size={IconSize.Xl}
+          color={IconColor.ErrorDefault}
+          twClassName="mt-6"
+        />
+        <Text variant={TextVariant.HeadingLg} twClassName="mt-4">
+          {strings('virtual_bank_account.kyc_rejected.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="mt-2"
         >
-          {strings(`virtual_bank_account.${variant}.description`)}
+          {strings('virtual_bank_account.kyc_rejected.description')}
         </Text>
       </ScrollView>
       <Box twClassName="p-4">
@@ -83,16 +91,16 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isLoading={isContinuing}
-          isDisabled={isContinuing}
-          onPress={handleContinue}
-          testID={VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON}
+          isLoading={isRetrying}
+          isDisabled={isRetrying}
+          onPress={handleRetry}
+          testID={VbaKycRejectedSelectorsIDs.RETRY_BUTTON}
         >
-          {strings(`virtual_bank_account.${variant}.button`)}
+          {strings('virtual_bank_account.kyc_rejected.button')}
         </Button>
       </Box>
     </SafeAreaView>
   );
 };
 
-export default VbaOnboardingStub;
+export default VbaKycRejected;

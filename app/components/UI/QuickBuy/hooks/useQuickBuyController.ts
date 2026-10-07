@@ -1084,9 +1084,15 @@ export function useQuickBuyController(
     estimatedReceiveAmount,
     destToken,
   );
+  // Prefer the quote's own fiat value: the local calc needs a cached market
+  // price for the dest token and renders $0.00 without one.
+  const quoteDestValueInCurrency = activeQuote?.quote?.dest?.valueInCurrency;
+  const quoteDestFiat = quoteDestValueInCurrency
+    ? formatCurrency(Number(quoteDestValueInCurrency), currentCurrency)
+    : undefined;
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount
-      ? estimatedReceiveFiatValue
+      ? (quoteDestFiat ?? estimatedReceiveFiatValue)
       : undefined;
   const gasFeeDeductionLabel =
     isGasless && formattedNetworkFee !== '-'

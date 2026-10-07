@@ -4444,6 +4444,24 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.gasFeeDeductionLabel).toBeDefined();
       });
 
+      it('uses the quote dest value when the dest token has no local price', () => {
+        const state = quotedDisplayState();
+        setupQuoteSourceMock({
+          ...state,
+          activeQuote: createActiveQuote({
+            quote: {
+              ...state.activeQuote?.quote,
+              dest: { normalizedAmount: '0.01', valueInCurrency: '19.5' },
+            },
+          }),
+        });
+        jest.mocked(useDisplayCurrencyValue).mockReturnValue('$0.00');
+
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        expect(result.current.estimatedReceiveFiat).toBe('$19.50');
+      });
+
       it('exposes no receive value or gas deduction label without a quote', () => {
         setupQuoteSourceMock({
           ...quotedDisplayState(),
