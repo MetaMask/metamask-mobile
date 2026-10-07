@@ -161,8 +161,19 @@ export interface PredictHomeCategoriesConfig extends VersionGatedFeatureFlag {
   categories: PredictHomeCategoryConfig[];
 }
 
+/**
+ * Remote migration switch for Polymarket protocol changes.
+ * `enabled` and `minimumVersion` gate the whole object.
+ * Each migration step is its own field.
+ */
+export interface PredictProtocolV2Flag extends VersionGatedFeatureFlag {
+  polybolt?: boolean;
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
+  /** True only when `predictProtocolV2` passes the version check and `polybolt` is true. */
+  polybolt: boolean;
   liveSportsLeagues: string[];
   extendedSportsMarketsLeagues: string[];
   enabledSportsMarketTypes: string[];

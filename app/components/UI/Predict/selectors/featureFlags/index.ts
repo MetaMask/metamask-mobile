@@ -308,6 +308,15 @@ export const selectPredictFeedCarouselConfig = createSelector(
  *
  * @returns {boolean} True if BottomSheet mode is enabled
  */
+/**
+ * True when the `predictProtocolV2` remote flag passes the version check
+ * and its `polybolt` field is true.
+ */
+export const selectPredictPolyboltEnabled = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.polybolt,
+);
+
 export const selectPredictBottomSheetEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>

@@ -12,6 +12,7 @@ import {
   selectPredictHomeFeaturedVariant,
   selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
+  selectPredictPolyboltEnabled,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
   selectPredictHomeCategoriesConfig,
@@ -2193,6 +2194,63 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictFeedCarouselConfig(createState(flag));
 
       expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
+    });
+  });
+
+  describe('selectPredictPolyboltEnabled', () => {
+    const createProtocolState = (flag?: object) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: flag ? { predictProtocolV2: flag } : {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns false when the remote flag is missing', () => {
+      expect(selectPredictPolyboltEnabled(createProtocolState())).toBe(false);
+    });
+
+    it('returns false when polybolt is false', () => {
+      expect(
+        selectPredictPolyboltEnabled(
+          createProtocolState({
+            enabled: true,
+            minimumVersion: '1.0.0',
+            polybolt: false,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      expect(
+        selectPredictPolyboltEnabled(
+          createProtocolState({
+            enabled: true,
+            minimumVersion: '99.0.0',
+            polybolt: true,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true when the version check passes and polybolt is true', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictPolyboltEnabled(
+          createProtocolState({
+            enabled: true,
+            minimumVersion: '1.0.0',
+            polybolt: true,
+          }),
+        ),
+      ).toBe(true);
     });
   });
 });

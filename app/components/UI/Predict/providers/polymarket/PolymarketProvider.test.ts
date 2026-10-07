@@ -155,6 +155,7 @@ const mockWebSocketManagerInstance = {
   subscribeToMarketPrices: jest.fn(),
   subscribeToOrderbook: jest.fn(),
   subscribeToCryptoPrices: jest.fn(),
+  useCryptoFeed: jest.fn(),
   seedOrderbookSnapshot: jest.fn(),
   getConnectionStatus: jest.fn(() => ({
     sportsConnected: false,
@@ -400,11 +401,16 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
+  polybolt: false,
 };
 
-function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
+function createProvider(
+  featureFlags?: Partial<PredictFeatureFlags>,
+  getSelectedAddress: () => string | undefined = () => undefined,
+) {
   return new PolymarketProvider({
     getFeatureFlags: () => ({ ...defaultFeatureFlags, ...featureFlags }),
+    getSelectedAddress,
   });
 }
 
@@ -998,6 +1004,25 @@ describe('PolymarketProvider', () => {
       const [url] = (global.fetch as jest.Mock).mock.calls[0];
       expect(url).not.toContain('twapEnabled');
       expect(url).not.toContain('twapLookbackSeconds');
+    });
+
+    it('requests a 60 second lookback for a 30 second market when PolyBolt is on', async () => {
+      const provider = createProvider({ polybolt: true });
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64000 }),
+      });
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+        twapWindowSeconds: 30,
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('twapLookbackSeconds=60');
     });
   });
 
@@ -2672,5 +2697,82 @@ describe('PolymarketProvider.subscribeToOrderbook', () => {
     await Promise.resolve();
 
     expect(callOrder).toEqual(['ws.subscribe', 'rest.start', 'ws.seed']);
+  });
+});
+
+describe('PolymarketProvider.subscribeToCryptoPrices', () => {
+  const credentials = {
+    apiKey: 'key',
+    secret: 'secret',
+    passphrase: 'pass',
+  };
+
+  beforeEach(() => {
+    mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReset();
+    mockWebSocketManagerInstance.useCryptoFeed.mockReset();
+    mockWebSocketManagerInstance.subscribeToCryptoPrices.mockReturnValue(
+      jest.fn(),
+    );
+    jest.mocked(createApiKey).mockReset();
+  });
+
+  it('keeps the RTDS feed when PolyBolt is off', () => {
+    const provider = createProvider({ polybolt: false });
+    const callback = jest.fn();
+
+    provider.subscribeToCryptoPrices(['btc/usd'], callback);
+
+    expect(mockWebSocketManagerInstance.useCryptoFeed).toHaveBeenCalledWith({
+      mode: 'rtds',
+    });
+    expect(
+      mockWebSocketManagerInstance.subscribeToCryptoPrices,
+    ).toHaveBeenCalledWith(['btc/usd'], callback);
+  });
+
+  it('authenticates PolyBolt with the selected account', async () => {
+    jest.mocked(createApiKey).mockResolvedValue(credentials);
+    const provider = createProvider({ polybolt: true }, () => '0xabc');
+    const callback = jest.fn();
+
+    provider.subscribeToCryptoPrices(['btc/usd'], callback, {
+      twapWindowSeconds: 30,
+    });
+    await jest.mocked(createApiKey).mock.results[0]?.value;
+    await Promise.resolve();
+
+    expect(mockWebSocketManagerInstance.useCryptoFeed).toHaveBeenCalledWith({
+      mode: 'polybolt',
+      credentials,
+    });
+    expect(
+      mockWebSocketManagerInstance.subscribeToCryptoPrices,
+    ).toHaveBeenCalledWith(['btc/usd'], callback, { twapWindowSeconds: 30 });
+  });
+
+  it('leaves the socket closed when the API key request fails', async () => {
+    jest.mocked(createApiKey).mockRejectedValue(new Error('sign failed'));
+    const provider = createProvider({ polybolt: true }, () => '0xabc');
+
+    provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+    await jest
+      .mocked(createApiKey)
+      .mock.results[0]?.value.catch(() => undefined);
+    await Promise.resolve();
+
+    expect(
+      mockWebSocketManagerInstance.subscribeToCryptoPrices,
+    ).not.toHaveBeenCalled();
+    expect(mockWebSocketManagerInstance.useCryptoFeed).not.toHaveBeenCalled();
+  });
+
+  it('leaves the socket closed when no account is selected', () => {
+    const provider = createProvider({ polybolt: true });
+
+    provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+
+    expect(
+      mockWebSocketManagerInstance.subscribeToCryptoPrices,
+    ).not.toHaveBeenCalled();
   });
 });

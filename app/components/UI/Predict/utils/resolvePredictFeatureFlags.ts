@@ -34,6 +34,7 @@ import {
   PredictHiddenMarketsFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictProtocolV2Flag,
   PredictWimbledonTabFlag,
 } from '../types/flags';
 import { unwrapRemoteFeatureFlag } from './flags';
@@ -194,6 +195,12 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictWimbledonTab
     : DEFAULT_WIMBLEDON_TAB_FLAG;
+  const protocolV2Flag = unwrapRemoteFeatureFlag<PredictProtocolV2Flag>(
+    flags.predictProtocolV2,
+  );
+  const polybolt =
+    validatedVersionGatedFeatureFlag(protocolV2Flag) === true &&
+    protocolV2Flag?.polybolt === true;
 
   return {
     feeCollection,
@@ -212,5 +219,6 @@ export function resolvePredictFeatureFlags(
     predictSportsFeed,
     predictHomeCategories,
     predictWimbledonTab,
+    polybolt,
   };
 }
