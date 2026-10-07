@@ -172,14 +172,12 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
             >
               {localizedText.yourReferralCode}
             </Text>
-            {code ? (
-              <Text
-                variant={TextVariant.HeadingLg}
-                testID={REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE}
-              >
-                {code}
-              </Text>
-            ) : null}
+            <Text
+              variant={TextVariant.HeadingLg}
+              testID={REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE}
+            >
+              {code || '-'}
+            </Text>
           </Box>
           {code && localizedText.share ? (
             // Button applies `self-start` unless it is full width, which would
