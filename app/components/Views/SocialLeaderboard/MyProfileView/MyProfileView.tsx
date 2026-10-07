@@ -15,6 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
@@ -24,6 +25,7 @@ import {
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   Share,
   type NativeScrollEvent,
@@ -38,7 +40,10 @@ import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
-import { useTraderProfile } from '../TraderProfileView/hooks';
+import {
+  useTraderPositions,
+  useTraderProfile,
+} from '../TraderProfileView/hooks';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
@@ -47,6 +52,7 @@ import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/compon
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
+import ProfilePositionsTab from './components/ProfilePositionsTab';
 import ProfileAvatar from './components/ProfileAvatar';
 
 import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
@@ -63,6 +69,38 @@ import { TraderStatsSheetSelectorsIDs } from '../TraderProfileView/components/Tr
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
+import type { ProfileAssetFilter } from './utils/splitPositionsByType';
+
+type ProfileContentTab = 'open' | 'closed' | 'posts';
+
+interface ProfileTabButtonProps {
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
+  testID: string;
+}
+
+const ProfileTabButton: React.FC<ProfileTabButtonProps> = ({
+  label,
+  isActive,
+  onPress,
+  testID,
+}) => (
+  <Pressable onPress={onPress} testID={testID}>
+    <Box
+      twClassName={isActive ? 'border-b-2 border-default' : ''}
+      paddingBottom={3}
+    >
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={isActive ? FontWeight.Bold : FontWeight.Medium}
+        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
+      >
+        {label}
+      </Text>
+    </Box>
+  </Pressable>
+);
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
@@ -143,7 +181,17 @@ const MyProfileView: React.FC = () => {
     error: postsError,
     refresh: refreshPosts,
   } = useMyProfilePosts(addressOrId);
+  const {
+    openPositions,
+    closedPositions,
+    isLoadingOpen,
+    isLoadingClosed,
+    error: positionsError,
+    refetch: refetchPositions,
+  } = useTraderPositions(addressOrId ?? '');
   const openPositionsCount = useMyOpenPerpsPositionCount();
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const overlayedStats = useMemo(
     () =>
       displayProfile
@@ -236,16 +284,41 @@ const MyProfileView: React.FC = () => {
         refresh(),
         refreshLiveProfile(),
         refreshPosts(),
+        refetchPositions(),
         minDuration,
       ]);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshLiveProfile, refreshPosts, refresh]);
+  }, [refreshLiveProfile, refreshPosts, refresh, refetchPositions]);
+
+  const handlePositionsRetry = useCallback(() => {
+    refetchPositions().catch(() => undefined);
+  }, [refetchPositions]);
+
+  const handlePositionPress = useCallback(
+    (position: Position) => {
+      if (!displayProfile) {
+        return;
+      }
+      navigation.navigate(Routes.SOCIAL.POSITION, {
+        traderId: displayProfile.profileId,
+        traderName: displayProfile.displayName,
+        traderImageUrl: displayProfile.imageUrl ?? undefined,
+        traderAddress:
+          displayProfile.linkedAccountAddress ?? traderAddress ?? undefined,
+        tokenSymbol: position.tokenSymbol,
+        position,
+        source: 'profile_position',
+        isClosed: activeTab === 'closed',
+      });
+    },
+    [activeTab, displayProfile, navigation, traderAddress],
+  );
 
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (!hasNextPage) {
+      if (activeTab !== 'posts' || !hasNextPage) {
         return;
       }
       const { contentOffset, contentSize, layoutMeasurement } =
@@ -256,7 +329,7 @@ const MyProfileView: React.FC = () => {
         loadMore();
       }
     },
-    [hasNextPage, loadMore],
+    [activeTab, hasNextPage, loadMore],
   );
 
   const showInitialPostSkeletons = isPostsLoading && posts.length === 0;
@@ -385,20 +458,46 @@ const MyProfileView: React.FC = () => {
               )}
             </Box>
 
-            <Box twClassName="border-b border-muted">
-              <Box
-                twClassName="self-start border-b-2 border-default"
-                paddingHorizontal={4}
-                paddingBottom={3}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="border-b border-muted px-4 gap-4"
+            >
+              <ProfileTabButton
+                label={strings('social_leaderboard.trader_profile.open')}
+                isActive={activeTab === 'open'}
+                onPress={() => setActiveTab('open')}
+                testID={MyProfileViewSelectorsIDs.OPEN_TAB}
+              />
+              <ProfileTabButton
+                label={strings('social_leaderboard.trader_profile.closed')}
+                isActive={activeTab === 'closed'}
+                onPress={() => setActiveTab('closed')}
+                testID={MyProfileViewSelectorsIDs.CLOSED_TAB}
+              />
+              <ProfileTabButton
+                label={strings('social_leaderboard.my_profile.posts')}
+                isActive={activeTab === 'posts'}
+                onPress={() => setActiveTab('posts')}
                 testID={MyProfileViewSelectorsIDs.POSTS_TAB}
-              >
-                <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-                  {strings('social_leaderboard.my_profile.posts')}
-                </Text>
-              </Box>
+              />
             </Box>
 
-            {showInitialPostSkeletons ? (
+            {activeTab !== 'posts' ? (
+              <ProfilePositionsTab
+                positions={
+                  activeTab === 'open' ? openPositions : closedPositions
+                }
+                isLoading={
+                  activeTab === 'open' ? isLoadingOpen : isLoadingClosed
+                }
+                error={positionsError}
+                isClosed={activeTab === 'closed'}
+                filter={assetFilter}
+                onFilterChange={setAssetFilter}
+                onPositionPress={handlePositionPress}
+                onRetry={handlePositionsRetry}
+              />
+            ) : showInitialPostSkeletons ? (
               <Box paddingTop={4}>
                 {INITIAL_POST_SKELETON_KEYS.map((key, index) => (
                   <Fragment key={key}>
@@ -456,7 +555,7 @@ const MyProfileView: React.FC = () => {
                 />
               </Box>
             )}
-            {isFetchingNextPage ? (
+            {activeTab === 'posts' && isFetchingNextPage ? (
               <Box
                 alignItems={BoxAlignItems.Center}
                 twClassName="px-4"

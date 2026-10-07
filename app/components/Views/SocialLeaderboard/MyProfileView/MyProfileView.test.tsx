@@ -1,7 +1,10 @@
 import React from 'react';
 import { Linking, Share } from 'react-native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { TraderProfileResponse } from '@metamask/social-controllers';
+import type {
+  Position,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
@@ -10,6 +13,7 @@ import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
 import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
+import type { UseTraderPositionsResult } from '../TraderProfileView/hooks/useTraderPositions';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -37,6 +41,7 @@ const mockUseMyProfileAddress = jest.fn<string | undefined, []>(
   () => '0xselected',
 );
 const mockUseTraderProfile = jest.fn<UseTraderProfileResult, []>();
+const mockUseTraderPositions = jest.fn<UseTraderPositionsResult, []>();
 const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
@@ -62,7 +67,29 @@ jest.mock('./hooks', () => ({
 
 jest.mock('../TraderProfileView/hooks', () => ({
   useTraderProfile: () => mockUseTraderProfile(),
+  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
 }));
+
+jest.mock('../TraderProfileView/components/PositionRow', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      position,
+      onPress,
+    }: {
+      position: Position;
+      onPress?: (next: Position) => void;
+    }) => (
+      <Pressable
+        testID={`position-row-${position.tokenSymbol}`}
+        onPress={() => onPress?.(position)}
+      >
+        <Text>{position.tokenSymbol}</Text>
+      </Pressable>
+    ),
+  };
+});
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -165,6 +192,14 @@ describe('MyProfileView', () => {
       loadMore: jest.fn(),
       error: null,
       refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
     });
   });
 
@@ -498,6 +533,7 @@ describe('MyProfileView', () => {
       .fn()
       .mockRejectedValue(new Error('offline'));
     const refreshPosts = jest.fn().mockResolvedValue(undefined);
+    const refetchPositions = jest.fn().mockResolvedValue(undefined);
     mockUseTraderProfile.mockReturnValue({
       profile: null,
       isLoading: false,
@@ -516,6 +552,14 @@ describe('MyProfileView', () => {
       error: null,
       refresh: refreshPosts,
     });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      refetch: refetchPositions,
+    });
 
     try {
       renderWithProvider(<MyProfileView />);
@@ -529,6 +573,7 @@ describe('MyProfileView', () => {
 
       expect(refreshLiveProfile).toHaveBeenCalledTimes(1);
       expect(refreshPosts).toHaveBeenCalledTimes(1);
+      expect(refetchPositions).toHaveBeenCalledTimes(1);
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     } finally {
       jest.clearAllTimers();
@@ -577,6 +622,12 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
+    ).toBeOnTheScreen();
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
 
@@ -592,5 +643,156 @@ describe('MyProfileView', () => {
         traderUsername: 'alpha.eth',
       }),
     );
+  });
+
+  it('defaults to Posts and shows Open and Closed tabs for the owner', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeNull();
+  });
+
+  it('prefetches positions with the viewed profile address', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(mockUseTraderPositions).toHaveBeenCalledWith('0xselected');
+  });
+
+  it('shows open positions after tapping Open', () => {
+    const openSpot: Position = {
+      positionId: 'eth-spot',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: '0xeth',
+      chain: 'ethereum',
+      positionAmount: 1,
+      boughtUsd: 100,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    const openPerp: Position = {
+      ...openSpot,
+      positionId: 'btc-perp',
+      tokenSymbol: 'BTC',
+      chain: 'hyperliquid',
+      perpPositionType: 'long',
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [openSpot, openPerp],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.TOKENS_SECTION),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERPS_SECTION),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
+  });
+
+  it('keeps the Tokens filter when switching Open to Closed', () => {
+    const closedSpot: Position = {
+      positionId: 'doge-closed',
+      tokenSymbol: 'DOGE',
+      tokenName: 'Doge',
+      tokenAddress: '0xdoge',
+      chain: 'base',
+      positionAmount: 0,
+      boughtUsd: 100,
+      soldUsd: 150,
+      realizedPnl: 50,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [closedSpot],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-DOGE')).toBeOnTheScreen();
+  });
+
+  it('opens position detail from an Open row', () => {
+    const openSpot: Position = {
+      positionId: 'eth-spot',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: '0xeth',
+      chain: 'ethereum',
+      positionAmount: 1,
+      boughtUsd: 100,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [openSpot],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'current-user',
+      traderName: 'Giga Whale',
+      traderImageUrl: undefined,
+      traderAddress: undefined,
+      tokenSymbol: 'ETH',
+      position: openSpot,
+      source: 'profile_position',
+      isClosed: false,
+    });
   });
 });
