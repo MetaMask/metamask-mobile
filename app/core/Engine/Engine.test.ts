@@ -1399,7 +1399,8 @@ describe('Engine', () => {
             (!isEmpty(controller.state) ||
               controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'DelegationController'),
+              controllerName === 'DelegationController' ||
+              controllerName === 'GachaController'),
         )
         .map(([controllerName]) => controllerName);
 
