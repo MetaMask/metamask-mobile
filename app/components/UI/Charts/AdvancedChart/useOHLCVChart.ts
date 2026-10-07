@@ -1,29 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { OHLCVBar } from './AdvancedChart.types';
+import {
+  ohlcvChartQueryOptions,
+  type OHLCVApiCandle,
+  type OHLCVApiResponse,
+  type OhlcvChartRequest,
+} from './ohlcvChartQuery';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
-const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
-
-export interface OHLCVApiCandle {
-  timestamp: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-}
-
-export interface OHLCVApiResponse {
-  data: OHLCVApiCandle[];
-  hasNext: boolean;
-  nextCursor: string;
-}
+export type { OHLCVApiCandle, OHLCVApiResponse };
 
 export interface UseOHLCVChartOptions {
-  /** CAIP asset ID, e.g. "eip155:1/slip44:60" */
   assetId: string;
   timePeriod: OHLCVTimePeriod;
-  /** Optional interval override (e.g. '1m' for 1-minute candles instead of API default) */
   interval?: string;
   vsCurrency?: string;
 }
@@ -33,9 +22,7 @@ export interface UseOHLCVChartResult {
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
-  /** Opaque cursor for the next page. Pass to the WebView so it can fetch directly. */
   nextCursor: string | null;
-  /** True if the API returned an empty data array (asset not supported for OHLCV) */
   hasEmptyData: boolean;
 }
 
@@ -48,117 +35,42 @@ const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
   volume: candle.volume,
 });
 
-async function fetchOHLCV(
-  assetId: string,
-  params: {
-    timePeriod?: OHLCVTimePeriod;
-    interval?: string;
-    nextCursor?: string;
-    vsCurrency?: string;
-  },
-  signal?: AbortSignal,
-): Promise<OHLCVApiResponse> {
-  const url = new URL(`${OHLCV_BASE_URL}/${assetId}`);
+const toRequest = (options: UseOHLCVChartOptions): OhlcvChartRequest => ({
+  assetId: options.assetId,
+  timePeriod: options.timePeriod,
+  interval: options.interval,
+  vsCurrency: options.vsCurrency,
+});
 
-  if (params.nextCursor) {
-    url.searchParams.set('nextCursor', params.nextCursor);
-  } else if (params.timePeriod) {
-    url.searchParams.set('timePeriod', params.timePeriod);
-  }
-
-  if (params.interval) {
-    url.searchParams.set('interval', params.interval);
-  }
-
-  if (params.vsCurrency) {
-    url.searchParams.set('vsCurrency', params.vsCurrency);
-  }
-
-  // Add 3 second timeout to prevent infinite hang
-  const FETCH_TIMEOUT_MS = 3000;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(
-      () => reject(new Error('OHLCV fetch timeout')),
-      FETCH_TIMEOUT_MS,
-    );
-  });
-
-  const response = await Promise.race([
-    fetch(url.toString(), { signal }),
-    timeoutPromise,
-  ]);
-
-  if (!response.ok) {
-    throw new Error(`OHLCV API error: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-/**
- * Fetches OHLCV chart data from the MetaMask Price API.
- *
- * Supports initial load via `timePeriod` and scroll-back pagination
- * via opaque `nextCursor` tokens returned by the API.
- */
 export const useOHLCVChart = ({
   assetId,
   timePeriod,
   interval,
   vsCurrency,
 }: UseOHLCVChartOptions): UseOHLCVChartResult => {
-  const [ohlcvData, setOhlcvData] = useState<OHLCVBar[]>([]);
-  const [isLoading, setIsLoading] = useState(!!assetId);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [hasEmptyData, setHasEmptyData] = useState(false);
+  const query = useQuery({
+    ...ohlcvChartQueryOptions(
+      toRequest({ assetId, timePeriod, interval, vsCurrency }),
+    ),
+    enabled: Boolean(assetId),
+  });
 
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const response = query.data;
+  const errorMessage =
+    query.error instanceof Error
+      ? query.error.message
+      : query.error
+        ? 'Unknown error'
+        : null;
 
-  const loadInitial = useCallback(async () => {
-    if (!assetId) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsLoading(true);
-    setError(null);
-    setNextCursor(null);
-    setHasMore(false);
-    setHasEmptyData(false);
-
-    try {
-      const result = await fetchOHLCV(
-        assetId,
-        { timePeriod, interval, vsCurrency },
-        controller.signal,
-      );
-
-      if (!controller.signal.aborted) {
-        const isEmpty = result.data.length === 0;
-        setHasEmptyData(isEmpty);
-        setOhlcvData(result.data.map(mapCandle));
-        setNextCursor(result.nextCursor || null);
-        setHasMore(result.hasNext);
-      }
-    } catch (e) {
-      if (!controller.signal.aborted) {
-        setOhlcvData([]); // Clear data on error to show error state
-        setError(e instanceof Error ? e.message : 'Unknown error');
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, [assetId, timePeriod, interval, vsCurrency]);
-
-  useEffect(() => {
-    loadInitial();
-    return () => abortRef.current?.abort();
-  }, [loadInitial]);
-
-  return { ohlcvData, isLoading, error, hasMore, nextCursor, hasEmptyData };
+  return {
+    ohlcvData: response ? response.data.map(mapCandle) : [],
+    isLoading: Boolean(assetId) && query.isPending,
+    error: errorMessage,
+    hasMore: response?.hasNext ?? false,
+    nextCursor: response?.nextCursor || null,
+    hasEmptyData: Boolean(
+      response && response.data.length === 0 && !query.error,
+    ),
+  };
 };

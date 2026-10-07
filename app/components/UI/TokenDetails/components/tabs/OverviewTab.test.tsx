@@ -66,6 +66,11 @@ jest.mock('../../hooks/useTokenPerformance', () => ({
   useTokenPerformance: jest.fn(),
 }));
 
+const mockUseTokenAssetDetails = jest.fn();
+jest.mock('../../queries/useTokenAssetDetails', () => ({
+  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
+}));
+
 jest.mock('../../hooks/useTokenTransactions', () => ({
   useTokenTransactions: jest.fn(),
 }));
@@ -274,6 +279,11 @@ describe('OverviewTab', () => {
       navigate: jest.fn(),
     } as never);
     mockUseTokenPerformance.mockReturnValue(performance);
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: null,
+      isLoading: false,
+      isError: false,
+    });
     mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
     mockUseTokenBalance.mockReturnValue({
       balance: '4200000',
@@ -306,6 +316,27 @@ describe('OverviewTab', () => {
     );
 
     expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
+  });
+
+  it('renders the asset query description ahead of the token description', () => {
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: {
+        launchpadData: { description: 'From the assets API' },
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    const { getByText, queryByText } = render(
+      <OverviewTab
+        token={{ ...token, description: 'From the route' }}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(getByText('From the assets API')).toBeTruthy();
+    expect(queryByText('From the route')).toBeNull();
   });
 
   it('renders the mock description fallback when the token has none', () => {

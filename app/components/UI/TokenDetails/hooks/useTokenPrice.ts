@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
@@ -7,6 +8,7 @@ import {
   selectCurrencyRates,
 } from '../../../../selectors/currencyRateController';
 import useTokenHistoricalPrices, {
+  DEFAULT_HISTORICAL_TIME_PERIOD,
   TimePeriod,
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
@@ -20,9 +22,9 @@ import { calculateAssetPrice } from '../../AssetOverview/utils/calculateAssetPri
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { type MarketDataDetails } from '@metamask/assets-controllers';
-import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { spotPriceQueryOptions } from '../queries/spotPriceQuery';
 
 /**
  * Time ranges where the spot-prices API provides a reliable pre-computed
@@ -74,7 +76,9 @@ export const useTokenPrice = ({
   const chainId = token.chainId as Hex;
   const isNonEvmToken = formatChainIdToCaip(chainId) === token.chainId;
 
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('1d');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>(
+    DEFAULT_HISTORICAL_TIME_PERIOD,
+  );
 
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -116,85 +120,43 @@ export const useTokenPrice = ({
   const tokenMarketEntry = allTokenMarketData?.[chainId]?.[itemAddress as Hex];
   const marketDataRate = tokenMarketEntry?.price;
 
-  const [fetchedRate, setFetchedRate] = useState<number | undefined>();
-  const [fetchedMarketData, setFetchedMarketData] = useState<
-    MarketDataDetails | undefined
-  >();
-  const [exchangeRateApiMs, setExchangeRateApiMs] = useState<number>();
-  const fetchIdRef = useRef(0);
+  const isNonEvm = isNonEvmChainId(chainId);
+  const nativeTokenConversionRate =
+    nativeCurrency && conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
-  // Stable token key to prevent unnecessary re-fetches
-  const tokenKey = `${chainId}-${itemAddress}-${currentCurrency}`;
+  const shouldFetchSpot =
+    marketDataRate === undefined &&
+    Boolean(itemAddress) &&
+    (isNonEvm || Boolean(nativeTokenConversionRate));
 
-  // For non-imported tokens (not in Redux), fetch price + market data in a
-  // single call. This gives us both the exchange rate and the pre-computed
-  // percentage changes from the spot-prices API, avoiding the historical-prices
-  // endpoint's incomplete-data problem for newly-listed tokens.
-  useEffect(() => {
-    setFetchedRate(undefined);
-    setFetchedMarketData(undefined);
-    setExchangeRateApiMs(undefined);
+  const spotQuery = useQuery({
+    ...spotPriceQueryOptions({
+      chainId,
+      tokenAddress: itemAddress ?? '',
+      currency: currentCurrency,
+    }),
+    enabled: shouldFetchSpot,
+  });
 
-    if (marketDataRate !== undefined || !itemAddress) {
-      // Token data already available in Redux or no address - mark fetch as "not needed"
-      setFetchedMarketData({} as MarketDataDetails);
-      return;
+  const fetchedMarketData: MarketDataDetails | undefined = shouldFetchSpot
+    ? spotQuery.data?.marketData
+    : ({} as MarketDataDetails);
+
+  const exchangeRateApiMs = shouldFetchSpot
+    ? spotQuery.data?.apiDurationMs
+    : undefined;
+
+  let fetchedRate: number | undefined;
+  const spotMarketData = shouldFetchSpot
+    ? spotQuery.data?.marketData
+    : undefined;
+  if (spotMarketData?.price) {
+    if (isNonEvm) {
+      fetchedRate = spotMarketData.price;
+    } else if (nativeTokenConversionRate) {
+      fetchedRate = spotMarketData.price / nativeTokenConversionRate;
     }
-
-    const isNonEvm = isNonEvmChainId(chainId);
-    const nativeTokenConversionRate =
-      nativeCurrency &&
-      conversionRateByTicker?.[nativeCurrency]?.conversionRate;
-
-    if (!isNonEvm && !nativeTokenConversionRate) {
-      // Can't fetch without conversion rate - mark fetch as "not possible"
-      setFetchedMarketData({} as MarketDataDetails);
-      return;
-    }
-
-    const id = ++fetchIdRef.current;
-    const fetchStart = Date.now();
-
-    const fetchData = async () => {
-      try {
-        const data = (await getTokenExchangeRate({
-          chainId,
-          tokenAddress: itemAddress,
-          currency: currentCurrency,
-          includeMarketData: true,
-        })) as MarketDataDetails | undefined;
-
-        if (id !== fetchIdRef.current) return;
-        setExchangeRateApiMs(Date.now() - fetchStart);
-
-        if (!data?.price) {
-          setFetchedRate(undefined);
-          // Set empty object to indicate "fetch completed but no data available"
-          // This prevents infinite loading when API returns incomplete data
-          setFetchedMarketData({} as MarketDataDetails);
-          return;
-        }
-
-        setFetchedMarketData(data);
-
-        if (isNonEvm) {
-          setFetchedRate(data.price);
-        } else if (nativeTokenConversionRate) {
-          setFetchedRate(data.price / nativeTokenConversionRate);
-        }
-      } catch {
-        if (id !== fetchIdRef.current) return;
-        setExchangeRateApiMs(Date.now() - fetchStart);
-        setFetchedRate(undefined);
-        // Set empty object to indicate "fetch attempted but failed"
-        // This prevents infinite loading when API request fails
-        setFetchedMarketData({} as MarketDataDetails);
-      }
-    };
-
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenKey, marketDataRate]);
+  }
 
   // For time periods that use spot-prices percentage (1d, 1w, 1m, 1y),
   // wait for spot-prices to load before showing data to avoid flicker.

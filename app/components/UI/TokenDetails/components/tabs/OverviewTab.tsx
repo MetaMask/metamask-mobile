@@ -7,6 +7,7 @@ import TokenDetailsSection from '../../../AssetOverview/TokenDetails';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
+import { useTokenAssetDetails } from '../../queries/useTokenAssetDetails';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -53,7 +54,11 @@ const OverviewTab = ({
   currentCurrency,
   securityData,
 }: OverviewTabProps) => {
-  const description = token.description ?? MOCK_TOKEN_DESCRIPTION;
+  const { asset } = useTokenAssetDetails(assetId);
+  const description =
+    asset?.launchpadData?.description ??
+    token.description ??
+    MOCK_TOKEN_DESCRIPTION;
 
   const performance = useTokenPerformance({
     token,

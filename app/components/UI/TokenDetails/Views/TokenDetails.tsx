@@ -72,6 +72,7 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { usePrefetchTokenDetails } from '../queries/usePrefetchTokenDetails';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
@@ -930,6 +931,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
   const variant = useTokenDetailsVariant(token);
+  usePrefetchTokenDetails(token);
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />

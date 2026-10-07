@@ -9,10 +9,16 @@ import type { CaipAssetType } from '@metamask/utils';
  * For now we hardcode PEPE on mainnet so the TDP routing path is
  * exercisable end-to-end behind the LaunchDarkly flag.
  */
+export const MAINNET_PEPE_ASSET_ID =
+  'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
+
 const HARDCODED_MEME_ASSET_IDS: ReadonlySet<string> = new Set([
-  // PEPE on Ethereum mainnet
-  'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933',
+  MAINNET_PEPE_ASSET_ID,
 ]);
+
+export const isHardcodedMemeAssetId = (
+  assetId: string | null | undefined,
+): boolean => Boolean(assetId && HARDCODED_MEME_ASSET_IDS.has(assetId));
 
 export interface UseIsMemeTokenOptions {
   assetId: CaipAssetType | null;
@@ -31,5 +37,5 @@ export interface UseIsMemeTokenResult {
 export const useIsMemeToken = ({
   assetId,
 }: UseIsMemeTokenOptions): UseIsMemeTokenResult => ({
-  isMeme: Boolean(assetId && HARDCODED_MEME_ASSET_IDS.has(assetId)),
+  isMeme: isHardcodedMemeAssetId(assetId),
 });
