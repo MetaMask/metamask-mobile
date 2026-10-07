@@ -16,6 +16,12 @@ export const ManageProfileSelectorsIDs = {
   FIELD_SHEET_INPUT: 'manage-profile-field-sheet-input',
   FIELD_SHEET_SWITCH: 'manage-profile-field-sheet-switch',
   FIELD_SHEET_SAVE: 'manage-profile-field-sheet-save',
+  LINKED_ACCOUNT_SHEET: 'manage-profile-linked-account-sheet',
+  LINKED_ACCOUNT_SHEET_CLOSE: 'manage-profile-linked-account-sheet-close',
+  LINKED_ACCOUNT_SHEET_ALERT: 'manage-profile-linked-account-sheet-alert',
+  LINKED_ACCOUNT_SHEET_DISCONNECT:
+    'manage-profile-linked-account-sheet-disconnect',
+  LINKED_ACCOUNT_SHEET_CANCEL: 'manage-profile-linked-account-sheet-cancel',
   TOGGLE_DESCRIPTION: 'manage-profile-toggle-description',
   TOGGLE_HELPER_TEXT: 'manage-profile-toggle-helper-text',
   TOGGLE_INFO_BUTTON: 'manage-profile-toggle-info-button',

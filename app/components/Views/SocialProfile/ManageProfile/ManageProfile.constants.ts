@@ -9,9 +9,6 @@ export interface Profile {
   socialHandle: string;
   /** Whether trading activity is shared publicly. Renders as "On" / "Off". */
   isTradingActivityVisible: boolean;
-  linkedSocialAccountName: string;
-  /** Drives the Maskicon for the linked account chip. Empty when none is linked. */
-  linkedSocialAccountAddress: string;
 }
 
 /**

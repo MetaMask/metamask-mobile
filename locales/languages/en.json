@@ -4825,7 +4825,19 @@
       "trading_activity_public": "Public and available to copy",
       "trading_activity_private": "Private and unavailable to copy",
       "trading_activity_info": "More information about trading activity",
-      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+      "connecting": "Connecting…",
+      "connected": "Connected",
+      "disconnect_x_title": "Disconnect X?",
+      "disconnect_x_title_with_handle": "Disconnect {{handle}}?",
+      "disconnect_x_description": "Your X account is linked to your MetaMask profile. Disconnecting removes the link. You can connect it again at any time.",
+      "disconnect_x_cta": "Disconnect",
+      "disconnecting": "Disconnecting…",
+      "cancel": "Cancel",
+      "connect_x_error": "Couldn't connect to X. Try again.",
+      "connect_x_error_network": "Couldn't reach X. Check your internet connection and try again.",
+      "connect_x_error_backend": "X isn't available right now. Try again later.",
+      "disconnect_x_error": "Couldn't disconnect X. Try again."
     },
     "profile_drawer": {
       "close": "Close",

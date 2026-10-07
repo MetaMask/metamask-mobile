@@ -1,15 +1,102 @@
 import React from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
-import { fireEvent, within } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  waitFor,
+  within,
+  type RenderResult,
+} from '@testing-library/react-native';
+import type { Profile } from '@metamask/profile-controller';
 
 import ManageProfile from './ManageProfile';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import { PROFILE_FIELD_MAX_LENGTH } from './ManageProfile.constants';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import Logger from '../../../../util/Logger';
+import {
+  connectX,
+  disconnectX,
+  XAuthError,
+  XAuthErrorType,
+  type XConnectResult,
+  type XProfile,
+} from '../../../../core/XAuthService';
+import {
+  selectIsConnectedToX,
+  selectXProfile,
+} from '../../../../selectors/profileController';
 
 import { DEFAULT_PROFILE_AVATAR_SIZE } from './ProfileAvatar';
 import { strings } from '../../../../../locales/i18n';
+
+jest.mock('../../../../core/XAuthService', () => {
+  const actual = jest.requireActual('../../../../core/XAuthService');
+  return {
+    ...actual,
+    connectX: jest.fn(),
+    disconnectX: jest.fn(),
+  };
+});
+
+jest.mock('../../../../selectors/profileController', () => ({
+  selectIsConnectedToX: jest.fn(),
+  selectXProfile: jest.fn(),
+}));
+
+const mockConnectX = jest.mocked(connectX);
+const mockDisconnectX = jest.mocked(disconnectX);
+const mockSelectIsConnectedToX = jest.mocked(selectIsConnectedToX);
+const mockSelectXProfile = jest.mocked(selectXProfile);
+
+const X_PROFILE_FIXTURE: XProfile = {
+  xUserId: '8472619402',
+  xProfileUrl: 'https://x.com/katiedelta',
+  username: 'katiedelta',
+  displayName: 'Katie Delta',
+  avatarUrl: 'https://pbs.twimg.com/profile_images/katiedelta.png',
+  createdAt: '2026-01-15T09:30:00.000Z',
+  updatedAt: '2026-05-02T14:12:00.000Z',
+};
+
+const PROFILE_FIXTURE: Profile = {
+  profileId: '9f1c2a44-6a2f-4a7e-9b2e-1f4c8a9d0e11',
+  username: 'katiedelta',
+  displayName: 'Katie Delta',
+  bio: '',
+  linkedAddresses: [],
+  avatarUrl: '',
+  tradingPrivacy: 'private',
+  connectedToX: true,
+  createdAt: '2026-01-15T09:30:00.000Z',
+  updatedAt: '2026-05-02T14:12:00.000Z',
+};
+
+const CONNECT_RESULT_FIXTURE: XConnectResult = {
+  profile: PROFILE_FIXTURE,
+  xProfile: X_PROFILE_FIXTURE,
+  profileCreated: false,
+};
+
+/** Creates a promise whose settlement the test controls explicitly. */
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+/** Presses a row/handler that kicks off async work, wrapped in act(). */
+async function pressAsync(target: ReturnType<RenderResult['getByTestId']>) {
+  await act(async () => {
+    fireEvent.press(target);
+  });
+}
 
 /** Mirrors `VALUE_MAX_WIDTH_RATIO` in ProfileRow. */
 const EXPECTED_VALUE_WIDTH_RATIO = 0.45;
@@ -28,9 +115,36 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+
+/** Renders with a toast ref, as the app root provides. */
+const renderManageProfileWithToast = () =>
+  renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <ManageProfile />
+    </ToastContext.Provider>,
+  );
+
+/** Flips the connection-state mocks to a linked X account. */
+const mockConnectedToX = () => {
+  mockSelectIsConnectedToX.mockReturnValue(true);
+  mockSelectXProfile.mockReturnValue(X_PROFILE_FIXTURE);
+};
+
 describe('ManageProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Logger, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+    mockSelectIsConnectedToX.mockReturnValue(false);
+    mockSelectXProfile.mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -217,19 +331,6 @@ describe('ManageProfile', () => {
   it('opens no sheet until an editable row is pressed', () => {
     const { queryByTestId } = renderWithProvider(<ManageProfile />);
 
-    expect(queryByTestId(ManageProfileSelectorsIDs.FIELD_SHEET)).toBeNull();
-  });
-
-  it('leaves the not-yet-wired linked social account row inert', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <ManageProfile />,
-    );
-
-    fireEvent.press(
-      getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
-    );
-
-    expect(mockNavigate).not.toHaveBeenCalled();
     expect(queryByTestId(ManageProfileSelectorsIDs.FIELD_SHEET)).toBeNull();
   });
 
@@ -451,6 +552,317 @@ describe('ManageProfile', () => {
           getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
         ).getByText(strings('app_settings.manage_profile.on')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('linked social account (disconnected)', () => {
+    it('opens no field sheet when the row is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(queryByTestId(ManageProfileSelectorsIDs.FIELD_SHEET)).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('starts the X connect flow when the row is pressed', async () => {
+      mockConnectX.mockResolvedValue(CONNECT_RESULT_FIXTURE);
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(mockConnectX).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows connecting in the row while the connect flow is in flight, then clears it', async () => {
+      const deferred = createDeferred<XConnectResult>();
+      mockConnectX.mockReturnValue(deferred.promise);
+      const { getByTestId } = renderManageProfileWithToast();
+      const row = getByTestId(
+        ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW,
+      );
+
+      await act(async () => {
+        fireEvent.press(row);
+      });
+
+      expect(
+        within(row).getByText(
+          strings('app_settings.manage_profile.connecting'),
+        ),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        deferred.resolve(CONNECT_RESULT_FIXTURE);
+      });
+
+      // The connecting indicator drops once the flow settles; the linked
+      // handle itself arrives through the ProfileController state change in
+      // Redux, covered by the connected-state tests below.
+      expect(
+        within(row).getByText(
+          strings('app_settings.manage_profile.no_linked_account'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('ignores a second press while the connect flow is in flight', async () => {
+      const deferred = createDeferred<XConnectResult>();
+      mockConnectX.mockReturnValue(deferred.promise);
+      const { getByTestId } = renderManageProfileWithToast();
+      const row = getByTestId(
+        ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW,
+      );
+
+      await act(async () => {
+        fireEvent.press(row);
+        fireEvent.press(row);
+      });
+
+      expect(mockConnectX).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        deferred.resolve(CONNECT_RESULT_FIXTURE);
+      });
+    });
+
+    it('accepts another press after the connect flow fails', async () => {
+      mockConnectX.mockRejectedValueOnce(new Error('offline'));
+      mockConnectX.mockResolvedValueOnce(CONNECT_RESULT_FIXTURE);
+      const { getByTestId } = renderManageProfileWithToast();
+      const row = getByTestId(
+        ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW,
+      );
+
+      await pressAsync(row);
+      await pressAsync(row);
+
+      expect(mockConnectX).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows no toast when the user cancels the X authorization', async () => {
+      mockConnectX.mockRejectedValue(
+        new XAuthError(XAuthErrorType.UserCancelled, 'User cancelled'),
+      );
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        XAuthErrorType.NetworkFailure,
+        'app_settings.manage_profile.connect_x_error_network',
+      ],
+      [
+        XAuthErrorType.BackendError,
+        'app_settings.manage_profile.connect_x_error_backend',
+      ],
+      [
+        XAuthErrorType.StateMismatch,
+        'app_settings.manage_profile.connect_x_error',
+      ],
+      [
+        XAuthErrorType.NotSignedIn,
+        'app_settings.manage_profile.connect_x_error',
+      ],
+    ])(
+      'shows the %s toast copy when the connect fails with that error',
+      async (errorType, copyKey) => {
+        mockConnectX.mockRejectedValue(
+          new XAuthError(errorType, 'connect failed'),
+        );
+        const { getByTestId } = renderManageProfileWithToast();
+
+        await pressAsync(
+          getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+        );
+
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: [{ label: strings(copyKey) }],
+          }),
+        );
+      },
+    );
+
+    it('shows the generic toast copy when the connect fails with an unexpected error', async () => {
+      mockConnectX.mockRejectedValue(new Error('something unexpected'));
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('app_settings.manage_profile.connect_x_error'),
+            },
+          ],
+        }),
+      );
+    });
+  });
+
+  describe('linked social account (connected)', () => {
+    it('shows the linked X handle in the row', () => {
+      mockConnectedToX();
+      const { getByTestId } = renderManageProfileWithToast();
+
+      const row = getByTestId(
+        ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW,
+      );
+
+      expect(within(row).getByText('@katiedelta')).toBeOnTheScreen();
+    });
+
+    it('opens the disconnect confirmation when the row is pressed', async () => {
+      mockConnectedToX();
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_ALERT),
+      ).toHaveTextContent(
+        strings('app_settings.manage_profile.disconnect_x_title_with_handle', {
+          handle: '@katiedelta',
+        }),
+        { exact: false },
+      );
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_CANCEL),
+      ).toBeOnTheScreen();
+      expect(mockConnectX).not.toHaveBeenCalled();
+    });
+
+    it('disconnects when the confirmation button is pressed', async () => {
+      mockConnectedToX();
+      mockDisconnectX.mockResolvedValue(undefined);
+      const { getByTestId } = renderManageProfileWithToast();
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT),
+      );
+
+      expect(mockDisconnectX).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the confirmation after the disconnect resolves', async () => {
+      mockConnectedToX();
+      mockDisconnectX.mockResolvedValue(undefined);
+      const { getByTestId, queryByTestId } = renderManageProfileWithToast();
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT),
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET),
+        ).toBeNull();
+      });
+    });
+
+    it('shows the disconnecting state and ignores repeated presses while the disconnect is in flight', async () => {
+      mockConnectedToX();
+      const deferred = createDeferred<void>();
+      mockDisconnectX.mockReturnValue(deferred.promise);
+      const { getByTestId } = renderManageProfileWithToast();
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT,
+          ),
+        );
+        fireEvent.press(
+          getByTestId(
+            ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT,
+          ),
+        );
+      });
+
+      expect(mockDisconnectX).toHaveBeenCalledTimes(1);
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT),
+      ).toHaveTextContent(strings('app_settings.manage_profile.disconnecting'));
+
+      await act(async () => {
+        deferred.resolve();
+      });
+    });
+
+    it('keeps the confirmation open and shows a toast when the disconnect fails', async () => {
+      mockConnectedToX();
+      mockDisconnectX.mockRejectedValue(new Error('backend down'));
+      const { getByTestId } = renderManageProfileWithToast();
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_DISCONNECT),
+      );
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('app_settings.manage_profile.disconnect_x_error'),
+            },
+          ],
+        }),
+      );
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the confirmation without disconnecting when cancel is pressed', async () => {
+      mockConnectedToX();
+      const { getByTestId, queryByTestId } = renderManageProfileWithToast();
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      await pressAsync(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET_CANCEL),
+      );
+
+      expect(mockDisconnectX).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(
+          queryByTestId(ManageProfileSelectorsIDs.LINKED_ACCOUNT_SHEET),
+        ).toBeNull();
+      });
     });
   });
 });

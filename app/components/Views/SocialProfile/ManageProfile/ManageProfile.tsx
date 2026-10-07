@@ -1,11 +1,15 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
-  AvatarAccount,
-  AvatarAccountSize,
-  AvatarAccountVariant,
   Box,
   BoxAlignItems,
   Card,
@@ -23,6 +27,21 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import {
+  connectX,
+  disconnectX,
+  XAuthError,
+  XAuthErrorType,
+} from '../../../../core/XAuthService';
+import {
+  selectIsConnectedToX,
+  selectXProfile,
+} from '../../../../selectors/profileController';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import {
@@ -36,6 +55,7 @@ import ManageProfileFieldSheet, {
   ProfileFieldControl,
   type ProfileFieldValue,
 } from './ManageProfileFieldSheet';
+import ManageProfileDisconnectSheet from './ManageProfileDisconnectSheet';
 
 const SECTION_TITLE_PROPS = {
   variant: TextVariant.BodySm,
@@ -56,9 +76,85 @@ type EditableField = (typeof EditableField)[keyof typeof EditableField];
 const valueOrPlaceholder = (value: string) =>
   value || strings('app_settings.manage_profile.not_set');
 
+/**
+ * Coerces an unknown thrown value to an Error so it can be passed to
+ * Logger.error (which requires an Error) without unsafe casts.
+ */
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+/**
+ * Safe metadata for logging caught errors: the error class name and, for
+ * XAuthError, its error type. Never the full message — backend error text
+ * can echo server-provided details.
+ */
+function logErrorMetadata(
+  error: unknown,
+): Record<string, string | number | boolean | undefined> {
+  return {
+    errorName: error instanceof Error ? error.name : 'unknown',
+    errorType: error instanceof XAuthError ? error.type : undefined,
+  };
+}
+
+/**
+ * Flow logging for developer debugging in Metro/console output
+ * (console.log in __DEV__, Sentry breadcrumb in production for opted-in
+ * users). SECURITY: never log tokens, error messages, profile ids, or
+ * account addresses — metadata only.
+ */
+const log = (
+  message: string,
+  data?: Record<string, string | number | boolean | undefined>,
+) => Logger.log(`[XAuth][ManageProfile] ${message}`, data ?? '');
+
+/**
+ * Row value for the linked social account across its states: a connecting
+ * indicator while the OAuth flow is in flight, the X handle once linked,
+ * "Connected" when linked from another client without a local X profile, and
+ * "None" when unlinked.
+ */
+const getLinkedSocialAccountValue = (
+  isConnecting: boolean,
+  isConnectedToX: boolean,
+  xHandle: string | undefined,
+): string => {
+  if (isConnecting) {
+    return strings('app_settings.manage_profile.connecting');
+  }
+  if (xHandle) {
+    return xHandle;
+  }
+  return strings(
+    isConnectedToX
+      ? 'app_settings.manage_profile.connected'
+      : 'app_settings.manage_profile.no_linked_account',
+  );
+};
+
+/**
+ * Distinct, plain copy for the failure classes a user can act on; everything
+ * else (including non-XAuthError failures) falls back to a generic message.
+ */
+const getConnectErrorCopy = (error: unknown): string => {
+  if (error instanceof XAuthError) {
+    if (error.type === XAuthErrorType.NetworkFailure) {
+      return strings('app_settings.manage_profile.connect_x_error_network');
+    }
+    if (error.type === XAuthErrorType.BackendError) {
+      return strings('app_settings.manage_profile.connect_x_error_backend');
+    }
+  }
+  return strings('app_settings.manage_profile.connect_x_error');
+};
+
 const ManageProfile = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const { toastRef } = useContext(ToastContext);
+  const isConnectedToX = useSelector(selectIsConnectedToX);
+  const xProfile = useSelector(selectXProfile);
 
   // TODO: replace with the real profile source. Edits live here so the rows
   // reflect them, but nothing is persisted.
@@ -69,17 +165,98 @@ const ManageProfile = () => {
     bio: '',
     socialHandle: '',
     isTradingActivityVisible: false,
-    linkedSocialAccountName: '',
-    linkedSocialAccountAddress: '',
   });
   const [editingField, setEditingField] = useState<EditableField | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const isConnectingRef = useRef(false);
+  const [isDisconnectSheetOpen, setIsDisconnectSheetOpen] = useState(false);
+
+  const xHandle = xProfile ? `@${xProfile.username}` : undefined;
+
+  const showToast = useCallback(
+    (label: string) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label }],
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // TODO: navigate to the account picker once that screen exists.
-  const handleOpenLinkedSocialAccount = useCallback(() => undefined, []);
+  /**
+   * Starts the backend-mediated X connect flow. The linked account updates
+   * via the ProfileController state change propagated through Redux.
+   */
+  const handleConnectX = useCallback(async () => {
+    // Double-press guard: a rapid second tap can re-enter before the pending
+    // state commits and start two OAuth sessions.
+    if (isConnectingRef.current) {
+      log('Connect X press ignored: connect already in flight');
+      return;
+    }
+    isConnectingRef.current = true;
+    log('Connect X pressed');
+    setIsConnecting(true);
+
+    try {
+      await connectX();
+      log('X connect succeeded');
+    } catch (error) {
+      // Cancelling the session or denying consent on X's screen is not an
+      // error — the row stays as it is, silently.
+      if (
+        error instanceof XAuthError &&
+        error.type === XAuthErrorType.UserCancelled
+      ) {
+        log('X connect cancelled by user');
+        return;
+      }
+      log('X connect failed, showing toast', logErrorMetadata(error));
+      Logger.error(toError(error), 'ManageProfile: X connect failed');
+      showToast(getConnectErrorCopy(error));
+    } finally {
+      isConnectingRef.current = false;
+      setIsConnecting(false);
+    }
+  }, [showToast]);
+
+  /**
+   * Disconnects the linked X account. Rejects after surfacing the failure so
+   * the confirmation sheet stays open for a retry.
+   */
+  const handleDisconnectX = useCallback(async () => {
+    try {
+      await disconnectX();
+      // isConnected updates via the ProfileController state change
+      // propagated through Redux.
+      log('X disconnect succeeded');
+    } catch (error) {
+      log('X disconnect failed, showing toast', logErrorMetadata(error));
+      Logger.error(toError(error), 'ManageProfile: X disconnect failed');
+      showToast(strings('app_settings.manage_profile.disconnect_x_error'));
+      throw error;
+    }
+  }, [showToast]);
+
+  const handlePressLinkedSocialAccount = useCallback(() => {
+    if (isConnectedToX) {
+      log('Linked social account pressed: opening disconnect confirmation');
+      setIsDisconnectSheetOpen(true);
+      return;
+    }
+    // handleConnectX never rejects; the row flips via Redux on success.
+    handleConnectX();
+  }, [isConnectedToX, handleConnectX]);
+
+  const handleCloseDisconnectSheet = useCallback(
+    () => setIsDisconnectSheetOpen(false),
+    [],
+  );
 
   const handleEditDisplayName = useCallback(
     () => setEditingField(EditableField.DisplayName),
@@ -256,20 +433,21 @@ const ManageProfile = () => {
           <ProfileRow
             showDivider
             title={strings('app_settings.manage_profile.linked_social_account')}
-            value={
-              profile.linkedSocialAccountName ||
-              strings('app_settings.manage_profile.no_linked_account')
-            }
+            value={getLinkedSocialAccountValue(
+              isConnecting,
+              isConnectedToX,
+              xHandle,
+            )}
             valueStartAccessory={
-              profile.linkedSocialAccountAddress ? (
-                <AvatarAccount
-                  address={profile.linkedSocialAccountAddress}
-                  variant={AvatarAccountVariant.Maskicon}
-                  size={AvatarAccountSize.Xs}
+              xHandle ? (
+                <Icon
+                  name={IconName.X}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
                 />
               ) : undefined
             }
-            onPress={handleOpenLinkedSocialAccount}
+            onPress={handlePressLinkedSocialAccount}
             testID={ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW}
           />
         </Card>
@@ -280,6 +458,14 @@ const ManageProfile = () => {
           {...sheetProps}
           onSave={handleSaveField}
           onClose={handleCloseSheet}
+        />
+      ) : null}
+
+      {isDisconnectSheetOpen ? (
+        <ManageProfileDisconnectSheet
+          xProfile={xProfile}
+          onDisconnect={handleDisconnectX}
+          onClose={handleCloseDisconnectSheet}
         />
       ) : null}
     </SafeAreaView>
