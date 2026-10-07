@@ -109,7 +109,7 @@ const UNDER_DOLLAR = '999999';
 const localizedText = {
   claimSuccessToast: 'Earnings successfully claimed',
   claimPartialSuccessToast:
-    'Part of mUSD successfully claimed to your Money account. You may try to claim the rest in an hour.',
+    'Part of mUSD successfully claimed to your Money account. You may try to claim the rest later.',
   claimFailureToast: 'Earnings could not be claimed',
   claimFailureRetryToast: 'Try again',
   claimFailureWaitToast: 'Try again shortly',
