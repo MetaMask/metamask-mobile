@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  toMultichainAccountGroupId,
   toMultichainAccountWalletId,
   type AccountGroupId,
 } from '@metamask/account-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 /**
@@ -33,34 +33,43 @@ export interface UseMusdRescueRecipientsResult {
  *
  * The rescue send only moves funds between the user's own accounts, so the
  * recipient list is restricted to EVM accounts derived from the Money
- * Account's own SRP (same entropy source / multichain account group). Imported
+ * Account's own SRP (same entropy source): every account group under that
+ * SRP's multichain wallet, not just the Money Account's own group. Imported
  * private-key accounts, hardware wallets, other SRPs and the Money Account
- * address itself are never offered — that keeps a rescue withdrawal inside the
- * same seed phrase rather than allowing an arbitrary external address.
+ * address itself are never offered — that keeps a rescue withdrawal inside
+ * the same seed phrase rather than allowing an arbitrary external address.
  *
  * @returns The selectable rescue-send recipients.
  */
 const useMusdRescueRecipients = (): UseMusdRescueRecipientsResult => {
   const { primaryMoneyAccount } = useMoneyAccountInfo();
-  const selectAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
+  const accountGroups = useSelector(selectAccountGroups);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const entropy = primaryMoneyAccount?.options?.entropy;
   const entropyId = entropy?.id;
-  const groupIndex = entropy?.groupIndex;
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const recipients = useMemo(() => {
-    if (!entropyId || groupIndex === undefined || !moneyAccountAddress) {
+    if (!entropyId || !moneyAccountAddress) {
       return [];
     }
 
-    const groupId = toMultichainAccountGroupId(
-      toMultichainAccountWalletId(entropyId),
-      groupIndex,
+    // Every group of the Money Account's SRP wallet — sibling HD accounts
+    // live in other group indices and are equally valid rescue destinations.
+    const walletId = toMultichainAccountWalletId(entropyId);
+    const walletGroups = accountGroups.filter((group) =>
+      group.id.startsWith(`${walletId}/`),
     );
+
     const moneyAccountAddressLower = moneyAccountAddress.toLowerCase();
 
-    return selectAccountsByGroupId(groupId as AccountGroupId)
+    return walletGroups
+      .flatMap((group) =>
+        group.accounts
+          .map((accountId) => internalAccountsById[accountId])
+          .filter((account): account is InternalAccount => Boolean(account)),
+      )
       .filter(
         (account: InternalAccount) =>
           isEvmAccountType(account.type) &&
@@ -71,7 +80,7 @@ const useMusdRescueRecipients = (): UseMusdRescueRecipientsResult => {
         address: account.address,
         name: account.metadata?.name ?? '',
       }));
-  }, [entropyId, groupIndex, moneyAccountAddress, selectAccountsByGroupId]);
+  }, [entropyId, moneyAccountAddress, accountGroups, internalAccountsById]);
 
   return { recipients };
 };
