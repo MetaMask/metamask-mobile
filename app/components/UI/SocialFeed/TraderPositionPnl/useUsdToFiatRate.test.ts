@@ -47,6 +47,7 @@ describe('useUsdToFiatRate', () => {
     mockSelectCurrentCurrency.mockReturnValue('eur');
     mockSelectCurrencyRates.mockReturnValue({
       ETH: {
+        conversionDate: null,
         conversionRate: 2300,
         usdConversionRate: 2500,
       },
@@ -61,6 +62,7 @@ describe('useUsdToFiatRate', () => {
     mockSelectCurrentCurrency.mockReturnValue('EUR');
     mockSelectCurrencyRates.mockReturnValue({
       ETH: {
+        conversionDate: null,
         conversionRate: 0,
         usdConversionRate: 2500,
       },
