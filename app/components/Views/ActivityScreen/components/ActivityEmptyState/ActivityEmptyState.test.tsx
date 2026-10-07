@@ -4,7 +4,6 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
 } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ActivityEmptyState from './ActivityEmptyState';
@@ -21,45 +20,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => true),
 }));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  Theme: { Dark: 'dark', Light: 'light' },
-  useTheme: jest.fn(() => 'light'),
-}));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => <View testID={testID}>{children}</View>,
-    TabEmptyState: ({
-      actionButtonText,
-      description,
-      onAction,
-      testID,
-    }: {
-      actionButtonText: string;
-      description: string;
-      onAction: () => void;
-      testID?: string;
-    }) => (
-      <TouchableOpacity testID={testID} onPress={onAction}>
-        {ReactActual.createElement(Text, null, description)}
-        {ReactActual.createElement(Text, null, actionButtonText)}
-      </TouchableOpacity>
-    ),
-  };
-});
-
-jest.mock('../../../../../images/activity-empty-dark.svg', () => 'DarkIcon');
-jest.mock('../../../../../images/activity-empty-light.svg', () => 'LightIcon');
 
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
@@ -83,28 +43,34 @@ describe('ActivityEmptyState', () => {
     });
   });
 
-  it('renders the empty state container and action copy', () => {
+  it('shows the title, description and action for the active filter', () => {
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Transactions} />);
 
     expect(
-      screen.getByTestId(ActivityScreenSelectorsIDs.LIST),
-    ).toBeOnTheScreen();
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_TITLE),
+    ).toHaveTextContent('No transactions yet');
     expect(
-      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Swap tokens')).toBeOnTheScreen();
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_DESCRIPTION),
+    ).toHaveTextContent('Swap your first token today.');
+    expect(
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_ACTION),
+    ).toHaveTextContent('Swap tokens');
   });
 
-  it('routes each CTA to the expected destination', async () => {
+  it('routes each CTA to the expected destination', () => {
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Predictions} />);
-    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+    fireEvent.press(
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_ACTION),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
     });
 
     cleanup();
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Perps} />);
-    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+    fireEvent.press(
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_ACTION),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {},
@@ -112,12 +78,16 @@ describe('ActivityEmptyState', () => {
 
     cleanup();
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.BuySell} />);
-    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+    fireEvent.press(
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_ACTION),
+    );
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
 
     cleanup();
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.MetamaskCard} />);
-    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+    fireEvent.press(
+      screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_ACTION),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
   });
 });

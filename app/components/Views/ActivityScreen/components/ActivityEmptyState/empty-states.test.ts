@@ -1,5 +1,6 @@
 import {
   ActivityEmptyStateAction,
+  ActivityEmptyStateIllustration,
   getActivityEmptyState,
 } from './empty-states';
 import { ActivityTypeFilter } from '../../types';
@@ -13,6 +14,8 @@ describe('getActivityEmptyState', () => {
           hasFunds: true,
         }),
       ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.default_funded.title',
         descriptionKey: 'activity_view.empty_state.default_funded.description',
         actionLabelKey: 'activity_view.empty_state.default_funded.action',
         action: ActivityEmptyStateAction.Swap,
@@ -26,6 +29,8 @@ describe('getActivityEmptyState', () => {
           hasFunds: false,
         }),
       ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.default_unfunded.title',
         descriptionKey:
           'activity_view.empty_state.default_unfunded.description',
         actionLabelKey: 'activity_view.empty_state.default_unfunded.action',
@@ -42,6 +47,8 @@ describe('getActivityEmptyState', () => {
           hasFunds: true,
         }),
       ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.transactions_funded.title',
         descriptionKey:
           'activity_view.empty_state.transactions_funded.description',
         actionLabelKey: 'activity_view.empty_state.transactions_funded.action',
@@ -56,6 +63,8 @@ describe('getActivityEmptyState', () => {
           hasFunds: false,
         }),
       ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.transactions_unfunded.title',
         descriptionKey:
           'activity_view.empty_state.transactions_unfunded.description',
         actionLabelKey:
@@ -75,6 +84,8 @@ describe('getActivityEmptyState', () => {
             hasFunds,
           }),
         ).toEqual({
+          illustration: ActivityEmptyStateIllustration.Predictions,
+          titleKey: 'activity_view.empty_state.predictions.title',
           descriptionKey: 'activity_view.empty_state.predictions.description',
           actionLabelKey: 'activity_view.empty_state.predictions.action',
           action: ActivityEmptyStateAction.MakePrediction,
@@ -91,6 +102,8 @@ describe('getActivityEmptyState', () => {
             hasFunds,
           }),
         ).toEqual({
+          illustration: ActivityEmptyStateIllustration.Perps,
+          titleKey: 'activity_view.empty_state.perps.title',
           descriptionKey: 'activity_view.empty_state.perps.description',
           actionLabelKey: 'activity_view.empty_state.perps.action',
           action: ActivityEmptyStateAction.BrowsePerpsMarkets,
@@ -106,6 +119,8 @@ describe('getActivityEmptyState', () => {
           perpsSubFilterActive: true,
         }),
       ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Perps,
+        titleKey: 'activity_view.empty_state.perps_sub_filter.title',
         descriptionKey:
           'activity_view.empty_state.perps_sub_filter.description',
         actionLabelKey: 'activity_view.empty_state.perps.action',
@@ -132,6 +147,8 @@ describe('getActivityEmptyState', () => {
             hasFunds,
           }),
         ).toEqual({
+          illustration: ActivityEmptyStateIllustration.Search,
+          titleKey: 'activity_view.empty_state.buy_sell.title',
           descriptionKey: 'activity_view.empty_state.buy_sell.description',
           actionLabelKey: 'activity_view.empty_state.buy_sell.action',
           action: ActivityEmptyStateAction.AddFunds,
@@ -139,21 +156,41 @@ describe('getActivityEmptyState', () => {
       },
     );
 
-    it.each([true, false])(
-      'MetamaskCard returns themed copy + OpenMetamaskCard (hasFunds=%s)',
-      (hasFunds) => {
-        expect(
-          getActivityEmptyState({
-            filter: ActivityTypeFilter.MetamaskCard,
-            hasFunds,
-          }),
-        ).toEqual({
-          descriptionKey: 'activity_view.empty_state.metamask_card.description',
-          actionLabelKey: 'activity_view.empty_state.metamask_card.action',
-          action: ActivityEmptyStateAction.OpenMetamaskCard,
-        });
-      },
-    );
+    it('MetamaskCard returns the get-a-card copy when the account has no card', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.MetamaskCard,
+          hasFunds: true,
+          isCardholder: false,
+        }),
+      ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.metamask_card_no_card.title',
+        descriptionKey:
+          'activity_view.empty_state.metamask_card_no_card.description',
+        actionLabelKey:
+          'activity_view.empty_state.metamask_card_no_card.action',
+        action: ActivityEmptyStateAction.OpenMetamaskCard,
+      });
+    });
+
+    it('MetamaskCard returns the no-activity copy for cardholders', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.MetamaskCard,
+          hasFunds: false,
+          isCardholder: true,
+        }),
+      ).toEqual({
+        illustration: ActivityEmptyStateIllustration.Search,
+        titleKey: 'activity_view.empty_state.metamask_card_cardholder.title',
+        descriptionKey:
+          'activity_view.empty_state.metamask_card_cardholder.description',
+        actionLabelKey:
+          'activity_view.empty_state.metamask_card_cardholder.action',
+        action: ActivityEmptyStateAction.OpenMetamaskCard,
+      });
+    });
   });
 
   it('falls back to the All branch for an unknown filter value', () => {

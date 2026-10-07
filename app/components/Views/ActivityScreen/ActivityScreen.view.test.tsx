@@ -70,6 +70,8 @@ import { PERPS_AGGREGATE_FILLS } from '../../../constants/storage';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
+import type { DeepPartial } from '../../../util/test/renderWithProvider';
+import type { RootState } from '../../../reducers';
 
 // Details and list testIDs mirrored locally so this route suite does not import
 // from the sibling ActivityDetails / ActivityList routes (ADR 0020).
@@ -773,9 +775,9 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows Card empty state and Open MetaMask Card opens card home', async () => {
-    const openCardLabel = strings(
-      'activity_view.empty_state.metamask_card.action',
+  it('offers Get MetaMask Card on the Card empty state when the account has no card', async () => {
+    const getCardLabel = strings(
+      'activity_view.empty_state.metamask_card_no_card.action',
     );
 
     const { getByTestId, findByTestId, findByText } =
@@ -790,9 +792,49 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     );
 
     expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_TITLE),
+    ).toHaveTextContent(
+      strings('activity_view.empty_state.metamask_card_no_card.title'),
+    );
+
+    fireEvent.press(await findByText(getCardLabel));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.CARD.ROOT)),
     ).toBeOnTheScreen();
-    expect(await findByText(openCardLabel)).toBeOnTheScreen();
+  });
+
+  it('shows the no-card-activity copy and Open MetaMask Card for cardholders', async () => {
+    const openCardLabel = strings(
+      'activity_view.empty_state.metamask_card_cardholder.action',
+    );
+
+    const { getByTestId, findByTestId, findByText } =
+      renderActivityScreenViewWithRoutes({
+        state: initialStateActivityWithAccountsApi()
+          .withOverrides({
+            engine: {
+              backgroundState: {
+                CardController: {
+                  cardholderAccounts: [`eip155:0:${ACTIVITY_CV_ACCOUNT}`],
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>)
+          .build(),
+        extraRoutes: [{ name: Routes.CARD.ROOT }],
+      });
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(optionTestId(ActivityTypeFilter.MetamaskCard)),
+    );
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE_TITLE),
+    ).toHaveTextContent(
+      strings('activity_view.empty_state.metamask_card_cardholder.title'),
+    );
 
     fireEvent.press(await findByText(openCardLabel));
 

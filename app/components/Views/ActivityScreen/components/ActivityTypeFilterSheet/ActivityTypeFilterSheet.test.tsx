@@ -32,6 +32,12 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
+let mockIsCardResidencyBlocked = false;
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockIsCardResidencyBlocked,
+}));
+
 const mockFilterOptionSheet = jest.fn();
 jest.mock('../FilterOptionSheet', () => ({
   FilterOptionSheet: (props: Record<string, unknown>) => {
@@ -47,6 +53,7 @@ describe('ActivityTypeFilterSheet', () => {
     mockGoBack.mockClear();
     mockOnSelect.mockClear();
     mockCanGoBack.mockReturnValue(true);
+    mockIsCardResidencyBlocked = false;
   });
 
   const lastProps = () =>
@@ -74,6 +81,20 @@ describe('ActivityTypeFilterSheet', () => {
       ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
     );
     expect(props.onSelect).toBe(mockOnSelect);
+  });
+
+  it('hides the Card option when card residency is blocked', () => {
+    mockIsCardResidencyBlocked = true;
+
+    render(<ActivityTypeFilterSheet />);
+
+    const { options } = lastProps();
+    expect(options).not.toContain(ActivityTypeFilter.MetamaskCard);
+    expect(options).toEqual(
+      ACTIVITY_TYPE_FILTER_ORDER.filter(
+        (filter) => filter !== ActivityTypeFilter.MetamaskCard,
+      ),
+    );
   });
 
   it('resolves labels and option testIDs from the type-filter maps', () => {
