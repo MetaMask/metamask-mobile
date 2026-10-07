@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   HeaderStandard,
   Text,
   TextVariant,
@@ -30,9 +33,16 @@ import {
   aesCryptoFormHeaderBackButton,
   accountAddress,
   responseText,
+  vaultKdfBenchmarkButton,
+  vaultKdfBenchmarkResult,
 } from './AesCrypto.testIds';
+import {
+  logStoredVaultIterations,
+  runVaultKdfBenchmark,
+} from './benchmarkVaultKdf';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
+import Engine from '../../../core/Engine';
 
 const AesCryptoTestForm = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -44,6 +54,8 @@ const AesCryptoTestForm = () => {
 
   const [passwordEncryptedData, setPasswordEncryptedData] =
     useState<string>('');
+  const [benchmarkRunning, setBenchmarkRunning] = useState(false);
+  const [benchmarkResult, setBenchmarkResult] = useState('');
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [keyEncryptedData, setKeyEncryptedData] = useState<any>();
@@ -120,6 +132,24 @@ const AesCryptoTestForm = () => {
     [encryptor],
   );
 
+  const runBenchmark = useCallback(async () => {
+    setBenchmarkRunning(true);
+    setBenchmarkResult('');
+    try {
+      const vaultLine = logStoredVaultIterations(
+        Engine.context.KeyringController.state.vault,
+      );
+      const lines = await runVaultKdfBenchmark();
+      setBenchmarkResult([vaultLine, ...lines].join('\n'));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Benchmark failed';
+      setBenchmarkResult(message);
+    } finally {
+      setBenchmarkRunning(false);
+    }
+  }, []);
+
   const decryptWithKey = useCallback(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -161,6 +191,26 @@ const AesCryptoTestForm = () => {
         <Text variant={TextVariant.HeadingSm} testID={accountAddress}>
           {selectedFormattedAddress}
         </Text>
+        <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>
+          Vault KDF benchmark
+        </Text>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Md}
+          onPress={() => {
+            runBenchmark().catch(() => undefined);
+          }}
+          isDisabled={benchmarkRunning}
+          style={styles.button}
+          testID={vaultKdfBenchmarkButton}
+        >
+          {benchmarkRunning ? 'Running benchmark' : 'Run vault KDF benchmark'}
+        </Button>
+        {benchmarkResult ? (
+          <Text variant={TextVariant.BodySm} testID={vaultKdfBenchmarkResult}>
+            {benchmarkResult}
+          </Text>
+        ) : null}
         <TestForm
           title={strings('aes_crypto_test_form.generate_random_salt')}
           buttonLabel={strings('aes_crypto_test_form.generate')}

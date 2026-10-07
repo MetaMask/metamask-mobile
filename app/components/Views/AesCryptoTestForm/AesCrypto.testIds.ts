@@ -51,6 +51,9 @@ export const aesCryptoFormResponses: AesCryptoFormResponses = {
   decryptionWithKeyResponse: 'decryption-with-key-response',
 };
 
+export const vaultKdfBenchmarkButton = 'vault-kdf-benchmark-button';
+export const vaultKdfBenchmarkResult = 'vault-kdf-benchmark-result';
+
 export const aesCryptoFormButtons: AesCryptoFormButtons = {
   generateSaltButton: 'generate-salt-button',
   generateEncryptionKeyButton: 'generate-encryption-key-button',

@@ -7,6 +7,7 @@ import {
   aesCryptoFormHeader,
   aesCryptoFormHeaderBackButton,
   aesCryptoFormSafeArea,
+  vaultKdfBenchmarkButton,
 } from './AesCrypto.testIds';
 
 const mockGoBack = jest.fn();
@@ -49,6 +50,13 @@ describe('AesCryptoTestForm', () => {
       getByText(strings('app_settings.aes_crypto_test_form_title')),
     ).toBeOnTheScreen();
     expect(getByTestId(aesCryptoFormHeaderBackButton)).toBeOnTheScreen();
+  });
+
+  it('renders the vault KDF benchmark button', () => {
+    const { getByTestId, getByText } = render(<AesCryptoTestForm />);
+
+    expect(getByTestId(vaultKdfBenchmarkButton)).toBeOnTheScreen();
+    expect(getByText('Run vault KDF benchmark')).toBeOnTheScreen();
   });
 
   it('calls navigation.goBack when header back button is pressed', () => {
