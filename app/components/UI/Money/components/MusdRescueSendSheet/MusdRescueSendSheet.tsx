@@ -1,7 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ethers } from 'ethers';
 import { useNavigation } from '@react-navigation/native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -18,9 +16,9 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
-import { doENSLookup } from '../../../../../util/ENSUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountMusdRescueSend from '../../hooks/useMoneyAccountMusdRescueSend';
+import useMusdRescueRecipients from '../../hooks/useMusdRescueRecipients';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { MUSD_CURRENCY } from '../../../Earn/constants/musd';
@@ -30,12 +28,14 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MusdRescueSendSheetTestIds } from '../MoneyTransferSheet/MoneyTransferSheet.testIds';
+import MusdRescueRecipientSelector from './MusdRescueRecipientSelector';
 
 const MusdRescueSendSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { liquidMusd, isBalanceLoading, isBalanceFetchError } =
     useMoneyAccountBalance();
+  const { recipients } = useMusdRescueRecipients();
   const { initiateRescueSend } = useMoneyAccountMusdRescueSend();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
@@ -48,7 +48,7 @@ const MusdRescueSendSheet = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   // Set synchronously on entry so a second tap cannot start a second
-  // submission while the first is still resolving ENS or validating.
+  // submission while the first is still resolving.
   const isSubmitInFlightRef = useRef(false);
 
   const isBalanceUnavailable = isBalanceLoading || isBalanceFetchError;
@@ -72,29 +72,11 @@ const MusdRescueSendSheet = () => {
   const handleSendInner = useCallback(async () => {
     setErrorMessage(undefined);
 
-    let resolvedRecipient = recipient;
-    if (!ethers.utils.isAddress(recipient)) {
-      if (!recipient.includes('.')) {
-        setErrorMessage(
-          strings('money.musd_rescue_send.error_invalid_recipient'),
-        );
-        return;
-      }
-
-      // The current ENS helper supports Ethereum mainnet only. Resolve .eth
-      // names there; the resulting address can still receive Monad mUSD.
-      try {
-        resolvedRecipient =
-          (await doENSLookup(recipient, CHAIN_IDS.MAINNET)) ?? '';
-      } catch {
-        resolvedRecipient = '';
-      }
-      if (!ethers.utils.isAddress(resolvedRecipient)) {
-        setErrorMessage(
-          strings('money.musd_rescue_send.error_invalid_recipient'),
-        );
-        return;
-      }
+    if (!recipient) {
+      setErrorMessage(
+        strings('money.musd_rescue_send.error_invalid_recipient'),
+      );
+      return;
     }
 
     const amountValue = new BigNumber(amount);
@@ -123,7 +105,7 @@ const MusdRescueSendSheet = () => {
     setIsSubmitting(true);
     try {
       await initiateRescueSend({
-        recipient: resolvedRecipient,
+        recipient,
         amount,
       });
     } catch (error) {
@@ -195,11 +177,10 @@ const MusdRescueSendSheet = () => {
             : `${strings('money.musd_rescue_send.available_label')}: ${liquidMusd?.toString() ?? '0'} ${MUSD_CURRENCY}`}
         </Text>
 
-        <TextField
-          testID={MusdRescueSendSheetTestIds.RECIPIENT_INPUT}
-          value={recipient}
-          onChangeText={setRecipient}
-          placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
+        <MusdRescueRecipientSelector
+          recipients={recipients}
+          selectedAddress={recipient}
+          onSelect={setRecipient}
           isDisabled={isSubmitting}
         />
 
@@ -211,15 +192,23 @@ const MusdRescueSendSheet = () => {
           isDisabled={isSubmitting || !hasLiquidBalance}
           inputProps={{ keyboardType: 'decimal-pad' }}
           endAccessory={
-            <Button
-              variant={ButtonVariant.Tertiary}
-              size={ButtonBaseSize.Sm}
-              onPress={handleMax}
-              testID={MusdRescueSendSheetTestIds.MAX_BUTTON}
-              isDisabled={!hasLiquidBalance}
+            // The design-system Button aligns itself to the top of the field's
+            // cross axis (`self-start`), so wrap it in a full-height,
+            // vertically-centered Box to keep "Max" optically centered.
+            <Box
+              twClassName="h-12 justify-center"
+              testID={MusdRescueSendSheetTestIds.MAX_BUTTON_WRAPPER}
             >
-              {strings('money.musd_rescue_send.max')}
-            </Button>
+              <Button
+                variant={ButtonVariant.Tertiary}
+                size={ButtonBaseSize.Sm}
+                onPress={handleMax}
+                testID={MusdRescueSendSheetTestIds.MAX_BUTTON}
+                isDisabled={!hasLiquidBalance}
+              >
+                {strings('money.musd_rescue_send.max')}
+              </Button>
+            </Box>
           }
         />
 
